@@ -25,18 +25,9 @@ import org.onebillion.xprz.utils.URadialGradient;
 public class OBGroup extends OBControl
 {
     public List<OBControl> members,sortedAttachedControls;
-    boolean sortedAttachedControlsValid;
     public Map<String,OBControl>objectDict;
+    boolean sortedAttachedControlsValid;
 
-    public static RectF frameUnion(List<OBControl> _members)
-    {
-        if (_members.size() == 0)
-            return new RectF();
-        RectF r = new RectF(_members.get(0).frame());
-        for (OBControl c : _members)
-            r.union(c.frame());
-        return r;
-    }
 
     public OBGroup()
     {
@@ -61,97 +52,18 @@ public class OBGroup extends OBControl
         bounds.set(0,0,f.right - f.left,f.bottom - f.top);
     }
 
-    public RectF bounds()
-    {
-        return bounds;
-    }
-
     public OBGroup(List<OBControl> _members) {
         this(_members, OBGroup.frameUnion(_members));
     }
 
-    @Override
-    public OBControl copy()
+    public static RectF frameUnion(List<OBControl> _members)
     {
-        OBGroup obj = (OBGroup)super.copy();
-        obj.objectDict = new HashMap<String,OBControl>();
-        obj.members = new ArrayList<OBControl>();
-        for (OBControl c : members)
-        {
-            OBControl cx = c.copy();
-            obj.members.add(cx);
-            cx.parent = obj;
-        }
-        sortedAttachedControls = new ArrayList<OBControl>();
-        sortedAttachedControlsValid = false;
-            return obj;
-    }
-
-    public PointF position() {
-        return position;
-    }
-
-    public void setFrame(RectF f) {
-        frame = f;
-    }
-
-    void populateSortedAttachedControls()
-    {
-        if (!sortedAttachedControlsValid)
-        {
-            sortedAttachedControls.clear();
-            sortedAttachedControls.addAll(members);
-            for (int i = 0;i < sortedAttachedControls.size();i++)
-                sortedAttachedControls.get(i).tempSortInt = i;
-            Collections.sort(sortedAttachedControls, new Comparator<OBControl>()
-            {
-                @Override
-                public int compare(OBControl lhs, OBControl rhs)
-                {
-                    if (lhs.zPosition < rhs.zPosition)
-                        return -1;
-                    if (lhs.zPosition > rhs.zPosition)
-                        return 1;
-                    if (lhs.tempSortInt < rhs.tempSortInt)
-                        return -1;
-                    if (lhs.tempSortInt > rhs.tempSortInt)
-                        return 1;
-                    return 0;
-                }
-            });
-            sortedAttachedControlsValid = true;
-        }
-    }
-
-    public void render(OBRenderer renderer,OBViewController vc,float[] modelViewMatrix)
-    {
-        if (shouldTexturise)
-        {
-            super.render(renderer,vc,modelViewMatrix);
-            return;
-        }
-        matrix3dForDraw();
-        if (doubleSided)
-            GLES20.glDisable(GLES20.GL_CULL_FACE);
-        else
-            GLES20.glEnable(GLES20.GL_CULL_FACE);
-        android.opengl.Matrix.multiplyMM(tempMatrix,0,modelViewMatrix,0,modelMatrix,0);
-        populateSortedAttachedControls();
-        for (OBControl c : sortedAttachedControls)
-            c.render(renderer,vc,tempMatrix);
-    }
-
-    public void drawLayer(Canvas canvas)
-    {
-        populateSortedAttachedControls();
-        for (OBControl c : sortedAttachedControls)
-            c.draw(canvas);
-    }
-
-    public void highlight()
-    {
-        enCache();
-        super.highlight();
+        if (_members.size() == 0)
+            return new RectF();
+        RectF r = new RectF(_members.get(0).frame());
+        for (OBControl c : _members)
+            r.union(c.frame());
+        return r;
     }
 
     static Object fillFromNodeAttributes(Map<String, String> attrs)
@@ -196,12 +108,6 @@ public class OBGroup extends OBControl
             }
         }
     }
-
-    public void buildObjectDict()
-    {
-        GetObjectIdsFromArray(members, objectDict);
-    }
-
 
     static int svgFunction(String str, List<Object> list, int index)
     {
@@ -515,9 +421,6 @@ public class OBGroup extends OBControl
         return grad;
     }
 
-
-
-
     static RectF rectFromString(String s)
     {
         String ra[] = s.split("[, ]", 0);
@@ -724,6 +627,7 @@ public class OBGroup extends OBControl
             }
         }
     }
+
     static void processSVGNode(OBXMLNode child, List<Map<String, Object>> settingsStack, List<OBControl> objects)
     {
         Object g = objectFromSVGNode(child, settingsStack);
@@ -780,6 +684,100 @@ public class OBGroup extends OBControl
         if (!root.nodeName.equals("svg"))
             return null;
         return groupFromSVGXML(root);
+    }
+
+    public RectF bounds()
+    {
+        return bounds;
+    }
+
+    @Override
+    public OBControl copy()
+    {
+        OBGroup obj = (OBGroup)super.copy();
+        obj.objectDict = new HashMap<String,OBControl>();
+        obj.members = new ArrayList<OBControl>();
+        for (OBControl c : members)
+        {
+            OBControl cx = c.copy();
+            obj.members.add(cx);
+            cx.parent = obj;
+        }
+        sortedAttachedControls = new ArrayList<OBControl>();
+        sortedAttachedControlsValid = false;
+            return obj;
+    }
+
+    public PointF position() {
+        return position;
+    }
+
+    public void setFrame(RectF f) {
+        frame = f;
+    }
+
+    void populateSortedAttachedControls()
+    {
+        if (!sortedAttachedControlsValid)
+        {
+            sortedAttachedControls.clear();
+            sortedAttachedControls.addAll(members);
+            for (int i = 0;i < sortedAttachedControls.size();i++)
+                sortedAttachedControls.get(i).tempSortInt = i;
+            Collections.sort(sortedAttachedControls, new Comparator<OBControl>()
+            {
+                @Override
+                public int compare(OBControl lhs, OBControl rhs)
+                {
+                    if (lhs.zPosition < rhs.zPosition)
+                        return -1;
+                    if (lhs.zPosition > rhs.zPosition)
+                        return 1;
+                    if (lhs.tempSortInt < rhs.tempSortInt)
+                        return -1;
+                    if (lhs.tempSortInt > rhs.tempSortInt)
+                        return 1;
+                    return 0;
+                }
+            });
+            sortedAttachedControlsValid = true;
+        }
+    }
+
+    public void render(OBRenderer renderer,OBViewController vc,float[] modelViewMatrix)
+    {
+        if (shouldTexturise)
+        {
+            super.render(renderer,vc,modelViewMatrix);
+            return;
+        }
+        matrix3dForDraw();
+        if (doubleSided)
+            GLES20.glDisable(GLES20.GL_CULL_FACE);
+        else
+            GLES20.glEnable(GLES20.GL_CULL_FACE);
+        android.opengl.Matrix.multiplyMM(tempMatrix,0,modelViewMatrix,0,modelMatrix,0);
+        populateSortedAttachedControls();
+        for (OBControl c : sortedAttachedControls)
+            c.render(renderer,vc,tempMatrix);
+    }
+
+    public void drawLayer(Canvas canvas)
+    {
+        populateSortedAttachedControls();
+        for (OBControl c : sortedAttachedControls)
+            c.draw(canvas);
+    }
+
+    public void highlight()
+    {
+        enCache();
+        super.highlight();
+    }
+
+    public void buildObjectDict()
+    {
+        GetObjectIdsFromArray(members, objectDict);
     }
 
     public OBGroup primogenitor()

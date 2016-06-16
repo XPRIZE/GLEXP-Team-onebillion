@@ -9,6 +9,7 @@ import android.view.View;
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.utils.OBRunnableSyncUI;
+import org.onebillion.xprz.utils.OBRunnableUI;
 import org.onebillion.xprz.utils.OB_Maths;
 import org.onebillion.xprz.utils.OB_utils;
 
@@ -45,6 +46,7 @@ public class X_Count20_S1 extends XPRZ_SectionController
         attachControl(txt);
         doVisual(currentEvent());
         unlockScreen();
+
     }
 
     public long switchStatus(String scene)
@@ -55,21 +57,12 @@ public class X_Count20_S1 extends XPRZ_SectionController
     public void start()
     {
         setStatus(0);
-        new AsyncTask<Void, Void,Void>()
-        {
-            protected Void doInBackground(Void... params) {
-                try
-                {
+        OB_utils.runOnOtherThread(()->{
                     if (!performSel("demo",currentEvent()))
                     {
                         doBody(currentEvent());
                     }
-                }
-                catch (Exception exception)
-                {
-                }
-                return null;
-            }}.execute();
+        });
     }
 
     public void setScene1a()
@@ -124,23 +117,19 @@ public class X_Count20_S1 extends XPRZ_SectionController
         final OBControl dash = objectDict.get("dottedline");
         final OBControl counter = objectDict.get("obj11");
         playAudioQueuedScene("sfx", "tap", true);
-        new OBRunnableSyncUI(){public void ex()
-        {
+        OB_utils.runOnMainThread(()->{
             dash.setPosition(counter.bottomPoint());
             dash.show();
             invalidateControl(dash);
-        }
-        }.run();
+        });
         waitAudio();
         movePointerToPoint(OB_Maths.locationForRect(1.1f, 1.1f, dash.frame()), -35, 0.6f, true);
         playAudioQueuedScene(currentEvent(), "DEMO2", true);
         waitForSecs(0.4);
-        new OBRunnableSyncUI(){public void ex()
-        {
+        OB_utils.runOnMainThread(()->{
             thePointer.hide();
             invalidateControl(thePointer);
-        }
-        }.run();
+        });
         nextScene();
     }
 
@@ -151,18 +140,20 @@ public class X_Count20_S1 extends XPRZ_SectionController
         for (int i = 1;i <= 20;i++)
         {
             final OBControl obj = objectDict.get(String.format("obj%d",i));
-            new OBRunnableSyncUI(){public void ex()
-            {
+
+            OB_utils.runOnMainThread(()->{
+
+
+            });
+
+            OB_utils.runOnMainThread(()->{
                 obj.highlight();
-            }
-            }.run();
+            });
             playAudioScene(currentEvent(), "DEMO2", i - 1);
             waitAudio();
-            new OBRunnableSyncUI(){public void ex()
-            {
+            OB_utils.runOnMainThread(()->{
                 obj.lowlight();
-            }
-            }.run();
+            });
             waitForSecs(0.2);
 
         }
@@ -187,13 +178,11 @@ public class X_Count20_S1 extends XPRZ_SectionController
         doMainXX();
         final OBControl obj = objectDict.get("obj11");
         final OBControl dash = objectDict.get("dottedline");
-        new OBRunnableSyncUI(){public void ex()
-        {
+        OB_utils.runOnMainThread(()->{
             dash.setPosition(obj.bottomPoint());
             dash.show();
             invalidateControl(dash);
-        }
-        }.run();
+        });
     }
     public void doMain1c() throws Exception
     {
@@ -233,8 +222,7 @@ public class X_Count20_S1 extends XPRZ_SectionController
             final OBControl nextcounter = objectDict.get(String.format("obj%d",currNo+1));
             final OBControl dash = objectDict.get("dottedline");
             final OBLabel txt = (OBLabel)objectDict.get("label");
-            new OBRunnableSyncUI(){public void ex()
-            {
+            OB_utils.runOnMainThread(()->{
                 if (currcounter != null)
                     currcounter.show();
                 invalidateControl(currcounter);
@@ -245,8 +233,7 @@ public class X_Count20_S1 extends XPRZ_SectionController
                 invalidateControl(dash);
                 txt.setString(String.format("%d", currNo));
                 invalidateControl(txt);
-            }
-            }.run();
+            });
             String audFeedback = StrAndNo("CORRECT",currNo - 10);
             playAudioQueuedScene(currentEvent(),audFeedback,false);
             nextObj();
@@ -269,14 +256,9 @@ public class X_Count20_S1 extends XPRZ_SectionController
             final OBControl c = findTarget(pt);
             if (c != null)
             {
-                new AsyncTask<Void, Void, Void>()
-                {
-                    protected Void doInBackground(Void... params)
-                    {
+                OB_utils.runOnOtherThread(()->{
                         checkTarget(c);
-                        return null;
-                    }
-                }.execute();
+                    });
 
             }
         }

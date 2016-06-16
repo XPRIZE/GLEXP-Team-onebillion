@@ -15,6 +15,7 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.*;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
@@ -498,5 +499,58 @@ public class OB_utils
         }
         return arr;
     }
+
+    public static void runOnMainThread(RunLambda lamb)
+    {
+         new OBRunnableSyncUI() {
+            @Override
+            public void ex() {
+                try {
+                    lamb.run();
+                }
+                catch (Exception exception)
+                {
+                }
+            }
+        }.run();
+    }
+
+    public static void runOnOtherThread(RunLambda lamb)
+    {
+        new AsyncTask<Void, Void,Void>()
+        {
+            protected Void doInBackground(Void... params) {
+                try
+                {
+                    lamb.run();
+                }
+                catch (Exception exception)
+                {
+                }
+                return null;
+            }}.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
+    }
+
+    public static void runOnOtherThreadDelayed(float delay, RunLambda lamb)
+    {
+        new AsyncTask<Void, Void,Void>()
+        {
+            protected Void doInBackground(Void... params) {
+                try
+                {
+                    Thread.sleep(Math.round(delay*1000));
+                    lamb.run();
+                }
+                catch (Exception exception)
+                {
+                }
+                return null;
+            }}.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
+    }
+
+    public interface RunLambda {
+        public void run() throws Exception;
+    }
+
 
 }
