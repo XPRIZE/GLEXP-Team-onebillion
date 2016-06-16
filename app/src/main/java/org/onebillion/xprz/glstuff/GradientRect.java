@@ -96,15 +96,15 @@ public class GradientRect
         vertices[idx+2] = rgb2[2];
         vertices[idx+3] = rgb2[3];
         idx += stride;
-        vertices[idx] = rgb2[0];
-        vertices[idx+1] = rgb2[1];
-        vertices[idx+2] = rgb2[2];
-        vertices[idx+3] = rgb2[3];
-        idx += stride;
         vertices[idx] = rgb1[0];
         vertices[idx+1] = rgb1[1];
         vertices[idx+2] = rgb1[2];
         vertices[idx+3] = rgb1[3];
+        idx += stride;
+        vertices[idx] = rgb2[0];
+        vertices[idx+1] = rgb2[1];
+        vertices[idx+2] = rgb2[2];
+        vertices[idx+3] = rgb2[3];
     }
 
 }
