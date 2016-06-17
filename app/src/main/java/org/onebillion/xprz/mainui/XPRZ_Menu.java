@@ -105,7 +105,7 @@ public class XPRZ_Menu extends XPRZ_SectionController
                 String configName = (String)attrs.get("config");
                 if (configName != null)
                     MainActivity.mainActivity.updateConfigPaths(configName,false);
-                if (!MainActivity.mainViewController.pushViewControllerWithName(target,true,true,parm))
+                if (!MainActivity.mainViewController.pushViewControllerWithNameConfig(target,configName,true,true,parm))
                     setStatus(STATUS_IDLE);
 
             }
