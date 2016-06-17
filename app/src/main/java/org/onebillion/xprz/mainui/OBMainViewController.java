@@ -216,6 +216,38 @@ public class OBMainViewController extends OBViewController
         }*/
     }
 
+    private Class controllerClass(String name, String configPath)
+    {
+        try
+        {
+            String config ="";
+            if(configPath != null) {
+                String[] paths = configPath.split("/");
+                config = paths[0];
+                config = config.replace("-", "_");
+                config += ".";
+            }
+            Class cnm = Class.forName("org.onebillion.xprz.mainui."+config+name);
+            return cnm;
+        }
+        catch(ClassNotFoundException e)
+        {
+            if(configPath != null)
+                return controllerClass(name, null);
+        }
+        return null;
+    }
+
+    public boolean pushViewControllerWithNameConfig(String nm, String configPath,boolean animate,boolean fromRight,Object _params)
+    {
+        Class cnm = controllerClass(nm,configPath);
+        if(cnm == null)
+            return false;
+
+        pushViewController(cnm, animate,fromRight, _params);
+        return true;
+    }
+
     public boolean pushViewControllerWithName(String nm,boolean animate,boolean fromRight,Object _params)
     {
         try

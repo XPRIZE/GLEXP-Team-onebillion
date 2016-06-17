@@ -66,8 +66,8 @@ public class OBSectionController extends OBViewController
     public Object params;
     public OBControl target;
     public boolean _aborting,sortedAttachedControlsValid,initialised;
+    public OBControl thePointer,tick;
     int eventIndex,replayAudioIndex,theStatus,theMoveSpeed;
-    OBControl thePointer,tick;
     List<Object> _replayAudio;
     long audioQueueToken,sequenceToken,statusTime;
     Lock sequenceLock;
