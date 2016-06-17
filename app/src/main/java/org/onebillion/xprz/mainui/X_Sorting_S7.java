@@ -1,6 +1,5 @@
 package org.onebillion.xprz.mainui;
 
-import android.graphics.Color;
 import android.graphics.PointF;
 import android.os.AsyncTask;
 import android.os.SystemClock;
@@ -10,7 +9,7 @@ import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.utils.OBRunnableSyncUI;
 import org.onebillion.xprz.utils.OB_Maths;
-import org.onebillion.xprz.utils.OB_utils;
+import org.onebillion.xprz.utils.OBUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -94,7 +93,7 @@ public class X_Sorting_S7 extends XPRZ_SectionController
         }
         cards = crds;
         //deleteControls("group.*");
-        List<OBControl> rcards = OB_utils.randomlySortedArray(cards);
+        List<OBControl> rcards = OBUtils.randomlySortedArray(cards);
         if (adjustTable)
         {
             rcards.remove(cards.get(0));

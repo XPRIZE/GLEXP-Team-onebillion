@@ -7,25 +7,18 @@ import java.util.List;
 import android.app.Activity;
 import android.graphics.*;
 import android.opengl.GLSurfaceView;
-import android.os.AsyncTask;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.SystemClock;
 import android.view.*;
-import android.view.ViewGroup.LayoutParams;
-import android.widget.ImageButton;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBImage;
 import org.onebillion.xprz.glstuff.OBGLView;
 import org.onebillion.xprz.glstuff.OBRenderer;
 import org.onebillion.xprz.glstuff.TextureShaderProgram;
-import org.onebillion.xprz.utils.OBAnim;
-import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBImageManager;
-import org.onebillion.xprz.utils.OBRunnableSyncUI;
 import org.onebillion.xprz.utils.OB_Maths;
-import org.onebillion.xprz.utils.OB_utils;
+import org.onebillion.xprz.utils.OBUtils;
 
 public class OBMainViewController extends OBViewController
 {
@@ -70,16 +63,16 @@ public class OBMainViewController extends OBViewController
             return;
 
         Rect bounds = bounds();
-        topLeftButton = OB_utils.buttonFromSVGName("back");
+        topLeftButton = OBUtils.buttonFromSVGName("back");
         topLeftButton.setLeft(0);
         topLeftButton.setTop(0);
-        bottomLeftButton = OB_utils.buttonFromSVGName("prev");
+        bottomLeftButton = OBUtils.buttonFromSVGName("prev");
         bottomLeftButton.setLeft(0);
         bottomLeftButton.setBottom(bounds.height());
-        topRightButton = OB_utils.buttonFromSVGName("repeataudio");
+        topRightButton = OBUtils.buttonFromSVGName("repeataudio");
         topRightButton.setRight(bounds.width());
         topRightButton.setTop(0);
-        bottomRightButton = OB_utils.buttonFromSVGName("next");
+        bottomRightButton = OBUtils.buttonFromSVGName("next");
         bottomRightButton.setRight(bounds.width());
         bottomRightButton.setBottom(bounds.height());
     }

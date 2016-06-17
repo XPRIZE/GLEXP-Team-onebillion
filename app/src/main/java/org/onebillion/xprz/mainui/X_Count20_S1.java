@@ -3,15 +3,12 @@ package org.onebillion.xprz.mainui;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.Typeface;
-import android.os.AsyncTask;
 import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBLabel;
-import org.onebillion.xprz.utils.OBRunnableSyncUI;
-import org.onebillion.xprz.utils.OBRunnableUI;
 import org.onebillion.xprz.utils.OB_Maths;
-import org.onebillion.xprz.utils.OB_utils;
+import org.onebillion.xprz.utils.OBUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,7 +34,7 @@ public class X_Count20_S1 extends XPRZ_SectionController
         events = Arrays.asList(eva);
         float textSize = Float.parseFloat(eventAttributes.get("textsize"));
         textSize = MainActivity.mainActivity.applyGraphicScale(textSize);
-        Typeface tf = OB_utils.standardTypeFace();
+        Typeface tf = OBUtils.standardTypeFace();
         OBLabel txt = new OBLabel("20",tf,textSize);
         txt.setColour(Color.BLACK);
         OBControl textbox = objectDict.get("textbox");
@@ -57,12 +54,14 @@ public class X_Count20_S1 extends XPRZ_SectionController
     public void start()
     {
         setStatus(0);
-        OB_utils.runOnOtherThread(()->{
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception {
                     if (!performSel("demo",currentEvent()))
                     {
                         doBody(currentEvent());
                     }
-        });
+        }});
     }
 
     public void setScene1a()
@@ -117,18 +116,31 @@ public class X_Count20_S1 extends XPRZ_SectionController
         final OBControl dash = objectDict.get("dottedline");
         final OBControl counter = objectDict.get("obj11");
         playAudioQueuedScene("sfx", "tap", true);
-        OB_utils.runOnMainThread(()->{
-            dash.setPosition(counter.bottomPoint());
-            dash.show();
-            invalidateControl(dash);
+        OBUtils.runOnMainThread(new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception {
+
+            }
+        });
+
+        OBUtils.runOnMainThread(new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception {
+                dash.setPosition(counter.bottomPoint());
+                dash.show();
+                invalidateControl(dash);
+            }
         });
         waitAudio();
         movePointerToPoint(OB_Maths.locationForRect(1.1f, 1.1f, dash.frame()), -35, 0.6f, true);
         playAudioQueuedScene(currentEvent(), "DEMO2", true);
         waitForSecs(0.4);
-        OB_utils.runOnMainThread(()->{
-            thePointer.hide();
-            invalidateControl(thePointer);
+        OBUtils.runOnMainThread(new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception {
+                thePointer.hide();
+                invalidateControl(thePointer);
+            }
         });
         nextScene();
     }
@@ -141,19 +153,19 @@ public class X_Count20_S1 extends XPRZ_SectionController
         {
             final OBControl obj = objectDict.get(String.format("obj%d",i));
 
-            OB_utils.runOnMainThread(()->{
 
-
-            });
-
-            OB_utils.runOnMainThread(()->{
+            OBUtils.runOnMainThread(new OBUtils.RunLambda() {
+                @Override
+                public void run() throws Exception {
                 obj.highlight();
-            });
+            }});
             playAudioScene(currentEvent(), "DEMO2", i - 1);
             waitAudio();
-            OB_utils.runOnMainThread(()->{
+            OBUtils.runOnMainThread(new OBUtils.RunLambda() {
+                @Override
+                public void run() throws Exception {
                 obj.lowlight();
-            });
+            }});
             waitForSecs(0.2);
 
         }
@@ -178,11 +190,13 @@ public class X_Count20_S1 extends XPRZ_SectionController
         doMainXX();
         final OBControl obj = objectDict.get("obj11");
         final OBControl dash = objectDict.get("dottedline");
-        OB_utils.runOnMainThread(()->{
+        OBUtils.runOnMainThread(new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception {
             dash.setPosition(obj.bottomPoint());
             dash.show();
             invalidateControl(dash);
-        });
+        }});
     }
     public void doMain1c() throws Exception
     {
@@ -222,18 +236,20 @@ public class X_Count20_S1 extends XPRZ_SectionController
             final OBControl nextcounter = objectDict.get(String.format("obj%d",currNo+1));
             final OBControl dash = objectDict.get("dottedline");
             final OBLabel txt = (OBLabel)objectDict.get("label");
-            OB_utils.runOnMainThread(()->{
-                if (currcounter != null)
-                    currcounter.show();
-                invalidateControl(currcounter);
-                if (nextcounter != null)
-                    dash.setPosition(nextcounter.bottomPoint());
-                else
-                    dash.hide();
-                invalidateControl(dash);
-                txt.setString(String.format("%d", currNo));
-                invalidateControl(txt);
-            });
+            OBUtils.runOnMainThread(new OBUtils.RunLambda() {
+                @Override
+                public void run() throws Exception {
+                    if (currcounter != null)
+                        currcounter.show();
+                    invalidateControl(currcounter);
+                    if (nextcounter != null)
+                        dash.setPosition(nextcounter.bottomPoint());
+                    else
+                        dash.hide();
+                    invalidateControl(dash);
+                    txt.setString(String.format("%d", currNo));
+                    invalidateControl(txt);
+            }});
             String audFeedback = StrAndNo("CORRECT",currNo - 10);
             playAudioQueuedScene(currentEvent(),audFeedback,false);
             nextObj();
@@ -256,9 +272,11 @@ public class X_Count20_S1 extends XPRZ_SectionController
             final OBControl c = findTarget(pt);
             if (c != null)
             {
-                OB_utils.runOnOtherThread(()->{
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
+                    @Override
+                    public void run() throws Exception {
                         checkTarget(c);
-                    });
+                    }});
 
             }
         }

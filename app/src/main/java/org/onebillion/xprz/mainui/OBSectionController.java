@@ -14,12 +14,10 @@ import java.util.regex.Pattern;
 
 import android.app.Activity;
 import android.graphics.*;
-import android.graphics.drawable.GradientDrawable;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.view.View;
 
 import org.onebillion.xprz.controls.*;
 import org.onebillion.xprz.glstuff.*;
@@ -64,14 +62,14 @@ public class OBSectionController extends OBViewController
     public Map<String,Object>audioScenes,eventsDict;
     public Map<String,OBControl> miscObjects,objectDict;
     public Map<String,String>eventAttributes,parameters;
-    int eventIndex,replayAudioIndex,theStatus,theMoveSpeed;
-    OBControl thePointer,tick;
-    List<Object> _replayAudio;
-    long audioQueueToken,sequenceToken,statusTime;
     public int targetNo,currNo;
     public Object params;
     public OBControl target;
     public boolean _aborting,sortedAttachedControlsValid,initialised;
+    int eventIndex,replayAudioIndex,theStatus,theMoveSpeed;
+    OBControl thePointer,tick;
+    List<Object> _replayAudio;
+    long audioQueueToken,sequenceToken,statusTime;
     Lock sequenceLock;
 
     float topColour[] = {1,1,1,1};
@@ -116,6 +114,93 @@ public class OBSectionController extends OBViewController
         if (e.contents != null)
             objectDict.put("contents",e.contents);
         return objectDict;
+    }
+
+    static Map<String,Object> Config()
+    {
+        return MainActivity.mainActivity.Config();
+    }
+
+    static float floatOrZero(Map<String,Object>attrs,String s)
+    {
+        if (attrs.get(s) != null)
+            return Float.parseFloat((String)attrs.get(s));
+        return 0;
+    }
+
+    static List<List<Object>> gradientStopsFromArray(List<Map<String,Object>> children)
+    {
+        int col = Color.BLACK;
+        List<List<Object>> elements = new ArrayList<>();
+        for (Map<String,Object> stopdict : children)
+        {
+            Map<String,String> stopattrs = (Map<String,String>)stopdict.get("attrs");
+            String s = stopattrs.get("offset");
+            float stopf = OBUtils.floatOrPercentage(s);
+            s = stopattrs.get("stop-color");
+            if (s != null)
+                col = OBUtils.colorFromRGBString(s);
+            float alpha = 1;
+            s = stopattrs.get("stop-opacity");
+            if (s != null)
+            {
+                alpha = Float.parseFloat(s);
+                col = Color.argb((int) (alpha * 255), Color.red(col), Color.green(col), Color.blue(col));
+            }
+            List<Object> tmpl = new ArrayList<>();
+            tmpl.add(col);
+            tmpl.add(stopf);
+            elements.add(tmpl);
+        }
+        return elements;
+    }
+
+    public static UGradient gradientFromAttributes(Map<String,Object> attrs)
+    {
+        UGradient grad = new UGradient();
+        String s;
+        if ((s = (String)attrs.get("x1")) != null)
+            grad.x1 = OBUtils.floatOrPercentage(s);
+        if ((s = (String)attrs.get("x2")) != null)
+            grad.x2 = OBUtils.floatOrPercentage(s);
+        if ((s = (String)attrs.get("y1")) != null)
+            grad.y1 = OBUtils.floatOrPercentage(s);
+        if ((s = (String)
+                attrs.get("y2")) != null)
+            grad.y2 = OBUtils.floatOrPercentage(s);
+        grad.stops = gradientStopsFromArray((List<Map<String,Object>>)(attrs.get("children")));
+        return grad;
+    }
+
+    public static URadialGradient radialGradientFromAttributes(Map<String,Object> attrs)
+    {
+        URadialGradient grad = new URadialGradient();
+        String s;
+        if ((s = (String)attrs.get("cx")) != null)
+            grad.cx = OBUtils.floatOrPercentage(s);
+        if ((s = (String)attrs.get("fx")) != null)
+            grad.fx = OBUtils.floatOrPercentage(s);
+        if ((s = (String)attrs.get("cy")) != null)
+            grad.cy = OBUtils.floatOrPercentage(s);
+        if ((s = (String)attrs.get("fy")) != null)
+            grad.fy = OBUtils.floatOrPercentage(s);
+        if ((s = (String)attrs.get("r")) != null)
+            grad.r = OBUtils.floatOrPercentage(s);
+        grad.stops = gradientStopsFromArray((List<Map<String,Object>>)(attrs.get("children")));
+        return grad;
+    }
+
+    public static OBControl objectWithMaxZpos(List<OBControl> arr)
+    {
+        OBControl maxobj = null;
+        float maxzpos = -100;
+        for (OBControl c : arr)
+            if (c.zPosition() > maxzpos)
+            {
+                maxobj = c;
+                maxzpos = c.zPosition();
+            }
+        return maxobj;
     }
 
     public Map<String,Object> loadXML(String xmlPath)
@@ -182,16 +267,12 @@ public class OBSectionController extends OBViewController
         _aborting = false;
     }
 
-    static Map<String,Object> Config()
-    {
-        return MainActivity.mainActivity.Config();
-    }
     public String getConfigPath(String cfgName)
     {
         for (String path : (List<String>)Config().get(MainActivity.CONFIG_CONFIG_SEARCH_PATH))
         {
-            String fullpath = OB_utils.stringByAppendingPathComponent(path, cfgName);
-            if (OB_utils.fileExistsAtPath(fullpath))
+            String fullpath = OBUtils.stringByAppendingPathComponent(path, cfgName);
+            if (OBUtils.fileExistsAtPath(fullpath))
                 return fullpath;
         }
         return null;
@@ -201,13 +282,12 @@ public class OBSectionController extends OBViewController
     {
         for (String path : (List<String>)Config().get(MainActivity.CONFIG_AUDIO_SEARCH_PATH))
         {
-            String fullpath = OB_utils.stringByAppendingPathComponent(path,fileName);
-            if (OB_utils.fileExistsAtPath(fullpath))
+            String fullpath = OBUtils.stringByAppendingPathComponent(path,fileName);
+            if (OBUtils.fileExistsAtPath(fullpath))
                 return fullpath;
         }
         return null;
     }
-
 
     public void prepare()
     {
@@ -277,7 +357,7 @@ public class OBSectionController extends OBViewController
             int fill = 0;
             if (fillstr != null)
             {
-                fill = OB_utils.colorFromRGBString(fillstr);
+                fill = OBUtils.colorFromRGBString(fillstr);
                 if (attrs.get("fillopacity") != null)
                 {
                     float fo = Float.parseFloat((String)attrs.get("fillopacity"));
@@ -296,13 +376,6 @@ public class OBSectionController extends OBViewController
             }
         }
         return im;
-    }
-
-    static float floatOrZero(Map<String,Object>attrs,String s)
-    {
-        if (attrs.get(s) != null)
-            return Float.parseFloat((String)attrs.get(s));
-        return 0;
     }
 
     public OBControl loadShape(Map<String,Object>attrs,String nodeType,float graphicScale,RectF r,Map<String,Object>defs)
@@ -399,81 +472,6 @@ public class OBSectionController extends OBViewController
         return im;
     }
 
-    static List<List<Object>> gradientStopsFromArray(List<Map<String,Object>> children)
-    {
-        int col = Color.BLACK;
-        List<List<Object>> elements = new ArrayList<>();
-        for (Map<String,Object> stopdict : children)
-        {
-            Map<String,String> stopattrs = (Map<String,String>)stopdict.get("attrs");
-            String s = stopattrs.get("offset");
-            float stopf = OB_utils.floatOrPercentage(s);
-            s = stopattrs.get("stop-color");
-            if (s != null)
-                col = OB_utils.colorFromRGBString(s);
-            float alpha = 1;
-            s = stopattrs.get("stop-opacity");
-            if (s != null)
-            {
-                alpha = Float.parseFloat(s);
-                col = Color.argb((int) (alpha * 255), Color.red(col), Color.green(col), Color.blue(col));
-            }
-            List<Object> tmpl = new ArrayList<>();
-            tmpl.add(col);
-            tmpl.add(stopf);
-            elements.add(tmpl);
-        }
-        return elements;
-    }
-
-    public static UGradient gradientFromAttributes(Map<String,Object> attrs)
-    {
-        UGradient grad = new UGradient();
-        String s;
-        if ((s = (String)attrs.get("x1")) != null)
-            grad.x1 = OB_utils.floatOrPercentage(s);
-        if ((s = (String)attrs.get("x2")) != null)
-            grad.x2 = OB_utils.floatOrPercentage(s);
-        if ((s = (String)attrs.get("y1")) != null)
-            grad.y1 = OB_utils.floatOrPercentage(s);
-        if ((s = (String)
-                attrs.get("y2")) != null)
-            grad.y2 = OB_utils.floatOrPercentage(s);
-        grad.stops = gradientStopsFromArray((List<Map<String,Object>>)(attrs.get("children")));
-        return grad;
-    }
-
-    public static URadialGradient radialGradientFromAttributes(Map<String,Object> attrs)
-    {
-        URadialGradient grad = new URadialGradient();
-        String s;
-        if ((s = (String)attrs.get("cx")) != null)
-            grad.cx = OB_utils.floatOrPercentage(s);
-        if ((s = (String)attrs.get("fx")) != null)
-            grad.fx = OB_utils.floatOrPercentage(s);
-        if ((s = (String)attrs.get("cy")) != null)
-            grad.cy = OB_utils.floatOrPercentage(s);
-        if ((s = (String)attrs.get("fy")) != null)
-            grad.fy = OB_utils.floatOrPercentage(s);
-        if ((s = (String)attrs.get("r")) != null)
-            grad.r = OB_utils.floatOrPercentage(s);
-        grad.stops = gradientStopsFromArray((List<Map<String,Object>>)(attrs.get("children")));
-        return grad;
-    }
-
-    public static OBControl objectWithMaxZpos(List<OBControl> arr)
-    {
-        OBControl maxobj = null;
-        float maxzpos = -100;
-        for (OBControl c : arr)
-            if (c.zPosition() > maxzpos)
-            {
-                maxobj = c;
-                maxzpos = c.zPosition();
-            }
-        return maxobj;
-    }
-
     public Object loadImageFromDictionary(Map<String,Object> image,float graphicScale,Map<String,Object>defs)
     {
         boolean scalable = true;
@@ -495,7 +493,7 @@ public class OBSectionController extends OBViewController
             }
         }
         String posstr = (String)attrs.get("pos");
-        PointF pos = OB_utils.pointFromString(posstr);
+        PointF pos = OBUtils.pointFromString(posstr);
         OBControl im = null;
         String nodeType = (String)image.get("nodetype");
         String srcname = (String)attrs.get("src");
@@ -507,11 +505,11 @@ public class OBSectionController extends OBViewController
             int skinOffset = 0;
             if (attrs.get("skinoffset") != null)
                 skinOffset = Integer.parseInt((String)attrs.get("skinoffset"));
-            int skincol = OB_utils.SkinColour(OB_utils.SkinColourIndex() + skinOffset);
+            int skincol = OBUtils.SkinColour(OBUtils.SkinColourIndex() + skinOffset);
             ((OBGroup)im).substituteFillForAllMembers("skin.*", skincol);
             if (attrs.get("fill") != null)
             {
-                int col = OB_utils.colorFromRGBString((String)attrs.get("fill"));
+                int col = OBUtils.colorFromRGBString((String)attrs.get("fill"));
                 ((OBGroup)im).substituteFillForAllMembers("col.*", col);
             }
         }
@@ -587,7 +585,7 @@ public class OBSectionController extends OBViewController
             }
             if (attrs.get("fill") != null)
             {
-                int col = OB_utils.colorFromRGBString((String)attrs.get("fill"));
+                int col = OBUtils.colorFromRGBString((String)attrs.get("fill"));
                 ((OBGroup)im).substituteFillForAllMembers("col.*",col);
             }
         }
@@ -656,7 +654,7 @@ public class OBSectionController extends OBViewController
             }
             if (attrs.get("anchor") != null && !nodeType.equals("rectangle"))
             {
-                PointF anc = OB_utils.pointFromString((String)attrs.get("anchor"));
+                PointF anc = OBUtils.pointFromString((String)attrs.get("anchor"));
                 PointF destPoint = OB_Maths.locationForRect(anc, im.frame());
                 PointF vec = OB_Maths.DiffPoints(im.position(), destPoint);
                 PointF newPoint = OB_Maths.AddPoints(im.position(), vec);
@@ -673,7 +671,7 @@ public class OBSectionController extends OBViewController
             }
             if (attrs.get("shadowcolour") != null)
             {
-                int col = OB_utils.colorFromRGBString((String)attrs.get("shadowcolour"));
+                int col = OBUtils.colorFromRGBString((String)attrs.get("shadowcolour"));
                 float ratio = Math.abs(1 / shadScale);
                 if (!scalable)
                     ratio = graphicScale;
@@ -716,16 +714,16 @@ public class OBSectionController extends OBViewController
             eventAttributes = new HashMap<>();
         if (eventAttributes.get("colour") != null)
         {
-            int col = (OB_utils.colorFromRGBString(eventAttributes.get("colour")));
-            OB_utils.getFloatColour(col,topColour);
-            OB_utils.getFloatColour(col,bottomColour);
+            int col = (OBUtils.colorFromRGBString(eventAttributes.get("colour")));
+            OBUtils.getFloatColour(col,topColour);
+            OBUtils.getFloatColour(col,bottomColour);
         }
         if (eventAttributes.get("gradienttop") != null)
         {
-            int col1 = OB_utils.colorFromRGBString(eventAttributes.get("gradienttop"));
-            int col2 = OB_utils.colorFromRGBString(eventAttributes.get("gradientbottom"));
-            OB_utils.getFloatColour(col1,topColour);
-            OB_utils.getFloatColour(col2,bottomColour);
+            int col1 = OBUtils.colorFromRGBString(eventAttributes.get("gradienttop"));
+            int col2 = OBUtils.colorFromRGBString(eventAttributes.get("gradientbottom"));
+            OBUtils.getFloatColour(col1,topColour);
+            OBUtils.getFloatColour(col2,bottomColour);
          }
         Map<String,Object>defs = new HashMap<String,Object>();
         List<Map<String,Object>> imageList = (List<Map<String,Object>>)event.get("objects");
@@ -1683,7 +1681,7 @@ public class OBSectionController extends OBViewController
         if (duration < 0)
         {
             OBControl c = objs.get(0);
-            duration = OB_utils.durationForPointDist(c.position(), pos, theMoveSpeed);
+            duration = OBUtils.durationForPointDist(c.position(), pos, theMoveSpeed);
         }
         OBAnimationGroup.runAnims(animsForMoveToPoint(objs,pos),duration,true,timingFunction,this);
     }

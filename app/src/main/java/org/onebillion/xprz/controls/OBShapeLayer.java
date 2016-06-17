@@ -1,16 +1,13 @@
 package org.onebillion.xprz.controls;
 
 import android.graphics.Canvas;
-import android.graphics.ColorFilter;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathMeasure;
-import android.graphics.PixelFormat;
-import android.graphics.Rect;
 
 import org.onebillion.xprz.utils.OB_Maths;
-import org.onebillion.xprz.utils.OB_utils;
+import org.onebillion.xprz.utils.OBUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,9 +21,9 @@ public class OBShapeLayer extends OBLayer
     public Paint fillPaint,strokePaint;
     public OBStroke stroke;
     public int fillColour;
+    public float currX,currY;
     float strokeStart,strokeEnd;
     PathMeasure pathMeasure;
-    public float currX,currY;
 
     public OBShapeLayer()
     {
@@ -85,7 +82,7 @@ public class OBShapeLayer extends OBLayer
         if (stroke != null)
         {
             strokePaint.setStrokeWidth(stroke.lineWidth);
-            int col = OB_utils.applyColourOpacity(stroke.colour,opacity);
+            int col = OBUtils.applyColourOpacity(stroke.colour,opacity);
             strokePaint.setColor(col);
             strokePaint.setStrokeCap(stroke.paintLineCap());
             strokePaint.setStrokeJoin(stroke.paintLineJoin());
@@ -98,7 +95,7 @@ public class OBShapeLayer extends OBLayer
         }
         if (fillColour != 0)
         {
-            int col = OB_utils.applyColourOpacity(fillColour,opacity);
+            int col = OBUtils.applyColourOpacity(fillColour,opacity);
             fillPaint.setColor(col);
             //fillPaint.setMaskFilter(new BlurMaskFilter(7, BlurMaskFilter.Blur.NORMAL));
             fillPaint.setStyle(Paint.Style.FILL);

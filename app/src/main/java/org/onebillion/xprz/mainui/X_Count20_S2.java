@@ -12,9 +12,8 @@ import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
-import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBRunnableSyncUI;
-import org.onebillion.xprz.utils.OB_utils;
+import org.onebillion.xprz.utils.OBUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,11 +35,11 @@ public class X_Count20_S2 extends XPRZ_SectionController
     void createBoxAndNumbers()
     {
         OBControl numberBox = objectDict.get("numberbox");
-        int col0 = OB_utils.colorFromRGBString(eventAttributes.get("col0"));
-        int col1 = OB_utils.colorFromRGBString(eventAttributes.get("col1"));
+        int col0 = OBUtils.colorFromRGBString(eventAttributes.get("col0"));
+        int col1 = OBUtils.colorFromRGBString(eventAttributes.get("col1"));
         float textSize = Float.parseFloat(eventAttributes.get("textsize"));
         textSize = MainActivity.mainActivity.applyGraphicScale(textSize);
-        Typeface tf = OB_utils.standardTypeFace();
+        Typeface tf = OBUtils.standardTypeFace();
         RectF frame = numberBox.frame();
         float minX = frame.left;
         float minY = frame.top;

@@ -6,11 +6,10 @@ import android.os.AsyncTask;
 import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
-import org.onebillion.xprz.glstuff.OBGLView;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OB_Maths;
-import org.onebillion.xprz.utils.OB_utils;
+import org.onebillion.xprz.utils.OBUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -97,7 +96,7 @@ public class X_Sorting_S6 extends XPRZ_SectionController
 
             Map<String,Object> target = (Map<String, Object>) objectsdict.get(k);
             Map<String,String> attrs = (Map<String, String>) target.get("attrs");
-            PointF relpt = OB_utils.pointFromString(attrs.get("pos"));
+            PointF relpt = OBUtils.pointFromString(attrs.get("pos"));
 
             c.setProperty("destpos",new PointF(relpt.x,relpt.y));
         }

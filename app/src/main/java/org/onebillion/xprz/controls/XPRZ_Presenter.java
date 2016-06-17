@@ -9,7 +9,7 @@ import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBAudioManager;
 import org.onebillion.xprz.utils.OB_Maths;
-import org.onebillion.xprz.utils.OB_utils;
+import org.onebillion.xprz.utils.OBUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,6 +27,29 @@ public class XPRZ_Presenter extends OBCharacter
         return c;
     }
 
+    public static Path PathForWalk(PointF startpt, PointF endpt, int segs, float yoffset)
+{
+    Path path = new Path();
+    path.moveTo(startpt.x,startpt.y);
+    float startx = startpt.x;
+    float endx = endpt.x;
+    float incrx = (endx - startx) / segs;
+    float currx = startx;
+    float y = startpt.y;
+    for (int i = 0;i < segs;i++)
+    {
+        float xc0 = currx + incrx / 3.0f;
+        float xc1 = xc0 + incrx / 3.0f;
+        currx += incrx;
+        path.cubicTo(xc0,y+yoffset,xc1,y+yoffset,currx,y);
+    }
+    return path;
+}
+
+    public static int BouncesForWalk(float xdist)
+    {
+        return (int)Math.ceil(xdist / MainActivity.mainViewController.glView().getWidth() * 5.0);
+    }
 
     public void selectArmIndex(int i)
     {
@@ -66,6 +89,7 @@ public class XPRZ_Presenter extends OBCharacter
         }
         selectArmIndex(0);
     }
+
     public void faceRight()
     {
         control.lockScreen();
@@ -104,7 +128,7 @@ public class XPRZ_Presenter extends OBCharacter
         long token  = controller.takeSequenceLockInterrupt(true);
         try
         {
-            for (Object af : OB_utils.insertAudioInterval(audioFiles,300))
+            for (Object af : OBUtils.insertAudioInterval(audioFiles,300))
             {
                 if (af instanceof String)
                 {
@@ -160,30 +184,6 @@ public class XPRZ_Presenter extends OBCharacter
             else
                 ((OBSectionController)control.controller).waitForSecsNoThrow(dur);
         }
-    }
-
-    public static Path PathForWalk(PointF startpt, PointF endpt, int segs, float yoffset)
-{
-    Path path = new Path();
-    path.moveTo(startpt.x,startpt.y);
-    float startx = startpt.x;
-    float endx = endpt.x;
-    float incrx = (endx - startx) / segs;
-    float currx = startx;
-    float y = startpt.y;
-    for (int i = 0;i < segs;i++)
-    {
-        float xc0 = currx + incrx / 3.0f;
-        float xc1 = xc0 + incrx / 3.0f;
-        currx += incrx;
-        path.cubicTo(xc0,y+yoffset,xc1,y+yoffset,currx,y);
-    }
-    return path;
-}
-
-    public static int BouncesForWalk(float xdist)
-    {
-        return (int)Math.ceil(xdist / MainActivity.mainViewController.glView().getWidth() * 5.0);
     }
 
     float DurationForWalk(float xdist)

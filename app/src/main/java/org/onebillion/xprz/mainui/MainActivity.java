@@ -15,7 +15,6 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.util.*;
 
-import org.onebillion.xprz.R;
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.glstuff.OBGLView;
@@ -26,7 +25,7 @@ import org.onebillion.xprz.utils.OBImageManager;
 import org.onebillion.xprz.utils.OBUser;
 import org.onebillion.xprz.utils.OBXMLManager;
 import org.onebillion.xprz.utils.OB_Maths;
-import org.onebillion.xprz.utils.OB_utils;
+import org.onebillion.xprz.utils.OBUtils;
 
 public class MainActivity extends ActionBarActivity
 {
@@ -57,13 +56,39 @@ public class MainActivity extends ActionBarActivity
 
     public static MainActivity mainActivity;
     public static OBMainViewController mainViewController;
+    public static Typeface standardTypeFace;
     public Map<String, Object> config;
     public List<OBUser>users;
-    public static Typeface standardTypeFace;
     public OBFatController fatController;
     public OBGLView glSurfaceView;
     public OBRenderer renderer;
     private int b;
+
+    public static OBGroup armPointer()
+    {
+        OBGroup arm = OBImageManager.sharedImageManager().vectorForName("arm_sleeve");
+        OBControl anchor = arm.objectDict.get("anchor");
+        if (anchor != null)
+        {
+            PointF pt = arm.convertPointFromControl(anchor.position(), anchor.parent);
+            PointF rpt = OB_Maths.relativePointInRectForLocation(pt, arm.bounds());
+            arm.anchorPoint = rpt;
+        }
+        else
+            arm.anchorPoint = new PointF(0.64f, 0);
+
+        int skincol = OBUtils.SkinColour(0);
+        arm.substituteFillForAllMembers("skin.*",skincol);
+        arm.setRasterScale((Float)Config().get(CONFIG_GRAPHIC_SCALE));
+        //arm.borderColour = 0xff000000;
+        //arm.borderWidth = 1;
+        return arm;
+    }
+
+    public static Map<String, Object> Config()
+    {
+        return mainActivity.config;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -84,7 +109,6 @@ public class MainActivity extends ActionBarActivity
             e.printStackTrace();
         }
     }
-
 
     void doGLStuff()
     {
@@ -132,27 +156,6 @@ public class MainActivity extends ActionBarActivity
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
 
-    public static OBGroup armPointer()
-    {
-        OBGroup arm = OBImageManager.sharedImageManager().vectorForName("arm_sleeve");
-        OBControl anchor = arm.objectDict.get("anchor");
-        if (anchor != null)
-        {
-            PointF pt = arm.convertPointFromControl(anchor.position(), anchor.parent);
-            PointF rpt = OB_Maths.relativePointInRectForLocation(pt, arm.bounds());
-            arm.anchorPoint = rpt;
-        }
-        else
-            arm.anchorPoint = new PointF(0.64f, 0);
-
-        int skincol = OB_utils.SkinColour(0);
-        arm.substituteFillForAllMembers("skin.*",skincol);
-        arm.setRasterScale((Float)Config().get(CONFIG_GRAPHIC_SCALE));
-        //arm.borderColour = 0xff000000;
-        //arm.borderWidth = 1;
-        return arm;
-    }
-
     public String languageCode()
     {
         return "en_gb";
@@ -162,11 +165,6 @@ public class MainActivity extends ActionBarActivity
     {
         List l = mainViewController.viewControllers;
         return (OBSectionController) l.get(l.size()-1);
-    }
-
-    public static Map<String, Object> Config()
-    {
-        return mainActivity.config;
     }
 
     public Object configValueForKey(String k)
@@ -193,31 +191,31 @@ public class MainActivity extends ActionBarActivity
     public List<String> audioSearchPath(String appDir,String genDir)
     {
         String wDir = null;
-        if (OB_utils.lastPathComponent(OB_utils.stringByDeletingLastPathComponent(appDir)).equals("books"))
-            wDir = OB_utils.stringByDeletingLastPathComponent(OB_utils.stringByDeletingLastPathComponent(appDir));
+        if (OBUtils.lastPathComponent(OBUtils.stringByDeletingLastPathComponent(appDir)).equals("books"))
+            wDir = OBUtils.stringByDeletingLastPathComponent(OBUtils.stringByDeletingLastPathComponent(appDir));
         String language = (String)config.get(CONFIG_LANGUAGE);
         String defaultLanguage = (String)config.get(CONFIG_DEFAULT_LANGUAGE);
         List audioSearchPath = new ArrayList(4);
         if (!language.equals(defaultLanguage))
         {
             if (appDir != null)
-                audioSearchPath.add(OB_utils.stringByAppendingPathComponent(OB_utils.stringByAppendingPathComponent(appDir,"local"),language));
+                audioSearchPath.add(OBUtils.stringByAppendingPathComponent(OBUtils.stringByAppendingPathComponent(appDir,"local"),language));
             if (wDir != null)
-                audioSearchPath.add(OB_utils.stringByAppendingPathComponent(OB_utils.stringByAppendingPathComponent(wDir,"local"),language));
-            audioSearchPath.add(OB_utils.stringByAppendingPathComponent(OB_utils.stringByAppendingPathComponent(genDir,"local"),language));
+                audioSearchPath.add(OBUtils.stringByAppendingPathComponent(OBUtils.stringByAppendingPathComponent(wDir,"local"),language));
+            audioSearchPath.add(OBUtils.stringByAppendingPathComponent(OBUtils.stringByAppendingPathComponent(genDir,"local"),language));
         }
         if (appDir != null)
-            audioSearchPath.add(OB_utils.stringByAppendingPathComponent(OB_utils.stringByAppendingPathComponent(appDir,"local"),defaultLanguage));
+            audioSearchPath.add(OBUtils.stringByAppendingPathComponent(OBUtils.stringByAppendingPathComponent(appDir,"local"),defaultLanguage));
         if (wDir != null)
-            audioSearchPath.add(OB_utils.stringByAppendingPathComponent(OB_utils.stringByAppendingPathComponent(wDir,"local"),defaultLanguage));
-        audioSearchPath.add(OB_utils.stringByAppendingPathComponent(OB_utils.stringByAppendingPathComponent(genDir,"local"),defaultLanguage));
+            audioSearchPath.add(OBUtils.stringByAppendingPathComponent(OBUtils.stringByAppendingPathComponent(wDir,"local"),defaultLanguage));
+        audioSearchPath.add(OBUtils.stringByAppendingPathComponent(OBUtils.stringByAppendingPathComponent(genDir,"local"),defaultLanguage));
 
         if (appDir != null)
-            audioSearchPath.add(OB_utils.stringByAppendingPathComponent(appDir,"sfx"));
-        audioSearchPath.add(OB_utils.stringByAppendingPathComponent(genDir,"sfx"));
+            audioSearchPath.add(OBUtils.stringByAppendingPathComponent(appDir,"sfx"));
+        audioSearchPath.add(OBUtils.stringByAppendingPathComponent(genDir,"sfx"));
 
         for (int i = audioSearchPath.size() - 1;i >= 0;i--)
-            if (!OB_utils.assetsDirectoryExists((String)audioSearchPath.get(i)))
+            if (!OBUtils.assetsDirectoryExists((String)audioSearchPath.get(i)))
                 audioSearchPath.remove(i);
 
         return audioSearchPath;
@@ -225,29 +223,29 @@ public class MainActivity extends ActionBarActivity
 
     public List<String> imageSearchPath(String appDir,String genDir)
     {
-        Boolean inBooks = (OB_utils.lastPathComponent(OB_utils.stringByDeletingLastPathComponent(appDir)).equals("books"));
+        Boolean inBooks = (OBUtils.lastPathComponent(OBUtils.stringByDeletingLastPathComponent(appDir)).equals("books"));
         List lowres = new ArrayList(4);
         if (appDir != null)
         {
-            lowres.add(OB_utils.stringByAppendingPathComponent(appDir,"img/shared_3"));
+            lowres.add(OBUtils.stringByAppendingPathComponent(appDir,"img/shared_3"));
             if (inBooks)
             {
-                String wDir = OB_utils.stringByDeletingLastPathComponent(OB_utils.stringByDeletingLastPathComponent(appDir));
-                lowres.add(OB_utils.stringByAppendingPathComponent(wDir,"img/shared_3"));
+                String wDir = OBUtils.stringByDeletingLastPathComponent(OBUtils.stringByDeletingLastPathComponent(appDir));
+                lowres.add(OBUtils.stringByAppendingPathComponent(wDir,"img/shared_3"));
             }
         }
-        lowres.add(OB_utils.stringByAppendingPathComponent(genDir,"img/shared_3"));
+        lowres.add(OBUtils.stringByAppendingPathComponent(genDir,"img/shared_3"));
         List highres = new ArrayList(4);
         if (appDir != null)
         {
-            highres.add(OB_utils.stringByAppendingPathComponent(appDir,"img/shared_4"));
+            highres.add(OBUtils.stringByAppendingPathComponent(appDir,"img/shared_4"));
             if (inBooks)
             {
-                String wDir = OB_utils.stringByDeletingLastPathComponent(OB_utils.stringByDeletingLastPathComponent(appDir));
-                highres.add(OB_utils.stringByAppendingPathComponent(wDir,"img/shared_4"));
+                String wDir = OBUtils.stringByDeletingLastPathComponent(OBUtils.stringByDeletingLastPathComponent(appDir));
+                highres.add(OBUtils.stringByAppendingPathComponent(wDir,"img/shared_4"));
             }
         }
-        highres.add(OB_utils.stringByAppendingPathComponent(genDir,"img/shared_4"));
+        highres.add(OBUtils.stringByAppendingPathComponent(genDir,"img/shared_4"));
 
         List imageSearchPath = new ArrayList(4);
         imageSearchPath.addAll(highres);
@@ -260,14 +258,14 @@ public class MainActivity extends ActionBarActivity
         List configSearchPath = new ArrayList(4);
         if (appDir != null)
         {
-            configSearchPath.add(OB_utils.stringByAppendingPathComponent(appDir,"config"));
-            if (OB_utils.lastPathComponent(OB_utils.stringByDeletingLastPathComponent(appDir)).equals("books"))
+            configSearchPath.add(OBUtils.stringByAppendingPathComponent(appDir,"config"));
+            if (OBUtils.lastPathComponent(OBUtils.stringByDeletingLastPathComponent(appDir)).equals("books"))
             {
-                String wDir = OB_utils.stringByDeletingLastPathComponent(OB_utils.stringByDeletingLastPathComponent(appDir));
-                configSearchPath.add(OB_utils.stringByAppendingPathComponent(wDir,"config"));
+                String wDir = OBUtils.stringByDeletingLastPathComponent(OBUtils.stringByDeletingLastPathComponent(appDir));
+                configSearchPath.add(OBUtils.stringByAppendingPathComponent(wDir,"config"));
             }
         }
-        configSearchPath.add(OB_utils.stringByAppendingPathComponent(genDir,"config"));
+        configSearchPath.add(OBUtils.stringByAppendingPathComponent(genDir,"config"));
         return configSearchPath;
     }
 
@@ -276,14 +274,14 @@ public class MainActivity extends ActionBarActivity
         List configSearchPath = new ArrayList(4);
         if (appDir != null)
         {
-            configSearchPath.add(OB_utils.stringByAppendingPathComponent(appDir,"img/vector"));
-            if (OB_utils.lastPathComponent(OB_utils.stringByDeletingLastPathComponent(appDir)).equals("books"))
+            configSearchPath.add(OBUtils.stringByAppendingPathComponent(appDir,"img/vector"));
+            if (OBUtils.lastPathComponent(OBUtils.stringByDeletingLastPathComponent(appDir)).equals("books"))
             {
-                String wDir = OB_utils.stringByDeletingLastPathComponent(OB_utils.stringByDeletingLastPathComponent(appDir));
-                configSearchPath.add(OB_utils.stringByAppendingPathComponent(wDir,"img/vector"));
+                String wDir = OBUtils.stringByDeletingLastPathComponent(OBUtils.stringByDeletingLastPathComponent(appDir));
+                configSearchPath.add(OBUtils.stringByAppendingPathComponent(wDir,"img/vector"));
             }
         }
-        configSearchPath.add(OB_utils.stringByAppendingPathComponent(genDir,"img/vector"));
+        configSearchPath.add(OBUtils.stringByAppendingPathComponent(genDir,"img/vector"));
         return configSearchPath;
     }
 
@@ -331,7 +329,7 @@ public class MainActivity extends ActionBarActivity
         ArrayList<Integer> newcols =  new ArrayList<Integer>();
         for (String s : cols)
         {
-            int col = OB_utils.colorFromRGBString(s);
+            int col = OBUtils.colorFromRGBString(s);
             newcols.add(Integer.valueOf(col));
         }
         config.put(CONFIG_COLOURS,newcols);
@@ -339,14 +337,14 @@ public class MainActivity extends ActionBarActivity
         newcols =  new ArrayList<Integer>();
         for (String s : cols)
         {
-            int col = OB_utils.colorFromRGBString(s);
+            int col = OBUtils.colorFromRGBString(s);
             newcols.add(Integer.valueOf(col));
         }
         config.put(CONFIG_SKINCOLOURS,newcols);
         Object skincolour = config.get(CONFIG_SKINCOLOUR);
         if (skincolour != null && skincolour instanceof String)
         {
-            int col = OB_utils.colorFromRGBString((String)skincolour);
+            int col = OBUtils.colorFromRGBString((String)skincolour);
             config.put(CONFIG_SKINCOLOUR, Integer.valueOf(col));
         }
         updateConfigPaths((String)config.get(CONFIG_APP_CODE),true);

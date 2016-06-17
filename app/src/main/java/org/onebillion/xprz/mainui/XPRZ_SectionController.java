@@ -19,7 +19,7 @@ import org.onebillion.xprz.utils.OBAudioManager;
 import org.onebillion.xprz.utils.OBImageManager;
 import org.onebillion.xprz.utils.OBRunnableSyncUI;
 import org.onebillion.xprz.utils.OB_Maths;
-import org.onebillion.xprz.utils.OB_utils;
+import org.onebillion.xprz.utils.OBUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,16 +41,16 @@ public class XPRZ_SectionController extends OBSectionController {
     long animToken;
     boolean needsRounding;
 
+    public XPRZ_SectionController() {
+        super(MainActivity.mainActivity);
+
+    }
+
     public static String StrAndNo(String s,int n)
     {
         if (n == 1)
             return s;
         return String.format("%s%d",s,n);
-    }
-
-    public XPRZ_SectionController() {
-        super(MainActivity.mainActivity);
-
     }
 
     public void setSceneXX(String scene)
@@ -392,14 +392,14 @@ public class XPRZ_SectionController extends OBSectionController {
         Map<String,Object> target = objectsdict.get(objectName);
         Map<String,Object> attrs = (Map<String, Object>) target.get("attrs");
         String parentName = (String) attrs.get("parent");
-        PointF relpt = OB_utils.pointFromString((String) attrs.get("pos"));
+        PointF relpt = OBUtils.pointFromString((String) attrs.get("pos"));
         RectF r = new RectF(bounds());
         if (parentName != null)
             r = objectDict.get(parentName).frame();
         PointF pt = OB_Maths.locationForRect(relpt, r);
         if (attrs.get("anchor") != null)
         {
-            PointF anc = OB_utils.pointFromString((String) attrs.get("anchor"));
+            PointF anc = OBUtils.pointFromString((String) attrs.get("anchor"));
             OBControl im = objectDict.get(objectName);
             RectF f = OB_Maths.frameForPosition(im.frame(), pt);
             PointF destPoint = OB_Maths.locationForRect(anc, f);
