@@ -80,8 +80,7 @@ abstract class ShaderProgram {
         final int[] compileStatus = new int[1];
         glGetShaderiv(shaderObjectId, GL_COMPILE_STATUS, compileStatus, 0);
 
-        Log.v("compileShader", "Results of compiling source:" + "\n" + shaderCode + "\n:"
-                + glGetShaderInfoLog(shaderObjectId));
+        Log.v("compileShader", "Results of compiling source:" + "\n" + shaderCode + "\n:" + glGetShaderInfoLog(shaderObjectId));
 
         // Verify the compile status.
         if (compileStatus[0] == 0) {

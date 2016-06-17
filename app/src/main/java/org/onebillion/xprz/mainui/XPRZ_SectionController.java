@@ -268,12 +268,12 @@ public class XPRZ_SectionController extends OBSectionController {
         fingers = fs;
     }
 
-    OBControl finger(int startidx,int endidx,List<OBControl> targets,PointF pt)
+    public OBControl finger(int startidx,int endidx,List<OBControl> targets,PointF pt)
     {
         return finger(startidx,endidx,targets,pt,false);
     }
 
-    OBControl finger(int startidx,int endidx,List<OBControl> targets,PointF pt,boolean filterDisabled)
+    public OBControl finger(int startidx,int endidx,List<OBControl> targets,PointF pt,boolean filterDisabled)
     {
         for (int i = startidx;i <= endidx;i++)
         {
