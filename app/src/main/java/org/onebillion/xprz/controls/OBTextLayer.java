@@ -62,7 +62,7 @@ public class OBTextLayer extends OBLayer
         if (letterSpacing != 0)
             tempRect.right += (text.length() * letterSpacing);
         float textStart = (bounds().right - tempRect.right) / 2;
-        canvas.drawText(text,0,lineOffset,textPaint);
+        canvas.drawText(text,textStart,lineOffset,textPaint);
     }
 
 
