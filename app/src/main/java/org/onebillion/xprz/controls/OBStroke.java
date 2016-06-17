@@ -6,7 +6,7 @@ import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 
-import org.onebillion.xprz.utils.OB_utils;
+import org.onebillion.xprz.utils.OBUtils;
 
 public class OBStroke
 {
@@ -28,17 +28,6 @@ public class OBStroke
         super();
     }
 
-    public OBStroke copy()
-    {
-        OBStroke obj = new OBStroke();
-        obj.colour = colour;
-        obj.dashes = dashes;
-        obj.lineWidth = lineWidth;
-        obj.dashPhase = dashPhase;
-        obj.lineCap = lineCap;
-        obj.lineJoin = lineJoin;
-        return obj;
-    }
     public OBStroke(Map<String, String> attrs)
     {
         this();
@@ -46,7 +35,7 @@ public class OBStroke
             return;
         String str = attrs.get("stroke");
         if (str != null)
-            colour = OB_utils.svgColorFromRGBString(str);
+            colour = OBUtils.svgColorFromRGBString(str);
         else
             colour = Color.BLACK;
         float opacity = 1.0f;
@@ -107,7 +96,7 @@ public class OBStroke
             return;
         String str = (String)attrs.get("stroke");
         if (str != null)
-            colour = OB_utils.colorFromRGBString(str);
+            colour = OBUtils.colorFromRGBString(str);
         else
             colour = Color.BLACK;
         float opacity = 1.0f;
@@ -150,6 +139,18 @@ public class OBStroke
         String sd = (String)attrs.get("stroke-dashoffset");
         if (sd != null)
             dashPhase = Float.parseFloat(sd);
+    }
+
+    public OBStroke copy()
+    {
+        OBStroke obj = new OBStroke();
+        obj.colour = colour;
+        obj.dashes = dashes;
+        obj.lineWidth = lineWidth;
+        obj.dashPhase = dashPhase;
+        obj.lineCap = lineCap;
+        obj.lineJoin = lineJoin;
+        return obj;
     }
 
     public Paint.Cap paintLineCap()

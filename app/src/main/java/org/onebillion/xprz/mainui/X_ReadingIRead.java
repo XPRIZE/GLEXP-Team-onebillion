@@ -17,12 +17,10 @@ import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBReadingPara;
 import org.onebillion.xprz.utils.OBReadingWord;
 import org.onebillion.xprz.utils.OB_Maths;
-import org.onebillion.xprz.utils.OB_utils;
+import org.onebillion.xprz.utils.OBUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -80,11 +78,11 @@ public class X_ReadingIRead extends X_Reading
         String localPath = getLocalPath("book.xml");
         if (localPath != null)
         {
-            String dirPath = OB_utils.stringByDeletingLastPathComponent(localPath);
-            String slowPath = OB_utils.stringByAppendingPathComponent(dirPath,String.format("ps%d_%d.etpa",pageNo,1));
-            if (OB_utils.fileExistsAtPath(slowPath))
+            String dirPath = OBUtils.stringByDeletingLastPathComponent(localPath);
+            String slowPath = OBUtils.stringByAppendingPathComponent(dirPath,String.format("ps%d_%d.etpa",pageNo,1));
+            if (OBUtils.fileExistsAtPath(slowPath))
                 return true;
-            List<String> files = OB_utils.filesAtPath(dirPath);
+            List<String> files = OBUtils.filesAtPath(dirPath);
             String prefix = String.format("psyl%d_.*",pageNo);
             Pattern p = Pattern.compile(prefix);
             for (String s : files)

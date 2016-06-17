@@ -4,21 +4,15 @@ import android.graphics.Color;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
-import android.graphics.Typeface;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
-import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
-import org.onebillion.xprz.glstuff.OBGLView;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBRunnableSyncUI;
-import org.onebillion.xprz.utils.OBRunnableUI;
 import org.onebillion.xprz.utils.OB_Maths;
-import org.onebillion.xprz.utils.OB_utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;

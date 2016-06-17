@@ -24,7 +24,7 @@ import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBImage;
 import org.onebillion.xprz.mainui.MainActivity;
 
-public class OB_utils
+public class OBUtils
 {
     public static String lastPathComponent(String path)
     {
@@ -500,7 +500,7 @@ public class OB_utils
         return arr;
     }
 
-    public static void runOnMainThread(RunLambda lamb)
+    public static void runOnMainThread(final RunLambda lamb)
     {
          new OBRunnableSyncUI() {
             @Override
@@ -515,7 +515,7 @@ public class OB_utils
         }.run();
     }
 
-    public static void runOnOtherThread(RunLambda lamb)
+    public static void runOnOtherThread(final RunLambda lamb)
     {
         new AsyncTask<Void, Void,Void>()
         {
@@ -531,7 +531,7 @@ public class OB_utils
             }}.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
     }
 
-    public static void runOnOtherThreadDelayed(float delay, RunLambda lamb)
+    public static void runOnOtherThreadDelayed(final float delay, final RunLambda lamb)
     {
         new AsyncTask<Void, Void,Void>()
         {
@@ -549,7 +549,7 @@ public class OB_utils
     }
 
     public interface RunLambda {
-        public void run() throws Exception;
+         public void run() throws Exception;
     }
 
 

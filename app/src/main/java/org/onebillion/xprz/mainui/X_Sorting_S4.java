@@ -8,13 +8,11 @@ import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
-import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OB_Maths;
-import org.onebillion.xprz.utils.OB_utils;
+import org.onebillion.xprz.utils.OBUtils;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -80,7 +78,7 @@ public class X_Sorting_S4 extends XPRZ_SectionController
         {
             correctPaintPot = objectDict.get(potName);
             Map<String,Object> targetAttrs = correctPaintPot.attributes();
-            correctColour = OB_utils.colorFromRGBString((String)targetAttrs.get("fillcolour"));
+            correctColour = OBUtils.colorFromRGBString((String)targetAttrs.get("fillcolour"));
             correctObjArray = filterControls(String.format("%s.*",eventAttributes.get("targetitem")));
         }
         targets = filterControls("objj.*");
@@ -233,7 +231,7 @@ public class X_Sorting_S4 extends XPRZ_SectionController
                 selectPaintPot(paintPot);
                 correctPaintPot = paintPot;
                 Map<String,Object>targetAttrs = correctPaintPot.attributes();
-                correctColour = OB_utils.colorFromRGBString((String)targetAttrs.get("fillcolour"));
+                correctColour = OBUtils.colorFromRGBString((String)targetAttrs.get("fillcolour"));
             }
             setStatus(STATUS_AWAITING_CLICK);
         }

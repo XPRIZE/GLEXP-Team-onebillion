@@ -12,9 +12,8 @@ import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
-import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OB_Maths;
-import org.onebillion.xprz.utils.OB_utils;
+import org.onebillion.xprz.utils.OBUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,10 +35,10 @@ public class X_Count20_S3 extends XPRZ_SectionController
     void createBoxAndNumbers()
     {
         OBControl numberBox = objectDict.get("numberbox");
-        highCol = OB_utils.colorFromRGBString(eventAttributes.get("highcol"));
+        highCol = OBUtils.colorFromRGBString(eventAttributes.get("highcol"));
         float textSize = Float.parseFloat(eventAttributes.get("smalltextsize"));
         textSize = MainActivity.mainActivity.applyGraphicScale(textSize);
-        Typeface tf = OB_utils.standardTypeFace();
+        Typeface tf = OBUtils.standardTypeFace();
         RectF frame = numberBox.frame();
         float minX = frame.left;
         float minY = frame.top;
@@ -100,7 +99,7 @@ public class X_Count20_S3 extends XPRZ_SectionController
         createBoxAndNumbers();
         float textSize = Float.parseFloat(eventAttributes.get("largetextsize"));
         textSize = MainActivity.mainActivity.applyGraphicScale(textSize);
-        Typeface tf = OB_utils.standardTypeFace();
+        Typeface tf = OBUtils.standardTypeFace();
         OBLabel txt = new OBLabel("20",tf,textSize);
         txt.setColour(Color.BLACK);
         OBControl textbox = objectDict.get("textbox");
@@ -144,7 +143,7 @@ public class X_Count20_S3 extends XPRZ_SectionController
         List<OBControl> objs = filterControls("obj.*");
         if (colstr != null)
         {
-            int col = OB_utils.colorFromRGBString(colstr);
+            int col = OBUtils.colorFromRGBString(colstr);
             for (OBControl gp : objs)
                 ((OBGroup)gp).substituteFillForAllMembers("col.*",col);
         }

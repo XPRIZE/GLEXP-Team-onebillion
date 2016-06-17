@@ -14,18 +14,14 @@ import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.utils.OBReadingPara;
 import org.onebillion.xprz.utils.OBReadingWord;
-import org.onebillion.xprz.utils.OBRunnableUI;
 import org.onebillion.xprz.utils.OBXMLManager;
 import org.onebillion.xprz.utils.OBXMLNode;
-import org.onebillion.xprz.utils.OB_utils;
+import org.onebillion.xprz.utils.OBUtils;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -63,6 +59,13 @@ public class X_Reading extends XPRZ_SectionController
     OBReadingWord highlightedWord;
     int highlightColour,backgroundColour;
 
+    static boolean IsLeftHanger(String ch)
+    {
+        for (String ap : Arrays.asList("“","‘"))
+            if (ap.equals(ch))
+                return true;
+        return false;
+    }
 
     public void loadTimingsPara(OBReadingPara para,String xmlPath)
     {
@@ -73,7 +76,7 @@ public class X_Reading extends XPRZ_SectionController
                 OBXMLNode xmlNode = null;
                 OBXMLManager xmlManager = new OBXMLManager();
                 List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
-                String filename = OB_utils.lastPathComponent(xmlPath);
+                String filename = OBUtils.lastPathComponent(xmlPath);
                 boolean isSlow = (filename.startsWith("ps"));
                 if (isSlow)
                     slowWordsAvailable = true;
@@ -378,6 +381,7 @@ public class X_Reading extends XPRZ_SectionController
     {
         return true;
     }
+
     public void setUpScene()
     {
         OBControl tb = objectDict.get("textbox");
@@ -482,17 +486,9 @@ public class X_Reading extends XPRZ_SectionController
         }
     }
 
-    static boolean IsLeftHanger(String ch)
-    {
-        for (String ap : Arrays.asList("“","‘"))
-            if (ap.equals(ch))
-                return true;
-        return false;
-    }
-
     public float layOutText()
     {
-        Typeface tf = OB_utils.standardTypeFace();
+        Typeface tf = OBUtils.standardTypeFace();
         Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         textPaint.setTextSize(fontSize);
         textPaint.setTypeface(tf);

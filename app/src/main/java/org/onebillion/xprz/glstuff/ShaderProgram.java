@@ -2,7 +2,7 @@ package org.onebillion.xprz.glstuff;
 
 import android.util.Log;
 
-import org.onebillion.xprz.utils.OB_utils;
+import org.onebillion.xprz.utils.OBUtils;
 
 import static android.opengl.GLES20.GL_COMPILE_STATUS;
 import static android.opengl.GLES20.GL_FRAGMENT_SHADER;
@@ -41,13 +41,8 @@ abstract class ShaderProgram {
     protected ShaderProgram(int vertexShaderResourceId,
                             int fragmentShaderResourceId)
     {
-        program = buildProgram(OB_utils.readTextFileFromResource(vertexShaderResourceId),
-                OB_utils.readTextFileFromResource(fragmentShaderResourceId));
-    }
-
-    public void useProgram()
-    {
-        glUseProgram(program);
+        program = buildProgram(OBUtils.readTextFileFromResource(vertexShaderResourceId),
+                OBUtils.readTextFileFromResource(fragmentShaderResourceId));
     }
 
     public static int compileVertexShader(String shaderCode) {
@@ -101,6 +96,7 @@ abstract class ShaderProgram {
         // Return the shader object ID.
         return shaderObjectId;
     }
+
     /**
      * Links a vertex shader and a fragment shader together into an OpenGL
      * program. Returns the OpenGL program object ID, or 0 if linking failed.
@@ -156,6 +152,11 @@ abstract class ShaderProgram {
 
 
         return program;
+    }
+
+    public void useProgram()
+    {
+        glUseProgram(program);
     }
 
 }

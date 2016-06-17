@@ -1,7 +1,6 @@
 package org.onebillion.xprz.mainui;
 
 import android.graphics.Color;
-import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
@@ -13,16 +12,13 @@ import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
-import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBRunnableSyncUI;
 import org.onebillion.xprz.utils.OB_Maths;
 import org.onebillion.xprz.utils.OB_MutBoolean;
-import org.onebillion.xprz.utils.OB_utils;
-import org.onebillion.xprz.utils.UPath;
+import org.onebillion.xprz.utils.OBUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -60,7 +56,7 @@ public class X_Count20_S5 extends XPRZ_Tracer
         float graphicScale = graphicScale();
         float textSize = Float.parseFloat(eventAttributes.get("textsize")) / graphicScale;
         textSize = MainActivity.mainActivity.applyGraphicScale(textSize);
-        Typeface tf = OB_utils.standardTypeFace();
+        Typeface tf = OBUtils.standardTypeFace();
         float x = parent.bounds().width() / 2;
         counters = new ArrayList<>();
         numbers = new ArrayList<>();
@@ -74,7 +70,7 @@ public class X_Count20_S5 extends XPRZ_Tracer
             String colour = attrs.get("col");
             if (colour != null)
             {
-                int col = OB_utils.colorFromRGBString(colour);
+                int col = OBUtils.colorFromRGBString(colour);
                 cou.substituteFillForAllMembers("col.*",col);
             }
             float sc = cou.scale();
@@ -93,7 +89,7 @@ public class X_Count20_S5 extends XPRZ_Tracer
         }
         float y = 0;
         targets = new ArrayList<>(counters);
-        randomCounters = OB_utils.randomlySortedArray(counters);
+        randomCounters = OBUtils.randomlySortedArray(counters);
         for (OBControl cou : randomCounters)
         {
             cou.setPosition(x, y);

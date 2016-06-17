@@ -9,10 +9,9 @@ import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.utils.OB_Maths;
-import org.onebillion.xprz.utils.OB_utils;
+import org.onebillion.xprz.utils.OBUtils;
 
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created by michal on 16/06/16.
@@ -34,7 +33,7 @@ public class X_Count100_S1  extends XPRZ_SectionController{
         events = Arrays.asList(eva);
 
         line = objectDict.get("line");
-        Typeface tf = OB_utils.standardTypeFace();
+        Typeface tf = OBUtils.standardTypeFace();
         float textSize = MainActivity.mainActivity.applyGraphicScale(80);
         counter = new OBLabel("000",tf,textSize);
         counter.setColour(Color.RED);
@@ -113,18 +112,21 @@ public class X_Count100_S1  extends XPRZ_SectionController{
             float d2=Float.valueOf(locs[2]);
             int redraw = Integer.valueOf(eventAttributes.get("redraw"));
             OBControl workrect = objectDict.get("workrect");
+            workrect.hide();
             for(int i=1; i<=redraw; i++)
             {
                 OBControl cont = loadImage.copy();
-                cont.setPosition(OB_Maths.locationForRect(x+((i-1)%10)*d1,(float)(y+(Math.ceil(i/10)-1)*d2), workrect.frame));
+                float x1 = x+((i-1)%10)*d1;
+                float y1 = (float)(y+(Math.ceil(i/10)-1)*d2);
+                cont.setPosition(OB_Maths.locationForRect(x1,y1, workrect.frame));
                 objectDict.put("obj"+i,cont);
                 attachControl(cont);
 
                 if(i >= curTarget)
-                    cont.hide();
+                    cont.show();
             }
 
-            counter.setString(String.valueOf(curTarget-1));
+            //counter.setString(String.valueOf(curTarget-1));
 
         }
 

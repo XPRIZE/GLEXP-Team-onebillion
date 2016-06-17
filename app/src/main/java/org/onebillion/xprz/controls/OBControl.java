@@ -11,8 +11,6 @@ package org.onebillion.xprz.controls;
 
         import android.graphics.*;
         import android.graphics.Matrix;
-        import android.graphics.drawable.BitmapDrawable;
-        import android.graphics.drawable.Drawable;
         import android.opengl.*;
         import android.renderscript.Allocation;
         import android.renderscript.RenderScript;
@@ -30,7 +28,7 @@ package org.onebillion.xprz.controls;
         import org.onebillion.xprz.mainui.OBViewController;
         import org.onebillion.xprz.utils.OBRunnableSyncUI;
         import org.onebillion.xprz.utils.OB_Maths;
-        import org.onebillion.xprz.utils.OB_utils;
+        import org.onebillion.xprz.utils.OBUtils;
 
 public class OBControl
 {
@@ -41,47 +39,36 @@ public class OBControl
     public int state;
     public Map<String,Object> settings;
     public OBLayer layer;
-    PointF position;
     public PointF anchorPoint;
     public RectF frame,bounds;
     public Boolean hidden,animationsDisabled;
     public long animationKey;
     public Matrix drawMatrix,convertMatrix;
-    PointF tempPoint;
-    RectF tempRect = new RectF();
     public Bitmap cache,shadowCache;
     public float scaleX,scaleY,rotation,yRotation,borderWidth;
     public float invalOutdent;
-    float rasterScale,zPosition;
     public OBGroup parent;
     public int backgroundColor,highlightColour,borderColour;
     public int tempSortInt;
     public OBControl maskControl;
-    OBStroke stroke;
     public OBViewController controller;
-    boolean frameValid,masksToBounds;
-    int shadowColour;
-    float shadowOffsetX,shadowOffsetY,shadowOpacity,shadowRadius;
     public String textureKey;
     public Texture texture;
     public float[] modelMatrix = new float[16];
     public float[] tempMatrix = new float[16];
     public float blendColour[] = {1,1,1,1};
     public float m34,cornerRadius;
-    boolean needsRetexture;
     public boolean doubleSided=true;
-
-    public boolean shouldTexturise()
-    {
-        return shouldTexturise;
-    }
-
-    public void setShouldTexturise(boolean shouldTexturise)
-    {
-        this.shouldTexturise = shouldTexturise;
-    }
-
     public boolean shouldTexturise=true;
+    PointF position;
+    PointF tempPoint;
+    RectF tempRect = new RectF();
+    float rasterScale,zPosition;
+    OBStroke stroke;
+    boolean frameValid,masksToBounds;
+    int shadowColour;
+    float shadowOffsetX,shadowOffsetY,shadowOpacity,shadowRadius;
+    boolean needsRetexture;
 
     public OBControl()
     {
@@ -107,6 +94,31 @@ public class OBControl
         setOpacity(1);
         rasterScale = 1;
         layer = new OBLayer();
+    }
+
+    public static List<OBControl> controlsSortedFrontToBack(List<OBControl> controls)
+    {
+        List<OBControl> arr = new ArrayList<>(controls);
+        Collections.sort(arr, new Comparator<OBControl>(){
+            public int compare(OBControl c1, OBControl c2) {
+                if (c1.zPosition() == c2.zPosition())
+                    return 0;
+                if (c1.zPosition() < c2.zPosition())
+                    return 1;
+                return -1;
+            }
+        });
+        return arr;
+    }
+
+    public boolean shouldTexturise()
+    {
+        return shouldTexturise;
+    }
+
+    public void setShouldTexturise(boolean shouldTexturise)
+    {
+        this.shouldTexturise = shouldTexturise;
     }
 
     public OBControl copy()
@@ -153,21 +165,6 @@ public class OBControl
             obj.maskControl = maskControl;
         obj.m34 = m34;
         return obj;
-    }
-
-    public static List<OBControl> controlsSortedFrontToBack(List<OBControl> controls)
-    {
-        List<OBControl> arr = new ArrayList<>(controls);
-        Collections.sort(arr, new Comparator<OBControl>(){
-            public int compare(OBControl c1, OBControl c2) {
-                if (c1.zPosition() == c2.zPosition())
-                    return 0;
-                if (c1.zPosition() < c2.zPosition())
-                    return 1;
-                return -1;
-            }
-        });
-        return arr;
     }
 
     public void enable()
@@ -946,7 +943,7 @@ public class OBControl
         if (backgroundColor != 0)
         {
             Paint fillPaint = new Paint();
-            int col = OB_utils.applyColourOpacity(backgroundColor,opacity());
+            int col = OBUtils.applyColourOpacity(backgroundColor,opacity());
             fillPaint.setColor(col);
             fillPaint.setStyle(Paint.Style.FILL);
             if (cornerRadius == 0)
@@ -958,7 +955,7 @@ public class OBControl
         {
             Paint strokePaint = new Paint();
             strokePaint.setStrokeWidth(borderWidth);
-            int col = OB_utils.applyColourOpacity(borderColour,opacity());
+            int col = OBUtils.applyColourOpacity(borderColour,opacity());
             strokePaint.setColor(col);
             strokePaint.setStyle(Paint.Style.STROKE);
             if (cornerRadius == 0)
@@ -1085,7 +1082,7 @@ public class OBControl
             {
                 ColorShaderProgram colourShader = (ColorShaderProgram) renderer.colourProgram;
                 float col[] = {1,1,1,1};
-                OB_utils.getFloatColour(backgroundColor,col);
+                OBUtils.getFloatColour(backgroundColor,col);
                 colourShader.setUniforms(tempMatrix);
                 GradientRect gr = renderer.gradientRect;
                 gr.draw(renderer,0,0,bounds.right - bounds.left,bounds.bottom - bounds.top,col,col);
@@ -1521,7 +1518,7 @@ public class OBControl
             public void ex()
             {
                 highlightColour = Color.argb(127, 0, 0, 0);
-                OB_utils.setFloatColour(.8f,.8f,.8f,1,blendColour);
+                OBUtils.setFloatColour(.8f,.8f,.8f,1,blendColour);
                 invalidate();
             }
         }.run();
@@ -1534,7 +1531,7 @@ public class OBControl
             public void ex()
             {
                 highlightColour = 0;
-                OB_utils.setFloatColour(1,1,1,1,blendColour);
+                OBUtils.setFloatColour(1,1,1,1,blendColour);
                 invalidate();
             }
         }.run();

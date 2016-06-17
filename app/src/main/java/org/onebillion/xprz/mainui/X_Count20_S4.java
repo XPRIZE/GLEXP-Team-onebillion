@@ -15,7 +15,7 @@ import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimParabola;
 import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OB_Maths;
-import org.onebillion.xprz.utils.OB_utils;
+import org.onebillion.xprz.utils.OBUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,7 +36,7 @@ public class X_Count20_S4 extends XPRZ_SectionController
     void createNumbers()
     {
         float textSize = Float.parseFloat(eventAttributes.get("textsize"));
-        Typeface tf = OB_utils.standardTypeFace();
+        Typeface tf = OBUtils.standardTypeFace();
         numbers = new ArrayList<>();
         circles = new ArrayList<>();
         for (int i = 0;i < 10;i++)
@@ -116,7 +116,7 @@ public class X_Count20_S4 extends XPRZ_SectionController
             PointF offset = OB_Maths.DiffPoints(origPos, currPos);
             f.offset(offset.x, offset.y);
             OBControl dottedline = objectDict.get("dottedline");
-            PointF pt = OB_utils.pointFromString(((Map<String,String>)dottedline.propertyValue("attrs")).get("pos"));
+            PointF pt = OBUtils.pointFromString(((Map<String,String>)dottedline.propertyValue("attrs")).get("pos"));
             pt = OB_Maths.locationForRect(pt, f );
             dottedline.setPosition(pt);
             dottedline.show();
@@ -159,7 +159,7 @@ public class X_Count20_S4 extends XPRZ_SectionController
         Map<String,Object> target = objectsdict.get(objectName);
         Map<String,Object> attrs = (Map<String,Object>)target.get("attrs");
         String parentName = (String)attrs.get("parent");
-        PointF relpt = OB_utils.pointFromString((String)attrs.get("pos"));
+        PointF relpt = OBUtils.pointFromString((String)attrs.get("pos"));
         View v = glView();
         RectF r = new RectF(v.getLeft(),v.getTop(),v.getRight(),v.getBottom());
         if (parentName != null)
@@ -167,7 +167,7 @@ public class X_Count20_S4 extends XPRZ_SectionController
         PointF pt = OB_Maths.locationForRect(relpt, r);
         if (attrs.get("anchor") != null)
         {
-            PointF anc = OB_utils.pointFromString((String) attrs.get("anchor"));
+            PointF anc = OBUtils.pointFromString((String) attrs.get("anchor"));
             OBControl im = objectDict.get(objectName);
             RectF f = OB_Maths.frameForPosition(im.frame(), pt);
             PointF destPoint = OB_Maths.locationForRect(anc, f);
@@ -203,7 +203,7 @@ public class X_Count20_S4 extends XPRZ_SectionController
             playAudioQueuedSceneIndex(currentEvent(), "DEMO2", i, true);
         }
         waitForSecs(0.3);
-        List<OBControl> objs = OB_utils.randomlySortedArray(filterControls("obj.*"));
+        List<OBControl> objs = OBUtils.randomlySortedArray(filterControls("obj.*"));
         float delay = 0.9f;
         for (OBControl obj : objs)
         {

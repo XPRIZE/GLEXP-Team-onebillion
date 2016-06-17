@@ -10,7 +10,6 @@ import android.graphics.*;
 import android.opengl.GLES20;
 
 import org.onebillion.xprz.glstuff.OBRenderer;
-import org.onebillion.xprz.glstuff.TextureRect;
 import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.OBSectionController;
 import org.onebillion.xprz.mainui.OBViewController;
@@ -18,7 +17,7 @@ import org.onebillion.xprz.utils.OBRunnableSyncUI;
 import org.onebillion.xprz.utils.OBXMLManager;
 import org.onebillion.xprz.utils.OBXMLNode;
 import org.onebillion.xprz.utils.OB_Maths;
-import org.onebillion.xprz.utils.OB_utils;
+import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.UGradient;
 import org.onebillion.xprz.utils.URadialGradient;
 
@@ -80,7 +79,7 @@ public class OBGroup extends OBControl
                 return str;
             if (str.startsWith("none"))
                 return str;
-            col = OB_utils.svgColorFromRGBString(str);
+            col = OBUtils.svgColorFromRGBString(str);
         }
         float opacity = 1.0f;
         String n = attrs.get("fill-opacity");
@@ -344,7 +343,7 @@ public class OBGroup extends OBControl
             float stopf = floatOrPercentage(s);
             s = stopnode.attributes.get("stop-color");
             if (s != null)
-                col = OB_utils.svgColorFromRGBString(s);
+                col = OBUtils.svgColorFromRGBString(s);
             float alpha = 1;
             s = stopnode.attributes.get("stop-opacity");
             if (s != null)
@@ -400,7 +399,7 @@ public class OBGroup extends OBControl
             float stopf = floatOrPercentage(s);
             s = stopnode.attributes.get("stop-color");
             if (s != null)
-                col = OB_utils.svgColorFromRGBString(s);
+                col = OBUtils.svgColorFromRGBString(s);
             float alpha = 1;
             s = stopnode.attributes.get("stop-opacity");
             if (s != null)
@@ -589,7 +588,7 @@ public class OBGroup extends OBControl
                     {
                         int col = (Integer)of;
                         if (idstr.startsWith("skin"))
-                            col = OB_utils.SkinColour(OB_utils.SkinColourIndex());
+                            col = OBUtils.SkinColour(OBUtils.SkinColourIndex());
                         else if (idstr.startsWith("cloth"))
                             col = ((Integer) MainActivity.mainActivity.configIntForKey(MainActivity.CONFIG_CLOTHCOLOUR)).intValue();
                         ((OBShapeLayer) (p.layer)).fillColour = col;
@@ -865,7 +864,7 @@ public class OBGroup extends OBControl
             Collections.sort(arr, new Comparator<String>() {
                 @Override
                 public int compare(String lhs, String rhs) {
-                    return OB_utils.caseInsensitiveCompareWithNumbers(lhs,rhs);
+                    return OBUtils.caseInsensitiveCompareWithNumbers(lhs,rhs);
                 }
             });
         }
