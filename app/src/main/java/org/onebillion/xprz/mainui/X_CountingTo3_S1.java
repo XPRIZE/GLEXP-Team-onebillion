@@ -7,11 +7,15 @@ import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBLabel;
-import org.onebillion.xprz.utils.OB_utils;
+import org.onebillion.xprz.utils.OBAnim;
+import org.onebillion.xprz.utils.OBAnimationGroup;
+import org.onebillion.xprz.utils.OBUtils;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by pedroloureiro on 17/06/16.
@@ -41,10 +45,14 @@ public class X_CountingTo3_S1 extends XPRZ_SectionController
     public void start()
     {
         setStatus(0);
-        OB_utils.runOnOtherThread(()->{
-            if (!performSel("demo",currentEvent()))
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception
             {
-                doBody(currentEvent());
+                if (!performSel("demo",currentEvent()))
+                {
+                    doBody(currentEvent());
+                }
             }
         });
     }
@@ -68,7 +76,7 @@ public class X_CountingTo3_S1 extends XPRZ_SectionController
     @Override
     public void setSceneXX(String scene)
     {
-        Collection<OBControl> oldControls = objectDict.values();
+        ArrayList<OBControl> oldControls = new ArrayList<>(objectDict.values());
         //
         loadEvent(scene);
         //
@@ -243,15 +251,67 @@ public class X_CountingTo3_S1 extends XPRZ_SectionController
     }
 
 
+    public void action_animatePlatform(OBControl platform) throws Exception
+    {
+        String platformName = (String) platform.attributes().get("id");
+        String platformNumber = platformName.split("_")[1];
+        List<OBControl> controls = filterControls(".*_" + platformNumber + "_.*");
+        //
+        List<OBAnim> list_animMove1 = new ArrayList<OBAnim>();
+        List<OBAnim> list_animMove2 = new ArrayList<OBAnim>();
+        //
+        for(OBControl item : controls)
+        {
+            PointF startPosition = new PointF();
+            startPosition.set(item.position());
+            //
+            PointF endPosition = new PointF();
+            endPosition.set(startPosition);
+            endPosition.y -= 1.25 * item.height();
+            //
+            list_animMove1.add(OBAnim.moveAnim(endPosition, item));
+            list_animMove1.add(OBAnim.rotationAnim((float) Math.toRadians(-180.0f), item));
+            list_animMove2.add(OBAnim.moveAnim(startPosition, item));
+            list_animMove1.add(OBAnim.rotationAnim((float) Math.toRadians(-360.0f), item));
+//            OBAnim anim_move1 = OBAnim.moveAnim(endPosition, item);
+//            OBAnim anim_move2 = OBAnim.moveAnim(startPosition, item);
+//            OBAnim anim_rotate1 = OBAnim.rotationAnim((float) Math.toRadians(-180.0f), item);
+//            OBAnim anim_rotate2 = OBAnim.rotationAnim((float) Math.toRadians(-360.0f), item);
+//            OBAnimationGroup.chainAnimations(Arrays.asList(Arrays.asList(anim_move1,anim_rotate1),Arrays.asList(anim_move2,anim_rotate2)), Arrays.asList(0.4f,0.4f), false, Arrays.asList(OBAnim.ANIM_EASE_IN, OBAnim.ANIM_EASE_OUT), 1, this);
+//            waitForSecs(0.05);
+        }
+        OBAnimationGroup og = new OBAnimationGroup();
+        og.chainAnimations(Arrays.asList(list_animMove1, list_animMove2), Arrays.asList(0.4f,0.4f), true, Arrays.asList(OBAnim.ANIM_EASE_IN, OBAnim.ANIM_EASE_OUT), 1, this);
+    }
+
+
     public void action_highlight(OBControl control) throws Exception
     {
+        lockScreen();
+        String controlName = (String) control.attributes().get("id");
+        String platformNumber = controlName.split("_")[1];
+        List<OBControl> controls = filterControls(".*_" + platformNumber + "_.*");
+        for(OBControl item : controls)
+        {
+            item.highlight();
+        }
         control.highlight();
+        unlockScreen();
     }
 
 
     public void action_lowlight(OBControl control) throws Exception
     {
+        lockScreen();
+        String controlName = (String) control.attributes().get("id");
+        String platformNumber = controlName.split("_")[1];
+        List<OBControl> controls = filterControls(".*_" + platformNumber + "_.*");
+        for(OBControl item : controls)
+        {
+            item.lowlight();
+        }
         control.lowlight();
+        unlockScreen();
     }
 
     public OBControl action_getCorrectAnswer()
@@ -278,7 +338,11 @@ public class X_CountingTo3_S1 extends XPRZ_SectionController
                 gotItRightBigTick(true);
                 waitForSecs(0.3);
                 //
-                playAudioQueuedScene(currentEvent(), "CORRECT", true);
+                playAudioQueuedScene(currentEvent(), "CORRECT", false);
+                action_animatePlatform(targ);
+                waitAudio();
+                //
+                playAudioQueuedScene(currentEvent(), "FINAL", true);
                 //
                 nextScene();
             }
@@ -317,10 +381,13 @@ public class X_CountingTo3_S1 extends XPRZ_SectionController
             final OBControl c = findTarget(pt);
             if (c != null)
             {
-                OB_utils.runOnOtherThread(()->{
-                    checkTarget(c);
-                });
-
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
+                                             @Override
+                                             public void run() throws Exception {
+                                                 checkTarget(c);
+                                             }
+                                         }
+                );
             }
         }
 
