@@ -64,7 +64,8 @@ public class OBAnimationGroup
     {
         OBAnimationGroup ag = new OBAnimationGroup();
         ag.chainAnimations(animArrays,durations,timingFunctions,noLoops,vc,wait);
-        return ag;    }
+        return ag;
+    }
 
     void doFrame(double frac)
     {
