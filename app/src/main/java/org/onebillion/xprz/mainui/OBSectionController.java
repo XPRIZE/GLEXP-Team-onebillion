@@ -1698,5 +1698,15 @@ public class OBSectionController extends OBViewController
     {
         return glView().getBottom();
     }
+
+    public PointF pointForDestPoint(PointF destpt,float degrees)
+    {
+        float h = bottom() + applyGraphicScale(10);
+        float ydist = h - destpt.y;
+        float xdist = (float)Math.tan(Math.toRadians(degrees)) * ydist;
+        return new PointF(destpt.x + xdist, h);
+    }
+
+
 }
 
