@@ -26,7 +26,7 @@ public class OBGroup extends OBControl
     public List<OBControl> members,sortedAttachedControls;
     public Map<String,OBControl>objectDict;
     boolean sortedAttachedControlsValid;
-
+    float opacity = 1f;
 
     public OBGroup()
     {
@@ -764,8 +764,13 @@ public class OBGroup extends OBControl
     public void drawLayer(Canvas canvas)
     {
         populateSortedAttachedControls();
+        boolean needsRestore = false;
+        if (needsRestore = (opacity() != 1.0f))
+            canvas.saveLayerAlpha(bounds(), (int) (opacity() * 255));
         for (OBControl c : sortedAttachedControls)
             c.draw(canvas);
+        if (needsRestore)
+            canvas.restore();
     }
 
     public void highlight()
@@ -925,5 +930,14 @@ public class OBGroup extends OBControl
         return maxzp;
     }
 
+    public float opacity()
+    {
+        return opacity;
+    }
 
+    @Override
+    public void setOpacity(float opacity)
+    {
+        this.opacity = opacity;
+    }
 }

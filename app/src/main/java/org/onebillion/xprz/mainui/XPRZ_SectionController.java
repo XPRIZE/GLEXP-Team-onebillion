@@ -71,6 +71,11 @@ public class XPRZ_SectionController extends OBSectionController {
         }
     }
 
+    public void playAudioQueuedScene(String audioCategory,boolean wait) throws Exception
+    {
+        playAudioQueuedScene(currentEvent(),audioCategory,wait);
+    }
+
     public void playAudioScene(String scene,String event,int idx) throws Exception
     {
         Map<String,List<String>> sc = (Map<String,List<String>>)audioScenes.get(scene);
@@ -192,12 +197,19 @@ public class XPRZ_SectionController extends OBSectionController {
     {
     }
 
-    public void touchUpAtPoint(PointF pt,View v)
+    public void touchUpAtPoint(final PointF pt,View v)
     {
         if (status() == STATUS_DRAGGING)
         {
             target.setZPosition(target.zPosition() - 30);
-            checkDragAtPoint(pt);
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    checkDragAtPoint(pt);
+                }
+            });
         }
     }
 
@@ -330,6 +342,7 @@ public class XPRZ_SectionController extends OBSectionController {
     void gotItRightBigTick(boolean bigTick) throws Exception
     {
         gotItRight();
+        stopAllAudio();
         if (bigTick)
             displayTick();
         else
@@ -343,6 +356,7 @@ public class XPRZ_SectionController extends OBSectionController {
     void gotItWrongWithSfx()
     {
         gotItWrong();
+        stopAllAudio();
         playSFX("wrong");
     }
 

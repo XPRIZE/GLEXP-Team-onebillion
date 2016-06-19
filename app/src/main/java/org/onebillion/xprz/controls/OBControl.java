@@ -506,8 +506,12 @@ public class OBControl
             {
                 layer.setColourFilter(new PorterDuffColorFilter(highlightColour, PorterDuff.Mode.SRC_ATOP));
             }
-
+            boolean needsRestore = false;
+            if (needsRestore = (opacity() != 1.0f))
+                canvas.saveLayerAlpha(bounds(), (int) (opacity() * 255));
             layer.draw(canvas);
+            if (needsRestore)
+                canvas.restore();
         }
     }
 
