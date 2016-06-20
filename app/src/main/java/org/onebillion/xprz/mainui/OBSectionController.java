@@ -1346,6 +1346,28 @@ public class OBSectionController extends OBViewController
             throw new Exception("Sequence interrupted");
     }
 
+    public long updateAudioQueueToken()
+    {
+        synchronized(this)
+        {
+            audioQueueToken = SystemClock.uptimeMillis();
+            return audioQueueToken;
+        }
+    }
+
+    public void stopAllAudio()
+    {
+        updateAudioQueueToken();
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                OBAudioManager.audioManager.stopAllAudio();
+            }
+        });
+    }
+
     public void playAudio(String fileName)
     {
         audioQueueToken = SystemClock.uptimeMillis();
@@ -1525,6 +1547,7 @@ public class OBSectionController extends OBViewController
             _aborting = true;
             new OBRunnableUI(){public void ex()
             {
+                stopAllAudio();
                 MainActivity.mainViewController.popViewController();
             }
             }.run();
@@ -1698,5 +1721,15 @@ public class OBSectionController extends OBViewController
     {
         return glView().getBottom();
     }
+
+    public PointF pointForDestPoint(PointF destpt,float degrees)
+    {
+        float h = bottom() + applyGraphicScale(10);
+        float ydist = h - destpt.y;
+        float xdist = (float)Math.tan(Math.toRadians(degrees)) * ydist;
+        return new PointF(destpt.x + xdist, h);
+    }
+
+
 }
 

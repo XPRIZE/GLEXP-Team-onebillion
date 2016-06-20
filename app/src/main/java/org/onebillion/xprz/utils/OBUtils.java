@@ -552,5 +552,17 @@ public class OBUtils
          public void run() throws Exception;
     }
 
+    Path SimplePath(PointF from,PointF to,float offset)
+    {
+        Path path = new Path();
+        path.moveTo(from.x,from.y);
+        PointF c1 = OB_Maths.tPointAlongLine(0.33f, from, to);
+        PointF c2 = OB_Maths.tPointAlongLine(0.66f, from, to);
+        PointF lp = OB_Maths.ScalarTimesPoint(offset,OB_Maths.NormalisedVector(OB_Maths.lperp(OB_Maths.DiffPoints(to,from))));
+        PointF cp1 = OB_Maths.AddPoints(c1, lp);
+        PointF cp2 = OB_Maths.AddPoints(c2, lp);
+        path.cubicTo(cp1.x,cp1.y,cp2.x,cp2.y,to.x,to.y);
+        return path;
+    }
 
 }
