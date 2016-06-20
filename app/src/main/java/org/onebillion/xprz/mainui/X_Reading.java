@@ -669,7 +669,7 @@ public class X_Reading extends XPRZ_SectionController
                 _aborting = true;
                 playAudio(null);
                 final String fParmString = parmString.toString();
-                MainViewController().pushViewController(this.getClass(),true,true,fParmString);
+                MainViewController().pushViewController(this.getClass(),true,true,fParmString,true);
             }
         }
 
@@ -688,7 +688,7 @@ public class X_Reading extends XPRZ_SectionController
             _aborting = true;
             playAudio(null);
             final String fParmString = parmString.toString();
-            MainViewController().pushViewController(this.getClass(),true,false,fParmString);
+            MainViewController().pushViewController(this.getClass(),true,false,fParmString,true);
         }
 
     }

@@ -1730,6 +1730,23 @@ public class OBSectionController extends OBViewController
         return new PointF(destpt.x + xdist, h);
     }
 
+    public void goToCard(Class nextSection,String param)
+    {
+        goToCard(nextSection,param,false);
+    }
+
+    public void goToCard(final Class nextSection,final String param,final boolean withAnimation)
+    {
+        _aborting = true;
+        OBUtils.runOnMainThread(new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception
+            {
+                MainViewController().pushViewController(nextSection,withAnimation,true,param,true);
+            }
+        });
+    }
+
 
 }
 

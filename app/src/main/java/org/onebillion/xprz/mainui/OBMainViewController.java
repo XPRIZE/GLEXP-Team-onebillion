@@ -195,7 +195,7 @@ public class OBMainViewController extends OBViewController
                 topController().replayAudio();
             else if (but == bottomLeftButton)
                 topController().prevPage();
-            else if (but == topRightButton)
+            else if (but == bottomRightButton)
                 topController().nextPage();
         }
     }
@@ -270,7 +270,7 @@ public class OBMainViewController extends OBViewController
         if(cnm == null)
             return false;
 
-        pushViewController(cnm, animate,fromRight, _params);
+        pushViewController(cnm, animate,fromRight, _params,false);
         return true;
     }
 
@@ -279,7 +279,7 @@ public class OBMainViewController extends OBViewController
         try
         {
             Class cnm = Class.forName("org.onebillion.xprz.mainui."+nm);
-            pushViewController(cnm, animate,fromRight, _params);
+            pushViewController(cnm, animate,fromRight, _params,false);
             return true;
         }
         catch(ClassNotFoundException e)
@@ -289,7 +289,7 @@ public class OBMainViewController extends OBViewController
         return false;
     }
 
-    public void pushViewController(Class<?> vcClass,Boolean animate,boolean fromRight,Object _params)
+    public void pushViewController(Class<?> vcClass,Boolean animate,boolean fromRight,Object _params,boolean pop)
     {
         Constructor<?> cons;
         OBSectionController controller;
@@ -305,11 +305,15 @@ public class OBMainViewController extends OBViewController
         }
         controller.params = _params;
         controller.prepare();
-        if (viewControllers.size() >= 1 && animate)
-            transition(topController(),controller,fromRight,0.6);
+        if (viewControllers.size() >= 1 && animate) {
+            if (fromRight)
+                transition(topController(), controller, fromRight, 0.6);
+            else
+                transition(controller,topController(), fromRight, 0.6);
+        }
         viewControllers.add(controller);
-        //if (viewControllers.size() > 2)
-          //  viewControllers.remove(viewControllers.size()-2);
+        if (pop)
+            viewControllers.remove(viewControllers.size()-2);
         showButtons(controller.buttonFlags());
         showHideButtons(controller.buttonFlags());
         final OBSectionController vc = controller;
@@ -324,6 +328,12 @@ public class OBMainViewController extends OBViewController
 
     public void transition(OBSectionController l,OBSectionController r,boolean fromRight,double duration)
     {
+/*        if (!fromRight)
+        {
+            OBSectionController swap = l;
+            l = r;
+            r = swap;
+        }*/
         OBRenderer renderer = MainActivity.mainActivity.renderer;
         renderer.transitionFrac = 0;
         renderer.transitionScreenL = l;
@@ -407,63 +417,6 @@ public class OBMainViewController extends OBViewController
                 }
             });
 
-			/*new AsyncTask<Void, Void,Void>()
-			{
-				protected Void doInBackground(Void... params) {
-					animTopView(-vw, 2.0);
-					return null;
-				}}.execute();
-			 */
-			/*new Handler().postDelayed(new Runnable()
-			{
-				@Override
-				public void run()
-				{
-				    TranslateAnimation anim = new TranslateAnimation( 0, -vl , 0, 0 );
-				    anim.setDuration(1000);
-				    anim.setFillAfter( true );
-				    anim.setAnimationListener(new Animation.AnimationListener() {
-
-
-						@Override
-						public void onAnimationEnd(Animation animation) {
-							if (viewControllers.size() > 2)
-							{
-								OBSectionController oldvc = viewControllers.get(viewControllers.size()-2);
-								view.removeView(oldvc.view);
-								viewControllers.remove(viewControllers.size()-2);
-							}
-
-							final OBSectionController vc = controller;
-							navigating = false;
-							ReadingMainActivity.mainViewController.setPageNo(((RD_ReadingController)controller).pageNo);
-							new Handler().post(new Runnable()
-							{
-								@Override
-								public void run() {
-									vc.start();
-								}
-							});
-
-						}
-
-						@Override
-						public void onAnimationStart(Animation animation) {
-							// TODO Auto-generated method stub
-
-						}
-
-						@Override
-						public void onAnimationRepeat(Animation animation) {
-							// TODO Auto-generated method stub
-
-						}
-					});
-				    v.startAnimation(anim);
-				}
-			},20);
-
- 		*/
         }
     }
 
