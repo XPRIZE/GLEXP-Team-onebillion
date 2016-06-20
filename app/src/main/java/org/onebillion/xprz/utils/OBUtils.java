@@ -552,7 +552,7 @@ public class OBUtils
          public void run() throws Exception;
     }
 
-    public Path SimplePath(PointF from,PointF to,float offset)
+    public static Path SimplePath(PointF from,PointF to,float offset)
     {
         Path path = new Path();
         path.moveTo(from.x,from.y);

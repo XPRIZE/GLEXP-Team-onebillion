@@ -805,6 +805,11 @@ public class OBSectionController extends OBViewController
         catch (IllegalAccessException e)
         {
         }
+        catch (Exception e)
+        {
+            System.out.println("OBSectionController.exception caught:" + e.toString());
+            e.printStackTrace();
+        }
         return false;
     }
 
@@ -909,11 +914,14 @@ public class OBSectionController extends OBViewController
 
     public void attachControl(OBControl control)
     {
-        attachedControls.add(control);
-        control.controller = this;
-        sortedAttachedControlsValid = false;
-        RectF f = control.frame();
-        invalidateView((int) f.left, (int) f.top, (int) f.right, (int) f.bottom);
+        if (!attachedControls.contains(control))
+        {
+            attachedControls.add(control);
+            control.controller = this;
+            sortedAttachedControlsValid = false;
+            RectF f = control.frame();
+            invalidateView((int) f.left, (int) f.top, (int) f.right, (int) f.bottom);
+        }
     }
 
     public void detachControl(OBControl control)
@@ -1205,7 +1213,9 @@ public class OBSectionController extends OBViewController
                     attachControl(arm);
                 }
                 else
+                {
                     thePointer.show();
+                }
                 thePointer.setPosition(startPoint);
                 thePointer.pointAt(targetPoint);
                 unlockScreen();
