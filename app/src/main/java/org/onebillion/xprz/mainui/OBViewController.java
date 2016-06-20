@@ -37,7 +37,7 @@ public class OBViewController
     List<GraphicState> graphicStateStack = new ArrayList<>();
     public float[] projectionMatrix;
     public float[] modelViewMatrix;
-    Map<String,List<Texture>> textureDictionary = new HashMap();
+    protected Map<String,List<Texture>> textureDictionary = new HashMap();
 
     public OBViewController(Activity a)
     {

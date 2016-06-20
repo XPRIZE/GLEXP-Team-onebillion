@@ -335,11 +335,11 @@ public class XPRZ_SectionController extends OBSectionController {
         waitForSecs(0.5f);
     }
 
-    void gotItRight()
+    public void gotItRight()
     {
     }
 
-    void gotItRightBigTick(boolean bigTick) throws Exception
+    public void gotItRightBigTick(boolean bigTick) throws Exception
     {
         gotItRight();
         stopAllAudio();
@@ -349,11 +349,11 @@ public class XPRZ_SectionController extends OBSectionController {
             playSFX("correct");
     }
 
-    void gotItWrong()
+    public void gotItWrong()
     {
     }
 
-    void gotItWrongWithSfx()
+    public void gotItWrongWithSfx()
     {
         gotItWrong();
         stopAllAudio();
