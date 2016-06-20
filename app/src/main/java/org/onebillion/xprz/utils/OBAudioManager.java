@@ -35,6 +35,13 @@ public class OBAudioManager {
         stopPlayingOnChannel(AM_MAIN_CHANNEL);
     }
 
+    public void stopAllAudio()
+    {
+        for (String k : players.keySet())
+        stopPlayingOnChannel(k);
+    }
+
+
     public AssetFileDescriptor getAudioPathFD(String fileName)
     {
         Map<String,Object>config = MainActivity.mainActivity.config;
