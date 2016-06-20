@@ -4,18 +4,21 @@ import android.graphics.PointF;
 import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
+import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBUtils;
+import org.onebillion.xprz.utils.OB_Maths;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
  * Created by pedroloureiro on 17/06/16.
  */
-public class X_CountingTo3_S4 extends XPRZ_SectionController
+public class X_CountingTo3_S4 extends XPRZ_Generic_Event
 {
 
     public X_CountingTo3_S4()
@@ -23,202 +26,102 @@ public class X_CountingTo3_S4 extends XPRZ_SectionController
         super();
     }
 
-    public void prepare()
-    {
-        super.prepare();
-        lockScreen();
-        loadFingers();
-        loadEvent("master1");
-        String[] eva = ((String)eventAttributes.get("scenes")).split(",");
-        events = Arrays.asList(eva);
-
-        doVisual(currentEvent());
-        unlockScreen();
-    }
-
-
-    public void start()
-    {
-        setStatus(0);
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
-            @Override
-            public void run() throws Exception
-            {
-                if (!performSel("demo",currentEvent()))
-                {
-                    doBody(currentEvent());
-                }
-            }
-        });
-    }
-
-    public void doAudio(String scene) throws Exception
-    {
-        setReplayAudioScene(currentEvent(), "REPEAT");
-        playAudioQueuedScene(scene, "PROMPT", false);
-    }
-
-    public void doMainXX() throws Exception
-    {
-        playAudioQueuedScene(currentEvent(), "DEMO", true);
-        //
-        doAudio(currentEvent());
-        //
-        setStatus(STATUS_AWAITING_CLICK);
-    }
-
-
-    @Override
-    public void setSceneXX(String scene)
-    {
-        ArrayList<OBControl> oldControls = new ArrayList<>(objectDict.values());
-        //
-        loadEvent(scene);
-        //
-        Boolean redraw = eventAttributes.get("redraw").equals("true");
-        if (redraw)
-        {
-            for(OBControl control : oldControls)
-            {
-                detachControl(control);
-                objectDict.remove(control);
-            }
-        }
-        //
-        targets = filterControls(action_getObjectPrefix() + ".*");
-        //
-        for(OBControl control : targets)
-        {
-            PointF originalPosition = new PointF(control.position().x, control.position().y);
-            control.setProperty("originalPosition", originalPosition);
-        }
-    }
-
 
     public void demo4a() throws Exception
     {
-//        setStatus(STATUS_DOING_DEMO);
-//        demoButtons();
-//        waitForSecs(0.7);
-//        //
-//        int currentAudioIndex = 0;
-//        playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentAudioIndex, false);    // Now Look
-//        currentAudioIndex++;
-//        movePointerToPoint(objectDict.get("platform_1").position(), -10, 0.6f, true);
-//        waitAudio();
-//        //
-//        placeObjectWithSFX("frog_1_1");
-//        waitForSecs(0.2);
-//        playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentAudioIndex, false); // One frog on a rock
-//        currentAudioIndex++;
-//        //
-//        movePointerToPoint(objectDict.get("platform_2").position(), -10, 0.6f, true);
-//        placeObjectWithSFX("frog_2_1");
-//        playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentAudioIndex, false); // One
-//        currentAudioIndex++;
-//        waitForSecs(0.2);
-//        placeObjectWithSFX("frog_2_2");
-//        playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentAudioIndex, false); // Two
-//        currentAudioIndex++;
-//        waitForSecs(0.2);
-//        playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentAudioIndex, false); // Two frogs on a rock
-//        currentAudioIndex++;
-//        waitForSecs(0.2);
-//        //
-//        movePointerToPoint(objectDict.get("platform_3").position(), -10, 0.6f, true);
-//        placeObjectWithSFX("frog_3_1");
-//        playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentAudioIndex, false); // One
-//        currentAudioIndex++;
-//        waitForSecs(0.2);
-//        placeObjectWithSFX("frog_3_2");
-//        playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentAudioIndex, false); // Two
-//        currentAudioIndex++;
-//        waitForSecs(0.2);
-//        placeObjectWithSFX("frog_3_3");
-//        playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentAudioIndex, false); // Three
-//        currentAudioIndex++;
-//        waitForSecs(0.2);
-//        playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentAudioIndex, false); // Three frogs on a rock
-//        currentAudioIndex++;
-//        waitForSecs(0.2);
-//
-//        thePointer.hide();
-//        nextScene();
+        setStatus(STATUS_DOING_DEMO);
+        //
+        waitForSecs(0.7);
+        loadPointer(POINTER_MIDDLE);
+        //
+        action_playNextDemoSentence(false); // Look
+        pointer_moveToObjectByName("platform_0", -25, 0.6f, EnumSet.of(Anchor.ANCHOR_MIDDLE), true);
+        waitAudio();
+        //
+        action_playNextDemoSentence(false); // No frogs on this rock.
+        pointer_moveToObjectByName("box_0", -15, 0.6f, EnumSet.of(Anchor.ANCHOR_BOTTOM), true);
+        waitAudio();
+        action_playNextDemoSentence(false); // Zero
+        showControls("number_0");
+        waitAudio();
+        waitForSecs(0.3);
+        //
+        for (int i = 1; i <= 3; i++)
+        {
+            String numberName = "number_" + i;
+            String boxName = "box_" + i;
+            String platformName = "platform_" + i;
+            String controls = "frog_" + i + "_.*";
+            //
+            pointer_moveToObjectByName(platformName, -25, 0.6f, EnumSet.of(Anchor.ANCHOR_MIDDLE), true);
+            action_playNextDemoSentence(false);
+            lockScreen();
+            showControls(controls);
+            unlockScreen();
+            waitAudio();
+            //
+            pointer_moveToObjectByName(boxName, -15, 0.6f, EnumSet.of(Anchor.ANCHOR_BOTTOM), true);
+            action_playNextDemoSentence(false);
+            lockScreen();
+            showControls(numberName);
+            unlockScreen();
+            waitAudio();
+            waitForSecs(0.3f);
+        }
+        //
+        thePointer.hide();
+        waitForSecs(0.3);
+        //
+        List<OBControl> numbers = filterControls("number.*");
+        for (OBControl number : numbers)
+        {
+            PointF originalPosition = copyPoint((PointF)number.propertyValue("originalPosition"));
+//            float distance = OB_Maths.PointDistance(originalPosition, number.position());
+            OBAnim anim = OBAnim.moveAnim(originalPosition, number);
+            OBAnimationGroup.runAnims(Arrays.asList(anim), 0.3, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+        }
+        //
+        waitForSecs(1.0);
+        //
+        nextScene();
     }
 
 
     public void demo4b() throws Exception
     {
-//        setStatus(STATUS_DOING_DEMO);
-//        int currentAudioIndex = 0;
-//        //
-//        waitForSecs(0.7);
-//        //
-//        placeObjectWithSFX("bird_1_1");
-//        playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentAudioIndex, true); // One bird on a branch
-//        currentAudioIndex++;
-//        waitForSecs(0.2);
-//        //
-//        placeObjectWithSFX("bird_2_1");
-//        playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentAudioIndex, true); // One
-//        currentAudioIndex++;
-//        waitForSecs(0.2);
-//        //
-//        placeObjectWithSFX("bird_2_2");
-//        playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentAudioIndex, true); // Two
-//        currentAudioIndex++;
-//        waitForSecs(0.2);
-//        //
-//        playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentAudioIndex, true); // Two birds on a branch
-//        currentAudioIndex++;
-//        waitForSecs(0.2);
-//        //
-//        placeObjectWithSFX("bird_3_1");
-//        playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentAudioIndex, true); // One
-//        currentAudioIndex++;
-//        waitForSecs(0.2);
-//        //
-//        placeObjectWithSFX("bird_3_2");
-//        playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentAudioIndex, true); // Two
-//        currentAudioIndex++;
-//        waitForSecs(0.2);
-//        //
-//        placeObjectWithSFX("bird_3_3");
-//        playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentAudioIndex, true); // Three
-//        currentAudioIndex++;
-//        waitForSecs(0.2);
-//        //
-//        playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentAudioIndex, true); // Three birds on a branch
-//        currentAudioIndex++;
-//        waitForSecs(0.2);
-//        //
-//        nextScene();
+        setStatus(STATUS_DOING_DEMO);
+        //
+        waitForSecs(0.7f);
+        loadPointer(POINTER_MIDDLE);
+        //
+        action_playNextDemoSentence(false); // Now Look.
+        waitForSecs(0.3f);
+        //
+        pointer_moveToObjectByName("platform_2", -25, 0.6f, EnumSet.of(Anchor.ANCHOR_MIDDLE), true);
+        waitAudio();
+        action_playNextDemoSentence(true); // Two frogs.
+        waitForSecs(0.3f);
+        //
+        OBControl number = objectDict.get("number_2");
+        pointer_moveToObject(number, -15, 0.6f, EnumSet.of(Anchor.ANCHOR_MIDDLE), true);
+        PointF destination = objectDict.get("box_2").position();
+        pointer_moveToPointWithObject(number, destination, -25, 0.6f, true);
+        waitForSecs(0.3f);
+        //
+        action_playNextDemoSentence(true); // Two
+        waitForSecs(0.3f);
+        //
+        thePointer.hide();
+        waitForSecs(0.7f);
+        //
+        PointF originalPosition = copyPoint((PointF)number.propertyValue("originalPosition"));
+//            float distance = OB_Maths.PointDistance(originalPosition, number.position());
+        OBAnim anim = OBAnim.moveAnim(originalPosition, number);
+        OBAnimationGroup.runAnims(Arrays.asList(anim), 0.3, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+        waitForSecs(0.3f);
+        //
+        nextScene();
     }
-
-
-    public void placeObjectWithSFX(String object) throws Exception
-    {
-        playSfxAudio("placeObject", false);
-        objectDict.get(object).show();
-        waitSFX();
-    }
-
-
-    public void action_moveObjectToOriginalPosition(OBControl control)
-    {
-        OBAnim anim = OBAnim.moveAnim((PointF)control.propertyValue("originalPosition"), control);
-        OBAnimationGroup og = new OBAnimationGroup();
-        og.applyAnimations(Arrays.asList(anim), 0.3, false, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
-    }
-
-
-    public void action_moveObjectIntoContainer(OBControl control, OBControl container)
-    {
-        OBAnim anim = OBAnim.moveAnim(container.position(), control);
-        OBAnimationGroup og = new OBAnimationGroup();
-        og.applyAnimations(Arrays.asList(anim), 0.3, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
-    }
-
 
 
     public OBControl action_getCorrectAnswer()

@@ -34,8 +34,8 @@ public class OBGradientPath extends OBPath
     public OBGradientPath(Path p)
     {
         super(p);
-        strokeLayer = new OBShapeLayer(path());
-        maskLayer = new OBShapeLayer(path());
+        strokeLayer = new OBShapeLayer(p);
+        maskLayer = new OBShapeLayer(p);
         gradientLayer = new OBGradientLayer();
         adjustLayers();
     }
