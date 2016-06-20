@@ -191,13 +191,14 @@ public class OBControl
     {
         if (layer != null)
             return layer.opacity();
-        return 0.0f;
+        return 1.0f;
     }
 
     public void setOpacity(float f)
     {
         if (layer != null)
             layer.setOpacity(f);
+        invalidate();
     }
 
     public RectF bounds()
@@ -1079,7 +1080,12 @@ public class OBControl
             if (needsTexture())
             {
                 TextureShaderProgram textureShader = (TextureShaderProgram) renderer.textureProgram;
-                textureShader.setUniforms(tempMatrix,renderer.textureObjectIds[0],blendColour);
+                float op = opacity();
+                float[]finalCol = new float[4];
+                for (int i = 0;i < 3;i++)
+                    finalCol[i] = blendColour[i];
+                finalCol[3] = blendColour[3] * op;
+                textureShader.setUniforms(tempMatrix,renderer.textureObjectIds[0],finalCol);
                 renderLayer(renderer,vc);
             }
             else

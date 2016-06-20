@@ -940,5 +940,6 @@ public class OBGroup extends OBControl
     public void setOpacity(float opacity)
     {
         this.opacity = opacity;
+        invalidate();
     }
 }

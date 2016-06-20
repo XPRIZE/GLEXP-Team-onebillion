@@ -85,29 +85,22 @@ public class XPRZ_Menu extends XPRZ_SectionController
             final String target = (String)attrs.get("target");
             if (target != null)
             {
-/*                new AsyncTask<Void, Void,Void>()
-                {
-                    protected Void doInBackground(Void... params) {
-                        try
-                        {
-                            takeSequenceLockInterrupt(true);
-                            sequenceLock.unlock();
-                        }
-                        catch (Exception exception)
-                        {
-                        }
-                        return null;
-                    }}.execute();
-*/
                 final String parm = (String)attrs.get("parm");
                 setStatus(STATUS_BUSY);
                 c.highlight();
                 String configName = (String)attrs.get("config");
-                if (configName != null)
+                if (configName == null)
+                {
+                    String appDir = (String) Config().get("app_code");
+                    String[] comps = appDir.split("/");
+                    configName = comps[0];
+                    configName = configName.replace("-", "_");
+                }
+                else
                     MainActivity.mainActivity.updateConfigPaths(configName,false);
                 if (!MainActivity.mainViewController.pushViewControllerWithNameConfig(target,configName,true,true,parm))
                     setStatus(STATUS_IDLE);
-
+                c.lowlight();
             }
         }
     }

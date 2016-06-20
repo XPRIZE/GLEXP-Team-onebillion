@@ -2,6 +2,7 @@ package org.onebillion.xprz.mainui;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import android.app.Activity;
@@ -30,6 +31,7 @@ public class OBMainViewController extends OBViewController
     public OBControl topLeftButton,topRightButton,bottomLeftButton,bottomRightButton;
     protected Rect _buttonBoxRect = null;
     boolean navigating;
+    OBControl downButton;
 
     public OBMainViewController(Activity a)
     {
@@ -137,41 +139,65 @@ public class OBMainViewController extends OBViewController
         canvas.drawColor(Color.WHITE);
     }
 
+    public void highlightButton(OBControl but)
+    {
+        but.highlight();
+        glView().requestRender();
+        downButton = but;
+    }
+
+    OBControl buttonForPoint(float x,float y)
+    {
+        for (OBControl but : Arrays.asList(topLeftButton,topRightButton,bottomLeftButton,bottomRightButton))
+        {
+            if ((!but.hidden) && but.frame().contains(x,y))
+                return but;
+        }
+        return null;
+    }
     public void touchDownAtPoint(float x,float y,OBGLView v)
     {
-        if ((!topLeftButton.hidden) && topLeftButton.frame().contains(x,y))
-            return;
-        if ((!topRightButton.hidden) && topRightButton.frame().contains(x,y))
-            return;
-        if ((!bottomLeftButton.hidden) && bottomLeftButton.frame().contains(x,y))
-            return;
-        if ((!bottomRightButton.hidden) && bottomRightButton.frame().contains(x,y))
-            return;
-        topController().touchDownAtPoint(new PointF(x,y), v);
+        OBControl but = buttonForPoint(x,y);
+        if (but == null)
+            topController().touchDownAtPoint(new PointF(x,y), v);
+        else
+        {
+            highlightButton(but);
+
+        }
     }
     public void touchUpAtPoint(float x,float y,OBGLView v)
     {
-        if (!topLeftButton.hidden && topLeftButton.frame().contains(x,y))
+        final OBControl db = downButton;
+        if (db != null)
+            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda() {
+                @Override
+                public void run() throws Exception
+                {
+                    db.lowlight();
+                    glView().requestRender();
+                }
+            });
+
+        OBControl but = buttonForPoint(x,y);
+        if (db != but)
+            topController().touchUpAtPoint(new PointF(x,y), v);
+        else
         {
-            topController().goBack();
-            return;
+            downButton = null;
+            if (but != db)
+            {
+                return;
+            }
+            if (but == topLeftButton)
+                topController().goBack();
+            else if (but == topRightButton)
+                topController().replayAudio();
+            else if (but == bottomLeftButton)
+                topController().prevPage();
+            else if (but == topRightButton)
+                topController().nextPage();
         }
-        if (!topRightButton.hidden && topRightButton.frame().contains(x,y))
-        {
-            topController().replayAudio();
-            return;
-        }
-        if (!bottomLeftButton.hidden && bottomLeftButton.frame().contains(x,y))
-        {
-            topController().prevPage();
-            return;
-        }
-        if (!bottomRightButton.hidden && bottomRightButton.frame().contains(x,y))
-        {
-            topController().nextPage();
-            return;
-        }
-        topController().touchUpAtPoint(new PointF(x,y), v);
     }
     @Override
 
@@ -282,8 +308,8 @@ public class OBMainViewController extends OBViewController
         if (viewControllers.size() >= 1 && animate)
             transition(topController(),controller,fromRight,0.6);
         viewControllers.add(controller);
-        if (viewControllers.size() > 2)
-            viewControllers.remove(viewControllers.size()-2);
+        //if (viewControllers.size() > 2)
+          //  viewControllers.remove(viewControllers.size()-2);
         showButtons(controller.buttonFlags());
         showHideButtons(controller.buttonFlags());
         final OBSectionController vc = controller;

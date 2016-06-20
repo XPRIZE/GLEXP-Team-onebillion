@@ -67,7 +67,7 @@ public class OBSectionController extends OBViewController
     public OBControl target;
     public boolean _aborting,sortedAttachedControlsValid,initialised;
     public OBControl thePointer,tick;
-    int eventIndex,replayAudioIndex,theStatus,theMoveSpeed;
+    protected int eventIndex,replayAudioIndex,theStatus,theMoveSpeed;
     List<Object> _replayAudio;
     long audioQueueToken,sequenceToken,statusTime;
     Lock sequenceLock;
@@ -1319,7 +1319,7 @@ public class OBSectionController extends OBViewController
     }
 
 
-    void playSFX(final String fileName)
+    protected void playSFX(final String fileName)
     {
         new OBRunnableSyncUI(){public void ex()
         {
@@ -1418,13 +1418,13 @@ public class OBSectionController extends OBViewController
         }
     }
 
-    List<String> currentAudio(String audioCategory)
+    public List<String> currentAudio(String audioCategory)
     {
         Map<String,List> eventd = (Map<String, List>) audioScenes.get(currentEvent());
         return eventd.get(audioCategory);
     }
 
-    void playAudioQueued(List<Object>qu,final boolean wait) throws Exception
+    public void playAudioQueued(List<Object>qu,final boolean wait) throws Exception
     {
         Lock lock = null;
         Condition condition = null;

@@ -1,4 +1,4 @@
-package org.onebillion.xprz.mainui;
+package org.onebillion.xprz.mainui.x_sorting;
 
 import android.graphics.PointF;
 import android.graphics.RectF;
@@ -6,6 +6,8 @@ import android.os.AsyncTask;
 import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
+import org.onebillion.xprz.mainui.MainActivity;
+import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OB_Maths;
