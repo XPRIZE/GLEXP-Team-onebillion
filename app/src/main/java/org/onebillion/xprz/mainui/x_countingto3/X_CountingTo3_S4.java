@@ -205,30 +205,12 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
 
 
     @Override
-    public void touchUpAtPoint(final PointF pt,View v)
-    {
-        if (status() == STATUS_DRAGGING)
-        {
-            target.setZPosition(target.zPosition() - 30);
-            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-            {
-                @Override
-                public void run() throws Exception
-                {
-                    checkDragAtPoint(pt);
-                }
-            });
-        }
-    }
-
-
-    @Override
     public void checkDragAtPoint(PointF pt)
     {
         setStatus(STATUS_CHECKING);
         //
-        OBControl dragged = this.target;
-        this.target = null;
+        OBControl dragged = target;
+        target = null;
         //
         List<OBControl> containers = filterControls(action_getContainerPrefix() + ".*");
         OBControl container = finger(0, 2, containers, pt, true);
@@ -239,16 +221,23 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
             {
                 try
                 {
+                    int number = Integer.parseInt((String) dragged.attributes().get("number"));
                     action_moveObjectIntoContainer(dragged, container);
                     dragged.disable();
                     //
-                    playAudioQueuedSceneIndex(currentEvent(), "CORRECT", Integer.parseInt((String) dragged.attributes().get("number")), true);
+                    gotItRightBigTick(false);
                     waitForSecs(0.3);
                     //
-                    OBControl platform = objectDict.get(String.format("platform_%d", Integer.parseInt((String) dragged.attributes().get("number"))));
+                    playAudioQueuedSceneIndex(currentEvent(), "CORRECT", number, false);
+                    //
+                    OBControl platform = objectDict.get(String.format("platform_%d", number));
                     action_animatePlatform(platform, false);
                     //
-                    if (action_isEventOver()) {
+                    if (action_isEventOver())
+                    {
+                        waitAudio();
+                        waitForSecs(0.3);
+                        //
                         gotItRightBigTick(true);
                         waitForSecs(0.3);
                         //
@@ -265,6 +254,9 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
                 {
                     System.out.println("X_CountingTo3_S4.exception caught:" + e.toString());
                     e.printStackTrace();
+                    //
+                    setStatus(STATUS_AWAITING_CLICK);
+                    System.out.println("X_CountingTo3_S4.setting status to awaiting click");
                 }
             }
             else
