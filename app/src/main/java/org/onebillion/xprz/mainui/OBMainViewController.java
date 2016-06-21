@@ -178,17 +178,17 @@ public class OBMainViewController extends OBViewController
                     glView().requestRender();
                 }
             });
-
+        else
+        {
+            topController().touchUpAtPoint(new PointF(x,y), v);
+            return;
+        }
         OBControl but = buttonForPoint(x,y);
         if (db != but)
             topController().touchUpAtPoint(new PointF(x,y), v);
         else
         {
             downButton = null;
-            if (but != db)
-            {
-                return;
-            }
             if (but == topLeftButton)
                 topController().goBack();
             else if (but == topRightButton)
