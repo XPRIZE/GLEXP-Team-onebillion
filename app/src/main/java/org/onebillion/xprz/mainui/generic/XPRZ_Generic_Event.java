@@ -1,4 +1,4 @@
-package org.onebillion.xprz.mainui;
+package org.onebillion.xprz.mainui.generic;
 
 import android.graphics.PointF;
 import android.graphics.Typeface;
@@ -7,6 +7,7 @@ import android.view.View;
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBLabel;
+import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBUtils;
@@ -308,7 +309,7 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
 
     // Finger and Touch functions
 
-    OBControl findTarget(PointF pt)
+    public OBControl findTarget(PointF pt)
     {
         return finger(-1, 2, targets, pt, true);
     }

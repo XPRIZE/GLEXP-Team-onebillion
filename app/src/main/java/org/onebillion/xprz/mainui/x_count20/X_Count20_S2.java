@@ -1,4 +1,4 @@
-package org.onebillion.xprz.mainui;
+package org.onebillion.xprz.mainui.x_count20;
 
 import android.graphics.Color;
 import android.graphics.Path;
@@ -12,7 +12,9 @@ import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
-import org.onebillion.xprz.utils.OB_Maths;
+import org.onebillion.xprz.mainui.MainActivity;
+import org.onebillion.xprz.mainui.XPRZ_SectionController;
+import org.onebillion.xprz.utils.OBRunnableSyncUI;
 import org.onebillion.xprz.utils.OBUtils;
 
 import java.util.ArrayList;
@@ -20,14 +22,14 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Created by alan on 24/01/16.
+ * Created by alan on 20/01/16.
  */
-public class X_Count20_S3 extends XPRZ_SectionController
+public class X_Count20_S2 extends XPRZ_SectionController
 {
     List<OBControl> numbers = new ArrayList<>();
     List<OBControl> boxes = new ArrayList<>();
-    int highCol;
-    public X_Count20_S3()
+    OBControl highlighter;
+    public X_Count20_S2()
     {
         super();
     }
@@ -35,8 +37,9 @@ public class X_Count20_S3 extends XPRZ_SectionController
     void createBoxAndNumbers()
     {
         OBControl numberBox = objectDict.get("numberbox");
-        highCol = OBUtils.colorFromRGBString(eventAttributes.get("highcol"));
-        float textSize = Float.parseFloat(eventAttributes.get("smalltextsize"));
+        int col0 = OBUtils.colorFromRGBString(eventAttributes.get("col0"));
+        int col1 = OBUtils.colorFromRGBString(eventAttributes.get("col1"));
+        float textSize = Float.parseFloat(eventAttributes.get("textsize"));
         textSize = MainActivity.mainActivity.applyGraphicScale(textSize);
         Typeface tf = OBUtils.standardTypeFace();
         RectF frame = numberBox.frame();
@@ -58,8 +61,9 @@ public class X_Count20_S3 extends XPRZ_SectionController
         path.sizeToBoundingBox();
         path.setFillColor(0);
         path.setStrokeColor(0xff8f8f8f);
-        path.setLineWidth(3 * graphicScale());
+        path.setLineWidth(4 * graphicScale());
         float y1 = minY,y2 = midY;
+        int cols[] = {col0,col1};
         for (int i = 0;i < 2;i++)
         {
             for (int j = 0;j < 10;j++)
@@ -68,7 +72,7 @@ public class X_Count20_S3 extends XPRZ_SectionController
                 float x2 = (float)Math.floor(minX + (j+1) * frame.width() / 10);
                 OBControl box = new OBControl();
                 box.setFrame(x1,y1,x2,y2);
-                box.setBackgroundColor(Color.WHITE);
+                box.setBackgroundColor(cols[j % 2]);
                 boxes.add(box);
                 int n = i * 10 + j + 1;
                 OBLabel txt = new OBLabel(String.format("%d",n),tf,textSize);
@@ -86,28 +90,23 @@ public class X_Count20_S3 extends XPRZ_SectionController
             attachControl(txt);
         objectDict.put("numberbox", path);
         objectDict.put("gp", gp);
+        highlighter = new OBControl();
+        highlighter.borderColour = Color.BLACK;
+        highlighter.borderWidth = 4 * graphicScale();
+        highlighter.invalOutdent = highlighter.borderWidth / 2;
+        attachControl(highlighter);
+        highlighter.hide();
     }
 
     public void prepare()
     {
         super.prepare();
-        lockScreen();
         loadFingers();
         loadEvent("mastera");
-        String[] eva = ((String)eventAttributes.get("scenes")).split(",");
+        String[] eva = eventAttributes.get("scenes").split(",");
         events = Arrays.asList(eva);
         createBoxAndNumbers();
-        float textSize = Float.parseFloat(eventAttributes.get("largetextsize"));
-        textSize = MainActivity.mainActivity.applyGraphicScale(textSize);
-        Typeface tf = OBUtils.standardTypeFace();
-        OBLabel txt = new OBLabel("20",tf,textSize);
-        txt.setColour(Color.BLACK);
-        OBControl textbox = objectDict.get("textbox");
-        txt.setPosition(textbox.position());
-        objectDict.put("label",txt);
-        attachControl(txt);
         doVisual(currentEvent());
-        unlockScreen();
     }
 
     public long switchStatus(String scene)
@@ -135,25 +134,6 @@ public class X_Count20_S3 extends XPRZ_SectionController
             }}.execute();
     }
 
-    public void setSceneXX(String scene)
-    {
-        deleteControls("obj.*");
-        super.setSceneXX(scene);
-        String colstr = eventAttributes.get("col");
-        List<OBControl> objs = filterControls("obj.*");
-        if (colstr != null)
-        {
-            int col = OBUtils.colorFromRGBString(colstr);
-            for (OBControl gp : objs)
-                ((OBGroup)gp).substituteFillForAllMembers("col.*",col);
-        }
-        targetNo = objs.size();
-        targets = numbers;
-        OBLabel label = (OBLabel)objectDict.get("label");
-        label.setString(String.format("%d", targetNo));
-        label.hide();
-    }
-
     public void doAudio(String scene) throws Exception
     {
         setReplayAudioScene(currentEvent(), "PROMPT.REPEAT");
@@ -165,34 +145,48 @@ public class X_Count20_S3 extends XPRZ_SectionController
         doAudio(currentEvent());
     }
 
-    void highlightBoxNo(int i,boolean high)
+    void highlightSquare(int i)
     {
-        OBControl box = boxes.get(i);
-        if (high)
-            box.setBackgroundColor(highCol);
+        if (i < 0)
+            highlighter.hide();
         else
-            box.setBackgroundColor(Color.WHITE);
+        {
+            RectF f = boxes.get(i).frame();
+            final RectF ff = convertRectFromControl(f,boxes.get(i).parent);
+            new OBRunnableSyncUI(){public void ex()
+            {
+                highlighter.setFrame(ff);
+                highlighter.show();
+            }
+            }.run();
+        }
     }
 
-    public void demo3a() throws Exception
+    public void setSceneXX(String scene)
     {
-        loadPointer(POINTER_MIDDLE);
-        PointF restPt = OB_Maths.locationForRect(0, 2,objectDict.get("obj9").frame());
-        movePointerToPoint(restPt, -1, true);
-        playAudioQueuedSceneIndex(currentEvent(), "DEMO", 0, true);
-        waitForSecs(0.4);
-        OBControl box = boxes.get(11);
-        PointF numPt = OB_Maths.locationForRect(0.8f, 0.6f,convertRectFromControl(box.frame(),box.parent));
-        movePointerToPoint(numPt,-45,-1,true);
-        waitForSecs(0.2);
-        playAudioQueuedScene("sfx","tap",false);
-        highlightBoxNo(11,true);
-        objectDict.get("label").show();
-        waitAudio();
-        highlightBoxNo(11,false);
-        playAudioQueuedSceneIndex(currentEvent(), "DEMO", 1, true);
-        waitForSecs(1);
-        thePointer.hide();
+        super.setSceneXX(scene);
+        String tn = eventAttributes.get("targetno");
+        if (tn != null)
+        {
+            int n = Integer.parseInt(tn);
+            targetNo = n - 1;
+        }
+         targets = numbers;
+    }
+
+    public void demo2a() throws Exception
+    {
+        playAudioQueuedSceneIndex(currentEvent(),"DEMO",0,true);
+        waitForSecs(0.5);
+        for (int i = 1;i <= 20;i++)
+        {
+            highlightSquare(i-1);
+            playAudioQueuedSceneIndex(currentEvent(),"DEMO",i,true);
+            highlightSquare(-1);
+            waitForSecs(0.2);
+        }
+        highlightSquare(-1);
+        waitForSecs(0.7);
         nextScene();
     }
 
@@ -204,22 +198,21 @@ public class X_Count20_S3 extends XPRZ_SectionController
         try
         {
             int idx = targets.indexOf(targ);
-            highlightBoxNo(idx, true);
-            if (idx == targetNo - 1)
+            highlightSquare(idx);
+            if (idx == targetNo)
             {
-                objectDict.get("label").show();
-                playAudioQueuedScene("sfx", "tap", true);
-                gotItRightBigTick(true);
+                displayTick();
                 playAudioQueuedScene(currentEvent(), "CORRECT", true);
-                highlightBoxNo(idx, false);
+                highlightSquare(-1);
+                waitForSecs(0.3f);
                 nextScene();
             }
             else
             {
-                gotItWrongWithSfx();
+                playAudio("wrong");
                 waitAudio();
                 setReplayAudio(saveReplay);
-                highlightBoxNo(idx, false);
+                highlightSquare(-1);
                 playAudioQueuedScene(currentEvent(),"INCORRECT",false);
                 setStatus(saveStatus);
             }

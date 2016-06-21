@@ -220,6 +220,7 @@ public class XPRZ_SectionController extends OBSectionController {
     }
 
 
+
     public void checkDragTarget(OBControl targ,PointF pt)
     {
         setStatus(STATUS_DRAGGING);
@@ -228,6 +229,7 @@ public class XPRZ_SectionController extends OBSectionController {
         targ.animationKey = SystemClock.uptimeMillis();
         dragOffset = OB_Maths.DiffPoints(targ.position(), pt);
     }
+
 
     public void doMainXX() throws Exception
     {

@@ -1,20 +1,13 @@
-package org.onebillion.xprz.mainui;
+package org.onebillion.xprz.mainui.x_countingto3;
 
-import android.graphics.Path;
 import android.graphics.PointF;
 import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBLabel;
-import org.onebillion.xprz.controls.OBPath;
-import org.onebillion.xprz.utils.OBAnim;
-import org.onebillion.xprz.utils.OBAnimationGroup;
+import org.onebillion.xprz.mainui.generic.XPRZ_Generic_Event;
 import org.onebillion.xprz.utils.OBUtils;
-import org.onebillion.xprz.utils.OB_Maths;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -61,6 +54,8 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
 
     public void demo4a() throws Exception
     {
+        nextScene();
+        /*
         setStatus(STATUS_DOING_DEMO);
         //
         waitForSecs(0.7);
@@ -117,11 +112,14 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
         waitForSecs(0.5);
         //
         nextScene();
+        */
     }
 
 
     public void demo4b() throws Exception
     {
+        nextScene();
+        /*
         setStatus(STATUS_DOING_DEMO);
         //
         waitForSecs(0.7f);
@@ -156,6 +154,7 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
         waitForSecs(0.3f);
         //
         nextScene();
+        */
     }
 
     @Override
@@ -192,14 +191,33 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
             final OBControl c = findTarget(pt);
             if (c != null)
             {
-                OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
-                                             @Override
-                                             public void run() throws Exception {
-                                                 checkDragTarget(c, pt);
-                                             }
-                                         }
-                );
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run() throws Exception
+                    {
+                        checkDragTarget(c, pt);
+                    }
+                });
             }
+        }
+    }
+
+
+    @Override
+    public void touchUpAtPoint(final PointF pt,View v)
+    {
+        if (status() == STATUS_DRAGGING)
+        {
+            target.setZPosition(target.zPosition() - 30);
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    checkDragAtPoint(pt);
+                }
+            });
         }
     }
 
@@ -219,7 +237,8 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
         {
             if (container.attributes().get("correct_number").equals(dragged.attributes().get("number")))
             {
-                try {
+                try
+                {
                     action_moveObjectIntoContainer(dragged, container);
                     dragged.disable();
                     //
@@ -236,7 +255,9 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
                         playAudioQueuedScene(currentEvent(), "FINAL", true);
                         //
                         nextScene();
-                    } else {
+                    }
+                    else
+                    {
                         setStatus(STATUS_AWAITING_CLICK);
                     }
                 }
@@ -268,6 +289,6 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
     @Override
     public void fin()
     {
-        // go to card not yet implemented
+        goToCard(X_CountingTo3_S4f.class, "event4");
     }
 }

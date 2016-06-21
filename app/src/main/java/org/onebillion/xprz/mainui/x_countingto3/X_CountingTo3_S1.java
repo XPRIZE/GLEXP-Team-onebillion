@@ -1,26 +1,14 @@
-package org.onebillion.xprz.mainui;
-
-import android.graphics.Color;
-import android.graphics.PointF;
-import android.graphics.Typeface;
-import android.view.View;
+package org.onebillion.xprz.mainui.x_countingto3;
 
 import org.onebillion.xprz.controls.OBControl;
-import org.onebillion.xprz.controls.OBLabel;
-import org.onebillion.xprz.utils.OBAnim;
-import org.onebillion.xprz.utils.OBAnimationGroup;
-import org.onebillion.xprz.utils.OBUtils;
+import org.onebillion.xprz.mainui.generic.XPRZ_Generic_SelectCorrectObject;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 /**
  * Created by pedroloureiro on 17/06/16.
  */
-public class X_CountingTo3_S1 extends XPRZ_Generic_Event
+public class X_CountingTo3_S1 extends XPRZ_Generic_SelectCorrectObject
 {
     public X_CountingTo3_S1()
     {
@@ -33,6 +21,59 @@ public class X_CountingTo3_S1 extends XPRZ_Generic_Event
     {
         return "platform";
     }
+
+
+    public void placeObjectWithSFX(String object) throws Exception
+    {
+        playSfxAudio("placeObject", false);
+        objectDict.get(object).show();
+        waitSFX();
+    }
+
+    @Override
+    public void action_highlight(OBControl control) throws Exception
+    {
+        lockScreen();
+        String controlName = (String) control.attributes().get("id");
+        String platformNumber = controlName.split("_")[1];
+        List<OBControl> controls = filterControls(".*_" + platformNumber + "_.*");
+        for(OBControl item : controls)
+        {
+            item.highlight();
+        }
+        control.highlight();
+        unlockScreen();
+    }
+
+
+    @Override
+    public void action_lowlight(OBControl control) throws Exception
+    {
+        lockScreen();
+        String controlName = (String) control.attributes().get("id");
+        String platformNumber = controlName.split("_")[1];
+        List<OBControl> controls = filterControls(".*_" + platformNumber + "_.*");
+        for(OBControl item : controls)
+        {
+            item.lowlight();
+        }
+        control.lowlight();
+        unlockScreen();
+    }
+
+
+    @Override
+    public void action_answerIsCorrect(OBControl target) throws Exception
+    {
+        playAudioQueuedScene(currentEvent(), "CORRECT", false);
+        action_animatePlatform(target, true);
+        waitAudio();
+    }
+
+
+
+
+    // DEMOS
 
 
     public void demo1a() throws Exception
@@ -82,6 +123,7 @@ public class X_CountingTo3_S1 extends XPRZ_Generic_Event
     }
 
 
+
     public void demo1e() throws Exception
     {
         setStatus(STATUS_DOING_DEMO);
@@ -120,6 +162,8 @@ public class X_CountingTo3_S1 extends XPRZ_Generic_Event
         //
         nextScene();
     }
+
+
 
     public void demo1j() throws Exception
     {
@@ -160,102 +204,4 @@ public class X_CountingTo3_S1 extends XPRZ_Generic_Event
         nextScene();
     }
 
-
-    public void placeObjectWithSFX(String object) throws Exception
-    {
-        playSfxAudio("placeObject", false);
-        objectDict.get(object).show();
-        waitSFX();
-    }
-
-
-
-
-
-    public void action_highlight(OBControl control) throws Exception
-    {
-        lockScreen();
-        String controlName = (String) control.attributes().get("id");
-        String platformNumber = controlName.split("_")[1];
-        List<OBControl> controls = filterControls(".*_" + platformNumber + "_.*");
-        for(OBControl item : controls)
-        {
-            item.highlight();
-        }
-        control.highlight();
-        unlockScreen();
-    }
-
-
-    public void action_lowlight(OBControl control) throws Exception
-    {
-        lockScreen();
-        String controlName = (String) control.attributes().get("id");
-        String platformNumber = controlName.split("_")[1];
-        List<OBControl> controls = filterControls(".*_" + platformNumber + "_.*");
-        for(OBControl item : controls)
-        {
-            item.lowlight();
-        }
-        control.lowlight();
-        unlockScreen();
-    }
-
-    public OBControl action_getCorrectAnswer()
-    {
-        String correctString = action_getObjectPrefix() + "_" + eventAttributes.get("correctAnswer");
-        return objectDict.get(correctString);
-    }
-
-
-    public void checkTarget(OBControl targ) {
-        setStatus(STATUS_CHECKING);
-        try {
-            action_highlight(targ);
-            //
-            if (targ.equals(action_getCorrectAnswer())) {
-                gotItRightBigTick(true);
-                waitForSecs(0.3);
-                //
-                playAudioQueuedScene(currentEvent(), "CORRECT", false);
-                action_animatePlatform(targ, true);
-                waitAudio();
-                //
-                playAudioQueuedScene(currentEvent(), "FINAL", true);
-                //
-                nextScene();
-            } else {
-                gotItWrongWithSfx();
-                waitForSecs(0.3);
-                //
-                playAudioQueuedScene(currentEvent(), "INCORRECT", false);
-                //
-                action_lowlight(targ);
-                //
-                setStatus(STATUS_AWAITING_CLICK);
-            }
-        } catch (Exception exception) {
-        }
-    }
-
-
-    @Override
-    public void touchDownAtPoint(PointF pt,View v)
-    {
-        if (status() == STATUS_AWAITING_CLICK)
-        {
-            final OBControl c = findTarget(pt);
-            if (c != null)
-            {
-                OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
-                                             @Override
-                                             public void run() throws Exception {
-                                                 checkTarget(c);
-                                             }
-                                         }
-                );
-            }
-        }
-
-    }
 }

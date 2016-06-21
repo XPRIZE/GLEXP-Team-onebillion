@@ -23,16 +23,16 @@ import java.util.List;
  */
 public class XPRZ_Tracer extends XPRZ_SectionController
 {
-    List<OBControl> doneTraces;                 //Traces already drawn
-    OBPath currentTrace;                       //Control for the trace being drawn
-    List<OBGroup> subPaths;                          //Groups of split segments
-    int subPathIndex;
-    int segmentIndex;
-    List<OBPath> uPaths;
-    boolean finished;
-    int pathColour;
-    float swollenLineWidth;
-    float pathWidth;
+    public List<OBControl> doneTraces;                 //Traces already drawn
+    public OBPath currentTrace;                       //Control for the trace being drawn
+    public List<OBGroup> subPaths;                          //Groups of split segments
+    public int subPathIndex;
+    public int segmentIndex;
+    public List<OBPath> uPaths;
+    public boolean finished;
+    public int pathColour;
+    public float swollenLineWidth;
+    public float pathWidth;
 
     public XPRZ_Tracer()
     {
@@ -110,7 +110,7 @@ public class XPRZ_Tracer extends XPRZ_SectionController
 
         return arr;
     }
-    OBGroup splitPath(OBPath obp)
+    public OBGroup splitPath(OBPath obp)
     {
         PathMeasure pm = new PathMeasure(obp.path(),false);
         float splen = pm.getLength();
@@ -142,7 +142,7 @@ public class XPRZ_Tracer extends XPRZ_SectionController
         traceArrow.show();
     }
 
-    void startNewSubpath()
+    public void startNewSubpath()
     {
         OBGroup currSubPath = subPaths.get(subPathIndex);
         RectF f = currSubPath.bounds();
@@ -192,7 +192,7 @@ public class XPRZ_Tracer extends XPRZ_SectionController
             return false;
     }
 
-    void effectMoveToPoint(PointF pt)
+    public void effectMoveToPoint(PointF pt)
     {
         if (!pointHitRelativeSeg(pt,0))
         {

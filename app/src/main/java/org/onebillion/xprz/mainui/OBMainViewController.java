@@ -170,7 +170,9 @@ public class OBMainViewController extends OBViewController
     {
         final OBControl db = downButton;
         if (db != null)
-            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda() {
+        {
+            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
+            {
                 @Override
                 public void run() throws Exception
                 {
@@ -178,9 +180,15 @@ public class OBMainViewController extends OBViewController
                     glView().requestRender();
                 }
             });
+        }
+        else
+        {
+            topController().touchUpAtPoint(new PointF(x,y), v);
+            return;
+        }
 
         OBControl but = buttonForPoint(x,y);
-        if (db != but)
+        if (!db.equals(but))
             topController().touchUpAtPoint(new PointF(x,y), v);
         else
         {
