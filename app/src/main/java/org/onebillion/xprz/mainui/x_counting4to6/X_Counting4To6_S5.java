@@ -30,7 +30,7 @@ public class X_Counting4To6_S5 extends XPRZ_Generic_SelectCorrectObject
         {
             for (OBControl number : filterControls("number.*"))
             {
-                OBLabel label = action_createLabelForControl(number);
+                OBLabel label = action_createLabelForControl(number, 1.2f);
             }
         }
     }

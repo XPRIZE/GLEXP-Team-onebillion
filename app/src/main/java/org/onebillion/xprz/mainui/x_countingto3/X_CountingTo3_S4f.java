@@ -49,7 +49,7 @@ public class X_CountingTo3_S4f extends XPRZ_Generic_Event
         //
         for(OBControl number : filterControls("number.*"))
         {
-            OBLabel label = action_createLabelForControl(number);
+            OBLabel label = action_createLabelForControl(number, 1.2f);
         }
     }
 

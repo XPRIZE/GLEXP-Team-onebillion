@@ -45,10 +45,16 @@ public class OBGroup extends OBControl
             PointF pos = OB_Maths.OffsetPoint(c.position, -f.left, -f.top);
             c.position = pos;
             members.add(c);
+            if (c.controller != null)
+                ((OBSectionController)c.controller).detachControl(c);
             c.parent = this;
         }
         position = new PointF(f.left + (f.right - f.left) / 2.0f, f.top + (f.bottom - f.top) / 2.0f);
         bounds.set(0,0,f.right - f.left,f.bottom - f.top);
+        //
+        settings = new HashMap<String, Object>();
+        settings.put("attrs", new HashMap<String, String>());
+
     }
 
     public OBGroup(List<OBControl> _members) {

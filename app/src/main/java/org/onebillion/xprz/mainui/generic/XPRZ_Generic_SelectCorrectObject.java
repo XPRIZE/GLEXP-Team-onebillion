@@ -88,9 +88,8 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
                 gotItWrongWithSfx();
                 waitForSecs(0.3);
                 //
-                action_answerIsWrong();
-                //
                 action_lowlight(targ);
+                action_answerIsWrong();
                 //
                 setStatus(STATUS_AWAITING_CLICK);
             }

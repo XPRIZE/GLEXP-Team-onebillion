@@ -1,13 +1,19 @@
 package org.onebillion.xprz.mainui.x_countingto3;
 
+import android.graphics.Path;
 import android.graphics.PointF;
 import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic_Event;
+import org.onebillion.xprz.utils.OBAnim;
+import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBUtils;
+import org.onebillion.xprz.utils.OB_Maths;
 
+import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -29,7 +35,7 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
         //
         for(OBControl number : filterControls("number.*"))
         {
-            OBLabel label = action_createLabelForControl(number);
+            OBLabel label = action_createLabelForControl(number, 1.2f);
         }
     }
 
@@ -54,8 +60,6 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
 
     public void demo4a() throws Exception
     {
-        nextScene();
-        /*
         setStatus(STATUS_DOING_DEMO);
         //
         waitForSecs(0.7);
@@ -79,14 +83,14 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
             String boxName = "box_" + i;
             String platformName = "platform_" + i;
             String controls = "frog_" + i + "_.*";
-//            //
+            //
             pointer_moveToObjectByName(platformName, -25, 0.6f, EnumSet.of(Anchor.ANCHOR_MIDDLE), true);
             action_playNextDemoSentence(false);
             lockScreen();
             showControls(controls);
             unlockScreen();
             waitAudio();
-//            //
+            //
             pointer_moveToObjectByName(boxName, -15, 0.6f, EnumSet.of(Anchor.ANCHOR_BOTTOM), true);
             action_playNextDemoSentence(false);
             lockScreen();
@@ -95,10 +99,10 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
             waitAudio();
             waitForSecs(0.3f);
         }
-        //
+
         thePointer.hide();
         waitForSecs(0.3);
-//        //
+        //
         List<OBControl> numbers = filterControls("number.*");
         for (OBControl number : numbers)
         {
@@ -108,18 +112,14 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
             OBAnim anim = OBAnim.pathMoveAnim(number, path, false, 0);
             OBAnimationGroup.runAnims(Arrays.asList(anim), 0.3, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
         }
-        //
         waitForSecs(0.5);
         //
         nextScene();
-        */
     }
 
 
     public void demo4b() throws Exception
     {
-        nextScene();
-        /*
         setStatus(STATUS_DOING_DEMO);
         //
         waitForSecs(0.7f);
@@ -154,7 +154,6 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
         waitForSecs(0.3f);
         //
         nextScene();
-        */
     }
 
     @Override
