@@ -30,7 +30,7 @@ public class OBMainViewController extends OBViewController
     public List<OBSectionController> viewControllers;
     public OBControl topLeftButton,topRightButton,bottomLeftButton,bottomRightButton;
     protected Rect _buttonBoxRect = null;
-    boolean navigating;
+    public boolean navigating;
     OBControl downButton;
 
     public OBMainViewController(Activity a)
@@ -170,9 +170,7 @@ public class OBMainViewController extends OBViewController
     {
         final OBControl db = downButton;
         if (db != null)
-        {
-            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
-            {
+            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda() {
                 @Override
                 public void run() throws Exception
                 {
@@ -180,23 +178,17 @@ public class OBMainViewController extends OBViewController
                     glView().requestRender();
                 }
             });
-        }
         else
         {
             topController().touchUpAtPoint(new PointF(x,y), v);
             return;
         }
-
         OBControl but = buttonForPoint(x,y);
-        if (!db.equals(but))
+        if (db != but)
             topController().touchUpAtPoint(new PointF(x,y), v);
         else
         {
             downButton = null;
-            if (but != db)
-            {
-                return;
-            }
             if (but == topLeftButton)
                 topController().goBack();
             else if (but == topRightButton)

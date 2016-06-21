@@ -1,4 +1,4 @@
-package org.onebillion.xprz.mainui;
+package org.onebillion.xprz.mainui.x_reading;
 
 /**
  * Created by alan on 07/06/16.

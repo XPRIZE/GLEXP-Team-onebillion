@@ -130,6 +130,11 @@ public class OBAnim {
             try
             {
                 initialValue = getter.invoke(object);
+                if (initialValue instanceof PointF)
+                {
+                    PointF tpt = (PointF) initialValue;
+                    initialValue = new PointF(tpt.x,tpt.y);
+                }
             }
             catch (Exception e)
             {

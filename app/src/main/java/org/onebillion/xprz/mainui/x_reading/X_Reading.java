@@ -1,4 +1,4 @@
-package org.onebillion.xprz.mainui;
+package org.onebillion.xprz.mainui.x_reading;
 
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -12,6 +12,9 @@ import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBImage;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
+import org.onebillion.xprz.mainui.MainActivity;
+import org.onebillion.xprz.mainui.OBMainViewController;
+import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.utils.OBReadingPara;
 import org.onebillion.xprz.utils.OBReadingWord;
 import org.onebillion.xprz.utils.OBXMLManager;
@@ -273,7 +276,7 @@ public class X_Reading extends XPRZ_SectionController
 
     public int buttonFlags()
     {
-        int tlflag = showBackButton()?OBMainViewController.SHOW_TOP_LEFT_BUTTON:0;
+        int tlflag = showBackButton()? OBMainViewController.SHOW_TOP_LEFT_BUTTON:0;
         int blflag = showPrevButton()?OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON:0;
         int brflag = showNextButton()?OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON:0;
         int trflag = showRAButton()?OBMainViewController.SHOW_TOP_RIGHT_BUTTON:0;

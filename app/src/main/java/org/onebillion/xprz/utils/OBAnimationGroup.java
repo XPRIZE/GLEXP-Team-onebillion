@@ -9,6 +9,7 @@ import org.onebillion.xprz.mainui.OBSectionController;
 
 import java.util.List;
 
+import android.util.Log;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
