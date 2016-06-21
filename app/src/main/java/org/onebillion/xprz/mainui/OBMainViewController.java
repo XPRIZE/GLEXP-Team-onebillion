@@ -30,7 +30,7 @@ public class OBMainViewController extends OBViewController
     public List<OBSectionController> viewControllers;
     public OBControl topLeftButton,topRightButton,bottomLeftButton,bottomRightButton;
     protected Rect _buttonBoxRect = null;
-    boolean navigating;
+    public boolean navigating;
     OBControl downButton;
 
     public OBMainViewController(Activity a)

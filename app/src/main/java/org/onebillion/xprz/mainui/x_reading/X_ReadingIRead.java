@@ -1,4 +1,4 @@
-package org.onebillion.xprz.mainui;
+package org.onebillion.xprz.mainui.x_reading;
 
 import android.graphics.Color;
 import android.graphics.PointF;

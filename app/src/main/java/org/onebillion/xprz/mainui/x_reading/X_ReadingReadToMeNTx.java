@@ -1,4 +1,4 @@
-package org.onebillion.xprz.mainui;
+package org.onebillion.xprz.mainui.x_reading;
 
 import android.graphics.PointF;
 import android.graphics.RectF;
@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.XPRZ_Presenter;
+import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.utils.OBReadingPara;
 import org.onebillion.xprz.utils.OBReadingWord;
 import org.onebillion.xprz.utils.OB_Maths;
@@ -207,7 +208,7 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
     {
         waitForSecs(0.3f);
         showNextArrowAndRA(true);
-        PointF destPoint = OB_Maths.locationForRect(-0.1f, 0.3f,MainActivity.mainViewController.bottomRightButton.frame());
+        PointF destPoint = OB_Maths.locationForRect(-0.1f, 0.3f, MainActivity.mainViewController.bottomRightButton.frame());
         loadPointerStartPoint(OB_Maths.locationForRect(0.5f, 1.1f,new RectF(bounds())),destPoint);
         movePointerToPoint(destPoint,-1,true);
         playAudioQueuedScene("c","DEMO",true);

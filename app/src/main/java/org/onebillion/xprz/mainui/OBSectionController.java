@@ -68,9 +68,9 @@ public class OBSectionController extends OBViewController
     public boolean _aborting,sortedAttachedControlsValid,initialised;
     public OBControl thePointer,tick;
     protected int eventIndex,replayAudioIndex,theStatus,theMoveSpeed;
-    List<Object> _replayAudio;
-    long audioQueueToken,sequenceToken,statusTime;
-    Lock sequenceLock;
+    protected List<Object> _replayAudio;
+    protected long audioQueueToken,sequenceToken,statusTime;
+    protected Lock sequenceLock;
 
     float topColour[] = {1,1,1,1};
     float bottomColour[] = {1,1,1,1};
