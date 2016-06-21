@@ -1,10 +1,11 @@
-package org.onebillion.xprz.mainui;
+package org.onebillion.xprz.mainui.x_countingto3;
 
 import android.graphics.PointF;
 import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBLabel;
+import org.onebillion.xprz.mainui.generic.XPRZ_Generic_Event;
 import org.onebillion.xprz.utils.OBUtils;
 
 import java.util.ArrayList;
@@ -92,13 +93,14 @@ public class X_CountingTo3_S4f extends XPRZ_Generic_Event
             final OBControl c = findTarget(pt);
             if (c != null)
             {
-                OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
-                                             @Override
-                                             public void run() throws Exception {
-                                                 checkDragTarget(c, pt);
-                                             }
-                                         }
-                );
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run() throws Exception
+                    {
+                        checkDragTarget(c, pt);
+                    }
+                });
             }
         }
     }
@@ -137,7 +139,8 @@ public class X_CountingTo3_S4f extends XPRZ_Generic_Event
                 action_moveObjectIntoContainer(dragged, container);
                 dragged.disable();
                 //
-                try {
+                try
+                {
                     gotItRightBigTick(false);
                     waitForSecs(0.3);
                     //

@@ -1,4 +1,4 @@
-package org.onebillion.xprz.mainui;
+package org.onebillion.xprz.mainui.x_count20;
 
 import android.graphics.Color;
 import android.graphics.PointF;
@@ -12,6 +12,9 @@ import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
+import org.onebillion.xprz.mainui.MainActivity;
+import org.onebillion.xprz.mainui.OBSectionController;
+import org.onebillion.xprz.mainui.XPRZ_Tracer;
 import org.onebillion.xprz.utils.OBRunnableSyncUI;
 import org.onebillion.xprz.utils.OB_Maths;
 import org.onebillion.xprz.utils.OB_MutBoolean;
