@@ -8,6 +8,7 @@ import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
+import org.onebillion.xprz.controls.OBTextLayer;
 import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.utils.OBAnim;
@@ -107,11 +108,12 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
         //
         loadEvent(scene);
         //
-        Boolean redraw = eventAttributes.get("redraw").equals("true");
+        Boolean redraw = eventAttributes.get("redraw") != null && eventAttributes.get("redraw").equals("true");
         if (redraw)
         {
             for(OBControl control : oldControls)
             {
+                if (control == null) continue;
                 detachControl(control);
                 objectDict.remove(control);
             }
@@ -226,6 +228,8 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
             if (!(OBGroup.class.isInstance(control))) continue;
             //
             OBGroup group = (OBGroup) control;
+            //
+            if (group == null) continue;
             //
             String scheme = (String) group.attributes().get("scheme");
             if (scheme != null)
@@ -385,16 +389,37 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     }
 
 
-    public OBLabel action_createLabelForControl(OBControl control)
+    public OBLabel action_createLabelForControl(OBControl control, float finalResizeFactor)
     {
         try {
-            int textSize = Integer.parseInt(eventAttributes.get("textSize"));
+            Boolean autoResize = eventAttributes.get("textSize") == null;
+            float textSize = 1;
+            //
+            if (!autoResize)
+            {
+                textSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("textSize")));
+            }
             String content = (String) control.attributes().get("text");
             if (content == null) content = (String) control.attributes().get("number");
             if (content == null) content = "";
             //
             Typeface tf = OBUtils.standardTypeFace();
             OBLabel label = new OBLabel(content, tf, textSize);
+            //
+            if (autoResize)
+            {
+                OBTextLayer textLayer = (OBTextLayer)label.layer;
+                textLayer.sizeToBoundingBox();
+                while(label.height() > 0 && label.height() < control.bounds.height())
+                {
+                    textLayer.textSize++;
+                    textLayer.sizeToBoundingBox();
+                }
+                //
+                textLayer.textSize = textLayer.textSize * finalResizeFactor;
+                textLayer.sizeToBoundingBox();
+            }
+            //
             label.setPosition(control.position());
             label.setZPosition(getNextZPosition());
             label.texturise(false, this);
@@ -407,6 +432,13 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
             else {
                 OBGroup group = new OBGroup(Arrays.asList(control, label));
                 attachControl(group);
+                group.objectDict.put("frame", control);
+                group.objectDict.put("label", label);
+                String controlID = (String)control.attributes().get("id");
+                objectDict.put(controlID, group);
+                String components[] = controlID.split("_");
+                String labelID = "label_" + components[1];
+                objectDict.put(labelID, label);
             }
             return label;
         }
@@ -429,6 +461,11 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
             maxZPosition = Math.max(maxZPosition, control.zPosition());
         }
         return maxZPosition + 0.001f;
+    }
+
+    public void sendObjectToTop(OBControl control)
+    {
+        control.setZPosition(getNextZPosition());
     }
 
     public PointF copyPoint(PointF original)

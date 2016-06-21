@@ -893,13 +893,24 @@ public class OBSectionController extends OBViewController
     public void hideControls(String pattern)
     {
         for (OBControl c : filterControls(pattern))
-            c.hide();
+        {
+            if (c != null)
+            {
+                c.hide();
+            }
+        }
+
     }
 
     public void showControls(String pattern)
     {
         for (OBControl c : filterControls(pattern))
-            c.show();
+        {
+            if (c != null)
+            {
+                c.show();
+            }
+        }
     }
 
     public void deleteControls(String pattern)
@@ -914,6 +925,8 @@ public class OBSectionController extends OBViewController
 
     public void attachControl(OBControl control)
     {
+        if (control == null) return;
+        //
         if (!attachedControls.contains(control))
         {
             attachedControls.add(control);
@@ -926,6 +939,8 @@ public class OBSectionController extends OBViewController
 
     public void detachControl(OBControl control)
     {
+        if (control == null) return;
+        //
         RectF f = control.frame();
         attachedControls.remove(control);
         control.controller = null;
