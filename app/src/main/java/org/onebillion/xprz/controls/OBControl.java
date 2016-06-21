@@ -248,6 +248,19 @@ public class OBControl
     public void setNeedsRetexture()
     {
         needsRetexture = true;
+        if (parent != null)
+        {
+            List<OBControl> cnts  = controlsToAncestor(null);
+            Collections.reverse(cnts);
+            for (OBControl cnt : cnts)
+            {
+                if (cnt.shouldTexturise())
+                {
+                    cnt.setNeedsRetexture();
+                    return;
+                }
+            }
+        }
     }
 
     public PointF position()

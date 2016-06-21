@@ -120,11 +120,6 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         unlockScreen();
     }
 
-    public void bringUpNextButton()
-    {
-        showNextArrowAndRA(true);
-    }
-
     public void readingFinished()
     {
         try

@@ -385,6 +385,83 @@ public class X_Reading extends XPRZ_SectionController
         return true;
     }
 
+    public void flashContinuouslyAfter(final float secs)
+    {
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception
+            {
+                while (!_aborting && status() != STATUS_FINISHING)
+                {
+                    try
+                    {
+                        flashNextButton();
+                        waitForSecs(secs + 1.5);
+                    }
+                    catch (Exception exception)
+                    {
+                    }
+
+                }
+            }
+        });
+
+    }
+
+    public void flashNextButton()
+    {
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                if (_aborting)
+                    return;
+                try
+                {
+                    waitForSecs(0.3f);
+                    lockScreen();
+                    MainViewController().bottomRightButton.setOpacity(1.0f);
+                    MainViewController().bottomRightButton.setHidden(false);
+                    invalidateControl(MainViewController().bottomRightButton);
+                    unlockScreen();
+                    waitForSecs(0.5f);
+                    for (int i = 0;i < 2;i++)
+                    {
+                        takeSequenceLockInterrupt(false);
+                        sequenceLock.unlock();
+                        lockScreen();
+                        MainViewController().bottomRightButton.setOpacity(0.2f);
+                        invalidateControl(MainViewController().bottomRightButton);
+                        unlockScreen();
+                        waitForSecs(0.3f);
+                        lockScreen();
+                        MainViewController().bottomRightButton.setOpacity(1.0f);
+                        invalidateControl(MainViewController().bottomRightButton);
+                        unlockScreen();
+                        waitForSecs(0.3f);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    showNextArrow(!_aborting);
+                }
+            }
+        });
+    }
+
+    public void bringUpNextButton()
+    {
+        showNextArrowAndRA(true);
+        OBUtils.runOnOtherThreadDelayed(5, new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception {
+                if (status() != STATUS_FINISHING && !_aborting)
+                    flashContinuouslyAfter(4);
+
+            }
+        });
+    }
     public void setUpScene()
     {
         OBControl tb = objectDict.get("textbox");
@@ -428,6 +505,7 @@ public class X_Reading extends XPRZ_SectionController
                 if (w.frame != null)
                     w.frame = convertRectFromControl(w.frame,textBox);
     }
+
 
     public void layOutLine(List<OBReadingWord>wordarr, float leftEdge, float rightEdge, float y, int justification, Typeface typeFace,float typeSize, String paraText)
     {
