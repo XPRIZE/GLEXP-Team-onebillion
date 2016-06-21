@@ -154,7 +154,7 @@ public class XPRZ_SectionController extends OBSectionController {
         emitter.setFrame(0,0,bounds().width(),bounds().height());
         OBEmitterCell cell = new OBEmitterCell();
         cell.birthRate = 40;
-        cell.velocity = 200 * scale;
+        cell.velocity = 400 * scale;
         cell.velocityRange = 80 * scale;
         cell.lifeTime = 5;
         cell.emissionRange = (float)(2 * Math.PI);
