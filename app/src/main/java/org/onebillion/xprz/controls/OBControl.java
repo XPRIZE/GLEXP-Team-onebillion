@@ -788,6 +788,11 @@ public class OBControl
         return new PointF(pts[0],pts[1]);
     }
 
+    public PointF getWorldPosition()
+    {
+        return this.convertPointFromControl(this.position(), this.parent);
+    }
+
     public RectF convertRectToControl(RectF r,OBControl c)
     {
         Matrix m = matrixToConvertPointToControl(c);

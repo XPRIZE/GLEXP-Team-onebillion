@@ -2,6 +2,7 @@ package org.onebillion.xprz.mainui.x_counting5and10;
 
 import android.graphics.Color;
 import android.graphics.PointF;
+import android.os.SystemClock;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
@@ -10,6 +11,7 @@ import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic_SelectCorrectObject;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
+import org.onebillion.xprz.utils.OBAudioManager;
 import org.onebillion.xprz.utils.OBUtils;
 
 import java.util.ArrayList;
@@ -98,10 +100,13 @@ public class X_Counting5and10_S4g extends XPRZ_Generic_SelectCorrectObject
             OBGroup group = (OBGroup) number;
             OBLabel label = (OBLabel) group.objectDict.get("label");
             //
+            PointF position = label.getWorldPosition();
             group.removeMember(label);
-            attachControl(label);
+            group.setNeedsRetexture();
+//            attachControl(label);
             sendObjectToTop(label);
             label.show();
+            label.setPosition(position);
         }
         unlockScreen();
         //
@@ -157,15 +162,6 @@ public class X_Counting5and10_S4g extends XPRZ_Generic_SelectCorrectObject
 
 
 
-
-    public void action_bounceNumbers()
-    {
-
-    }
-
-
-
-
     public void action_highlightCorrectAnswer()
     {
         lockScreen();
@@ -206,123 +202,123 @@ public class X_Counting5and10_S4g extends XPRZ_Generic_SelectCorrectObject
     }
 
 
-
-    /*
-
-
--(void) action_bounceNumbers
-{
-    float g = 9.8 * 200;
-    float floorHeight = self.bounds.size.height * 0.95;
-    NSArray *labels = [self sortedFilteredControls:@"label.*"];
-    int totalCount = (int) [labels count];
-    //
-    for (int i = 1; i <= totalCount; i++)
+    public void action_bounceNumbers() throws Exception
     {
-        OBControl *object = labels[i-1];
-        object.shouldRasterize = YES;
-        OBControl *placement = self.objectDict[[NSString stringWithFormat:@"place_%d", i]];
-        CGPoint destination = placement.position;
-        CGPoint initialPosition = object.position;
+        float g = 9.8f * 200;
+        float floorHeight = bounds().height() * 0.95f;
         //
-        float distanceX = destination.x - initialPosition.x;
-        CGPoint midWay = CGPointMake(initialPosition.x + distanceX * 3 / 4, floorHeight);
+        List<OBControl> labels = sortedFilteredControls("label.*");
+        int totalCount = (int) labels.size();
         //
-        float height = fabs(floorHeight - initialPosition.y);
-        float flightHeight = 1.2 * height;
-        float flightTime_phase1 = sqrtf((2 * (flightHeight - height)) / g);
-        float freeFallTime = sqrtf((2 * flightHeight) / g);
-        float totalTime_phase1 = flightTime_phase1 + freeFallTime;
+        for (int i = 1; i <= totalCount; i++)
+        {
+            OBControl object = labels.get(i-1);
+//            object.shouldRasterize = true;
+            OBControl placement = objectDict.get(String.format("place_%d", i));
+            PointF destination = copyPoint(placement.position());
+            PointF initialPosition = copyPoint(object.position());
+            //
+            float distanceX = destination.x - initialPosition.x;
+            PointF midWay = new PointF(initialPosition.x + distanceX * 3/4, floorHeight);
+            //
+            float height = Math.abs(floorHeight - initialPosition.y);
+            float flightHeight = 1.2f * height;
+            float flightTime_phase1 = (float) Math.sqrt((2 * (flightHeight - height)) / g);
+            float freeFallTime = (float) Math.sqrt((2 * flightHeight) / g);
+            float totalTime_phase1 = flightTime_phase1 + freeFallTime;
+            //
+            float initialSpeedX_phase1 = (midWay.x - initialPosition.x) / totalTime_phase1;
+            float initialSpeedY_phase1 = (float) Math.sqrt((flightHeight - height) * 2 * g);
+            PointF phase1 = new PointF(initialSpeedX_phase1, initialSpeedY_phase1);
+            //
+            float height_phase2 = Math.abs(floorHeight - destination.y);
+            float initialSpeedY_phase2 = (float) Math.sqrt(2 * g * height_phase2);
+            float flightTime_phase2 =  initialSpeedY_phase2 / g;
+            float initialSpeedX_phase2 = (destination.x - midWay.x) / flightTime_phase2;
+            PointF phase2 = new PointF(initialSpeedX_phase2, initialSpeedY_phase2);
+            //
+            object.setProperty("phase1", phase1);
+            object.setProperty("phase2", phase2);
+            object.setProperty("startTime", SystemClock.uptimeMillis() + i * 0.10);
+            object.setProperty("floorCollision", false);
+            object.setProperty("atRest", false);
+            object.setProperty("initialPosition", initialPosition);
+            object.setProperty("midway", midWay);
+            object.setProperty("destination", destination);
+            //
+//            [OBAudioManager.sharedAudioManager() prepare:audioScenes"sfx".()"bounce".()0.() onChannel:String.format("bounce_%d", i)];
+        }
         //
-        float initialSpeedX_phase1 = (midWay.x - initialPosition.x) / totalTime_phase1;
-        float initialSpeedY_phase1 = sqrtf((flightHeight - height) * 2 * g);
-        CGPoint phase1 = CGPointMake(initialSpeedX_phase1, initialSpeedY_phase1);
+        Boolean animationComplete = false;
         //
-        float height_phase2 = fabs(floorHeight - destination.y);
-        float initialSpeedY_phase2 = sqrtf(2 * g * height_phase2);
-        float flightTime_phase2 =  initialSpeedY_phase2 / g;
-        float initialSpeedX_phase2 = (destination.x - midWay.x) / flightTime_phase2;
-        CGPoint phase2 = CGPointMake(initialSpeedX_phase2, initialSpeedY_phase2);
-        //
-        [object setProperty:@"phase1" value:[NSValue valueWithCGPoint:phase1]];
-        [object setProperty:@"phase2" value:[NSValue valueWithCGPoint:phase2]];
-        [object setProperty:@"startTime" value:[NSNumber numberWithDouble:CACurrentMediaTime()+ i * 0.10]];
-        [object setProperty:@"floorCollision" value:@NO];
-        [object setProperty:@"atRest" value:@NO];
-        [object setProperty:@"initialPosition" value:[NSValue valueWithCGPoint:initialPosition]];
-        [object setProperty:@"midway" value:[NSValue valueWithCGPoint:midWay]];
-        [object setProperty:@"destination" value:[NSValue valueWithCGPoint:destination]];
-        //
-        [[OBAudioManager sharedAudioManager] prepare:audioScenes[@"sfx"][@"bounce"][0] onChannel:[NSString stringWithFormat:@"bounce_%d", i]];
-    }
-    //
-    __block bool animationComplete = NO;
-    //
-    while (!animationComplete)
-    {
-        DoBlockWithScreenLocked(^{
+        while (!animationComplete)
+        {
+            lockScreen();
+            //
             for (int i = 1; i <= totalCount; i++)
             {
-                OBControl *object = labels[i-1];
-                double startTime = [[object propertyValue:@"startTime"] doubleValue];
-                bool floorCollision = [[object propertyValue:@"floorCollision"] boolValue];
-                bool atRest = [[object propertyValue:@"atRest"] boolValue];
-                CGPoint midWay = [[object propertyValue:@"midway"] CGPointValue];
+                OBControl object = labels.get(i - 1);
+                double startTime = (double) object.propertyValue("startTime");
+                Boolean floorCollision = (Boolean) object.propertyValue("floorCollision");
+                Boolean atRest = (Boolean) object.propertyValue("atRest");
+                PointF midWay = (PointF) object.propertyValue("midway") ;
                 //
-                double t = CACurrentMediaTime() - startTime;
+                double t = SystemClock.uptimeMillis() - startTime;
                 //
                 if (t < 0) continue;
                 if (atRest) continue;
                 //
-                CGPoint newPosition;
+                PointF newPosition;
                 if (!floorCollision)
                 {
-                    CGPoint phase1 = [[object propertyValue:@"phase1"] CGPointValue];
-                    CGPoint initialPosition = [[object propertyValue:@"initialPosition"] CGPointValue];
+                    PointF phase1 = (PointF) object.propertyValue("phase1");
+                    PointF initialPosition = (PointF) object.propertyValue("initialPosition");
                     //
-                    float newX = initialPosition.x + phase1.x * t;
-                    float newY = initialPosition.y + 0.5 * g * t * t - phase1.y * t;
-                    newPosition = CGPointMake(newX, newY);
-                    // NSLog(@"1. %d: %f %f - %f %f", i, newX, newY, initialPosition.x, initialPosition.y);
+                    float newX = (float) (initialPosition.x + phase1.x * t);
+                    float newY = (float) (initialPosition.y + 0.5 * g * t * t - phase1.y * t);
+                    newPosition = new PointF(newX, newY);
                     if (newPosition.y > floorHeight)
                     {
-                        [object setProperty:@"startTime" value:[NSNumber numberWithDouble:CACurrentMediaTime()]];
-                        [object setProperty:@"floorCollision" value:@YES];
+                        object.setProperty("startTime", SystemClock.uptimeMillis());
+                        object.setProperty("floorCollision", true);
                         newPosition = midWay;
                         //
-                        [[OBAudioManager sharedAudioManager] playOnChannel:[NSString stringWithFormat:@"bounce_%d", i]];
+                        playSfxAudio("bounce", false);
                     }
                 }
                 else
                 {
-                    CGPoint phase2 = [[object propertyValue:@"phase2"] CGPointValue];
-                    CGPoint destination = [[object propertyValue:@"destination"] CGPointValue];
-                    float newX = midWay.x + phase2.x * t;
-                    float newY = midWay.y - phase2.y * t + 0.5 * g * t * t;
-                    newPosition = CGPointMake(newX, newY);
+                    PointF phase2 = (PointF) object.propertyValue("phase2") ;
+                    PointF destination = (PointF) object.propertyValue("destination") ;
+                    float newX = (float) (midWay.x + phase2.x * t);
+                    float newY = (float) (midWay.y - phase2.y * t + 0.5 * g * t * t);
+                    newPosition = new PointF(newX, newY);
                     //
-                    float distanceToTarget = fabs(newPosition.y - destination.y);
-                    // NSLog(@"2. %d: %f %f - %f %f - [%f]", i, newX, newY, midWay.x, midWay.y, distanceToTarget);
+                    float distanceToTarget = Math.abs(newPosition.y - destination.y);
                     if (distanceToTarget <= 2)
                     {
-                        [object setProperty:@"atRest" value:@YES];
+                        object.setProperty("atRest", true);
                         newPosition = destination;
                         //
-                        animationComplete = YES;
-                        for (OBControl *control in labels)
+                        animationComplete = true;
+                        for (OBControl control : labels)
                         {
-                            animationComplete = animationComplete && [[control propertyValue:@"atRest"] boolValue];
+                            animationComplete = animationComplete && (Boolean) control.propertyValue("atRest");
                         }
                     }
                 }
-                object.position = newPosition;
+                object.setPosition(newPosition);
             }
-        });
-        [self waitForSecs:0.01];
+            //
+            unlockScreen();
+            //
+            waitForSecs(0.01f);
+        }
     }
-}
 
 
+
+    /*
 
 -(void) checkNumber:(OBLabel*)number
 {
@@ -376,18 +372,17 @@ public class X_Counting5and10_S4g extends XPRZ_Generic_SelectCorrectObject
     public void checkTarget(OBControl targ)
     {
         setStatus(STATUS_CHECKING);
-        OBGroup group = (OBGroup) targ;
         try
         {
             playSfxAudio("select_number", false);
-            action_highlight(group);
+            action_highlight(targ);
             //
-            if (group.equals(action_getCorrectAnswer()))
+            if (targ.equals(action_getCorrectAnswer()))
             {
                 gotItRightBigTick(true);
                 waitForSecs(0.3);
                 //
-                action_lowlight(group);
+                action_lowlight(targ);
                 waitForSecs(0.3);
                 //
                 playAudioQueuedScene(currentEvent(), "FINAL", true);
@@ -398,7 +393,7 @@ public class X_Counting5and10_S4g extends XPRZ_Generic_SelectCorrectObject
                 gotItWrongWithSfx();
                 waitForSecs(0.3);
                 //
-                action_lowlight(group);
+                action_lowlight(targ);
                 action_answerIsWrong();
                 //
                 setStatus(STATUS_AWAITING_CLICK);
