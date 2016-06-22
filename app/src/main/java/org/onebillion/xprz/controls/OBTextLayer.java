@@ -1,11 +1,18 @@
 package org.onebillion.xprz.controls;
 
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.text.Layout;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.StaticLayout;
+import android.text.TextPaint;
+import android.text.style.ForegroundColorSpan;
 
 /**
  * Created by alan on 21/04/16.
@@ -19,6 +26,8 @@ public class OBTextLayer extends OBLayer
     public int colour;
     public Paint textPaint;
     float lineOffset;
+    int hiStartIdx=-1,hiEndIdx=-1;
+    int hiRangeColour;
 
 
     float letterSpacing;
@@ -50,7 +59,22 @@ public class OBTextLayer extends OBLayer
         return obj;
     }
 
+    public void drawHighText(Canvas canvas)
+    {
+        SpannableString ss = new SpannableString(text);
+        ss.setSpan(new ForegroundColorSpan(hiRangeColour),hiStartIdx,hiEndIdx, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        TextPaint txpaint = new TextPaint(textPaint);
+        txpaint.setColor(Color.RED);
+        StaticLayout ly = new StaticLayout(ss,txpaint,tempRect.width(), Layout.Alignment.ALIGN_NORMAL,0,0,false);
+        float textStart = (bounds().right - tempRect.right) / 2;
+        canvas.save();
+        canvas.translate(textStart,lineOffset);
+        ly.draw(canvas);
+        canvas.restore();
+    }
+
     @Override
+
     public void draw(Canvas canvas)
     {
         textPaint.setTextSize(textSize);
@@ -106,4 +130,10 @@ public class OBTextLayer extends OBLayer
         this.letterSpacing = letterSpacing;
     }
 
+    public void setHighRange(int st,int en,int colour)
+    {
+        hiStartIdx = st;
+        hiEndIdx = en;
+        hiRangeColour = colour;
+    }
 }

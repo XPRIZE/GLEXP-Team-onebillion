@@ -850,6 +850,7 @@ public class OBGroup extends OBControl
                 c.parent = null;
                 c.setPosition(OB_Maths.OffsetPoint(c.position(), r.left, r.top));
                 invalidate();
+                sortedAttachedControlsValid = false;
             }
         }.run();
     }
