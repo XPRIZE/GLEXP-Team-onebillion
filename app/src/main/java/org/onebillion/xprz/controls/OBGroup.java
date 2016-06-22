@@ -848,7 +848,9 @@ public class OBGroup extends OBControl
                 OBControl c = members.get(idx);
                 members.remove(idx);
                 c.parent = null;
-                c.setPosition(OB_Maths.OffsetPoint(c.position(), r.left, r.top));                invalidate();
+                c.setPosition(OB_Maths.OffsetPoint(c.position(), r.left, r.top));
+                invalidate();
+                sortedAttachedControlsValid = false;
             }
         }.run();
     }

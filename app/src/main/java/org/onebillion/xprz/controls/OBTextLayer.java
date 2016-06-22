@@ -1,6 +1,7 @@
 package org.onebillion.xprz.controls;
 
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -62,7 +63,14 @@ public class OBTextLayer extends OBLayer
     {
         SpannableString ss = new SpannableString(text);
         ss.setSpan(new ForegroundColorSpan(hiRangeColour),hiStartIdx,hiEndIdx, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        StaticLayout ly = new StaticLayout(ss,new TextPaint(textPaint),tempRect.width(), Layout.Alignment.ALIGN_NORMAL,0,0,false);
+        TextPaint txpaint = new TextPaint(textPaint);
+        txpaint.setColor(Color.RED);
+        StaticLayout ly = new StaticLayout(ss,txpaint,tempRect.width(), Layout.Alignment.ALIGN_NORMAL,0,0,false);
+        float textStart = (bounds().right - tempRect.right) / 2;
+        canvas.save();
+        canvas.translate(textStart,lineOffset);
+        ly.draw(canvas);
+        canvas.restore();
     }
 
     @Override
