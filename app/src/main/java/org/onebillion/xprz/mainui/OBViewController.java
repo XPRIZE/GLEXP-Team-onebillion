@@ -32,7 +32,7 @@ public class OBViewController
     public OBView view;
     public Activity activity;
     public boolean inited = false;
-    int screenLock = 0;
+    public int screenLock = 0; // public for now
     RectF lockedInvalidRect;
     List<GraphicState> graphicStateStack = new ArrayList<>();
     public float[] projectionMatrix;
