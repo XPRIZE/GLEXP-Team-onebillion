@@ -790,7 +790,17 @@ public class OBControl
 
     public PointF getWorldPosition()
     {
-        return this.convertPointFromControl(this.position(), this.parent);
+        OBControl parent = this.parent;
+        while (parent.parent != null)
+        {
+            parent = parent.parent;
+        }
+        OBSectionController controller = (OBSectionController) parent.controller;
+        if (controller != null)
+        {
+            return controller.convertPointFromControl(this.position, this.parent);
+        }
+        return null;
     }
 
     public RectF convertRectToControl(RectF r,OBControl c)

@@ -40,12 +40,6 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
         super.setSceneXX(scene);
         //
         action_resetHands();
-        //
-        for (OBControl number : filterControls("number.*"))
-        {
-            OBLabel label = action_createLabelForControl(number, 1.0f);
-            number.setProperty("label", label);
-        }
     }
 
 
@@ -66,20 +60,28 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
     {
         setSceneXX(currentEvent());
         //
-        OBControl previous = null;
-        targets = sortedFilteredControls("number.*");
+        for (OBControl number : filterControls("number.*"))
+        {
+            OBLabel label = action_createLabelForControl(number, 1.0f);
+            number.setProperty("label", label);
+        }
         //
-        for (OBControl number : targets)
+        OBControl previous = null;
+        List<OBControl> groups = sortedFilteredControls("number.*");
+        //
+        for (OBControl number : groups)
         {
             if (previous != null) number.setLeft(previous.right());
         }
         //
-        alignmentGroup = new OBGroup(targets);
+        alignmentGroup = new OBGroup(groups);
         alignmentGroup.setPosition(new PointF(bounds().width() / 2, (float) (0.925 * bounds().height())));
         attachControl(alignmentGroup);
         sendObjectToTop(alignmentGroup);
         alignmentGroup.show();
         alignmentGroup.setShouldTexturise(false);
+        //
+        targets = filterControls("number.*");
         //
         int count = 0;
         List<OBControl> children = filterControls("child.*");
@@ -107,7 +109,6 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
         //
         hideControls("child.*");
         objectDict.get("child_1").show();
-        hideControls("label.*");
     }
 
 
@@ -393,5 +394,9 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
     }
 
 
+    public void fin()
+    {
+        goToCard(X_Counting5and10_S4g.class, "event4");
+    }
 
 }

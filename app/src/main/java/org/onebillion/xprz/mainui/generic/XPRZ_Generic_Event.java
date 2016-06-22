@@ -2,6 +2,7 @@ package org.onebillion.xprz.mainui.generic;
 
 import android.graphics.PointF;
 import android.graphics.Typeface;
+import android.os.SystemClock;
 import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
@@ -481,6 +482,12 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     public OBControl findTarget(PointF pt)
     {
         return finger(-1, 2, targets, pt, true);
+    }
+
+
+    public double currentTime()
+    {
+        return (SystemClock.uptimeMillis() / (double) 1000);
     }
 
 
