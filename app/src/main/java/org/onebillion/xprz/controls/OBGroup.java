@@ -27,6 +27,8 @@ public class OBGroup extends OBControl
     public Map<String,OBControl>objectDict;
     boolean sortedAttachedControlsValid;
     float opacity = 1f;
+    private List<String> sequence;
+    private int sequenceIndex;
 
     public OBGroup()
     {
@@ -943,11 +945,32 @@ public class OBGroup extends OBControl
     {
         return opacity;
     }
+    public void setSequence(List<String> sequence)
+    {
+        this.sequence = sequence;
+        this.sequenceIndex = -1;
+    }
 
     @Override
     public void setOpacity(float opacity)
     {
         this.opacity = opacity;
         invalidate();
+    }
+    public void setSequenceIndex(int sequenceIndex)
+    {
+
+        if (this.sequenceIndex != sequenceIndex)
+        {
+            for (String k : this.sequence)
+            {
+                OBControl c = objectDict.get(k);
+                c.hide();
+            }
+            OBControl c2 = objectDict.get(this.sequence.get(sequenceIndex));
+            c2.show();
+            this.sequenceIndex = sequenceIndex;
+            this.setNeedsRetexture();
+        }
     }
 }

@@ -32,11 +32,6 @@ public class OBAnimationGroup
     RectF r1;
     RectF r2;
 
-    public void OBAnimationGroup()
-    {
-
-    }
-
     public static OBAnimationGroup runAnims(final List<OBAnim> anims,final double secs,boolean wait,final int timingFunction,final OBSectionController vc)
     {
         final OBAnimationGroup ag = new OBAnimationGroup();
@@ -66,6 +61,11 @@ public class OBAnimationGroup
         OBAnimationGroup ag = new OBAnimationGroup();
         ag.chainAnimations(animArrays,durations,timingFunctions,noLoops,vc,wait);
         return ag;
+    }
+
+    public void OBAnimationGroup()
+    {
+
     }
 
     void doFrame(double frac)
