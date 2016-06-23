@@ -54,7 +54,8 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
 
     public void start()
     {
-        setStatus(0);
+        final long timeStamp = setStatus(STATUS_WAITING_FOR_TRACE);
+        //
         OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
             @Override
             public void run() throws Exception
@@ -63,6 +64,18 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
                 {
                     doBody(currentEvent());
                 }
+                //
+                OBUtils.runOnOtherThreadDelayed(3, new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run() throws Exception
+                    {
+                        if (!statusChanged(timeStamp))
+                        {
+                            playAudioQueuedScene(currentEvent(), "REMIND", false);
+                        }
+                    }
+                });
             }
         });
     }
@@ -312,6 +325,19 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     public OBControl findTarget(PointF pt)
     {
         return finger(-1, 2, targets, pt, true);
+    }
+
+
+    public Boolean audioSceneExists(String audioScene)
+    {
+        if (audioScenes == null) return false;
+        //
+        Map<String, List<String>> sc = (Map<String, List<String>>) audioScenes.get(currentEvent());
+        //
+        if (sc == null) return false;
+        //
+        List<Object> arr = (List<Object>) (Object) sc.get(audioScene);
+        return arr != null;
     }
 
 }
