@@ -1,5 +1,6 @@
 package org.onebillion.xprz.utils;
 
+import android.graphics.Matrix;
 import android.graphics.Path;
 import android.graphics.PointF;
 
@@ -12,7 +13,7 @@ import java.util.List;
 public class USubPath
 {
     float length;
-    List<ULine> elements;
+    public List<ULine> elements;
     PointF currPoint;
     public boolean closed;
     public USubPath()
@@ -116,4 +117,11 @@ public class USubPath
         closed = true;
     }
 
+    public void transformByMatrix(Matrix t)
+    {
+        for (ULine ul : elements)
+        {
+            ul.transformByMatrix(t);
+        }
+    }
 }

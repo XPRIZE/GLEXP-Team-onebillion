@@ -13,6 +13,7 @@ import org.onebillion.xprz.controls.OBEmitter;
 import org.onebillion.xprz.controls.OBEmitterCell;
 import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.utils.OB_Maths;
+import org.onebillion.xprz.utils.UPath;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,15 +32,10 @@ public class X_Test extends XPRZ_SectionController
     public void prepare()
     {
         super.prepare();
-        if (parameters.get("hard") != null && parameters.get("hard").equals("false"))
-            view.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-        loadFingers();
+         loadFingers();
         loadEvent("mastera");
-        OBControl c = objectDict.get("Path1");
-        if (c != null)
-        {
-            c.enCache();
-        }
+        OBControl c = objectDict.get("path1");
+        UPath p = deconstructedPath("mastera","path1");
         targets = new ArrayList<>();
         targets.add(c);
         events = Collections.singletonList("1a");

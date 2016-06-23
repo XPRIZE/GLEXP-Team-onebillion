@@ -1,5 +1,6 @@
 package org.onebillion.xprz.utils;
 
+import android.graphics.Matrix;
 import android.graphics.PointF;
 
 /**
@@ -8,7 +9,7 @@ import android.graphics.PointF;
 public class ULine
 {
     float length,proportionalLength;
-    PointF pt0,pt1;
+    public PointF pt0,pt1;
     public ULine(float x0,float y0,float x1,float y1)
     {
         super();
@@ -66,6 +67,18 @@ public class ULine
         return new ULine(p0.x,p0.y,p1.x,p1.y);
     }
 
-
+    public void transformByMatrix(Matrix t)
+    {
+        float ps[] = new float[4];
+        ps[0] = pt0.x;
+        ps[1] = pt0.y;
+        ps[2] = pt1.x;
+        ps[3] = pt1.y;
+        t.mapPoints(ps);
+        pt0.x = ps[0];
+        pt0.y = ps[1];
+        pt1.x = ps[2];
+        pt1.y = ps[3];
+    }
 
 }
