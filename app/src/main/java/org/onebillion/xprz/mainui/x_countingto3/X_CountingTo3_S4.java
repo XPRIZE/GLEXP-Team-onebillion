@@ -112,14 +112,14 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_DragObjectsToCorrectPlace
             String controls = "frog_" + i + "_.*";
             //
             XPRZ_Generic.pointer_moveToObjectByName(platformName, -25, 0.6f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_MIDDLE), true, this);
-            action_playNextDemoSentence(false);
+            action_playNextDemoSentence(false); // No Frogs. One Frog. Two Frogs. Three Frogs
             lockScreen();
             showControls(controls);
             unlockScreen();
             waitAudio();
             //
             XPRZ_Generic.pointer_moveToObjectByName(boxName, -15, 0.6f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_BOTTOM), true, this);
-            action_playNextDemoSentence(false);
+            action_playNextDemoSentence(false); // Zero. One. Two. Three.
             lockScreen();
             showControls(numberName);
             unlockScreen();
