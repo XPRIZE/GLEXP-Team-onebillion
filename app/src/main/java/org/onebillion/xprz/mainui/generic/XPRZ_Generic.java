@@ -181,13 +181,20 @@ public class XPRZ_Generic
                 String objectID = parameters[0];
                 String schemeID = parameters[1];
                 Map<String,Object> schemes = (Map<String,Object>) objectColoursDictionary.get(objectID);
-                Map<String,Object> layers = (Map<String,Object>) schemes.get(schemeID);
                 //
-                for (String layerID : layers.keySet())
+                if (schemes != null)
                 {
-                    int colour = OBUtils.colorFromRGBString((String) layers.get(layerID));
-                    OBControl layer = (OBControl) group.objectDict.get(layerID);
-                    colourObject(layer, colour);
+                    Map<String, Object> layers = (Map<String, Object>) schemes.get(schemeID);
+                    //
+                    if (layers != null)
+                    {
+                        for (String layerID : layers.keySet())
+                        {
+                            int colour = OBUtils.colorFromRGBString((String) layers.get(layerID));
+                            OBControl layer = group.objectDict.get(layerID);
+                            colourObject(layer, colour);
+                        }
+                    }
                 }
             }
         }
