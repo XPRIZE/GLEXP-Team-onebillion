@@ -10,6 +10,7 @@ import android.util.Log;
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBPath;
+import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic_SelectCorrectObject;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
@@ -98,7 +99,7 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
             shape.setProperty("clone", clone);
             clone.disable();
             //
-            sendObjectToTop(clone);
+            XPRZ_Generic.sendObjectToTop(clone, this);
             attachControl(clone);
             clone.show();
             //
@@ -157,7 +158,7 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
         OBGroup group = new OBGroup((List<OBControl>) (Object) Arrays.asList(path,clone));
         group.maskControl = clone;
         //
-        sendObjectToTop(group);
+        XPRZ_Generic.sendObjectToTop(group, this);
         attachControl(group);
         group.show();
         //
@@ -183,7 +184,7 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
         OBGroup group = new OBGroup((List<OBControl>) (Object) Arrays.asList(path, clone));
         group.maskControl = clone;
         //
-        sendObjectToTop(group);
+        XPRZ_Generic.sendObjectToTop(group, this);
         attachControl(group);
         group.show();
         //

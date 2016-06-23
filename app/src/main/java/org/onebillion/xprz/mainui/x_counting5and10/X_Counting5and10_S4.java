@@ -7,6 +7,7 @@ import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
+import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic_SelectCorrectObject;
 import org.onebillion.xprz.utils.OBUtils;
 
@@ -77,7 +78,7 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
         alignmentGroup = new OBGroup(groups);
         alignmentGroup.setPosition(new PointF(bounds().width() / 2, (float) (0.925 * bounds().height())));
         attachControl(alignmentGroup);
-        sendObjectToTop(alignmentGroup);
+        XPRZ_Generic.sendObjectToTop(alignmentGroup, this);
         alignmentGroup.show();
         alignmentGroup.setShouldTexturise(false);
         //

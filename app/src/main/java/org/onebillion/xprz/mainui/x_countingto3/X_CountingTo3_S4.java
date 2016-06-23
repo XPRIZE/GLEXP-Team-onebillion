@@ -6,6 +6,7 @@ import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBLabel;
+import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic_Event;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
@@ -66,11 +67,11 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
         loadPointer(POINTER_MIDDLE);
         //
         action_playNextDemoSentence(false); // Look
-        pointer_moveToObjectByName("platform_0", -25, 0.6f, EnumSet.of(Anchor.ANCHOR_MIDDLE), true);
+        XPRZ_Generic.pointer_moveToObjectByName("platform_0", -25, 0.6f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_MIDDLE), true, this);
         waitAudio();
 
         action_playNextDemoSentence(false); // No frogs on this rock.
-        pointer_moveToObjectByName("box_0", -15, 0.6f, EnumSet.of(Anchor.ANCHOR_BOTTOM), true);
+        XPRZ_Generic.pointer_moveToObjectByName("box_0", -15, 0.6f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_BOTTOM), true, this);
         waitAudio();
         action_playNextDemoSentence(false); // Zero
         showControls("number_0");
@@ -84,14 +85,14 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
             String platformName = "platform_" + i;
             String controls = "frog_" + i + "_.*";
             //
-            pointer_moveToObjectByName(platformName, -25, 0.6f, EnumSet.of(Anchor.ANCHOR_MIDDLE), true);
+            XPRZ_Generic.pointer_moveToObjectByName(platformName, -25, 0.6f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_MIDDLE), true, this);
             action_playNextDemoSentence(false);
             lockScreen();
             showControls(controls);
             unlockScreen();
             waitAudio();
             //
-            pointer_moveToObjectByName(boxName, -15, 0.6f, EnumSet.of(Anchor.ANCHOR_BOTTOM), true);
+            XPRZ_Generic.pointer_moveToObjectByName(boxName, -15, 0.6f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_BOTTOM), true, this);
             action_playNextDemoSentence(false);
             lockScreen();
             showControls(numberName);
@@ -106,7 +107,7 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
         List<OBControl> numbers = filterControls("number.*");
         for (OBControl number : numbers)
         {
-            PointF originalPosition = copyPoint((PointF)number.propertyValue("originalPosition"));
+            PointF originalPosition = XPRZ_Generic.copyPoint((PointF)number.propertyValue("originalPosition"));
             float distance = OB_Maths.PointDistance(originalPosition, number.position());
             Path path = OBUtils.SimplePath(number.position(), originalPosition, distance / 5f);
             OBAnim anim = OBAnim.pathMoveAnim(number, path, false, 0);
@@ -128,25 +129,25 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_Event
         action_playNextDemoSentence(false); // Now Look.
         waitForSecs(0.3f);
         //
-        pointer_moveToObjectByName("platform_2", -25, 0.6f, EnumSet.of(Anchor.ANCHOR_MIDDLE), true);
+        XPRZ_Generic.pointer_moveToObjectByName("platform_2", -25, 0.6f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_MIDDLE), true, this);
         waitAudio();
         action_playNextDemoSentence(true); // Two frogs.
         waitForSecs(0.3f);
         //
         OBControl number = objectDict.get("number_2");
-        pointer_moveToObject(number, -15, 0.6f, EnumSet.of(Anchor.ANCHOR_MIDDLE), true);
+        XPRZ_Generic.pointer_moveToObject(number, -15, 0.6f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_MIDDLE), true, this);
         PointF destination = objectDict.get("box_2").position();
-        pointer_moveToPointWithObject(number, destination, -25, 0.6f, true);
+        XPRZ_Generic.pointer_moveToPointWithObject(number, destination, -25, 0.6f, true, this);
         waitForSecs(0.3f);
         //
-        pointer_moveToObject(number, -15, 0.3f, EnumSet.of(Anchor.ANCHOR_BOTTOM), true);
+        XPRZ_Generic.pointer_moveToObject(number, -15, 0.3f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_BOTTOM), true, this);
         action_playNextDemoSentence(true); // Two
         waitForSecs(0.3f);
         //
         thePointer.hide();
         waitForSecs(0.7f);
         //
-        PointF originalPosition = copyPoint((PointF)number.propertyValue("originalPosition"));
+        PointF originalPosition = XPRZ_Generic.copyPoint((PointF)number.propertyValue("originalPosition"));
         float distance = OB_Maths.PointDistance(originalPosition, number.position());
         Path path = OBUtils.SimplePath(number.position(), originalPosition, distance / 5f);
         OBAnim anim = OBAnim.pathMoveAnim(number, path, false, 0);

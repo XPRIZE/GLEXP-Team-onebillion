@@ -11,6 +11,7 @@ import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.mainui.OBSectionController;
+import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic_SelectCorrectObject;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
@@ -71,7 +72,7 @@ public class X_Counting5and10_S4g extends XPRZ_Generic_SelectCorrectObject
         alignmentGroup = new OBGroup(groups);
         alignmentGroup.setPosition(new PointF(bounds().width() / 2, (float) (0.925 * bounds().height())));
         attachControl(alignmentGroup);
-        sendObjectToTop(alignmentGroup);
+        XPRZ_Generic.sendObjectToTop(alignmentGroup, this);
         alignmentGroup.show();
         alignmentGroup.setShouldTexturise(false);
         //
@@ -87,7 +88,7 @@ public class X_Counting5and10_S4g extends XPRZ_Generic_SelectCorrectObject
         setStatus(STATUS_DOING_DEMO);
         //
         playSfxAudio("move_bar", false);
-        PointF destination = copyPoint(alignmentGroup.position());
+        PointF destination = XPRZ_Generic.copyPoint(alignmentGroup.position());
         destination.y -= bounds().height() * 0.6;
         OBAnim moveAnim = OBAnim.moveAnim(destination, alignmentGroup);
         OBAnimationGroup.runAnims(Arrays.asList(moveAnim), 0.6, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
@@ -103,7 +104,7 @@ public class X_Counting5and10_S4g extends XPRZ_Generic_SelectCorrectObject
             group.removeMember(label);
             group.setNeedsRetexture();
             attachControl(label);
-            sendObjectToTop(label);
+            XPRZ_Generic.sendObjectToTop(label, this);
             label.show();
             label.setPosition(position);
             label.setProperty("originalPosition", position);
@@ -119,8 +120,8 @@ public class X_Counting5and10_S4g extends XPRZ_Generic_SelectCorrectObject
         OBLabel label = (OBLabel) objectDict.get("label_1");
         OBGroup box = (OBGroup) objectDict.get("number_1");
         //
-        destination = copyPoint(box.getWorldPosition());
-        pointer_moveToObject(label, -15, 0.6f, EnumSet.of(Anchor.ANCHOR_MIDDLE), true);
+        destination = XPRZ_Generic.copyPoint(box.getWorldPosition());
+        XPRZ_Generic.pointer_moveToObject(label, -15, 0.6f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_MIDDLE), true, this);
         action_highlight(label);
         //
         playSfxAudio("correct", false);
@@ -236,7 +237,7 @@ public class X_Counting5and10_S4g extends XPRZ_Generic_SelectCorrectObject
             //
             object.setProperty("phase1", phase1);
             object.setProperty("phase2", phase2);
-            object.setProperty("startTime", new Double(currentTime() + i * 0.1));
+            object.setProperty("startTime", new Double(XPRZ_Generic.currentTime() + i * 0.1));
             object.setProperty("floorCollision", false);
             object.setProperty("atRest", false);
             object.setProperty("initialPosition", initialPosition);
@@ -263,7 +264,7 @@ public class X_Counting5and10_S4g extends XPRZ_Generic_SelectCorrectObject
                 Boolean atRest = (Boolean) object.propertyValue("atRest");
                 PointF midWay = (PointF) object.propertyValue("midway");
                 //
-                double t = (currentTime() - startTime);
+                double t = (XPRZ_Generic.currentTime() - startTime);
                 //
                 if (t < 0 || atRest)
                 {
@@ -282,7 +283,7 @@ public class X_Counting5and10_S4g extends XPRZ_Generic_SelectCorrectObject
                     newPosition.set(newX, newY);
                     if (newPosition.y > floorHeight)
                     {
-                        object.setProperty("startTime", new Double(currentTime()));
+                        object.setProperty("startTime", new Double(XPRZ_Generic.currentTime()));
                         object.setProperty("floorCollision", true);
                         newPosition.set(midWay);
                         //

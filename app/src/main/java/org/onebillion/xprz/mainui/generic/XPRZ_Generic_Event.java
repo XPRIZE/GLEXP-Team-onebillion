@@ -33,21 +33,6 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     int currentDemoAudioIndex;
     public Map<String,Object> objectColoursDictionary;
 
-    public enum Anchor
-    {
-        ANCHOR_MIDDLE,
-        ANCHOR_LEFT,
-        ANCHOR_RIGHT,
-        ANCHOR_TOP,
-        ANCHOR_BOTTOM;
-
-        public final int anchor;
-
-        Anchor()
-        {
-            this.anchor = 1 << this.ordinal();
-        }
-    }
 
 
     public XPRZ_Generic_Event()
@@ -125,7 +110,7 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
                 if (fit != null && fit.equals("fitwidth"))
                 {
                     float scale = bounds().width() / control.width();
-                    PointF position = copyPoint(control.position());
+                    PointF position = XPRZ_Generic.copyPoint(control.position());
                     float originalHeight = control.height();
                     control.setScale(scale * control.scale());
                     float heightDiff = control.height() - originalHeight;
@@ -252,32 +237,7 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     }
 
 
-    public void pointer_moveToObjectByName(String controlName, float angle, float secs, EnumSet<Anchor> anchorFlags, Boolean wait)
-    {
-        OBControl control = objectDict.get(controlName);
-        pointer_moveToObject(control, angle, secs, anchorFlags, wait);
-    }
 
-
-    public void pointer_moveToObject(OBControl control, float angle, float secs, EnumSet<Anchor> anchorFlags, Boolean wait)
-    {
-        PointF position = copyPoint(control.position());
-        //
-        if (anchorFlags.contains(Anchor.ANCHOR_LEFT)) position.x -= control.width() / 2;
-        if (anchorFlags.contains(Anchor.ANCHOR_RIGHT)) position.x += control.width() / 2;
-        if (anchorFlags.contains(Anchor.ANCHOR_TOP)) position.y -= control.height() / 2;
-        if (anchorFlags.contains(Anchor.ANCHOR_BOTTOM)) position.y += control.height() / 2;
-        //
-        movePointerToPoint(position, angle, secs, wait);
-    }
-
-
-    public void pointer_moveToPointWithObject(OBControl control, PointF destination, float rotation, float secs, Boolean wait)
-    {
-        OBAnim anim = OBAnim.moveAnim(destination, control);
-        OBAnimationGroup.runAnims(Arrays.asList(anim), secs, false, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
-        movePointerToPoint(destination, rotation, secs, true);
-    }
 
 
     public void action_prepareScene(String scene, Boolean redraw)
@@ -320,7 +280,7 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
             float deltaH = container.width() / (contained.size() + 1);
             for (int i = 0; i < contained.size(); i++)
             {
-                PointF newPosition = copyPoint(container.position());
+                PointF newPosition = XPRZ_Generic.copyPoint(container.position());
                 newPosition.x = container.left() + deltaH * (i + 1);
                 OBControl placedObject = contained.get(i);
                 animations.add(OBAnim.moveAnim(newPosition, placedObject));
@@ -422,7 +382,7 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
             }
             //
             label.setPosition(control.position());
-            label.setZPosition(getNextZPosition());
+            label.setZPosition(XPRZ_Generic.getNextZPosition(this));
             label.texturise(false, this);
             //
             if (OBGroup.class.isInstance(control)) {
@@ -451,44 +411,11 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     }
 
 
-    // AUX FUNCTIONS
-
-
-    public float getNextZPosition()
-    {
-        float maxZPosition = 0.0f;
-        for (OBControl control : objectDict.values())
-        {
-            maxZPosition = Math.max(maxZPosition, control.zPosition());
-        }
-        return maxZPosition + 0.001f;
-    }
-
-    public void sendObjectToTop(OBControl control)
-    {
-        control.setZPosition(getNextZPosition());
-    }
-
-    public PointF copyPoint(PointF original)
-    {
-        return new PointF(original.x, original.y);
-    }
-
-
-
-
     // Finger and Touch functions
 
     public OBControl findTarget(PointF pt)
     {
         return finger(-1, 2, targets, pt, true);
     }
-
-
-    public double currentTime()
-    {
-        return (SystemClock.uptimeMillis() / (double) 1000);
-    }
-
 
 }

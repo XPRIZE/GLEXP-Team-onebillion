@@ -5,6 +5,7 @@ import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBLabel;
+import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic_Event;
 import org.onebillion.xprz.utils.OBUtils;
 
@@ -61,16 +62,16 @@ public class X_CountingTo3_S4f extends XPRZ_Generic_Event
         loadPointer(POINTER_MIDDLE);
         //
         action_playNextDemoSentence(false); // Now Look
-        pointer_moveToObjectByName("object_1", -15, 0.6f, EnumSet.of(Anchor.ANCHOR_MIDDLE), true);
+        XPRZ_Generic.pointer_moveToObjectByName("object_1", -15, 0.6f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_MIDDLE), true, this);
         waitForSecs(0.3);
         //
         action_playNextDemoSentence(false); // One thing for the one box
         OBControl object = objectDict.get("object_1");
         PointF destination = objectDict.get("container_1").position();
-        pointer_moveToPointWithObject(object, destination, -25, 0.6f, false);
+        XPRZ_Generic.pointer_moveToPointWithObject(object, destination, -25, 0.6f, false, this);
         playSfxAudio("dropObject", false);
         waitForSecs(0.3);
-        pointer_moveToObjectByName("number_1", -15, 0.4f, EnumSet.of(Anchor.ANCHOR_BOTTOM), true);
+        XPRZ_Generic.pointer_moveToObjectByName("number_1", -15, 0.4f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_BOTTOM), true, this);
         waitForSecs(0.7);
         //
         thePointer.hide();
