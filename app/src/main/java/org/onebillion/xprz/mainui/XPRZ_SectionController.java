@@ -20,6 +20,9 @@ import org.onebillion.xprz.utils.OBImageManager;
 import org.onebillion.xprz.utils.OBRunnableSyncUI;
 import org.onebillion.xprz.utils.OB_Maths;
 import org.onebillion.xprz.utils.OBUtils;
+import org.onebillion.xprz.utils.ULine;
+import org.onebillion.xprz.utils.UPath;
+import org.onebillion.xprz.utils.USubPath;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -426,4 +429,22 @@ public class XPRZ_SectionController extends OBSectionController {
         return pt;
     }
 
+    public UPath deconstructedPath(String ev,String pathname)
+    {
+        Map<String,Object> event = (Map<String, Object>) eventsDict.get(ev);
+        Map<String, Map<String, Object>> objectsdict = (Map<String, Map<String, Object>>) event.get("objectsdict");
+        Map<String,Object> target = objectsdict.get(pathname);
+        Map<String,Object> attrs = (Map<String, Object>) target.get("attrs");
+        String parentName = (String) attrs.get("parent");
+        RectF r = new RectF(bounds());
+        if (parentName != null)
+            r = objectDict.get(parentName).frame();
+        String pathString = (String)attrs.get("d");
+        UPath p = OBPath.upathFromSVGPath(pathString);
+        Matrix t = new Matrix();
+        t.preTranslate(r.left, r.top);
+        t.preScale(r.width(), r.height());
+        p.transformByMatrix(t);
+        return p;
+    }
 }

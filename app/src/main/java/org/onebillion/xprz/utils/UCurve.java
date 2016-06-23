@@ -1,5 +1,6 @@
 package org.onebillion.xprz.utils;
 
+import android.graphics.Matrix;
 import android.graphics.PointF;
 
 /**
@@ -88,6 +89,20 @@ public class UCurve extends ULine
         return (float)OB_Maths.tForS(pt0, pt1, cp0, cp1, 64, s,length());
     }
 
+    public void transformByMatrix(Matrix t)
+    {
+        super.transformByMatrix(t);
+        float ps[] = new float[4];
+        ps[0] = cp0.x;
+        ps[1] = cp0.y;
+        ps[2] = cp1.x;
+        ps[3] = cp1.y;
+        t.mapPoints(ps);
+        cp0.x = ps[0];
+        cp0.y = ps[1];
+        cp1.x = ps[2];
+        cp1.y = ps[3];
+    }
 
 
 

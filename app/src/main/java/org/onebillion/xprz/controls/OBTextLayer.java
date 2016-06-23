@@ -65,10 +65,10 @@ public class OBTextLayer extends OBLayer
         ss.setSpan(new ForegroundColorSpan(hiRangeColour),hiStartIdx,hiEndIdx, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         TextPaint txpaint = new TextPaint(textPaint);
         txpaint.setColor(Color.RED);
-        StaticLayout ly = new StaticLayout(ss,txpaint,tempRect.width(), Layout.Alignment.ALIGN_NORMAL,0,0,false);
+        StaticLayout ly = new StaticLayout(ss,txpaint,tempRect.width(), Layout.Alignment.ALIGN_NORMAL,1,0,false);
         float textStart = (bounds().right - tempRect.right) / 2;
         canvas.save();
-        canvas.translate(textStart,lineOffset);
+        canvas.translate(0,0);
         ly.draw(canvas);
         canvas.restore();
     }
@@ -87,6 +87,9 @@ public class OBTextLayer extends OBLayer
             tempRect.right += (text.length() * letterSpacing);
         float textStart = (bounds().right - tempRect.right) / 2;
         canvas.drawText(text,textStart,lineOffset,textPaint);
+        hiStartIdx = 0;hiEndIdx = text.length();
+        //if (hiStartIdx >= 0)
+          //  drawHighText(canvas);
     }
 
 

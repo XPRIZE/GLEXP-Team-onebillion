@@ -7,6 +7,7 @@ import org.onebillion.xprz.utils.OBXMLNode;
 import org.onebillion.xprz.utils.OB_Maths;
 import org.onebillion.xprz.utils.OB_MutInt;
 import org.onebillion.xprz.utils.UGradient;
+import org.onebillion.xprz.utils.UPath;
 import org.onebillion.xprz.utils.URadialGradient;
 import org.onebillion.xprz.utils.USubPath;
 
@@ -498,6 +499,205 @@ public class OBPath extends OBControl
                 case 'z':
                 case 'Z':
                     path.close();
+                    break;
+                default:
+                    break;
+            }
+            midx.value = skipdelims(str, midx.value);
+        }
+        return path;
+    }
+
+    public static UPath upathFromSVGPath(String str)
+    {
+        UPath path = new UPath();
+        USubPath subPath = new USubPath();
+        path.subPaths.add(subPath);
+
+        OB_MutInt midx = new OB_MutInt(skipdelims(str, 0));
+        float currx = 0f, curry = 0f, cx1, cy1, cx2, cy2, dx, dy, qx, qy;
+        char implicitCommand = 'M', lastCommand = 0, uc = 0;
+        PointF lastCurvePoint = new PointF(0f, 0f);
+        while (midx.value < str.length())
+        {
+            lastCommand = uc;
+            uc = str.charAt(midx.value);
+            if (isCommandChar(uc))
+                midx.value++;
+            else
+                uc = implicitCommand;
+            switch (uc)
+            {
+                case 'M':
+                    currx = getFloat(str, midx);
+                    curry = getFloat(str, midx);
+                    subPath.moveTo(currx, curry);
+                    implicitCommand = 'L';
+                    lastCurvePoint.set(0f, 0f);
+                    break;
+                case 'm':
+                    currx += getFloat(str, midx);
+                    curry += getFloat(str, midx);
+                    subPath.moveTo(currx, curry);
+                    implicitCommand = 'l';
+                    lastCurvePoint.set(0f, 0f);
+                    break;
+                case 'L':
+                    currx = getFloat(str, midx);
+                    curry = getFloat(str, midx);
+                    subPath.lineTo(currx, curry);
+                    lastCurvePoint.set(0f, 0f);
+                    implicitCommand = 'L';
+                    break;
+                case 'l':
+                    currx += getFloat(str, midx);
+                    curry += getFloat(str, midx);
+                    subPath.lineTo(currx, curry);
+                    implicitCommand = 'l';
+                    lastCurvePoint.set(0f, 0f);
+                    break;
+                case 'H':
+                    currx = getFloat(str, midx);
+                    subPath.lineTo(currx, curry);
+                    implicitCommand = 'H';
+                    break;
+                case 'h':
+                    currx += getFloat(str, midx);
+                    subPath.lineTo(currx, curry);
+                    implicitCommand = 'h';
+                    lastCurvePoint.set(0f, 0f);
+                    break;
+                case 'V':
+                    curry = getFloat(str, midx);
+                    subPath.lineTo(currx, curry);
+                    implicitCommand = 'V';
+                    lastCurvePoint.set(0f, 0f);
+                    break;
+                case 'v':
+                    curry += getFloat(str, midx);
+                    subPath.lineTo(currx, curry);
+                    implicitCommand = 'v';
+                    lastCurvePoint.set(0f, 0f);
+                    break;
+                case 'C':
+                    cx1 = getFloat(str, midx);
+                    cy1 = getFloat(str, midx);
+                    cx2 = getFloat(str, midx);
+                    cy2 = getFloat(str, midx);
+                    lastCurvePoint.set(cx2, cy2);
+                    currx = getFloat(str, midx);
+                    curry = getFloat(str, midx);
+                    subPath.cubicTo(cx1, cy1, cx2, cy2, currx, curry);
+                    implicitCommand = 'C';
+                    break;
+                case 'c':
+                    cx1 = currx + getFloat(str, midx);
+                    cy1 = curry + getFloat(str, midx);
+                    cx2 = currx + getFloat(str, midx);
+                    cy2 = curry + getFloat(str, midx);
+                    lastCurvePoint.set(cx2, cy2);
+                    currx += getFloat(str, midx);
+                    curry += getFloat(str, midx);
+                    subPath.cubicTo(cx1, cy1, cx2, cy2, currx, curry);
+                    implicitCommand = 'c';
+                    break;
+                case 'S':
+                    if ("CcSs".indexOf(lastCommand) < 0)
+                        //if (!new String(new int[]{lastCommand},0,1).matches("[CcSs]"))
+                        lastCurvePoint.set(0f, 0f);
+                    dx = currx - lastCurvePoint.x;
+                    dy = curry - lastCurvePoint.y;
+                    cx1 = currx + dx;
+                    cy1 = curry + dy;
+                    cx2 = getFloat(str, midx);
+                    cy2 = getFloat(str, midx);
+                    currx = getFloat(str, midx);
+                    curry = getFloat(str, midx);
+                    subPath.cubicTo(cx1, cy1, cx2, cy2, currx, curry);
+                    lastCurvePoint.set(cx2, cy2);
+                    implicitCommand = 'S';
+                    break;
+                case 's':
+                    if ("CcSs".indexOf(lastCommand) < 0)
+                        //if (!new String(new int[]{lastCommand},0,1).matches("[CcSs]"))
+                        lastCurvePoint.set(0f, 0f);
+                    dx = currx - lastCurvePoint.x;
+                    dy = curry - lastCurvePoint.y;
+                    cx1 = currx + dx;
+                    cy1 = curry + dy;
+                    cx2 = currx + getFloat(str, midx);
+                    cy2 = curry + getFloat(str, midx);
+                    currx += getFloat(str, midx);
+                    curry += getFloat(str, midx);
+                    subPath.cubicTo(cx1, cy1, cx2, cy2, currx, curry);
+                    lastCurvePoint.set(cx2, cy2);
+                    implicitCommand = 's';
+                    break;
+                case 'Q':
+                    qx = getFloat(str, midx);
+                    qy = getFloat(str, midx);
+                    cx1 = currx + (2.0f / 3.0f * (qx - currx));
+                    cy1 = curry + (2.0f / 3.0f * (qy - curry));
+                    currx = getFloat(str, midx);
+                    curry = getFloat(str, midx);
+                    cx2 = currx + (2.0f / 3.0f * (qx - currx));
+                    cy2 = curry + (2.0f / 3.0f * (qy - curry));
+                    lastCurvePoint.set(qx, qy);
+                    subPath.cubicTo(cx1, cy1, cx2, cy2, currx, curry);
+                    implicitCommand = 'Q';
+                    break;
+                case 'q':
+                    qx = currx + getFloat(str, midx);
+                    qy = curry + getFloat(str, midx);
+                    cx1 = currx + (2.0f / 3.0f * (qx - currx));
+                    cy1 = curry + (2.0f / 3.0f * (qy - curry));
+                    currx += getFloat(str, midx);
+                    curry += getFloat(str, midx);
+                    cx2 = currx + (2.0f / 3.0f * (qx - currx));
+                    cy2 = curry + (2.0f / 3.0f * (qy - curry));
+                    lastCurvePoint.set(qx, qy);
+                    subPath.cubicTo(cx1, cy1, cx2, cy2, currx, curry);
+                    implicitCommand = 'q';
+                    break;
+                case 'T':
+                    if ("QqTt".indexOf(lastCommand) < 0)
+                        //if (!new String(new int[]{lastCommand},0,1).matches("[QqTt]"))
+                        lastCurvePoint.set(0f, 0f);
+                    dx = currx - lastCurvePoint.x;
+                    dy = curry - lastCurvePoint.y;
+                    qx = currx + dx;
+                    qy = curry + dy;
+                    cx1 = currx + (2.0f / 3.0f * (qx - currx));
+                    cy1 = curry + (2.0f / 3.0f * (qy - curry));
+                    currx = getFloat(str, midx);
+                    curry = getFloat(str, midx);
+                    cx2 = currx + (2.0f / 3.0f * (qx - currx));
+                    cy2 = curry + (2.0f / 3.0f * (qy - curry));
+                    lastCurvePoint.set(qx, qy);
+                    subPath.cubicTo(cx1, cy1, cx2, cy2, currx, curry);
+                    implicitCommand = 'T';
+                    break;
+                case 't':
+                    if ("QqTt".indexOf(lastCommand) < 0)
+                        //if (!new String(new int[]{lastCommand},0,1).matches("[QqTt]"))
+                        lastCurvePoint.set(0f, 0f);
+                    dx = currx - lastCurvePoint.x;
+                    dy = curry - lastCurvePoint.y;
+                    qx = currx + dx;
+                    qy = curry + dy;
+                    cx1 = currx + (2.0f / 3.0f * (qx - currx));
+                    cy1 = curry + (2.0f / 3.0f * (qy - curry));
+                    currx += getFloat(str, midx);
+                    curry += getFloat(str, midx);
+                    cx2 = currx + (2.0f / 3.0f * (qx - currx));
+                    cy2 = curry + (2.0f / 3.0f * (qy - curry));
+                    lastCurvePoint.set(qx, qy);
+                    subPath.cubicTo(cx1, cy1, cx2, cy2, currx, curry);
+                    implicitCommand = 't';
+                    break;
+                case 'z':
+                case 'Z':
+                    subPath.close();
                     break;
                 default:
                     break;
