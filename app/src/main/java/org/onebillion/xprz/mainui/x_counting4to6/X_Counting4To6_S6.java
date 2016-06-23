@@ -70,35 +70,28 @@ public class X_Counting4To6_S6 extends XPRZ_Tracer
     {
         final long timeStamp = setStatus(STATUS_WAITING_FOR_TRACE);
         //
-        new AsyncTask<Void, Void, Void>()
-        {
-            protected Void doInBackground(Void... params)
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception
             {
-                try
+                if (!performSel("demo",currentEvent()))
                 {
-                    if (!performSel("demo", currentEvent()))
+                    doBody(currentEvent());
+                }
+                //
+                OBUtils.runOnOtherThreadDelayed(3, new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run() throws Exception
                     {
-                        doBody(currentEvent());
-                    }
-                    //
-                    OBUtils.runOnOtherThreadDelayed(3, new OBUtils.RunLambda()
-                    {
-                        @Override
-                        public void run() throws Exception
+                        if (!statusChanged(timeStamp))
                         {
-                            if (!statusChanged(timeStamp))
-                            {
-                                playAudioQueuedScene(currentEvent(), "REMIND", false);
-                            }
+                            playAudioQueuedScene(currentEvent(), "REMIND", false);
                         }
-                    });
-                }
-                catch (Exception exception)
-                {
-                }
-                return null;
+                    }
+                });
             }
-        }.execute();
+        });
     }
 
 
