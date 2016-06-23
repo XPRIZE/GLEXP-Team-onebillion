@@ -31,8 +31,6 @@ import java.util.Map;
 public class XPRZ_Generic_Event extends XPRZ_SectionController
 {
     int currentDemoAudioIndex;
-    public Map<String,Object> objectColoursDictionary;
-
 
 
     public XPRZ_Generic_Event()
@@ -46,7 +44,6 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
         lockScreen();
         loadFingers();
         loadEvent("master1");
-        action_loadObjectColours();
         String[] eva = ((String)eventAttributes.get(action_getScenesProperty())).split(",");
         events = Arrays.asList(eva);
 
@@ -130,110 +127,9 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
         //
         currentDemoAudioIndex = 0;
         //
-        action_colourObjectsWithScheme();
+        XPRZ_Generic.colourObjectsWithScheme(this);
         //
         action_prepareScene(scene, redraw);
-    }
-
-
-    public void action_loadObjectColours()
-    {
-        String filePath = getConfigPath("objectColours.xml");
-        objectColoursDictionary = new HashMap<>();
-        OBXMLNode xmlNode = null;
-        try
-        {
-            OBXMLManager xmlManager = new OBXMLManager();
-            List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(filePath));
-            xmlNode = xl.get(0);
-            List<OBXMLNode> xml_objects = xmlNode.childrenOfType("object");
-            for (OBXMLNode xml_object : xml_objects)
-            {
-                String object_id = xml_object.attributeStringValue("id");
-                List<OBXMLNode> xml_schemes = xml_object.childrenOfType("scheme");
-                Map<String, Object> schemes_dictionary = new HashMap<>();
-                //
-                for (OBXMLNode xml_scheme : xml_schemes)
-                {
-                    String scheme_id = xml_scheme.attributeStringValue("id");
-                    List<OBXMLNode> xml_layers = xml_scheme.childrenOfType("layer");
-                    Map<String, Object> layer_dictionary = new HashMap<>();
-                    //
-                    for (OBXMLNode xml_layer: xml_layers)
-                    {
-                        String layer_id = xml_layer.attributeStringValue("id");
-                        String colour = xml_layer.attributeStringValue("colour");
-                        layer_dictionary.put(layer_id, colour);
-                    }
-                    //
-                    schemes_dictionary.put(scheme_id, layer_dictionary);
-                }
-                //
-                objectColoursDictionary.put(object_id, schemes_dictionary);
-            }
-        }
-        catch (Exception e)
-        {
-            System.out.println("XPRZ_Generic.action_loadObjectColours.exception caught: " + e.toString());
-            e.printStackTrace();
-        }
-    }
-
-
-
-    public void action_colourObject(OBControl control, int colour)
-    {
-        if (OBGroup.class.isInstance(control))
-        {
-            OBGroup group = (OBGroup) control;
-            //
-            if (group.objectDict.get("col.*") == null)
-            {
-                for (OBControl member : group.members)
-                {
-                    action_colourObject(member, colour);
-                }
-            }
-        }
-        else if (OBPath.class.isInstance(control))
-        {
-            OBPath path = (OBPath) control;
-            path.setFillColor(colour);
-        }
-        else
-        {
-            System.out.println("XPRZ_Generic_Event.action_colourObject.unknown class for colouring");
-        }
-    }
-
-
-    public void action_colourObjectsWithScheme()
-    {
-        for(OBControl control : filterControls(".*"))
-        {
-            if (!(OBGroup.class.isInstance(control))) continue;
-            //
-            OBGroup group = (OBGroup) control;
-            //
-            if (group == null) continue;
-            //
-            String scheme = (String) group.attributes().get("scheme");
-            if (scheme != null)
-            {
-                String parameters[] = scheme.split(" ");
-                String objectID = parameters[0];
-                String schemeID = parameters[1];
-                Map<String,Object> schemes = (Map<String,Object>) objectColoursDictionary.get(objectID);
-                Map<String,Object> layers = (Map<String,Object>) schemes.get(schemeID);
-                //
-                for (String layerID : layers.keySet())
-                {
-                    int colour = OBUtils.colorFromRGBString((String) layers.get(layerID));
-                    OBControl layer = (OBControl) group.objectDict.get(layerID);
-                    action_colourObject(layer, colour);
-                }
-            }
-        }
     }
 
 

@@ -137,6 +137,8 @@ public class X_Counting4To6_S6 extends XPRZ_Tracer
                     control.setPosition(position);
                 }
             }
+            //
+            XPRZ_Generic.colourObjectsWithScheme(this);
         }
         currentTry = 1;
         trace_arrow = objectDict.get("trace_arrow");
