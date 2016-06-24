@@ -1362,6 +1362,7 @@ public class OBControl
                 {
                     invalidate();
                     hidden = true;
+                    setNeedsRetexture();
                 }
             }.run();
         }
@@ -1381,6 +1382,7 @@ public class OBControl
     {
         hidden = h;
         invalidate();
+        setNeedsRetexture();
     }
     public void setMaskControl(OBControl m)
     {
@@ -1653,5 +1655,4 @@ public class OBControl
         if (controller != null)
             controller.unlockScreen();
     }
-
 }

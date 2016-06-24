@@ -922,8 +922,9 @@ public class OBGroup extends OBControl
             if (OBPath.class.isInstance(c))
                 ((OBPath)c).setFillColor(fill);
         }
-        if (texture != null)
-            needsRetexture = true;
+//        if (texture != null)
+//            needsRetexture = true;
+        setNeedsRetexture();
     }
 
     public boolean needsTexture()

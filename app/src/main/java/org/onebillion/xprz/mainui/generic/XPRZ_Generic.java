@@ -14,7 +14,10 @@ import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OBXMLManager;
 import org.onebillion.xprz.utils.OBXMLNode;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -201,6 +204,25 @@ public class XPRZ_Generic
     }
 
 
+    public static List<OBControl> controlsSortedFrontToBack(List<OBControl> list)
+    {
+        List<OBControl> result = new ArrayList<OBControl>(list);
+        //
+        Collections.sort(result,new Comparator<OBControl>(){
+            @Override
+            public int compare(OBControl o1, OBControl o2)
+            {
+                float z1 = o1.zPosition();
+                float z2 = o2.zPosition();
+                if (z1 < z2)
+                    return -1;
+                if (z1 > z2)
+                    return 1;
+                return 0;
+            }
+        });
+        return result;
+    }
 
 
     public static PointF copyPoint(PointF original)
