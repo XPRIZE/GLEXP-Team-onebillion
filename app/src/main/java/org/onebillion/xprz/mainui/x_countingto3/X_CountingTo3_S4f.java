@@ -6,6 +6,7 @@ import android.view.View;
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
+import org.onebillion.xprz.mainui.generic.XPRZ_Generic_DragObjectsToCorrectPlace;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic_Event;
 import org.onebillion.xprz.utils.OBUtils;
 
@@ -16,7 +17,7 @@ import java.util.List;
 /**
  * Created by pedroloureiro on 20/06/16.
  */
-public class X_CountingTo3_S4f extends XPRZ_Generic_Event
+public class X_CountingTo3_S4f extends XPRZ_Generic_DragObjectsToCorrectPlace
 {
     public X_CountingTo3_S4f()
     {
@@ -85,28 +86,6 @@ public class X_CountingTo3_S4f extends XPRZ_Generic_Event
 
 
 
-
-    @Override
-    public void touchDownAtPoint(final PointF pt, View v)
-    {
-        if (status() == STATUS_AWAITING_CLICK)
-        {
-            final OBControl c = findTarget(pt);
-            if (c != null)
-            {
-                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-                {
-                    @Override
-                    public void run() throws Exception
-                    {
-                        checkDragTarget(c, pt);
-                    }
-                });
-            }
-        }
-    }
-
-
     public Boolean action_isEventOver()
     {
         List<OBControl> containers = filterControls(action_getContainerPrefix() + ".*");
@@ -120,173 +99,23 @@ public class X_CountingTo3_S4f extends XPRZ_Generic_Event
         return true;
     }
 
-
-    @Override
-    public void checkDragAtPoint(PointF pt)
+    public Boolean action_isPlacementCorrect(OBControl dragged, OBControl container)
     {
-        setStatus(STATUS_CHECKING);
-        //
-        OBControl container = finger(-1, 2, filterControls(action_getContainerPrefix() + ".*"), pt, true);
-        OBControl dragged = target;
-        target = null;
-        //
-        if (container != null)
-        {
-            int correctQuantity = Integer.parseInt((String)container.attributes().get("correctQuantity"));
-            List<OBControl> containedObjects = (List<OBControl>) container.propertyValue("contained");
-            if (containedObjects == null) containedObjects = new ArrayList<OBControl>();
-            if (containedObjects.size() < correctQuantity)
-            {
-                action_moveObjectIntoContainer(dragged, container);
-                dragged.disable();
-                //
-                try
-                {
-                    gotItRightBigTick(false);
-                    waitForSecs(0.3);
-                    //
-                    if (action_isEventOver())
-                    {
-                        //
-                        gotItRightBigTick(true);
-                        //
-                        //
-                        playAudioQueuedScene(currentEvent(), "CORRECT", true);
-                        waitForSecs(0.3);
-                        //
-                        playAudioQueuedScene(currentEvent(), "FINAL", true);
-                        //
-                        nextScene();
-                    }
-                    else
-                    {
-                        setStatus(STATUS_AWAITING_CLICK);
-                    }
-                }
-                catch (Exception e)
-                {
-                    System.out.println("X_CountingTo3_S4f.exception caught: " + e.toString());
-                    e.printStackTrace();
-                }
-
-            }
-            else
-            {
-                gotItWrongWithSfx();
-                //
-                action_moveObjectToOriginalPosition(dragged, true);
-                setStatus(STATUS_AWAITING_CLICK);
-            }
-        }
-        else
-        {
-            action_moveObjectToOriginalPosition(dragged, true);
-            setStatus(STATUS_AWAITING_CLICK);
-        }
-        /*
-        [self statusSetLocked];
-        NSArray *containers = [self filterControls:@"container.*"];
-        OBControl *container = [self finger:0 to:2 objects:containers point:pt];
-        OBControl *object = self.target;
-        self.target = nil;
-        if (container != nil)
-        {
-            int correctQuantity = [container.attributes[@"correctQuantity"] intValue];
-            if ([self totalObjectsContained:container] < correctQuantity)
-            {
-                if ([self addObjectAndRearrangeContainer:object container:container maxObjectsPerContainer:[container.attributes[@"correctQuantity"] intValue] keepInBound:NO])
-                {
-                    [object disable];
-                }
-                //check for end scene condition
-                if ([self isEventComplete])
-                {
-                    [self waitForSecs:0.3];
-                    //
-                    [self gotItRightBigTick:NO];
-                    [self waitSFX];
-                    [self waitForSecs:0.3];
-                    //
-                    [self gotItRightBigTick:YES];
-                    [self waitForSecs:0.3];
-                    //
-                    [self playSceneAudio:@"CORRECT" wait:YES];
-                    [self waitForSecs:0.3];
-                    //
-                    [self playSceneAudio:@"FINAL" wait:YES];
-                    [self waitForSecs:0.3];
-                    //
-                    [self nextScene];
-                    return;
-                } else {
-                    DoSafeBlockOnThread(^{
-                        [self waitForSecs:0.3];
-                        [self gotItRightBigTick:NO];
-                        [self waitSFX];
-                    });
-                }
-            } else {
-                [self moveObjectToOriginalPosition:object withSound:NO keepInBound:YES];
-                [self gotItWrongWithSfx];
-            }
-        } else {
-            [self moveObjectToOriginalPosition:object withSound:YES keepInBound:YES];
-        }
-        [self statusSetWaitClick];
-         */
-
-//        setStatus(STATUS_CHECKING);
-//        //
-//        OBControl dragged = this.target;
-//        this.target = null;
-//        //
-//        List<OBControl> containers = filterControls(action_getContainerPrefix() + ".*");
-//        OBControl container = finger(0, 2, containers, pt, true);
-//        //
-//        if (container != null)
-//        {
-//            if (container.attributes().get("correct_number").equals(dragged.attributes().get("number")))
-//            {
-//                try {
-//                    action_moveObjectIntoContainer(dragged, container);
-//                    dragged.disable();
-//                    //
-//                    playAudioQueuedSceneIndex(currentEvent(), "CORRECT", Integer.parseInt((String) dragged.attributes().get("number")), true);
-//                    waitForSecs(0.3);
-//                    //
-//                    OBControl platform = objectDict.get(String.format("platform_%d", Integer.parseInt((String) dragged.attributes().get("number"))));
-//                    action_animatePlatform(platform, false);
-//                    //
-//                    gotItRightBigTick(true);
-//                    waitForSecs(0.3);
-//                    //
-//                    if (action_isEventOver()) {
-//                        playAudioQueuedScene(currentEvent(), "FINAL", true);
-//                        //
-//                        nextScene();
-//                    } else {
-//                        setStatus(STATUS_AWAITING_CLICK);
-//                    }
-//                }
-//                catch (Exception e)
-//                {
-//                    System.out.println("X_CountingTo3_S4.exception caught:" + e.toString());
-//                    e.printStackTrace();
-//                }
-//            }
-//            else
-//            {
-//                gotItWrongWithSfx();
-//                action_moveObjectToOriginalPosition(dragged);
-//                //
-//                setStatus(STATUS_AWAITING_CLICK);
-//            }
-//        }
-//        else
-//        {
-//            action_moveObjectToOriginalPosition(dragged);
-//            //
-//            setStatus(STATUS_AWAITING_CLICK);
-//        }
+        int correctQuantity = Integer.parseInt((String)container.attributes().get("correctQuantity"));
+        List<OBControl> containedObjects = (List<OBControl>) container.propertyValue("contained");
+        if (containedObjects == null) containedObjects = new ArrayList<OBControl>();
+        return containedObjects.size() < correctQuantity;
     }
+
+
+    public void action_correctAnswer(OBControl dragged, OBControl container) throws Exception
+    {
+        if (action_isEventOver())
+        {
+            waitForSecs(0.3);
+            //
+            playAudioQueuedScene(currentEvent(), "CORRECT", true);
+        }
+    }
+
 }
