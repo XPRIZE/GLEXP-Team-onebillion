@@ -14,10 +14,12 @@ import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic_Event;
 import org.onebillion.xprz.utils.OBAnim;
+import org.onebillion.xprz.utils.OBAnimBlock;
 import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBAudioManager;
 import org.onebillion.xprz.utils.OBRunnableSyncUI;
 import org.onebillion.xprz.utils.OBUtils;
+import org.onebillion.xprz.utils.OB_Maths;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -95,15 +97,12 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
     {
         setSceneXX(currentEvent());
         //
-//        hideControls("fly.*");
+        hideControls("fly.*");
     }
 
 
     public void demo6a () throws Exception
     {
-        nextScene();
-        //
-        /*
         setStatus(STATUS_DOING_DEMO);
         loadPointer(POINTER_MIDDLE);
         //
@@ -128,41 +127,33 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
         //
         setStatus(STATUS_AWAITING_CLICK);
         doAudio(currentEvent());
-        */
     }
 
 
     public void demo6b () throws Exception
     {
-        nextScene();
+        setStatus(STATUS_DOING_DEMO);
         //
-//        setStatus(STATUS_DOING_DEMO);
-//        //
-//        action_playNextDemoSentence(true); // Good!
-//        waitForSecs(0.3);
-//        //
-//        loadPointer(POINTER_MIDDLE);
-//        action_playNextDemoSentence(false); // Now colour in ALL the white parts of the picture.
-//        XPRZ_Generic.pointer_moveToObjectByName("object", 5, 0.9f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_RIGHT), true, this);
-//        waitAudio();
-//        waitForSecs(0.3);
-//        //
-//        XPRZ_Generic.pointer_moveToObjectByName("paint_1", 10, 0.6f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_LEFT), true, this);
-//        action_playNextDemoSentence(false); // Choose colours from here.
-//        XPRZ_Generic.pointer_moveToObjectByName("paint_6", 10, 0.9f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_LEFT), true, this);
-//        waitAudio();
-//        waitForSecs(0.3);
-//        //
-//        thePointer.hide();
-//        waitForSecs(0.3);
+        action_playNextDemoSentence(true); // Good!
+        waitForSecs(0.3);
+        //
+        loadPointer(POINTER_MIDDLE);
+        action_playNextDemoSentence(false); // Now colour in ALL the white parts of the picture.
+        XPRZ_Generic.pointer_moveToObjectByName("object", 5, 0.9f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_RIGHT), true, this);
+        waitAudio();
+        waitForSecs(0.3);
+        //
+        XPRZ_Generic.pointer_moveToObjectByName("paint_1", 10, 0.6f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_LEFT), true, this);
+        action_playNextDemoSentence(false); // Choose colours from here.
+        XPRZ_Generic.pointer_moveToObjectByName("paint_6", 10, 0.9f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_LEFT), true, this);
+        waitAudio();
+        waitForSecs(0.3);
+        //
+        thePointer.hide();
+        waitForSecs(0.3);
         //
         setStatus(STATUS_AWAITING_CLICK);
         doAudio(currentEvent());
-    }
-
-    public void demo6c() throws Exception  // to be removed
-    {
-        nextScene();
     }
 
 
@@ -280,29 +271,39 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
         //
         playSfxAudio("draw_line", false);
         float duration = line.length() / applyGraphicScale(400);
-        long starttime = SystemClock.uptimeMillis();
-        float frac = 0;
-        while (frac <= 1.0)
+        //
+        OBAnim pathAnim = new OBAnimBlock()
         {
-            try
+            @Override
+            public void runAnimBlock(float frac)
             {
-                long currtime = SystemClock.uptimeMillis();
-                frac = (float) (currtime - starttime) / (duration * 1000);
-                final float t = (frac);
-                new OBRunnableSyncUI()
-                {
-                    public void ex ()
-                    {
-                        line.setStrokeEnd(t);
-                    }
-                }.run();
-                waitForSecs(0.02f);
+                line.setStrokeEnd(frac);
             }
-            catch (Exception e)
-            {
-                break;
-            }
-        }
+        };
+        OBAnimationGroup.runAnims(Arrays.asList(pathAnim), duration, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+//        long starttime = SystemClock.uptimeMillis();
+//        float frac = 0;
+//        while (frac <= 1.0)
+//        {
+//            try
+//            {
+//                long currtime = SystemClock.uptimeMillis();
+//                frac = (float) (currtime - starttime) / (duration * 1000);
+//                final float t = (frac);
+//                new OBRunnableSyncUI()
+//                {
+//                    public void ex ()
+//                    {
+//                        line.setStrokeEnd(t);
+//                    }
+//                }.run();
+//                waitForSecs(0.02f);
+//            }
+//            catch (Exception e)
+//            {
+//                break;
+//            }
+//        }
         //
         line.setStrokeColor(Color.BLACK);
         OBAudioManager.audioManager.stopPlayingSFX();
