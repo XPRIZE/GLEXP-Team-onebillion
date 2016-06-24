@@ -1,7 +1,9 @@
 package org.onebillion.xprz.mainui.x_counting5and10;
 
 import android.graphics.Color;
+import android.graphics.PathMeasure;
 import android.graphics.PointF;
+import android.graphics.RectF;
 import android.os.SystemClock;
 import android.view.View;
 
@@ -57,16 +59,28 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
         {
             OBGroup group = (OBGroup) control;
             group.hideMembers("selector_frame");
+            group.hideMembers("shine.*"); // gradient path not working correctly
         }
         //
-        hideControls("path.*");
-        currentAnswer = 0;
+        for (OBControl control : filterControls("path.*"))
+        {
+            OBPath path = (OBPath) control;
+            path.setLineWidth(applyGraphicScale(path.lineWidth()));
+            path.hide();
+        }
         //
+        for (OBControl control : filterControls("permanent_.*"))
+        {
+            OBPath path = (OBPath) control;
+            path.setLineWidth(applyGraphicScale(path.lineWidth()));
+        }
+        //
+        currentAnswer = 0;
         colourableObjects = new ArrayList<OBControl>();
         OBGroup object = (OBGroup) objectDict.get("object");
         if (object != null)
         {
-            List<OBControl> bodyParts = XPRZ_Generic.controlsSortedFrontToBack(object.filterMembers("c_.*"));
+            List<OBControl> bodyParts = XPRZ_Generic.controlsSortedFrontToBack(object, "c_.*");
             colourableObjects.addAll(bodyParts);
             OBControl background = objectDict.get("background");
             if (background != null)
@@ -77,15 +91,15 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
     }
 
 
-    public void setScene6a()
+    public void setScene6d ()
     {
         setSceneXX(currentEvent());
         //
-        hideControls("fly.*");
+//        hideControls("fly.*");
     }
 
 
-    public void demo6a() throws Exception
+    public void demo6a () throws Exception
     {
         nextScene();
         //
@@ -118,36 +132,41 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
     }
 
 
-    public void demo6b() throws Exception
+    public void demo6b () throws Exception
     {
-        /*
-        setStatus(STATUS_DOING_DEMO);
+        nextScene();
         //
-        action_playNextDemoSentence(true); // Good!
-        waitForSecs(0.3);
+//        setStatus(STATUS_DOING_DEMO);
+//        //
+//        action_playNextDemoSentence(true); // Good!
+//        waitForSecs(0.3);
+//        //
+//        loadPointer(POINTER_MIDDLE);
+//        action_playNextDemoSentence(false); // Now colour in ALL the white parts of the picture.
+//        XPRZ_Generic.pointer_moveToObjectByName("object", 5, 0.9f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_RIGHT), true, this);
+//        waitAudio();
+//        waitForSecs(0.3);
+//        //
+//        XPRZ_Generic.pointer_moveToObjectByName("paint_1", 10, 0.6f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_LEFT), true, this);
+//        action_playNextDemoSentence(false); // Choose colours from here.
+//        XPRZ_Generic.pointer_moveToObjectByName("paint_6", 10, 0.9f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_LEFT), true, this);
+//        waitAudio();
+//        waitForSecs(0.3);
+//        //
+//        thePointer.hide();
+//        waitForSecs(0.3);
         //
-        loadPointer(POINTER_MIDDLE);
-        action_playNextDemoSentence(false); // Now colour in ALL the white parts of the picture.
-        XPRZ_Generic.pointer_moveToObjectByName("object", 5, 0.9f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_RIGHT), true, this);
-        waitAudio();
-        waitForSecs(0.3);
-        //
-        XPRZ_Generic.pointer_moveToObjectByName("paint_1", 10, 0.6f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_LEFT), true, this);
-        action_playNextDemoSentence(false); // Choose colours from here.
-        XPRZ_Generic.pointer_moveToObjectByName("paint_6", 10, 0.9f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_LEFT), true, this);
-        waitAudio();
-        waitForSecs(0.3);
-        //
-        thePointer.hide();
-        waitForSecs(0.3);
-        //
-        */
         setStatus(STATUS_AWAITING_CLICK);
         doAudio(currentEvent());
     }
 
+    public void demo6c() throws Exception  // to be removed
+    {
+        nextScene();
+    }
 
-    public void finDemo6b() throws Exception
+
+    public void finDemo6b () throws Exception
     {
         OBGroup object = (OBGroup) objectDict.get("object");
         lockScreen();
@@ -156,6 +175,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
         {
             finalObject.show();
         }
+        unlockScreen();
         //
         OBAnim bodyAnim = OBAnim.sequenceAnim(object, Arrays.asList("c_body", "body_2", "body_3", "body_4", "body_3", "body_2"), 0.1f, true);
         playSfxAudio("owl", false);
@@ -165,18 +185,20 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
     }
 
 
-    public void finDemo6d() throws Exception
+    public void finDemo6d () throws Exception
     {
         OBGroup frog = (OBGroup) objectDict.get("object");
-        OBGroup fly = (OBGroup) objectDict.get("fly");
-        OBPath path = (OBPath) objectDict.get("fly_path");
+        final OBGroup fly = (OBGroup) objectDict.get("fly");
+        final OBPath path = (OBPath) objectDict.get("fly_path");
+        path.sizeToBox(new RectF(bounds()));
         //
         OBAnim pathAnim = OBAnim.pathMoveAnim(fly, path.path(), false, 0);
         OBAnim flyAnim = OBAnim.sequenceAnim(fly, Arrays.asList("frame_1", "frame_2"), 0.1f, true);
         //
         playSfxAudio("frog", false);
         OBAnimationGroup flyAnimations = new OBAnimationGroup();
-        flyAnimations.applyAnimations(Arrays.asList(pathAnim,flyAnim), 2.5, false, OBAnim.ANIM_LINEAR, this);
+        flyAnimations.applyAnimations(Arrays.asList(pathAnim, flyAnim), 2.5, false, OBAnim.ANIM_LINEAR, this);
+        //
         fly.show();
         waitForSecs(0.3);
         //
@@ -237,6 +259,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
         frog.showMembers("c_eyes");
         fly.setPosition(position3.position());
         fly.setScale(0.7f * fly.scale());
+        fly.hide();
         unlockScreen();
         waitForSecs(0.1);
         //
@@ -246,12 +269,11 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
     }
 
 
-    public void action_tracePath(int pathNumber) throws Exception
+    public void action_tracePath (int pathNumber) throws Exception
     {
         final OBPath line = (OBPath) objectDict.get(String.format("path_%d", pathNumber));
         if (line == null) return;
         //
-//        line.setLineWidth(applyGraphicScale(line.lineWidth()));
         line.setStrokeEnd(0.0f);
         line.setStrokeColor(Color.RED);
         line.show();
@@ -287,20 +309,20 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
     }
 
 
-    public OBControl findDot(PointF pt)
+    public OBControl findDot (PointF pt)
     {
         return finger(-1, 2, filterControls("dot.*"), pt, true);
     }
 
 
-    public void checkDot(OBControl dot)
+    public void checkDot (OBControl dot)
     {
         setStatus(STATUS_CHECKING);
         //
         OBControl correctDot = objectDict.get(String.format("dot_%d", currentAnswer));
         String dotID = (String) dot.attributes().get("id");
         OBLabel selectedNumber = (OBLabel) objectDict.get(dotID.replace("dot", "label"));
-        OBLabel previousNumber = (OBLabel) objectDict.get(String.format("label_%d", currentAnswer-1));
+        OBLabel previousNumber = (OBLabel) objectDict.get(String.format("label_%d", currentAnswer - 1));
         //
         try
         {
@@ -369,14 +391,13 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
     }
 
 
-
-    public OBControl findPainPot(PointF pt)
+    public OBControl findPainPot (PointF pt)
     {
         return finger(-1, 2, filterControls("paint.*"), pt);
     }
 
 
-    public void checkPaintPot(OBControl paintpot)
+    public void checkPaintPot (OBControl paintpot)
     {
         setStatus(STATUS_CHECKING);
         //
@@ -391,7 +412,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
             }
             unlockScreen();
             //
-            selectedColour = OBUtils.colorFromRGBString((String)paintpot.attributes().get("fill"));
+            selectedColour = OBUtils.colorFromRGBString((String) paintpot.attributes().get("fill"));
             //
             setStatus(STATUS_AWAITING_CLICK);
         }
@@ -403,12 +424,12 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
     }
 
 
-    public OBControl findColourableObject(PointF pt)
+    public OBControl findColourableObject (PointF pt)
     {
         OBGroup object = (OBGroup) objectDict.get("object");
         if (object != null)
         {
-            List<OBControl> bodyParts = XPRZ_Generic.controlsSortedFrontToBack(object.filterMembers("c_.*"));
+            List<OBControl> bodyParts = XPRZ_Generic.controlsSortedFrontToBack(object, "c_.*");
             //
             OBControl bodyPart = finger(-1, 2, bodyParts, pt, true);
             if (bodyPart != null) return bodyPart;
@@ -421,7 +442,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
     }
 
 
-    public void checkColourableObject(OBControl selectedObject, PointF pt)
+    public void checkColourableObject (OBControl selectedObject, PointF pt)
     {
         setStatus(STATUS_CHECKING);
         //
@@ -477,7 +498,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
                             }
                         }
                     }
-                    else if(OBPath.class.isInstance(selectedObject))
+                    else if (OBPath.class.isInstance(selectedObject))
                     {
                         OBPath path = (OBPath) selectedObject;
                         path.setFillColor(selectedColour);
@@ -517,7 +538,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
     }
 
 
-    public void touchDownAtPoint(final PointF pt, View v)
+    public void touchDownAtPoint (final PointF pt, View v)
     {
         if (status() == STATUS_AWAITING_CLICK)
         {
@@ -530,7 +551,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
                     @Override
-                    public void run() throws Exception
+                    public void run () throws Exception
                     {
                         checkDot(dot);
                     }
@@ -541,7 +562,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
                     @Override
-                    public void run() throws Exception
+                    public void run () throws Exception
                     {
                         checkPaintPot(paintpot);
                     }
@@ -552,7 +573,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
                     @Override
-                    public void run() throws Exception
+                    public void run () throws Exception
                     {
                         checkColourableObject(colourableObject, pt);
                     }

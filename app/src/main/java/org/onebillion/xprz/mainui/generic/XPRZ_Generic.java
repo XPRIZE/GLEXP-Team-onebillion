@@ -22,6 +22,8 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by pedroloureiro on 23/06/16.
@@ -204,23 +206,28 @@ public class XPRZ_Generic
     }
 
 
-    public static List<OBControl> controlsSortedFrontToBack(List<OBControl> list)
+    public static List<OBControl> controlsSortedFrontToBack(OBGroup group, String pattern)
     {
-        List<OBControl> result = new ArrayList<OBControl>(list);
-        //
-        Collections.sort(result,new Comparator<OBControl>(){
-            @Override
-            public int compare(OBControl o1, OBControl o2)
+        List<OBControl> result = new ArrayList<OBControl>();
+        Pattern p = Pattern.compile(pattern);
+        for (OBControl control : group.members)
+        {
+            String controlID = (String) control.attributes().get("id");
+            if (controlID == null)
             {
-                float z1 = o1.zPosition();
-                float z2 = o2.zPosition();
-                if (z1 < z2)
-                    return -1;
-                if (z1 > z2)
-                    return 1;
-                return 0;
+                controlID = (String) control.settings.get("name");
             }
-        });
+            if (controlID == null) continue;
+            //
+            Matcher matcher = p.matcher(controlID);
+            matcher.find();
+            if (matcher.matches())
+            {
+                result.add(control);
+            }
+        }
+        Collections.reverse(result);
+        //
         return result;
     }
 
