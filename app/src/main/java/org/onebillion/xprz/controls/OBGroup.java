@@ -712,7 +712,8 @@ public class OBGroup extends OBControl
         }
         sortedAttachedControls = new ArrayList<OBControl>();
         sortedAttachedControlsValid = false;
-            return obj;
+        GetObjectIdsFromArray(obj.members, obj.objectDict);
+        return obj;
     }
 
     public PointF position() {
@@ -958,9 +959,14 @@ public class OBGroup extends OBControl
         this.opacity = opacity;
         invalidate();
     }
+
+    public int getSequenceIndex()
+    {
+        return sequenceIndex;
+    }
+
     public void setSequenceIndex(int sequenceIndex)
     {
-
         if (this.sequenceIndex != sequenceIndex)
         {
             for (String k : this.sequence)

@@ -17,6 +17,7 @@ import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OB_Maths;
 import org.onebillion.xprz.utils.OBUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -61,8 +62,8 @@ public class X_Count100_S1  extends XPRZ_SectionController
         OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
             @Override
             public void run() throws Exception {
-                demo1a();
-                startScene(false);
+                //demo1a();
+                startScene(true);
 
             }
         });
@@ -121,7 +122,7 @@ public class X_Count100_S1  extends XPRZ_SectionController
             }
 */
 
-            loadImage.show();
+            loadImage.hide();
             String locs[] =  ((String)eventAttributes.get("loc")).split(",");
             float x = Float.valueOf(locs[0]);
             float y = Float.valueOf(locs[1]);
@@ -269,16 +270,19 @@ public class X_Count100_S1  extends XPRZ_SectionController
     }
 
 
+
+
     void shake()
     {
-        final OBGroup loadImage = (OBGroup) objectDict.get("image");
         List<String> frames = Arrays.asList("frame2","frame3","frame2","frame1","frame4","frame5","frame4","frame1");
+        List<OBAnim> anims = new ArrayList<OBAnim>();
+        for(OBControl con : this.filterControls("obj.*"))
+            anims.add(OBAnim.sequenceAnim((OBGroup) con,frames,0.07f,true));
 
-        OBAnim anim =OBAnim.sequenceAnim(loadImage,frames,0.07f,true);
-
-
-        OBAnimationGroup.runAnims(Collections.singletonList(anim),10,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
+        OBAnimationGroup.runAnims(anims,10,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
     }
+
+
 
     void demo1a() throws Exception
     {
