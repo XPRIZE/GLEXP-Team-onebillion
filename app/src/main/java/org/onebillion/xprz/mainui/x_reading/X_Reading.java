@@ -6,6 +6,7 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
@@ -62,6 +63,14 @@ public class X_Reading extends XPRZ_SectionController
     OBReadingWord highlightedWord;
     int highlightColour,backgroundColour;
 
+    static String CrunchedString(String s)
+{
+    String t = s;
+    String[] l = t.toLowerCase().split("[^[a-z][A-Z]]*");
+    t = TextUtils.join("",l);
+    return t;
+}
+
     static boolean IsLeftHanger(String ch)
     {
         for (String ap : Arrays.asList("“","‘"))
@@ -112,6 +121,7 @@ public class X_Reading extends XPRZ_SectionController
         {
         }
     }
+
 
     public List<List<Double>> loadSyllableTimingsForWord(OBReadingWord word,String xmlPath)
     {
@@ -559,7 +569,7 @@ public class X_Reading extends XPRZ_SectionController
             //detachControl(lab);
             w.frame = new RectF(lab.frame());
             w.label = lab;
-            w.homePosition = lab.position();
+            w.homePosition = new PointF(lab.position().x,lab.position().y);
             if ((w.flags & OBReadingWord.WORD_SPEAKABLE) != 0)
                 lab.setZPosition(LABEL_ZPOS);
             else
@@ -658,6 +668,21 @@ public class X_Reading extends XPRZ_SectionController
             w.label.setColour(Color.BLACK);
             if (withBackground)
                 w.label.backgroundColor = 0;
+        }
+        unlockScreen();
+    }
+
+    public void highlightWord(OBReadingWord w,int stidx,int enidx,boolean h,boolean withBackground)
+    {
+        lockScreen();
+        w.label.setColour(Color.BLACK);
+        if (h)
+        {
+            w.label.setHighRange(stidx,enidx,Color.RED);
+        }
+        else
+        {
+            w.label.setHighRange(-1,-1,0);
         }
         unlockScreen();
     }

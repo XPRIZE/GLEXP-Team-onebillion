@@ -33,26 +33,26 @@ public class OBLabel extends OBControl
 
     public void setColour(int col)
     {
-        ((OBTextLayer)layer).colour = col;
+        ((OBTextLayer)layer).setColour(col);
         invalidate();
         if (texture != null)
         {
-            needsRetexture = true;
+            setNeedsRetexture();
         }
     }
 
     public void setString(String s)
     {
         OBTextLayer tl = (OBTextLayer)layer;
-        if (! tl.text.equals(s))
+        if (! tl.text().equals(s))
         {
             invalidate();
             synchronized (this)
             {
-                tl.text = s;
+                tl.setText(s);
                 if (texture != null)
                 {
-                    needsRetexture = true;
+                    setNeedsRetexture();
                 }
             }
             invalidate();
@@ -71,4 +71,15 @@ public class OBLabel extends OBControl
     {
         ((OBTextLayer)layer).setLetterSpacing(l);
     }
+
+    public void setHighRange(int st,int en,int colour)
+    {
+        if (layer != null)
+        {
+            ((OBTextLayer)layer).setHighRange(st,en,colour);
+            setNeedsRetexture();
+            invalidate();
+        }
+     }
+
 }

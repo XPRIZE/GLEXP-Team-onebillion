@@ -382,7 +382,9 @@ public class OBUtils
     public static Typeface standardTypeFace()
     {
         if (MainActivity.standardTypeFace == null)
-            MainActivity.standardTypeFace = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/Heinemann Collection - HeinemannSpecial-Roman.otf");
+            MainActivity.standardTypeFace = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/onebillionreader-Regular.otf");
+
+    //        MainActivity.standardTypeFace = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/Heinemann Collection - HeinemannSpecial-Roman.otf");
         return MainActivity.standardTypeFace;
     }
 

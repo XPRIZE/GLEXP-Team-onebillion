@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.AsyncTask;
+import android.os.SystemClock;
 import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
@@ -191,19 +192,96 @@ public class X_ReadingIRead extends X_Reading
         saveWordBackFrame = new RectF(wordback.frame());
         float amt = 1 * px1;
         f = new RectF(wordback.frame());
-        f.inset(-16,-16);
+        f.inset(-amt,-amt);
         wordback2.setFrame(f);
         wordback.setZPosition(LABEL_ZPOS - 1);
         wordback2.setZPosition(LABEL_ZPOS - 2);
     }
 
+    public boolean syllableAudioExistsForWord(OBReadingWord rw)
+    {
+        String localPath = getLocalPath("book.xml");
+        if (localPath != null)
+        {
+            String dirPath = OBUtils.stringByDeletingLastPathComponent(localPath);
+            String txt = CrunchedString(rw.text);
+            String syllPath = OBUtils.stringByAppendingPathComponent(dirPath,String.format("psyl%d_%s.etpa",pageNo,txt));
+            if (syllPath != null && OBUtils.fileExistsAtPath(syllPath))
+                return true;
+        }
+        return false;
+    }
+
+
     public void highlightAndSpeakWord(OBReadingWord w) throws Exception
     {
         boolean withBackground = jumpOffset > 0;
-        highlightWord(w,true,withBackground);
+        highlightWordWithBackground(w,true,withBackground);
+        if (w.syllables != null && syllableAudioExistsForWord(w))
+            speakSyllablesForWord(w);
+        else
+            speakWordAsPartial(w);
+        lowlightWordWithBackground(w,true,withBackground);
+    }
 
-        speakWordAsPartial(w);
-        lowlightWord(w,true,withBackground);
+    public void speakSyllablesForWord(OBReadingWord w) throws Exception
+    {
+        long token = sequenceToken;
+        String fileName = String.format("psyl%d_%s",pageNo,CrunchedString(w.text));
+        List<List<Double>> timings = loadSyllableTimingsForWord(w,getLocalPath(fileName+".etpa"));
+        playAudio(fileName);
+        long startTime = SystemClock.uptimeMillis();
+        int i = 0;
+        int rangelocation = 0,rangelength = 0;
+        for (String syllable : w.syllables)
+        {
+            double currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
+            List<Double> timing = timings.get(i);
+            Double timeStart = timing.get(0);
+            Double timeEnd = timing.get(1);
+            double waitTime = timeStart - currTime;
+            if (waitTime > 0.0)
+                waitForSecs(waitTime);
+            checkSequenceToken(token);
+            rangelength = syllable.length();
+            highlightWord(w,rangelocation,rangelocation+rangelength,true,false);
+            currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
+            waitTime = timeEnd - currTime;
+            if (waitTime > 0.0 && token == sequenceToken)
+                waitForSecs(waitTime);
+            highlightWord(w,rangelocation,rangelocation+rangelength,false,false);
+            checkSequenceToken(token);
+
+            rangelocation += rangelength;
+            rangelength = 0;
+            i++;
+        }
+        if (timings.size() > w.syllables.size())
+        {
+            double currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
+            List<Double> timing = timings.get(timings.size()-1);
+            Double timeStart = timing.get(0);
+            Double timeEnd = timing.get(1);
+            double waitTime = timeStart - currTime;
+            if (waitTime > 0.0)
+                waitForSecs(waitTime);
+            checkSequenceToken(token);
+            highlightWord(w,true,false);
+            currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
+            waitTime = timeEnd - currTime;
+            if (waitTime > 0.0 && token == sequenceToken)
+                waitForSecs(waitTime);
+            highlightWord(w,false,false);
+        }
+        else
+        {
+            waitForSecs(0.3f);
+            checkSequenceToken(token);
+            highlightWord(w,true,false);
+            speakWordAsPartial(w);
+            highlightWord(w,false,false);
+        }
+        waitForSecs(0.3f);
     }
 
     public void doWord(OBReadingWord w)
@@ -216,7 +294,7 @@ public class X_ReadingIRead extends X_Reading
                 setUpDecorationForWord(w);
                 lockScreen();
                 wordback.show();
-                //wordback2.show();
+                wordback2.show();
                 unlockScreen();
                 highlightAndSpeakWord(w);
             }
@@ -228,6 +306,7 @@ public class X_ReadingIRead extends X_Reading
         lockScreen();
         wordback.hide();
         wordback2.hide();
+        w.label.setColour(Color.BLACK);
         w.label.setPosition(w.homePosition);
         w.label.setZPosition(LABEL_ZPOS);
         wordback.setZPosition(LABEL_ZPOS-1);
@@ -247,7 +326,7 @@ public class X_ReadingIRead extends X_Reading
         return p.words.get(idx);
     }
 
-    public void highlightWord(OBReadingWord w,boolean withBackground,boolean jump)
+    public void highlightWordWithBackground(OBReadingWord w,boolean withBackground,boolean jump)
     {
         lockScreen();
         w.label.setColour(highlightColour);
@@ -256,7 +335,7 @@ public class X_ReadingIRead extends X_Reading
         {
             wordback.show();
             wordback.setZPosition(LABEL_HI_ZPOS - 1);
-            //wordback2.show();
+            wordback2.show();
             wordback2.setZPosition(LABEL_HI_ZPOS - 2);
         }
         unlockScreen();
@@ -286,12 +365,13 @@ public class X_ReadingIRead extends X_Reading
         }
     }
 
-    public void lowlightWord(OBReadingWord w,boolean withBackground,boolean jump)
+    public void lowlightWordWithBackground(OBReadingWord w,boolean withBackground,boolean jump)
     {
         if (jump)
         {
             OBAnimationGroup agp = new OBAnimationGroup();
-            PointF pos = OB_Maths.OffsetPoint(w.label.position(), 0, jumpOffset);
+            //PointF pos = OB_Maths.OffsetPoint(w.label.position(), 0, jumpOffset);
+            PointF pos = w.homePosition;
             OBAnim anim1 = OBAnim.moveAnim(pos,w.label);
             final float top = saveWordBackFrame.top;
             final float top2 = top - jumpOffset;
