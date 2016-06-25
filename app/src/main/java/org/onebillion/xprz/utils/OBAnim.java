@@ -7,7 +7,10 @@ import android.animation.TypeEvaluator;
 import android.graphics.Path;
 import android.graphics.PointF;
 
+import org.onebillion.xprz.controls.OBGroup;
+
 import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * Created by alan on 19/10/15.
@@ -73,6 +76,11 @@ public class OBAnim {
                 evaluator = new IntEvaluator();
                 x = int.class;
             }
+            else if (typeType == ANIM_TYPE_SEQUENCE)
+            {
+                evaluator = new IntEvaluator();
+                x = int.class;
+            }
             if (x != null)
                 setter = obj.getClass().getMethod("set" + u1, x);
         } catch (NoSuchMethodException e) {
@@ -121,6 +129,11 @@ public class OBAnim {
     public static OBAnim pathMoveAnim(Object obj, Path p,boolean changle,float offsetradians)
     {
         return new OBAnimPath(obj,p,changle,offsetradians);
+    }
+
+    public static OBAnim sequenceAnim(OBGroup obj, List<String> frames, float delay, boolean repeat)
+    {
+        return new OBAnimSequence(obj,frames,delay,repeat);
     }
 
     public void retrieveInitialValue()

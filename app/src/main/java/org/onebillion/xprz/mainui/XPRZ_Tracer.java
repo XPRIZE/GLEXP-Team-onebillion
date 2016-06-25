@@ -132,14 +132,17 @@ public class XPRZ_Tracer extends XPRZ_SectionController
 
     public void positionArrow()
     {
-        OBControl traceArrow = objectDict.get("tracearrow");
+        OBControl traceArrow = filterControls("trace.*arrow").get(0);
         PointF outvec = new PointF();
         OBPath p = uPaths.get(subPathIndex);
         PointF arrowpoint = convertPointFromControl(p.sAlongPath(0.0f,outvec),p);
-        traceArrow.setPosition(arrowpoint);
-        traceArrow.rotation = (float)Math.atan2(outvec.x, -outvec.y);
+        if (traceArrow != null)
+        {
+            traceArrow.setPosition(arrowpoint);
+            traceArrow.rotation = (float) Math.atan2(outvec.x, -outvec.y);
 //        traceArrow.pointAt(OB_Maths.AddPoints(arrowpoint, outvec));
-        traceArrow.show();
+            traceArrow.show();
+        }
     }
 
     public void startNewSubpath()
@@ -156,8 +159,12 @@ public class XPRZ_Tracer extends XPRZ_SectionController
         currentTrace.setStrokeColor(traceColour());
         //currentTracingPath = [UIBezierPath bezierPath];
         attachControl(currentTrace);
-        objectDict.get("tracearrow").hide();
-        objectDict.get("tracearrow").setZPosition(50);
+        OBControl traceArrow = filterControls("trace.*arrow").get(0);
+        if (traceArrow != null)
+        {
+            traceArrow.hide();
+            traceArrow.setZPosition(50);
+        }
         finished = false;
     }
 

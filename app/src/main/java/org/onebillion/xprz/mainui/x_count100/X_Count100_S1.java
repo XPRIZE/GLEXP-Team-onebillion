@@ -17,14 +17,17 @@ import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OB_Maths;
 import org.onebillion.xprz.utils.OBUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by michal on 16/06/16.
  */
-public class X_Count100_S1  extends XPRZ_SectionController {
+public class X_Count100_S1  extends XPRZ_SectionController
+{
 
     int curTarget;
     int maxTarget;
@@ -59,8 +62,8 @@ public class X_Count100_S1  extends XPRZ_SectionController {
         OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
             @Override
             public void run() throws Exception {
-                demo1a();
-                startScene(false);
+                //demo1a();
+                startScene(true);
 
             }
         });
@@ -80,6 +83,7 @@ public class X_Count100_S1  extends XPRZ_SectionController {
 
             OBGroup loadImage = (OBGroup) objectDict.get("image");
             loadImage.show();
+            loadImage.texturise(true,this);
             /*NSMutableArray *arr = [NSMutableArray array];
             NSArray *frames = [loadImage filterMembers:@"frame.*"];
             OBGroup *loadImage2;
@@ -129,7 +133,8 @@ public class X_Count100_S1  extends XPRZ_SectionController {
             workrect.hide();
             for(int i=1; i<=redraw; i++)
             {
-                OBControl cont = loadImage.copy();
+                OBGroup cont = (OBGroup) loadImage.copy();
+                cont.texturise(true,this);
                 float x1 = x+((i-1)%10)*d1;
                 float y1 = (float)(y+(Math.ceil(i/10f)-1)*d2);
                 cont.setPosition(OB_Maths.locationForRect(x1,y1, workrect.frame));
@@ -174,8 +179,6 @@ public class X_Count100_S1  extends XPRZ_SectionController {
                 {
                     playAudioQueuedScene(currentEvent(),"REMIND",true);
                 }
-
-
             }
         });
 
@@ -199,7 +202,6 @@ public class X_Count100_S1  extends XPRZ_SectionController {
     }
 
 
-
     @Override
     public void touchDownAtPoint(PointF pt, View v)
     {
@@ -214,7 +216,7 @@ public class X_Count100_S1  extends XPRZ_SectionController {
                     @Override
                     public void run() throws Exception
                     {
-                        checkTarget(targ);
+                        moveLine();
                     }
                 });
             }
@@ -222,7 +224,7 @@ public class X_Count100_S1  extends XPRZ_SectionController {
     }
 
 
-     void checkTarget(OBControl targ) throws Exception
+    void moveLine() throws Exception
     {
         setStatus(STATUS_BUSY);
         OBControl tar = objectDict.get("obj"+curTarget);
@@ -231,6 +233,7 @@ public class X_Count100_S1  extends XPRZ_SectionController {
         curTarget++;
         if(curTarget > maxTarget)
         {
+            shake();
             line.hide();
             playSfxAudio("put", true);
             playAudioScene(currentEvent(),"FINAL",((curTarget-2)%10));
@@ -267,8 +270,24 @@ public class X_Count100_S1  extends XPRZ_SectionController {
     }
 
 
+
+
+    void shake()
+    {
+        List<String> frames = Arrays.asList("frame2","frame3","frame2","frame1","frame4","frame5","frame4","frame1");
+        List<OBAnim> anims = new ArrayList<OBAnim>();
+        for(OBControl con : this.filterControls("obj.*"))
+            anims.add(OBAnim.sequenceAnim((OBGroup) con,frames,0.07f,true));
+
+        OBAnimationGroup.runAnims(anims,10,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
+    }
+
+
+
     void demo1a() throws Exception
     {
+
+
         demoButtons();
         movePointerToPoint(OB_Maths.locationForRect(0.6f,0.6f,new RectF(this.bounds())),-25,0.5f,true);
         playAudioScene(currentEvent(),"DEMO",0);

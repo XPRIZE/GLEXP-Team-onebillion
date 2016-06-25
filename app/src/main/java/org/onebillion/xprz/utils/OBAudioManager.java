@@ -35,6 +35,11 @@ public class OBAudioManager {
         stopPlayingOnChannel(AM_MAIN_CHANNEL);
     }
 
+    public void stopPlayingSFX()
+    {
+        stopPlayingOnChannel(AM_SFX_CHANNEL);
+    }
+
     public void stopAllAudio()
     {
         for (String k : players.keySet())
