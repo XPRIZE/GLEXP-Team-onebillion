@@ -567,4 +567,23 @@ public class OBUtils
         return path;
     }
 
+    public static int DesaturatedColour(int colour,float sat)
+    {
+        float components[] = {0,0,0,1};
+        components[0] = Color.red(colour);
+        components[1] = Color.green(colour);
+        components[2] = Color.blue(colour);
+        components[2] = Color.alpha(colour);
+        float weights[] = {0.299f,0.587f,0.114f};
+        float greyVal = 0;
+        for (int i = 0;i < 3;i++)
+            greyVal += weights[i] * components[i];
+        float dscomponents[] = new float[4];
+        for (int i = 0;i < 3;i++)
+            dscomponents[i] = components[i] * sat + greyVal * (1 - sat);
+        dscomponents[3] = components[3];
+        int outcol = Color.argb((int)(dscomponents[3]*255),(int)(dscomponents[0]*255),(int)(dscomponents[1]*255),(int)(dscomponents[2]*255));
+        return outcol;
+}
+
 }
