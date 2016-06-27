@@ -280,7 +280,7 @@ public class OBSectionController extends OBViewController
         return null;
     }
 
-    public String getLocalPath(String fileName)
+    public static String getLocalPath(String fileName)
     {
         for (String path : (List<String>)Config().get(MainActivity.CONFIG_AUDIO_SEARCH_PATH))
         {

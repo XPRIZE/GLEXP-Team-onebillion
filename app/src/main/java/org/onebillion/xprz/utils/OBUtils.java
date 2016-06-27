@@ -584,6 +584,34 @@ public class OBUtils
         dscomponents[3] = components[3];
         int outcol = Color.argb((int)(dscomponents[3]*255),(int)(dscomponents[0]*255),(int)(dscomponents[1]*255),(int)(dscomponents[2]*255));
         return outcol;
-}
+    }
+
+    public static List<List<Double>> ComponentTimingsForWord(String s,String xmlPath)
+    {
+        List<List<Double>> timings = new ArrayList<>();
+        try
+        {
+            if (xmlPath != null)
+            {
+                OBXMLNode xmlNode = null;
+                OBXMLManager xmlManager = new OBXMLManager();
+                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
+                xmlNode = xl.get(0);
+                List<OBXMLNode> arr = xmlNode.childrenOfType("timings");
+                OBXMLNode elem = arr.get(0);
+                for (OBXMLNode xtiming : elem.childrenOfType("timing"))
+                {
+                    double start = xtiming.attributeFloatValue("start");
+                    double end = xtiming.attributeFloatValue("end");
+                    timings.add(Arrays.asList(start,end));
+                }
+            }
+        }
+        catch (Exception e)
+        {
+        }
+        return timings;
+    }
+
 
 }
