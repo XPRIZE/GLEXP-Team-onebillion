@@ -145,7 +145,7 @@ public class X_Counting5and10_S4g extends XPRZ_Generic_SelectCorrectObject
 
     public void finDemo4g() throws Exception
     {
-        playAudioQueuedSceneIndex(currentEvent(), "DEMO2", 0, true); // Now count again with me.
+        playSceneAudioIndex("DEMO2", 0, true); // Now count again with me.
         waitForSecs(0.3f);
         //
         for (int i = 1; i <= 10; i++)
@@ -153,7 +153,7 @@ public class X_Counting5and10_S4g extends XPRZ_Generic_SelectCorrectObject
             OBLabel label = (OBLabel) objectDict.get(String.format("label_%d", i));
             //
             action_highlight(label);
-            playAudioQueuedSceneIndex(currentEvent(), "DEMO2", i, true); // FIVE. TEN. FIFTEEN. TWENTY. TWENTY-FIVE. THIRTY. THIRTY-FIVE. FORTY. FORTY-FIVE. FIFTY.
+            playSceneAudioIndex("DEMO2", i, true); // FIVE. TEN. FIFTEEN. TWENTY. TWENTY-FIVE. THIRTY. THIRTY-FIVE. FORTY. FORTY-FIVE. FIFTY.
             action_lowlight(label);
             waitForSecs(0.3f);
         }

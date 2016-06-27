@@ -165,8 +165,7 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     public void action_moveObjectToOriginalPosition(OBControl control, Boolean wait)
     {
         OBAnim anim = OBAnim.moveAnim((PointF)control.propertyValue("originalPosition"), control);
-        OBAnimationGroup og = new OBAnimationGroup();
-        og.applyAnimations(Arrays.asList(anim), 0.3, wait, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+        OBAnimationGroup.runAnims(Arrays.asList(anim), 0.3, wait, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
     }
 
 
@@ -338,6 +337,21 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
         //
         List<Object> arr = (List<Object>) (Object) sc.get(audioScene);
         return arr != null;
+    }
+
+
+
+    // Miscelaneous Functions
+    public void playSceneAudio(String scene, Boolean wait) throws Exception
+    {
+        playAudioQueuedScene(currentEvent(), scene, wait);
+        if (!wait) waitForSecs(0.01);
+    }
+
+    public void playSceneAudioIndex(String scene, int index, Boolean wait) throws Exception
+    {
+        playAudioQueuedSceneIndex(currentEvent(), scene, index, wait);
+        if (!wait) waitForSecs(0.01);
     }
 
 }

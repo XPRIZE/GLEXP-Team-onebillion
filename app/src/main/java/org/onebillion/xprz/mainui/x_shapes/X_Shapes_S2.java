@@ -5,19 +5,27 @@ import android.graphics.Path;
 import android.graphics.PathMeasure;
 import android.graphics.Point;
 import android.graphics.PointF;
+import android.graphics.RectF;
 import android.util.Log;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBPath;
+import org.onebillion.xprz.controls.OBStroke;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic_SelectCorrectObject;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBUtils;
+import org.onebillion.xprz.utils.ULine;
+import org.onebillion.xprz.utils.UPath;
+import org.onebillion.xprz.utils.USubPath;
 
+import java.security.acl.Group;
+import java.sql.SQLInvalidAuthorizationSpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -42,6 +50,15 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
         demosDone = new ArrayList<OBControl>();
         eventType = eventAttributes.get("type");
         correctAnswerCount = 0;
+        //
+        for (OBControl control : filterControls(".*"))
+        {
+            if (OBPath.class.isInstance(control))
+            {
+                OBPath path = (OBPath) control;
+                path.sizeToBoundingBoxIncludingStroke();
+            }
+        }
         //
         if (eventType.equals("choose"))
         {
@@ -98,10 +115,13 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
             clone.setFillColor(OBUtils.colorFromRGBString("251,9,250"));
             shape.setProperty("clone", clone);
             clone.disable();
+            clone.sizeToBoundingBoxIncludingStroke();
             //
+            lockScreen();
             XPRZ_Generic.sendObjectToTop(clone, this);
             attachControl(clone);
             clone.show();
+            unlockScreen();
             //
             shownShapes.add(clone);
         }
@@ -110,8 +130,10 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
             OBPath clone = (OBPath) shape.propertyValue("clone");
             if (clone != null)
             {
+                lockScreen();
                 clone.hide();
                 detachControl(clone);
+                unlockScreen();
                 //
                 shownShapes.remove(clone);
             }
@@ -124,7 +146,7 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
     {
         setStatus(STATUS_DOING_DEMO);
         //
-        playAudioQueuedSceneIndex(currentEvent(), "DEMO", 0, false); // Touch each shape, to hear its name.
+        playSceneAudioIndex("DEMO", 0, false); // Touch each shape, to hear its name.
         setReplayAudioScene(currentEvent(), "REPEAT");
         //
         setStatus(STATUS_AWAITING_CLICK);
@@ -148,25 +170,29 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
 
     public void demo_circle() throws Exception
     {
-        playAudioQueuedSceneIndex(currentEvent(), "DEMO2", 0, false); // A circle. It is round.
+        playSceneAudioIndex("DEMO2", 0, false); // A circle. It is round.
+        waitForSecs(0.01);
         //
         OBPath circle = (OBPath) objectDict.get("obj_circle");
         OBPath clone = (OBPath) circle.copy();
+        //
         OBPath path = (OBPath) circle.copy();
+        path.setStrokeColor(Color.BLACK);
         path.setLineWidth(applyGraphicScale(24));
+        path.setMaskControl(clone);
+        path.sizeToBox(new RectF(bounds()));
         //
-        OBGroup group = new OBGroup((List<OBControl>) (Object) Arrays.asList(path,clone));
-        group.maskControl = clone;
-        //
-        XPRZ_Generic.sendObjectToTop(group, this);
-        attachControl(group);
-        group.show();
-        //
+        lockScreen();
+        XPRZ_Generic.sendObjectToTop(path, this);
+        attachControl(path);
+        path.show();
+        unlockScreen();
         waitAudio();
         //
-        group.hide();
-        detachControl(group);
-        //
+        lockScreen();
+        path.hide();
+        detachControl(path);
+        unlockScreen();
         waitForSecs(0.3);
     }
 
@@ -174,112 +200,202 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
 
     public void demo_oval() throws Exception
     {
-        playAudioQueuedSceneIndex(currentEvent(), "DEMO3", 0, false); // An oval. It is like a stretched circle.
+        playSceneAudioIndex("DEMO3", 0, false); // An oval. It is like a stretched circle.
         //
         OBPath oval = (OBPath) objectDict.get("obj_oval");
         OBPath clone = (OBPath) oval.copy();
+        //
         OBPath path = (OBPath) oval.copy();
+        path.setStrokeColor(Color.BLACK);
         path.setLineWidth(applyGraphicScale(24));
+        path.setMaskControl(clone);
+        path.sizeToBox(new RectF(bounds()));
         //
-        OBGroup group = new OBGroup((List<OBControl>) (Object) Arrays.asList(path, clone));
-        group.maskControl = clone;
-        //
-        XPRZ_Generic.sendObjectToTop(group, this);
-        attachControl(group);
-        group.show();
-        //
+        lockScreen();
+        XPRZ_Generic.sendObjectToTop(path, this);
+        attachControl(path);
+        path.show();
+        unlockScreen();
         waitAudio();
         //
-        group.hide();
-        detachControl(group);
-        //
+        lockScreen();
+        path.hide();
+        detachControl(path);
+        unlockScreen();
         waitForSecs(0.3);
     }
 
 
-//    public void getSubPaths(Path path)
-//    {
-//        List<Path> segmentPath(Path path, float segmentLength, float scale, float dx, float dy)
-//        {
-//        PathMeasure pm = new PathMeasure(path, false);
-//        float length = pm.getLength();
-//
-//        float start = 0;
-//        float delta = segmentLength;
-//
-//        List<Path> segments = new ArrayList<Path>();
-//        while (start <= length) {
-//            float end = start + delta;
-//            if (end > length) {
-//                end = length;
-//            }
-//
-//            Path segment = new Path();
-//            pm.getSegment(start, end, segment, true);
-//
-//            segments.add(segment);
-//            start += delta;
-//        }
-//
-//        return segments;
-//    }
-//    }
-
-
     public void demo_triangle() throws Exception
     {
-        playAudioQueuedSceneIndex(currentEvent(), "DEMO4", 0, true); // A triangle. It has THREE sides.
+        playSceneAudioIndex("DEMO4", 0, true); // A triangle. It has THREE sides.
         waitForSecs(0.3f);
         //
         OBPath triangle = (OBPath) objectDict.get("obj_triangle");
-        PathMeasure measure = new PathMeasure(triangle.path(), false);
-        int pathCount = 0;
-        do
+        UPath upath = deconstructedPath(currentEvent(), "obj_triangle");
+        USubPath subPath = upath.subPaths.get(0);
+        for (int i = 0; i < 3; i++)
         {
-            Path temp = new Path();
-            measure.getSegment(0,measure.getLength(), temp, true);
-            pathCount++;
-            PathMeasure pm = new PathMeasure(temp, false);
-            float measure_length = measure.getLength();
-            float pm_length = pm.getLength();
-            Log.i("   length of Path", temp.toString());
-        } while (measure.nextContour());
-        //
-
-//        measure.
-//        Path upath = triangle.path();
-//        upath.su
-//        UPath *upath = DeconstructedPath(triangle.path);
-//        USubPath *subPath = upath.subPaths()0.();a
-////
-//        for (int i = 0; i < 3; i++)
-//        {
-//            ULine *line = subPath.elementsi.();
-//            UIBezierPath *bezier = [UIBezierPath.alloc() init];
-//            bezier.moveToPoint(line.pt0);
-//            bezier.addLineToPoint(line.pt1);
-//            OBPath path = [OBPath.alloc() init];
-//            path.path = bezier.CGPath();
-//            path.frame = triangle.frame;
-//            path.strokeColor = UIColor.blackColor();
-//            path.lineWidth = applyGraphicScale(24);
-//            //
-//            OBPath clone = triangle.copy();
-//            OBGroup group = [OBGroup.alloc() initWithMembers:@clone,.path()];
-//            group.maskControl = clone;
-//            //
-//            playSceneAudio("DEMO4",false); // One. Two. Three
-//            sendObjectToTop(group);
-//            attachControl(group);
-//            group.show();
-//            waitAudio();
-//            //
-//            group.hide();
-//            detachControl(group);
-//            waitForSecs(0.3f);
-//        }
-
+            ULine line =subPath.elements.get(i);
+            Path bezier = new Path();
+            bezier.moveTo(line.pt0.x, line.pt0.y);
+            bezier.lineTo(line.pt1.x, line.pt1.y);
+            //
+            OBPath path = new OBPath(bezier);
+            path.setStrokeColor(Color.BLACK);
+            path.setLineWidth(applyGraphicScale(24));
+            path.sizeToBox(new RectF(bounds()));
+            //
+            OBPath clone = (OBPath) triangle.copy();
+            path.setMaskControl(clone);;
+            //
+            playSceneAudioIndex("DEMO4", i+1, false); // One. Two. Three.
+            lockScreen();
+            XPRZ_Generic.sendObjectToTop(path, this);
+            attachControl(path);
+            path.show();
+            unlockScreen();
+            waitAudio();
+            //
+            lockScreen();
+            path.hide();
+            detachControl(path);
+            unlockScreen();
+            waitForSecs(0.3);
+        }
     }
+
+
+
+    public void demo_rectangle() throws Exception
+    {
+        playSceneAudioIndex("DEMO5", 0, true); // A rectangle. It has FOUR sides.
+        waitForSecs(0.3);
+        //
+        OBPath rectangle = (OBPath) objectDict.get("obj_rectangle");
+        UPath uPath = deconstructedPath(currentEvent(), "obj_rectangle");
+        USubPath subPath = uPath.subPaths.get(0);
+        List<OBControl> sides = new ArrayList<OBControl>();
+        //
+        for (int i = 0; i < 4; i++)
+        {
+            ULine line = subPath.elements.get(i);
+            Path bezier = new Path();
+            bezier.moveTo(line.pt0.x, line.pt0.y);
+            bezier.lineTo(line.pt1.x, line.pt1.y);
+            //
+            OBPath path = new OBPath(bezier);
+            path.setStrokeColor(Color.BLACK);
+            path.setLineWidth(applyGraphicScale(24));
+            path.sizeToBox(new RectF(bounds()));
+            //
+            OBPath clone = (OBPath) rectangle.copy();
+            path.setMaskControl(clone);;
+            //
+            playSceneAudioIndex("DEMO5", i+1, false); // One. Two. Three. Four.
+            XPRZ_Generic.sendObjectToTop(path, this);
+            attachControl(path);
+            sides.add(path);
+            path.show();
+            waitAudio();
+            //
+            path.hide();
+            waitForSecs(0.3);
+        }
+        //
+        playSceneAudioIndex("DEMO5", 5, false); // These two are the same length.
+        lockScreen();
+        sides.get(0).show();
+        sides.get(2).show();
+        unlockScreen();
+        waitAudio();
+        //
+        lockScreen();
+        sides.get(0).hide();
+        sides.get(2).hide();
+        unlockScreen();
+        waitForSecs(0.3);
+        //
+        playSceneAudioIndex("DEMO5", 6, false); // And these two are the same length
+        lockScreen();
+        sides.get(1).show();
+        sides.get(3).show();
+        unlockScreen();
+        waitAudio();
+        //
+        lockScreen();
+        sides.get(1).hide();
+        sides.get(3).hide();
+        unlockScreen();
+        waitForSecs(0.3);
+        //
+        for (OBControl control : sides)
+        {
+            detachControl(control);
+        }
+    }
+
+
+
+
+    public void demo_square() throws Exception
+    {
+        playSceneAudioIndex("DEMO6", 0, true); // A square. It has four sides.
+        waitForSecs(0.3);
+        //
+        OBPath square = (OBPath) objectDict.get("obj_square");
+        UPath uPath = deconstructedPath(currentEvent(), "obj_square");
+        USubPath subPath = uPath.subPaths.get(0);
+        //
+        List<OBControl> sides = new ArrayList<OBControl>();
+        for (int i = 0; i < 4; i++)
+        {
+            ULine line = subPath.elements.get(i);
+            Path bezier = new Path();
+            bezier.moveTo(line.pt0.x, line.pt0.y);
+            bezier.lineTo(line.pt1.x, line.pt1.y);
+            //
+            OBPath path = new OBPath(bezier);
+            path.setStrokeColor(Color.BLACK);
+            path.setLineWidth(applyGraphicScale(24));
+            path.sizeToBox(new RectF(bounds()));
+            //
+            OBPath clone = (OBPath) square.copy();
+            path.setMaskControl(clone);;
+            //
+            playSceneAudioIndex("DEMO6", i+1, false); // One. Two. Three. Four.
+            XPRZ_Generic.sendObjectToTop(path, this);
+            attachControl(path);
+            sides.add(path);
+            path.show();
+            waitAudio();
+            //
+            path.hide();
+            waitForSecs(0.3);
+        }
+        //
+        playSceneAudioIndex("DEMO6", 5, false); // They are ALL the same length.
+        lockScreen();
+        for (OBControl side : sides)
+        {
+            side.show();
+        }
+        unlockScreen();
+        waitAudio();
+        //
+        lockScreen();
+        for (OBControl side : sides)
+        {
+            side.hide();
+            detachControl(side);
+        }
+        unlockScreen();
+        waitForSecs(0.3);
+    }
+
+
+
+
 
 
     public void checkTarget(OBControl targ)
@@ -298,6 +414,7 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
                     List<OBAnim> anims = new ArrayList<OBAnim>();
                     for (OBControl control : filterControls("obj.*"))
                     {
+                        if (control.equals(target)) continue;
                         anims.add(OBAnim.opacityAnim(0.3f, control));
                     }
                     OBAnimationGroup.runAnims(anims, 0.3, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
@@ -329,11 +446,12 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
                         {
                             anims.add(OBAnim.opacityAnim(1.0f, control));
                         }
+                        //
+                        OBAnimationGroup.runAnims(anims, 0.3, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+                        //
+                        nextScene();
+                        return;
                     }
-                    OBAnimationGroup.runAnims(anims, 0.3, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
-                    //
-                    nextScene();
-                    return;
                 }
             }
             else if (eventType.equals("choose"))
@@ -424,7 +542,7 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
                         }
                     });
                 }
-                else if (target.attributes().get("type").equals(eventAttributes.get("correctAnswer")))
+                else if (target != null && target.attributes().get("type").equals(eventAttributes.get("correctAnswer")))
                 {
                     action_toggleShape(path, true);
                     //
@@ -438,9 +556,9 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
                         if (currentEvent().equals("2n"))
                         {
                             String targetID = (String) target.attributes().get("id");
-                            if (targetID.contains("door")) playAudioQueuedSceneIndex(currentEvent(), "CORRECT", 0, true);
-                            else if (targetID.contains("house")) playAudioQueuedSceneIndex(currentEvent(), "CORRECT", 1, true);
-                            else if (targetID.contains("trunk")) playAudioQueuedSceneIndex(currentEvent(), "CORRECT", 2, true);
+                            if (targetID.contains("door")) playSceneAudioIndex("CORRECT", 0, true);
+                            else if (targetID.contains("house")) playSceneAudioIndex("CORRECT", 1, true);
+                            else if (targetID.contains("trunk")) playSceneAudioIndex("CORRECT", 2, true);
                         }
                         else
                         {
@@ -459,7 +577,7 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
                         waitSFX();
                         target.disable();
                         //
-                        playAudioQueuedSceneIndex(currentEvent(), "CORRECT", correctAnswerCount-1, false);
+                        playSceneAudioIndex("CORRECT", correctAnswerCount-1, false);
                         //
                         if (correctAnswerCount == correctQuantity)
                         {
@@ -506,182 +624,10 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
 
     public OBControl findTarget(PointF pt)
     {
-        return finger(-1, 2, zPositionSortedFilteredControls("obj.*"), pt, true);
+        List invertedControls = zPositionSortedFilteredControls("obj.*");
+        Collections.reverse(invertedControls);
+        return finger(-1, 2, invertedControls, pt, true);
     }
 
-
-
-
-    /*
-
-
-
-
--(void) demo_triangle
-{
-    [self playSceneAudio:@"DEMO4" atIndex:0 wait:YES]; // A triangle. It has THREE sides.
-    [self waitForSecs:0.3];
-    //
-    OBPath *triangle = self.objectDict[@"obj_triangle"];
-    UPath *upath = DeconstructedPath(triangle.path);
-    USubPath *subPath = [upath subPaths][0];
-    //
-    for (int i = 0; i < 3; i++)
-    {
-        ULine *line = subPath.elements[i];
-        UIBezierPath *bezier = [[UIBezierPath alloc] init];
-        [bezier moveToPoint:line.pt0];
-        [bezier addLineToPoint:line.pt1];
-        OBPath *path = [[OBPath alloc] init];
-        path.path = [bezier CGPath];
-        path.frame = triangle.frame;
-        path.strokeColor = [UIColor blackColor];
-        path.lineWidth = applyGraphicScale(24);
-        //
-        OBPath *clone = [triangle copy];
-        OBGroup *group = [[OBGroup alloc] initWithMembers:@[clone, path]];
-        group.maskControl = clone;
-        //
-        [self playSceneAudio:@"DEMO4" atIndex:i+1 wait:NO]; // One. Two. Three
-        [self sendObjectToTop:group];
-        [self attachControl:group];
-        [group show];
-        [self waitAudio];
-        //
-        [group hide];
-        [self detachControl:group];
-        [self waitForSecs:0.3];
-    }
-}
-
-
-
-
--(void) demo_rectangle
-{
-    [self playSceneAudio:@"DEMO5" atIndex:0 wait:YES]; // A rectangle. It has FOUR sides.
-    [self waitForSecs:0.3];
-    //
-    OBPath *rectangle = self.objectDict[@"obj_rectangle"];
-    UPath *upath = DeconstructedPath(rectangle.path);
-    USubPath *subPath = [upath subPaths][0];
-    NSMutableArray *sides = [[NSMutableArray alloc] init];
-    //
-    for (int i = 0; i < 4; i++)
-    {
-        ULine *line = subPath.elements[i];
-        UIBezierPath *bezier = [[UIBezierPath alloc] init];
-        [bezier moveToPoint:line.pt0];
-        [bezier addLineToPoint:line.pt1];
-        //
-        OBPath *path = [[OBPath alloc] init];
-        path.path = [bezier CGPath];
-        path.frame = rectangle.frame;
-        path.strokeColor = [UIColor blackColor];
-        path.lineWidth = applyGraphicScale(24);
-        //
-        OBPath *clone = [rectangle copy];
-        OBGroup *group = [[OBGroup alloc] initWithMembers:@[clone, path]];
-        group.maskControl = clone;
-        //
-        [self playSceneAudio:@"DEMO5" atIndex:i+1 wait:NO]; // One. Two. Three. Four
-        [self sendObjectToTop:group];
-        [self attachControl:group];
-        [sides addObject:group];
-        [group show];
-        [self waitAudio];
-        //
-        [group hide];
-        [self waitForSecs:0.3];
-    }
-    //
-    [self playSceneAudio:@"DEMO5" atIndex:5 wait:NO]; // These two are the same length.
-    DoBlockWithScreenLocked(^{
-        [((OBGroup*)sides[0]) show];
-        [((OBGroup*)sides[2]) show];
-    });
-    [self waitAudio];
-    DoBlockWithScreenLocked(^{
-        [((OBGroup*)sides[0]) hide];
-        [((OBGroup*)sides[2]) hide];
-    });
-    [self waitForSecs:0.3];
-    //
-    [self playSceneAudio:@"DEMO5" atIndex:6 wait:NO]; // And these two are the same length
-    DoBlockWithScreenLocked(^{
-        [((OBGroup*)sides[1]) show];
-        [((OBGroup*)sides[3]) show];
-    });
-    [self waitAudio];
-    DoBlockWithScreenLocked(^{
-        [((OBGroup*)sides[1]) hide];
-        [((OBGroup*)sides[3]) hide];
-    });
-    [self waitForSecs:0.3];
-    //
-    for (OBGroup *side in sides) [self detachControl:side];
-}
-
-
-
--(void) demo_square
-{
-    [self playSceneAudio:@"DEMO6" atIndex:0 wait:YES]; // A square. It has four sides.
-    [self waitForSecs:0.3];
-    //
-    OBPath *square = self.objectDict[@"obj_square"];
-    UPath *upath = DeconstructedPath(square.path);
-    USubPath *subpath = [upath subPaths][0];
-    NSMutableArray *sides = [[NSMutableArray alloc] init];
-    //
-    for (int i = 0; i < 4; i++)
-    {
-        ULine *line = subpath.elements[i];
-        UIBezierPath *bezier = [[UIBezierPath alloc] init];
-        [bezier moveToPoint:line.pt0];
-        [bezier addLineToPoint:line.pt1];
-        //
-        OBPath *path = [[OBPath alloc] init];
-        path.path = [bezier CGPath];
-        path.frame = square.frame;
-        path.strokeColor = [UIColor blackColor];
-        path.lineWidth = applyGraphicScale(24);
-        //
-        OBPath *clone = [square copy];
-        OBGroup *group = [[OBGroup alloc] initWithMembers:@[clone,path]];
-        group.maskControl = clone;
-        //
-        [self playSceneAudio:@"DEMO6" atIndex:i+1 wait:NO]; // One. Two. Three. Four
-        [self sendObjectToTop:group];
-        [self attachControl:group];
-        [sides addObject:group];
-        [group show];
-        //
-        [self waitAudio];
-        //
-        [group hide];
-        [self waitForSecs:0.3];
-    }
-    //
-    [self playSceneAudio:@"DEMO6" atIndex:5 wait:NO]; // They are ALL the same length.
-    DoBlockWithScreenLocked(^{
-        for(OBGroup *side in sides) [side show];
-    });
-    //
-    [self waitAudio];
-    //
-    DoBlockWithScreenLocked(^{
-        for(OBGroup *side in sides)
-        {
-            [side hide];
-            [self detachControl:side];
-        }
-    });
-    [self waitForSecs:0.3];
-}
-
-
-
-     */
 
 }

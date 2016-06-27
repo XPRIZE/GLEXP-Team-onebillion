@@ -9,6 +9,7 @@ import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.SystemClock;
@@ -72,6 +73,18 @@ public class X_Counting7To10_S5 extends XPRZ_Generic_Event
             attachControl(label);
             //
             title.hide();
+        }
+        //
+        for (OBControl control : filterControls("obj.*"))
+        {
+            OBGroup group = (OBGroup) control;
+            OBPath rectangle = (OBPath) group.filterMembers("Rectangle15.*").get(0);
+            float factor = - 0.05f;
+            RectF rect = new RectF(rectangle.frame());
+            rect.inset(factor * rectangle.width(), factor * rectangle.height());
+            rectangle.sizeToBox(rect);
+            group.sizeToMember(rectangle);
+            rectangle.setNeedsRetexture();
         }
         //
         XPRZ_Generic.colourObjectsWithScheme(this);

@@ -347,7 +347,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
                 waitForSecs(0.3);
                 //
                 action_tracePath(currentAnswer);
-                playAudioQueuedSceneIndex(currentEvent(), "CORRECT", currentAnswer, false);
+                playSceneAudioIndex("CORRECT", currentAnswer, false);
                 currentAnswer++;
                 //
                 if (currentAnswer > 10)

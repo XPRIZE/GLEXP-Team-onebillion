@@ -216,6 +216,8 @@ public class OBControl
         bounds.set(l, t, r, b);
         if (layer != null)
             layer.setBounds(bounds);
+        frameValid = false;
+        invalidate();
     }
     public RectF frame()
     {
@@ -284,6 +286,7 @@ public class OBControl
                     position.set(x, y);
                     frameValid = false;
                     invalidate();
+                    setNeedsRetexture();
                 }
             }.run();
          }
@@ -791,14 +794,21 @@ public class OBControl
     public PointF getWorldPosition()
     {
         OBControl parent = this.parent;
-        while (parent.parent != null)
+        if (parent == null)
         {
-            parent = parent.parent;
+            return this.position;
         }
-        OBSectionController controller = (OBSectionController) parent.controller;
-        if (controller != null)
+        else
         {
-            return controller.convertPointFromControl(this.position, this.parent);
+            while (parent.parent != null)
+            {
+                parent = parent.parent;
+            }
+            OBSectionController controller = (OBSectionController) parent.controller;
+            if (controller != null)
+            {
+                return controller.convertPointFromControl(this.position, this.parent);
+            }
         }
         return null;
     }
@@ -1347,6 +1357,7 @@ public class OBControl
                 {
                     hidden = false;
                     invalidate();
+                    setNeedsRetexture();
                 }
             }.run();
         }

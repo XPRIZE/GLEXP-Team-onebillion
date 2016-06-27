@@ -849,7 +849,8 @@ public class OBPath extends OBControl
     {
         invalidate();
         ((OBShapeLayer) layer).path = p;
-        needsRetexture = true;
+        setNeedsRetexture();
+//        needsRetexture = true;
         invalidate();
     }
 
