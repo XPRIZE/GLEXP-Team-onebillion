@@ -282,11 +282,11 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
                 textLayer.sizeToBoundingBox();
                 while(label.height() > 0 && label.height() < control.bounds.height())
                 {
-                    textLayer.textSize++;
+                    textLayer.setTextSize(textLayer.textSize()+1);
                     textLayer.sizeToBoundingBox();
                 }
                 //
-                textLayer.textSize = textLayer.textSize * finalResizeFactor;
+                textLayer.setTextSize(textLayer.textSize() * finalResizeFactor);
                 textLayer.sizeToBoundingBox();
             }
             //

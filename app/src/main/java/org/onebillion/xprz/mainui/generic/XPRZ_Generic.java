@@ -14,11 +14,16 @@ import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OBXMLManager;
 import org.onebillion.xprz.utils.OBXMLNode;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by pedroloureiro on 23/06/16.
@@ -201,6 +206,30 @@ public class XPRZ_Generic
     }
 
 
+    public static List<OBControl> controlsSortedFrontToBack(OBGroup group, String pattern)
+    {
+        List<OBControl> result = new ArrayList<OBControl>();
+        Pattern p = Pattern.compile(pattern);
+        for (OBControl control : group.members)
+        {
+            String controlID = (String) control.attributes().get("id");
+            if (controlID == null)
+            {
+                controlID = (String) control.settings.get("name");
+            }
+            if (controlID == null) continue;
+            //
+            Matcher matcher = p.matcher(controlID);
+            matcher.find();
+            if (matcher.matches())
+            {
+                result.add(control);
+            }
+        }
+        Collections.reverse(result);
+        //
+        return result;
+    }
 
 
     public static PointF copyPoint(PointF original)

@@ -161,6 +161,7 @@ public class OBControl
         obj.shadowOffsetY = shadowOffsetY;
         obj.shadowColour = shadowColour;
         obj.textureKey = textureKey;
+        obj.cornerRadius = cornerRadius();
         obj.blendColour = blendColour.clone();
         if (maskControl != null)
             obj.maskControl = maskControl;
@@ -1141,6 +1142,7 @@ public class OBControl
                 for (int i = 0;i < 3;i++)
                     finalCol[i] = blendColour[i];
                 finalCol[3] = blendColour[3] * op;
+                textureShader.useProgram();
                 textureShader.setUniforms(tempMatrix,renderer.textureObjectIds[0],finalCol);
                 renderLayer(renderer,vc);
             }
@@ -1149,6 +1151,7 @@ public class OBControl
                 ColorShaderProgram colourShader = (ColorShaderProgram) renderer.colourProgram;
                 float col[] = {1,1,1,1};
                 OBUtils.getFloatColour(backgroundColor,col);
+                colourShader.useProgram();
                 colourShader.setUniforms(tempMatrix);
                 GradientRect gr = renderer.gradientRect;
                 gr.draw(renderer,0,0,bounds.right - bounds.left,bounds.bottom - bounds.top,col,col);
@@ -1390,6 +1393,7 @@ public class OBControl
                 {
                     invalidate();
                     hidden = true;
+                    setNeedsRetexture();
                 }
             }.run();
         }
@@ -1409,6 +1413,7 @@ public class OBControl
     {
         hidden = h;
         invalidate();
+        setNeedsRetexture();
     }
     public void setMaskControl(OBControl m)
     {
@@ -1707,5 +1712,4 @@ public class OBControl
         if (controller != null)
             controller.unlockScreen();
     }
-
 }

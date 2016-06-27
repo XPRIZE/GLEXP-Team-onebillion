@@ -92,8 +92,8 @@ public class X_Count20_S2 extends XPRZ_SectionController
         objectDict.put("gp", gp);
         highlighter = new OBControl();
         highlighter.borderColour = Color.BLACK;
-        highlighter.borderWidth = 4 * graphicScale();
-        highlighter.invalOutdent = highlighter.borderWidth / 2;
+        highlighter.borderWidth = 2 * 4 * graphicScale();
+        //highlighter.invalOutdent = highlighter.borderWidth / 2;
         attachControl(highlighter);
         highlighter.hide();
     }
