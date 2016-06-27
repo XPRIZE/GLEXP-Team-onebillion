@@ -204,7 +204,7 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
 
     public void finDemo4b() throws Exception
     {
-        playAudioQueuedSceneIndex(currentEvent(), "DEMO2", 0, true); // Let's see fifteen fingers!
+        playSceneAudioIndex("DEMO2", 0, true); // Let's see fifteen fingers!
         waitForSecs(0.3);
         //
         finDemoXX(1, "DEMO2");
@@ -224,7 +224,7 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
 
     public void finDemo4c() throws Exception
     {
-        playAudioQueuedSceneIndex(currentEvent(), "DEMO", 0, true); // Look!
+        playSceneAudioIndex("DEMO", 0, true); // Look!
         waitForSecs(0.3);
         //
         finDemoXX(1, "DEMO");
@@ -243,7 +243,7 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
 
     public void finDemo4f() throws Exception
     {
-        playAudioQueuedSceneIndex(currentEvent(), "DEMO", 0, true); // Let's see FIFTY fingers!
+        playSceneAudioIndex("DEMO", 0, true); // Let's see FIFTY fingers!
         waitForSecs(0.3);
         //
         finDemoXX(1, "DEMO");
@@ -267,7 +267,7 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
             box.setFillColor(OBUtils.colorFromRGBString("255,234,121"));
             unlockScreen();
             //
-            playAudioQueuedSceneIndex(currentEvent(), audioScene, offset + i - 1, true); // FIVE. TEN. FIFTEEN. TWENTY. TWENTY-FIVE. THIRTY. THIRTY-FIVE. FORTY. FORTY-FIVE. FIFTY.
+            playSceneAudioIndex(audioScene, offset + i - 1, true); // FIVE. TEN. FIFTEEN. TWENTY. TWENTY-FIVE. THIRTY. THIRTY-FIVE. FORTY. FORTY-FIVE. FIFTY.
             //
             lockScreen();
             box.setFillColor(Color.WHITE);

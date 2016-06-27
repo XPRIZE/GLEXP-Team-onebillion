@@ -4,6 +4,8 @@ import android.graphics.Path;
 import android.graphics.PathMeasure;
 import android.graphics.PointF;
 
+import org.onebillion.xprz.controls.OBControl;
+
 import java.util.Arrays;
 
 /**
@@ -11,7 +13,7 @@ import java.util.Arrays;
  */
 public class OBAnimPath extends OBAnim
 {
-    float angleOffset;
+    float angleOffset,angleStart;
     boolean changeAngle;
     Path path;
     PathMeasure pathMeasure;
@@ -22,12 +24,13 @@ public class OBAnimPath extends OBAnim
     }
     public OBAnimPath(Object  obj,Path p,boolean changle,float radians)
     {
-        this(obj,"position",ANIM_TYPE_POINT);
+        this(obj,"positionAndAngle",ANIM_TYPE_PATH);
         path = p;
         pathMeasure = new PathMeasure(p,false);
         pathLength = pathMeasure.getLength();
         changeAngle = changle;
         angleOffset = radians;
+        angleStart = ((OBControl)obj).rotation;
     }
 
     public Object valueForT(float t)
@@ -42,6 +45,6 @@ public class OBAnimPath extends OBAnim
             radians += angleOffset;
             return Arrays.asList(vpt,radians);
         }
-        return vpt;
+        return Arrays.asList(vpt,angleStart);
     }
 }

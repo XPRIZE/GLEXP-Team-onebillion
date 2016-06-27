@@ -61,13 +61,13 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
         {
             OBGroup group = (OBGroup) control;
             group.hideMembers("selector_frame");
-            group.hideMembers("shine.*"); // gradient path not working correctly
         }
         //
         for (OBControl control : filterControls("path.*"))
         {
             OBPath path = (OBPath) control;
             path.setLineWidth(applyGraphicScale(path.lineWidth()));
+            path.sizeToBoundingBoxIncludingStroke();
             path.hide();
         }
         //
@@ -75,6 +75,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
         {
             OBPath path = (OBPath) control;
             path.setLineWidth(applyGraphicScale(path.lineWidth()));
+            path.sizeToBoundingBoxIncludingStroke();
         }
         //
         currentAnswer = 0;
@@ -347,7 +348,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
                 waitForSecs(0.3);
                 //
                 action_tracePath(currentAnswer);
-                playAudioQueuedSceneIndex(currentEvent(), "CORRECT", currentAnswer, false);
+                playSceneAudioIndex("CORRECT", currentAnswer, false);
                 currentAnswer++;
                 //
                 if (currentAnswer > 10)
@@ -491,11 +492,16 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
                         }
                         else if (currentEvent().equals("6d"))
                         {
-                            OBGroup object = (OBGroup) objectDict.get("object");
-                            for (String name : Arrays.asList("head_1", "head_2", "head_3", "head_4", "head_5", "head_6"))
+                            String layerName = (String) group.settings.get("name");
+                            //
+                            if (layerName.equals("c_head"))
                             {
-                                group = (OBGroup) object.objectDict.get(name);
-                                group.substituteFillForAllMembers("colour.*", selectedColour);
+                                OBGroup object = (OBGroup) objectDict.get("object");
+                                for (String name : Arrays.asList("head_1", "head_2", "head_3", "head_4", "head_5", "head_6"))
+                                {
+                                    group = (OBGroup) object.objectDict.get(name);
+                                    group.substituteFillForAllMembers("colour.*", selectedColour);
+                                }
                             }
                         }
                     }

@@ -3,6 +3,7 @@ package org.onebillion.xprz.controls;
 
         import java.lang.reflect.Constructor;
         import java.util.ArrayList;
+        import java.util.Arrays;
         import java.util.Collections;
         import java.util.Comparator;
         import java.util.HashMap;
@@ -217,6 +218,8 @@ public class OBControl
         bounds.set(l, t, r, b);
         if (layer != null)
             layer.setBounds(bounds);
+        frameValid = false;
+        invalidate();
     }
     public RectF frame()
     {
@@ -285,6 +288,7 @@ public class OBControl
                     position.set(x, y);
                     frameValid = false;
                     invalidate();
+                    setNeedsRetexture();
                 }
             }.run();
          }
@@ -477,6 +481,18 @@ public class OBControl
         setScaleX(sc);
         setScaleY(sc);
     }
+
+
+    public void flipHoriz()
+    {
+        setScaleX(-1 * scaleX());
+    }
+
+    public void flipVert()
+    {
+        setScaleY(-1 * scaleY());
+    }
+
     public float width()
     {
         frame();
@@ -792,14 +808,21 @@ public class OBControl
     public PointF getWorldPosition()
     {
         OBControl parent = this.parent;
-        while (parent.parent != null)
+        if (parent == null)
         {
-            parent = parent.parent;
+            return this.position;
         }
-        OBSectionController controller = (OBSectionController) parent.controller;
-        if (controller != null)
+        else
         {
-            return controller.convertPointFromControl(this.position, this.parent);
+            while (parent.parent != null)
+            {
+                parent = parent.parent;
+            }
+            OBSectionController controller = (OBSectionController) parent.controller;
+            if (controller != null)
+            {
+                return controller.convertPointFromControl(this.position, this.parent);
+            }
         }
         return null;
     }
@@ -819,6 +842,21 @@ public class OBControl
         m.mapRect(nr, r);
         return nr;
     }
+
+    public void setPositionAndAngle(List list)
+    {
+        if(list.get(0).getClass() == PointF.class)
+            setPosition((PointF)list.get(0));
+
+        if(list.get(1).getClass() == Float.class)
+            setRotation((float)list.get(1));
+    }
+
+    public List positionAndAngle()
+    {
+        return Arrays.asList(position(), rotation());
+    }
+
 
     public boolean intersectsWith(OBControl c)
     {
@@ -1350,6 +1388,7 @@ public class OBControl
                 {
                     hidden = false;
                     invalidate();
+                    setNeedsRetexture();
                 }
             }.run();
         }
@@ -1554,9 +1593,15 @@ public class OBControl
             }.run();
         }
     }
+
+    public int highlightColour()
+    {
+        return highlightColour;
+    }
+
     public void highlight()
     {
-        new OBRunnableSyncUI()
+     /*   new OBRunnableSyncUI()
         {
             public void ex()
             {
@@ -1564,11 +1609,29 @@ public class OBControl
                 OBUtils.setFloatColour(.8f,.8f,.8f,1,blendColour);
                 invalidate();
             }
+        }.run();*/
+        setHighlightColour(Color.argb(200, 255, 255, 255));
+    }
+
+    public void setHighlightColour(final int colour)
+    {
+        new OBRunnableSyncUI()
+        {
+            public void ex()
+            {
+                highlightColour = colour;
+                float alpha = Color.alpha(colour)/255.0f;
+                OBUtils.setFloatColour(alpha * Color.red(colour)/255.0f,
+                        alpha * Color.green(colour)/255.0f,
+                        alpha * Color.blue(colour)/255.0f,1,blendColour);
+                invalidate();
+            }
         }.run();
     }
 
     public void lowlight()
     {
+        /*
         new OBRunnableSyncUI()
         {
             public void ex()
@@ -1578,6 +1641,8 @@ public class OBControl
                 invalidate();
             }
         }.run();
+        */
+        setHighlightColour(Color.argb(255, 255, 255, 255));
     }
     public void setBorderColor(final int i)
     {
