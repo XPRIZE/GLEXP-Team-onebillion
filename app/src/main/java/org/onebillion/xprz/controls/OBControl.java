@@ -3,6 +3,7 @@ package org.onebillion.xprz.controls;
 
         import java.lang.reflect.Constructor;
         import java.util.ArrayList;
+        import java.util.Arrays;
         import java.util.Collections;
         import java.util.Comparator;
         import java.util.HashMap;
@@ -160,6 +161,7 @@ public class OBControl
         obj.shadowOffsetY = shadowOffsetY;
         obj.shadowColour = shadowColour;
         obj.textureKey = textureKey;
+        obj.cornerRadius = cornerRadius();
         obj.blendColour = blendColour.clone();
         if (maskControl != null)
             obj.maskControl = maskControl;
@@ -479,6 +481,18 @@ public class OBControl
         setScaleX(sc);
         setScaleY(sc);
     }
+
+
+    public void flipHoriz()
+    {
+        setScaleX(-1 * scaleX());
+    }
+
+    public void flipVert()
+    {
+        setScaleY(-1 * scaleY());
+    }
+
     public float width()
     {
         frame();
@@ -829,6 +843,21 @@ public class OBControl
         return nr;
     }
 
+    public void setPositionAndAngle(List list)
+    {
+        if(list.get(0).getClass() == PointF.class)
+            setPosition((PointF)list.get(0));
+
+        if(list.get(1).getClass() == Float.class)
+            setRotation((float)list.get(1));
+    }
+
+    public List positionAndAngle()
+    {
+        return Arrays.asList(position(), rotation());
+    }
+
+
     public boolean intersectsWith(OBControl c)
     {
         OBControl par = commonParentWith(c);
@@ -1123,6 +1152,7 @@ public class OBControl
                 for (int i = 0;i < 3;i++)
                     finalCol[i] = blendColour[i];
                 finalCol[3] = blendColour[3] * op;
+                textureShader.useProgram();
                 textureShader.setUniforms(tempMatrix,renderer.textureObjectIds[0],finalCol);
                 renderLayer(renderer,vc);
             }
@@ -1131,6 +1161,7 @@ public class OBControl
                 ColorShaderProgram colourShader = (ColorShaderProgram) renderer.colourProgram;
                 float col[] = {1,1,1,1};
                 OBUtils.getFloatColour(backgroundColor,col);
+                colourShader.useProgram();
                 colourShader.setUniforms(tempMatrix);
                 GradientRect gr = renderer.gradientRect;
                 gr.draw(renderer,0,0,bounds.right - bounds.left,bounds.bottom - bounds.top,col,col);
@@ -1562,9 +1593,15 @@ public class OBControl
             }.run();
         }
     }
+
+    public int highlightColour()
+    {
+        return highlightColour;
+    }
+
     public void highlight()
     {
-        new OBRunnableSyncUI()
+     /*   new OBRunnableSyncUI()
         {
             public void ex()
             {
@@ -1572,11 +1609,29 @@ public class OBControl
                 OBUtils.setFloatColour(.8f,.8f,.8f,1,blendColour);
                 invalidate();
             }
+        }.run();*/
+        setHighlightColour(Color.argb(200, 255, 255, 255));
+    }
+
+    public void setHighlightColour(final int colour)
+    {
+        new OBRunnableSyncUI()
+        {
+            public void ex()
+            {
+                highlightColour = colour;
+                float alpha = Color.alpha(colour)/255.0f;
+                OBUtils.setFloatColour(alpha * Color.red(colour)/255.0f,
+                        alpha * Color.green(colour)/255.0f,
+                        alpha * Color.blue(colour)/255.0f,1,blendColour);
+                invalidate();
+            }
         }.run();
     }
 
     public void lowlight()
     {
+        /*
         new OBRunnableSyncUI()
         {
             public void ex()
@@ -1586,6 +1641,8 @@ public class OBControl
                 invalidate();
             }
         }.run();
+        */
+        setHighlightColour(Color.argb(255, 255, 255, 255));
     }
     public void setBorderColor(final int i)
     {

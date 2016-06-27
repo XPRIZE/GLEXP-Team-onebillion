@@ -363,7 +363,7 @@ public class OBGroup extends OBControl
                 if (alpha > 0.0f)
                 {
                     int intop = Math.round(alpha * 255f);
-                    col = col | (intop << 24);
+                    col = Color.argb(intop,Color.red(col),Color.green(col),Color.blue(col));
                 }
             }
             List<Object> ol = new ArrayList<>();
@@ -416,10 +416,11 @@ public class OBGroup extends OBControl
             if (s != null)
             {
                 alpha = Float.parseFloat(s);
-                if (alpha > 0.0f)
+                if (alpha >= 0.0f)
                 {
                     int intop = Math.round(alpha * 255f);
-                    col = col | (intop << 24);
+                    col = Color.argb(intop,Color.red(col),Color.green(col),Color.blue(col));
+                    //col = col | (intop << 24);
                 }
             }
             List<Object> ol = new ArrayList<>();

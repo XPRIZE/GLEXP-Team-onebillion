@@ -4,13 +4,17 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.AsyncTask;
 
+import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
+import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.controls.XPRZ_Presenter;
 import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.utils.OBReadingPara;
 import org.onebillion.xprz.utils.OBReadingWord;
+import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OB_Maths;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -209,6 +213,267 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         playAudioQueuedScene("c","DEMO",true);
         waitForSecs(0.5f);
         thePointer.hide();
+    }
+
+
+
+    public void showQuestionElements() throws Exception
+    {
+        if (!objectDict.get("cameo").hidden)
+            return;
+        playSfxAudio("anna_on",false);
+        lockScreen();
+        showControls("cameo");
+        unlockScreen();
+    }
+
+    public void hideQuestionElements() throws Exception
+    {
+        playSfxAudio("anna_off",false);
+        lockScreen();
+        hideControls("cameo");
+        if (cqType == 2)
+        {
+            hideControls("answer.*");
+        }
+        unlockScreen();
+    }
+
+    public void workOutQuestionType(Map<String,Object> eventAudio)
+    {
+        if (eventAudio.get("ANSWER") != null)
+            cqType = 2;
+        else if (eventAudio.get("CORRECT") != null)
+            cqType = 1;
+        else
+            cqType = 3;
+    }
+
+    public boolean correctFirst()
+    {
+        Map<String,List<String>> asp = (Map<String, List<String>>) audioScenes.get(pageName);
+        List<String> keys = asp.get("__keys");
+        for (String key : keys)
+        {
+            if (key.equals("CORRECT"))
+                return true;
+            else if (key.equals("INCORRECT"))
+                return false;
+        }
+        return true;
+    }
+
+    public void loadCQAudioXMLs()
+    {
+        String path = getConfigPath("cqaudio.xml");
+        loadAudioXML(path);
+        Map<String,Object> d = audioScenes;
+        if (pageNo == maxPageNo)
+        {
+            if (d.get("final") != null)
+                d.put(pageName,d.get("final"));
+        }
+        path = getConfigPath("cqsfx.xml");
+        loadAudioXML(path);
+        audioScenes.putAll(d);
+    }
+
+    public String pageName()
+    {
+        return String.format("p%d",pageNo);
+    }
+
+    public boolean considerComprehensionQuestions() throws Exception
+    {
+        String usecq = parameters.get("cq");
+        if (usecq == null || !usecq.equals("true"))
+            return false;
+        if (questionsAsked)
+            return false;
+        loadCQAudioXMLs();
+        pageName = pageName();
+        if (audioScenes.get(pageName) != null)
+        {
+            workOutQuestionType((Map<String, Object>) audioScenes.get(pageName));
+            loadCQPage();
+            questionsAsked = true;
+            if (cqType == 1)
+            {
+                targets = Arrays.asList(objectDict.get("shape"));
+                demoCqType1a();
+            }
+            else if (cqType == 2)
+            {
+                if (correctFirst())
+                    targets = Arrays.asList(objectDict.get("answer1"),objectDict.get("answer2"));
+                else
+                    targets = Arrays.asList(objectDict.get("answer2"),objectDict.get("answer1"));
+                demoCqType2a();
+            }
+            else if (cqType == 3)
+            {
+                targets = Collections.emptyList();
+                //demoCqType3a();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public void demoCqType2a() throws Exception
+    {
+        setStatus(STATUS_DOING_DEMO);
+        waitForSecs(0.4f);
+        showQuestionElements();
+        waitForSecs(0.4f);
+        demoCqType2b(true);
+    }
+
+    public void demoCqType2b(boolean firstTime)
+    {
+        long token = -1;
+        try
+        {
+            token = takeSequenceLockInterrupt(true);
+            if (token == sequenceToken)
+            {
+/*                [control:anna speak:audioScenespageName.()"PROMPT".()];
+                waitForSecs(0.4f);
+                OBPath answer1 = (OBPath) objectDict.get("answer1");
+                answer1.show();
+                deployFlashAnim(answer1);
+                [control:anna speak:audioScenespageName.()"ANSWER".()];
+                checkSequenceToken(token);
+                waitForSecs(0.2f);
+                killAnimations();
+                setStatus(STATUS_WAITING_FOR_ANSWER);
+                checkSequenceToken(token);
+                waitForSecs(0.4f);
+                OBPath answer2 = (OBPath) objectDict.get("answer2");
+                answer2.show();
+                deployFlashAnim(answer2);
+                control(anna speak:audioScenespageName.()"ANSWER2".()];
+                checkSequenceToken(token);
+                waitForSecs(0.2f);
+                checkSequenceToken(token);
+                killAnimations();
+                waitForSecs(0.3f);
+                checkSequenceToken(token);
+                [control:anna speak:audioScenespageName.()"PROMPT2".()];
+                checkSequenceToken(token);
+                waitForSecs(0.3f);
+                checkSequenceToken(token);
+                if (firstTime)
+                [reprompt:statusTime audio:nil after:5 action:^{
+                demoCqType2b(true);
+            }];*/
+            }
+        }
+        catch (Exception exception)
+        {
+        }
+        killAnimations();
+        sequenceLock.unlock();
+    }
+
+    void setAnswerButtonActive(OBPath c)
+    {
+        lockScreen();
+        c.setFillColor((Integer)c.propertyValue("fillcolour"));
+        c.setStrokeColor((Integer)c.propertyValue("strokecolour"));
+        unlockScreen();
+    }
+
+    void setAnswerButtonInActive(OBPath c)
+    {
+        lockScreen();
+        c.setFillColor((Integer)c.propertyValue("desatfillcolour"));
+        c.setStrokeColor((Integer)c.propertyValue("desatstrokecolour"));
+        unlockScreen();
+    }
+
+    void setAnswerButtonSelected(OBPath c)
+    {
+        lockScreen();
+        c.setFillColor((Integer)c.propertyValue("fillcolour"));
+        c.setStrokeColor((Integer)c.propertyValue("strokecolour"));
+        unlockScreen();
+    }
+
+    public void loadCQPage()
+    {
+        Map<String, Object> evd = loadXML(getConfigPath("cq.xml"));
+        eventsDict.putAll(evd);
+        evd = loadXML(getConfigPath("eventcq.xml"));
+        eventsDict.putAll(evd);
+        lockScreen();
+        doVisual("cqmain");
+        anna = (OBGroup) objectDict.get("annahead");
+        if (cqType == 1 || cqType == 3)
+        {
+            loadEvent(pageName());
+        }
+        else if (cqType == 2)
+        {
+            for (OBControl p : filterControls("answer.*"))
+            {
+                OBPath c = (OBPath) p;
+                int col = c.fillColor();
+                c.setProperty("fillcolour", col);
+                c.setProperty("desatfillcolour", OBUtils.DesaturatedColour(col, 0.2f));
+                col = c.strokeColor();
+                c.setProperty("strokecolour", col);
+                c.setProperty("desatstrokecolour", OBUtils.DesaturatedColour(col, 0.2f));
+                setAnswerButtonInActive(c);
+            }
+        }
+        else
+        {
+
+        }
+        hideControls("answer.*");
+        hideControls("cameo");
+        unlockScreen();
+    }
+
+    public void demoCqType1a() throws Exception
+    {
+        setStatus(STATUS_DOING_DEMO);
+        waitForSecs(0.4f);
+        showQuestionElements();
+        waitForSecs(0.4f);
+        demoCqType1b(true);
+    }
+
+    public void demoCqType1b(boolean firstTime)
+    {
+        long token = -1;
+        try
+        {
+            token = takeSequenceLockInterrupt(true);
+            if (token == sequenceToken)
+            {/*
+                waitForSecs(0.4f);
+                showQuestionElements();
+                waitForSecs(0.4f);
+                checkSequenceToken(token);
+
+                List<Object> aud = OBUtils.insertAudioInterval(audioScenes[pageName].get("PROMPT")),500);
+                [control:anna speak:aud];
+                checkSequenceToken(token);
+                setStatus(STATUS_WAITING_FOR_ANSWER);
+                waitForSecs(0.4f);
+                checkSequenceToken(token);
+                if (firstTime)
+                [reprompt:statusTime audio:nil after:5 action:^{
+                demoCqType1b(true);
+            }];*/
+            }
+        }
+        catch (Exception exception)
+        {
+        }
+        sequenceLock.unlock();
     }
 
 }

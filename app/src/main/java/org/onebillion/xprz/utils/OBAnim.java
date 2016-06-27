@@ -21,7 +21,8 @@ public class OBAnim {
             ANIM_TYPE_COLOUR = 2,
             ANIM_TYPE_SEQUENCE = 3,
             ANIM_TYPE_INT = 4,
-    ANIM_TYPE_BLOCK = 5;
+            ANIM_TYPE_BLOCK = 5,
+            ANIM_TYPE_PATH = 6;
     public static int ANIM_EASE_IN_EASE_OUT = 0,
             ANIM_LINEAR = 1,
             ANIM_EASE_IN = 2,
@@ -81,6 +82,11 @@ public class OBAnim {
                 evaluator = new IntEvaluator();
                 x = int.class;
             }
+            else if (typeType == ANIM_TYPE_PATH)
+            {
+                x = List.class;
+                evaluator = null;
+            }
             if (x != null)
                 setter = obj.getClass().getMethod("set" + u1, x);
         } catch (NoSuchMethodException e) {
@@ -123,6 +129,13 @@ public class OBAnim {
         OBAnim anim = new OBAnim(obj, "position", ANIM_TYPE_POINT);
         anim.value = new PointF(val.x, val.y);
         anim.tempValue = new PointF();
+        return anim;
+    }
+
+    public static OBAnim colourAnim(String property,int val, Object obj)
+    {
+        OBAnim anim = new OBAnim(obj, property, ANIM_TYPE_COLOUR);
+        anim.value = val;
         return anim;
     }
 
@@ -170,7 +183,7 @@ public class OBAnim {
         }
         if (typeType == ANIM_TYPE_COLOUR)
         {
-            return (ArgbEvaluator) evaluator.evaluate(t, initialValue, value);
+            return evaluator.evaluate(t, initialValue, value);
         }
         return null;
     }

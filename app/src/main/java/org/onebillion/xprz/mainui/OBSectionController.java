@@ -50,7 +50,9 @@ public class OBSectionController extends OBViewController
             STATUS_SHOWING_POP_UP = 16,
             STATUS_EDITING = 17,
             STATUS_IDLE = 18,
-            STATUS_BUSY = 19;
+            STATUS_BUSY = 19,
+            STATUS_WAITING_FOR_ANSWER = 20
+                    ;
     public static final int POINTER_ZPOS = 1000;
     public static final int POINTER_BOTLEFT = 0,
             POINTER_BOTRIGHT = 1,
@@ -600,7 +602,51 @@ public class OBSectionController extends OBViewController
             List<Map<String,Object>> chs = (List<Map<String,Object>>)image.get("children");
             for (Map<String,Object> d : chs)
             {
-                // // TODO: 28/11/15
+                Map<String,String> objattrs = (Map<String, String>) d.get("attrs");
+                String s,fontFamily="Helvetica";
+                if ((s = objattrs.get("font-family"))!= null)
+                    fontFamily = s;
+                float fontSize=20;
+                if ((s = objattrs.get("font-size"))!= null)
+                    fontSize = applyGraphicScale(Float.parseFloat(s));
+                boolean italic = false,bold = false;
+                if ((s = objattrs.get("font-weight")) != null && s.equals("bold"))
+                    bold = true;
+                if ((s = objattrs.get("font-style")) != null && s.equals("italic"))
+                    italic = true;
+                int style = Typeface.NORMAL;
+                if (bold)
+                    if (italic)
+                        style = Typeface.BOLD_ITALIC;
+                    else
+                        style = Typeface.BOLD;
+                else
+                    if (italic)
+                        style = Typeface.ITALIC;
+                Typeface tf = Typeface.create(fontFamily,style);
+                if (tf == null)
+                    tf = Typeface.defaultFromStyle(style);
+                OBLabel lab = new OBLabel((String)(d.get("contents")),tf,fontSize);
+                if ((s = objattrs.get("fill")) != null)
+                {
+                    int c = OBUtils.svgColorFromRGBString(s);
+                    lab.setColour(c);
+                    //lab.borderColor = UIColor.redColor();
+                    //lab.borderWidth = 1;
+                }
+                PointF pt = new PointF();
+                pt.x = Float.parseFloat(objattrs.get("x"));
+                pt.y = Float.parseFloat(objattrs.get("y"));
+                pt = OB_Maths.locationForRect(pt, b);
+                //CGRect tbounds = boundingBoxForString(lab.string, font, b.size);
+                //pt.y -= (tbounds.size.height + tbounds.origin.y);
+                RectF lf = lab.bounds();
+                pt.x += lf.width() / 2;
+                pt.y += lf.height() / 2;
+                lab.setPosition(pt);
+                lab.setZPosition(1f);
+                grp.insertMember(lab,0,"t");
+
             }
             grp.buildObjectDict();
             im = grp;
