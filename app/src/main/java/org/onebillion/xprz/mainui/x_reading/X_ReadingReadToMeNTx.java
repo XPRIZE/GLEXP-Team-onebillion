@@ -9,6 +9,9 @@ import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.controls.XPRZ_Presenter;
 import org.onebillion.xprz.mainui.MainActivity;
+import org.onebillion.xprz.utils.OBAnim;
+import org.onebillion.xprz.utils.OBAnimBlock;
+import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBReadingPara;
 import org.onebillion.xprz.utils.OBReadingWord;
 import org.onebillion.xprz.utils.OBUtils;
@@ -27,7 +30,6 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
     XPRZ_Presenter presenter;
     int cqType;
     boolean questionsAsked;
-    OBGroup anna;
     String pageName;
 
     public void start()
@@ -337,12 +339,15 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
             token = takeSequenceLockInterrupt(true);
             if (token == sequenceToken)
             {
-/*                [control:anna speak:audioScenespageName.()"PROMPT".()];
+                List<Object>audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("PROMPT");
+                audl = OBUtils.insertAudioInterval(audl,300);
+                presenter.speak(audl,this);
                 waitForSecs(0.4f);
                 OBPath answer1 = (OBPath) objectDict.get("answer1");
                 answer1.show();
                 deployFlashAnim(answer1);
-                [control:anna speak:audioScenespageName.()"ANSWER".()];
+                audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("ANSWER");
+                presenter.speak(audl,this);
                 checkSequenceToken(token);
                 waitForSecs(0.2f);
                 killAnimations();
@@ -352,21 +357,28 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
                 OBPath answer2 = (OBPath) objectDict.get("answer2");
                 answer2.show();
                 deployFlashAnim(answer2);
-                control(anna speak:audioScenespageName.()"ANSWER2".()];
+                audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("ANSWER2");
+                presenter.speak(audl,this);
                 checkSequenceToken(token);
                 waitForSecs(0.2f);
                 checkSequenceToken(token);
                 killAnimations();
                 waitForSecs(0.3f);
                 checkSequenceToken(token);
-                [control:anna speak:audioScenespageName.()"PROMPT2".()];
+                audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("PROMPT2");
+                presenter.speak(audl,this);
                 checkSequenceToken(token);
                 waitForSecs(0.3f);
                 checkSequenceToken(token);
                 if (firstTime)
-                [reprompt:statusTime audio:nil after:5 action:^{
+                    reprompt(statusTime, null, 5, new OBUtils.RunLambda() {
+                        @Override
+                        public void run() throws Exception
+                        {
+                            demoCqType2b(true);
+                        }
+                    });
                 demoCqType2b(true);
-            }];*/
             }
         }
         catch (Exception exception)
@@ -376,6 +388,84 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         sequenceLock.unlock();
     }
 
+    public void demoCqType3a() throws Exception {
+        setStatus(STATUS_DOING_DEMO);
+        waitForSecs(0.4f);
+        showQuestionElements();
+        waitForSecs(0.4f);
+        demoCqType3b(true);
+    }
+
+    public void demoCqType3b(boolean firstTime)
+    {
+        long token = -1;
+        try
+        {
+            token = takeSequenceLockInterrupt(true);
+            if (token == sequenceToken)
+            {
+                checkSequenceToken(token);
+                for (int i = 1;i < 10;i++)
+                {
+                    String nm = StrAndNo("PROMPT", i);
+                    List<Object>audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get(nm);
+
+                    if (audl == null)
+                        break;
+                    presenter.speak(audl,this);
+                    checkSequenceToken(token);
+                    waitForSecs(1.2f);
+                }
+            }
+        }
+        catch (Exception exception)
+        {
+        }
+        killAnimations();
+        sequenceLock.unlock();
+        try
+        {
+            finishQuestion();
+        }
+        catch (Exception e)
+        {
+
+        }
+    }
+
+    public void finishQuestion() throws Exception {
+        waitForSecs(0.6f);
+        if (cqType == 1)
+        {
+        }
+        hideQuestionElements();
+        waitForSecs(0.8f);
+        setStatus(STATUS_IDLE);
+        bringUpNextButton();
+    }
+
+    public void deployFlashAnim(final OBPath c)
+    {
+        OBAnim blockAnim = new OBAnimBlock()
+        {
+            @Override
+            public void runAnimBlock(float frac)
+            {
+                if (frac < 0.5)
+                {
+                    setAnswerButtonSelected(c);
+                }
+                else
+                {
+                    setAnswerButtonActive(c);
+                }
+            }
+        };
+        OBAnimationGroup ag = new OBAnimationGroup();
+        registerAnimationGroup(ag,"flash");
+        ag.applyAnimations(Collections.singletonList(blockAnim),0.25f,true,OBAnim.ANIM_LINEAR,this);
+        setAnswerButtonActive(c);
+    }
     void setAnswerButtonActive(OBPath c)
     {
         lockScreen();
@@ -408,7 +498,9 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         eventsDict.putAll(evd);
         lockScreen();
         doVisual("cqmain");
-        anna = (OBGroup) objectDict.get("annahead");
+        presenter = XPRZ_Presenter.characterWithGroup((OBGroup)objectDict.get("annahead"));
+
+        //anna = (OBGroup) objectDict.get("annahead");
         if (cqType == 1 || cqType == 3)
         {
             loadEvent(pageName());
@@ -452,22 +544,25 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         {
             token = takeSequenceLockInterrupt(true);
             if (token == sequenceToken)
-            {/*
+            {
                 waitForSecs(0.4f);
                 showQuestionElements();
                 waitForSecs(0.4f);
                 checkSequenceToken(token);
-
-                List<Object> aud = OBUtils.insertAudioInterval(audioScenes[pageName].get("PROMPT")),500);
-                [control:anna speak:aud];
+                List<Object>audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("PROMPT");
+                audl = OBUtils.insertAudioInterval(audl,500);
+                presenter.speak(audl,this);
                 checkSequenceToken(token);
                 setStatus(STATUS_WAITING_FOR_ANSWER);
                 waitForSecs(0.4f);
                 checkSequenceToken(token);
                 if (firstTime)
-                [reprompt:statusTime audio:nil after:5 action:^{
-                demoCqType1b(true);
-            }];*/
+                    reprompt(statusTime, null, 5, new OBUtils.RunLambda() {
+                        @Override
+                        public void run() throws Exception {
+                            demoCqType1b(true);
+                        }
+                    });
             }
         }
         catch (Exception exception)

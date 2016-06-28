@@ -289,7 +289,7 @@ public class OBSectionController extends OBViewController
         return null;
     }
 
-    public String getLocalPath(String fileName)
+    public static String getLocalPath(String fileName)
     {
         for (String path : (List<String>)Config().get(MainActivity.CONFIG_AUDIO_SEARCH_PATH))
         {
@@ -1852,6 +1852,27 @@ public class OBSectionController extends OBViewController
         });
     }
 
-
+    public void reprompt(final long sttime, final List<Object>audio, float delaySecs)
+    {
+        reprompt(sttime,audio,delaySecs,null);
+    }
+    public void reprompt(final long sttime, final List<Object>audio, float delaySecs, final OBUtils.RunLambda actionBlock)
+    {
+        if (statusChanged(sttime))
+            return;
+        OBUtils.runOnOtherThreadDelayed(delaySecs, new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception {
+                if (statusChanged(sttime)) {
+                    if (audio != null) {
+                        boolean wait = (actionBlock != null);
+                        playAudioQueued(audio, wait);
+                        if (actionBlock != null)
+                            actionBlock.run();
+                    }
+                }
+            }
+        });
+    }
 }
 
