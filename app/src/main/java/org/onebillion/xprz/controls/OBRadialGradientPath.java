@@ -31,7 +31,7 @@ public class OBRadialGradientPath extends OBGradientPath
     }
 
 
-    void takeValuesFrom(URadialGradient ugradient, List<Map<String,Object>> settingsStack)
+    public void takeValuesFrom(URadialGradient ugradient, List<Map<String,Object>> settingsStack)
     {
         Map<String, Object> settings = settingsStack.get(settingsStack.size() - 1);
         RectF originalbounds = (RectF) settings.get("originalbounds");

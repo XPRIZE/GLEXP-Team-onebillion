@@ -44,10 +44,21 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
         lockScreen();
         loadFingers();
         loadEvent("master1");
-        String[] eva = ((String)eventAttributes.get(action_getScenesProperty())).split(",");
-        events = Arrays.asList(eva);
-
-        doVisual(currentEvent());
+        String scenes = (String) eventAttributes.get(action_getScenesProperty());
+        if (scenes != null)
+        {
+            String[] eva = scenes.split(",");
+            events = Arrays.asList(eva);
+        }
+        else
+        {
+            events = new ArrayList<>();
+        }
+        //
+        if (currentEvent() != null)
+        {
+            doVisual(currentEvent());
+        }
         unlockScreen();
     }
 

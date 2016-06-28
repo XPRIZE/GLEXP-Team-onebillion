@@ -7,8 +7,10 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -16,6 +18,7 @@ import android.content.res.Resources;
 import android.graphics.*;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
@@ -23,10 +26,12 @@ import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBImage;
 import org.onebillion.xprz.mainui.MainActivity;
+import org.onebillion.xprz.mainui.OBSectionController;
+import org.onebillion.xprz.mainui.XPRZ_SectionController;
 
 public class OBUtils
 {
-    public static String lastPathComponent(String path)
+    public static String lastPathComponent (String path)
     {
         int idx = path.lastIndexOf("/");
         if (idx == -1)
@@ -36,7 +41,7 @@ public class OBUtils
         return path.substring(idx + 1, path.length());
     }
 
-    public static String stringByDeletingLastPathComponent(String path)
+    public static String stringByDeletingLastPathComponent (String path)
     {
         int idx = path.lastIndexOf("/");
         if (idx == -1)
@@ -46,7 +51,7 @@ public class OBUtils
         return path.substring(0, idx);
     }
 
-    public static String stringByAppendingPathComponent(String path, String component)
+    public static String stringByAppendingPathComponent (String path, String component)
     {
         int idx = path.lastIndexOf("/");
         if (idx == path.length() - 1)
@@ -54,7 +59,7 @@ public class OBUtils
         return path + "/" + component;
     }
 
-    public static String pathExtension(String path)
+    public static String pathExtension (String path)
     {
         String lastcomp = lastPathComponent(path);
         int idx = lastcomp.lastIndexOf(".");
@@ -65,7 +70,7 @@ public class OBUtils
         return lastcomp.substring(idx + 1, lastcomp.length());
     }
 
-    public static Boolean assetsDirectoryExists(String path)
+    public static Boolean assetsDirectoryExists (String path)
     {
         AssetManager am = MainActivity.mainActivity.getAssets();
         try
@@ -79,7 +84,7 @@ public class OBUtils
         return true;
     }
 
-    public static List<String> filesAtPath(String path)
+    public static List<String> filesAtPath (String path)
     {
         AssetManager am = MainActivity.mainActivity.getAssets();
         try
@@ -96,7 +101,7 @@ public class OBUtils
         return Collections.emptyList();
     }
 
-    public static Boolean fileExistsAtPath(String path)
+    public static Boolean fileExistsAtPath (String path)
     {
         AssetManager am = MainActivity.mainActivity.getAssets();
         try
@@ -111,21 +116,23 @@ public class OBUtils
         return false;
     }
 
-    public static void getFloatColour(int col,float outcol[])
+    public static void getFloatColour (int col, float outcol[])
     {
-        outcol[0] = Color.red(col)/255f;
-        outcol[1] = Color.green(col)/255f;
-        outcol[2] = Color.blue(col)/255f;
-        outcol[3] = Color.alpha(col)/255f;
+        outcol[0] = Color.red(col) / 255f;
+        outcol[1] = Color.green(col) / 255f;
+        outcol[2] = Color.blue(col) / 255f;
+        outcol[3] = Color.alpha(col) / 255f;
     }
-    public static void setFloatColour(float r,float g,float b,float a,float outcol[])
+
+    public static void setFloatColour (float r, float g, float b, float a, float outcol[])
     {
         outcol[0] = r;
         outcol[1] = g;
         outcol[2] = b;
         outcol[3] = a;
     }
-    public static int parseColourComponent(String comp)
+
+    public static int parseColourComponent (String comp)
     {
         int i = comp.indexOf("%");
         if (i == 0)
@@ -144,13 +151,13 @@ public class OBUtils
         return Integer.parseInt(comp);
     }
 
-    public static int colorFromRGBString(String colstr)
+    public static int colorFromRGBString (String colstr)
     {
         String strings[] = colstr.split(",");
         return Color.argb(255, parseColourComponent(strings[0]), parseColourComponent(strings[1]), parseColourComponent(strings[2]));
     }
 
-    public static int svgColorFromRGBString(String str)
+    public static int svgColorFromRGBString (String str)
     {
         if (str.equals("none"))
             return 0;
@@ -213,19 +220,28 @@ public class OBUtils
         return 0;
     }
 
-    public static PointF pointFromString(String str)
+    public static PointF pointFromString (String str)
     {
-        String strings[] = str.split(",");
-        return new PointF(Float.parseFloat(strings[0]), Float.parseFloat(strings[1]));
+        try
+        {
+            String strings[] = str.split(",");
+            return new PointF(Float.parseFloat(strings[0]), Float.parseFloat(strings[1]));
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+
     }
 
-    public static Point roundPoint(PointF ptf)
+    public static Point roundPoint (PointF ptf)
     {
         return new Point((int) ptf.x, (int) ptf.y);
     }
 
 
-    public static InputStream getConfigStream(String cfgName)
+    public static InputStream getConfigStream (String cfgName)
     {
         Map<String, Object> config = MainActivity.mainActivity.config;
         @SuppressWarnings("unchecked")
@@ -247,41 +263,41 @@ public class OBUtils
     }
 
 
-    public static OBImage buttonFromImageName(String imageName)
+    public static OBImage buttonFromImageName (String imageName)
     {
-        OBImage im  = OBImageManager.sharedImageManager().imageForName(imageName);
+        OBImage im = OBImageManager.sharedImageManager().imageForName(imageName);
         float imageScale = MainActivity.mainActivity.configFloatForKey(MainActivity.CONFIG_GRAPHIC_SCALE);
         im.setScale(imageScale);
         return im;
     }
 
-    public static OBControl buttonFromSVGName(String imageName)
+    public static OBControl buttonFromSVGName (String imageName)
     {
-        OBGroup im  = OBImageManager.sharedImageManager().vectorForName(imageName);
+        OBGroup im = OBImageManager.sharedImageManager().vectorForName(imageName);
         float imageScale = MainActivity.mainActivity.configFloatForKey(MainActivity.CONFIG_GRAPHIC_SCALE);
         im.setScale(imageScale);
         im.setRasterScale(imageScale);
         return im;
     }
 
-    public static int PresenterColourIndex()
+    public static int PresenterColourIndex ()
     {
-        return (Integer)MainActivity.Config().get(MainActivity.CONFIG_SKINCOLOUR);
+        return (Integer) MainActivity.Config().get(MainActivity.CONFIG_SKINCOLOUR);
     }
 
-    public static int SkinColour(int offset)
+    public static int SkinColour (int offset)
     {
         @SuppressWarnings("unchecked")
         List<Integer> colList = (List<Integer>) MainActivity.mainActivity.config.get(MainActivity.CONFIG_SKINCOLOURS);
         return colList.get(Math.abs(9 - (((PresenterColourIndex() + offset) + 8) % 18)));
     }
 
-    public static int SkinColourIndex()
+    public static int SkinColourIndex ()
     {
         return ((Integer) MainActivity.mainActivity.config.get(MainActivity.CONFIG_SKINCOLOUR)).intValue();
     }
 
-    public static List<String> stringSplitByCharType(String str)
+    public static List<String> stringSplitByCharType (String str)
     {
         List<String> arr = new ArrayList<String>();
         if (str.length() > 0)
@@ -302,7 +318,7 @@ public class OBUtils
         return arr;
     }
 
-    static boolean isInteger(String s)
+    static boolean isInteger (String s)
     {
         try
         {
@@ -315,7 +331,7 @@ public class OBUtils
         }
     }
 
-    public static int orderStringArray(List<String> a1, List<String> a2)
+    public static int orderStringArray (List<String> a1, List<String> a2)
     {
         for (int idx = 0; true; idx++)
         {
@@ -350,19 +366,19 @@ public class OBUtils
         }
     }
 
-    public static int caseInsensitiveCompareWithNumbers(String s1, String s2)
+    public static int caseInsensitiveCompareWithNumbers (String s1, String s2)
     {
         return orderStringArray(stringSplitByCharType(s1), stringSplitByCharType(s2));
     }
 
-    public static String StrAndNo(String s, int n)
+    public static String StrAndNo (String s, int n)
     {
         if (n == 1)
             return s;
         return s + n;
     }
 
-    public static float floatOrPercentage(String str)
+    public static float floatOrPercentage (String str)
     {
         str = str.trim();
         if (str.length() == 0)
@@ -379,22 +395,23 @@ public class OBUtils
         return f;
     }
 
-    public static Typeface standardTypeFace()
+    public static Typeface standardTypeFace ()
     {
         if (MainActivity.standardTypeFace == null)
             MainActivity.standardTypeFace = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/onebillionreader-Regular.otf");
 
-    //        MainActivity.standardTypeFace = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/Heinemann Collection - HeinemannSpecial-Roman.otf");
+        //        MainActivity.standardTypeFace = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/Heinemann Collection - HeinemannSpecial-Roman.otf");
         return MainActivity.standardTypeFace;
     }
 
-    public static int setColourOpacity(int colour, float opacity)
+    public static int setColourOpacity (int colour, float opacity)
     {
         int intop = Math.round(opacity * 255f);
         colour = colour | (intop << 24);
         return colour;
     }
-    public static int applyColourOpacity(int colour, float opacity)
+
+    public static int applyColourOpacity (int colour, float opacity)
     {
         if (opacity == 1)
             return colour;
@@ -403,16 +420,16 @@ public class OBUtils
         fopac = fopac * opacity;
         int intop = Math.round(fopac * 255f);
         //colour = colour | (intop << 24);
-        colour = Color.argb(intop,Color.red(colour),Color.green(colour),Color.blue(colour));
+        colour = Color.argb(intop, Color.red(colour), Color.green(colour), Color.blue(colour));
         return colour;
     }
 
-    public static float durationForPointDist(PointF p0,PointF p1,float speed)
+    public static float durationForPointDist (PointF p0, PointF p1, float speed)
     {
-        return OB_Maths.PointDistance(p0,p1)/speed;
+        return OB_Maths.PointDistance(p0, p1) / speed;
     }
 
-    public static <T> List<T> randomlySortedArray(List<T> sofar,List<T> inarray)
+    public static <T> List<T> randomlySortedArray (List<T> sofar, List<T> inarray)
     {
         if (inarray.size() == 0)
             return sofar;
@@ -425,15 +442,15 @@ public class OBUtils
         T obj = inarray.get(idx);
         inarray.remove(idx);
         sofar.add(obj);
-        return randomlySortedArray(sofar,inarray);
+        return randomlySortedArray(sofar, inarray);
     }
 
-    public static <T> List<T> randomlySortedArray(List<T> inarray)
+    public static <T> List<T> randomlySortedArray (List<T> inarray)
     {
         return randomlySortedArray(new ArrayList<T>(), new ArrayList<T>(inarray));
     }
 
-    public static String readTextFileFromResource(int resourceId)
+    public static String readTextFileFromResource (int resourceId)
     {
         Context context = MainActivity.mainActivity;
         StringBuilder body = new StringBuilder();
@@ -465,7 +482,7 @@ public class OBUtils
         return body.toString();
     }
 
-    public static float scaleFromTransform(Matrix t)
+    public static float scaleFromTransform (Matrix t)
     {
         float values[] = new float[9];
         t.getValues(values);
@@ -473,27 +490,27 @@ public class OBUtils
         float b = values[3];
         float c = values[1];
         float d = values[4];
-        float sx = (float)Math.sqrt(a*a + c * c);
-        float sy = (float)Math.sqrt(b*b + d * d);
-        return Math.max(sx,sy);
+        float sx = (float) Math.sqrt(a * a + c * c);
+        float sy = (float) Math.sqrt(b * b + d * d);
+        return Math.max(sx, sy);
     }
 
-    public static List<Object> insertAudioInterval(Object audios, float interval)
+    public static List<Object> insertAudioInterval (Object audios, float interval)
     {
         List<Object> arr = new ArrayList<>();
         //
         if (audios instanceof String)
         {
-            String audioFile = (String ) audios;
+            String audioFile = (String) audios;
             arr.add(audioFile);
         }
         else
         {
             List<String> ls = (List<String>) audios;
-            for(String audio : ls)
+            for (String audio : ls)
             {
                 arr.add(audio);
-                if(ls.get(ls.size()-1) != audio)
+                if (ls.get(ls.size() - 1) != audio)
                 {
                     arr.add(interval);
                 }
@@ -502,12 +519,15 @@ public class OBUtils
         return arr;
     }
 
-    public static void runOnMainThread(final RunLambda lamb)
+    public static void runOnMainThread (final RunLambda lamb)
     {
-         new OBRunnableSyncUI() {
+        new OBRunnableSyncUI()
+        {
             @Override
-            public void ex() {
-                try {
+            public void ex ()
+            {
+                try
+                {
                     lamb.run();
                 }
                 catch (Exception exception)
@@ -517,11 +537,12 @@ public class OBUtils
         }.run();
     }
 
-    public static void runOnOtherThread(final RunLambda lamb)
+    public static void runOnOtherThread (final RunLambda lamb)
     {
-        new AsyncTask<Void, Void,Void>()
+        new AsyncTask<Void, Void, Void>()
         {
-            protected Void doInBackground(Void... params) {
+            protected Void doInBackground (Void... params)
+            {
                 try
                 {
                     lamb.run();
@@ -530,87 +551,298 @@ public class OBUtils
                 {
                 }
                 return null;
-            }}.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
     }
 
-    public static void runOnOtherThreadDelayed(final float delay, final RunLambda lamb)
+    public static void runOnOtherThreadDelayed (final float delay, final RunLambda lamb)
     {
-        new AsyncTask<Void, Void,Void>()
+        new AsyncTask<Void, Void, Void>()
         {
-            protected Void doInBackground(Void... params) {
+            protected Void doInBackground (Void... params)
+            {
                 try
                 {
-                    Thread.sleep(Math.round(delay*1000));
+                    Thread.sleep(Math.round(delay * 1000));
                     lamb.run();
                 }
                 catch (Exception exception)
                 {
                 }
                 return null;
-            }}.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
     }
 
-    public interface RunLambda {
-         public void run() throws Exception;
+    public interface RunLambda
+    {
+        public void run () throws Exception;
     }
 
-    public static Path SimplePath(PointF from,PointF to,float offset)
+    public static Path SimplePath (PointF from, PointF to, float offset)
     {
         Path path = new Path();
-        path.moveTo(from.x,from.y);
+        path.moveTo(from.x, from.y);
         PointF c1 = OB_Maths.tPointAlongLine(0.33f, from, to);
         PointF c2 = OB_Maths.tPointAlongLine(0.66f, from, to);
-        PointF lp = OB_Maths.ScalarTimesPoint(offset,OB_Maths.NormalisedVector(OB_Maths.lperp(OB_Maths.DiffPoints(to,from))));
+        PointF lp = OB_Maths.ScalarTimesPoint(offset, OB_Maths.NormalisedVector(OB_Maths.lperp(OB_Maths.DiffPoints(to, from))));
         PointF cp1 = OB_Maths.AddPoints(c1, lp);
         PointF cp2 = OB_Maths.AddPoints(c2, lp);
-        path.cubicTo(cp1.x,cp1.y,cp2.x,cp2.y,to.x,to.y);
+        path.cubicTo(cp1.x, cp1.y, cp2.x, cp2.y, to.x, to.y);
         return path;
     }
 
-    public static int DesaturatedColour(int colour,float sat)
+    public static int DesaturatedColour (int colour, float sat)
     {
-        float components[] = {0,0,0,1};
+        float components[] = {0, 0, 0, 1};
         components[0] = Color.red(colour);
         components[1] = Color.green(colour);
         components[2] = Color.blue(colour);
         components[2] = Color.alpha(colour);
-        float weights[] = {0.299f,0.587f,0.114f};
+        float weights[] = {0.299f, 0.587f, 0.114f};
         float greyVal = 0;
-        for (int i = 0;i < 3;i++)
+        for (int i = 0; i < 3; i++)
             greyVal += weights[i] * components[i];
         float dscomponents[] = new float[4];
-        for (int i = 0;i < 3;i++)
+        for (int i = 0; i < 3; i++)
             dscomponents[i] = components[i] * sat + greyVal * (1 - sat);
         dscomponents[3] = components[3];
-        int outcol = Color.argb((int)(dscomponents[3]*255),(int)(dscomponents[0]*255),(int)(dscomponents[1]*255),(int)(dscomponents[2]*255));
+        int outcol = Color.argb((int) (dscomponents[3] * 255), (int) (dscomponents[0] * 255), (int) (dscomponents[1] * 255), (int) (dscomponents[2] * 255));
         return outcol;
     }
 
-    public static List<List<Double>> ComponentTimingsForWord(String s,String xmlPath)
+
+    static String getConfigFile (String fileName)
     {
-        List<List<Double>> timings = new ArrayList<>();
-        try
+        Map<String, Object> config = MainActivity.mainActivity.Config();
+        for (String path : (List<String>) config.get(MainActivity.CONFIG_CONFIG_SEARCH_PATH))
         {
-            if (xmlPath != null)
+            String fullPath = stringByAppendingPathComponent(path, fileName);
+            if (fileExistsAtPath(fullPath))
             {
-                OBXMLNode xmlNode = null;
-                OBXMLManager xmlManager = new OBXMLManager();
-                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
-                xmlNode = xl.get(0);
-                List<OBXMLNode> arr = xmlNode.childrenOfType("timings");
-                OBXMLNode elem = arr.get(0);
-                for (OBXMLNode xtiming : elem.childrenOfType("timing"))
+                return fullPath;
+            }
+        }
+        return null;
+    }
+
+
+    static String getLocalFile (String fileName)
+    {
+        Map<String, Object> config = MainActivity.mainActivity.Config();
+        for (String path : (List<String>) config.get(MainActivity.CONFIG_AUDIO_SEARCH_PATH))
+        {
+            String fullPath = stringByAppendingPathComponent(path, fileName);
+            if (fileExistsAtPath(fullPath))
+            {
+                return fullPath;
+            }
+        }
+        return null;
+    }
+
+
+    static String getFilePath (String fileName)
+    {
+        if (fileExistsAtPath(fileName))
+        {
+            return fileName;
+        }
+        else
+        {
+            String filePath = getConfigFile(fileName);
+            if (filePath != null)
+            {
+                return filePath;
+            }
+            else
+            {
+                filePath = getLocalFile(fileName);
+                if (filePath != null)
                 {
-                    double start = xtiming.attributeFloatValue("start");
-                    double end = xtiming.attributeFloatValue("end");
-                    timings.add(Arrays.asList(start,end));
+                    return filePath;
                 }
             }
         }
-        catch (Exception e)
+        return null;
+    }
+
+
+    public static List<List<Double>> ComponentTimingsForWord (String xmlPath)
+    {
+        List<List<Double>> timings = new ArrayList<List<Double>>();
+        //
+        xmlPath = getFilePath(xmlPath);
+        //
+        if (xmlPath != null)
         {
+            OBXMLNode xmlNode = null;
+            try
+            {
+                OBXMLManager xmlManager = new OBXMLManager();
+                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
+                xmlNode = xl.get(0);
+                List<OBXMLNode> arr = xmlNode.childrenOfType("timing");
+                if (arr.size() > 0)
+                {
+                    OBXMLNode elem = arr.get(0);
+                    for (OBXMLNode xtiming : elem.childrenOfType("timing"))
+                    {
+                        double start = xtiming.attributeFloatValue("start");
+                        double end = xtiming.attributeFloatValue("end");
+                        timings.add(Arrays.asList(start, end));
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                System.out.println("OBUtils.ComponentTimingsForWord.exception caught " + e.toString());
+                e.printStackTrace();
+            }
         }
+        //
         return timings;
+    }
+
+
+    public static String stringJoin (String[] aArr, String sSep)
+    {
+        StringBuilder sbStr = new StringBuilder();
+        for (int i = 0, il = aArr.length; i < il; i++)
+        {
+            if (i > 0)
+            {
+                sbStr.append(sSep);
+            }
+            sbStr.append(aArr[i]);
+        }
+        return sbStr.toString();
+    }
+
+
+    public static Map<String, OBPhoneme> LoadWordComponentsXML (Boolean includeWords)
+    {
+        Map<String, Object> dictionary = new HashMap<String, Object>();
+        String xmlPath = getLocalFile("wordcomponents.xml");
+        if (xmlPath != null)
+        {
+            OBXMLNode xmlNode = null;
+            try
+            {
+                OBXMLManager xmlManager = new OBXMLManager();
+                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
+                xmlNode = xl.get(0);
+                //
+                OBXMLNode phonemesNode = xmlNode.childrenOfType("phonemes").get(0);
+                for (OBXMLNode phonemeNode : phonemesNode.childrenOfType("phoneme"))
+                {
+                    String audioID = phonemeNode.attributeStringValue("id");
+                    String content = phonemeNode.contents;
+                    OBPhoneme pho = new OBPhoneme(content, audioID);
+                    String audioFile = phonemeNode.attributeStringValue("audio");
+                    if (audioFile != null) pho.audio = audioFile;
+                    dictionary.put(audioID, pho);
+                }
+                //
+                OBXMLNode syllablesNode = xmlNode.childrenOfType("syllables").get(0);
+                for (OBXMLNode syllableNode : syllablesNode.childrenOfType("syllable"))
+                {
+                    String audioID = syllableNode.attributeStringValue("id");
+                    String content = syllableNode.contents;
+                    String lets[] = content.split("/");
+                    List<String> phonemeIDs = new ArrayList<String>();
+                    String phonemeAttr = syllableNode.attributeStringValue("phonemes");
+                    if (phonemeAttr != null)
+                    {
+                        for (String phoneme : phonemeAttr.split("/"))
+                        {
+                            phonemeIDs.add(phoneme);
+                        }
+                    }
+                    else
+                    {
+                        for (String let : lets)
+                        {
+                            phonemeIDs.add(String.format("is_%s", let));
+                        }
+                    }
+                    //
+                    List phonemes = new ArrayList();
+                    for (String phonemeID : phonemeIDs)
+                    {
+                        phonemes.add(dictionary.get(phonemeID));
+                    }
+                    //
+                    OBSyllable syl = new OBSyllable(stringJoin(lets, ""), audioID, phonemes);
+                    String audioFile = syllableNode.attributeStringValue("audio");
+                    if (audioFile != null) syl.audio = audioFile;
+                    dictionary.put(audioID, syl);
+                }
+                //
+                if (includeWords)
+                {
+                    OBXMLNode wordsNode = xmlNode.childrenOfType("words").get(0);
+                    for (OBXMLNode wordNode : wordsNode.childrenOfType("word"))
+                    {
+                        String audioID = wordNode.attributeStringValue("id");
+                        String content = wordNode.contents;
+                        String sylls[] = content.split("/");
+                        String fullText = stringJoin(sylls, "");
+                        //
+                        OBWord wor = null;
+                        String syllableAttr = wordNode.attributeStringValue("syllables");
+                        if (syllableAttr != null)
+                        {
+                            List<OBSyllable> syllables = new ArrayList<OBSyllable>();
+                            for (String syllableID : syllableAttr.split("/"))
+                            {
+                                OBSyllable syl = (OBSyllable) dictionary.get(syllableID);
+                                if (syl != null)
+                                {
+                                    syllables.add(syl);
+                                }
+                            }
+                            //
+                            wor = new OBWord(fullText, audioID, syllables);
+                        }
+                        else
+                        {
+                            List<OBSyllable> syllables = new ArrayList<OBSyllable>();
+                            for (String syllString : sylls)
+                            {
+                                String syllID = String.format("isyl_%s", syllString);
+                                OBSyllable syl = (OBSyllable) dictionary.get(syllID);
+                                if (syl != null)
+                                {
+                                    syllables.add(syl);
+                                }
+                                else
+                                {
+                                    syllables.add(new OBSyllable(syllString));
+                                }
+                            }
+                            wor = new OBWord(fullText, audioID, syllables);
+                        }
+                        //
+                        String image = wordNode.attributeStringValue("image");
+                        wor.imageName = (image != null) ? image : audioID;
+                        //
+                        String audioFile = wordNode.attributeStringValue("audio");
+                        if (audioFile != null) wor.audio = audioFile;
+                        //
+                        dictionary.put(audioID, wor);
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                System.out.println("OBUtils.LoadWordComponentsXML.exception caught " + e.toString());
+                e.printStackTrace();
+            }
+        }
+        //
+        return (Map<String, OBPhoneme>) (Object) dictionary;
     }
 
 
