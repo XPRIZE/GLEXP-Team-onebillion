@@ -97,7 +97,7 @@ public class XPRZ_SectionController extends OBSectionController {
         playAudioQueued(Arrays.asList((Object)arr.get(idx)), wait);
     }
 
-    OBPath StarWithScale(float scale,boolean shadow)
+    public OBPath StarWithScale(float scale,boolean shadow)
     {
         Path starpath = new Path();
         boolean outer = true;

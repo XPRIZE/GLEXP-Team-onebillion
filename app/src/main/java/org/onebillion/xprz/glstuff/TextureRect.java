@@ -33,6 +33,13 @@ public class TextureRect
         uvRight = uvBottom = 1;
     }
 
+    public void setUVs(float uvl,float uvt,float uvr,float uvb)
+    {
+        uvLeft = uvl;
+        uvTop = uvt;
+        uvRight = uvr;
+        uvBottom = uvb;
+    }
     public void draw(OBRenderer renderer, float l, float t, float r, float b, Bitmap bitmap)
     {
         fillOutRectVertexData(vertices,l,t,r,b,POSITION_COMPONENT_COUNT + UV_COMPONENT_COUNT);
