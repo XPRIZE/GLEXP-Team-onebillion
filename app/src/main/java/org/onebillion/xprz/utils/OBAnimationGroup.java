@@ -29,6 +29,7 @@ public class OBAnimationGroup
     long startms;
     OBSectionController owner;
     Interpolator interpolator;
+    int chainIndex = 0;
     RectF r1;
     RectF r2;
 
@@ -113,7 +114,25 @@ public class OBAnimationGroup
         startms = SystemClock.uptimeMillis();
     }
 
-    public void applyAnimations(List<OBAnim>anims,double dur,int timingFunction,OBSectionController vc)
+    public boolean doFrameForTime()
+    {
+        long currtime = SystemClock.uptimeMillis();
+        double frac;
+        if (duration == 0)
+            frac = 1.1;
+        else
+            frac = (currtime - startms) / (duration * 1000);
+        doFrame(OB_Maths.clamp01(frac));
+        try
+        {
+            Thread.sleep(20);
+        }
+        catch (InterruptedException e)
+        {
+        }
+        return frac <= 1.0;
+    }
+public void applyAnimations(List<OBAnim>anims,double dur,int timingFunction,OBSectionController vc)
     {
         duration = dur;
         animations = anims;
