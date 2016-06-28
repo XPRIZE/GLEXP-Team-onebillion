@@ -1429,6 +1429,8 @@ public class OBControl
     public void setMaskControl(OBControl m)
     {
         maskControl = m;
+        invalidate();
+        setNeedsRetexture();
     }
 
     public float rotation()

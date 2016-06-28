@@ -35,10 +35,10 @@ public class OBLabel extends OBControl
     {
         ((OBTextLayer)layer).setColour(col);
         invalidate();
-        if (texture != null)
-        {
+//        if (texture != null)
+//        {
             setNeedsRetexture();
-        }
+//        }
     }
 
     public void setString(String s)

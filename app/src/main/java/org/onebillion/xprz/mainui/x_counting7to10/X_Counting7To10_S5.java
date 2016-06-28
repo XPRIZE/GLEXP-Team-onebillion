@@ -30,7 +30,9 @@ import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBRunnableSyncUI;
 import org.onebillion.xprz.utils.OBUtils;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 
 /**
  * Created by pedroloureiro on 23/06/16.
@@ -38,6 +40,7 @@ import java.util.EnumSet;
 public class X_Counting7To10_S5 extends XPRZ_Generic_Event
 {
     OBPath drawingSurface;
+    List<PointF> points;
     //
     int number;
     OBControl correct_object;
@@ -88,6 +91,7 @@ public class X_Counting7To10_S5 extends XPRZ_Generic_Event
         }
         //
         XPRZ_Generic.colourObjectsWithScheme(this);
+        points = new ArrayList<PointF>();
         //
         hideControls("draw");
         if (drawingSurface != null) detachControl(drawingSurface);
@@ -97,18 +101,27 @@ public class X_Counting7To10_S5 extends XPRZ_Generic_Event
     public Boolean action_intersectsCorrectly ()
     {
         if (drawingSurface == null) return false;
+        RectF frame = correct_object.frame();
+        //
+        Boolean correctIntersection = false;
+        for (PointF pt : points)
+        {
+            correctIntersection = correctIntersection || frame.contains(pt.x, pt.y);
+        }
         //
         for (OBControl control : filterControls("obj.*"))
         {
             Boolean controlIntersects = drawingSurface.intersectsWith(control);
             if (correct_object.equals(control))
             {
-                if (!controlIntersects) return false;
+                if (!controlIntersects && !correctIntersection) return false;
             }
             else if (controlIntersects) return false;
         }
-        return true;
+        return correctIntersection;
     }
+
+
 
     // DEMOS
 
@@ -243,6 +256,11 @@ public class X_Counting7To10_S5 extends XPRZ_Generic_Event
         PointF cpt = convertPointToControl(pt, drawingSurface);
         drawingSurface.shapeLayer().path.reset();
         drawingSurface.shapeLayer().path.moveTo(cpt.x, cpt.y);
+        drawingSurface.shapeLayer().path.lineTo(cpt.x + 1, cpt.y);
+        //
+        points.clear();
+        points.add(new PointF(cpt.x, cpt.y));
+        //
         drawingSurface.show();
         attachControl(drawingSurface);
         unlockScreen();
@@ -285,6 +303,8 @@ public class X_Counting7To10_S5 extends XPRZ_Generic_Event
                 PointF cpt = convertPointToControl(pt, drawingSurface);
                 drawingSurface.addLineToPoint(cpt.x, cpt.y);
                 unlockScreen();
+                //
+                points.add(new PointF(cpt.x, cpt.y));
             }
         }
     }

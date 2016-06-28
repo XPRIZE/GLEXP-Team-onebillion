@@ -93,6 +93,8 @@ public class OBSectionController extends OBViewController
         sequenceLock = new ReentrantLock();
         sortedAttachedControlsValid = true;
     }
+
+
     public static Map<String,Object>dictForObject(OBXMLNode e)
     {
         Map<String,Object> objectDict = new HashMap<String,Object>();
@@ -118,6 +120,7 @@ public class OBSectionController extends OBViewController
         return objectDict;
     }
 
+
     static Map<String,Object> Config()
     {
         return MainActivity.mainActivity.Config();
@@ -134,25 +137,31 @@ public class OBSectionController extends OBViewController
     {
         int col = Color.BLACK;
         List<List<Object>> elements = new ArrayList<>();
-        for (Map<String,Object> stopdict : children)
+        if (children != null)
         {
-            Map<String,String> stopattrs = (Map<String,String>)stopdict.get("attrs");
-            String s = stopattrs.get("offset");
-            float stopf = OBUtils.floatOrPercentage(s);
-            s = stopattrs.get("stop-color");
-            if (s != null)
-                col = OBUtils.colorFromRGBString(s);
-            float alpha = 1;
-            s = stopattrs.get("stop-opacity");
-            if (s != null)
+            for (Map<String, Object> stopdict : children)
             {
-                alpha = Float.parseFloat(s);
-                col = Color.argb((int) (alpha * 255), Color.red(col), Color.green(col), Color.blue(col));
+                Map<String, String> stopattrs = (Map<String, String>) stopdict.get("attrs");
+                String s = stopattrs.get("offset");
+                float stopf = OBUtils.floatOrPercentage(s);
+                s = stopattrs.get("stop-color");
+                if (s != null)
+                {
+                    col = OBUtils.svgColorFromRGBString(s);
+//                    col = OBUtils.colorFromRGBString(s);
+                }
+                float alpha = 1;
+                s = stopattrs.get("stop-opacity");
+                if (s != null)
+                {
+                    alpha = Float.parseFloat(s);
+                    col = Color.argb((int) (alpha * 255), Color.red(col), Color.green(col), Color.blue(col));
+                }
+                List<Object> tmpl = new ArrayList<>();
+                tmpl.add(col);
+                tmpl.add(stopf);
+                elements.add(tmpl);
             }
-            List<Object> tmpl = new ArrayList<>();
-            tmpl.add(col);
-            tmpl.add(stopf);
-            elements.add(tmpl);
         }
         return elements;
     }
@@ -326,33 +335,39 @@ public class OBSectionController extends OBViewController
         {
             Map<String,Object> settings = new HashMap<String,Object>();
             settings.putAll(attrs);
-            settings.put("defs",defs);/*
-            im = [[ClassForSettings(settings)alloc]init];
-            String url = fillstr.substring(5,fillstr.length());
-            Object obj = defs.get(url);
-            if (obj)
+            settings.put("defs",defs);
+            //
+            Class c = OBPath.classForSettings(settings);
+            try
             {
-                if ([obj isKindOfClass:[OBPattern class]])
+                im = (OBPath) c.getConstructor(Path.class).newInstance(p);
+                im.sizeToBoundingBox();
+                //
+                im.setFillColor(0);
+                String url = fillstr.substring(5, fillstr.length() - 1);
+                Object obj = null;
+                if (defs != null)
                 {
-                    ((OBPatternPath*)im).pattern = obj;
-                    [((OBPatternPath*)im).patternLayer setNeedsDisplay];
+                    obj = defs.get(url);
                 }
-                else if (UGradient.class.isInstance(obj))
-            {
-                [((OBGradientPath*)im)takeValuesFrom:obj];
+                //
+                if (obj != null)
+                {
+                    if (obj instanceof URadialGradient)
+                    {
+                        ((OBRadialGradientPath) im).takeValuesFrom((UGradient) obj);
+                    }
+                    else if (obj instanceof UGradient)
+                    {
+                        ((OBGradientPath) im).takeValuesFrom((UGradient) obj);
+                    }
+                }
+                //
             }
-            else if ([obj isKindOfClass:[URadialGradient class]])
-                {
-                    [((OBRadialGradientPath*)im)takeValuesFrom:obj];
-                }
-                if (p != null)
-                    im.setPath(p);
-                else
-                {
-                    if ([im isKindOfClass:[OBGradientPath class]])
-                    ((OBGradientPath*)im).gradientLayer.mask = nil;
-                }
-            }*/
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
         }
         else
         {
@@ -478,6 +493,7 @@ public class OBSectionController extends OBViewController
     {
         boolean scalable = true;
         Map<String,Object> attrs = (Map<String,Object>)image.get("attrs");
+        //
         RectF r = new RectF(bounds());
         String imageID = (String)attrs.get("id");
         String par = (String)attrs.get("parent");
@@ -495,7 +511,12 @@ public class OBSectionController extends OBViewController
             }
         }
         String posstr = (String)attrs.get("pos");
-        PointF pos = OBUtils.pointFromString(posstr);
+        PointF pos = null;
+        if (posstr != null)
+        {
+            pos = OBUtils.pointFromString(posstr);
+        }
+        //
         OBControl im = null;
         String nodeType = (String)image.get("nodetype");
         String srcname = (String)attrs.get("src");
@@ -524,12 +545,14 @@ public class OBSectionController extends OBViewController
         {
             Map<String,Object> d = new HashMap<String, Object>();
             d.putAll(attrs);
+            d.putAll(image);
             return gradientFromAttributes(d);
         }
         else if (nodeType.equals("radialGradient"))
         {
             Map<String,Object> d = new HashMap<String, Object>();
             d.putAll(attrs);
+            d.putAll(image);
             return radialGradientFromAttributes(d);
         }
         else if (nodeType.equals("group"))
@@ -567,6 +590,10 @@ public class OBSectionController extends OBViewController
                     {
                         OBControl mask = objectWithMaxZpos(grp.members);
                         im.setMaskControl(mask);
+                        //
+                        grp.members.remove(mask);
+                        mask.parent = null;
+//                        grp.removeMember(mask); // omg
                     }
                 }
             }
@@ -830,7 +857,14 @@ public class OBSectionController extends OBViewController
     }
     public String currentEvent()
     {
-        return events.get(eventIndex);
+        try
+        {
+            return events.get(eventIndex);
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
     }
 
     public boolean performSel(String root,String suffix)
@@ -1582,7 +1616,7 @@ public class OBSectionController extends OBViewController
         return arr;
     }
 
-    void _replayAudio()
+    protected void _replayAudio()
     {
         try
         {

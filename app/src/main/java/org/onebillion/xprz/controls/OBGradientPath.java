@@ -90,7 +90,7 @@ public class OBGradientPath extends OBPath
         maskLayer.fillColour = Color.BLACK;
     }
 
-    void takeValuesFrom(UGradient ugradient)
+    public void takeValuesFrom(UGradient ugradient)
     {
         gradientLayer.startx = ugradient.x1;
         gradientLayer.starty = ugradient.y1;
@@ -99,7 +99,7 @@ public class OBGradientPath extends OBPath
         setStops(ugradient.stops);
     }
 
-    void takeValuesFrom(UGradient ugradient,List<Map<String,Object>>settingsStack)
+    public void takeValuesFrom(UGradient ugradient,List<Map<String,Object>>settingsStack)
     {
         Map<String,Object> settings = settingsStack.get(settingsStack.size()-1);
         RectF originalbounds = (RectF) settings.get("originalbounds");
