@@ -27,7 +27,6 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
     XPRZ_Presenter presenter;
     int cqType;
     boolean questionsAsked;
-    OBGroup anna;
     String pageName;
 
     public void start()
@@ -408,7 +407,9 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         eventsDict.putAll(evd);
         lockScreen();
         doVisual("cqmain");
-        anna = (OBGroup) objectDict.get("annahead");
+        presenter = XPRZ_Presenter.characterWithGroup((OBGroup)objectDict.get("annahead"));
+
+        //anna = (OBGroup) objectDict.get("annahead");
         if (cqType == 1 || cqType == 3)
         {
             loadEvent(pageName());
