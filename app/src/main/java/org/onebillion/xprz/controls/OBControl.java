@@ -1225,10 +1225,10 @@ public class OBControl
     public Bitmap drawn()
     {
         Bitmap bitmap = null;
-        float fw = bounds().right - bounds().left;
-        float fh = bounds().bottom - bounds().top;
-        int width = (int) Math.ceil((fw) * Math.abs(rasterScale));
-        int height = (int) Math.ceil((fh) * Math.abs(rasterScale));
+        float fw = (bounds().right - bounds().left) * Math.abs(rasterScale);
+        float fh = (bounds().bottom - bounds().top) * Math.abs(rasterScale);
+        int width = (int) Math.ceil(fw);
+        int height = (int) Math.ceil(fh);
         uvRight = fw / width;
         uvBottom = fh / height;
         if (width == 0 || height == 0)
