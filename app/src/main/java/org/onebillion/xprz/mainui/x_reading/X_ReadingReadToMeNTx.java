@@ -223,6 +223,13 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
     }
 
 
+    void faceForward()
+    {
+        lockScreen();
+        presenter.control.objectDict.get("faceside").hide();
+        presenter.control.objectDict.get("faceforward").show();
+        unlockScreen();
+    }
 
     public void showQuestionElements() throws Exception
     {
@@ -320,7 +327,7 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
             else if (cqType == 3)
             {
                 targets = Collections.emptyList();
-                //demoCqType3a();
+                demoCqType3a();
             }
             return true;
         }
@@ -506,6 +513,7 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         presenter = XPRZ_Presenter.characterWithGroup((OBGroup)objectDict.get("annahead"));
 
         //anna = (OBGroup) objectDict.get("annahead");
+        faceForward();
         if (cqType == 1 || cqType == 3)
         {
             loadEvent(pageName());
