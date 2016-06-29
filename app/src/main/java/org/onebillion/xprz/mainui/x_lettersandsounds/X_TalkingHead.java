@@ -32,6 +32,8 @@ import java.util.Map;
  */
 public class X_TalkingHead extends XPRZ_Generic_WordsEvent
 {
+    static final float FIRST_REMINDER_DELAY = 6.0f;
+    static final float SECOND_REMINDER_DELAY = 4.0f;
     List<List<OBPhoneme>> words;
     List<OBLabel> labels;
     List<OBPhoneme> answers;
@@ -39,9 +41,6 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
     Boolean breakdown_phoneme, breakdown_syllable;
     Boolean phase2, showTick;
     OBGroup button, avatar, window;
-
-    static final float FIRST_REMINDER_DELAY = 6.0f;
-    static final float SECOND_REMINDER_DELAY = 4.0f;
 
     public X_TalkingHead ()
     {

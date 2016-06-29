@@ -15,6 +15,47 @@ import java.util.*;
 
 public class OBPath extends OBControl
 {
+    protected static final String svgPathDelimChars = "\\s|,",
+            svgFloatChars = "[0-9.e]",
+            svgCommandChars = "[zZMmLlHhVvCcSsQqTt]";
+    float strokeStart, strokeEnd;
+    public OBPath()
+    {
+        super();
+        layer = new OBShapeLayer();
+        strokeStart = 0.0f;
+        strokeEnd = 1.0f;
+    }
+
+    public OBPath(Path p)
+    {
+        this();
+        ((OBShapeLayer) layer).path = p;
+        if (p != null)
+        {
+            RectF bb = new RectF();
+            p.computeBounds(bb, true);
+            frame.set(bb);
+            Matrix tr = new Matrix();
+            tr.setTranslate(-bb.left, -bb.top);
+            p.transform(tr);
+
+            layer.setBounds(0, 0, (frame.right - frame.left), (frame.bottom - frame.top));
+            PointF pt = OB_Maths.midPoint(frame);
+            setPosition(pt);
+        }
+    }
+
+    public OBPath(Path p, float w, float h, float posx, float posy)
+    {
+        layer = new OBShapeLayer(p);
+        layer.setBounds(0, 0, (w), (h));
+        RectF bb = new RectF(0, 0, w, h);
+        frame.set(bb);
+
+        setPosition(posx, posy);
+    }
+
     public static Class classForSettings(Map<String, Object> settings)
     {
         Object f = settings.get("fill");
@@ -39,11 +80,6 @@ public class OBPath extends OBControl
         }
         return OBPath.class;
     }
-
-    protected static final String svgPathDelimChars = "\\s|,",
-            svgFloatChars = "[0-9.e]",
-            svgCommandChars = "[zZMmLlHhVvCcSsQqTt]";
-    float strokeStart, strokeEnd;
 
     static boolean validFloatChar(char ch)
     {
@@ -797,43 +833,6 @@ public class OBPath extends OBControl
         Path p = new Path();
         p.addRect(x, y, x + w, y + h, Path.Direction.CCW);
         return pathWithPath(p, settingsStack);
-    }
-
-    public OBPath()
-    {
-        super();
-        layer = new OBShapeLayer();
-        strokeStart = 0.0f;
-        strokeEnd = 1.0f;
-    }
-
-    public OBPath(Path p)
-    {
-        this();
-        ((OBShapeLayer) layer).path = p;
-        if (p != null)
-        {
-            RectF bb = new RectF();
-            p.computeBounds(bb, true);
-            frame.set(bb);
-            Matrix tr = new Matrix();
-            tr.setTranslate(-bb.left, -bb.top);
-            p.transform(tr);
-
-            layer.setBounds(0, 0, (frame.right - frame.left), (frame.bottom - frame.top));
-            PointF pt = OB_Maths.midPoint(frame);
-            setPosition(pt);
-        }
-    }
-
-    public OBPath(Path p, float w, float h, float posx, float posy)
-    {
-        layer = new OBShapeLayer(p);
-        layer.setBounds(0, 0, (w), (h));
-        RectF bb = new RectF(0, 0, w, h);
-        frame.set(bb);
-
-        setPosition(posx, posy);
     }
 
     @Override

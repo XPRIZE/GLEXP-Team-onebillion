@@ -16,12 +16,58 @@ public class OBAudioManager {
     public static final String AM_MAIN_CHANNEL = "0",
             AM_BACKGROUND_CHANNEL = "1",
             AM_SFX_CHANNEL = "2";
-    public Map<String,OBAudioPlayer> players;
     public static OBAudioManager audioManager;
+    public Map<String,OBAudioPlayer> players;
     public OBAudioManager()
     {
         players = new HashMap<String, OBAudioPlayer>();
         audioManager = this;
+    }
+
+    public static Map<String,Object> loadAudioXML(InputStream xmlStream) throws Exception
+    {
+        Map<String,Object> audioDict = new HashMap<String, Object>();;
+        if (xmlStream != null)
+        {
+            OBXMLManager xmlManager = new OBXMLManager();
+            Object xmlobj = xmlManager.parseFile(xmlStream);
+            if (xmlobj != null)
+            {
+                List<OBXMLNode> children;
+                if (xmlobj instanceof OBXMLNode)
+                    children = ((OBXMLNode) xmlobj).childrenOfType("event");
+                else
+                {
+                    children = ((List<OBXMLNode>) xmlobj).get(0).childrenOfType(("event"));
+                }
+                for (OBXMLNode xmlevent : children)
+                {
+                    String ekey = xmlevent.attributeStringValue("id");
+                    Map<String, List<Object>> phrasegroups = new HashMap<String, List<Object>>();
+                    for (OBXMLNode xmlphrasegroup : xmlevent.childrenOfType("phrasegroup"))
+                    {
+                        String pgkey = xmlphrasegroup.attributeStringValue("id");
+                        List<Object> phrases = new ArrayList<Object>();
+                        for (OBXMLNode xmlphrase : xmlphrasegroup.childrenOfType("phrase"))
+                        {
+                            String phrase = xmlphrase.contents.trim();
+                            try
+                            {
+                                int n = Integer.parseInt(phrase);
+                                phrases.add(n);
+                            }
+                            catch (Exception e)
+                            {
+                                phrases.add(phrase);
+                            }
+                        }
+                        phrasegroups.put(pgkey, phrases);
+                    }
+                    audioDict.put(ekey, phrasegroups);
+                }
+            }
+        }
+        return audioDict;
     }
 
     public void stopPlayingOnChannel(String ch)
@@ -45,7 +91,6 @@ public class OBAudioManager {
         for (String k : players.keySet())
         stopPlayingOnChannel(k);
     }
-
 
     public AssetFileDescriptor getAudioPathFD(String fileName)
     {
@@ -113,6 +158,7 @@ public class OBAudioManager {
     {
         startPlaying(fileName,AM_MAIN_CHANNEL,atTime);
     }
+
     public void startPlaying(String fileName)
     {
         startPlaying(fileName,AM_MAIN_CHANNEL);
@@ -134,6 +180,7 @@ public class OBAudioManager {
     {
         waitAudioChannel(AM_MAIN_CHANNEL);
     }
+
     public void waitSFX()
     {
         waitAudioChannel(AM_SFX_CHANNEL);
@@ -176,51 +223,5 @@ public class OBAudioManager {
     public double duration()
     {
         return durationForChannel(AM_MAIN_CHANNEL);
-    }
-
-    public static Map<String,Object> loadAudioXML(InputStream xmlStream) throws Exception
-    {
-        Map<String,Object> audioDict = new HashMap<String, Object>();;
-        if (xmlStream != null)
-        {
-            OBXMLManager xmlManager = new OBXMLManager();
-            Object xmlobj = xmlManager.parseFile(xmlStream);
-            if (xmlobj != null)
-            {
-                List<OBXMLNode> children;
-                if (xmlobj instanceof OBXMLNode)
-                    children = ((OBXMLNode) xmlobj).childrenOfType("event");
-                else
-                {
-                    children = ((List<OBXMLNode>) xmlobj).get(0).childrenOfType(("event"));
-                }
-                for (OBXMLNode xmlevent : children)
-                {
-                    String ekey = xmlevent.attributeStringValue("id");
-                    Map<String, List<Object>> phrasegroups = new HashMap<String, List<Object>>();
-                    for (OBXMLNode xmlphrasegroup : xmlevent.childrenOfType("phrasegroup"))
-                    {
-                        String pgkey = xmlphrasegroup.attributeStringValue("id");
-                        List<Object> phrases = new ArrayList<Object>();
-                        for (OBXMLNode xmlphrase : xmlphrasegroup.childrenOfType("phrase"))
-                        {
-                            String phrase = xmlphrase.contents.trim();
-                            try
-                            {
-                                int n = Integer.parseInt(phrase);
-                                phrases.add(n);
-                            }
-                            catch (Exception e)
-                            {
-                                phrases.add(phrase);
-                            }
-                        }
-                        phrasegroups.put(pgkey, phrases);
-                    }
-                    audioDict.put(ekey, phrasegroups);
-                }
-            }
-        }
-        return audioDict;
     }
 }
