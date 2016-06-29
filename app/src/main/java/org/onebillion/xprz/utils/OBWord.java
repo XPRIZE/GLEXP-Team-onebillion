@@ -8,31 +8,47 @@ import java.util.List;
  */
 public class OBWord extends OBSyllable
 {
-    public String imageName;
-    List<OBSyllable> syllables;
 
+    List<OBSyllable> syllables;
+    String imageName;
     Boolean syllablesChecked, phonemesChecked;
 
 
     public OBWord (String text)
     {
-        super(text);
-        syllablesChecked = false;
-        phonemesChecked = false;
+        this(text, null, null, null, null, null);
+
     }
 
     public OBWord (String text, String soundID)
     {
-        this(text);
-        this.soundID = soundID;
+        this(text, soundID, null, null, null, null);
     }
 
 
     public OBWord (String text, String soundID, List<OBSyllable> syllables)
     {
-        this(text, soundID);
-        this.syllables = new ArrayList<OBSyllable>(syllables);
+        this(text, soundID, null, null, syllables, null);
     }
+
+
+    public OBWord (String text, String soundID, List<Object> timings, String audio, List<OBSyllable> syllables, String imageName)
+    {
+        super(text, soundID, timings, audio, null);
+        this.syllablesChecked = false;
+        this.phonemesChecked = false;
+        this.syllables = (syllables == null) ? new ArrayList<OBSyllable>() : new ArrayList<OBSyllable>(syllables);
+        this.imageName = (imageName == null) ? null : (imageName.equals("true")) ? soundID : imageName;
+    }
+
+
+
+    public String ImageFileName()
+    {
+        return this.imageName;
+    }
+
+
 
     public List<OBSyllable> syllables()
     {
@@ -65,6 +81,13 @@ public class OBWord extends OBSyllable
     {
         if (!phonemesChecked)
         {
+            if (phonemes.size() == 0)
+            {
+                for (OBSyllable syllable : syllables())
+                {
+                    phonemes.addAll(syllable.phonemes);
+                }
+            }
             String partPhoWordAudio = new String(soundID).replace("fc_", "fc_let_");
             List<List<Double>> phoTiming = OBUtils.ComponentTimingsForWord(partPhoWordAudio + ".etpa");
             //
@@ -77,6 +100,7 @@ public class OBWord extends OBSyllable
                     OBPhoneme phoCopy = phoneme.copy();
                     phoCopy.audio = partPhoWordAudio;
                     phoCopy.timings = (List<Object>) (Object) phoTiming.get(index);
+                    timingPhonemes.add(phoCopy);
                     index++;
                 }
                 phonemes = timingPhonemes;
@@ -95,7 +119,7 @@ public class OBWord extends OBSyllable
         {
             syllablesClone.add(syllable.copy());
         }
-        return new OBWord(text, soundID, syllablesClone);
+        return new OBWord(text, soundID, timings, audio, syllablesClone, imageName);
     }
 
 }

@@ -682,16 +682,12 @@ public class OBUtils
                 OBXMLManager xmlManager = new OBXMLManager();
                 List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
                 xmlNode = xl.get(0);
-                List<OBXMLNode> arr = xmlNode.childrenOfType("timing");
-                if (arr.size() > 0)
+                OBXMLNode timingsNode = xmlNode.childrenOfType("timings").get(0);
+                for (OBXMLNode xtiming : timingsNode.childrenOfType("timing"))
                 {
-                    OBXMLNode elem = arr.get(0);
-                    for (OBXMLNode xtiming : elem.childrenOfType("timing"))
-                    {
-                        double start = xtiming.attributeFloatValue("start");
-                        double end = xtiming.attributeFloatValue("end");
-                        timings.add(Arrays.asList(start, end));
-                    }
+                    double start = xtiming.attributeFloatValue("start");
+                    double end = xtiming.attributeFloatValue("end");
+                    timings.add(Arrays.asList(start, end));
                 }
             }
             catch (Exception e)
@@ -738,9 +734,8 @@ public class OBUtils
                 {
                     String audioID = phonemeNode.attributeStringValue("id");
                     String content = phonemeNode.contents;
-                    OBPhoneme pho = new OBPhoneme(content, audioID);
-                    String audioFile = phonemeNode.attributeStringValue("audio");
-                    if (audioFile != null) pho.audio = audioFile;
+//                    String hasAudio = phonemeNode.attributeStringValue("audio");
+                    OBPhoneme pho = new OBPhoneme(content, audioID, null, "true");
                     dictionary.put(audioID, pho);
                 }
                 //
@@ -773,9 +768,8 @@ public class OBUtils
                         phonemes.add(dictionary.get(phonemeID));
                     }
                     //
-                    OBSyllable syl = new OBSyllable(stringJoin(lets, ""), audioID, phonemes);
-                    String audioFile = syllableNode.attributeStringValue("audio");
-                    if (audioFile != null) syl.audio = audioFile;
+//                    String hasAudio = syllableNode.attributeStringValue("audio");
+                    OBSyllable syl = new OBSyllable(stringJoin(lets, ""), audioID, null, "true", phonemes);
                     dictionary.put(audioID, syl);
                 }
                 //
@@ -788,12 +782,11 @@ public class OBUtils
                         String content = wordNode.contents;
                         String sylls[] = content.split("/");
                         String fullText = stringJoin(sylls, "");
+                        List<OBSyllable> syllables = new ArrayList<OBSyllable>();
                         //
-                        OBWord wor = null;
                         String syllableAttr = wordNode.attributeStringValue("syllables");
                         if (syllableAttr != null)
                         {
-                            List<OBSyllable> syllables = new ArrayList<OBSyllable>();
                             for (String syllableID : syllableAttr.split("/"))
                             {
                                 OBSyllable syl = (OBSyllable) dictionary.get(syllableID);
@@ -802,12 +795,9 @@ public class OBUtils
                                     syllables.add(syl);
                                 }
                             }
-                            //
-                            wor = new OBWord(fullText, audioID, syllables);
                         }
                         else
                         {
-                            List<OBSyllable> syllables = new ArrayList<OBSyllable>();
                             for (String syllString : sylls)
                             {
                                 String syllID = String.format("isyl_%s", syllString);
@@ -821,14 +811,10 @@ public class OBUtils
                                     syllables.add(new OBSyllable(syllString));
                                 }
                             }
-                            wor = new OBWord(fullText, audioID, syllables);
                         }
-                        //
                         String image = wordNode.attributeStringValue("image");
-                        wor.imageName = (image != null) ? image : audioID;
-                        //
-                        String audioFile = wordNode.attributeStringValue("audio");
-                        if (audioFile != null) wor.audio = audioFile;
+                        String hasAudio = wordNode.attributeStringValue("audio");
+                        OBWord wor = new OBWord(fullText, audioID, null, hasAudio, syllables, image);
                         //
                         dictionary.put(audioID, wor);
                     }
