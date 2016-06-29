@@ -12,10 +12,13 @@ import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBEmitter;
 import org.onebillion.xprz.controls.OBEmitterCell;
 import org.onebillion.xprz.controls.OBPath;
+import org.onebillion.xprz.utils.OBAnim;
+import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OB_Maths;
 import org.onebillion.xprz.utils.UPath;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -46,6 +49,7 @@ public class X_Test extends XPRZ_SectionController
         bob.setBorderColor(Color.BLACK);
         bob.setBorderWidth(4);
         attachControl(bob);
+        objectDict.put("bob",bob);
         doVisual(currentEvent());
         setStatus(STATUS_AWAITING_CLICK);
     }
@@ -80,6 +84,14 @@ public class X_Test extends XPRZ_SectionController
         attachControl(emitter);
         emitter.run();
     }
+
+    void doOpac()
+    {
+        OBAnim an = OBAnim.opacityAnim(0.2f,objectDict.get("bob"));
+        OBAnim an2 = OBAnim.opacityAnim(0.2f,objectDict.get("obj"));
+        OBAnimationGroup gp = new OBAnimationGroup();
+        gp.runAnims(Arrays.asList(an,an2),2,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
+    }
     OBControl findTarget(PointF pt)
     {
         OBControl a =  finger(0,0,targets,pt);
@@ -104,7 +116,7 @@ public class X_Test extends XPRZ_SectionController
                         //checkTarget();
                         try
                         {
-                            displayAward();
+                            doOpac();
                         }
                         catch (Exception e)
                         {
