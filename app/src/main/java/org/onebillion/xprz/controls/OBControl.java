@@ -70,6 +70,7 @@ public class OBControl
     int shadowColour;
     float shadowOffsetX,shadowOffsetY,shadowOpacity,shadowRadius;
     boolean needsRetexture;
+    float uvRight=1,uvBottom=1;
 
     public OBControl()
     {
@@ -218,6 +219,8 @@ public class OBControl
         bounds.set(l, t, r, b);
         if (layer != null)
             layer.setBounds(bounds);
+        frameValid = false;
+        invalidate();
     }
     public RectF frame()
     {
@@ -286,6 +289,7 @@ public class OBControl
                     position.set(x, y);
                     frameValid = false;
                     invalidate();
+                    setNeedsRetexture();
                 }
             }.run();
          }
@@ -807,14 +811,21 @@ public class OBControl
     public PointF getWorldPosition()
     {
         OBControl parent = this.parent;
-        while (parent.parent != null)
+        if (parent == null)
         {
-            parent = parent.parent;
+            return this.position;
         }
-        OBSectionController controller = (OBSectionController) parent.controller;
-        if (controller != null)
+        else
         {
-            return controller.convertPointFromControl(this.position, this.parent);
+            while (parent.parent != null)
+            {
+                parent = parent.parent;
+            }
+            OBSectionController controller = (OBSectionController) parent.controller;
+            if (controller != null)
+            {
+                return controller.convertPointFromControl(this.position, this.parent);
+            }
         }
         return null;
     }
@@ -1124,6 +1135,7 @@ public class OBControl
             texturise(false, vc);
             needsRetexture = false;
         }
+        tr.setUVs(0,0,uvRight,uvBottom);
         tr.draw(renderer,0,0,bounds.right - bounds.left,bounds.bottom - bounds.top,texture.bitmap());
     }
     public void render(OBRenderer renderer,OBViewController vc,float[] modelViewMatrix)
@@ -1215,8 +1227,12 @@ public class OBControl
     public Bitmap drawn()
     {
         Bitmap bitmap = null;
-        int width = (int) Math.ceil((bounds().right - bounds().left) * Math.abs(rasterScale));
-        int height = (int) Math.ceil((bounds().bottom - bounds().top) * Math.abs(rasterScale));
+        float fw = (bounds().right - bounds().left) * Math.abs(rasterScale);
+        float fh = (bounds().bottom - bounds().top) * Math.abs(rasterScale);
+        int width = (int) Math.ceil(fw);
+        int height = (int) Math.ceil(fh);
+        uvRight = fw / width;
+        uvBottom = fh / height;
         if (width == 0 || height == 0)
             Log.i("error","drawn");
         try
@@ -1380,6 +1396,7 @@ public class OBControl
                 {
                     hidden = false;
                     invalidate();
+                    setNeedsRetexture();
                 }
             }.run();
         }
@@ -1420,6 +1437,8 @@ public class OBControl
     public void setMaskControl(OBControl m)
     {
         maskControl = m;
+        invalidate();
+        setNeedsRetexture();
     }
 
     public float rotation()

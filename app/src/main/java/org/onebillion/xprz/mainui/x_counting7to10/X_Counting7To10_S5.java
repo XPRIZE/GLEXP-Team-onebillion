@@ -9,6 +9,7 @@ import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.SystemClock;
@@ -29,7 +30,9 @@ import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBRunnableSyncUI;
 import org.onebillion.xprz.utils.OBUtils;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 
 /**
  * Created by pedroloureiro on 23/06/16.
@@ -37,6 +40,7 @@ import java.util.EnumSet;
 public class X_Counting7To10_S5 extends XPRZ_Generic_Event
 {
     OBPath drawingSurface;
+    List<PointF> points;
     //
     int number;
     OBControl correct_object;
@@ -74,7 +78,20 @@ public class X_Counting7To10_S5 extends XPRZ_Generic_Event
             title.hide();
         }
         //
+        for (OBControl control : filterControls("obj.*"))
+        {
+            OBGroup group = (OBGroup) control;
+            OBPath rectangle = (OBPath) group.filterMembers("Rectangle15.*").get(0);
+            float factor = - 0.05f;
+            RectF rect = new RectF(rectangle.frame());
+            rect.inset(factor * rectangle.width(), factor * rectangle.height());
+            rectangle.sizeToBox(rect);
+            group.sizeToMember(rectangle);
+            rectangle.setNeedsRetexture();
+        }
+        //
         XPRZ_Generic.colourObjectsWithScheme(this);
+        points = new ArrayList<PointF>();
         //
         hideControls("draw");
         if (drawingSurface != null) detachControl(drawingSurface);
@@ -84,18 +101,27 @@ public class X_Counting7To10_S5 extends XPRZ_Generic_Event
     public Boolean action_intersectsCorrectly ()
     {
         if (drawingSurface == null) return false;
+        RectF frame = correct_object.frame();
+        //
+        Boolean correctIntersection = false;
+        for (PointF pt : points)
+        {
+            correctIntersection = correctIntersection || frame.contains(pt.x, pt.y);
+        }
         //
         for (OBControl control : filterControls("obj.*"))
         {
             Boolean controlIntersects = drawingSurface.intersectsWith(control);
             if (correct_object.equals(control))
             {
-                if (!controlIntersects) return false;
+                if (!controlIntersects && !correctIntersection) return false;
             }
             else if (controlIntersects) return false;
         }
-        return true;
+        return correctIntersection;
     }
+
+
 
     // DEMOS
 
@@ -230,6 +256,11 @@ public class X_Counting7To10_S5 extends XPRZ_Generic_Event
         PointF cpt = convertPointToControl(pt, drawingSurface);
         drawingSurface.shapeLayer().path.reset();
         drawingSurface.shapeLayer().path.moveTo(cpt.x, cpt.y);
+        drawingSurface.shapeLayer().path.lineTo(cpt.x + 1, cpt.y);
+        //
+        points.clear();
+        points.add(new PointF(cpt.x, cpt.y));
+        //
         drawingSurface.show();
         attachControl(drawingSurface);
         unlockScreen();
@@ -272,6 +303,8 @@ public class X_Counting7To10_S5 extends XPRZ_Generic_Event
                 PointF cpt = convertPointToControl(pt, drawingSurface);
                 drawingSurface.addLineToPoint(cpt.x, cpt.y);
                 unlockScreen();
+                //
+                points.add(new PointF(cpt.x, cpt.y));
             }
         }
     }

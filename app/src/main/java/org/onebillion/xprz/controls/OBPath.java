@@ -15,7 +15,7 @@ import java.util.*;
 
 public class OBPath extends OBControl
 {
-    static Class classForSettings(Map<String, Object> settings)
+    public static Class classForSettings(Map<String, Object> settings)
     {
         Object f = settings.get("fill");
         if (f != null && f instanceof String)
@@ -849,7 +849,8 @@ public class OBPath extends OBControl
     {
         invalidate();
         ((OBShapeLayer) layer).path = p;
-        needsRetexture = true;
+        setNeedsRetexture();
+//        needsRetexture = true;
         invalidate();
     }
 

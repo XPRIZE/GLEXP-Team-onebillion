@@ -1,14 +1,21 @@
 package org.onebillion.xprz.mainui.x_reading;
 
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.AsyncTask;
 
 import org.onebillion.xprz.controls.OBControl;
+import org.onebillion.xprz.controls.OBEmitter;
+import org.onebillion.xprz.controls.OBEmitterCell;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.controls.XPRZ_Presenter;
 import org.onebillion.xprz.mainui.MainActivity;
+import org.onebillion.xprz.utils.OBAnim;
+import org.onebillion.xprz.utils.OBAnimBlock;
+import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBReadingPara;
 import org.onebillion.xprz.utils.OBReadingWord;
 import org.onebillion.xprz.utils.OBUtils;
@@ -27,8 +34,8 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
     XPRZ_Presenter presenter;
     int cqType;
     boolean questionsAsked;
-    OBGroup anna;
     String pageName;
+    OBEmitter starEmitter;
 
     public void start()
     {
@@ -131,8 +138,8 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         waitForSecs(0.8);
         if (status() != STATUS_FINISHING && !_aborting)
         {
-            //if (!considerComprehensionQuestions())
-            bringUpNextButton();
+            if (!considerComprehensionQuestions())
+                bringUpNextButton();
         }
     }
         catch (Exception exception)
@@ -337,12 +344,15 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
             token = takeSequenceLockInterrupt(true);
             if (token == sequenceToken)
             {
-/*                [control:anna speak:audioScenespageName.()"PROMPT".()];
+                List<Object>audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("PROMPT");
+                audl = OBUtils.insertAudioInterval(audl,300);
+                presenter.speak(audl,this);
                 waitForSecs(0.4f);
                 OBPath answer1 = (OBPath) objectDict.get("answer1");
                 answer1.show();
                 deployFlashAnim(answer1);
-                [control:anna speak:audioScenespageName.()"ANSWER".()];
+                audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("ANSWER");
+                presenter.speak(audl,this);
                 checkSequenceToken(token);
                 waitForSecs(0.2f);
                 killAnimations();
@@ -352,21 +362,28 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
                 OBPath answer2 = (OBPath) objectDict.get("answer2");
                 answer2.show();
                 deployFlashAnim(answer2);
-                control(anna speak:audioScenespageName.()"ANSWER2".()];
+                audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("ANSWER2");
+                presenter.speak(audl,this);
                 checkSequenceToken(token);
                 waitForSecs(0.2f);
                 checkSequenceToken(token);
                 killAnimations();
                 waitForSecs(0.3f);
                 checkSequenceToken(token);
-                [control:anna speak:audioScenespageName.()"PROMPT2".()];
+                audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("PROMPT2");
+                presenter.speak(audl,this);
                 checkSequenceToken(token);
                 waitForSecs(0.3f);
                 checkSequenceToken(token);
                 if (firstTime)
-                [reprompt:statusTime audio:nil after:5 action:^{
+                    reprompt(statusTime, null, 5, new OBUtils.RunLambda() {
+                        @Override
+                        public void run() throws Exception
+                        {
+                            demoCqType2b(true);
+                        }
+                    });
                 demoCqType2b(true);
-            }];*/
             }
         }
         catch (Exception exception)
@@ -376,6 +393,84 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         sequenceLock.unlock();
     }
 
+    public void demoCqType3a() throws Exception {
+        setStatus(STATUS_DOING_DEMO);
+        waitForSecs(0.4f);
+        showQuestionElements();
+        waitForSecs(0.4f);
+        demoCqType3b(true);
+    }
+
+    public void demoCqType3b(boolean firstTime)
+    {
+        long token = -1;
+        try
+        {
+            token = takeSequenceLockInterrupt(true);
+            if (token == sequenceToken)
+            {
+                checkSequenceToken(token);
+                for (int i = 1;i < 10;i++)
+                {
+                    String nm = StrAndNo("PROMPT", i);
+                    List<Object>audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get(nm);
+
+                    if (audl == null)
+                        break;
+                    presenter.speak(audl,this);
+                    checkSequenceToken(token);
+                    waitForSecs(1.2f);
+                }
+            }
+        }
+        catch (Exception exception)
+        {
+        }
+        killAnimations();
+        sequenceLock.unlock();
+        try
+        {
+            finishQuestion();
+        }
+        catch (Exception e)
+        {
+
+        }
+    }
+
+    public void finishQuestion() throws Exception {
+        waitForSecs(0.6f);
+        if (cqType == 1)
+        {
+        }
+        hideQuestionElements();
+        waitForSecs(0.8f);
+        setStatus(STATUS_IDLE);
+        bringUpNextButton();
+    }
+
+    public void deployFlashAnim(final OBPath c)
+    {
+        OBAnim blockAnim = new OBAnimBlock()
+        {
+            @Override
+            public void runAnimBlock(float frac)
+            {
+                if (frac < 0.5)
+                {
+                    setAnswerButtonSelected(c);
+                }
+                else
+                {
+                    setAnswerButtonActive(c);
+                }
+            }
+        };
+        OBAnimationGroup ag = new OBAnimationGroup();
+        registerAnimationGroup(ag,"flash");
+        ag.applyAnimations(Collections.singletonList(blockAnim),0.25f,true,OBAnim.ANIM_LINEAR,this);
+        setAnswerButtonActive(c);
+    }
     void setAnswerButtonActive(OBPath c)
     {
         lockScreen();
@@ -408,7 +503,9 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         eventsDict.putAll(evd);
         lockScreen();
         doVisual("cqmain");
-        anna = (OBGroup) objectDict.get("annahead");
+        presenter = XPRZ_Presenter.characterWithGroup((OBGroup)objectDict.get("annahead"));
+
+        //anna = (OBGroup) objectDict.get("annahead");
         if (cqType == 1 || cqType == 3)
         {
             loadEvent(pageName());
@@ -452,22 +549,25 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         {
             token = takeSequenceLockInterrupt(true);
             if (token == sequenceToken)
-            {/*
+            {
                 waitForSecs(0.4f);
                 showQuestionElements();
                 waitForSecs(0.4f);
                 checkSequenceToken(token);
-
-                List<Object> aud = OBUtils.insertAudioInterval(audioScenes[pageName].get("PROMPT")),500);
-                [control:anna speak:aud];
+                List<Object>audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("PROMPT");
+                audl = OBUtils.insertAudioInterval(audl,500);
+                presenter.speak(audl,this);
                 checkSequenceToken(token);
                 setStatus(STATUS_WAITING_FOR_ANSWER);
                 waitForSecs(0.4f);
                 checkSequenceToken(token);
                 if (firstTime)
-                [reprompt:statusTime audio:nil after:5 action:^{
-                demoCqType1b(true);
-            }];*/
+                    reprompt(statusTime, null, 5, new OBUtils.RunLambda() {
+                        @Override
+                        public void run() throws Exception {
+                            demoCqType1b(true);
+                        }
+                    });
             }
         }
         catch (Exception exception)
@@ -476,4 +576,60 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         sequenceLock.unlock();
     }
 
+    public OBEmitterCell starEmitterCell(int i, Bitmap im, float rs,float gs,float bs)
+    {
+        OBEmitterCell ec = new OBEmitterCell();
+        ec.birthRate = 10;
+        ec.lifeTime = 2;
+        ec.lifeTimeRange = 0.5f;
+        ec.red = 1.0f;
+        ec.green = 216.0f/255.0f;
+        ec.blue = 0.0f;
+        ec.contents = im;
+        ec.name = String.format("star%d",i);
+        ec.velocity = 0;
+        ec.velocityRange = 2;
+        ec.emissionRange = (float)(Math.PI * 2.0);
+        ec.blueSpeed = bs;
+        ec.greenSpeed = gs;
+        ec.redSpeed = rs;
+        ec.alphaSpeed = -0.2f;
+        ec.spin = 0.0f;
+        ec.spinRange = 3.0f;
+        ec.scale = 1.0f ;
+        ec.scaleRange = -(ec.scale / 2.0f);
+        ec.scaleSpeed = ec.scaleRange / 2.0f;
+        return ec;
+    }
+
+    public void stopEmissions() throws Exception {
+        OBEmitterCell cell = starEmitter.cells.get(0);
+        cell.birthRate = 0;
+        cell.lifeTime = 10;
+        waitForSecs(2f);
+    }
+
+    public void doEmitter()
+    {
+        OBPath smallStar = StarWithScale(applyGraphicScale(8), false);
+        smallStar.setFillColor(Color.WHITE);
+        smallStar.enCache();
+        OBPath shape = (OBPath) objectDict.get("shape");
+        OBEmitterCell cell = starEmitterCell(0, smallStar.cache, 0, 0, 0);
+
+        starEmitter = new OBEmitter();
+        starEmitter.setFrame(0, 0, bounds().width(), bounds().height());
+        starEmitter.cells.add(cell);
+
+        starEmitter.setZPosition(100);
+        objectDict.put("starEmitter", starEmitter);
+        attachControl(starEmitter);
+        starEmitter.run();
+        OBUtils.runOnOtherThreadDelayed(2, new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception {
+                stopEmissions();
+            }
+        });
+    }
 }

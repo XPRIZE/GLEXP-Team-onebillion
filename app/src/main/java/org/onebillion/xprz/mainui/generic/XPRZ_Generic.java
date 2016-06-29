@@ -2,17 +2,23 @@ package org.onebillion.xprz.mainui.generic;
 
 import android.graphics.PointF;
 import android.os.SystemClock;
+import android.telephony.SmsMessage;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBPath;
+import org.onebillion.xprz.controls.OBShapeLayer;
 import org.onebillion.xprz.mainui.MainActivity;
+import org.onebillion.xprz.mainui.OBSectionController;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OBXMLManager;
 import org.onebillion.xprz.utils.OBXMLNode;
+import org.onebillion.xprz.utils.ULine;
+import org.onebillion.xprz.utils.UPath;
+import org.onebillion.xprz.utils.USubPath;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,7 +62,7 @@ public class XPRZ_Generic
 
     public static void pointer_moveToObject(OBControl control, float angle, float secs, EnumSet<Anchor> anchorFlags, Boolean wait, XPRZ_SectionController sc)
     {
-        PointF position = copyPoint(control.position());
+        PointF position = copyPoint(control.getWorldPosition());
         //
         if (anchorFlags.contains(Anchor.ANCHOR_LEFT)) position.x -= control.width() / 2;
         if (anchorFlags.contains(Anchor.ANCHOR_RIGHT)) position.x += control.width() / 2;
@@ -72,6 +78,14 @@ public class XPRZ_Generic
         OBAnim anim = OBAnim.moveAnim(destination, control);
         OBAnimationGroup.runAnims(Arrays.asList(anim), secs, false, OBAnim.ANIM_EASE_IN_EASE_OUT, sc);
         sc.movePointerToPoint(destination, rotation, secs, true);
+    }
+
+
+
+    public static void pointer_simulateClick(XPRZ_SectionController sc)
+    {
+        sc.movePointerForwards(sc.applyGraphicScale(10.0f), 0.1f);
+        sc.movePointerForwards(-sc.applyGraphicScale(10.0f), 0.1f);
     }
 
 
@@ -243,4 +257,60 @@ public class XPRZ_Generic
         return (SystemClock.uptimeMillis() / (double) 1000);
     }
 
+
+    public static PointF firstPoint(OBPath path, XPRZ_SectionController sc)
+    {
+        String name = (String) path.attributes().get("id");
+        if (name == null) name = (String) path.settings.get("name");
+        if (name == null) return null;
+        UPath deconPath = sc.deconstructedPath(sc.currentEvent(), name);
+        USubPath subPath = deconPath.subPaths.get(0);
+        ULine line = subPath.elements.get(0);
+        return line.pt0;
+    }
+
+    public static PointF lastPoint (OBPath path, XPRZ_SectionController sc)
+    {
+        String name = (String) path.attributes().get("id");
+        if (name == null) name = (String) path.settings.get("name");
+        if (name == null) return null;
+        UPath deconPath = sc.deconstructedPath(sc.currentEvent(), name);
+        USubPath subPath = deconPath.subPaths.get(deconPath.subPaths.size() - 1);
+        ULine line = subPath.elements.get(subPath.elements.size() - 1);
+        return line.pt1;
+    }
+
+
+    public static void setFirstPoint(OBPath path, PointF pt, XPRZ_SectionController sc)
+    {
+        String name = (String) path.attributes().get("id");
+        if (name == null) name = (String) path.settings.get("name");
+        if (name == null) return;
+        UPath deconPath = sc.deconstructedPath(sc.currentEvent(), name);
+        USubPath subPath = deconPath.subPaths.get(0);
+        ULine line = subPath.elements.get(0);
+        line.pt0 = pt;
+        path.setPath(deconPath.bezierPath());
+    }
+
+
+
+    public static void setLastPoint(OBPath path, PointF pt, XPRZ_SectionController sc)
+    {
+        String name = (String) path.attributes().get("id");
+        if (name == null) name = (String) path.settings.get("name");
+        if (name == null) return;
+        UPath deconPath = sc.deconstructedPath(sc.currentEvent(), name);
+        USubPath subPath = deconPath.subPaths.get(deconPath.subPaths.size() - 1);
+        ULine line = subPath.elements.get(subPath.elements.size() - 1);
+        line.pt1 = pt;
+        path.setPath(deconPath.bezierPath());
+    }
+
+
+    public static int randomInt(int min, int max)
+    {
+        double dval = Math.random();
+        return (int) Math.round(min + (max - min) * dval);
+    }
 }

@@ -189,7 +189,7 @@ public class OBAudioManager {
             {
                 List<OBXMLNode> children;
                 if (xmlobj instanceof OBXMLNode)
-                    children = ((OBXMLNode)xmlobj).childrenOfType("event");
+                    children = ((OBXMLNode) xmlobj).childrenOfType("event");
                 else
                 {
                     children = ((List<OBXMLNode>) xmlobj).get(0).childrenOfType(("event"));
@@ -197,7 +197,7 @@ public class OBAudioManager {
                 for (OBXMLNode xmlevent : children)
                 {
                     String ekey = xmlevent.attributeStringValue("id");
-                    Map<String,List<Object>> phrasegroups = new HashMap<String,List<Object>>();
+                    Map<String, List<Object>> phrasegroups = new HashMap<String, List<Object>>();
                     for (OBXMLNode xmlphrasegroup : xmlevent.childrenOfType("phrasegroup"))
                     {
                         String pgkey = xmlphrasegroup.attributeStringValue("id");
@@ -210,14 +210,14 @@ public class OBAudioManager {
                                 int n = Integer.parseInt(phrase);
                                 phrases.add(n);
                             }
-                            catch(Exception e)
+                            catch (Exception e)
                             {
                                 phrases.add(phrase);
                             }
                         }
-                        phrasegroups.put(pgkey,phrases);
+                        phrasegroups.put(pgkey, phrases);
                     }
-                    audioDict.put(ekey,phrasegroups);
+                    audioDict.put(ekey, phrasegroups);
                 }
             }
         }
