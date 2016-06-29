@@ -1135,7 +1135,7 @@ public class OBControl
             texturise(false, vc);
             needsRetexture = false;
         }
-        tr.setUVs(0,0,uvRight,uvBottom);
+        //tr.setUVs(0,0,uvRight,uvBottom);
         tr.draw(renderer,0,0,bounds.right - bounds.left,bounds.bottom - bounds.top,texture.bitmap());
     }
     public void render(OBRenderer renderer,OBViewController vc,float[] modelViewMatrix)
@@ -1231,8 +1231,8 @@ public class OBControl
         float fh = (bounds().bottom - bounds().top) * Math.abs(rasterScale);
         int width = (int) Math.ceil(fw);
         int height = (int) Math.ceil(fh);
-        uvRight = fw / width;
-        uvBottom = fh / height;
+        //uvRight = fw / width;
+        //uvBottom = fh / height;
         if (width == 0 || height == 0)
             Log.i("error","drawn");
         try
