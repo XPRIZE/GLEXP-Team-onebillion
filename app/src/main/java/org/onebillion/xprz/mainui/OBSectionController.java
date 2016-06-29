@@ -18,6 +18,7 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.util.Log;
 
 import org.onebillion.xprz.controls.*;
 import org.onebillion.xprz.glstuff.*;
@@ -1084,15 +1085,15 @@ public class OBSectionController extends OBViewController
         return carr;
     }
 
-    void populateSortedAttachedControls()
+    public void populateSortedAttachedControls()
     {
         if (!sortedAttachedControlsValid)
         {
-            sortedAttachedControls.clear();
-            sortedAttachedControls.addAll(attachedControls);
-            for (int i = 0;i < sortedAttachedControls.size();i++)
-                sortedAttachedControls.get(i).tempSortInt = i;
-            Collections.sort(sortedAttachedControls, new Comparator<OBControl>()
+            List<OBControl> tempList = new ArrayList<>(attachedControls);
+
+            for (int i = 0;i < tempList.size();i++)
+                tempList.get(i).tempSortInt = i;
+            Collections.sort(tempList, new Comparator<OBControl>()
             {
                 @Override
                 public int compare(OBControl lhs, OBControl rhs)
@@ -1108,7 +1109,13 @@ public class OBSectionController extends OBViewController
                     return 0;
                 }
             });
-            sortedAttachedControlsValid = true;
+
+            synchronized(this)
+            {
+                sortedAttachedControls = tempList;
+                sortedAttachedControlsValid = true;
+            }
+
         }
     }
     public void drawControls(Canvas canvas)

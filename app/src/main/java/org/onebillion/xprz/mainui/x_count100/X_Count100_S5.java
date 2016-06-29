@@ -3,6 +3,7 @@ package org.onebillion.xprz.mainui.x_count100;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.util.Log;
 import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
@@ -27,13 +28,14 @@ public class X_Count100_S5 extends XPRZ_SectionController
 
     int hilitecolour, numcolour;
     int correctNum, currentBoxIndex;
-    List<OBControl> targetBoxes, targetNums, targetMasks;
+    List<OBControl> targetBoxes, targetNums, targetMasks, prevTargetMasks;
     OBControl rowBorder;
     boolean maskMode;
 
 
     public void prepare()
     {
+        setStatus(STATUS_BUSY);
         super.prepare();
         loadFingers();
         loadEvent("master5");
@@ -46,7 +48,7 @@ public class X_Count100_S5 extends XPRZ_SectionController
 
         X_Count100_Additions.drawGrid(10,objectDict.get("workrect"),OBUtils.colorFromRGBString(eventAttributes.get("linecolour")),numcolour,false,this);
 
-       // hideControls("num_.*");
+        //hideControls("num_.*");
        // hideControls("box_.*");
 /*
         RectF boxf = new RectF(0,0,401,301);
@@ -74,7 +76,7 @@ public class X_Count100_S5 extends XPRZ_SectionController
         attachControl(rowBorder);
 
         maskMode = false;
-        eventIndex =3;
+        eventIndex =7;
         setSceneXX(currentEvent());
     }
 
@@ -85,7 +87,8 @@ public class X_Count100_S5 extends XPRZ_SectionController
             @Override
             public void run() throws Exception
             {
-                demo5e();
+
+                demo5k();
             }
         });
 
@@ -165,9 +168,9 @@ public class X_Count100_S5 extends XPRZ_SectionController
 
         doMasks();
         waitForSecs(0.3f);
-        playAudioScene(currentEvent(),"DEMO",0);
+        playAudioScene("DEMO",0,true);
         waitForSecs(0.3f);
-        playAudioScene(currentEvent(),"DEMO",1);
+        playAudioScene("DEMO",1,true);
         waitForSecs(0.3f);
         loadPointer(POINTER_MIDDLE);
 
@@ -274,8 +277,7 @@ public class X_Count100_S5 extends XPRZ_SectionController
         super.setSceneXX(scene);
         correctNum = Integer.valueOf(eventAttributes.get("correct"));
 
-
-        if(eventAttributes.get("single") == null)
+        if(eventAttributes.get("single") == null && eventAttributes.get("mask") == null)
         {
             targetBoxes.clear();
             targetNums.clear();
@@ -290,69 +292,85 @@ public class X_Count100_S5 extends XPRZ_SectionController
             rowBorder.setFrame(rect);
             currentBoxIndex = 0;
         }
-    }
 
-    public void doMasks() throws Exception
-    {
         if(eventAttributes.get("mask") != null)
         {
-            lockScreen();
             maskMode = true;
-            for(OBControl mask : targetMasks)
-                detachControl(mask);
+
+            prevTargetMasks = new ArrayList<>(targetMasks);
 
             targetMasks.clear();
 
             String[] maskNums = eventAttributes.get("mask").split(",");
             int col = OBUtils.colorFromRGBString(eventAttributes.get("maskcol"));
 
-            if(eventAttributes.get("single") == null)
+            if (eventAttributes.get("single") == null)
             {
 
                 RectF maskRect = new RectF(rowBorder.frame());
-                maskRect.inset(rowBorder.borderWidth/2, rowBorder.borderWidth/2);
-                for(String maskNum : maskNums)
+                maskRect.inset(rowBorder.borderWidth / 2, rowBorder.borderWidth / 2);
+                for (String maskNum : maskNums)
                 {
                     OBControl newMask = new OBControl();
                     int maskNumInt = Integer.valueOf(maskNum);
-                    if(maskNumInt == correctNum)
+                    if (maskNumInt == correctNum)
                         newMask.setProperty("correct", true);
 
                     newMask.setFrame(maskRect);
                     newMask.setBackgroundColor(col);
 
-                    OBControl alignBox = objectDict.get(String.format("box_%d", 1+ (maskNumInt-1) *10));
-                    newMask.setLeft(alignBox.left() + alignBox.borderWidth/2);
-                    newMask.setTop(alignBox.top() + alignBox.borderWidth/2);
+                    OBControl alignBox = objectDict.get(String.format("box_%d", 1 + (maskNumInt - 1) * 10));
+
+                    newMask.setLeft(alignBox.left() + alignBox.borderWidth / 2);
+                    newMask.setTop(alignBox.top() + alignBox.borderWidth / 2);
                     targetMasks.add(newMask);
                     newMask.setZPosition(10);
-                    newMask.show();
+                    newMask.hide();
                     attachControl(newMask);
                 }
-            }
-            else
+            } else
             {
-                for(String maskNum : maskNums)
+                for (String maskNum : maskNums)
                 {
                     OBControl newMask = new OBControl();
                     int maskNumInt = Integer.valueOf(maskNum);
-                    if(maskNumInt == correctNum)
+                    if (maskNumInt == correctNum)
                     {
-                        OBLabel label = (OBLabel)objectDict.get(String.format("num_%",maskNum));
-                        label.setColour(Color.RED);
                         newMask.setProperty("correct", true);
                     }
 
-                    OBControl alingBox = objectDict.get(String.format("box_%", maskNum));
+                    OBControl alingBox = objectDict.get(String.format("box_%d", maskNumInt));
                     RectF maskRect = new RectF(alingBox.frame());
-                    maskRect.inset(alingBox.borderWidth, alingBox.borderWidth);
+                    maskRect.inset(alingBox.borderWidth / 2.0f, alingBox.borderWidth / 2.0f);
                     newMask.setBackgroundColor(col);
                     newMask.setZPosition(10);
+                    newMask.setFrame(maskRect);
                     targetMasks.add(newMask);
+                    newMask.hide();
                     attachControl(newMask);
                 }
 
             }
+        }
+        populateSortedAttachedControls();
+
+    }
+
+    public void doMasks() throws Exception
+    {
+        if(maskMode)
+        {
+            lockScreen();
+
+            for (OBControl mask : prevTargetMasks)
+                detachControl(mask);
+
+            for(OBControl con : targetMasks)
+                con.show();
+
+            OBLabel label = (OBLabel) objectDict.get(String.format("num_%d",correctNum));
+            label.setColour(Color.RED);
+
 
             unlockScreen();
 
@@ -502,87 +520,102 @@ public class X_Count100_S5 extends XPRZ_SectionController
     @Override
     public void touchDownAtPoint(final PointF pt, View v)
     {
-       OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-       {
-           @Override
-           public void run() throws Exception
-           {
 
-               if(status() == STATUS_WAITING_FOR_DRAG)
-               {
-                   setStatus(STATUS_BUSY);
-                   OBControl obj = findRowTarget(pt,currentBoxIndex);
-                   if (obj != null)
-                   {
-                       if(checkBoxPt(pt))
-                       {
-                           rowTick();
-                           completeRow();
-                       }
-                       else
-                       {
-                           setStatus(STATUS_DRAGGING);
-                       }
 
-                   }
-                   else
-                   {
-                       gotItWrongWithSfx();
-                       long interval =  setStatus(STATUS_WAITING_FOR_DRAG);
-                       waitSFX();
-                       if(currentBoxIndex == 0)
-                           playAudioQueuedScene("INCORRECT",false);
-                       else
-                           setSecondAudio(interval);
-                   }
+        if(status() == STATUS_WAITING_FOR_DRAG)
+        {
+            setStatus(STATUS_BUSY);
+            final OBControl obj = findRowTarget(pt,currentBoxIndex);
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
 
-               }
-               else
-               if (status() == STATUS_AWAITING_CLICK)
-               {
-                   OBControl obj = findMaskTarget(pt);
-                   if (obj != null)
-                   {
-                       setStatus(STATUS_BUSY);
-                       int normalColour = obj.backgroundColor();
-                       obj.setBackgroundColor(OBUtils.highlightedColour(normalColour));
+                @Override
+                public void run() throws Exception
+                {
+                    if (obj != null)
+                    {
+                        if(checkBoxPt(pt))
+                        {
+                            rowTick();
+                            completeRow();
+                        }
+                        else
+                        {
+                            setStatus(STATUS_DRAGGING);
+                        }
 
-                       obj.setOpacity(0.5f);
+                    }
+                    else
+                    {
+                        gotItWrongWithSfx();
+                        long interval =  setStatus(STATUS_WAITING_FOR_DRAG);
+                        waitSFX();
+                        if(currentBoxIndex == 0)
+                            playAudioQueuedScene("INCORRECT",false);
+                        else
+                            setSecondAudio(interval);
+                    }
+                }
+            });
 
-                       if(obj.propertyValue("correct") != null &&
-                               (boolean)obj.propertyValue("correct"))
-                       {
-                           if(eventAttributes.get("single") == null)
-                           {
-                               rowTick();
-                               peelMask(obj, 0.4f);
-                               waitForSecs(0.3f);
-                               completeRow();
-                           }
-                           else
-                           {
-                               gotItRightBigTick(true);
-                               peelMask(obj, 0.2f);
-                               if(!performSel("demoFin",currentEvent()))
-                               {
-                                   completeSingleNum();
-                               }
-                               nextScene();
-                           }
-                       }
-                       else
-                       {
-                           gotItWrongWithSfx();
-                           waitSFX();
-                           obj.setBackgroundColor(normalColour);
-                           setStatus(STATUS_AWAITING_CLICK);
-                           playAudioQueuedScene("INCORRECT",false);
-                       }
-                   }
 
-               }
-           }
-       });
+        }
+        else
+        if (status() == STATUS_AWAITING_CLICK)
+        {
+            final OBControl obj = findMaskTarget(pt);
+            if (obj != null)
+            {
+                setStatus(STATUS_BUSY);
+
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+
+                    @Override
+                    public void run() throws Exception
+                    {
+                        int normalColour = obj.backgroundColor();
+                        obj.setBackgroundColor(OBUtils.highlightedColour(normalColour));
+
+
+                        if(obj.propertyValue("correct") != null &&
+                                (boolean)obj.propertyValue("correct"))
+                        {
+                            if(eventAttributes.get("single") == null)
+                            {
+                                rowTick();
+                                peelMask(obj, 0.4f);
+                                waitForSecs(0.3f);
+                                completeRow();
+                            }
+                            else
+                            {
+                                gotItRightBigTick(true);
+                                peelMask(obj, 0.2f);
+                                if(!performSel("demoFin",currentEvent()))
+                                {
+                                    completeSingleNum();
+                                }
+                                nextScene();
+                            }
+                        }
+                        else
+                        {
+                            gotItWrongWithSfx();
+                            waitSFX();
+                            obj.setBackgroundColor(normalColour);
+                            setStatus(STATUS_AWAITING_CLICK);
+                            playAudioQueuedScene("INCORRECT",false);
+                        }
+                    }
+                });
+
+
+            }
+
+        }
+
+
 
     }
 

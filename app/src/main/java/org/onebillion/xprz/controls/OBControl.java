@@ -1165,6 +1165,10 @@ public class OBControl
                 ColorShaderProgram colourShader = (ColorShaderProgram) renderer.colourProgram;
                 float col[] = {1,1,1,1};
                 OBUtils.getFloatColour(backgroundColor,col);
+                float op = opacity();
+                for (int i = 0;i < 3;i++)
+                    col[i] = col[i]*blendColour[i];
+                col[3] *= op;
                 colourShader.useProgram();
                 colourShader.setUniforms(tempMatrix);
                 GradientRect gr = renderer.gradientRect;
