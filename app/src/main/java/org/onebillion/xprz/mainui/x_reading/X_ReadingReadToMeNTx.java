@@ -1,10 +1,14 @@
 package org.onebillion.xprz.mainui.x_reading;
 
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.AsyncTask;
 
 import org.onebillion.xprz.controls.OBControl;
+import org.onebillion.xprz.controls.OBEmitter;
+import org.onebillion.xprz.controls.OBEmitterCell;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.controls.XPRZ_Presenter;
@@ -31,6 +35,7 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
     int cqType;
     boolean questionsAsked;
     String pageName;
+    OBEmitter starEmitter;
 
     public void start()
     {
@@ -133,8 +138,8 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         waitForSecs(0.8);
         if (status() != STATUS_FINISHING && !_aborting)
         {
-            //if (!considerComprehensionQuestions())
-            bringUpNextButton();
+            if (!considerComprehensionQuestions())
+                bringUpNextButton();
         }
     }
         catch (Exception exception)
@@ -571,4 +576,60 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         sequenceLock.unlock();
     }
 
+    public OBEmitterCell starEmitterCell(int i, Bitmap im, float rs,float gs,float bs)
+    {
+        OBEmitterCell ec = new OBEmitterCell();
+        ec.birthRate = 10;
+        ec.lifeTime = 2;
+        ec.lifeTimeRange = 0.5f;
+        ec.red = 1.0f;
+        ec.green = 216.0f/255.0f;
+        ec.blue = 0.0f;
+        ec.contents = im;
+        ec.name = String.format("star%d",i);
+        ec.velocity = 0;
+        ec.velocityRange = 2;
+        ec.emissionRange = (float)(Math.PI * 2.0);
+        ec.blueSpeed = bs;
+        ec.greenSpeed = gs;
+        ec.redSpeed = rs;
+        ec.alphaSpeed = -0.2f;
+        ec.spin = 0.0f;
+        ec.spinRange = 3.0f;
+        ec.scale = 1.0f ;
+        ec.scaleRange = -(ec.scale / 2.0f);
+        ec.scaleSpeed = ec.scaleRange / 2.0f;
+        return ec;
+    }
+
+    public void stopEmissions() throws Exception {
+        OBEmitterCell cell = starEmitter.cells.get(0);
+        cell.birthRate = 0;
+        cell.lifeTime = 10;
+        waitForSecs(2f);
+    }
+
+    public void doEmitter()
+    {
+        OBPath smallStar = StarWithScale(applyGraphicScale(8), false);
+        smallStar.setFillColor(Color.WHITE);
+        smallStar.enCache();
+        OBPath shape = (OBPath) objectDict.get("shape");
+        OBEmitterCell cell = starEmitterCell(0, smallStar.cache, 0, 0, 0);
+
+        starEmitter = new OBEmitter();
+        starEmitter.setFrame(0, 0, bounds().width(), bounds().height());
+        starEmitter.cells.add(cell);
+
+        starEmitter.setZPosition(100);
+        objectDict.put("starEmitter", starEmitter);
+        attachControl(starEmitter);
+        starEmitter.run();
+        OBUtils.runOnOtherThreadDelayed(2, new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception {
+                stopEmissions();
+            }
+        });
+    }
 }

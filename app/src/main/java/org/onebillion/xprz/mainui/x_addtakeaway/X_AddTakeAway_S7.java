@@ -28,15 +28,14 @@ import java.util.List;
  */
 public class X_AddTakeAway_S7 extends XPRZ_Generic_Event
 {
+    static int minSnakes = 1;
+    static int maxSnakes = 3;
+    static int maxDiceValue = 7;
     OBControl currentCell;
     OBControl lastCell;
     OBControl correctCell;
     int number_plays, currentPosition, nextPlayValue, totalSnakes;
     Boolean tumbler_locked;
-
-    static int minSnakes = 1;
-    static int maxSnakes = 3;
-    static int maxDiceValue = 7;
 
     public X_AddTakeAway_S7 ()
     {

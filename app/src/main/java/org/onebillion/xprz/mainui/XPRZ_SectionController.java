@@ -90,6 +90,13 @@ public class XPRZ_SectionController extends OBSectionController {
         }
     }
 
+    public void playAudioScene(String event,int idx,boolean wait) throws Exception
+    {
+        playAudioScene(currentEvent(),event,idx);
+        if(wait)
+            waitAudio();
+    }
+
     public void playAudioQueuedSceneIndex(String scene,String event,int idx,boolean wait) throws Exception
     {
         Map<String,List<String>> sc = (Map<String,List<String>>)audioScenes.get(scene);
@@ -97,7 +104,7 @@ public class XPRZ_SectionController extends OBSectionController {
         playAudioQueued(Arrays.asList((Object)arr.get(idx)), wait);
     }
 
-    OBPath StarWithScale(float scale,boolean shadow)
+    public OBPath StarWithScale(float scale,boolean shadow)
     {
         Path starpath = new Path();
         boolean outer = true;
@@ -446,5 +453,21 @@ public class XPRZ_SectionController extends OBSectionController {
         t.preScale(r.width(), r.height());
         p.transformByMatrix(t);
         return p;
+    }
+
+    public void moveScenePointer(PointF point, int angle, float time, String audio, int index, float wait) throws Exception
+    {
+        movePointerToPoint(point,angle,time,true);
+        playAudioScene(currentEvent(),audio,index);
+        waitAudio();
+        waitForSecs(wait);
+    }
+
+    public void moveScenePointer(PointF point, float time, String audio, int index, float wait) throws Exception
+    {
+        movePointerToPoint(point,time,true);
+        playAudioScene(currentEvent(),audio,index);
+        waitAudio();
+        waitForSecs(wait);
     }
 }

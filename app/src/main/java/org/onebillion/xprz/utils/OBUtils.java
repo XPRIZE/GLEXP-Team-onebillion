@@ -574,11 +574,6 @@ public class OBUtils
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
     }
 
-    public interface RunLambda
-    {
-        public void run () throws Exception;
-    }
-
     public static Path SimplePath (PointF from, PointF to, float offset)
     {
         Path path = new Path();
@@ -611,6 +606,13 @@ public class OBUtils
         return outcol;
     }
 
+    public static int highlightedColour(int colour)
+    {
+        return Color.argb(255,
+                Math.round(Color.red(colour)*0.8f),
+                Math.round(Color.green(colour)*0.8f),
+                Math.round(Color.blue(colour)*0.8f));
+    }
 
     static String getConfigFile (String fileName)
     {
@@ -626,7 +628,6 @@ public class OBUtils
         return null;
     }
 
-
     static String getLocalFile (String fileName)
     {
         Map<String, Object> config = MainActivity.mainActivity.Config();
@@ -640,7 +641,6 @@ public class OBUtils
         }
         return null;
     }
-
 
     static String getFilePath (String fileName)
     {
@@ -666,7 +666,6 @@ public class OBUtils
         }
         return null;
     }
-
 
     public static List<List<Double>> ComponentTimingsForWord (String xmlPath)
     {
@@ -700,7 +699,6 @@ public class OBUtils
         return timings;
     }
 
-
     public static String stringJoin (String[] aArr, String sSep)
     {
         StringBuilder sbStr = new StringBuilder();
@@ -714,7 +712,6 @@ public class OBUtils
         }
         return sbStr.toString();
     }
-
 
     public static Map<String, OBPhoneme> LoadWordComponentsXML (Boolean includeWords)
     {
@@ -829,6 +826,12 @@ public class OBUtils
         }
         //
         return (Map<String, OBPhoneme>) (Object) dictionary;
+    }
+
+
+    public interface RunLambda
+    {
+        public void run () throws Exception;
     }
 
 

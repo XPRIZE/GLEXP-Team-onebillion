@@ -24,11 +24,12 @@ import java.util.Collections;
 public class X_Test extends XPRZ_SectionController
 {
     OBEmitter emitter;
+    Bitmap tempBitmap;
     public X_Test()
     {
         super();
     }
-    Bitmap tempBitmap;
+
     public void prepare()
     {
         super.prepare();
@@ -40,6 +41,12 @@ public class X_Test extends XPRZ_SectionController
         targets.add(c);
         events = Collections.singletonList("1a");
 
+        OBControl bob = new OBControl();
+        bob.setFrame(100,100,500,400);
+        bob.setBackgroundColor(Color.WHITE);
+        bob.setBorderColor(Color.BLACK);
+        bob.setBorderWidth(4);
+        attachControl(bob);
         doVisual(currentEvent());
         setStatus(STATUS_AWAITING_CLICK);
     }

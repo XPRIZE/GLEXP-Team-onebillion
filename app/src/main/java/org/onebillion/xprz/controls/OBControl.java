@@ -70,6 +70,7 @@ public class OBControl
     int shadowColour;
     float shadowOffsetX,shadowOffsetY,shadowOpacity,shadowRadius;
     boolean needsRetexture;
+    float uvRight=1,uvBottom=1;
 
     public OBControl()
     {
@@ -420,6 +421,8 @@ public class OBControl
                 {
                     backgroundColor = col;
                     invalidate();
+                    if(needsTexture())
+                        setNeedsRetexture();
                 }
             }.run();
         }
@@ -1132,6 +1135,7 @@ public class OBControl
             texturise(false, vc);
             needsRetexture = false;
         }
+        tr.setUVs(0,0,uvRight,uvBottom);
         tr.draw(renderer,0,0,bounds.right - bounds.left,bounds.bottom - bounds.top,texture.bitmap());
     }
     public void render(OBRenderer renderer,OBViewController vc,float[] modelViewMatrix)
@@ -1223,8 +1227,12 @@ public class OBControl
     public Bitmap drawn()
     {
         Bitmap bitmap = null;
-        int width = (int) Math.ceil((bounds().right - bounds().left) * Math.abs(rasterScale));
-        int height = (int) Math.ceil((bounds().bottom - bounds().top) * Math.abs(rasterScale));
+        float fw = (bounds().right - bounds().left) * Math.abs(rasterScale);
+        float fh = (bounds().bottom - bounds().top) * Math.abs(rasterScale);
+        int width = (int) Math.ceil(fw);
+        int height = (int) Math.ceil(fh);
+        uvRight = fw / width;
+        uvBottom = fh / height;
         if (width == 0 || height == 0)
             Log.i("error","drawn");
         try
@@ -1546,9 +1554,19 @@ public class OBControl
         anchorPoint.set(pt);
     }
 
-    public void setAnchorPoint(float x,float y)
+    public void setAnchorPoint(final float x,final float y)
     {
-        anchorPoint.set(x,y);
+        new OBRunnableSyncUI()
+        {
+            public void ex()
+            {
+                PointF oldAnchor = new PointF(anchorPoint.x, anchorPoint.y);
+                anchorPoint.set(x,y);
+                PointF absPoint = OB_Maths.locationForRect(oldAnchor, frame());
+                PointF diff = OB_Maths.DiffPoints(position(), absPoint);
+                setPosition(OB_Maths.OffsetPoint(position(), diff.x, diff.y));
+            }
+        }.run();
     }
 
     public void setShadow(float sradius,float sopacity,float soffsetx,float soffsety,int scolour)

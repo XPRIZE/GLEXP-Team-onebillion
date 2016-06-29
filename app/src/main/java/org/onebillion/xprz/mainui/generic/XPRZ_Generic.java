@@ -36,29 +36,11 @@ import java.util.regex.Pattern;
  */
 public class XPRZ_Generic
 {
-    public static enum Anchor
-    {
-        ANCHOR_MIDDLE,
-        ANCHOR_LEFT,
-        ANCHOR_RIGHT,
-        ANCHOR_TOP,
-        ANCHOR_BOTTOM;
-
-        public final int anchor;
-
-        Anchor()
-        {
-            this.anchor = 1 << this.ordinal();
-        }
-    }
-
-
     public static void pointer_moveToObjectByName(String controlName, float angle, float secs, EnumSet<Anchor> anchorFlags, Boolean wait, XPRZ_SectionController sc)
     {
         OBControl control = sc.objectDict.get(controlName);
         pointer_moveToObject(control, angle, secs, anchorFlags, wait, sc);
     }
-
 
     public static void pointer_moveToObject(OBControl control, float angle, float secs, EnumSet<Anchor> anchorFlags, Boolean wait, XPRZ_SectionController sc)
     {
@@ -72,7 +54,6 @@ public class XPRZ_Generic
         sc.movePointerToPoint(position, angle, secs, wait);
     }
 
-
     public static void pointer_moveToPointWithObject(OBControl control, PointF destination, float rotation, float secs, Boolean wait, XPRZ_SectionController sc)
     {
         OBAnim anim = OBAnim.moveAnim(destination, control);
@@ -80,15 +61,11 @@ public class XPRZ_Generic
         sc.movePointerToPoint(destination, rotation, secs, true);
     }
 
-
-
     public static void pointer_simulateClick(XPRZ_SectionController sc)
     {
         sc.movePointerForwards(sc.applyGraphicScale(10.0f), 0.1f);
         sc.movePointerForwards(-sc.applyGraphicScale(10.0f), 0.1f);
     }
-
-
 
     public static float getNextZPosition(XPRZ_SectionController sc)
     {
@@ -104,9 +81,6 @@ public class XPRZ_Generic
     {
         control.setZPosition(getNextZPosition(sc));
     }
-
-
-
 
     protected static Map<String,Object> loadObjectColours(XPRZ_SectionController sc)
     {
@@ -153,8 +127,6 @@ public class XPRZ_Generic
         return objectColoursDictionary;
     }
 
-
-
     public static void colourObject(OBControl control, int colour)
     {
         if (OBGroup.class.isInstance(control))
@@ -179,7 +151,6 @@ public class XPRZ_Generic
             System.out.println("XPRZ_Generic.action_colourObject.unknown class for colouring");
         }
     }
-
 
     public static void colourObjectsWithScheme(XPRZ_SectionController sc)
     {
@@ -219,7 +190,6 @@ public class XPRZ_Generic
         }
     }
 
-
     public static List<OBControl> controlsSortedFrontToBack(OBGroup group, String pattern)
     {
         List<OBControl> result = new ArrayList<OBControl>();
@@ -245,18 +215,15 @@ public class XPRZ_Generic
         return result;
     }
 
-
     public static PointF copyPoint(PointF original)
     {
         return new PointF(original.x, original.y);
     }
 
-
     public static double currentTime()
     {
         return (SystemClock.uptimeMillis() / (double) 1000);
     }
-
 
     public static PointF firstPoint(OBPath path, XPRZ_SectionController sc)
     {
@@ -280,7 +247,6 @@ public class XPRZ_Generic
         return line.pt1;
     }
 
-
     public static void setFirstPoint(OBPath path, PointF pt, XPRZ_SectionController sc)
     {
         String name = (String) path.attributes().get("id");
@@ -292,8 +258,6 @@ public class XPRZ_Generic
         line.pt0 = pt;
         path.setPath(deconPath.bezierPath());
     }
-
-
 
     public static void setLastPoint(OBPath path, PointF pt, XPRZ_SectionController sc)
     {
@@ -307,10 +271,26 @@ public class XPRZ_Generic
         path.setPath(deconPath.bezierPath());
     }
 
-
     public static int randomInt(int min, int max)
     {
         double dval = Math.random();
         return (int) Math.round(min + (max - min) * dval);
+    }
+
+
+    public static enum Anchor
+    {
+        ANCHOR_MIDDLE,
+        ANCHOR_LEFT,
+        ANCHOR_RIGHT,
+        ANCHOR_TOP,
+        ANCHOR_BOTTOM;
+
+        public final int anchor;
+
+        Anchor()
+        {
+            this.anchor = 1 << this.ordinal();
+        }
     }
 }
