@@ -47,9 +47,8 @@ public class X_Count100_S5 extends XPRZ_SectionController
         hilitecolour = OBUtils.colorFromRGBString(eventAttributes.get("hilitecolour"));
 
         X_Count100_Additions.drawGrid(10,objectDict.get("workrect"),OBUtils.colorFromRGBString(eventAttributes.get("linecolour")),numcolour,false,this);
-
-        //hideControls("num_.*");
-       // hideControls("box_.*");
+        hideControls("num_.*");
+        hideControls("box_.*");
 /*
         RectF boxf = new RectF(0,0,401,301);
         OBControl box = new OBControl();
@@ -76,7 +75,7 @@ public class X_Count100_S5 extends XPRZ_SectionController
         attachControl(rowBorder);
 
         maskMode = false;
-        eventIndex =7;
+        //eventIndex =7;
         setSceneXX(currentEvent());
     }
 
@@ -88,7 +87,7 @@ public class X_Count100_S5 extends XPRZ_SectionController
             public void run() throws Exception
             {
 
-                demo5k();
+                demo();
             }
         });
 
@@ -391,19 +390,9 @@ public class X_Count100_S5 extends XPRZ_SectionController
 
         setReplayAudioScene(currentEvent(),"REPEAT");
         final long time = setStatus(maskMode ? STATUS_AWAITING_CLICK : STATUS_WAITING_FOR_DRAG);
-        playAudioQueuedScene(currentEvent(),"PROMPT",true);
+        playAudioQueuedScene("PROMPT",true);
 
-        OBUtils.runOnOtherThreadDelayed(4, new OBUtils.RunLambda()
-        {
-            @Override
-            public void run() throws Exception
-            {
-                if(!statusChanged(time))
-                {
-                    playAudioQueuedScene(currentEvent(),"REMIND",true);
-                }
-            }
-        });
+        reprompt(time, OBUtils.insertAudioInterval(currentAudio("PROMPT2"),300),4);
     }
 
 
@@ -419,8 +408,7 @@ public class X_Count100_S5 extends XPRZ_SectionController
     {
         Map<String,Object> audio = (Map<String,Object>)audioScenes.get(currentEvent());
         setReplayAudio(OBUtils.insertAudioInterval(audio.get("REPEAT2"),300));
-
-        //[reprompt:startStatusTime audio:InsertAudioInterval(audioScenescurrentEvent.()"PROMPT2".(), 300) after:4];
+        reprompt(startStatusTime, OBUtils.insertAudioInterval(audio.get("PROMPT2"),300),4);
     }
 
     public void animateGridReset() throws Exception
