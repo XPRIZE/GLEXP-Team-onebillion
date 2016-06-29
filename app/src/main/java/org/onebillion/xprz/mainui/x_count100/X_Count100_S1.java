@@ -112,7 +112,7 @@ public class X_Count100_S1  extends XPRZ_SectionController
                 cont.setPosition(OB_Maths.locationForRect(x1,y1, workrect.frame));
                 objectDict.put("obj"+i,cont);
                 attachControl(cont);
-
+                cont.setZPosition(1f);
                 cont.lowlight();
                 if(i >= curTarget)
                     cont.hide();

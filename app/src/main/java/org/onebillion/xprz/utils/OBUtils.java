@@ -550,10 +550,6 @@ public class OBUtils
             }}.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
     }
 
-    public interface RunLambda {
-         public void run() throws Exception;
-    }
-
     public static Path SimplePath(PointF from,PointF to,float offset)
     {
         Path path = new Path();
@@ -584,6 +580,18 @@ public class OBUtils
         dscomponents[3] = components[3];
         int outcol = Color.argb((int)(dscomponents[3]*255),(int)(dscomponents[0]*255),(int)(dscomponents[1]*255),(int)(dscomponents[2]*255));
         return outcol;
-}
+    }
+
+    public static int highlightedColour(int colour)
+    {
+        return Color.argb(255,
+                Math.round(Color.red(colour)*0.8f),
+                Math.round(Color.green(colour)*0.8f),
+                Math.round(Color.blue(colour)*0.8f));
+    }
+
+    public interface RunLambda {
+         public void run() throws Exception;
+    }
 
 }
