@@ -20,6 +20,7 @@ import org.onebillion.xprz.utils.OBPhoneme;
 import org.onebillion.xprz.utils.OBSyllable;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OBWord;
+import org.onebillion.xprz.utils.OB_Maths;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,8 +54,10 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
         wordComponents = OBUtils.LoadWordComponentsXML(true);
         //
         textSize = Float.parseFloat(eventAttributes.get("textsize"));
-        breakdown_phoneme = parameters.get("breakdown").equals("phoneme");
-        breakdown_syllable = parameters.get("breakdown").equals("syllable");
+        //
+        String breakdown = parameters.get("breakdown");
+        breakdown_phoneme = breakdown != null && breakdown.equals("phoneme");
+        breakdown_syllable = breakdown != null && breakdown.equals("syllable");
         //
         words = new ArrayList<List<OBPhoneme>>();
         String ws = parameters.get("words");
@@ -65,7 +68,7 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
             List<OBPhoneme> options = new ArrayList<OBPhoneme>();
             for (String item : items)
             {
-                options.add((OBWord) wordComponents.get(item));
+                options.add((OBPhoneme) wordComponents.get(item));
             }
             words.add(options);
         }
@@ -76,7 +79,7 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
         {
             for (int i = 0; i < words.size(); i++)
             {
-                int index = XPRZ_Generic.randomInt(0, words.get(i).size());
+                int index = XPRZ_Generic.randomInt(0, words.get(i).size() - 1);
                 answers.add(words.get(i).get(index));
             }
         }
@@ -154,7 +157,7 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
             OBLabel label = setupLabel(word.text);
             labels.add(label);
             OBControl marker = objectDict.get(String.format("pos_%d_%d", wordsPerSet, i));
-            label.setPosition(marker.position());
+            label.setPosition(new PointF(midWayX, marker.position().y));
         }
     }
 
@@ -429,22 +432,22 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
     {
         OBWord correctAnswer = (OBWord) answers.get(currNo);
         OBLabel label = action_getCorrectLabel();
-        String filename = new String(correctAnswer.soundID);
-        filename.replace("fc_", "fc_let_");
-        List<List<Double>> timings = OBUtils.ComponentTimingsForWord(filename + ".etpa");
         //
+        List<OBPhoneme> breakdown = correctAnswer.phonemes();
+        //
+        String filename = new String(correctAnswer.audioFilename()).replace("fc_", "fc_let_");
         playAudio(filename);
+        //
         Double startTime = XPRZ_Generic.currentTime();
         Integer startRange = 0;
-        //
-        List<OBPhoneme> breakdown = new ArrayList(correctAnswer.phonemes());
         int i = 0;
+        //
         for (OBPhoneme sound : breakdown)
         {
+            Double timeStart = (Double) sound.timings.get(0);
+            Double timeEnd = (Double) sound.timings.get(1);
+            //
             Double currTime = XPRZ_Generic.currentTime() - startTime;
-            List<Double> timing = timings.get(i);
-            Double timeStart = timing.get(0);
-            Double timeEnd = timing.get(1);
             Double waitTime = timeStart - currTime;
             if (waitTime > 0.0) waitForSecs(waitTime);
             //
@@ -480,20 +483,22 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
     {
         OBWord correctAnswer = (OBWord) answers.get(currNo);
         OBLabel label = action_getCorrectLabel();
-        String filename = new String(correctAnswer.soundID);
-        filename.replace("fc_", "fc_syl_");
-        List<List<Double>> timings = OBUtils.ComponentTimingsForWord(filename + ".etpa");
         //
+        List<OBSyllable> breakdown = correctAnswer.syllables();
+        //
+        String filename = new String(correctAnswer.audioFilename()).replace("fc_", "fc_syl_");
         playAudio(filename);
+        //
         Double startTime = XPRZ_Generic.currentTime();
-        int i = 0;
         Integer startRange = 0;
-        for (OBSyllable syllable : correctAnswer.syllables())
+        int i = 0;
+        //
+        for (OBSyllable syllable : breakdown)
         {
+            Double timeStart = (Double) syllable.timings.get(0);
+            Double timeEnd = (Double) syllable.timings.get(1);
+            //
             Double currTime = XPRZ_Generic.currentTime() - startTime;
-            List<Double> timing = timings.get(i);
-            Double timeStart = timing.get(0);
-            Double timeEnd = timing.get(1);
             Double waitTime = timeStart - currTime;
             if (waitTime > 0.0) waitForSecs(waitTime);
             //
@@ -534,7 +539,7 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
             OBWord correctAnswer = (OBWord) answer;
             //
             double startTime = XPRZ_Generic.currentTime();
-            playAudio(correctAnswer.soundID);
+            playAudio(correctAnswer.audioFilename());
             double duration = OBAudioManager.audioManager.duration();
             double timePerSyllable = duration / (double) correctAnswer.syllables().size();
             action_highlightLabel(label, highlight);
@@ -557,7 +562,7 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
         }
         else
         {
-            playAudio(answer.soundID);
+            playAudio(answer.audioFilename());
             action_highlightLabel(label, highlight);
             avatarShowMouthFrameForText(answer.text, false);
             waitAudio();
@@ -609,27 +614,14 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
         lockScreen();
         if (high)
         {
-            /*
-             NSDictionary *attributes = @{NSFontAttributeName:label.font,
-                                         NSForegroundColorAttributeName:(id)[[UIColor blackColor]CGColor]
-                                         };
-            UIColor *hicolour = [UIColor colorWithRed:255.0/255.0 green:0.0/255.0 blue:0.0/255.0 alpha:1.0];
-            NSString *str;
-            id s = label.string;
-            if ([s isKindOfClass:[NSString class]])
-                str = s;
-            else
-                str = [(NSAttributedString*)s string];
-            NSMutableAttributedString *mastr = [[NSMutableAttributedString alloc]initWithString:str attributes:attributes];
-            attributes = @{NSForegroundColorAttributeName:(id)[hicolour CGColor]};
-            [mastr addAttributes:attributes range:range];
-            label.string = (NSString*)mastr;
-             */
+            ((OBTextLayer)label.layer).setHighRange(startRange, endRange, Color.RED);
+            label.setNeedsRetexture();
         }
         else
         {
+            ((OBTextLayer)label.layer).setHighRange(-1, -1, Color.BLACK);
             label.setColour(Color.BLACK);
-            label.setString(word.text);
+            label.setNeedsRetexture();
         }
         unlockScreen();
     }
@@ -638,21 +630,21 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
     public Boolean selectWord (OBLabel targetLabel) throws Exception
     {
         OBLabel correctLabel = action_getCorrectLabel();
-        Boolean answerIsCorrect = targetLabel.equals(correctLabel);
+        Boolean answerIsCorrect = targetLabel != null && targetLabel.equals(correctLabel);
         //
         if (targetLabel != null) playSfxAudio("touchword", false);
         //
         lockScreen();
         for (OBLabel label : labels)
         {
-            if (targetLabel.equals(correctLabel))
+            if (targetLabel == null)
+            {
+                label.setOpacity(1.0f);
+            }
+            else if (targetLabel.equals(correctLabel))
             {
                 float opacity = (targetLabel.equals(label)) ? 1.0f : 0.3f;
                 label.setOpacity(opacity);
-            }
-            else if (targetLabel == null)
-            {
-                label.setOpacity(1.0f);
             }
             else
             {

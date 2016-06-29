@@ -1188,7 +1188,8 @@ public class OBSectionController extends OBViewController
         TextureShaderProgram textureShader = (TextureShaderProgram) renderer.textureProgram;
         textureShader.useProgram();
         populateSortedAttachedControls();
-        for (OBControl control : sortedAttachedControls)
+        List<OBControl>clist = sortedAttachedControls;
+        for (OBControl control : clist)
         {
             control.render(renderer,this,renderer.projectionMatrix);
         }
