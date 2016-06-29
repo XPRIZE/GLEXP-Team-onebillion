@@ -12,33 +12,71 @@ import java.util.Map;
  */
 public class OBPhoneme
 {
-    public String text, audio, soundID;
+    public String text;
     public List<Object> timings;
+
     Map<String, Object> properties;
+    String audio, soundID;
 
     public OBPhoneme ()
     {
-        super();
-        this.properties = new HashMap<String, Object>();
+        this(null, null, null, null);
     }
 
     public OBPhoneme (String text)
     {
-        this();
-        this.text = text;
+        this(text, null, null, null);
     }
 
     public OBPhoneme (String text, String soundID)
     {
-        this(text);
-        this.soundID = soundID;
+        this(text, soundID, null, null);
     }
 
 
-    public OBPhoneme (String text, String soundID, List<Double> timings)
+    public OBPhoneme (String text, String soundID, List<Object> timings)
     {
-        this(text, soundID);
-        this.timings = new ArrayList<Object>(timings);
+        this(text, soundID, timings, null);
+    }
+
+
+    public OBPhoneme (String text, String soundID, List<Object> timings, String audio)
+    {
+        this (text, soundID, timings, audio, new HashMap<String, Object>());
+    }
+
+
+    public OBPhoneme (String text, String soundID, List<Object> timings, String audio, HashMap<String, Object> properties)
+    {
+        super();
+        this.text = text;
+        this.soundID = soundID;
+        this.audio = audio;
+        this.timings = (timings == null) ? new ArrayList<Object>() : new ArrayList<Object>(timings);
+        this.properties = (properties == null) ? new HashMap<String, Object>() : new HashMap<String, Object>(properties);
+    }
+
+
+    public Boolean hasAudio()
+    {
+        return (audio != null);
+    }
+
+
+    public String audioFilename()
+    {
+        if (!hasAudio())
+        {
+            return null;
+        }
+        else if (!audio.equals("true"))
+        {
+            return audio;
+        }
+        else
+        {
+            return soundID;
+        }
     }
 
 
@@ -46,13 +84,13 @@ public class OBPhoneme
     {
         if (timings != null && timings.size() > 1)
         {
-            sc.playAudioFromTo(audio, (Double) timings.get(0), (Double) timings.get(1));
+            sc.playAudioFromTo(audioFilename(), (Double) timings.get(0), (Double) timings.get(1));
         }
-        else if (audio != null)
+        else if (audioFilename() != null)
         {
-            sc.playAudio(audio);
+            sc.playAudio(audioFilename());
         }
-        if (audio != null && wait)
+        if (audioFilename() != null && wait)
         {
             sc.waitAudio();
         }
@@ -66,6 +104,6 @@ public class OBPhoneme
         {
             timingsClone.add(new Double(timing));
         }
-        return new OBPhoneme(text, soundID, timingsClone);
+        return new OBPhoneme(text, soundID, (List<Object>) (Object) timingsClone, audio);
     }
 }

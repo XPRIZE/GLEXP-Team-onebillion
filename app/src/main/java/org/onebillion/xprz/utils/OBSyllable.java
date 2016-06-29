@@ -10,29 +10,39 @@ public class OBSyllable extends OBPhoneme
 {
     public List<OBPhoneme> phonemes;
 
-    public OBSyllable()
+    public OBSyllable ()
     {
-        phonemes = new ArrayList<OBPhoneme>();
+        this(null, null, null, null, null);
     }
 
-    public OBSyllable(String text)
+    public OBSyllable (String text)
     {
-        super(text);
+        this(text, null, null, null, null);
     }
 
-    public OBSyllable(String text, String soundID)
+    public OBSyllable (String text, String soundID)
     {
-        super(text, soundID);
+        this(text, soundID, null, null, null);
     }
 
-    public OBSyllable(String text, String soundID, List<OBPhoneme> phonemes)
+    public OBSyllable (String text, String soundID, List<OBPhoneme> phonemes)
     {
-        super(text, soundID);
-        this.phonemes = new ArrayList<OBPhoneme>(phonemes);
+        this(text, soundID, null, null, phonemes);
+    }
+
+    public OBSyllable (String text, String soundID, List<Object> timings, String audio)
+    {
+        this(text, soundID, timings, audio, null);
+    }
+
+    public OBSyllable (String text, String soundID, List<Object> timings, String audio, List<OBPhoneme> phonemes)
+    {
+        super(text, soundID, timings, audio);
+        this.phonemes = (phonemes == null) ? new ArrayList<OBPhoneme>() : new ArrayList<OBPhoneme>(phonemes);
     }
 
 
-    public OBSyllable copy()
+    public OBSyllable copy ()
     {
         List<OBPhoneme> phonemesClone = new ArrayList<OBPhoneme>();
         //
@@ -40,7 +50,7 @@ public class OBSyllable extends OBPhoneme
         {
             phonemesClone.add(phoneme.copy());
         }
-        return new OBSyllable(text, soundID, phonemesClone);
+        return new OBSyllable(text, soundID, timings, audio, phonemesClone);
     }
 
 

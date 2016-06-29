@@ -6,6 +6,7 @@ import android.graphics.RectF;
 
 public class OB_Maths
 {
+    static final double TOLERANCE = 0.0000001;  // Application specific tolerance
     public static float FLAT_THRESHOLD = 0.01f;
 
     public static double clamp01(double t)
@@ -16,7 +17,6 @@ public class OB_Maths
             return 1.0;
         return t;
     }
-
 
     public static PointF bezease(float t)
     {
@@ -106,6 +106,11 @@ public class OB_Maths
         return locationForRect(pt, new RectF(rect));
     }
 
+    public static PointF locationForRect(float x,float y,Rect rect)
+    {
+        return locationForRect(x, y, new RectF(rect));
+    }
+
     public static PointF relativePointInRectForLocation(PointF loc,RectF r)
     {
         loc.x -= r.left;
@@ -189,8 +194,6 @@ public class OB_Maths
         double leftlen = curveLength(startPt, c1EndPt, c1CP1, c1CP2);
         return (float)(leftlen / wholelen);
     }
-
-    static final double TOLERANCE = 0.0000001;  // Application specific tolerance
 
     static double tForS(PointF startPt,PointF endPt,PointF controlPt1,PointF controlPt2,int steps,double s,double arclength)
     {

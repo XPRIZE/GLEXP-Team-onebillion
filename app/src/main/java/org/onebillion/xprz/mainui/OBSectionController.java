@@ -214,6 +214,17 @@ public class OBSectionController extends OBViewController
         return maxobj;
     }
 
+    public static String getLocalPath(String fileName)
+    {
+        for (String path : (List<String>)Config().get(MainActivity.CONFIG_AUDIO_SEARCH_PATH))
+        {
+            String fullpath = OBUtils.stringByAppendingPathComponent(path,fileName);
+            if (OBUtils.fileExistsAtPath(fullpath))
+                return fullpath;
+        }
+        return null;
+    }
+
     public Map<String,Object> loadXML(String xmlPath)
     {
         Map<String,Object> eventsDict = new HashMap<>();
@@ -283,17 +294,6 @@ public class OBSectionController extends OBViewController
         for (String path : (List<String>)Config().get(MainActivity.CONFIG_CONFIG_SEARCH_PATH))
         {
             String fullpath = OBUtils.stringByAppendingPathComponent(path, cfgName);
-            if (OBUtils.fileExistsAtPath(fullpath))
-                return fullpath;
-        }
-        return null;
-    }
-
-    public static String getLocalPath(String fileName)
-    {
-        for (String path : (List<String>)Config().get(MainActivity.CONFIG_AUDIO_SEARCH_PATH))
-        {
-            String fullpath = OBUtils.stringByAppendingPathComponent(path,fileName);
             if (OBUtils.fileExistsAtPath(fullpath))
                 return fullpath;
         }

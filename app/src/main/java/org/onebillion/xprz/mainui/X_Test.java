@@ -27,11 +27,12 @@ import java.util.Collections;
 public class X_Test extends XPRZ_SectionController
 {
     OBEmitter emitter;
+    Bitmap tempBitmap;
     public X_Test()
     {
         super();
     }
-    Bitmap tempBitmap;
+
     public void prepare()
     {
         super.prepare();

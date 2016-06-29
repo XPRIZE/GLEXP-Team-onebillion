@@ -41,6 +41,11 @@ public class OBLabel extends OBControl
 //        }
     }
 
+    public int colour()
+    {
+        return ((OBTextLayer)layer).colour();
+    }
+
     public void setString(String s)
     {
         OBTextLayer tl = (OBTextLayer)layer;
