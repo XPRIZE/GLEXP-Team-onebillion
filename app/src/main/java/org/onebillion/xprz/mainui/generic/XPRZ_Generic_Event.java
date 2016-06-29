@@ -41,7 +41,6 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     public void prepare()
     {
         super.prepare();
-        lockScreen();
         loadFingers();
         loadEvent("master1");
         String scenes = (String) eventAttributes.get(action_getScenesProperty());
@@ -59,7 +58,6 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
         {
             doVisual(currentEvent());
         }
-        unlockScreen();
     }
 
 

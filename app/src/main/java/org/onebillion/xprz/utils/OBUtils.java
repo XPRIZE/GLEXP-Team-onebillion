@@ -731,8 +731,7 @@ public class OBUtils
                 {
                     String audioID = phonemeNode.attributeStringValue("id");
                     String content = phonemeNode.contents;
-//                    String hasAudio = phonemeNode.attributeStringValue("audio");
-                    OBPhoneme pho = new OBPhoneme(content, audioID, null, "true");
+                    OBPhoneme pho = new OBPhoneme(content, audioID, null);
                     dictionary.put(audioID, pho);
                 }
                 //
@@ -765,8 +764,7 @@ public class OBUtils
                         phonemes.add(dictionary.get(phonemeID));
                     }
                     //
-//                    String hasAudio = syllableNode.attributeStringValue("audio");
-                    OBSyllable syl = new OBSyllable(stringJoin(lets, ""), audioID, null, "true", phonemes);
+                    OBSyllable syl = new OBSyllable(stringJoin(lets, ""), audioID, null, phonemes);
                     dictionary.put(audioID, syl);
                 }
                 //
@@ -810,8 +808,7 @@ public class OBUtils
                             }
                         }
                         String image = wordNode.attributeStringValue("image");
-                        String hasAudio = wordNode.attributeStringValue("audio");
-                        OBWord wor = new OBWord(fullText, audioID, null, hasAudio, syllables, image);
+                        OBWord wor = new OBWord(fullText, audioID, null, syllables, image);
                         //
                         dictionary.put(audioID, wor);
                     }

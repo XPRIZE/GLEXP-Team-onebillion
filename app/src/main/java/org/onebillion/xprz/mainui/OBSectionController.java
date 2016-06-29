@@ -307,7 +307,7 @@ public class OBSectionController extends OBViewController
         inited = true;
         processParams();
         eventsDict = loadXML(getConfigPath(sectionName()+".xml"));
-        loadAudioXML(getConfigPath(sectionName()+"audio.xml"));
+        loadAudioXML(getConfigPath(sectionAudioName()+"audio.xml"));
     }
 
     public void start()
@@ -1339,7 +1339,7 @@ public class OBSectionController extends OBViewController
                 targetPoint = new PointF(0,0);
                 break;
             case POINTER_MIDDLE:
-                startPoint = new PointF(0.5f, 1);
+                startPoint = new PointF(0.5f, 1.1f);
                 targetPoint = new PointF(0.5f, 0);
                 break;
             case POINTER_RIGHT:

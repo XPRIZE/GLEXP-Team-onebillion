@@ -12,32 +12,28 @@ public class OBSyllable extends OBPhoneme
 
     public OBSyllable ()
     {
-        this(null, null, null, null, null);
+        this(null, null, null, null);
     }
 
     public OBSyllable (String text)
     {
-        this(text, null, null, null, null);
+        this(text, null, null, null);
     }
 
     public OBSyllable (String text, String soundID)
     {
-        this(text, soundID, null, null, null);
+        this(text, soundID, null, null);
     }
 
     public OBSyllable (String text, String soundID, List<OBPhoneme> phonemes)
     {
-        this(text, soundID, null, null, phonemes);
+        this(text, soundID, null, phonemes);
     }
 
-    public OBSyllable (String text, String soundID, List<Object> timings, String audio)
-    {
-        this(text, soundID, timings, audio, null);
-    }
 
-    public OBSyllable (String text, String soundID, List<Object> timings, String audio, List<OBPhoneme> phonemes)
+    public OBSyllable (String text, String soundID, List<Object> timings, List<OBPhoneme> phonemes)
     {
-        super(text, soundID, timings, audio);
+        super(text, soundID, timings);
         this.phonemes = (phonemes == null) ? new ArrayList<OBPhoneme>() : new ArrayList<OBPhoneme>(phonemes);
     }
 
@@ -50,7 +46,7 @@ public class OBSyllable extends OBPhoneme
         {
             phonemesClone.add(phoneme.copy());
         }
-        return new OBSyllable(text, soundID, timings, audio, phonemesClone);
+        return new OBSyllable(text, soundID, timings, phonemesClone);
     }
 
 
