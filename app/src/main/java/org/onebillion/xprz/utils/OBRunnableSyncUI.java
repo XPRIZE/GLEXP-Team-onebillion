@@ -11,24 +11,27 @@ public abstract class OBRunnableSyncUI implements Runnable
     final ReentrantLock lock = new ReentrantLock();
     final Condition cond = lock.newCondition();
     Boolean done;
+
     @Override
-    public void run()
+    public void run ()
     {
-        if(Looper.myLooper() == Looper.getMainLooper())
+        if (Looper.myLooper() == Looper.getMainLooper())
         {
             ex();
             return;
         }
         done = false;
         new Handler(Looper.getMainLooper()).post(
-                new Runnable() {public void run()
+                new Runnable()
                 {
-                    lock.lock();
-                    ex();
-                    done = true;
-                    cond.signalAll();
-                    lock.unlock();
-                }
+                    public void run ()
+                    {
+                        lock.lock();
+                        ex();
+                        done = true;
+                        cond.signalAll();
+                        lock.unlock();
+                    }
                 });
         lock.lock();
         while (!done)
@@ -36,12 +39,13 @@ public abstract class OBRunnableSyncUI implements Runnable
             try
             {
                 cond.await();
-            } catch (InterruptedException e)
+            }
+            catch (InterruptedException e)
             {
             }
         }
         lock.unlock();
     }
 
-    abstract public void ex();
+    abstract public void ex ();
 }
