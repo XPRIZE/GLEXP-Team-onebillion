@@ -565,7 +565,7 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
                 waitForSecs(0.4f);
                 checkSequenceToken(token);
                 List<Object>audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("PROMPT");
-                presenter.speak(audl,this);
+                presenter.speakWithToken(audl,token,this);
                 checkSequenceToken(token);
                 setStatus(STATUS_WAITING_FOR_ANSWER);
                 waitForSecs(0.4f);
@@ -649,7 +649,7 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         OBAnim anim = OBAnim.pathMoveAnim(starEmitter,shape.path(),false,0);
         anim.key = "layer.emitterPosition";
         OBAnimationGroup agp = new OBAnimationGroup();
-        //agp.applyAnimations(:@anim.() duration:2 wait:false timingFunction:ANIM_LINEAR noLoops:-1 completionBlock:nil];
+        agp.applyAnimations(Collections.singletonList(anim),2,false,OBAnim.ANIM_LINEAR,this);
     }
 
     public void checkAnswer1(OBControl targ,PointF pt)
