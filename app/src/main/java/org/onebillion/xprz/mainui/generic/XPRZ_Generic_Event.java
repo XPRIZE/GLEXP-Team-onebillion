@@ -31,7 +31,8 @@ import java.util.Map;
 public class XPRZ_Generic_Event extends XPRZ_SectionController
 {
     int currentDemoAudioIndex;
-
+    public static float FIRST_REMINDER_DELAY = 6.0f;
+    public static float SECOND_REMINDER_DELAY = 4.0f;
 
     public XPRZ_Generic_Event()
     {
@@ -93,6 +94,38 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     {
         setReplayAudioScene(currentEvent(), "REPEAT");
         playAudioQueuedScene(scene, "PROMPT", false);
+    }
+
+
+    public void doReminder () throws Exception
+    {
+        long stTime = statusTime;
+        waitForSecs(FIRST_REMINDER_DELAY);
+        doReminderWithStatusTime(stTime, true);
+    }
+
+
+
+    public void doReminderWithStatusTime (final long stTime, Boolean playAudio) throws Exception
+    {
+        if (statusChanged(stTime)) return;
+        //
+        List reminderAudio = (List<String>) ((Map<String, Object>) audioScenes.get(currentEvent())).get("REMINDER");
+        if (reminderAudio != null)
+        {
+            if (playAudio)
+            {
+                playAudioQueued(reminderAudio, true);
+            }
+            OBUtils.runOnOtherThreadDelayed(SECOND_REMINDER_DELAY, new OBUtils.RunLambda()
+            {
+                @Override
+                public void run () throws Exception
+                {
+                    doReminderWithStatusTime(stTime, false);
+                }
+            });
+        }
     }
 
 

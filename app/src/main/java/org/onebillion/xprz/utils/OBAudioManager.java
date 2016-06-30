@@ -86,6 +86,11 @@ public class OBAudioManager {
         stopPlayingOnChannel(AM_SFX_CHANNEL);
     }
 
+    public void stopPlayingBackground()
+    {
+        stopPlayingOnChannel(AM_BACKGROUND_CHANNEL);
+    }
+
     public void stopAllAudio()
     {
         for (String k : players.keySet())
@@ -223,5 +228,11 @@ public class OBAudioManager {
     public double duration()
     {
         return durationForChannel(AM_MAIN_CHANNEL);
+    }
+
+
+    public double durationSFX()
+    {
+        return durationForChannel(AM_SFX_CHANNEL);
     }
 }

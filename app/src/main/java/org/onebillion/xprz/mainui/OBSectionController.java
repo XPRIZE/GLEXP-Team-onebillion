@@ -1497,10 +1497,11 @@ public class OBSectionController extends OBViewController
         _playAudio(fileName);
     }
 
-    void playBackgroundAudio (String fileName)
+
+    void _playBackgroundAudio (String fileName)
     {
         if (Looper.myLooper() == Looper.getMainLooper())
-            OBAudioManager.audioManager.startPlaying(fileName, "1");
+            OBAudioManager.audioManager.startPlaying(fileName, OBAudioManager.AM_BACKGROUND_CHANNEL);
         else
         {
             final String fn = new String(fileName);
@@ -1508,10 +1509,28 @@ public class OBSectionController extends OBViewController
             {
                 public void ex ()
                 {
-                    playBackgroundAudio(fn);
+                    _playBackgroundAudio(fn);
                 }
             }.run();
         }
+    }
+
+
+
+    public void playBackgroundAudio (String fileName, final Boolean wait) throws Exception
+    {
+        _playBackgroundAudio(fileName);
+        if (wait)
+        {
+            waitBackground();
+        }
+    }
+
+
+
+    public void waitBackground() throws Exception
+    {
+        waitAudioChannel(OBAudioManager.AM_BACKGROUND_CHANNEL);
     }
 
     public void waitSFX () throws Exception
