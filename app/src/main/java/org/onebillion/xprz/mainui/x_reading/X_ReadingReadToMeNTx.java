@@ -511,7 +511,8 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         lockScreen();
         doVisual("cqmain");
         presenter = XPRZ_Presenter.characterWithGroup((OBGroup)objectDict.get("annahead"));
-
+        OBControl cameo = objectDict.get("cameo");
+        cameo.setShouldTexturise(false);
         //anna = (OBGroup) objectDict.get("annahead");
         faceForward();
         if (cqType == 1 || cqType == 3)
