@@ -35,10 +35,26 @@ public class OBAnimationGroup
 
     public static OBAnimationGroup runAnims(final List<OBAnim> anims,final double secs,boolean wait,final int timingFunction,final OBSectionController vc)
     {
+        return runAnims(anims,secs,wait,timingFunction,null,vc);
+    }
+
+    public static OBAnimationGroup runAnims(final List<OBAnim> anims, final double secs, boolean wait, final int timingFunction, final OBUtils.RunLambda completionBlock, final OBSectionController vc)
+    {
         final OBAnimationGroup ag = new OBAnimationGroup();
         if (wait)
         {
             ag.applyAnimations(anims,secs,timingFunction,vc);
+            if(completionBlock != null)
+            {
+                try
+                {
+                    completionBlock.run();
+                }
+                catch (Exception e)
+                {
+
+                }
+            }
         }
         else
         {
@@ -48,6 +64,17 @@ public class OBAnimationGroup
                 protected Void doInBackground(Void... params)
                 {
                     ag.applyAnimations(anims,secs,timingFunction,vc);
+                    if(completionBlock != null)
+                    {
+                        try
+                        {
+                            completionBlock.run();
+                        }
+                        catch (Exception e)
+                        {
+
+                        }
+                    }
                     return null;
                 }
             }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
@@ -57,10 +84,18 @@ public class OBAnimationGroup
         return ag;
     }
 
+
     public static OBAnimationGroup chainAnimations(List<List<OBAnim>> animArrays,List<Float>durations,boolean wait,List<Integer>timingFunctions,int noLoops,OBSectionController vc)
     {
         OBAnimationGroup ag = new OBAnimationGroup();
-        ag.chainAnimations(animArrays,durations,timingFunctions,noLoops,vc,wait);
+        ag.chainAnimations(animArrays,durations,timingFunctions,noLoops,vc,wait, null);
+        return ag;
+    }
+
+    public static OBAnimationGroup chainAnimations(List<List<OBAnim>> animArrays, List<Float>durations, boolean wait, List<Integer>timingFunctions, int noLoops, OBUtils.RunLambda completionBlock, OBSectionController vc)
+    {
+        OBAnimationGroup ag = new OBAnimationGroup();
+        ag.chainAnimations(animArrays,durations,timingFunctions,noLoops,vc,wait,completionBlock);
         return ag;
     }
 
@@ -195,10 +230,29 @@ public void applyAnimations(List<OBAnim>anims,double dur,int timingFunction,OBSe
         }
     }
 
-    public void chainAnimations(List<List<OBAnim>> animArrays,List<Float>durations,List<Integer>timingFunctions,int noLoops,OBSectionController vc,boolean wait)
+    public void chainAnimations(List<List<OBAnim>> animArrays, List<Float>durations, List<Integer>timingFunctions, int noLoops, OBSectionController vc, boolean wait)
+    {
+        chainAnimations(animArrays,durations,timingFunctions,noLoops,vc,wait,null);
+    }
+
+
+    public void chainAnimations(List<List<OBAnim>> animArrays, List<Float>durations, List<Integer>timingFunctions, int noLoops, OBSectionController vc, boolean wait, final OBUtils.RunLambda completionBlock)
     {
         if (wait)
-            chainAnimations(animArrays,durations,timingFunctions,noLoops,vc);
+        {
+            chainAnimations(animArrays, durations, timingFunctions, noLoops, vc);
+            if(completionBlock != null)
+            {
+                try
+                {
+                    completionBlock.run();
+                }
+                catch (Exception e)
+                {
+
+                }
+            }
+        }
         else
         {
             final List<List<OBAnim>> fanimArrays = animArrays;
@@ -211,6 +265,17 @@ public void applyAnimations(List<OBAnim>anims,double dur,int timingFunction,OBSe
                 protected Void doInBackground(Void... params)
                 {
                     chainAnimations(fanimArrays, fdurations, ftimingFunctions, fnoLoops, fvc);
+                    if(completionBlock != null)
+                    {
+                        try
+                        {
+                            completionBlock.run();
+                        }
+                        catch (Exception e)
+                        {
+
+                        }
+                    }
                     return null;
                 }
             }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);

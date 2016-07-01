@@ -100,8 +100,8 @@ public class X_Count100_Additions
                 txt.setPosition(box.position());
 
                 numbers.add(txt);
-                curX = box.right() - lineSize ;
-
+                curX = box.right() - (float)(lineSize/2.0) ;
+                box.setMasksToBounds(true);
                 box.setProperty("num_value", n);
                 txt.setProperty("num_value", n);
                 txt.setZPosition(2);
@@ -116,7 +116,7 @@ public class X_Count100_Additions
             if(!single)
             {
                 curX = startX;
-                curY = boxes.get(10*(i)).bottom() -lineSize ;
+                curY = boxes.get(10*(i)).bottom() - (float)(lineSize/2.0) ;
             }
         }
 
@@ -155,8 +155,9 @@ public class X_Count100_Additions
             controller.attachControl(frame);
         }
 
-       // OBGroup group = new OBGroup(allControls);
-       // controller.attachControl(group);
+        OBGroup group = new OBGroup(allControls);controller.attachControl(group);
+        group.setPosition(OB_Maths.locationForRect(0.5f,0.5f,controller.bounds()));
+        controller.objectDict.put("grid_group", group);
     }
 
     public static void loadNumbersAudio(OBSectionController controller)
