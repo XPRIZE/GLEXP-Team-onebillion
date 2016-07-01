@@ -33,7 +33,8 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
     float yinc;
     int boxesPerRow;
     List<String> letters, targetLetters, templateColours_fill, templateColours_stroke;
-    List<OBPath> boxes;
+    OBPath ropePath;
+    List<OBPath> boxes, strokes;
     List<OBLabel> labels;
     List<OBGroup> templateBacks, backs;
     int boxHighColour, boxLowColour;
@@ -64,6 +65,7 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
         //
         boxes = new ArrayList<OBPath>();
         backs = new ArrayList<OBGroup>();
+        strokes = new ArrayList<OBPath>();
         //
         while (i < letters.size())
         {
@@ -72,6 +74,12 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
             box.setPosition(x, y);
             attachControl(box);
             boxes.add(box);
+            //
+            OBPath stroke = (OBPath) box.copy();
+            stroke.setZPosition(box.zPosition() - 0.001f);
+            attachControl(stroke);
+            strokes.add(stroke);
+            //
             i++;
             col++;
             if (col >= boxesPerRow)
@@ -92,7 +100,7 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
             back.setPosition(box.position());
             OBPath fill = (OBPath) back.objectDict.get("colour");
             fill.setFillColor(OBUtils.colorFromRGBString(templateColours_fill.get(colourIdx)));
-            OBPath stroke = (OBPath) back.objectDict.get("frame");
+            stroke = (OBPath) back.objectDict.get("frame");
             stroke.setFillColor(OBUtils.colorFromRGBString(templateColours_stroke.get(colourIdx)));
             stroke.setProperty("stroke", stroke.fillColor());
             //
@@ -159,21 +167,24 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
         }
         OBPath rope = (OBPath) objectDict.get("ropestart");
         //
-        OBPath path = new OBPath(p);
-        path.sizeToBox(new RectF(bounds()));
-        path.setLineWidth(rope.lineWidth());
-        path.setStrokeColor(rope.strokeColor());
-        path.setZPosition(rope.zPosition());
-        path.show();
-        path.setNeedsRetexture();
-        attachControl(path);
-        objectDict.put("path", path);
+        if (ropePath != null)
+        {
+            detachControl(ropePath);
+        }
+        ropePath = new OBPath(p);
+        ropePath.sizeToBox(new RectF(bounds()));
+        ropePath.setLineWidth(rope.lineWidth());
+        ropePath.setStrokeColor(rope.strokeColor());
+        ropePath.setZPosition(rope.zPosition());
+        ropePath.show();
+        ropePath.setNeedsRetexture();
+        attachControl(ropePath);
+        objectDict.put("path", ropePath);
         //
         UPath deconPath = deconstructedPath("mastera", "ropestart");
         PointF firstPoint = deconPath.subPaths.get(0).elements.get(0).pt0;
-//        PointF pt = convertPointFromControl(firstPoint, rope);
         position = XPRZ_Generic.copyPoint(boxes.get(0).position());
-        PointF diff = OB_Maths.DiffPoints(position, firstPoint);
+        PointF diff = OB_Maths.DiffPoints(firstPoint, position);
         PointF newRopePosition = OB_Maths.AddPoints(rope.position(), diff);
         rope.setPosition(newRopePosition);
         //
@@ -190,6 +201,13 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
     public void layOutLabels ()
     {
         Typeface tf = OBUtils.standardTypeFace();
+        if (labels != null && labels.size() > 0)
+        {
+            for (OBLabel label : labels)
+            {
+                detachControl(label);
+            }
+        }
         labels = new ArrayList<OBLabel>();
         for (int i = 0; i < letters.size(); i++)
         {

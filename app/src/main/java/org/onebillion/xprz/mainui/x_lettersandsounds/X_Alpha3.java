@@ -74,12 +74,12 @@ public class X_Alpha3 extends X_Alpha
         List audio, replayAudio;
         if (phase == 0)
         {
-            audio = currentAudio ("PROMPT");
-            replayAudio = currentAudio ("REPEAT");
+            audio = currentAudio("PROMPT");
+            replayAudio = currentAudio("REPEAT");
         }
         else
         {
-            audio = currentAudio (String.format("PROMPT%d", phase + 1));
+            audio = currentAudio(String.format("PROMPT%d", phase + 1));
             replayAudio = currentAudio(String.format("REPEAT%d", phase + 1));
         }
         setReplayAudio(replayAudio);
@@ -127,69 +127,67 @@ public class X_Alpha3 extends X_Alpha
     }
 
 
-    public void demoa() throws Exception
+    public void demoa () throws Exception
     {
-//        setStatus(STATUS_DOING_DEMO);
-//        waitForSecs(0.3);
-//        //
-//        List aud = currentAudio("DEMO");
-//        PointF position = XPRZ_Generic.copyPoint((PointF) presenter.control.propertyValue("restPos"));
-//        presenter.walk(position);
-//        presenter.faceFront();
-//        waitForSecs(0.3);
-//        //
-//        presenter.speak(Arrays.asList(aud.get(0)), this); // You have a name. Letters have names too!
-//        waitForSecs(0.8);
-//        //
-//        presenter.speak(Arrays.asList(aud.get(1)), this); // Let’s hear the names of the letters.
-//        waitForSecs(0.3);
-//        //
-//        PointF currPos = XPRZ_Generic.copyPoint(presenter.control.getWorldPosition());
-//        PointF destPos = new PointF(currPos.x - bounds().width() * 0.2f, currPos.y);
-//        presenter.walk(destPos);
-//        presenter.faceFront();
-//        waitForSecs(0.3);
-//        //
-//        presenter.speak(Arrays.asList(aud.get(2)), this); // Are you ready?
-//        waitForSecs(0.3);
-//        //
-//        currPos = XPRZ_Generic.copyPoint(presenter.control.getWorldPosition());
-//        OBControl side = presenter.control.objectDict.get("faceright");
-//        destPos = new PointF(- side.width() * 1.2f, currPos.y);
-//        presenter.walk(destPos);
+        setStatus(STATUS_DOING_DEMO);
+        waitForSecs(0.3);
+        //
+        List aud = currentAudio("DEMO");
+        PointF position = XPRZ_Generic.copyPoint((PointF) presenter.control.propertyValue("restPos"));
+        presenter.walk(position);
+        presenter.faceFront();
+        waitForSecs(0.3);
+        //
+        presenter.speak(Arrays.asList(aud.get(0)), this); // You have a name. Letters have names too!
+        waitForSecs(0.8);
+        //
+        presenter.speak(Arrays.asList(aud.get(1)), this); // Let’s hear the names of the letters.
+        waitForSecs(0.3);
+        //
+        PointF currPos = XPRZ_Generic.copyPoint(presenter.control.getWorldPosition());
+        PointF destPos = new PointF(currPos.x - bounds().width() * 0.2f, currPos.y);
+        presenter.walk(destPos);
+        presenter.faceFront();
+        waitForSecs(0.3);
+        //
+        presenter.speak(Arrays.asList(aud.get(2)), this); // Are you ready?
+        waitForSecs(0.3);
+        //
+        currPos = XPRZ_Generic.copyPoint(presenter.control.getWorldPosition());
+        OBControl side = presenter.control.objectDict.get("faceright");
+        destPos = new PointF(- side.width() * 1.2f, currPos.y);
+        presenter.walk(destPos);
         //
         nextScene();
     }
 
 
-
-    public void demob() throws Exception
+    public void demob () throws Exception
     {
         setStatus(STATUS_DOING_DEMO);
         //
         loadPointer(POINTER_MIDDLE);
         XPRZ_Generic.pointer_moveToRelativePointOnScreen(0.9f, 1.3f, 0f, 0.1f, true, this);
-        //
+        //  q
         OBControl box = boxes.get(lastBox - 1);
         PointF position = XPRZ_Generic.copyPoint(box.position());
         position.y += 0.75 * box.height();
-        XPRZ_Generic.pointer_moveToRelativePointOnScreen(0.9f, 0.85f, -5f, 0.6f, false, this);
         //
-        action_playNextDemoSentence(false); // When a row flashes, touch it.
-        movePointerToPoint(position, -5, -0.9f, true);
+        playSceneAudio("PROMPT", false); // When a row flashes, touch it.
+        movePointerToPoint(position, -5, -1.2f, true);
         waitAudio();
         waitForSecs(0.3);
         //
         thePointer.hide();
         waitForSecs(0.3);
-        setReplayAudioScene("REPEAT", currentEvent());
+        setReplayAudioScene(currentEvent(), "REPEAT");
         setStatus(STATUS_AWAITING_CLICK);
         //
         action_flashRow();
     }
 
 
-    public void action_flashRow()
+    public void action_flashRow ()
     {
         flashBoxTimeStamp = statusTime;
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
@@ -202,22 +200,23 @@ public class X_Alpha3 extends X_Alpha
         });
     }
 
-    public void action_flashRow_stop()
+    public void action_flashRow_stop ()
     {
         flashBoxTimeStamp = 0;
     }
 
 
-    public void action_flashRowWithStatusTime(final long timeStamp) throws Exception
+    public void action_flashRowWithStatusTime (final long timeStamp) throws Exception
     {
+        if (flashBoxTimeStamp != timeStamp) return;
+        //
         lockScreen();
         for (int i = firstBox; i < lastBox; i++)
         {
-            OBPath box = boxes.get(i);
-            box.setFillColor(boxHighColour);
-            box.setLineWidth(applyGraphicScale(5));
-            box.setStrokeColor(boxHighColour);
-            box.sizeToBoundingBoxIncludingStroke();
+            OBPath stroke = strokes.get(i);
+            stroke.setLineWidth(applyGraphicScale(10));
+            stroke.setStrokeColor(boxHighColour);
+            stroke.sizeToBoundingBoxIncludingStroke();
             //
             OBGroup back = backs.get(i);
             OBControl frame = back.objectDict.get("frame");
@@ -233,11 +232,10 @@ public class X_Alpha3 extends X_Alpha
         lockScreen();
         for (int i = firstBox; i < lastBox; i++)
         {
-            OBPath box = boxes.get(i);
-            box.setFillColor(boxLowColour);
-            box.setLineWidth(applyGraphicScale(1));
-            box.setStrokeColor(boxLowColour);
-            box.sizeToBoundingBoxIncludingStroke();
+            OBPath stroke = strokes.get(i);
+            stroke.setLineWidth(applyGraphicScale(1));
+            stroke.setStrokeColor(boxLowColour);
+            stroke.sizeToBoundingBoxIncludingStroke();
             //
             OBGroup back = backs.get(i);
             OBControl frame = back.objectDict.get("frame");
@@ -262,8 +260,7 @@ public class X_Alpha3 extends X_Alpha
     }
 
 
-
-    public void action_introLetters_beat() throws Exception
+    public void action_introLetters_beat () throws Exception
     {
         float beatsPerMinute = Float.parseFloat(parameters.get("bpm"));
         float waitTime = 60 / beatsPerMinute;
@@ -329,8 +326,7 @@ public class X_Alpha3 extends X_Alpha
     }
 
 
-
-    public void action_introLetters_rhythm() throws Exception
+    public void action_introLetters_rhythm () throws Exception
     {
         float beatsPerMinute = Float.parseFloat(parameters.get("bpm"));
         float waitTime = 60 / beatsPerMinute;
@@ -411,7 +407,7 @@ public class X_Alpha3 extends X_Alpha
     }
 
 
-    public void action_introLetters() throws Exception
+    public void action_introLetters () throws Exception
     {
         String sfx = parameters.get("sfx");
         String rhythm = parameters.get("rhythm");
@@ -427,7 +423,7 @@ public class X_Alpha3 extends X_Alpha
     }
 
 
-    public void action_showLetters() throws Exception
+    public void action_showLetters () throws Exception
     {
         List<OBAnim> animations = new ArrayList();
         //
@@ -464,8 +460,7 @@ public class X_Alpha3 extends X_Alpha
     }
 
 
-
-    public Boolean action_isCorrectBox(OBGroup box)
+    public Boolean action_isCorrectBox (OBPath box)
     {
         for (int i = firstBox; i < lastBox; i++)
         {
@@ -475,7 +470,7 @@ public class X_Alpha3 extends X_Alpha
     }
 
 
-    public void checkBox(OBGroup box)
+    public void checkBox (OBPath box)
     {
         setStatus(STATUS_CHECKING);
         //
@@ -541,9 +536,9 @@ public class X_Alpha3 extends X_Alpha
     }
 
 
-    public OBGroup findBox(PointF pt)
+    public OBPath findBox (PointF pt)
     {
-        return (OBGroup) finger(-1, 2, (List<OBControl>) (Object) boxes, pt, true);
+        return (OBPath) finger(-1, 2, (List<OBControl>) (Object) boxes, pt, true);
     }
 
 
@@ -552,7 +547,7 @@ public class X_Alpha3 extends X_Alpha
     {
         if (status() == STATUS_AWAITING_CLICK)
         {
-            final OBGroup obj = findBox(pt);
+            final OBPath obj = findBox(pt);
             if (obj != null)
             {
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
@@ -561,6 +556,19 @@ public class X_Alpha3 extends X_Alpha
                     public void run () throws Exception
                     {
                         checkBox(obj);
+                    }
+                });
+            }
+            else
+            {
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run () throws Exception
+                    {
+                        lockScreen();
+                        layOutRope();
+                        unlockScreen();
                     }
                 });
             }
