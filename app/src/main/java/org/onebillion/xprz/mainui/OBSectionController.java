@@ -1694,6 +1694,7 @@ public class OBSectionController extends OBViewController
                 {
                     stopAllAudio();
                     MainActivity.mainViewController.popViewController();
+
                 }
             }.run();
         }

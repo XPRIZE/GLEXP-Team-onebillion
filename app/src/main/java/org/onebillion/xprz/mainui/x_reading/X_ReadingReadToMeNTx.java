@@ -470,13 +470,13 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
                 }
                 else
                 {
-                    setAnswerButtonActive(c);
+                    setAnswerButtonInActive(c);
                 }
             }
         };
         OBAnimationGroup ag = new OBAnimationGroup();
         registerAnimationGroup(ag,"flash");
-        ag.applyAnimations(Collections.singletonList(blockAnim),0.25f,true,OBAnim.ANIM_LINEAR,this);
+        ag.applyAnimations(Collections.singletonList(blockAnim),0.25f,false,OBAnim.ANIM_LINEAR,-1,null,this);
         setAnswerButtonActive(c);
     }
     void setAnswerButtonActive(OBPath c)
@@ -525,6 +525,8 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
             for (OBControl p : filterControls("answer.*"))
             {
                 OBPath c = (OBPath) p;
+                float l = c.lineWidth();
+                ((OBPath) p).outdent(l);
                 int col = c.fillColor();
                 c.setProperty("fillcolour", col);
                 c.setProperty("desatfillcolour", OBUtils.DesaturatedColour(col, 0.2f));

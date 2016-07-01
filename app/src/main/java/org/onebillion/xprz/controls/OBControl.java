@@ -202,6 +202,8 @@ public class OBControl
         if (layer != null)
             layer.setOpacity(f);
         invalidate();
+        if (hasTexturedParent())
+            setNeedsRetexture();
     }
 
     public RectF bounds()
@@ -250,6 +252,20 @@ public class OBControl
         setFrame(frame);
     }
 
+    public boolean hasTexturedParent()
+    {
+        if (parent == null)
+            return false;
+        List<OBControl> cnts  = controlsToAncestor(null);
+        for (OBControl cnt : cnts)
+        {
+            if (cnt.shouldTexturise())
+            {
+                return true;
+            }
+        }
+        return false;
+    }
     public void setNeedsRetexture()
     {
         needsRetexture = true;
@@ -1038,9 +1054,12 @@ public class OBControl
             else
             {
                 canvas.save();
-                Path p = new Path();
-                p.addRoundRect(bounds(),cornerRadius(),cornerRadius(),Path.Direction.CCW);
-                canvas.clipPath(p);
+                if (masksToBounds())
+                {
+                    Path p = new Path();
+                    p.addRoundRect(bounds(),cornerRadius(),cornerRadius(),Path.Direction.CCW);
+                    canvas.clipPath(p);
+                }
                 canvas.drawRoundRect(bounds(), cornerRadius, cornerRadius, strokePaint);
                 canvas.restore();
             }

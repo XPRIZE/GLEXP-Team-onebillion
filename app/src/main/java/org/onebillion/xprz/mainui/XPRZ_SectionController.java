@@ -471,4 +471,10 @@ public class XPRZ_SectionController extends OBSectionController {
         waitForSecs(wait);
     }
 
+    @Override
+    public void exitEvent()
+    {
+        super.exitEvent();
+        killAnimations();
+    }
 }
