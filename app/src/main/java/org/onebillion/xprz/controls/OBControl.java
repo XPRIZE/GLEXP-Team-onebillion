@@ -1410,9 +1410,9 @@ public class OBControl
             {
                 public void ex()
                 {
-                    invalidate();
                     hidden = true;
                     setNeedsRetexture();
+                    invalidate();
                 }
             }.run();
         }
@@ -1433,6 +1433,11 @@ public class OBControl
         hidden = h;
         invalidate();
         setNeedsRetexture();
+    }
+
+    public boolean hidden()
+    {
+        return hidden;
     }
     public void setMaskControl(OBControl m)
     {

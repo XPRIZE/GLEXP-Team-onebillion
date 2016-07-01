@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.AsyncTask;
+import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBEmitter;
@@ -511,7 +512,8 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         lockScreen();
         doVisual("cqmain");
         presenter = XPRZ_Presenter.characterWithGroup((OBGroup)objectDict.get("annahead"));
-
+        OBControl cameo = objectDict.get("cameo");
+        cameo.setShouldTexturise(false);
         //anna = (OBGroup) objectDict.get("annahead");
         faceForward();
         if (cqType == 1 || cqType == 3)
@@ -563,7 +565,6 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
                 waitForSecs(0.4f);
                 checkSequenceToken(token);
                 List<Object>audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("PROMPT");
-                audl = OBUtils.insertAudioInterval(audl,500);
                 presenter.speak(audl,this);
                 checkSequenceToken(token);
                 setStatus(STATUS_WAITING_FOR_ANSWER);
@@ -640,4 +641,128 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
             }
         });
     }
+
+    public void moveEmitter()
+    {
+        OBControl starEmitter = objectDict.get("starEmitter");
+        OBPath shape = (OBPath) objectDict.get("shape");
+        OBAnim anim = OBAnim.pathMoveAnim(starEmitter,shape.path(),false,0);
+        anim.key = "layer.emitterPosition";
+        OBAnimationGroup agp = new OBAnimationGroup();
+        //agp.applyAnimations(:@anim.() duration:2 wait:false timingFunction:ANIM_LINEAR noLoops:-1 completionBlock:nil];
+    }
+
+    public void checkAnswer1(OBControl targ,PointF pt)
+    {
+        int saveStatus = status();
+        setStatus(STATUS_CHECKING);
+        try
+        {
+            if (targ != null)
+            {
+                gotItRightBigTick(false);
+                waitSFX();
+                if (cqType == 1)
+                {
+                    doEmitter();
+                    moveEmitter();
+                    playSfxAudio("shimmer",false);
+                    waitForSecs(0.5f);
+                    waitSFX();
+                }
+                waitForSecs(0.5f);
+                List<Object>audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("CORRECT");
+                presenter.speak(audl,this);
+                finishQuestion();
+            }
+            else
+            {
+                gotItWrongWithSfx();
+                waitSFX();
+                waitForSecs(0.1f);
+                setStatus(saveStatus);
+                List<Object>audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("INCORRECT");
+                presenter.speak(audl,this);
+            }
+        }
+        catch (Exception exception)
+        {
+        }
+
+    }
+
+    public void checkAnswer2(OBControl targ,PointF pt)
+    {
+        int saveStatus = status();
+        setStatus(STATUS_CHECKING);
+        try
+        {
+            setAnswerButtonSelected((OBPath)targ);
+            if (targ == targets.get(0))
+            {
+                gotItRightBigTick(false);
+                waitSFX();
+                setAnswerButtonActive((OBPath)targ);
+                waitForSecs(0.5f);
+                faceForward();
+                waitForSecs(0.3f);
+                List<Object>audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("CORRECT");
+                presenter.speak(audl,this);
+                finishQuestion();
+            }
+            else
+            {
+                gotItWrongWithSfx();
+                waitSFX();
+                setAnswerButtonActive((OBPath)targ);
+                waitForSecs(0.1f);
+                faceForward();
+                waitForSecs(0.1f);
+                List<Object>audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("INCORRECT");
+                presenter.speak(audl,this);
+                waitAudio();
+                waitForSecs(0.1f);
+                demoCqType2b(false);
+                setStatus(saveStatus);
+            }
+        }
+        catch (Exception exception)
+        {
+        }
+
+    }
+    public Object findTarget(PointF pt)
+    {
+        OBControl c = finger(-1,2,targets,pt);
+        return c;
+    }
+
+    public void touchDownAtPoint(final PointF pt,View v)
+    {
+        if (status() == STATUS_WAITING_FOR_ANSWER)
+        {
+            target = (OBControl) findTarget(pt);
+            {
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
+                    @Override
+                    public void run() throws Exception {
+                        if (cqType == 1)
+                        {
+                            takeSequenceLockInterrupt(true);
+                            sequenceLock.unlock();
+                            checkAnswer1(target,pt);
+                            return;
+                        }
+                        if (target != null)
+                        {
+                            takeSequenceLockInterrupt(true);
+                            sequenceLock.unlock();
+                            checkAnswer2(target,pt);
+                        }
+                    }
+                });
+            }
+        }
+    }
+
 }

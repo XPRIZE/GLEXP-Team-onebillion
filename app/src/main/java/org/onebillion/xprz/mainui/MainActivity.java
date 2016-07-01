@@ -6,6 +6,7 @@ import android.content.pm.ConfigurationInfo;
 import android.graphics.PointF;
 import android.graphics.Typeface;
 import android.opengl.GLSurfaceView;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.widget.Toast;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.util.*;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
@@ -103,6 +105,7 @@ public class MainActivity extends ActionBarActivity
             mainViewController = new OBMainViewController(this);
             glSurfaceView.controller = mainViewController;
             new OBAudioManager();
+            ((ThreadPoolExecutor)AsyncTask.THREAD_POOL_EXECUTOR).setCorePoolSize(12);
         }
         catch (Exception e)
         {
