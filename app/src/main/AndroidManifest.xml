@@ -1,23 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.onebillion.xprz" android:installLocation="preferExternal">
+          package="org.onebillion.xprz"
+          android:installLocation="preferExternal">
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme" >
-        <activity android:name="org.onebillion.xprz.mainui.MainActivity"
-            android:theme="@style/Theme.AppCompat.NoActionBar"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name="org.onebillion.xprz.mainui.MainActivity"
             android:screenOrientation="landscape"
-            >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+            android:theme="@android:style/Theme.Holo.NoActionBar">
+        <!--    android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen"-->
+        <!--android:theme="@style/AppTheme.NoActionBar">-->
+        <!--android:theme="@android:style/Theme.NoTitleBar">-->
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-    </application>
+            <category android:name="android.intent.category.LAUNCHER"/>
+        </intent-filter>
+    </activity>
+</application>
 
-</manifest>
+    </manifest>

@@ -54,11 +54,15 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
         int templateIdx = 0;
         int colourIdx = 0;
         //
+        boxLowColour = ((OBPath) objectDict.get("_box2")).fillColor();
+        boxHighColour = ((OBPath) objectDict.get("boxhiswatch")).fillColor();
+        //
         OBPath c = (OBPath) objectDict.get("_box1");
         PointF topLeft = c.position();
+        //
         c = (OBPath) objectDict.get("_box2");
         PointF bottomRight = c.position();
-        boxLowColour = c.fillColor();
+        //
         int i = 0, row = 0, col = 0;
         float y = topLeft.y;
         yinc = bottomRight.y - y;
@@ -77,7 +81,11 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
             //
             OBPath stroke = (OBPath) box.copy();
             stroke.setZPosition(box.zPosition() - 0.001f);
+            stroke.setLineWidth(applyGraphicScale(10));
+            stroke.setStrokeColor(boxHighColour);
             attachControl(stroke);
+            stroke.sizeToBoundingBoxIncludingStroke();
+            stroke.hide();
             strokes.add(stroke);
             //
             i++;
@@ -111,8 +119,6 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
             back.show();
             backs.add(back);
         }
-        c = (OBPath) objectDict.get("boxhiswatch");
-        boxHighColour = c.fillColor();
     }
 
 
@@ -166,6 +172,14 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
             startBox = lastBox + 1;
         }
         OBPath rope = (OBPath) objectDict.get("ropestart");
+        if (rope.propertyValue("originalPosition") != null)
+        {
+            rope.setPosition((PointF)rope.propertyValue("originalPosition"));
+        }
+        else
+        {
+            rope.setProperty("originalPosition", rope.getWorldPosition());
+        }
         //
         if (ropePath != null)
         {
@@ -184,11 +198,20 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
         UPath deconPath = deconstructedPath("mastera", "ropestart");
         PointF firstPoint = deconPath.subPaths.get(0).elements.get(0).pt0;
         position = XPRZ_Generic.copyPoint(boxes.get(0).position());
-        PointF diff = OB_Maths.DiffPoints(firstPoint, position);
+        PointF diff = OB_Maths.DiffPoints(position, firstPoint);
         PointF newRopePosition = OB_Maths.AddPoints(rope.position(), diff);
         rope.setPosition(newRopePosition);
         //
         rope = (OBPath) objectDict.get("ropeend");
+        if (rope.propertyValue("originalPosition") != null)
+        {
+            rope.setPosition((PointF)rope.propertyValue("originalPosition"));
+        }
+        else
+        {
+            rope.setProperty("originalPosition", rope.getWorldPosition());
+        }
+        //
         deconPath = deconstructedPath("mastera", "ropeend");
         firstPoint = deconPath.subPaths.get(0).elements.get(0).pt0;
         position = XPRZ_Generic.copyPoint(boxes.get(boxes.size() - 1).position());
@@ -231,6 +254,7 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
         needDemo = (parameters.get("demo") != null && parameters.get("demo").equals("true"));
         currNo = 0;
         layOutBoxes();
+        layOutLabels();
     }
 
     @Override
@@ -241,7 +265,8 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
         targets = (List<OBControl>) (Object) boxes;
         //
         layOutRope();
-        layOutLabels();
+        //
+        hideControls("_box.*");
     }
 
 

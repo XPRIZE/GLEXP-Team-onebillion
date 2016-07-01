@@ -306,7 +306,7 @@ public class OBSectionController extends OBViewController
         inited = true;
         processParams();
         eventsDict = loadXML(getConfigPath(sectionName() + ".xml"));
-        loadAudioXML(getConfigPath(sectionName() + "audio.xml"));
+        loadAudioXML(getConfigPath(sectionAudioName() + "audio.xml"));
     }
 
     public void start ()
