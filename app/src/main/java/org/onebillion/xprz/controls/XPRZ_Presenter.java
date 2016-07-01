@@ -24,6 +24,7 @@ public class XPRZ_Presenter extends OBCharacter
     {
         XPRZ_Presenter c = new XPRZ_Presenter();
         c.control = g;
+        c.control.setShouldTexturise(false);
         return c;
     }
 
@@ -169,6 +170,58 @@ public class XPRZ_Presenter extends OBCharacter
         controller.unlockSequenceLock();
         showOnly("mouth_0",mouth);
 
+    }
+
+    public void speakWithToken(List<Object> audioFiles,long token, OBSectionController controller) throws Exception
+    {
+        OBAudioManager audioMan = OBAudioManager.audioManager;
+        OBGroup mouth = (OBGroup) control.objectDict.get("mouth");
+
+        try
+        {
+            for (Object af : OBUtils.insertAudioInterval(audioFiles,300))
+            {
+                if (af instanceof String)
+                {
+                    controller.playAudio((String)af);
+                    int mframe = 1, nframe = 1 ;
+                    while (audioMan.isPlaying() || audioMan.isPreparing())
+                    {
+                        showOnly(String.format("mouth_%d",mframe),mouth);
+                        nframe = OB_Maths.randomInt(1, 6);
+                        if(mframe == nframe)
+                        {
+                            mframe = (nframe+1)%6 +1;
+                        }
+                        else
+                        {
+                            mframe = nframe;
+                        }
+                        control.needsRetexture = true;
+                        control.invalidate();
+
+                        controller.waitForSecs(0.07 + OB_Maths.rndom()/10);
+                    }
+                }
+                else
+                {
+                    showOnly("mouth_0",mouth);
+                    float f = (Float) af;
+                    controller.waitForSecs(f/1000);
+                }
+                control.needsRetexture = true;
+                control.invalidate();
+                controller.checkSequenceToken(token);
+            }
+        }
+        catch (Exception exception)
+        {
+            throw (exception);
+        }
+        finally
+        {
+            showOnly("mouth_0",mouth);
+        }
     }
 
     public void moveHandfromIndex(int fromIdx,int toIdx,double dursecs) throws Exception

@@ -614,7 +614,7 @@ public class OBUtils
         components[0] = Color.red(colour);
         components[1] = Color.green(colour);
         components[2] = Color.blue(colour);
-        components[2] = Color.alpha(colour);
+        components[3] = Color.alpha(colour);
         float weights[] = {0.299f, 0.587f, 0.114f};
         float greyVal = 0;
         for (int i = 0; i < 3; i++)
@@ -752,8 +752,7 @@ public class OBUtils
                 {
                     String audioID = phonemeNode.attributeStringValue("id");
                     String content = phonemeNode.contents;
-//                    String hasAudio = phonemeNode.attributeStringValue("audio");
-                    OBPhoneme pho = new OBPhoneme(content, audioID, null, "true");
+                    OBPhoneme pho = new OBPhoneme(content, audioID, null);
                     dictionary.put(audioID, pho);
                 }
                 //
@@ -786,8 +785,7 @@ public class OBUtils
                         phonemes.add(dictionary.get(phonemeID));
                     }
                     //
-//                    String hasAudio = syllableNode.attributeStringValue("audio");
-                    OBSyllable syl = new OBSyllable(stringJoin(lets, ""), audioID, null, "true", phonemes);
+                    OBSyllable syl = new OBSyllable(stringJoin(lets, ""), audioID, null, phonemes);
                     dictionary.put(audioID, syl);
                 }
                 //
@@ -831,8 +829,7 @@ public class OBUtils
                             }
                         }
                         String image = wordNode.attributeStringValue("image");
-                        String hasAudio = wordNode.attributeStringValue("audio");
-                        OBWord wor = new OBWord(fullText, audioID, null, hasAudio, syllables, image);
+                        OBWord wor = new OBWord(fullText, audioID, null, syllables, image);
                         //
                         dictionary.put(audioID, wor);
                     }

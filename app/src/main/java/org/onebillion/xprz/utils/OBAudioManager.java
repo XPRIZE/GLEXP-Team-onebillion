@@ -33,6 +33,9 @@ public class OBAudioManager {
             Object xmlobj = xmlManager.parseFile(xmlStream);
             if (xmlobj != null)
             {
+                Map<String,Float> sfxvols = new HashMap<>();
+                audioDict.put("__sfxvols",sfxvols);
+
                 List<OBXMLNode> children;
                 if (xmlobj instanceof OBXMLNode)
                     children = ((OBXMLNode) xmlobj).childrenOfType("event");
@@ -44,9 +47,11 @@ public class OBAudioManager {
                 {
                     String ekey = xmlevent.attributeStringValue("id");
                     Map<String, List<Object>> phrasegroups = new HashMap<String, List<Object>>();
+                    List<String> groupList = new ArrayList<>();
                     for (OBXMLNode xmlphrasegroup : xmlevent.childrenOfType("phrasegroup"))
                     {
                         String pgkey = xmlphrasegroup.attributeStringValue("id");
+                        groupList.add(pgkey);
                         List<Object> phrases = new ArrayList<Object>();
                         for (OBXMLNode xmlphrase : xmlphrasegroup.childrenOfType("phrase"))
                         {
@@ -62,7 +67,11 @@ public class OBAudioManager {
                             }
                         }
                         phrasegroups.put(pgkey, phrases);
+                        String volk = xmlphrasegroup.attributeStringValue("vol");
+                        if (volk != null)
+                            sfxvols.put(pgkey,Float.parseFloat(volk));
                     }
+                    phrasegroups.put("__keys", (List<Object>)(Object) groupList);
                     audioDict.put(ekey, phrasegroups);
                 }
             }
@@ -84,6 +93,11 @@ public class OBAudioManager {
     public void stopPlayingSFX()
     {
         stopPlayingOnChannel(AM_SFX_CHANNEL);
+    }
+
+    public void stopPlayingBackground()
+    {
+        stopPlayingOnChannel(AM_BACKGROUND_CHANNEL);
     }
 
     public void stopAllAudio()
@@ -223,5 +237,11 @@ public class OBAudioManager {
     public double duration()
     {
         return durationForChannel(AM_MAIN_CHANNEL);
+    }
+
+
+    public double durationSFX()
+    {
+        return durationForChannel(AM_SFX_CHANNEL);
     }
 }

@@ -205,7 +205,10 @@ public class OBControl
         if (layer != null)
             layer.setOpacity(f);
         invalidate();
-  
+
+        if (hasTexturedParent())
+            setNeedsRetexture();
+
     }
 
     public RectF bounds()
@@ -254,6 +257,20 @@ public class OBControl
         setFrame(frame);
     }
 
+    public boolean hasTexturedParent()
+    {
+        if (parent == null)
+            return false;
+        List<OBControl> cnts  = controlsToAncestor(null);
+        for (OBControl cnt : cnts)
+        {
+            if (cnt.shouldTexturise())
+            {
+                return true;
+            }
+        }
+        return false;
+    }
     public void setNeedsRetexture()
     {
         needsRetexture = true;
@@ -817,7 +834,7 @@ public class OBControl
         OBControl parent = this.parent;
         if (parent == null)
         {
-            return this.position;
+            return new PointF(this.position.x, this.position.y);
         }
         else
         {
@@ -1042,9 +1059,12 @@ public class OBControl
             else
             {
                 canvas.save();
-                Path p = new Path();
-                p.addRoundRect(bounds(),cornerRadius(),cornerRadius(),Path.Direction.CCW);
-                canvas.clipPath(p);
+                if (masksToBounds())
+                {
+                    Path p = new Path();
+                    p.addRoundRect(bounds(),cornerRadius(),cornerRadius(),Path.Direction.CCW);
+                    canvas.clipPath(p);
+                }
                 canvas.drawRoundRect(bounds(), cornerRadius, cornerRadius, strokePaint);
                 canvas.restore();
             }
@@ -1433,9 +1453,9 @@ public class OBControl
             {
                 public void ex()
                 {
-                    invalidate();
                     hidden = true;
                     setNeedsRetexture();
+                    invalidate();
                 }
             }.run();
         }
@@ -1456,6 +1476,11 @@ public class OBControl
         hidden = h;
         invalidate();
         setNeedsRetexture();
+    }
+
+    public boolean hidden()
+    {
+        return hidden;
     }
     public void setMaskControl(OBControl m)
     {

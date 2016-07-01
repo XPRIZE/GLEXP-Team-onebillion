@@ -3,7 +3,7 @@ android {
     compileSdkVersion 23
     buildToolsVersion '23.0.3'
     defaultConfig {
-        applicationId "com.example.alan.xprappgl"
+        applicationId "org.onebillion.xprz0.pedro"
         minSdkVersion 23
         targetSdkVersion 23
         versionCode 1
@@ -26,6 +26,11 @@ android {
         compile fileTree(dir: 'libs', include: ['*.jar'])
         testCompile 'junit:junit:4.12'
         compile 'com.android.support:appcompat-v7:23.0.0'
+    }
+
+    dexOptions {
+        incremental true
+        javaMaxHeapSize "4096M"
     }
 }
 

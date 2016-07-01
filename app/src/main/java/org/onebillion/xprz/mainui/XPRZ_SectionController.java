@@ -487,4 +487,11 @@ public class XPRZ_SectionController extends OBSectionController {
 
 
 
+    @Override
+    public void exitEvent()
+    {
+        super.exitEvent();
+        killAnimations();
+    }
+
 }

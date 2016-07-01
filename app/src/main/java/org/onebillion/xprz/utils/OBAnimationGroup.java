@@ -32,6 +32,7 @@ public class OBAnimationGroup
     int chainIndex = 0;
     RectF r1;
     RectF r2;
+    boolean resetOnLoop;
 
     public static OBAnimationGroup runAnims(final List<OBAnim> anims,final double secs,boolean wait,final int timingFunction,final OBSectionController vc)
     {
@@ -212,6 +213,45 @@ public void applyAnimations(List<OBAnim>anims,double dur,int timingFunction,OBSe
 
     }
 
+    public void applyAnimations(List<OBAnim>anims,float secs,int timingFunction,int noLoops, OBUtils.RunLambda completionBlock,final OBSectionController vc)
+    {
+
+        while (noLoops != 0)
+        {
+            if ((flags & ANIM_CANCEL) != 0)
+                break;
+            applyAnimations(anims,secs,true,timingFunction,vc);
+            if (noLoops > 0)
+                noLoops--;
+            if (resetOnLoop && noLoops != 0)
+            {
+                for (OBAnim anim : anims)
+                {
+                    if (anim.initialValue != null)
+                        ((OBControl)anim.object).setProperty(anim.key,anim.initialValue);
+                }
+            }
+        }
+        if (completionBlock != null)
+            try {
+                completionBlock.run();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+    }
+
+    public void applyAnimations(final List<OBAnim>anims,final float secs,final boolean wait,final int timingFunction,final int noLoops, final OBUtils.RunLambda completionBlock,final OBSectionController vc)
+    {
+        if (wait)
+            applyAnimations(anims,secs,timingFunction,noLoops,completionBlock,vc);
+        else
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
+                @Override
+                public void run() throws Exception {
+                    applyAnimations(anims,secs,timingFunction,noLoops,completionBlock,vc);
+                }
+            });
+    }
     public void chainAnimations(List<List<OBAnim>> animArrays,List<Float>durations,List<Integer>timingFunctions,int noLoops,OBSectionController vc)
     {
         while (noLoops != 0)

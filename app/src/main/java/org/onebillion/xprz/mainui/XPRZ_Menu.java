@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable;
 import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
+import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.utils.OBImageManager;
 
 import java.util.List;
@@ -22,6 +23,9 @@ public class XPRZ_Menu extends XPRZ_SectionController
         super.prepare();
         saveConfig = (String)Config().get(MainActivity.CONFIG_APP_CODE);
         loadEvent("main");
+        for (OBControl but : filterControls("but.*"))
+            if (but instanceof OBGroup)
+                ((OBGroup) but).outdent(applyGraphicScale(8));
         for (OBControl c : attachedControls)
             c.texturise(true,this);
     }
@@ -94,7 +98,6 @@ public class XPRZ_Menu extends XPRZ_SectionController
                     String appDir = (String) Config().get("app_code");
                     String[] comps = appDir.split("/");
                     configName = comps[0];
-                    configName = configName.replace("-", "_");
                 }
                 else
                     MainActivity.mainActivity.updateConfigPaths(configName,false);

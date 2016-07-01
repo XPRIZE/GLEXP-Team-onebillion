@@ -35,10 +35,11 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
 {
     static final float FIRST_REMINDER_DELAY = 6.0f;
     static final float SECOND_REMINDER_DELAY = 4.0f;
+
+
     List<List<OBPhoneme>> words;
     List<OBLabel> labels;
     List<OBPhoneme> answers;
-    float textSize;
     Boolean breakdown_phoneme, breakdown_syllable;
     Boolean phase2, showTick;
     OBGroup button, avatar, window;
@@ -154,7 +155,7 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
         for (int i = 1; i <= wordsPerSet; i++)
         {
             OBPhoneme word = set.get(i - 1);
-            OBLabel label = setupLabel(word.text);
+            OBLabel label = action_setupLabel(word.text);
             labels.add(label);
             OBControl marker = objectDict.get(String.format("pos_%d_%d", wordsPerSet, i));
             label.setPosition(new PointF(midWayX, marker.position().y));
@@ -376,19 +377,7 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
     }
 
 
-    OBLabel setupLabel (String text)
-    {
-        Typeface tf = OBUtils.standardTypeFace();
-        OBLabel label = new OBLabel(text, tf, applyGraphicScale(textSize));
-        label.setColour(Color.BLACK);
-        label.setZPosition(XPRZ_Generic.getNextZPosition(this));
-        label.texturise(false, this);
-        //
-        label.hide();
-        label.disable();
-        attachControl(label);
-        return label;
-    }
+
 
 
     public void buttonShowState (String state)
@@ -435,7 +424,7 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
         //
         List<OBPhoneme> breakdown = correctAnswer.phonemes();
         //
-        String filename = new String(correctAnswer.audioFilename()).replace("fc_", "fc_let_");
+        String filename = new String(correctAnswer.audio()).replace("fc_", "fc_let_");
         playAudio(filename);
         //
         Double startTime = XPRZ_Generic.currentTime();
@@ -486,7 +475,7 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
         //
         List<OBSyllable> breakdown = correctAnswer.syllables();
         //
-        String filename = new String(correctAnswer.audioFilename()).replace("fc_", "fc_syl_");
+        String filename = new String(correctAnswer.audio()).replace("fc_", "fc_syl_");
         playAudio(filename);
         //
         Double startTime = XPRZ_Generic.currentTime();
@@ -539,7 +528,7 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
             OBWord correctAnswer = (OBWord) answer;
             //
             double startTime = XPRZ_Generic.currentTime();
-            playAudio(correctAnswer.audioFilename());
+            playAudio(correctAnswer.audio());
             double duration = OBAudioManager.audioManager.duration();
             double timePerSyllable = duration / (double) correctAnswer.syllables().size();
             action_highlightLabel(label, highlight);
@@ -562,7 +551,7 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
         }
         else
         {
-            playAudio(answer.audioFilename());
+            playAudio(answer.audio());
             action_highlightLabel(label, highlight);
             avatarShowMouthFrameForText(answer.text, false);
             waitAudio();
@@ -806,20 +795,6 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
         });
     }
 
-
-    public void action_highlightLabel (OBLabel label, Boolean high)
-    {
-        lockScreen();
-        if (high) action_setColourForLabel(label, Color.RED);
-        else action_setColourForLabel(label, Color.BLACK);
-        unlockScreen();
-    }
-
-
-    public void action_setColourForLabel (OBLabel label, int colour)
-    {
-        label.setColour(colour);
-    }
 
 
 }

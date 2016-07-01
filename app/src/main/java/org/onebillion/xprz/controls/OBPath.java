@@ -876,6 +876,19 @@ public class OBPath extends OBControl
         return bb;
     }
 
+    public void outdent (float f)
+    {
+        Path bez = path();
+        RectF b = bounds();
+        b.right += 2 * f;
+        b.bottom += 2 * f;
+        Matrix tr = new Matrix();
+        tr.setTranslate(f,f);
+        bez.transform(tr);
+        setBounds(b);
+    }
+
+
     public void sizeToBox(RectF bb)
     {
         Path bez = path();
@@ -1042,6 +1055,15 @@ public class OBPath extends OBControl
     {
         OBShapeLayer dr = (OBShapeLayer) layer;
         dr.path.lineTo(x, y);
+        setNeedsRetexture();
+        invalidate();
+    }
+
+
+    public void addCurveToPoint(PointF endPoint, PointF controlPoint1, PointF controlPoint2)
+    {
+        OBShapeLayer dr = (OBShapeLayer) layer;
+        dr.path.cubicTo(endPoint.x, endPoint.y, controlPoint1.x, controlPoint1.y, controlPoint2.x, controlPoint2.y);
         setNeedsRetexture();
         invalidate();
     }

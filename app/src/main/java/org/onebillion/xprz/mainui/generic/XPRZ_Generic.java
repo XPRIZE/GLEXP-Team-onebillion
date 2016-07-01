@@ -1,6 +1,7 @@
 package org.onebillion.xprz.mainui.generic;
 
 import android.graphics.PointF;
+import android.graphics.RectF;
 import android.os.SystemClock;
 import android.telephony.SmsMessage;
 
@@ -16,6 +17,7 @@ import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OBXMLManager;
 import org.onebillion.xprz.utils.OBXMLNode;
+import org.onebillion.xprz.utils.OB_Maths;
 import org.onebillion.xprz.utils.ULine;
 import org.onebillion.xprz.utils.UPath;
 import org.onebillion.xprz.utils.USubPath;
@@ -52,6 +54,13 @@ public class XPRZ_Generic
         if (anchorFlags.contains(Anchor.ANCHOR_BOTTOM)) position.y += control.height() / 2;
         //
         sc.movePointerToPoint(position, angle, secs, wait);
+    }
+
+
+    public static void pointer_moveToRelativePointOnScreen(float x, float y, float rotation, float secs, Boolean wait, XPRZ_SectionController sc)
+    {
+        PointF destination = OB_Maths.locationForRect(x, y, new RectF(sc.bounds()));
+        sc.movePointerToPoint(destination, rotation, secs, wait);
     }
 
     public static void pointer_moveToPointWithObject(OBControl control, PointF destination, float rotation, float secs, Boolean wait, XPRZ_SectionController sc)
