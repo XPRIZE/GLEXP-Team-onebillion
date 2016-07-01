@@ -51,33 +51,32 @@ public class OBSectionController extends OBViewController
             STATUS_EDITING = 17,
             STATUS_IDLE = 18,
             STATUS_BUSY = 19,
-            STATUS_WAITING_FOR_ANSWER = 20
-                    ;
+            STATUS_WAITING_FOR_ANSWER = 20;
     public static final int POINTER_ZPOS = 1000;
     public static final int POINTER_BOTLEFT = 0,
             POINTER_BOTRIGHT = 1,
             POINTER_LEFT = 2,
             POINTER_MIDDLE = 3,
-            POINTER_RIGHT =4;
-    public List<OBControl> objects,nonobjects,attachedControls,buttons,sortedAttachedControls;
-    public List<String>events;
-    public Map<String,Object>audioScenes,eventsDict;
-    public Map<String,OBControl> miscObjects,objectDict;
-    public Map<String,String>eventAttributes,parameters;
-    public int targetNo,currNo;
+            POINTER_RIGHT = 4;
+    public List<OBControl> objects, nonobjects, attachedControls, buttons, sortedAttachedControls;
+    public List<String> events;
+    public Map<String, Object> audioScenes, eventsDict;
+    public Map<String, OBControl> miscObjects, objectDict;
+    public Map<String, String> eventAttributes, parameters;
+    public int targetNo, currNo;
     public Object params;
     public OBControl target;
-    public boolean _aborting,sortedAttachedControlsValid,initialised;
-    public OBControl thePointer,tick;
-    protected int eventIndex,replayAudioIndex,theStatus,theMoveSpeed;
+    public boolean _aborting, sortedAttachedControlsValid, initialised;
+    public OBControl thePointer, tick;
+    protected int eventIndex, replayAudioIndex, theStatus, theMoveSpeed;
     protected List<Object> _replayAudio;
-    protected long audioQueueToken,sequenceToken,statusTime;
+    protected long audioQueueToken, sequenceToken, statusTime;
     protected Lock sequenceLock;
 
-    float topColour[] = {1,1,1,1};
-    float bottomColour[] = {1,1,1,1};
+    float topColour[] = {1, 1, 1, 1};
+    float bottomColour[] = {1, 1, 1, 1};
 
-    public OBSectionController(Activity a)
+    public OBSectionController (Activity a)
     {
         super(a);
         objects = new ArrayList<OBControl>();
@@ -95,45 +94,45 @@ public class OBSectionController extends OBViewController
     }
 
 
-    public static Map<String,Object>dictForObject(OBXMLNode e)
+    public static Map<String, Object> dictForObject (OBXMLNode e)
     {
-        Map<String,Object> objectDict = new HashMap<String,Object>();
-        Map<String,String> attrs = e.attributes;
+        Map<String, Object> objectDict = new HashMap<String, Object>();
+        Map<String, String> attrs = e.attributes;
         if (attrs != null)
         {
-            objectDict.put("attrs",attrs);
+            objectDict.put("attrs", attrs);
             String objid = attrs.get("id");
             if (objid != null)
-                objectDict.put("id",objid);
+                objectDict.put("id", objid);
         }
         List<OBXMLNode> chs = e.children;
         if (chs.size() > 0)
         {
-            List<Map<String,Object>> children = new ArrayList<Map<String,Object>>();
-            for (OBXMLNode ch:chs)
+            List<Map<String, Object>> children = new ArrayList<Map<String, Object>>();
+            for (OBXMLNode ch : chs)
                 children.add(dictForObject(ch));
-            objectDict.put("children",children);
+            objectDict.put("children", children);
         }
-        objectDict.put("nodetype",e.nodeName);
+        objectDict.put("nodetype", e.nodeName);
         if (e.contents != null)
-            objectDict.put("contents",e.contents);
+            objectDict.put("contents", e.contents);
         return objectDict;
     }
 
 
-    static Map<String,Object> Config()
+    static Map<String, Object> Config ()
     {
         return MainActivity.mainActivity.Config();
     }
 
-    static float floatOrZero(Map<String,Object>attrs,String s)
+    static float floatOrZero (Map<String, Object> attrs, String s)
     {
         if (attrs.get(s) != null)
-            return Float.parseFloat((String)attrs.get(s));
+            return Float.parseFloat((String) attrs.get(s));
         return 0;
     }
 
-    static List<List<Object>> gradientStopsFromArray(List<Map<String,Object>> children)
+    static List<List<Object>> gradientStopsFromArray (List<Map<String, Object>> children)
     {
         int col = Color.BLACK;
         List<List<Object>> elements = new ArrayList<>();
@@ -166,42 +165,42 @@ public class OBSectionController extends OBViewController
         return elements;
     }
 
-    public static UGradient gradientFromAttributes(Map<String,Object> attrs)
+    public static UGradient gradientFromAttributes (Map<String, Object> attrs)
     {
         UGradient grad = new UGradient();
         String s;
-        if ((s = (String)attrs.get("x1")) != null)
+        if ((s = (String) attrs.get("x1")) != null)
             grad.x1 = OBUtils.floatOrPercentage(s);
-        if ((s = (String)attrs.get("x2")) != null)
+        if ((s = (String) attrs.get("x2")) != null)
             grad.x2 = OBUtils.floatOrPercentage(s);
-        if ((s = (String)attrs.get("y1")) != null)
+        if ((s = (String) attrs.get("y1")) != null)
             grad.y1 = OBUtils.floatOrPercentage(s);
         if ((s = (String)
                 attrs.get("y2")) != null)
             grad.y2 = OBUtils.floatOrPercentage(s);
-        grad.stops = gradientStopsFromArray((List<Map<String,Object>>)(attrs.get("children")));
+        grad.stops = gradientStopsFromArray((List<Map<String, Object>>) (attrs.get("children")));
         return grad;
     }
 
-    public static URadialGradient radialGradientFromAttributes(Map<String,Object> attrs)
+    public static URadialGradient radialGradientFromAttributes (Map<String, Object> attrs)
     {
         URadialGradient grad = new URadialGradient();
         String s;
-        if ((s = (String)attrs.get("cx")) != null)
+        if ((s = (String) attrs.get("cx")) != null)
             grad.cx = OBUtils.floatOrPercentage(s);
-        if ((s = (String)attrs.get("fx")) != null)
+        if ((s = (String) attrs.get("fx")) != null)
             grad.fx = OBUtils.floatOrPercentage(s);
-        if ((s = (String)attrs.get("cy")) != null)
+        if ((s = (String) attrs.get("cy")) != null)
             grad.cy = OBUtils.floatOrPercentage(s);
-        if ((s = (String)attrs.get("fy")) != null)
+        if ((s = (String) attrs.get("fy")) != null)
             grad.fy = OBUtils.floatOrPercentage(s);
-        if ((s = (String)attrs.get("r")) != null)
+        if ((s = (String) attrs.get("r")) != null)
             grad.r = OBUtils.floatOrPercentage(s);
-        grad.stops = gradientStopsFromArray((List<Map<String,Object>>)(attrs.get("children")));
+        grad.stops = gradientStopsFromArray((List<Map<String, Object>>) (attrs.get("children")));
         return grad;
     }
 
-    public static OBControl objectWithMaxZpos(List<OBControl> arr)
+    public static OBControl objectWithMaxZpos (List<OBControl> arr)
     {
         OBControl maxobj = null;
         float maxzpos = -100;
@@ -214,55 +213,55 @@ public class OBSectionController extends OBViewController
         return maxobj;
     }
 
-    public static String getLocalPath(String fileName)
+    public static String getLocalPath (String fileName)
     {
-        for (String path : (List<String>)Config().get(MainActivity.CONFIG_AUDIO_SEARCH_PATH))
+        for (String path : (List<String>) Config().get(MainActivity.CONFIG_AUDIO_SEARCH_PATH))
         {
-            String fullpath = OBUtils.stringByAppendingPathComponent(path,fileName);
+            String fullpath = OBUtils.stringByAppendingPathComponent(path, fileName);
             if (OBUtils.fileExistsAtPath(fullpath))
                 return fullpath;
         }
         return null;
     }
 
-    public Map<String,Object> loadXML(String xmlPath)
+    public Map<String, Object> loadXML (String xmlPath)
     {
-        Map<String,Object> eventsDict = new HashMap<>();
+        Map<String, Object> eventsDict = new HashMap<>();
         OBXMLNode xmlNode = null;
         try
         {
             if (xmlPath != null)
             {
-                Map<String,Object> mstr = null;
+                Map<String, Object> mstr = null;
                 OBXMLManager xmlManager = new OBXMLManager();
                 List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
                 xmlNode = xl.get(0);
                 List<OBXMLNode> xmlevents = xmlNode.childrenOfType("event");
-                for(OBXMLNode xmlevent:xmlevents)
+                for (OBXMLNode xmlevent : xmlevents)
                 {
                     String key = xmlevent.attributeStringValue("id");
                     if (key == null)
                         key = "";
-                    Map<String,Object> eventDict = new HashMap<>();
-                    eventDict.put("attrs",xmlevent.attributes);
+                    Map<String, Object> eventDict = new HashMap<>();
+                    eventDict.put("attrs", xmlevent.attributes);
                     List<Object> objs = new ArrayList<>();
-                    Map<String,Object> objectsDict = new HashMap<>();
-                    for (OBXMLNode e:xmlevent.children)
+                    Map<String, Object> objectsDict = new HashMap<>();
+                    for (OBXMLNode e : xmlevent.children)
                     {
-                        Map<String,Object> objectDict = dictForObject(e);
-                        String objid = (String)objectDict.get("id");
+                        Map<String, Object> objectDict = dictForObject(e);
+                        String objid = (String) objectDict.get("id");
                         if (objid != null)
-                            objectsDict.put(objid,objectDict);
+                            objectsDict.put(objid, objectDict);
                         objs.add(objectDict);
                     }
-                    eventDict.put("objects",objs);
-                    eventDict.put("objectsdict",objectsDict);
-                    eventsDict.put(key,eventDict);
+                    eventDict.put("objects", objs);
+                    eventDict.put("objectsdict", objectsDict);
+                    eventsDict.put(key, eventDict);
                     if (mstr == null)
                         mstr = eventDict;
                 }
                 if (eventsDict.get("master") == null)
-                    eventsDict.put("master",mstr);
+                    eventsDict.put("master", mstr);
             }
         }
         catch (Exception e)
@@ -272,26 +271,26 @@ public class OBSectionController extends OBViewController
         return eventsDict;
     }
 
-    public void loadAudioXML(String xmlPath)
+    public void loadAudioXML (String xmlPath)
     {
         try
         {
             audioScenes = OBAudioManager.loadAudioXML(MainActivity.mainActivity.getAssets().open(xmlPath));
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             e.printStackTrace();
         }
     }
 
-    public void viewWillAppear(Boolean animated)
+    public void viewWillAppear (Boolean animated)
     {
         _aborting = false;
     }
 
-    public String getConfigPath(String cfgName)
+    public String getConfigPath (String cfgName)
     {
-        for (String path : (List<String>)Config().get(MainActivity.CONFIG_CONFIG_SEARCH_PATH))
+        for (String path : (List<String>) Config().get(MainActivity.CONFIG_CONFIG_SEARCH_PATH))
         {
             String fullpath = OBUtils.stringByAppendingPathComponent(path, cfgName);
             if (OBUtils.fileExistsAtPath(fullpath))
@@ -300,42 +299,42 @@ public class OBSectionController extends OBViewController
         return null;
     }
 
-    public void prepare()
+    public void prepare ()
     {
         super.prepare();
         theMoveSpeed = bounds().width();
         inited = true;
         processParams();
-        eventsDict = loadXML(getConfigPath(sectionName()+".xml"));
-        loadAudioXML(getConfigPath(sectionName()+"audio.xml"));
+        eventsDict = loadXML(getConfigPath(sectionName() + ".xml"));
+        loadAudioXML(getConfigPath(sectionName() + "audio.xml"));
     }
 
-    public void start()
+    public void start ()
     {
 
     }
 
-    public OBPath loadPath(Map<String,Object>attrs,RectF parentRect,float graphicScale,Map<String,Object>defs)
+    public OBPath loadPath (Map<String, Object> attrs, RectF parentRect, float graphicScale, Map<String, Object> defs)
     {
-        String pathString = (String)attrs.get("d");
+        String pathString = (String) attrs.get("d");
         Path p = OBPath.pathFromSVGPath(pathString);
         Matrix t = new Matrix();
         t.preTranslate(parentRect.left, parentRect.top);
         t.preScale(parentRect.width(), parentRect.height());
         p.transform(t);
-        OBPath path = makeShape(attrs,p,graphicScale,defs);
+        OBPath path = makeShape(attrs, p, graphicScale, defs);
         return path;
     }
 
-    public OBPath makeShape(Map<String,Object>attrs,Path p,float graphicScale,Map<String,Object>defs)
+    public OBPath makeShape (Map<String, Object> attrs, Path p, float graphicScale, Map<String, Object> defs)
     {
         OBPath im = null;
-        String fillstr = (String)attrs.get("fill");
+        String fillstr = (String) attrs.get("fill");
         if (fillstr != null && fillstr.startsWith("url("))
         {
-            Map<String,Object> settings = new HashMap<String,Object>();
+            Map<String, Object> settings = new HashMap<String, Object>();
             settings.putAll(attrs);
-            settings.put("defs",defs);
+            settings.put("defs", defs);
             //
             Class c = OBPath.classForSettings(settings);
             try
@@ -377,8 +376,8 @@ public class OBSectionController extends OBViewController
                 fill = OBUtils.colorFromRGBString(fillstr);
                 if (attrs.get("fillopacity") != null)
                 {
-                    float fo = Float.parseFloat((String)attrs.get("fillopacity"));
-                    fill = Color.argb((int)(fo * 255),Color.red(fill),Color.green(fill),Color.blue(fill));
+                    float fo = Float.parseFloat((String) attrs.get("fillopacity"));
+                    fill = Color.argb((int) (fo * 255), Color.red(fill), Color.green(fill), Color.blue(fill));
                 }
             }
             if (p != null)
@@ -395,7 +394,7 @@ public class OBSectionController extends OBViewController
         return im;
     }
 
-    public OBControl loadShape(Map<String,Object>attrs,String nodeType,float graphicScale,RectF r,Map<String,Object>defs)
+    public OBControl loadShape (Map<String, Object> attrs, String nodeType, float graphicScale, RectF r, Map<String, Object> defs)
     {
         OBControl im = null;
         float x = floatOrZero(attrs, "x");
@@ -403,14 +402,14 @@ public class OBSectionController extends OBViewController
         float w = floatOrZero(attrs, "width");
         float h = floatOrZero(attrs, "height");
         RectF f = OB_Maths.denormaliseRect(new RectF(x, y, x + w, y + h), r);
-        String s = (String)attrs.get("widthtracksheight");
+        String s = (String) attrs.get("widthtracksheight");
         if (s != null && s.equals("true"))
         {
-            float origheight = floatOrZero(attrs,"pxheight");
+            float origheight = floatOrZero(attrs, "pxheight");
             if (origheight > 0)
             {
                 float ratio = f.height() / origheight;
-                float newWidth = floatOrZero(attrs,"pxwidth") * ratio;
+                float newWidth = floatOrZero(attrs, "pxwidth") * ratio;
                 float diff = newWidth - f.width();
                 f.left -= diff / 2;
                 f.right = f.left + newWidth;
@@ -418,7 +417,7 @@ public class OBSectionController extends OBViewController
         }
         else
         {
-            s = (String)attrs.get("heighttrackswidth");
+            s = (String) attrs.get("heighttrackswidth");
             if (s != null && s.equals("true"))
             {
                 float origwidth = floatOrZero(attrs, "pxwidth");
@@ -432,11 +431,11 @@ public class OBSectionController extends OBViewController
                 }
             }
         }
-        String fit = (String)attrs.get("fit");
+        String fit = (String) attrs.get("fit");
         if (fit != null)
         {
             String[] arr = fit.split(",");
-            Set<String>fitattrs = new HashSet<String>();
+            Set<String> fitattrs = new HashSet<String>();
             fitattrs.addAll(Arrays.asList(arr));
             RectF vf = new RectF(bounds());
             if (fitattrs.contains("fitwidth"))
@@ -467,36 +466,36 @@ public class OBSectionController extends OBViewController
         if (nodeType.equals("circle"))
         {
             p = new Path();
-            p.addOval(b,Path.Direction.CCW);
+            p.addOval(b, Path.Direction.CCW);
         }
         else
         {
             if (attrs.get("cornerradius") != null)
             {
-                float cr = floatOrZero(attrs,"cornerradius");
+                float cr = floatOrZero(attrs, "cornerradius");
                 cr *= b.height();
                 p = new Path();
-                p.addRoundRect(b,cr,cr,Path.Direction.CCW);
+                p.addRoundRect(b, cr, cr, Path.Direction.CCW);
             }
             else
             {
                 p = new Path();
-                p.addRect(b,Path.Direction.CCW);
+                p.addRect(b, Path.Direction.CCW);
             }
         }
-        im = makeShape(attrs,p,graphicScale,defs);
-        im.setPosition(f.centerX(),f.centerY());
+        im = makeShape(attrs, p, graphicScale, defs);
+        im.setPosition(f.centerX(), f.centerY());
         return im;
     }
 
-    public Object loadImageFromDictionary(Map<String,Object> image,float graphicScale,Map<String,Object>defs)
+    public Object loadImageFromDictionary (Map<String, Object> image, float graphicScale, Map<String, Object> defs)
     {
         boolean scalable = true;
-        Map<String,Object> attrs = (Map<String,Object>)image.get("attrs");
+        Map<String, Object> attrs = (Map<String, Object>) image.get("attrs");
         //
         RectF r = new RectF(bounds());
-        String imageID = (String)attrs.get("id");
-        String par = (String)attrs.get("parent");
+        String imageID = (String) attrs.get("id");
+        String par = (String) attrs.get("parent");
         if (par != null)
         {
             OBControl c = objectDict.get(par);
@@ -505,12 +504,12 @@ public class OBSectionController extends OBViewController
             else
             {
                 if (c.parent != null)
-                    r = convertRectFromControl(c.bounds(),c);
+                    r = convertRectFromControl(c.bounds(), c);
                 else
                     r = c.frame();
             }
         }
-        String posstr = (String)attrs.get("pos");
+        String posstr = (String) attrs.get("pos");
         PointF pos = null;
         if (posstr != null)
         {
@@ -518,39 +517,39 @@ public class OBSectionController extends OBViewController
         }
         //
         OBControl im = null;
-        String nodeType = (String)image.get("nodetype");
-        String srcname = (String)attrs.get("src");
+        String nodeType = (String) image.get("nodetype");
+        String srcname = (String) attrs.get("src");
         if (nodeType.equals("image"))
-            im = loadImageWithName(srcname,pos,r,false);
+            im = loadImageWithName(srcname, pos, r, false);
         else if (nodeType.equals("vector"))
         {
-            im = loadVectorWithName(srcname,pos,r,false);
+            im = loadVectorWithName(srcname, pos, r, false);
             int skinOffset = 0;
             if (attrs.get("skinoffset") != null)
-                skinOffset = Integer.parseInt((String)attrs.get("skinoffset"));
+                skinOffset = Integer.parseInt((String) attrs.get("skinoffset"));
             int skincol = OBUtils.SkinColour(OBUtils.SkinColourIndex() + skinOffset);
-            ((OBGroup)im).substituteFillForAllMembers("skin.*", skincol);
+            ((OBGroup) im).substituteFillForAllMembers("skin.*", skincol);
             if (attrs.get("fill") != null)
             {
-                int col = OBUtils.colorFromRGBString((String)attrs.get("fill"));
-                ((OBGroup)im).substituteFillForAllMembers("col.*", col);
+                int col = OBUtils.colorFromRGBString((String) attrs.get("fill"));
+                ((OBGroup) im).substituteFillForAllMembers("col.*", col);
             }
         }
         else if (nodeType.equals("path"))
         {
             scalable = false;
-            im = loadPath(attrs,r,graphicScale,defs);
+            im = loadPath(attrs, r, graphicScale, defs);
         }
         else if (nodeType.equals("linearGradient"))
         {
-            Map<String,Object> d = new HashMap<String, Object>();
+            Map<String, Object> d = new HashMap<String, Object>();
             d.putAll(attrs);
             d.putAll(image);
             return gradientFromAttributes(d);
         }
         else if (nodeType.equals("radialGradient"))
         {
-            Map<String,Object> d = new HashMap<String, Object>();
+            Map<String, Object> d = new HashMap<String, Object>();
             d.putAll(attrs);
             d.putAll(image);
             return radialGradientFromAttributes(d);
@@ -558,34 +557,34 @@ public class OBSectionController extends OBViewController
         else if (nodeType.equals("group"))
         {
             scalable = false;
-            List<Map<String,Object>>chs = (List<Map<String,Object>>)image.get("children");
+            List<Map<String, Object>> chs = (List<Map<String, Object>>) image.get("children");
             if (chs != null && chs.size() > 0)
             {
                 List<OBControl> objs = new ArrayList<OBControl>();
-                for (Map<String,Object> d : chs)
+                for (Map<String, Object> d : chs)
                 {
-                    Object o = loadImageFromDictionary(d,graphicScale,defs);
-                    Map<String,Object> chattrs = (Map<String,Object>)d.get("attrs");
-                    String objID = (String)chattrs.get("id");
+                    Object o = loadImageFromDictionary(d, graphicScale, defs);
+                    Map<String, Object> chattrs = (Map<String, Object>) d.get("attrs");
+                    String objID = (String) chattrs.get("id");
                     if (OBControl.class.isInstance(o))
                     {
-                        OBControl ch = (OBControl)o;
+                        OBControl ch = (OBControl) o;
                         objs.add(ch);
                         if (objID != null)
                         {
-                            objectDict.put(objID,ch);
-                            ch.setProperty("name",objID);
+                            objectDict.put(objID, ch);
+                            ch.setProperty("name", objID);
                         }
                     }
                     else
-                        defs.put(objID,o);
+                        defs.put(objID, o);
                 }
                 OBGroup grp = new OBGroup(objs);
                 grp.buildObjectDict();
                 im = grp;
                 if (attrs.get("hasmask") != null)
                 {
-                    String hm = (String)attrs.get("hasmask");
+                    String hm = (String) attrs.get("hasmask");
                     if (hm.equals("true"))
                     {
                         OBControl mask = objectWithMaxZpos(grp.members);
@@ -597,15 +596,15 @@ public class OBSectionController extends OBViewController
                     }
                 }
             }
-            float gx=1,gy=1;
+            float gx = 1, gy = 1;
             if (attrs.get("scalex") != null)
             {
-                gx = floatOrZero(attrs,"scalex");
+                gx = floatOrZero(attrs, "scalex");
                 gy = gx;
             }
             if (attrs.get("scaley") != null)
             {
-                gy = floatOrZero(attrs,"scaley");
+                gy = floatOrZero(attrs, "scaley");
             }
             if (!(gx == 1 && gy == 1))
             {
@@ -614,29 +613,29 @@ public class OBSectionController extends OBViewController
             }
             if (attrs.get("fill") != null)
             {
-                int col = OBUtils.colorFromRGBString((String)attrs.get("fill"));
-                ((OBGroup)im).substituteFillForAllMembers("col.*",col);
+                int col = OBUtils.colorFromRGBString((String) attrs.get("fill"));
+                ((OBGroup) im).substituteFillForAllMembers("col.*", col);
             }
         }
         else if (nodeType.equals("text"))
         {
             scalable = false;
-            OBPath path = (OBPath)loadShape(attrs,"rectangle",graphicScale,r,defs);
+            OBPath path = (OBPath) loadShape(attrs, "rectangle", graphicScale, r, defs);
             path.sizeToBoundingBox();
             RectF b = path.bounds();
             List<OBControl> mems = Arrays.asList((OBControl) path);
             OBGroup grp = new OBGroup(mems);
-            List<Map<String,Object>> chs = (List<Map<String,Object>>)image.get("children");
-            for (Map<String,Object> d : chs)
+            List<Map<String, Object>> chs = (List<Map<String, Object>>) image.get("children");
+            for (Map<String, Object> d : chs)
             {
-                Map<String,String> objattrs = (Map<String, String>) d.get("attrs");
-                String s,fontFamily="Helvetica";
-                if ((s = objattrs.get("font-family"))!= null)
+                Map<String, String> objattrs = (Map<String, String>) d.get("attrs");
+                String s, fontFamily = "Helvetica";
+                if ((s = objattrs.get("font-family")) != null)
                     fontFamily = s;
-                float fontSize=20;
-                if ((s = objattrs.get("font-size"))!= null)
+                float fontSize = 20;
+                if ((s = objattrs.get("font-size")) != null)
                     fontSize = applyGraphicScale(Float.parseFloat(s));
-                boolean italic = false,bold = false;
+                boolean italic = false, bold = false;
                 if ((s = objattrs.get("font-weight")) != null && s.equals("bold"))
                     bold = true;
                 if ((s = objattrs.get("font-style")) != null && s.equals("italic"))
@@ -647,13 +646,12 @@ public class OBSectionController extends OBViewController
                         style = Typeface.BOLD_ITALIC;
                     else
                         style = Typeface.BOLD;
-                else
-                    if (italic)
-                        style = Typeface.ITALIC;
-                Typeface tf = Typeface.create(fontFamily,style);
+                else if (italic)
+                    style = Typeface.ITALIC;
+                Typeface tf = Typeface.create(fontFamily, style);
                 if (tf == null)
                     tf = Typeface.defaultFromStyle(style);
-                OBLabel lab = new OBLabel((String)(d.get("contents")),tf,fontSize);
+                OBLabel lab = new OBLabel((String) (d.get("contents")), tf, fontSize);
                 if ((s = objattrs.get("fill")) != null)
                 {
                     int c = OBUtils.svgColorFromRGBString(s);
@@ -672,7 +670,7 @@ public class OBSectionController extends OBViewController
                 pt.y += lf.height() / 2;
                 lab.setPosition(pt);
                 lab.setZPosition(1f);
-                grp.insertMember(lab,0,"t");
+                grp.insertMember(lab, 0, "t");
 
             }
             grp.buildObjectDict();
@@ -681,27 +679,27 @@ public class OBSectionController extends OBViewController
         else if (nodeType.equals("rectangle"))
         {
             scalable = false;
-            im = loadShape(attrs,nodeType,graphicScale,r,defs);
+            im = loadShape(attrs, nodeType, graphicScale, r, defs);
         }
         else if (nodeType.equals("circle"))
         {
             scalable = false;
-            im = loadShape(attrs,nodeType,graphicScale,r,defs);
+            im = loadShape(attrs, nodeType, graphicScale, r, defs);
         }
         if (im != null)
         {
-            float scx = 1,scy = 1,shadScale = 1;
+            float scx = 1, scy = 1, shadScale = 1;
             if (scalable)
             {
                 scx = scy = graphicScale;
                 if (attrs.get("scalex") != null)
                 {
-                    scx = floatOrZero(attrs,"scalex") * graphicScale;
+                    scx = floatOrZero(attrs, "scalex") * graphicScale;
                     scy = scx;
                 }
                 if (attrs.get("scaley") != null)
                 {
-                    scy = floatOrZero(attrs,"scaley") * graphicScale;
+                    scy = floatOrZero(attrs, "scaley") * graphicScale;
                 }
                 if (!(scx == 1 && scy == 1))
                 {
@@ -712,22 +710,22 @@ public class OBSectionController extends OBViewController
             }
             if (attrs.get("rotation") != null)
             {
-                float rt = floatOrZero(attrs,"rotation");
-                im.setRotation((float)Math.toRadians((double)-rt));
+                float rt = floatOrZero(attrs, "rotation");
+                im.setRotation((float) Math.toRadians((double) -rt));
             }
             if (nodeType.equals("vector"))
             {
-                OBControl anchor = (OBControl)((OBGroup)im).objectDict.get("anchor");
+                OBControl anchor = (OBControl) ((OBGroup) im).objectDict.get("anchor");
                 if (anchor != null)
                 {
-                    PointF pt = im.convertPointFromControl(anchor.position(),anchor.parent);
+                    PointF pt = im.convertPointFromControl(anchor.position(), anchor.parent);
                     PointF rpt = OB_Maths.relativePointInRectForLocation(pt, im.bounds());
                     im.setAnchorPoint(rpt);
                 }
             }
             if (attrs.get("anchor") != null && !nodeType.equals("rectangle"))
             {
-                PointF anc = OBUtils.pointFromString((String)attrs.get("anchor"));
+                PointF anc = OBUtils.pointFromString((String) attrs.get("anchor"));
                 PointF destPoint = OB_Maths.locationForRect(anc, im.frame());
                 PointF vec = OB_Maths.DiffPoints(im.position(), destPoint);
                 PointF newPoint = OB_Maths.AddPoints(im.position(), vec);
@@ -735,34 +733,34 @@ public class OBSectionController extends OBViewController
             }
             if (attrs.get("stroke") != null)
             {
-                OBStroke str = new OBStroke(attrs,true);
+                OBStroke str = new OBStroke(attrs, true);
                 im.setStroke(str);
             }
             if (attrs.get("opacity") != null)
             {
-                im.setOpacity(floatOrZero(attrs,"opacity"));
+                im.setOpacity(floatOrZero(attrs, "opacity"));
             }
             if (attrs.get("shadowcolour") != null)
             {
-                int col = OBUtils.colorFromRGBString((String)attrs.get("shadowcolour"));
+                int col = OBUtils.colorFromRGBString((String) attrs.get("shadowcolour"));
                 float ratio = Math.abs(1 / shadScale);
                 if (!scalable)
                     ratio = graphicScale;
-                float opacity = 1,xoff = 0,yoff = 0,rad = 3;
+                float opacity = 1, xoff = 0, yoff = 0, rad = 3;
                 if (attrs.get("shadowopacity") != null)
-                    opacity = Float.parseFloat((String)attrs.get("shadowopacity"));
+                    opacity = Float.parseFloat((String) attrs.get("shadowopacity"));
                 if (attrs.get("shadowradius") != null)
-                    rad = Float.parseFloat((String)attrs.get("shadowradius"));
+                    rad = Float.parseFloat((String) attrs.get("shadowradius"));
                 if (attrs.get("shadowxoffset") != null)
-                    xoff = Float.parseFloat((String)attrs.get("shadowxoffset"));
+                    xoff = Float.parseFloat((String) attrs.get("shadowxoffset"));
                 if (attrs.get("shadowyoffset") != null)
-                    yoff = Float.parseFloat((String)attrs.get("shadowyoffset"));
-                im.setShadow(rad,opacity,xoff,yoff,col);
+                    yoff = Float.parseFloat((String) attrs.get("shadowyoffset"));
+                im.setShadow(rad, opacity, xoff, yoff, col);
             }
-            im.setZPosition((floatOrZero(attrs,"zpos")));
+            im.setZPosition((floatOrZero(attrs, "zpos")));
             if ((attrs.get("hidden") != null && attrs.get("hidden").equals("true")) || (attrs.get("display") != null && attrs.get("display").equals("none")))
                 im.hide();
-            im.setProperty("attrs",attrs);
+            im.setProperty("attrs", attrs);
             if (srcname == null)
                 srcname = "";
             im.textureKey = srcname;
@@ -771,91 +769,92 @@ public class OBSectionController extends OBViewController
         return im;
     }
 
-    public float graphicScale()
+    public float graphicScale ()
     {
-     return (Float)(Config().get(MainActivity.mainActivity.CONFIG_GRAPHIC_SCALE));
+        return (Float) (Config().get(MainActivity.mainActivity.CONFIG_GRAPHIC_SCALE));
     }
 
-    public void loadEvent(String eventID)
+    public void loadEvent (String eventID)
     {
         float graphicScale = graphicScale();
-        Map<String,Object>event = (Map<String,Object>)eventsDict.get(eventID);
+        Map<String, Object> event = (Map<String, Object>) eventsDict.get(eventID);
         if (event == null)
             event = new HashMap<>();
-        eventAttributes = (Map<String,String>)event.get("attrs");
+        eventAttributes = (Map<String, String>) event.get("attrs");
         if (eventAttributes == null)
             eventAttributes = new HashMap<>();
         if (eventAttributes.get("colour") != null)
         {
             int col = (OBUtils.colorFromRGBString(eventAttributes.get("colour")));
-            OBUtils.getFloatColour(col,topColour);
-            OBUtils.getFloatColour(col,bottomColour);
+            OBUtils.getFloatColour(col, topColour);
+            OBUtils.getFloatColour(col, bottomColour);
         }
         if (eventAttributes.get("gradienttop") != null)
         {
             int col1 = OBUtils.colorFromRGBString(eventAttributes.get("gradienttop"));
             int col2 = OBUtils.colorFromRGBString(eventAttributes.get("gradientbottom"));
-            OBUtils.getFloatColour(col1,topColour);
-            OBUtils.getFloatColour(col2,bottomColour);
-         }
-        Map<String,Object>defs = new HashMap<String,Object>();
-        List<Map<String,Object>> imageList = (List<Map<String,Object>>)event.get("objects");
+            OBUtils.getFloatColour(col1, topColour);
+            OBUtils.getFloatColour(col2, bottomColour);
+        }
+        Map<String, Object> defs = new HashMap<String, Object>();
+        List<Map<String, Object>> imageList = (List<Map<String, Object>>) event.get("objects");
         if (imageList != null)
-            for (Map<String,Object> image : imageList)
+            for (Map<String, Object> image : imageList)
             {
-                Object im = loadImageFromDictionary(image,graphicScale,defs);
+                Object im = loadImageFromDictionary(image, graphicScale, defs);
                 if (im != null)
                 {
-                    Map<String,Object> attrs = (Map<String,Object>)image.get("attrs");
-                    String objID = (String)attrs.get("id");
+                    Map<String, Object> attrs = (Map<String, Object>) image.get("attrs");
+                    String objID = (String) attrs.get("id");
                     if (OBControl.class.isInstance(im))
                     {
-                        objectDict.put(objID,(OBControl)im);
-                        attachControl((OBControl)im);
+                        objectDict.put(objID, (OBControl) im);
+                        attachControl((OBControl) im);
                     }
                     else
-                        defs.put(objID,im);
+                        defs.put(objID, im);
                 }
             }
     }
 
-    public void processParams()
+    public void processParams ()
     {
         if (params != null)
         {
             if (String.class.isInstance(params))
             {
-                Map<String,String> d = new HashMap<>();
-                String components[] = ((String)params).split("/");
-                for (int i = 0;i < components.length;i++)
+                Map<String, String> d = new HashMap<>();
+                String components[] = ((String) params).split("/");
+                for (int i = 0; i < components.length; i++)
                 {
                     String pieces[] = components[i].split("=");
                     if (pieces.length == 1)
-                        d.put((new Integer(i)).toString(),pieces[0]);
+                        d.put((new Integer(i)).toString(), pieces[0]);
                     else if (pieces.length > 1)
-                        d.put(pieces[0],pieces[1]);
+                        d.put(pieces[0], pieces[1]);
                 }
                 parameters = d;
             }
         }
     }
 
-    public String sectionName()
+    public String sectionName ()
     {
-        String par0 = ((String)params).split("/")[0];
+        String par0 = ((String) params).split("/")[0];
         String parr[] = par0.split(";");
         return parr[0];
     }
 
-    public String sectionAudioName()
+    public String sectionAudioName ()
     {
-        String par0 = ((String)params).split("/")[0];
+        String par0 = ((String) params).split("/")[0];
         String parr[] = par0.split(";");
         if (parr.length > 1)
             return parr[1];
         return parr[0];
     }
-    public String currentEvent()
+
+    public String currentEvent ()
     {
         try
         {
@@ -867,9 +866,9 @@ public class OBSectionController extends OBViewController
         }
     }
 
-    public boolean performSel(String root,String suffix)
+    public boolean performSel (String root, String suffix)
     {
-        String str = root+suffix;
+        String str = root + suffix;
         try
         {
             Method m = this.getClass().getMethod(str);
@@ -893,35 +892,38 @@ public class OBSectionController extends OBViewController
         return false;
     }
 
-    public void doVisual(String scene)
+    public void doVisual (String scene)
     {
         lockScreen();
-        if (!performSel("setScene",scene))
+        if (!performSel("setScene", scene))
             setSceneXX(scene);
         unlockScreen();
     }
 
-    public void setSceneXX(String scene)
+    public void setSceneXX (String scene)
     {
 
     }
 
-    public void doAudio(String scene) throws Exception
+    public void doAudio (String scene) throws Exception
     {
 
     }
 
-    public void fin()
+    public void fin ()
     {
 
     }
 
-    public void setScene(final String scene)
+    public void setScene (final String scene)
     {
-        new OBRunnableSyncUI(){public void ex()
+        new OBRunnableSyncUI()
         {
-            doVisual(scene);
-        }}.run();
+            public void ex ()
+            {
+                doVisual(scene);
+            }
+        }.run();
 
         try
         {
@@ -933,19 +935,19 @@ public class OBSectionController extends OBViewController
         }
     }
 
-    public long switchStatus(String scene)
+    public long switchStatus (String scene)
     {
         return 0;
     }
 
-    public void nextScene()
+    public void nextScene ()
     {
         if (++eventIndex >= events.size())
         {
             new AsyncTask<Void, Void, Void>()
             {
                 @Override
-                protected Void doInBackground(Void... params)
+                protected Void doInBackground (Void... params)
                 {
                     fin();
                     return null;
@@ -957,7 +959,8 @@ public class OBSectionController extends OBViewController
             new AsyncTask<Void, Void, Void>()
             {
                 @Override
-                protected Void doInBackground(Void... params) {
+                protected Void doInBackground (Void... params)
+                {
                     setScene(events.get(eventIndex));
                     return null;
                 }
@@ -965,12 +968,12 @@ public class OBSectionController extends OBViewController
         }
     }
 
-    public void displayAward() throws Exception
+    public void displayAward () throws Exception
     {
 
     }
 
-    public void hideControls(String pattern)
+    public void hideControls (String pattern)
     {
         for (OBControl c : filterControls(pattern))
         {
@@ -982,7 +985,7 @@ public class OBSectionController extends OBViewController
 
     }
 
-    public void showControls(String pattern)
+    public void showControls (String pattern)
     {
         for (OBControl c : filterControls(pattern))
         {
@@ -993,7 +996,7 @@ public class OBSectionController extends OBViewController
         }
     }
 
-    public void deleteControls(String pattern)
+    public void deleteControls (String pattern)
     {
         for (String s : filterControlsIDs(pattern))
         {
@@ -1003,7 +1006,7 @@ public class OBSectionController extends OBViewController
         }
     }
 
-    public void attachControl(OBControl control)
+    public void attachControl (OBControl control)
     {
         if (control == null) return;
         //
@@ -1017,7 +1020,7 @@ public class OBSectionController extends OBViewController
         }
     }
 
-    public void detachControl(OBControl control)
+    public void detachControl (OBControl control)
     {
         if (control == null) return;
         //
@@ -1028,7 +1031,7 @@ public class OBSectionController extends OBViewController
         sortedAttachedControlsValid = false;
     }
 
-    public List<String> filterControlsIDs(String pattern)
+    public List<String> filterControlsIDs (String pattern)
     {
         List<String> arr = new ArrayList<String>();
         Pattern p = Pattern.compile(pattern);
@@ -1042,7 +1045,7 @@ public class OBSectionController extends OBViewController
         return arr;
     }
 
-    public List<OBControl> filterControls(String pattern)
+    public List<OBControl> filterControls (String pattern)
     {
         List<OBControl> arr = new ArrayList<OBControl>();
         for (String name : filterControlsIDs(pattern))
@@ -1050,7 +1053,7 @@ public class OBSectionController extends OBViewController
         return arr;
     }
 
-    public List<OBControl> sortedFilteredControls(String pattern)
+    public List<OBControl> sortedFilteredControls (String pattern)
     {
         List<String> arr = filterControlsIDs(pattern);
         Collections.sort(arr);
@@ -1060,12 +1063,13 @@ public class OBSectionController extends OBViewController
         return arr3;
     }
 
-    public List<OBControl> zPositionSortedFilteredControls(String pattern)
+    public List<OBControl> zPositionSortedFilteredControls (String pattern)
     {
         List<String> arr = filterControlsIDs(pattern);
-        Collections.sort(arr,new Comparator<String>(){
+        Collections.sort(arr, new Comparator<String>()
+        {
             @Override
-            public int compare(String o1, String o2)
+            public int compare (String o1, String o2)
             {
                 OBControl c1 = objectDict.get(o1);
                 OBControl c2 = objectDict.get(o2);
@@ -1084,18 +1088,18 @@ public class OBSectionController extends OBViewController
         return carr;
     }
 
-    void populateSortedAttachedControls()
+    void populateSortedAttachedControls ()
     {
         if (!sortedAttachedControlsValid)
         {
             sortedAttachedControls.clear();
             sortedAttachedControls.addAll(attachedControls);
-            for (int i = 0;i < sortedAttachedControls.size();i++)
+            for (int i = 0; i < sortedAttachedControls.size(); i++)
                 sortedAttachedControls.get(i).tempSortInt = i;
             Collections.sort(sortedAttachedControls, new Comparator<OBControl>()
             {
                 @Override
-                public int compare(OBControl lhs, OBControl rhs)
+                public int compare (OBControl lhs, OBControl rhs)
                 {
                     if (lhs.zPosition() < rhs.zPosition())
                         return -1;
@@ -1111,27 +1115,29 @@ public class OBSectionController extends OBViewController
             sortedAttachedControlsValid = true;
         }
     }
-    public void drawControls(Canvas canvas)
+
+    public void drawControls (Canvas canvas)
     {
         Rect clipb = canvas.getClipBounds();
         populateSortedAttachedControls();
         for (OBControl control : sortedAttachedControls)
         {
-            if (control.frame().intersects(clipb.left,clipb.top,clipb.right,clipb.bottom))
+            if (control.frame().intersects(clipb.left, clipb.top, clipb.right, clipb.bottom))
                 control.draw(canvas);
         }
     }
 
-    public void renderBackground(OBRenderer renderer)
+    public void renderBackground (OBRenderer renderer)
     {
 
-        ((ColorShaderProgram)renderer.colourProgram).setUniforms(renderer.projectionMatrix);
+        ((ColorShaderProgram) renderer.colourProgram).setUniforms(renderer.projectionMatrix);
 
         GradientRect gr = renderer.gradientRect;
-        gr.draw(renderer,0,0,renderer.w,renderer.h,topColour,bottomColour);
+        gr.draw(renderer, 0, 0, renderer.w, renderer.h, topColour, bottomColour);
 
     }
-    public void renderBackgroundo(OBRenderer renderer)
+
+    public void renderBackgroundo (OBRenderer renderer)
     {
         int POSITION_COMPONENT_COUNT = 3;
         int COLOR_COMPONENT_COUNT = 3;
@@ -1144,20 +1150,20 @@ public class OBSectionController extends OBViewController
                 g2 = bottomColour[1],
                 b2 = bottomColour[2];
         float vertices[] = {
-                -1,1,0,r1,g1,b1,
-                -1,-1,0,r2,g2,b2,
-                1,-1,0,r1,g1,b1,
-                -1,1,0,r2,g2,b2
+                -1, 1, 0, r1, g1, b1,
+                -1, -1, 0, r2, g2, b2,
+                1, -1, 0, r1, g1, b1,
+                -1, 1, 0, r2, g2, b2
         };
-        TextureRect.fillOutRectVertexData(vertices,0,0,renderer.w,renderer.h,POSITION_COMPONENT_COUNT + COLOR_COMPONENT_COUNT);
+        TextureRect.fillOutRectVertexData(vertices, 0, 0, renderer.w, renderer.h, POSITION_COMPONENT_COUNT + COLOR_COMPONENT_COUNT);
         FloatBuffer vertexData = ByteBuffer
                 .allocateDirect(vertices.length * BYTES_PER_FLOAT)
                 .order(ByteOrder.nativeOrder()).asFloatBuffer();
 
         vertexData.put(vertices);
 
-        int aPositionLocation = ((ColorShaderProgram)renderer.colourProgram).getPositionAttributeLocation();
-        int aColorLocation = ((ColorShaderProgram)renderer.colourProgram).getColorAttributeLocation();
+        int aPositionLocation = ((ColorShaderProgram) renderer.colourProgram).getPositionAttributeLocation();
+        int aColorLocation = ((ColorShaderProgram) renderer.colourProgram).getColorAttributeLocation();
 
         // Bind our data, specified by the variable vertexData, to the vertex
         // attribute at location A_POSITION_LOCATION.
@@ -1172,24 +1178,25 @@ public class OBSectionController extends OBViewController
                 false, STRIDE, vertexData);
 
         glEnableVertexAttribArray(aColorLocation);
-        glDrawArrays(GL_TRIANGLE_STRIP,0,4);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
 
-    public void render(OBRenderer renderer)
+    public void render (OBRenderer renderer)
     {
         renderBackground(renderer);
         TextureShaderProgram textureShader = (TextureShaderProgram) renderer.textureProgram;
         textureShader.useProgram();
         populateSortedAttachedControls();
-        List<OBControl>clist = sortedAttachedControls;
+        List<OBControl> clist = sortedAttachedControls;
         for (OBControl control : clist)
         {
             if (!control.hidden())
-                control.render(renderer,this,renderer.projectionMatrix);
+                control.render(renderer, this, renderer.projectionMatrix);
         }
 
     }
-    public OBImage loadImageWithName(String nm,PointF pt,RectF r,boolean attach)
+
+    public OBImage loadImageWithName (String nm, PointF pt, RectF r, boolean attach)
     {
         OBImage im = OBImageManager.sharedImageManager().imageForName(nm);
         if (im != null)
@@ -1203,12 +1210,12 @@ public class OBSectionController extends OBViewController
         return null;
     }
 
-    public OBImage loadImageWithName(String nm,PointF pt,RectF r)
+    public OBImage loadImageWithName (String nm, PointF pt, RectF r)
     {
         return loadImageWithName(nm, pt, r, true);
     }
 
-    public OBGroup loadVectorWithName(String nm,PointF pt,RectF r,boolean attach)
+    public OBGroup loadVectorWithName (String nm, PointF pt, RectF r, boolean attach)
     {
         OBGroup im = OBImageManager.sharedImageManager().vectorForName(nm);
         if (im != null)
@@ -1222,15 +1229,15 @@ public class OBSectionController extends OBViewController
         return null;
     }
 
-    public OBGroup loadVectorWithName(String nm,PointF pt,RectF r)
+    public OBGroup loadVectorWithName (String nm, PointF pt, RectF r)
     {
-        return loadVectorWithName(nm,pt,r,true);
+        return loadVectorWithName(nm, pt, r, true);
     }
 
-    public long setStatus(int st)
+    public long setStatus (int st)
     {
         long sttime;
-        synchronized(events)
+        synchronized (events)
         {
             theStatus = st;
             sttime = System.nanoTime();
@@ -1239,17 +1246,17 @@ public class OBSectionController extends OBViewController
         return sttime;
     }
 
-    public Boolean statusChanged(long sttime)
+    public Boolean statusChanged (long sttime)
     {
         return sttime != statusTime;
     }
 
-    public int status()
+    public int status ()
     {
         return theStatus;
     }
 
-    public void movePointerToPoint(PointF pt,float secs,boolean wait)
+    public void movePointerToPoint (PointF pt, float secs, boolean wait)
     {
         if (secs < 0)
         {
@@ -1261,7 +1268,7 @@ public class OBSectionController extends OBViewController
         OBAnimationGroup.runAnims(Arrays.asList(OBAnim.moveAnim(pt, thePointer)), secs, wait, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
     }
 
-    public void movePointerToPoint(PointF pt,float angle,float secs,boolean wait)
+    public void movePointerToPoint (PointF pt, float angle, float secs, boolean wait)
     {
         if (secs < 0)
         {
@@ -1272,31 +1279,31 @@ public class OBSectionController extends OBViewController
             pt = OB_Maths.locationForRect(pt, bounds());
         List<OBAnim> anims = new ArrayList<OBAnim>();
         anims.add(OBAnim.moveAnim(pt, thePointer));
-        anims.add(OBAnim.rotationAnim((float)Math.toRadians((double)angle),thePointer));
+        anims.add(OBAnim.rotationAnim((float) Math.toRadians((double) angle), thePointer));
         OBAnimationGroup.runAnims(anims, secs, wait, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
     }
 
-    public void movePointerForwards(float distance,float secs)
+    public void movePointerForwards (float distance, float secs)
     {
         float ang = thePointer.rotation;
-        float x = (float)Math.sin((float)ang);
-        float y = -(float)Math.cos((float) ang);
-        float len = (float)Math.sqrt(x * x + y * y);
+        float x = (float) Math.sin((float) ang);
+        float y = -(float) Math.cos((float) ang);
+        float len = (float) Math.sqrt(x * x + y * y);
         float ratio = distance / len;
         x *= ratio;
         y *= ratio;
-        PointF pos = new PointF(thePointer.position().x,thePointer.position().y);
+        PointF pos = new PointF(thePointer.position().x, thePointer.position().y);
         pos.x += x;
         pos.y += y;
         movePointerToPoint(pos, secs, true);
     }
 
-    public void loadPointerStartPoint(final PointF startPoint,final PointF targetPoint)
+    public void loadPointerStartPoint (final PointF startPoint, final PointF targetPoint)
     {
         final OBSectionController vc = this;
         new OBRunnableSyncUI()
         {
-            public void ex()
+            public void ex ()
             {
                 lockScreen();
                 if (thePointer == null)
@@ -1305,7 +1312,7 @@ public class OBSectionController extends OBViewController
                     arm.setZPosition(POINTER_ZPOS);
                     float graphicScale = MainActivity.mainActivity.applyGraphicScale(1);
                     arm.scaleX = arm.scaleY = graphicScale;
-                    arm.texturise(false,vc);
+                    arm.texturise(false, vc);
                     thePointer = arm;
                     attachControl(arm);
                 }
@@ -1323,9 +1330,9 @@ public class OBSectionController extends OBViewController
         //invalidateView((int) thePointer.frame.left, (int) thePointer.frame.top, (int) thePointer.frame.right, (int) thePointer.frame.bottom);
     }
 
-    public void loadPointer(int orientation)
+    public void loadPointer (int orientation)
     {
-        PointF startPoint,targetPoint;
+        PointF startPoint, targetPoint;
         switch (orientation)
         {
             case POINTER_BOTLEFT:
@@ -1337,15 +1344,15 @@ public class OBSectionController extends OBViewController
                 targetPoint = new PointF(1, 1);
                 break;
             case POINTER_LEFT:
-                startPoint = new PointF(0.75f,1);
-                targetPoint = new PointF(0,0);
+                startPoint = new PointF(0.75f, 1);
+                targetPoint = new PointF(0, 0);
                 break;
             case POINTER_MIDDLE:
                 startPoint = new PointF(0.5f, 1);
                 targetPoint = new PointF(0.5f, 0);
                 break;
             case POINTER_RIGHT:
-                startPoint = new PointF(0.25f,1);
+                startPoint = new PointF(0.25f, 1);
                 targetPoint = new PointF(1, 0);
                 break;
             default:
@@ -1357,75 +1364,84 @@ public class OBSectionController extends OBViewController
         loadPointerStartPoint(startPoint, targetPoint);
 
     }
-    void _playAudio(String fileName)
+
+    void _playAudio (String fileName)
     {
-        if(Looper.myLooper() == Looper.getMainLooper())
+        if (Looper.myLooper() == Looper.getMainLooper())
             OBAudioManager.audioManager.startPlaying(fileName);
         else
         {
             if (fileName != null)
                 fileName = new String(fileName);
             final String fn = fileName;
-            new OBRunnableSyncUI(){public void ex()
+            new OBRunnableSyncUI()
             {
-                _playAudio(fn);
-            }
+                public void ex ()
+                {
+                    _playAudio(fn);
+                }
             }.run();
         }
     }
 
-    void _playAudio(final String fileName,double atTime)
+    void _playAudio (final String fileName, double atTime)
     {
-        if(Looper.myLooper() == Looper.getMainLooper())
-            OBAudioManager.audioManager.startPlaying(fileName,atTime);
+        if (Looper.myLooper() == Looper.getMainLooper())
+            OBAudioManager.audioManager.startPlaying(fileName, atTime);
         else
         {
-            new OBRunnableSyncUI(){public void ex()
+            new OBRunnableSyncUI()
             {
-                _playAudio(fileName);
-            }
+                public void ex ()
+                {
+                    _playAudio(fileName);
+                }
             }.run();
         }
     }
 
-    public void playAudioFromTo(final String fileName, final double fromTime, final double toTime)
+    public void playAudioFromTo (final String fileName, final double fromTime, final double toTime)
     {
-        if(Looper.myLooper() == Looper.getMainLooper())
+        if (Looper.myLooper() == Looper.getMainLooper())
         {
-            _playAudio(fileName,fromTime);
-            final long t = (long)((toTime - fromTime) * 1000);
+            _playAudio(fileName, fromTime);
+            final long t = (long) ((toTime - fromTime) * 1000);
             Handler h = new Handler();
             h.postDelayed(new Runnable()
             {
                 @Override
-                public void run()
+                public void run ()
                 {
                     OBAudioManager.audioManager.stopPlaying();
                 }
-            },t);
+            }, t);
 
         }
         else
         {
-            new OBRunnableSyncUI(){public void ex()
+            new OBRunnableSyncUI()
             {
-                playAudioFromTo(fileName,fromTime,toTime);
-            }
+                public void ex ()
+                {
+                    playAudioFromTo(fileName, fromTime, toTime);
+                }
             }.run();
         }
     }
 
 
-    protected void playSFX(final String fileName)
+    protected void playSFX (final String fileName)
     {
-        new OBRunnableSyncUI(){public void ex()
+        new OBRunnableSyncUI()
         {
-            OBAudioManager.audioManager.startPlayingSFX(fileName);
-        }
+            public void ex ()
+            {
+                OBAudioManager.audioManager.startPlayingSFX(fileName);
+            }
         }.run();
     }
 
-    public long takeSequenceLockInterrupt(boolean interrupt)
+    public long takeSequenceLockInterrupt (boolean interrupt)
     {
         long token = SystemClock.uptimeMillis();
         if (interrupt)
@@ -1442,72 +1458,92 @@ public class OBSectionController extends OBViewController
         return token;
     }
 
-    public void unlockSequenceLock()
+    public void unlockSequenceLock ()
     {
         sequenceLock.unlock();
     }
 
-    public void checkSequenceToken(long token) throws Exception
+    public void checkSequenceToken (long token) throws Exception
     {
         if (token != sequenceToken)
             throw new Exception("Sequence interrupted");
     }
 
-    public long updateAudioQueueToken()
+    public long updateAudioQueueToken ()
     {
-        synchronized(this)
+        synchronized (this)
         {
             audioQueueToken = SystemClock.uptimeMillis();
             return audioQueueToken;
         }
     }
 
-    public void stopAllAudio()
+    public void stopAllAudio ()
     {
         updateAudioQueueToken();
         OBUtils.runOnMainThread(new OBUtils.RunLambda()
         {
             @Override
-            public void run() throws Exception
+            public void run () throws Exception
             {
                 OBAudioManager.audioManager.stopAllAudio();
             }
         });
     }
 
-    public void playAudio(String fileName)
+    public void playAudio (String fileName)
     {
         audioQueueToken = SystemClock.uptimeMillis();
         _playAudio(fileName);
     }
 
-    void playBackgroundAudio(String fileName)
+
+    void _playBackgroundAudio (String fileName)
     {
-        if(Looper.myLooper() == Looper.getMainLooper())
-            OBAudioManager.audioManager.startPlaying(fileName,"1");
+        if (Looper.myLooper() == Looper.getMainLooper())
+            OBAudioManager.audioManager.startPlaying(fileName, "1");
         else
         {
             final String fn = new String(fileName);
-            new OBRunnableSyncUI(){public void ex()
+            new OBRunnableSyncUI()
             {
-                playBackgroundAudio(fn);
-            }
+                public void ex ()
+                {
+                    _playBackgroundAudio(fn);
+                }
             }.run();
         }
     }
 
-    public void waitSFX() throws Exception
+    public void playBackgroundAudio (String fileName, Boolean wait) throws Exception
+    {
+        _playBackgroundAudio(fileName);
+        if (wait)
+        {
+            waitBackground();
+        }
+    }
+
+
+    public void waitBackground () throws Exception
+    {
+        waitAudioChannel(OBAudioManager.AM_BACKGROUND_CHANNEL);
+    }
+
+    public void waitSFX () throws Exception
     {
         waitAudioChannel(OBAudioManager.AM_SFX_CHANNEL);
     }
-    public void playSfxAudio(String audioName,boolean wait) throws Exception
+
+
+    public void playSfxAudio (String audioName, boolean wait) throws Exception
     {
         if (audioScenes == null)
             return;
-        Map<String,List<String>> sc = (Map<String,List<String>>)audioScenes.get("sfx");
+        Map<String, List<String>> sc = (Map<String, List<String>>) audioScenes.get("sfx");
         if (sc != null)
         {
-            List<Object> evl = (List<Object>)(Object)sc.get(audioName); //yuk!
+            List<Object> evl = (List<Object>) (Object) sc.get(audioName); //yuk!
             if (evl != null && evl.size() > 0)
                 playSFX((String) evl.get(0));
             if (wait)
@@ -1515,13 +1551,13 @@ public class OBSectionController extends OBViewController
         }
     }
 
-    public List<String> currentAudio(String audioCategory)
+    public List<String> currentAudio (String audioCategory)
     {
-        Map<String,List> eventd = (Map<String, List>) audioScenes.get(currentEvent());
+        Map<String, List> eventd = (Map<String, List>) audioScenes.get(currentEvent());
         return eventd.get(audioCategory);
     }
 
-    public void playAudioQueued(List<Object>qu,final boolean wait) throws Exception
+    public void playAudioQueued (List<Object> qu, final boolean wait) throws Exception
     {
         Lock lock = null;
         Condition condition = null;
@@ -1531,7 +1567,7 @@ public class OBSectionController extends OBViewController
             condition = lock.newCondition();
         }
         long token;
-        synchronized(this)
+        synchronized (this)
         {
             audioQueueToken = SystemClock.uptimeMillis();
             token = audioQueueToken;
@@ -1541,9 +1577,9 @@ public class OBSectionController extends OBViewController
         final Lock flock = lock;
         final Condition fcondition = condition;
         final OB_MutBoolean fabort = new OB_MutBoolean(_aborting);
-        new AsyncTask<Void,Void,Void>()
+        new AsyncTask<Void, Void, Void>()
         {
-            protected Void doInBackground(Void... params)
+            protected Void doInBackground (Void... params)
             {
                 try
                 {
@@ -1553,11 +1589,11 @@ public class OBSectionController extends OBViewController
                             break;
                         if (obj instanceof Integer)
                         {
-                            Thread.sleep(((Integer)obj).intValue());
+                            Thread.sleep(((Integer) obj).intValue());
                         }
                         else
                         {
-                            _playAudio((String)obj);
+                            _playAudio((String) obj);
                             if (wait)
                                 waitAudio();
                             else
@@ -1591,12 +1627,12 @@ public class OBSectionController extends OBViewController
         }
     }
 
-    public void playAudioQueued(List<Object>qu) throws Exception
+    public void playAudioQueued (List<Object> qu) throws Exception
     {
-        playAudioQueued(qu,false);
+        playAudioQueued(qu, false);
     }
 
-    public void setReplayAudio(List<Object>arr)
+    public void setReplayAudio (List<Object> arr)
     {
         if (arr != _replayAudio)
         {
@@ -1604,39 +1640,39 @@ public class OBSectionController extends OBViewController
         }
     }
 
-    public void setReplayAudioScene(String scene,String event)
+    public void setReplayAudioScene (String scene, String event)
     {
         Map<String, List<String>> sc = (Map<String, List<String>>) audioScenes.get(scene);
         List<Object> arr = (List<Object>) (Object) sc.get(event); //yuk!
         setReplayAudio(arr);
     }
 
-    public List<Object> emptyReplayAudio()
+    public List<Object> emptyReplayAudio ()
     {
         List<Object> arr = _replayAudio;
         _replayAudio = null;
         return arr;
     }
 
-    protected void _replayAudio()
+    protected void _replayAudio ()
     {
         try
         {
-            playAudioQueued(_replayAudio,true);
+            playAudioQueued(_replayAudio, true);
         }
         catch (Exception exception)
         {
         }
     }
 
-    public void replayAudio()
+    public void replayAudio ()
     {
         if (_replayAudio != null)
         {
             setStatus(status());
             new AsyncTask<Void, Void, Void>()
             {
-                protected Void doInBackground(Void... params)
+                protected Void doInBackground (Void... params)
                 {
                     _replayAudio();
                     return null;
@@ -1645,43 +1681,46 @@ public class OBSectionController extends OBViewController
         }
     }
 
-    public void exitEvent()
+    public void exitEvent ()
     {
         setStatus(STATUS_EXITING);
         playAudio(null);
         if (!_aborting)
         {
             _aborting = true;
-            new OBRunnableUI(){public void ex()
+            new OBRunnableUI()
             {
-                stopAllAudio();
-                MainActivity.mainViewController.popViewController();
-            }
+                public void ex ()
+                {
+                    stopAllAudio();
+                    MainActivity.mainViewController.popViewController();
+                }
             }.run();
         }
     }
 
-    public void goBack()
+    public void goBack ()
     {
         if (!_aborting && !MainActivity.mainViewController.navigating)
             exitEvent();
     }
-    public void prevPage()
+
+    public void prevPage ()
     {
 
     }
 
-    public void nextPage()
+    public void nextPage ()
     {
 
     }
 
-    void waitAudioNoThrow()
+    void waitAudioNoThrow ()
     {
         OBAudioManager.audioManager.waitAudio();
     }
 
-    public boolean waitForAudio()
+    public boolean waitForAudio ()
     {
         if (_aborting)
             return false;
@@ -1689,13 +1728,13 @@ public class OBSectionController extends OBViewController
         return !_aborting;
     }
 
-    public void waitAudio() throws Exception
+    public void waitAudio () throws Exception
     {
         waitAudioChannel(OBAudioManager.AM_MAIN_CHANNEL);
     }
 
 
-    public void waitAudioChannel(String ch) throws Exception
+    public void waitAudioChannel (String ch) throws Exception
     {
         if (_aborting)
             throw new Exception("BackException");
@@ -1704,7 +1743,7 @@ public class OBSectionController extends OBViewController
             throw new Exception("BackException");
     }
 
-    public void waitAudioAndCheck(long stTime) throws Exception
+    public void waitAudioAndCheck (long stTime) throws Exception
     {
         if (!statusChanged(stTime))
             waitAudio();
@@ -1712,23 +1751,24 @@ public class OBSectionController extends OBViewController
             throw new Exception("BackException");
     }
 
-    void _wait(double secs)
+    void _wait (double secs)
     {
         try
         {
-            Thread.sleep((long)(secs * 1000));
+            Thread.sleep((long) (secs * 1000));
         }
         catch (InterruptedException e)
         {
         }
     }
-    public void waitForSecsNoThrow(double secs)
+
+    public void waitForSecsNoThrow (double secs)
     {
         if (!_aborting)
             _wait(secs);
     }
 
-    public void waitForSecs(double secs) throws Exception
+    public void waitForSecs (double secs) throws Exception
     {
         if (!_aborting)
             _wait(secs);
@@ -1736,30 +1776,34 @@ public class OBSectionController extends OBViewController
             throw new Exception("BackException");
     }
 
-    public void displayTick() throws Exception
+    public void displayTick () throws Exception
     {
-        new OBRunnableSyncUI(){public void ex()
+        new OBRunnableSyncUI()
         {
-            if (tick == null)
+            public void ex ()
             {
-                tick = loadVectorWithName("tick",new PointF(0.5f,0.5f),new RectF(bounds()),false);
-                tick.setScale(graphicScale());
-                tick.setZPosition(100);
+                if (tick == null)
+                {
+                    tick = loadVectorWithName("tick", new PointF(0.5f, 0.5f), new RectF(bounds()), false);
+                    tick.setScale(graphicScale());
+                    tick.setZPosition(100);
+                }
+                attachControl(tick);
             }
-            attachControl(tick);
-        }
         }.run();
         playSFX("ting");
         waitForSecs(1);
-        new OBRunnableSyncUI(){public void ex()
+        new OBRunnableSyncUI()
         {
-            invalidateControl(tick);
-            detachControl(tick);
-        }
+            public void ex ()
+            {
+                invalidateControl(tick);
+                detachControl(tick);
+            }
         }.run();
     }
 
-    public void invalidateControl(OBControl c)
+    public void invalidateControl (OBControl c)
     {
         RectF f = c.frame();
         invalidateView((int) (Math.floor((double) f.left)), (int) (Math.floor((double) f.top)),
@@ -1767,31 +1811,32 @@ public class OBSectionController extends OBViewController
     }
 
 
-    public int buttonFlags()
+    public int buttonFlags ()
     {
-        return OBMainViewController.SHOW_TOP_LEFT_BUTTON|OBMainViewController.SHOW_TOP_RIGHT_BUTTON;
+        return OBMainViewController.SHOW_TOP_LEFT_BUTTON | OBMainViewController.SHOW_TOP_RIGHT_BUTTON;
     }
 
-    public PointF convertPointFromControl(PointF pt,OBControl c)
+    public PointF convertPointFromControl (PointF pt, OBControl c)
     {
         return c.convertPointToControl(pt, null);
     }
 
-    public PointF convertPointToControl(PointF pt,OBControl c)
+    public PointF convertPointToControl (PointF pt, OBControl c)
     {
         return c.convertPointFromControl(pt, null);
     }
-    public RectF convertRectFromControl(RectF r,OBControl c)
+
+    public RectF convertRectFromControl (RectF r, OBControl c)
     {
         return c.convertRectToControl(r, null);
     }
 
-    public RectF convertRectToControl(RectF r,OBControl c)
+    public RectF convertRectToControl (RectF r, OBControl c)
     {
         return c.convertRectFromControl(r, null);
     }
 
-    public List<OBAnim> animsForMoveToPoint(List<OBControl> objs,PointF pos)
+    public List<OBAnim> animsForMoveToPoint (List<OBControl> objs, PointF pos)
     {
         OBControl obj = objs.get(0);
         PointF currPos = obj.position();
@@ -1806,67 +1851,75 @@ public class OBSectionController extends OBViewController
         return anims;
     }
 
-    public void moveObjects(List<OBControl>objs,PointF pos, float duration,int timingFunction)
+    public void moveObjects (List<OBControl> objs, PointF pos, float duration, int timingFunction)
     {
         if (duration < 0)
         {
             OBControl c = objs.get(0);
             duration = OBUtils.durationForPointDist(c.position(), pos, theMoveSpeed);
         }
-        OBAnimationGroup.runAnims(animsForMoveToPoint(objs,pos),duration,true,timingFunction,this);
+        OBAnimationGroup.runAnims(animsForMoveToPoint(objs, pos), duration, true, timingFunction, this);
     }
 
-    public OBGLView glView()
+    public OBGLView glView ()
     {
         return MainActivity.mainViewController.glView();
     }
-    public float right()
+
+    public float right ()
     {
         return glView().getRight();
     }
-    public float bottom()
+
+    public float bottom ()
     {
         return glView().getBottom();
     }
 
-    public PointF pointForDestPoint(PointF destpt,float degrees)
+    public PointF pointForDestPoint (PointF destpt, float degrees)
     {
         float h = bottom() + applyGraphicScale(10);
         float ydist = h - destpt.y;
-        float xdist = (float)Math.tan(Math.toRadians(degrees)) * ydist;
+        float xdist = (float) Math.tan(Math.toRadians(degrees)) * ydist;
         return new PointF(destpt.x + xdist, h);
     }
 
-    public void goToCard(Class nextSection,String param)
+    public void goToCard (Class nextSection, String param)
     {
-        goToCard(nextSection,param,false);
+        goToCard(nextSection, param, false);
     }
 
-    public void goToCard(final Class nextSection,final String param,final boolean withAnimation)
+    public void goToCard (final Class nextSection, final String param, final boolean withAnimation)
     {
         _aborting = true;
-        OBUtils.runOnMainThread(new OBUtils.RunLambda() {
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        {
             @Override
-            public void run() throws Exception
+            public void run () throws Exception
             {
-                MainViewController().pushViewController(nextSection,withAnimation,true,param,true);
+                MainViewController().pushViewController(nextSection, withAnimation, true, param, true);
             }
         });
     }
 
-    public void reprompt(final long sttime, final List<Object>audio, float delaySecs)
+    public void reprompt (final long sttime, final List<Object> audio, float delaySecs)
     {
-        reprompt(sttime,audio,delaySecs,null);
+        reprompt(sttime, audio, delaySecs, null);
     }
-    public void reprompt(final long sttime, final List<Object>audio, float delaySecs, final OBUtils.RunLambda actionBlock)
+
+    public void reprompt (final long sttime, final List<Object> audio, float delaySecs, final OBUtils.RunLambda actionBlock)
     {
         if (statusChanged(sttime))
             return;
-        OBUtils.runOnOtherThreadDelayed(delaySecs, new OBUtils.RunLambda() {
+        OBUtils.runOnOtherThreadDelayed(delaySecs, new OBUtils.RunLambda()
+        {
             @Override
-            public void run() throws Exception {
-                if (statusChanged(sttime)) {
-                    if (audio != null) {
+            public void run () throws Exception
+            {
+                if (statusChanged(sttime))
+                {
+                    if (audio != null)
+                    {
                         boolean wait = (actionBlock != null);
                         playAudioQueued(audio, wait);
                         if (actionBlock != null)

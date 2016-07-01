@@ -1046,6 +1046,15 @@ public class OBPath extends OBControl
         invalidate();
     }
 
+
+    public void addCurveToPoint(PointF endPoint, PointF controlPoint1, PointF controlPoint2)
+    {
+        OBShapeLayer dr = (OBShapeLayer) layer;
+        dr.path.cubicTo(endPoint.x, endPoint.y, controlPoint1.x, controlPoint1.y, controlPoint2.x, controlPoint2.y);
+        setNeedsRetexture();
+        invalidate();
+    }
+
     public PointF currentPoint()
     {
         OBShapeLayer dr = shapeLayer();

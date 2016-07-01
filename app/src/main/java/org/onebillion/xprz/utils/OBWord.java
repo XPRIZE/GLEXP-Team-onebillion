@@ -16,25 +16,25 @@ public class OBWord extends OBSyllable
 
     public OBWord (String text)
     {
-        this(text, null, null, null, null, null);
+        this(text, null, null, null, null);
 
     }
 
     public OBWord (String text, String soundID)
     {
-        this(text, soundID, null, null, null, null);
+        this(text, soundID, null, null, null);
     }
 
 
     public OBWord (String text, String soundID, List<OBSyllable> syllables)
     {
-        this(text, soundID, null, null, syllables, null);
+        this(text, soundID, null, syllables, null);
     }
 
 
-    public OBWord (String text, String soundID, List<Object> timings, String audio, List<OBSyllable> syllables, String imageName)
+    public OBWord (String text, String soundID, List<Object> timings, List<OBSyllable> syllables, String imageName)
     {
-        super(text, soundID, timings, audio, null);
+        super(text, soundID, timings, null);
         this.syllablesChecked = false;
         this.phonemesChecked = false;
         this.syllables = (syllables == null) ? new ArrayList<OBSyllable>() : new ArrayList<OBSyllable>(syllables);
@@ -64,7 +64,6 @@ public class OBWord extends OBSyllable
                 for (OBSyllable syllable : syllables)
                 {
                     OBSyllable sylCopy = syllable.copy();
-                    sylCopy.audio = partSylWordAudio;
                     sylCopy.timings = (List<Object>) (Object) sylTiming.get(index);
                     timingSyllables.add(sylCopy);
                     index++;
@@ -98,7 +97,6 @@ public class OBWord extends OBSyllable
                 for (OBPhoneme phoneme : phonemes)
                 {
                     OBPhoneme phoCopy = phoneme.copy();
-                    phoCopy.audio = partPhoWordAudio;
                     phoCopy.timings = (List<Object>) (Object) phoTiming.get(index);
                     timingPhonemes.add(phoCopy);
                     index++;
@@ -119,7 +117,7 @@ public class OBWord extends OBSyllable
         {
             syllablesClone.add(syllable.copy());
         }
-        return new OBWord(text, soundID, timings, audio, syllablesClone, imageName);
+        return new OBWord(text, soundID, timings, syllablesClone, imageName);
     }
 
 }

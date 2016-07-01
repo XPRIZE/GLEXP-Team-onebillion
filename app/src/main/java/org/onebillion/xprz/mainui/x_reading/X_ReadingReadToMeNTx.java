@@ -354,13 +354,13 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
             {
                 List<Object>audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("PROMPT");
                 audl = OBUtils.insertAudioInterval(audl,300);
-                presenter.speak(audl,this);
+                presenter.speakWithToken(audl,token,this);
                 waitForSecs(0.4f);
                 OBPath answer1 = (OBPath) objectDict.get("answer1");
                 answer1.show();
                 deployFlashAnim(answer1);
                 audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("ANSWER");
-                presenter.speak(audl,this);
+                presenter.speakWithToken(audl,token,this);
                 checkSequenceToken(token);
                 waitForSecs(0.2f);
                 killAnimations();
@@ -371,7 +371,7 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
                 answer2.show();
                 deployFlashAnim(answer2);
                 audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("ANSWER2");
-                presenter.speak(audl,this);
+                presenter.speakWithToken(audl,token,this);
                 checkSequenceToken(token);
                 waitForSecs(0.2f);
                 checkSequenceToken(token);
@@ -379,7 +379,7 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
                 waitForSecs(0.3f);
                 checkSequenceToken(token);
                 audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("PROMPT2");
-                presenter.speak(audl,this);
+                presenter.speakWithToken(audl,token,this);
                 checkSequenceToken(token);
                 waitForSecs(0.3f);
                 checkSequenceToken(token);

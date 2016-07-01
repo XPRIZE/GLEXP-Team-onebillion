@@ -813,7 +813,7 @@ public class OBControl
         OBControl parent = this.parent;
         if (parent == null)
         {
-            return this.position;
+            return new PointF(this.position.x, this.position.y);
         }
         else
         {

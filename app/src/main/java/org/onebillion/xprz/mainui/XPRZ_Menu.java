@@ -94,7 +94,6 @@ public class XPRZ_Menu extends XPRZ_SectionController
                     String appDir = (String) Config().get("app_code");
                     String[] comps = appDir.split("/");
                     configName = comps[0];
-                    configName = configName.replace("-", "_");
                 }
                 else
                     MainActivity.mainActivity.updateConfigPaths(configName,false);

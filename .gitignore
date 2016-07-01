@@ -7,3 +7,4 @@
 /captures
 /app/src/main/assets
 *.iml
+/app/build.gradle
