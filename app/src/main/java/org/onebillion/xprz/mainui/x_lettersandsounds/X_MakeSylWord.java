@@ -131,8 +131,8 @@ public class X_MakeSylWord extends XPRZ_SectionController
             public void run() throws Exception
             {
 
-                demoStart();
-                //startScene();
+                //demoStart();
+                startScene();
             }
         });
 
