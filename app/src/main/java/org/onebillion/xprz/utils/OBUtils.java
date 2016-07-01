@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -19,12 +21,15 @@ import android.graphics.*;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBImage;
+import org.onebillion.xprz.controls.OBLabel;
+import org.onebillion.xprz.controls.OBTextLayer;
 import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.OBSectionController;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
@@ -532,6 +537,8 @@ public class OBUtils
                 }
                 catch (Exception exception)
                 {
+                    Logger logger = Logger.getAnonymousLogger();
+                    logger.log(Level.SEVERE, "Error in runOnMainThread", exception);
                 }
             }
         }.run();
@@ -549,6 +556,8 @@ public class OBUtils
                 }
                 catch (Exception exception)
                 {
+                    Logger logger = Logger.getAnonymousLogger();
+                    logger.log(Level.SEVERE, "Error in runOnOtherThread", exception);
                 }
                 return null;
             }
@@ -568,6 +577,8 @@ public class OBUtils
                 }
                 catch (Exception exception)
                 {
+                    Logger logger = Logger.getAnonymousLogger();
+                    logger.log(Level.SEVERE, "Error in runOnOtherThreadDelayed", exception);
                 }
                 return null;
             }
@@ -585,6 +596,16 @@ public class OBUtils
         PointF cp2 = OB_Maths.AddPoints(c2, lp);
         path.cubicTo(cp1.x, cp1.y, cp2.x, cp2.y, to.x, to.y);
         return path;
+    }
+
+    public static UCurve SimpleUCurve (PointF from, PointF to, float offset)
+    {
+        PointF c1 = OB_Maths.tPointAlongLine(0.33f, from, to);
+        PointF c2 = OB_Maths.tPointAlongLine(0.66f, from, to);
+        PointF lp = OB_Maths.ScalarTimesPoint(offset, OB_Maths.NormalisedVector(OB_Maths.lperp(OB_Maths.DiffPoints(to, from))));
+        PointF cp1 = OB_Maths.AddPoints(c1, lp);
+        PointF cp2 = OB_Maths.AddPoints(c2, lp);
+        return new UCurve(from.x,from.y,to.x,to.y,cp1.x,cp1.y,cp2.x,cp2.y);
     }
 
     public static int DesaturatedColour (int colour, float sat)
@@ -825,11 +846,62 @@ public class OBUtils
         return (Map<String, OBPhoneme>) (Object) dictionary;
     }
 
+    public static List<String> getFramesList(String prefix, int from, int to)
+    {
+        List<String> list = new ArrayList<>();
+        if(from < to)
+        {
+            for(int i = from; i <= to; i++)
+                list.add(String.format("%s%d",prefix,i));
+        }
+        else
+        {
+            for(int i = from; i >= to; i--)
+                list.add(String.format("%s%d",prefix,i));
+        }
+
+        return list;
+
+    }
+
+    public static boolean getBooleanValue(String val)
+    {
+        if(val == null)
+            return false;
+        if(val.equalsIgnoreCase("true"))
+            return true;
+        else
+            return false;
+    }
+
+    public static int getIntValue(String val)
+    {
+        if(val == null)
+            return 0;
+
+        try
+        {
+            return Integer.valueOf(val);
+        }
+        catch (Exception e)
+        {
+            return 0;
+        }
+
+    }
+
+    public static RectF getBoundsForSelectionInLabel(int start, int end, OBLabel label)
+    {
+        OBTextLayer textLayer = (OBTextLayer)label.layer;
+        Path path = new Path();
+        textLayer.stLayout.getSelectionPath(start,end,path);
+        RectF pathBounds = new RectF();
+        path.computeBounds(pathBounds,true);
+        return label.convertRectToControl(pathBounds,null);
+    }
 
     public interface RunLambda
     {
         public void run () throws Exception;
     }
-
-
 }

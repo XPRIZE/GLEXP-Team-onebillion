@@ -29,8 +29,8 @@ public class OBMainViewController extends OBViewController
             SHOW_BOTTOM_RIGHT_BUTTON = 8;
     public List<OBSectionController> viewControllers;
     public OBControl topLeftButton,topRightButton,bottomLeftButton,bottomRightButton;
-    protected Rect _buttonBoxRect = null;
     public boolean navigating;
+    protected Rect _buttonBoxRect = null;
     OBControl downButton;
 
     public OBMainViewController(Activity a)
@@ -304,7 +304,9 @@ public class OBMainViewController extends OBViewController
             return;
         }
         controller.params = _params;
+        lockScreen();
         controller.prepare();
+        unlockScreen();
         if (viewControllers.size() >= 1 && animate) {
             if (fromRight)
                 transition(topController(), controller, fromRight, 0.6);

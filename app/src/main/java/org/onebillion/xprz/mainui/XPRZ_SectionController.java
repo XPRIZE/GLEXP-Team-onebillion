@@ -11,6 +11,7 @@ import android.view.View;
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBEmitter;
 import org.onebillion.xprz.controls.OBEmitterCell;
+import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBImage;
 import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.utils.OBAnim;
@@ -471,10 +472,26 @@ public class XPRZ_SectionController extends OBSectionController {
         waitForSecs(wait);
     }
 
+    public void animateFrames(List<String> frames, float delay, OBGroup object) throws Exception
+    {
+        object.setSequence(frames);
+        for(int i=0; i<frames.size(); i++)
+        {
+            lockScreen();
+            object.setSequenceIndex(i);
+            unlockScreen();
+            waitForSecs(delay);
+        }
+
+    }
+
+
+
     @Override
     public void exitEvent()
     {
         super.exitEvent();
         killAnimations();
     }
+
 }

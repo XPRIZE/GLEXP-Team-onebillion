@@ -14,9 +14,9 @@ public class OBPhoneme
 {
     public String text;
     public List<Object> timings;
-
+    public String soundID;
     Map<String, Object> properties;
-    String soundID;
+
 
     public OBPhoneme ()
     {

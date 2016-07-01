@@ -16,10 +16,12 @@ package org.onebillion.xprz.controls;
         import android.renderscript.Allocation;
         import android.renderscript.RenderScript;
         import android.renderscript.ScriptIntrinsicBlur;
+        import android.support.v4.app.NotificationCompatSideChannelService;
         import android.util.Log;
 
         import org.onebillion.xprz.glstuff.ColorShaderProgram;
         import org.onebillion.xprz.glstuff.GradientRect;
+        import org.onebillion.xprz.glstuff.MaskShaderProgram;
         import org.onebillion.xprz.glstuff.OBRenderer;
         import org.onebillion.xprz.glstuff.Texture;
         import org.onebillion.xprz.glstuff.TextureRect;
@@ -67,6 +69,7 @@ public class OBControl
     float rasterScale,zPosition;
     OBStroke stroke;
     boolean frameValid,masksToBounds;
+    boolean maskControlReversed = false, dynamicMask = false;
     int shadowColour;
     float shadowOffsetX,shadowOffsetY,shadowOpacity,shadowRadius;
     boolean needsRetexture;
@@ -202,8 +205,10 @@ public class OBControl
         if (layer != null)
             layer.setOpacity(f);
         invalidate();
+
         if (hasTexturedParent())
             setNeedsRetexture();
+
     }
 
     public RectF bounds()
@@ -1155,7 +1160,10 @@ public class OBControl
             needsRetexture = false;
         }
         //tr.setUVs(0,0,uvRight,uvBottom);
-        tr.draw(renderer,0,0,bounds.right - bounds.left,bounds.bottom - bounds.top,texture.bitmap());
+        if(dynamicMask && maskControl != null)
+            tr.draw(renderer,0,0,bounds.right - bounds.left,bounds.bottom - bounds.top,texture.bitmap(),maskControl.texture.bitmap());
+        else
+            tr.draw(renderer,0,0,bounds.right - bounds.left,bounds.bottom - bounds.top,texture.bitmap());
     }
     public void render(OBRenderer renderer,OBViewController vc,float[] modelViewMatrix)
     {
@@ -1169,14 +1177,26 @@ public class OBControl
             android.opengl.Matrix.multiplyMM(tempMatrix,0,modelViewMatrix,0,modelMatrix,0);
             if (needsTexture())
             {
-                TextureShaderProgram textureShader = (TextureShaderProgram) renderer.textureProgram;
+
                 float op = opacity();
-                float[]finalCol = new float[4];
-                for (int i = 0;i < 3;i++)
+                float[] finalCol = new float[4];
+                for (int i = 0; i < 3; i++)
                     finalCol[i] = blendColour[i];
                 finalCol[3] = blendColour[3] * op;
-                textureShader.useProgram();
-                textureShader.setUniforms(tempMatrix,renderer.textureObjectIds[0],finalCol);
+                if(dynamicMask && maskControl != null)
+                {
+                    MaskShaderProgram maskProgram = (MaskShaderProgram) renderer.maskProgram;
+                    maskProgram.useProgram();
+                    maskProgram.setUniforms(tempMatrix,renderer.textureObjectIds[0], renderer.textureObjectIds[1], finalCol, maskControlReversed? 1:0);
+
+                }
+                else
+                {
+                    TextureShaderProgram textureShader = (TextureShaderProgram) renderer.textureProgram;
+                    textureShader.useProgram();
+                    textureShader.setUniforms(tempMatrix, renderer.textureObjectIds[0], finalCol);
+                }
+
                 renderLayer(renderer,vc);
             }
             else
@@ -1184,6 +1204,10 @@ public class OBControl
                 ColorShaderProgram colourShader = (ColorShaderProgram) renderer.colourProgram;
                 float col[] = {1,1,1,1};
                 OBUtils.getFloatColour(backgroundColor,col);
+                float op = opacity();
+                for (int i = 0;i < 3;i++)
+                    col[i] = col[i]*blendColour[i];
+                col[3] *= op;
                 colourShader.useProgram();
                 colourShader.setUniforms(tempMatrix);
                 GradientRect gr = renderer.gradientRect;
@@ -1269,10 +1293,10 @@ public class OBControl
         canvas.concat(m);
         drawBorderAndBackground(canvas);
         drawLayer(canvas);
-        if (maskControl != null)
+        if (maskControl != null && !dynamicMask)
         {
             Paint p = new Paint();
-            p.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
+            p.setXfermode(new PorterDuffXfermode(maskControlReversed ? PorterDuff.Mode.DST_OUT : PorterDuff.Mode.DST_IN));
             canvas.saveLayer(0, 0, width, height, p, Canvas.ALL_SAVE_FLAG);
             maskControl.draw(canvas);
             canvas.restore();
@@ -1460,6 +1484,35 @@ public class OBControl
     }
     public void setMaskControl(OBControl m)
     {
+        dynamicMask = false;
+        maskControlReversed = false;
+        maskControl = m;
+        invalidate();
+        setNeedsRetexture();
+    }
+
+    public void setReversedMaskControl(OBControl m)
+    {
+        dynamicMask = false;
+        maskControlReversed = true;
+        maskControl = m;
+        invalidate();
+        setNeedsRetexture();
+    }
+
+    public void setDynamicMaskControl(OBControl m)
+    {
+        dynamicMask = true;
+        maskControlReversed = false;
+        maskControl = m;
+        invalidate();
+        setNeedsRetexture();
+    }
+
+    public void setReversedDynamicMaskControl(OBControl m)
+    {
+        dynamicMask = true;
+        maskControlReversed = true;
         maskControl = m;
         invalidate();
         setNeedsRetexture();

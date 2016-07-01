@@ -9,6 +9,7 @@ import org.onebillion.xprz.controls.*;
 import org.onebillion.xprz.mainui.OBMainViewController;
 import org.onebillion.xprz.mainui.OBViewController;
 import org.onebillion.xprz.mainui.OBSectionController;
+import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OB_Maths;
 
@@ -26,7 +27,7 @@ public class X_Count100_Additions
 
     public static void drawGrid(int count, OBControl rect, int borderColour, int textColour, boolean single, OBSectionController controller)
     {
-
+        List<OBControl> allControls = new ArrayList<>();
         OBMainViewController mainViewController = OBMainViewController.MainViewController();
         while(rect.frame().intersect(mainViewController.topRightButton.frame())||
                 rect.frame().intersect(mainViewController.topLeftButton.frame()))
@@ -99,8 +100,8 @@ public class X_Count100_Additions
                 txt.setPosition(box.position());
 
                 numbers.add(txt);
-                curX = box.right() - lineSize ;
-
+                curX = box.right() - (float)(lineSize/2.0) ;
+                box.setMasksToBounds(true);
                 box.setProperty("num_value", n);
                 txt.setProperty("num_value", n);
                 txt.setZPosition(2);
@@ -109,11 +110,13 @@ public class X_Count100_Additions
 
                 controller.attachControl(box);
                 controller.attachControl(txt);
+                allControls.add(box);
+                allControls.add(txt);
             }
             if(!single)
             {
                 curX = startX;
-                curY = boxes.get(10*(i)).bottom() -lineSize ;
+                curY = boxes.get(10*(i)).bottom() - (float)(lineSize/2.0) ;
             }
         }
 
@@ -152,6 +155,9 @@ public class X_Count100_Additions
             controller.attachControl(frame);
         }
 
+        OBGroup group = new OBGroup(allControls);controller.attachControl(group);
+        group.setPosition(OB_Maths.locationForRect(0.5f,0.5f,controller.bounds()));
+        controller.objectDict.put("grid_group", group);
     }
 
     public static void loadNumbersAudio(OBSectionController controller)
