@@ -590,10 +590,10 @@ public class OBUtils
     public static int DesaturatedColour (int colour, float sat)
     {
         float components[] = {0, 0, 0, 1};
-        components[0] = Color.red(colour);
-        components[1] = Color.green(colour);
-        components[2] = Color.blue(colour);
-        components[3] = Color.alpha(colour);
+        components[0] = Color.red(colour)/255f;
+        components[1] = Color.green(colour)/255f;
+        components[2] = Color.blue(colour)/255f;
+        components[3] = Color.alpha(colour)/255f;
         float weights[] = {0.299f, 0.587f, 0.114f};
         float greyVal = 0;
         for (int i = 0; i < 3; i++)

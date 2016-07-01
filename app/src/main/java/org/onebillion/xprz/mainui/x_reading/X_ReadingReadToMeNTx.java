@@ -391,7 +391,6 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
                             demoCqType2b(true);
                         }
                     });
-                demoCqType2b(true);
             }
         }
         catch (Exception exception)
