@@ -155,7 +155,7 @@ public class X_Alpha3 extends X_Alpha
         //
         currPos = XPRZ_Generic.copyPoint(presenter.control.getWorldPosition());
         OBControl side = presenter.control.objectDict.get("faceright");
-        destPos = new PointF(- side.width() * 1.2f, currPos.y);
+        destPos = new PointF(-side.width() * 1.2f, currPos.y);
         presenter.walk(destPos);
         //
         nextScene();
@@ -214,17 +214,7 @@ public class X_Alpha3 extends X_Alpha
         for (int i = firstBox; i < lastBox; i++)
         {
             OBPath stroke = strokes.get(i);
-            stroke.setLineWidth(applyGraphicScale(10));
-            stroke.setStrokeColor(boxHighColour);
-            stroke.sizeToBoundingBoxIncludingStroke();
-            //
-            OBGroup back = backs.get(i);
-            OBControl frame = back.objectDict.get("frame");
-            if (frame != null)
-            {
-                frame.hide();
-            }
-            back.setNeedsRetexture();
+            stroke.show();
         }
         unlockScreen();
         waitForSecs(0.3);
@@ -233,30 +223,12 @@ public class X_Alpha3 extends X_Alpha
         for (int i = firstBox; i < lastBox; i++)
         {
             OBPath stroke = strokes.get(i);
-            stroke.setLineWidth(applyGraphicScale(1));
-            stroke.setStrokeColor(boxLowColour);
-            stroke.sizeToBoundingBoxIncludingStroke();
-            //
-            OBGroup back = backs.get(i);
-            OBControl frame = back.objectDict.get("frame");
-            if (frame != null)
-            {
-                frame.show();
-            }
-            back.setNeedsRetexture();
+            stroke.hide();
         }
         unlockScreen();
         waitForSecs(0.3);
         //
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-        {
-
-            @Override
-            public void run () throws Exception
-            {
-                action_flashRowWithStatusTime(timeStamp);
-            }
-        });
+        action_flashRowWithStatusTime(timeStamp);
     }
 
 
@@ -267,31 +239,26 @@ public class X_Alpha3 extends X_Alpha
         String sfx = parameters.get("sfx");
         //
         int counter = 1;
-        int extraBeats = 0;
         double startTime = XPRZ_Generic.currentTime();
-        for (int i = firstBox - extraBeats; i < lastBox + extraBeats; i++)
+        for (int i = firstBox; i < lastBox; i++)
         {
-            Boolean valid = i >= firstBox && i < lastBox;
-            if (valid && i > 1 && i % boxesPerRow == 0 && currentEvent().equals(events.get(0)))
+            playSfxAudio(sfx, false);
+            //
+            lockScreen();
+            if (i > 1 && i % boxesPerRow == 0 && currentEvent().equals(events.get(0)))
             {
-                lockScreen();
                 for (int j = 0; j < i; j++)
                 {
                     labels.get(j).setOpacity(0.3f);
+                    labels.get(j).setColour(Color.BLACK);
                 }
-                unlockScreen();
             }
-            playSfxAudio(sfx, false);
             //
-            if (valid)
-            {
-                OBLabel label = labels.get(i);
-                lockScreen();
-                label.setOpacity(1.0f);
-                label.setColour(Color.RED);
-                label.show();
-                unlockScreen();
-            }
+            OBLabel label = labels.get(i);
+            label.setOpacity(1.0f);
+            label.setColour(Color.RED);
+            label.show();
+            unlockScreen();
             //
             playAudioQueued(new ArrayList(Arrays.asList(String.format("alph_%s", letters.get(i).toLowerCase()))), false);
             //
@@ -300,12 +267,12 @@ public class X_Alpha3 extends X_Alpha
             double waitForNextLoop = nextTimeFrame - elapsed;
             waitForSecs(waitForNextLoop);
             //
+            lockScreen();
             if (i == lastBox - 1)
             {
-                lockScreen();
                 for (int j = firstBox; j < lastBox; j++)
                 {
-                    OBLabel label = labels.get(j);
+                    label = labels.get(j);
                     OBPath box = boxes.get(j);
                     //
                     label.setOpacity(1.0f);
@@ -314,14 +281,12 @@ public class X_Alpha3 extends X_Alpha
                     box.setScale(1.0f);
                     box.setFillColor(boxLowColour);
                 }
-                unlockScreen();
             }
-            else if (valid)
+            else
             {
-                lockScreen();
                 labels.get(i).setColour(Color.BLACK);
-                unlockScreen();
             }
+            unlockScreen();
         }
     }
 
@@ -556,19 +521,6 @@ public class X_Alpha3 extends X_Alpha
                     public void run () throws Exception
                     {
                         checkBox(obj);
-                    }
-                });
-            }
-            else
-            {
-                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-                {
-                    @Override
-                    public void run () throws Exception
-                    {
-                        lockScreen();
-                        layOutRope();
-                        unlockScreen();
                     }
                 });
             }
