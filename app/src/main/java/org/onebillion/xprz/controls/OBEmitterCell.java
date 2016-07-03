@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.os.SystemClock;
 
 import org.onebillion.xprz.glstuff.OBRenderer;
@@ -30,6 +31,7 @@ public class OBEmitterCell
     boolean running;
     long startTime,birthCount;
     List<OBEmittee>emittees;
+    public OBEmitter emitter;
     Matrix tempMatrix;
     public float[] modelMatrix = new float[16];
     public float[] finalMatrix = new float[16];
@@ -66,8 +68,9 @@ public class OBEmitterCell
         float y = (float)Math.sin(ang);
         ee.xVelocity = x * vel;
         ee.yVelocity = y * vel;
-        ee.posX = posX;
-        ee.posY = posY;
+        RectF f = emitter.frame();
+        ee.posX = posX + f.left;
+        ee.posY = posY + f.top;
         float life = rValue(lifeTime,lifeTimeRange);
         ee.startTime = ee.lastTime = SystemClock.uptimeMillis();
         ee.endTime = ee.startTime + (long)(life * 1000f);
@@ -76,8 +79,9 @@ public class OBEmitterCell
         return ee;
     }
 
-    public void start()
+    public void start(OBEmitter e)
     {
+        emitter = e;
         texture = new Texture(contents,1);
 
         startTime = SystemClock.uptimeMillis();
