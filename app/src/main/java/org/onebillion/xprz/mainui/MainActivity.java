@@ -14,6 +14,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -135,6 +136,11 @@ public class MainActivity extends Activity
         });
         //
         users = new ArrayList<OBUser>();
+        setContentView(R.layout.activity_main);
+        ViewGroup rootView = (ViewGroup) findViewById(android.R.id.content);
+        rootView.addView(glSurfaceView,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+        //        setContentView(glSurfaceView);
         try
         {
             setUpConfig();
@@ -192,7 +198,6 @@ public class MainActivity extends Activity
             return;
         }
         //
-        setContentView(glSurfaceView);
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
 

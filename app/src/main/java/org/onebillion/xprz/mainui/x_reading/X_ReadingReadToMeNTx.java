@@ -2,6 +2,8 @@ package org.onebillion.xprz.mainui.x_reading;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.AsyncTask;
@@ -625,10 +627,13 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         smallStar.setFillColor(Color.WHITE);
         smallStar.enCache();
         OBPath shape = (OBPath) objectDict.get("shape");
+        PointF firstpt = shape.sAlongPath(0,null);
+        firstpt = convertPointFromControl(firstpt,shape);
         OBEmitterCell cell = starEmitterCell(0, smallStar.cache, 0, 0, 0);
 
         starEmitter = new OBEmitter();
-        starEmitter.setFrame(0, 0, bounds().width(), bounds().height());
+        starEmitter.setBounds(0,0,64,64);
+        starEmitter.setPosition(firstpt);
         starEmitter.cells.add(cell);
 
         starEmitter.setZPosition(100);
@@ -647,7 +652,10 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
     {
         OBControl starEmitter = objectDict.get("starEmitter");
         OBPath shape = (OBPath) objectDict.get("shape");
-        OBAnim anim = OBAnim.pathMoveAnim(starEmitter,shape.path(),false,0);
+        Matrix m = shape.matrixToConvertPointToControl(null);
+        Path p = new Path(shape.path());
+        p.transform(m);
+        OBAnim anim = OBAnim.pathMoveAnim(starEmitter,p,false,0);
         anim.key = "layer.emitterPosition";
         OBAnimationGroup agp = new OBAnimationGroup();
         agp.applyAnimations(Collections.singletonList(anim),2,false,OBAnim.ANIM_LINEAR,this);
