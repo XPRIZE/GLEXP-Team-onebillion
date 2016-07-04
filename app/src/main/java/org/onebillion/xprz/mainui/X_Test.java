@@ -109,6 +109,7 @@ public class X_Test extends XPRZ_SectionController
             //final OBControl c = findTarget(pt);
             //if (c != null)
             {
+                final OBSectionController t = this;
                 new AsyncTask<Void, Void, Void>()
                 {
                     protected Void doInBackground(Void... params)
@@ -117,7 +118,10 @@ public class X_Test extends XPRZ_SectionController
                         //checkTarget();
                         try
                         {
-                            doOpac();
+                            if (objectDict.get("bob").opacity() < 0.5)
+                                MainActivity.mainActivity.fatController.completeEvent(t);
+                            else
+                                doOpac();
                         }
                         catch (Exception e)
                         {
