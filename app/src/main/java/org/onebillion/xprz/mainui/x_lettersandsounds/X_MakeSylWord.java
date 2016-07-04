@@ -225,6 +225,7 @@ public class X_MakeSylWord extends XPRZ_SectionController
         if(currentMode == MODE_WORD && showPicture)
         {
             screenImage = loadImageWithName(((OBWord)main).ImageFileName(),new PointF(0,0), new RectF(this.bounds()));
+            screenImage.setScale(applyGraphicScale(1));
             OBControl bg = objectDict.get("imagebox");
             if(screenImage.width() > bg.width())
             {
@@ -309,7 +310,7 @@ public class X_MakeSylWord extends XPRZ_SectionController
                             {
                                 box.openLid("lid_open");
                             }
-                            box.flyObjects((List<OBControl>)(Object)parts,true,true, "letters_out");
+                            box.flyObjects((List<OBControl>)(Object)parts,true,false, "letters_out");
                             waitForSecs(0.2f);
                             nextWordPart();
                         }
@@ -497,7 +498,7 @@ public class X_MakeSylWord extends XPRZ_SectionController
             setWordScene(currentWord);
             unlockScreen();
             demoLetterBox();
-            box.flyObjects((List<OBControl>)(Object)parts,true,true,"letters_out");
+            box.flyObjects((List<OBControl>)(Object)parts,true,false,"letters_out");
             waitForSecs(0.2f);
             nextWordPart();
         }
