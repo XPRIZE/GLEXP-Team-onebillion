@@ -24,7 +24,6 @@ public class XPRZ_Presenter extends OBCharacter
     {
         XPRZ_Presenter c = new XPRZ_Presenter();
         c.control = g;
-        c.control.setShouldTexturise(false);
         return c;
     }
 

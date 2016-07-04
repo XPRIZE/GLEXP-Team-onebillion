@@ -33,11 +33,13 @@ import static android.opengl.Matrix.orthoM;
  */
 public class OBRenderer implements GLSurfaceView.Renderer
 {
-    public final int[] textureObjectIds = new int[2];
-    public ShaderProgram colourProgram,textureProgram, maskProgram;
+    public ShaderProgram colourProgram,textureProgram;
     public TextureRect textureRect;
     public GradientRect gradientRect;
     public float[] projectionMatrix = new float[16];
+
+    public final int[] textureObjectIds = new int[1];
+
     public int w,h;
     public OBSectionController transitionScreenL,transitionScreenR;
     public float transitionFrac;
@@ -47,9 +49,8 @@ public class OBRenderer implements GLSurfaceView.Renderer
         glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
         colourProgram = new ColorShaderProgram();
         textureProgram = new TextureShaderProgram();
-        maskProgram = new MaskShaderProgram();
 
-        glGenTextures(2, textureObjectIds, 0);
+        glGenTextures(1, textureObjectIds, 0);
 
         if (textureObjectIds[0] == 0) {
             Log.w("onSurfaceCreated", "Could not generate a new OpenGL texture object.");
@@ -67,17 +68,6 @@ public class OBRenderer implements GLSurfaceView.Renderer
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        glBindTexture(GL_TEXTURE_2D, textureObjectIds[1]);
-
-        // Set filtering: a default must be set, or the texture will be
-        // black.
-        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
 
     }
 

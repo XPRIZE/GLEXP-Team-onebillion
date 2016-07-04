@@ -13,12 +13,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.app.Activity;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.*;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.util.Log;
 
 import org.onebillion.xprz.controls.*;
 import org.onebillion.xprz.glstuff.*;
@@ -218,9 +218,10 @@ public class OBSectionController extends OBViewController
     {
         for (String path : (List<String>) Config().get(MainActivity.CONFIG_AUDIO_SEARCH_PATH))
         {
-            String fullpath = OBUtils.stringByAppendingPathComponent(path, fileName);
-            if (OBUtils.fileExistsAtPath(fullpath))
-                return fullpath;
+            String fullPath = OBUtils.stringByAppendingPathComponent(path, fileName);
+            if (OBUtils.fileExistsAtPath(fullPath)) return fullPath;
+//            if (OBUtils.fileExistsAtPath(fullPath))
+//                return fullPath;
         }
         return null;
     }
@@ -235,7 +236,8 @@ public class OBSectionController extends OBViewController
             {
                 Map<String, Object> mstr = null;
                 OBXMLManager xmlManager = new OBXMLManager();
-                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
+                List<OBXMLNode> xl = xmlManager.parseFile(OBUtils.getInputStreamForPath(xmlPath));
+//                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
                 xmlNode = xl.get(0);
                 List<OBXMLNode> xmlevents = xmlNode.childrenOfType("event");
                 for (OBXMLNode xmlevent : xmlevents)
@@ -276,7 +278,8 @@ public class OBSectionController extends OBViewController
     {
         try
         {
-            audioScenes = OBAudioManager.loadAudioXML(MainActivity.mainActivity.getAssets().open(xmlPath));
+            audioScenes = OBAudioManager.loadAudioXML(OBUtils.getInputStreamForPath(xmlPath));
+//            audioScenes = OBAudioManager.loadAudioXML(MainActivity.mainActivity.getAssets().open(xmlPath));
         }
         catch (Exception e)
         {
@@ -293,9 +296,14 @@ public class OBSectionController extends OBViewController
     {
         for (String path : (List<String>) Config().get(MainActivity.CONFIG_CONFIG_SEARCH_PATH))
         {
-            String fullpath = OBUtils.stringByAppendingPathComponent(path, cfgName);
-            if (OBUtils.fileExistsAtPath(fullpath))
-                return fullpath;
+            String fullPath = OBUtils.stringByAppendingPathComponent(path, cfgName);
+            Boolean fileExists = OBUtils.fileExistsAtPath(fullPath);
+            if (fileExists)
+            {
+                return fullPath;
+            }
+//            if (OBUtils.fileExistsAtPath(fullPath))
+//                return fullPath;
         }
         return null;
     }
@@ -1089,15 +1097,15 @@ public class OBSectionController extends OBViewController
         return carr;
     }
 
-    public void populateSortedAttachedControls()
+    void populateSortedAttachedControls ()
     {
         if (!sortedAttachedControlsValid)
         {
-            List<OBControl> tempList = new ArrayList<>(attachedControls);
-
-            for (int i = 0;i < tempList.size();i++)
-                tempList.get(i).tempSortInt = i;
-            Collections.sort(tempList, new Comparator<OBControl>()
+            sortedAttachedControls.clear();
+            sortedAttachedControls.addAll(attachedControls);
+            for (int i = 0; i < sortedAttachedControls.size(); i++)
+                sortedAttachedControls.get(i).tempSortInt = i;
+            Collections.sort(sortedAttachedControls, new Comparator<OBControl>()
             {
                 @Override
                 public int compare (OBControl lhs, OBControl rhs)
@@ -1113,13 +1121,7 @@ public class OBSectionController extends OBViewController
                     return 0;
                 }
             });
-
-            synchronized(this)
-            {
-                sortedAttachedControls = tempList;
-                sortedAttachedControlsValid = true;
-            }
-
+            sortedAttachedControlsValid = true;
         }
     }
 
@@ -1194,13 +1196,7 @@ public class OBSectionController extends OBViewController
         TextureShaderProgram textureShader = (TextureShaderProgram) renderer.textureProgram;
         textureShader.useProgram();
         populateSortedAttachedControls();
-
-        List<OBControl> clist = null;
-        synchronized(this)
-        {
-            clist = sortedAttachedControls;
-        }
-
+        List<OBControl> clist = sortedAttachedControls;
         for (OBControl control : clist)
         {
             if (!control.hidden())
@@ -1572,12 +1568,6 @@ public class OBSectionController extends OBViewController
 
     public void playAudioQueued (List<Object> qu, final boolean wait) throws Exception
     {
-        if(qu == null)
-        {
-            playAudio(null);
-            return;
-        }
-
         Lock lock = null;
         Condition condition = null;
         if (wait)
@@ -1713,7 +1703,6 @@ public class OBSectionController extends OBViewController
                 {
                     stopAllAudio();
                     MainActivity.mainViewController.popViewController();
-
                 }
             }.run();
         }

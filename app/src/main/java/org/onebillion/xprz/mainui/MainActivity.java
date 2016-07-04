@@ -1,28 +1,57 @@
 package org.onebillion.xprz.mainui;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
+import android.content.ContentProvider;
+import android.content.ContentProviderClient;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ConfigurationInfo;
+import android.content.pm.PackageManager;
+import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
+import android.content.res.ObbInfo;
+import android.content.res.ObbScanner;
+import android.database.Cursor;
 import android.graphics.PointF;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Environment;
+import android.os.ParcelFileDescriptor;
+import android.os.storage.OnObbStateChangeListener;
+import android.os.storage.StorageManager;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+
 
 import org.onebillion.xprz.R;
 import org.onebillion.xprz.controls.OBControl;
@@ -73,6 +102,13 @@ public class MainActivity extends Activity
     public OBGLView glSurfaceView;
     public OBRenderer renderer;
     private int b;
+    public List<File> mountedExpansionFiles;
+
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
 
     public static OBGroup armPointer ()
     {
@@ -93,6 +129,20 @@ public class MainActivity extends Activity
         //arm.borderColour = 0xff000000;
         //arm.borderWidth = 1;
         return arm;
+    }
+
+
+    public static void verifyStoragePermissions (Activity activity)
+    {
+        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (permission != PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(
+                    activity,
+                    PERMISSIONS_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE
+            );
+        }
     }
 
     public static Map<String, Object> Config ()
@@ -136,13 +186,10 @@ public class MainActivity extends Activity
         });
         //
         users = new ArrayList<OBUser>();
-        setContentView(R.layout.activity_main);
-        ViewGroup rootView = (ViewGroup) findViewById(android.R.id.content);
-        rootView.addView(glSurfaceView,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-
-        //        setContentView(glSurfaceView);
+        mountedExpansionFiles = new ArrayList<>();
         try
         {
+            downloadOBB();
             setUpConfig();
             mainViewController = new OBMainViewController(this);
             glSurfaceView.controller = mainViewController;
@@ -198,6 +245,7 @@ public class MainActivity extends Activity
             return;
         }
         //
+        setContentView(glSurfaceView);
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
 
@@ -433,5 +481,148 @@ public class MainActivity extends Activity
         }
     }
 
+
+    private void copyInputStreamToFile (InputStream in, File file)
+    {
+        MainActivity.verifyStoragePermissions(this);
+        //
+        try
+        {
+            OutputStream out = new FileOutputStream(file);
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = in.read(buf)) > 0)
+            {
+                out.write(buf, 0, len);
+            }
+            out.close();
+            in.close();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+
+    DownloadManager downloadManager;
+    long downloadID;
+    private BroadcastReceiver downloadCompleteReceiver = new BroadcastReceiver()
+    {
+        @Override
+        public void onReceive (Context context, Intent intent)
+        {
+            long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0L);
+            if (id != downloadID)
+            {
+                Log.v("download", "Ingnoring unrelated download " + id);
+                return;
+            }
+            DownloadManager.Query query = new DownloadManager.Query();
+            query.setFilterById(id);
+            Cursor cursor = downloadManager.query(query);
+            // it shouldn't be empty, but just in case
+            if (!cursor.moveToFirst())
+            {
+                Log.e("download", "Empty row");
+                return;
+            }
+            int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
+            if (DownloadManager.STATUS_SUCCESSFUL != cursor.getInt(statusIndex))
+            {
+                Log.w("download", "Download Failed");
+                return;
+            }
+
+            int uriIndex = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
+            String downloadedPackageUriString = cursor.getString(uriIndex);
+            unpackOBB(downloadedPackageUriString);
+        }
+    };
+
+    protected void downloadOBB ()
+    {
+        registerReceiver(downloadCompleteReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+        //
+        String url = "http://ting.onebillion.org:5007/obb/my-app-assets.obb";
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+        request.setDescription("XPRZ0 assets");
+        request.setTitle("Downloading assets");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+        {
+            request.allowScanningByMediaScanner();
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+        }
+        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "assets.obb");
+        if (downloadManager == null)
+            downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+        downloadID = downloadManager.enqueue(request);
+
+    }
+
+    File obbFilePath;
+    StorageManager storageManager;
+    OnObbStateChangeListener eventListener = new OnObbStateChangeListener()
+    {
+        @Override
+        public void onObbStateChange (String path, int state)
+        {
+            if (state == OnObbStateChangeListener.ERROR_COULD_NOT_MOUNT)
+            {
+                Log.v("unpackOBB", "Could not mount OBB file " + path);
+            }
+            else if (state == OnObbStateChangeListener.ERROR_ALREADY_MOUNTED)
+            {
+                Log.v("unpackOBB", "Already mounted OBB file " + path);
+            }
+            else if (state == OnObbStateChangeListener.MOUNTED)
+            {
+                Log.v("unpackOBB", "Mounted OBB file " + path);
+                File mounted = new File(storageManager.getMountedObbPath(obbFilePath.getAbsolutePath()));
+                mountedExpansionFiles.add(mounted);
+            }
+            else if (state == OnObbStateChangeListener.UNMOUNTED)
+            {
+                Log.v("unpackOBB", "Unmounted OBB file " + path);
+            }
+            else if (state == OnObbStateChangeListener.ERROR_PERMISSION_DENIED)
+            {
+                Log.v("unpackOBB", "Permission Denied " + path);
+            }
+            else if (state == OnObbStateChangeListener.ERROR_COULD_NOT_UNMOUNT)
+            {
+                Log.v("unpackOBB", "Could not unmount OBB file " + path);
+            }
+            else if (state == OnObbStateChangeListener.ERROR_INTERNAL)
+                Log.v("unpackOBB", "Internal Error " + path);
+            else
+            {
+                Log.v("unpackOBB", "Unknown Error " + path);
+            }
+        }
+    };
+
+
+    protected void unpackOBB (String filePath)
+    {
+//        String password = "4asterix";
+        storageManager = (StorageManager) getSystemService(Context.STORAGE_SERVICE);
+        //
+        try
+        {
+            File downloadedFile = new File(filePath);
+            obbFilePath = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/" + downloadedFile.getName());
+            //
+            ObbInfo info = ObbScanner.getObbInfo(obbFilePath.getAbsolutePath());
+            String packageName = info.packageName;
+            String file = info.filename;
+            Log.v("unpackOBB", "Info from downloaded OBB: " + packageName + " " + file);
+            storageManager.mountObb(obbFilePath.getAbsolutePath(), null, eventListener);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
 }
 

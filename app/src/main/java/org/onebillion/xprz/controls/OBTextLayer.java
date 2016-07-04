@@ -22,7 +22,6 @@ public class OBTextLayer extends OBLayer
     public static int JUST_CENTER = 0,
     JUST_LEFT = 1,
     JUST_RIGHT = 2;
-    public StaticLayout stLayout;
     Typeface typeFace;
     float textSize;
     String text;
@@ -35,6 +34,8 @@ public class OBTextLayer extends OBLayer
     int justification = JUST_CENTER;
     Rect tempRect;
     SpannableString spanner;
+    StaticLayout stLayout;
+
     boolean displayObjectsValid = false;
 
     public OBTextLayer(Typeface tf,float size,int col,String s)

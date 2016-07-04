@@ -4,8 +4,6 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 
-import org.onebillion.xprz.controls.OBControl;
-
 public class OB_Maths
 {
     static final double TOLERANCE = 0.0000001;  // Application specific tolerance
@@ -450,13 +448,8 @@ public class OB_Maths
     }
 
 
-    public static PointF worldLocationForControl(float x, float y, OBControl control)
-    {
-        if(control.parent == null)
-            return OB_Maths.locationForRect(x,y,control.frame());
-        else
-            return OB_Maths.locationForRect(x,y, control.parent.convertRectToControl(control.frame(),null));
-    }
+
+
 
 
 }

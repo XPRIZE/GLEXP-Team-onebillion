@@ -99,7 +99,8 @@ public class XPRZ_Generic
         try
         {
             OBXMLManager xmlManager = new OBXMLManager();
-            List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(filePath));
+            List<OBXMLNode> xl = xmlManager.parseFile(OBUtils.getInputStreamForPath(filePath));
+//            List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(filePath));
             xmlNode = xl.get(0);
             List<OBXMLNode> xml_objects = xmlNode.childrenOfType("object");
             for (OBXMLNode xml_object : xml_objects)

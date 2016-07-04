@@ -813,16 +813,6 @@ public class OBGroup extends OBControl
         return dad;
     }
 
-    public void outdent (float f)
-    {
-        RectF b = bounds();
-        b.right += 2 * f;
-        b.bottom += 2 * f;
-        for (OBControl c : members)
-            c.setPosition(OB_Maths.OffsetPoint(c.position(), f, f));
-        setBounds(b);
-    }
-
     public void sizeToMember (OBControl m)
     {
         PointF oldmpos = convertPointFromControl(m.position(), m.parent);

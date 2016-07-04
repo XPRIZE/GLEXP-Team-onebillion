@@ -1,6 +1,8 @@
 package org.onebillion.xprz.utils;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -11,14 +13,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.*;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
@@ -28,8 +30,6 @@ import android.widget.ImageView;
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBImage;
-import org.onebillion.xprz.controls.OBLabel;
-import org.onebillion.xprz.controls.OBTextLayer;
 import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.OBSectionController;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
@@ -106,20 +106,121 @@ public class OBUtils
         return Collections.emptyList();
     }
 
+//    public static Boolean fileExistsAtPath (String path)
+//    {
+//        AssetManager am = MainActivity.mainActivity.getAssets();
+//        try
+//        {
+//            InputStream pis = am.open(path);
+//            return (pis != null);
+//        }
+//        catch (IOException e)
+//        {
+//            //e.printStackTrace();
+//        }
+//        return false;
+//    }
+
+
     public static Boolean fileExistsAtPath (String path)
     {
-        AssetManager am = MainActivity.mainActivity.getAssets();
         try
         {
-            InputStream pis = am.open(path);
-            return (pis != null);
+            AssetManager am = MainActivity.mainActivity.getAssets();
+            InputStream is = am.open(path);
+            return (is != null);
         }
         catch (IOException e)
         {
-            //e.printStackTrace();
+            Log.v("fileExistsAtPath", "unable to find asset in bundled assets " + path);
         }
+        //
+        for (File mounted : MainActivity.mainActivity.mountedExpansionFiles)
+        {
+            try
+            {
+                File extendedFile = new File(mounted.getAbsolutePath() + "/" + path);
+                Boolean fileExists = extendedFile.exists();
+                return fileExists;
+            }
+            catch (Exception e)
+            {
+                Log.v("getFilePathInAssets", "exception caught " + e.toString());
+                e.printStackTrace();
+            }
+        }
+        //
         return false;
     }
+
+
+    public static InputStream getInputStreamForPath (String path)
+    {
+        try
+        {
+            InputStream is = MainActivity.mainActivity.getAssets().open(path);
+            return is;
+        }
+        catch (IOException e)
+        {
+            Log.v("getInputStream", "unable to find bundled asset: " + path);
+            e.printStackTrace();
+        }
+        //
+        for (File mounted : MainActivity.mainActivity.mountedExpansionFiles)
+        {
+            String extendedPath = mounted.getAbsolutePath() + "/" + path;
+            try
+            {
+                File file = new File(extendedPath);
+                Boolean fileExists = file.exists();
+                if (fileExists)
+                {
+                    InputStream is = new FileInputStream(file);
+                    return is;
+                }
+            }
+            catch (Exception e)
+            {
+                Log.v("getInputStream", "unable to find downloaded asset: " + extendedPath);
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+
+    public static AssetFileDescriptor getAssetFileDescriptorForPath (String path)
+    {
+        AssetManager am = MainActivity.mainActivity.getAssets();
+        // attempts to get file descriptor from assets
+        try
+        {
+            AssetFileDescriptor fd = am.openFd(path);
+            return fd;
+        }
+        catch (IOException e)
+        {
+            Log.v("getAssetFileDescriptor", "unable to find asset in bundled assets " + path);
+        }
+        // attempt to get from external assets
+        for (File mounted : MainActivity.mainActivity.mountedExpansionFiles)
+        {
+            File extendedFile = new File(mounted.getAbsolutePath() + "/" + path);
+            Uri uri = Uri.fromFile(extendedFile);
+            try
+            {
+                AssetFileDescriptor fd = MainActivity.mainActivity.getContentResolver().openAssetFileDescriptor(uri, "r");
+                return fd;
+            }
+            catch (IOException e)
+            {
+                Log.v("getAssetFileDescriptor", "unable to find asset in downloaded assets " + extendedFile);
+            }
+        }
+        return null;
+    }
+
 
     public static void getFloatColour (int col, float outcol[])
     {
@@ -537,8 +638,6 @@ public class OBUtils
                 }
                 catch (Exception exception)
                 {
-                    Logger logger = Logger.getAnonymousLogger();
-                    logger.log(Level.SEVERE, "Error in runOnMainThread", exception);
                 }
             }
         }.run();
@@ -556,8 +655,6 @@ public class OBUtils
                 }
                 catch (Exception exception)
                 {
-                    Logger logger = Logger.getAnonymousLogger();
-                    logger.log(Level.SEVERE, "Error in runOnOtherThread", exception);
                 }
                 return null;
             }
@@ -577,8 +674,6 @@ public class OBUtils
                 }
                 catch (Exception exception)
                 {
-                    Logger logger = Logger.getAnonymousLogger();
-                    logger.log(Level.SEVERE, "Error in runOnOtherThreadDelayed", exception);
                 }
                 return null;
             }
@@ -598,23 +693,13 @@ public class OBUtils
         return path;
     }
 
-    public static UCurve SimpleUCurve (PointF from, PointF to, float offset)
-    {
-        PointF c1 = OB_Maths.tPointAlongLine(0.33f, from, to);
-        PointF c2 = OB_Maths.tPointAlongLine(0.66f, from, to);
-        PointF lp = OB_Maths.ScalarTimesPoint(offset, OB_Maths.NormalisedVector(OB_Maths.lperp(OB_Maths.DiffPoints(to, from))));
-        PointF cp1 = OB_Maths.AddPoints(c1, lp);
-        PointF cp2 = OB_Maths.AddPoints(c2, lp);
-        return new UCurve(from.x,from.y,to.x,to.y,cp1.x,cp1.y,cp2.x,cp2.y);
-    }
-
     public static int DesaturatedColour (int colour, float sat)
     {
         float components[] = {0, 0, 0, 1};
-        components[0] = Color.red(colour)/255f;
-        components[1] = Color.green(colour)/255f;
-        components[2] = Color.blue(colour)/255f;
-        components[3] = Color.alpha(colour)/255f;
+        components[0] = Color.red(colour);
+        components[1] = Color.green(colour);
+        components[2] = Color.blue(colour);
+        components[2] = Color.alpha(colour);
         float weights[] = {0.299f, 0.587f, 0.114f};
         float greyVal = 0;
         for (int i = 0; i < 3; i++)
@@ -627,12 +712,12 @@ public class OBUtils
         return outcol;
     }
 
-    public static int highlightedColour(int colour)
+    public static int highlightedColour (int colour)
     {
         return Color.argb(255,
-                Math.round(Color.red(colour)*0.8f),
-                Math.round(Color.green(colour)*0.8f),
-                Math.round(Color.blue(colour)*0.8f));
+                Math.round(Color.red(colour) * 0.8f),
+                Math.round(Color.green(colour) * 0.8f),
+                Math.round(Color.blue(colour) * 0.8f));
     }
 
     static String getConfigFile (String fileName)
@@ -700,7 +785,8 @@ public class OBUtils
             try
             {
                 OBXMLManager xmlManager = new OBXMLManager();
-                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
+                List<OBXMLNode> xl = xmlManager.parseFile(OBUtils.getInputStreamForPath(xmlPath));
+//                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
                 xmlNode = xl.get(0);
                 OBXMLNode timingsNode = xmlNode.childrenOfType("timings").get(0);
                 for (OBXMLNode xtiming : timingsNode.childrenOfType("timing"))
@@ -744,7 +830,8 @@ public class OBUtils
             try
             {
                 OBXMLManager xmlManager = new OBXMLManager();
-                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
+                List<OBXMLNode> xl = xmlManager.parseFile(OBUtils.getInputStreamForPath(xmlPath));
+//                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
                 xmlNode = xl.get(0);
                 //
                 OBXMLNode phonemesNode = xmlNode.childrenOfType("phonemes").get(0);
@@ -846,62 +933,11 @@ public class OBUtils
         return (Map<String, OBPhoneme>) (Object) dictionary;
     }
 
-    public static List<String> getFramesList(String prefix, int from, int to)
-    {
-        List<String> list = new ArrayList<>();
-        if(from < to)
-        {
-            for(int i = from; i <= to; i++)
-                list.add(String.format("%s%d",prefix,i));
-        }
-        else
-        {
-            for(int i = from; i >= to; i--)
-                list.add(String.format("%s%d",prefix,i));
-        }
-
-        return list;
-
-    }
-
-    public static boolean getBooleanValue(String val)
-    {
-        if(val == null)
-            return false;
-        if(val.equalsIgnoreCase("true"))
-            return true;
-        else
-            return false;
-    }
-
-    public static int getIntValue(String val)
-    {
-        if(val == null)
-            return 0;
-
-        try
-        {
-            return Integer.valueOf(val);
-        }
-        catch (Exception e)
-        {
-            return 0;
-        }
-
-    }
-
-    public static RectF getBoundsForSelectionInLabel(int start, int end, OBLabel label)
-    {
-        OBTextLayer textLayer = (OBTextLayer)label.layer;
-        Path path = new Path();
-        textLayer.stLayout.getSelectionPath(start,end,path);
-        RectF pathBounds = new RectF();
-        path.computeBounds(pathBounds,true);
-        return label.convertRectToControl(pathBounds,null);
-    }
 
     public interface RunLambda
     {
         public void run () throws Exception;
     }
+
+
 }

@@ -2,8 +2,6 @@ package org.onebillion.xprz.mainui.x_reading;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.Matrix;
-import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.AsyncTask;
@@ -393,6 +391,7 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
                             demoCqType2b(true);
                         }
                     });
+                demoCqType2b(true);
             }
         }
         catch (Exception exception)
@@ -471,13 +470,13 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
                 }
                 else
                 {
-                    setAnswerButtonInActive(c);
+                    setAnswerButtonActive(c);
                 }
             }
         };
         OBAnimationGroup ag = new OBAnimationGroup();
         registerAnimationGroup(ag,"flash");
-        ag.applyAnimations(Collections.singletonList(blockAnim),0.25f,false,OBAnim.ANIM_LINEAR,-1,null,this);
+        ag.applyAnimations(Collections.singletonList(blockAnim),0.25f,true,OBAnim.ANIM_LINEAR,this);
         setAnswerButtonActive(c);
     }
     void setAnswerButtonActive(OBPath c)
@@ -526,8 +525,6 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
             for (OBControl p : filterControls("answer.*"))
             {
                 OBPath c = (OBPath) p;
-                float l = c.lineWidth();
-                ((OBPath) p).outdent(l);
                 int col = c.fillColor();
                 c.setProperty("fillcolour", col);
                 c.setProperty("desatfillcolour", OBUtils.DesaturatedColour(col, 0.2f));
@@ -627,13 +624,10 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         smallStar.setFillColor(Color.WHITE);
         smallStar.enCache();
         OBPath shape = (OBPath) objectDict.get("shape");
-        PointF firstpt = shape.sAlongPath(0,null);
-        firstpt = convertPointFromControl(firstpt,shape);
         OBEmitterCell cell = starEmitterCell(0, smallStar.cache, 0, 0, 0);
 
         starEmitter = new OBEmitter();
-        starEmitter.setBounds(0,0,64,64);
-        starEmitter.setPosition(firstpt);
+        starEmitter.setFrame(0, 0, bounds().width(), bounds().height());
         starEmitter.cells.add(cell);
 
         starEmitter.setZPosition(100);
@@ -652,10 +646,7 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
     {
         OBControl starEmitter = objectDict.get("starEmitter");
         OBPath shape = (OBPath) objectDict.get("shape");
-        Matrix m = shape.matrixToConvertPointToControl(null);
-        Path p = new Path(shape.path());
-        p.transform(m);
-        OBAnim anim = OBAnim.pathMoveAnim(starEmitter,p,false,0);
+        OBAnim anim = OBAnim.pathMoveAnim(starEmitter,shape.path(),false,0);
         anim.key = "layer.emitterPosition";
         OBAnimationGroup agp = new OBAnimationGroup();
         agp.applyAnimations(Collections.singletonList(anim),2,false,OBAnim.ANIM_LINEAR,this);
