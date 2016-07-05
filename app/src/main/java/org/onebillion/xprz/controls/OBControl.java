@@ -818,6 +818,13 @@ public class OBControl
         m.mapPoints(pts);
         return new PointF(pts[0],pts[1]);
     }
+    public Path convertPathToControl(Path p,OBControl c)
+    {
+        Matrix m = matrixToConvertPointToControl(c);
+        Path newp = new Path(p);
+        newp.transform(m);
+        return newp;
+    }
 
     public PointF convertPointFromControl(PointF pt,OBControl c)
     {

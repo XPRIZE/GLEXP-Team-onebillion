@@ -477,14 +477,19 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         };
         OBAnimationGroup ag = new OBAnimationGroup();
         registerAnimationGroup(ag,"flash");
-        ag.applyAnimations(Collections.singletonList(blockAnim),0.25f,false,OBAnim.ANIM_LINEAR,-1,null,this);
-        setAnswerButtonActive(c);
+        ag.applyAnimations(Collections.singletonList(blockAnim), 0.25f, false, OBAnim.ANIM_LINEAR, -1, new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception {
+                setAnswerButtonActive(c);
+            }
+        }, this);
     }
     void setAnswerButtonActive(OBPath c)
     {
         lockScreen();
         c.setFillColor((Integer)c.propertyValue("fillcolour"));
         c.setStrokeColor((Integer)c.propertyValue("strokecolour"));
+        c.lowlight();
         unlockScreen();
     }
 
@@ -493,6 +498,7 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         lockScreen();
         c.setFillColor((Integer)c.propertyValue("desatfillcolour"));
         c.setStrokeColor((Integer)c.propertyValue("desatstrokecolour"));
+        c.lowlight();
         unlockScreen();
     }
 
@@ -501,6 +507,7 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         lockScreen();
         c.setFillColor((Integer)c.propertyValue("fillcolour"));
         c.setStrokeColor((Integer)c.propertyValue("strokecolour"));
+        c.highlight();
         unlockScreen();
     }
 
@@ -616,8 +623,15 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
 
     public void stopEmissions() throws Exception {
         OBEmitterCell cell = starEmitter.cells.get(0);
-        cell.birthRate = 0;
+
+        cell.birthRate = 3;
+        cell.alphaSpeed = 0;
+        cell.spinRange = 0;
+        cell.scaleSpeed = 0;
+        cell.scaleRange = 0;
         cell.lifeTime = 10;
+        waitForSecs(2);
+        cell.birthRate = 0;
         waitForSecs(2f);
     }
 
@@ -627,13 +641,18 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         smallStar.setFillColor(Color.WHITE);
         smallStar.enCache();
         OBPath shape = (OBPath) objectDict.get("shape");
+        //attachControl(shape);
+        //shape.setZPosition(200);
+        //shape.show();
         PointF firstpt = shape.sAlongPath(0,null);
         firstpt = convertPointFromControl(firstpt,shape);
-        OBEmitterCell cell = starEmitterCell(0, smallStar.cache, 0, 0, 0);
 
         starEmitter = new OBEmitter();
         starEmitter.setBounds(0,0,64,64);
         starEmitter.setPosition(firstpt);
+        OBEmitterCell cell = starEmitterCell(0, smallStar.cache, 0, 0, 0);
+        cell.posX = 32;
+        cell.posY = 32;
         starEmitter.cells.add(cell);
 
         starEmitter.setZPosition(100);
@@ -652,13 +671,15 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
     {
         OBControl starEmitter = objectDict.get("starEmitter");
         OBPath shape = (OBPath) objectDict.get("shape");
-        Matrix m = shape.matrixToConvertPointToControl(null);
-        Path p = new Path(shape.path());
-        p.transform(m);
+        //Matrix m = shape.matrixToConvertPointToControl(null);
+        //Path p = new Path(shape.path());
+        //p.transform(m);
+        Path p = convertPathFromControl(shape.path(),shape);
+        //Path p = shape.convertPathToControl(shape.path(),starEmitter);
         OBAnim anim = OBAnim.pathMoveAnim(starEmitter,p,false,0);
         anim.key = "layer.emitterPosition";
         OBAnimationGroup agp = new OBAnimationGroup();
-        agp.applyAnimations(Collections.singletonList(anim),2,false,OBAnim.ANIM_LINEAR,this);
+        agp.applyAnimations(Collections.singletonList(anim),2,false,OBAnim.ANIM_LINEAR,2,null,this);
     }
 
     public void checkAnswer1(OBControl targ,PointF pt)

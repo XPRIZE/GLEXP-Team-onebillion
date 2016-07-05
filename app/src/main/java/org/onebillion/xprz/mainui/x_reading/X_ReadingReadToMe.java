@@ -6,4 +6,9 @@ package org.onebillion.xprz.mainui.x_reading;
 public class X_ReadingReadToMe extends X_Reading
 {
 
+    public boolean showPrevButton()
+    {
+        return false;
+    }
+
 }

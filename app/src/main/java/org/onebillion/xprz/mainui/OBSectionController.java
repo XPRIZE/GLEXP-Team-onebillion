@@ -1836,6 +1836,11 @@ public class OBSectionController extends OBViewController
         return OBMainViewController.SHOW_TOP_LEFT_BUTTON | OBMainViewController.SHOW_TOP_RIGHT_BUTTON;
     }
 
+    public Path convertPathFromControl (Path p, OBControl c)
+    {
+        return c.convertPathToControl(p, null);
+    }
+
     public PointF convertPointFromControl (PointF pt, OBControl c)
     {
         return c.convertPointToControl(pt, null);
@@ -1936,15 +1941,16 @@ public class OBSectionController extends OBViewController
             @Override
             public void run () throws Exception
             {
-                if (statusChanged(sttime))
+                if (!statusChanged(sttime))
                 {
                     if (audio != null)
                     {
                         boolean wait = (actionBlock != null);
                         playAudioQueued(audio, wait);
-                        if (actionBlock != null)
-                            actionBlock.run();
                     }
+                    if (actionBlock != null)
+                        actionBlock.run();
+
                 }
             }
         });
