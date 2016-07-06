@@ -136,7 +136,7 @@ public class OBUtils
 //            Log.v("fileExistsAtPath", "unable to find asset in bundled assets " + path);
         }
         //
-        for (File mounted : OBExpansionManager.sharedManager.mountedExpansionFiles)
+        for (File mounted : OBExpansionManager.sharedManager.getExternalExpansionFolders())
         {
             try
             {
@@ -168,7 +168,7 @@ public class OBUtils
 //            e.printStackTrace();
         }
         //
-        for (File mounted : OBExpansionManager.sharedManager.mountedExpansionFiles)
+        for (File mounted : OBExpansionManager.sharedManager.getExternalExpansionFolders())
         {
             String extendedPath = mounted.getAbsolutePath() + "/" + path;
             try
@@ -205,7 +205,7 @@ public class OBUtils
 //            Log.v("getAssetFileDescriptor", "unable to find asset in bundled assets " + path);
         }
         // attempt to get from external assets
-        for (File mounted : OBExpansionManager.sharedManager.mountedExpansionFiles)
+        for (File mounted : OBExpansionManager.sharedManager.getExternalExpansionFolders())
         {
             File extendedFile = new File(mounted.getAbsolutePath() + "/" + path);
             Uri uri = Uri.fromFile(extendedFile);

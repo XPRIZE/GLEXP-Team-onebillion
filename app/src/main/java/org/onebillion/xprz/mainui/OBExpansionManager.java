@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.storage.OnObbStateChangeListener;
 import android.os.storage.StorageManager;
+import android.renderscript.ScriptGroup;
 import android.util.Log;
 
 import org.apache.commons.io.FileUtils;
@@ -22,10 +23,15 @@ import org.onebillion.xprz.utils.OBXMLManager;
 import org.onebillion.xprz.utils.OBXMLNode;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by pedroloureiro on 06/07/16.
@@ -33,35 +39,60 @@ import java.util.List;
 public class OBExpansionManager
 {
     public static OBExpansionManager sharedManager;
-    public List<OBExpansionFile> internalExpansionFiles;
-    public List<OBExpansionFile> remoteExpansionFiles;
-    public List<File> mountedExpansionFiles;
+    public Map<String, OBExpansionFile> internalExpansionFiles;
+    public Map<String, OBExpansionFile> remoteExpansionFiles;
 
     DownloadManager downloadManager;
     long downloadID;
     File obbFilePath;
     StorageManager storageManager;
 
-    public OBExpansionManager()
+    public OBExpansionManager ()
     {
-        internalExpansionFiles = new ArrayList();
-        remoteExpansionFiles = new ArrayList();
-        mountedExpansionFiles = new ArrayList();
+        remoteExpansionFiles = new HashMap();
         sharedManager = this;
-        getAvailableOBBList();
     }
 
 
-    public void stopListening()
+    private void mountAvailableExpansionFolders ()
+    {
+        String currentExternalAssets = MainActivity.mainActivity.getPreferences("externalAssets");
+        if (currentExternalAssets != null)
+        {
+            List<String> externalAssets = new ArrayList(Arrays.asList(currentExternalAssets.split(",")));
+            for (String folder : externalAssets)
+            {
+                addExpansionAssetsFolder(folder);
+            }
+        }
+    }
+
+
+    public List<File> getExternalExpansionFolders ()
+    {
+        List<File> result = new ArrayList();
+        for (OBExpansionFile file : internalExpansionFiles.values())
+        {
+            if (file.folder != null) result.add(file.folder);
+        }
+        return result;
+    }
+
+
+    public void stopListening ()
     {
         MainActivity.mainActivity.unregisterReceiver(downloadCompleteReceiver);
     }
 
 
-
-
-    public void getAvailableOBBList()
+    public void installMissingExpansionFiles ()
     {
+        if (internalExpansionFiles == null)
+        {
+            internalExpansionFiles = new HashMap<String, OBExpansionFile>();
+            mountAvailableExpansionFolders();
+        }
+        //
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             @Override
@@ -80,8 +111,10 @@ public class OBExpansionManager
                         String id = xmlNode.attributeStringValue("id");
                         String type = xmlNode.attributeStringValue("type");
                         int version = xmlNode.attributeIntValue("version");
-                        remoteExpansionFiles.add(new OBExpansionFile(id, type, version));
+                        remoteExpansionFiles.put(id, new OBExpansionFile(id, type, version, null));
                     }
+                    //
+                    compareExpansionFilesAndInstallMissingOrOutdated();
                 }
                 catch (Exception e)
                 {
@@ -89,6 +122,39 @@ public class OBExpansionManager
                 }
             }
         });
+    }
+
+
+    private void compareExpansionFilesAndInstallMissingOrOutdated ()
+    {
+        MainActivity.mainActivity.log("CompareExpansionFilesAndInstallMissingOrOutdate");
+        if (remoteExpansionFiles == null)
+        {
+            remoteExpansionFiles = new HashMap();
+        }
+        //
+        for (OBExpansionFile remoteFile : remoteExpansionFiles.values())
+        {
+            if (remoteFile == null) continue;
+            MainActivity.mainActivity.log("checking: " + remoteFile.id + " " + remoteFile.version);
+            //
+            Boolean needsUpdate = true;
+            OBExpansionFile internalFile = internalExpansionFiles.get(remoteFile.id);
+            if (internalFile != null && internalFile.id.equals(remoteFile.id) && internalFile.version == remoteFile.version)
+            {
+                needsUpdate = false;
+            }
+            //
+            if (needsUpdate)
+            {
+                MainActivity.mainActivity.log("Download required --> " + remoteFile.id + " local:" + (internalFile != null ? internalFile.version : "missing") + "   remote:" + remoteFile.version);
+                downloadOBB(remoteFile.id);
+            }
+            else
+            {
+                MainActivity.mainActivity.log("Download NOT required --> " + remoteFile.id + " local:" + (internalFile != null ? internalFile.version : "missing") + "   remote:" + remoteFile.version);
+            }
+        }
     }
 
 
@@ -100,7 +166,7 @@ public class OBExpansionManager
             long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0L);
             if (id != downloadID)
             {
-                MainActivity.mainActivity.log("Ingnoring unrelated download " + id);
+                MainActivity.mainActivity.log("Ignoring unrelated download " + id);
                 return;
             }
             DownloadManager.Query query = new DownloadManager.Query();
@@ -126,8 +192,7 @@ public class OBExpansionManager
     };
 
 
-
-    OnObbStateChangeListener eventListener = new OnObbStateChangeListener()
+    private OnObbStateChangeListener eventListener = new OnObbStateChangeListener()
     {
         @Override
         public void onObbStateChange (String path, int state)
@@ -144,7 +209,6 @@ public class OBExpansionManager
             {
                 MainActivity.mainActivity.log("Mounted OBB file " + path);
                 //
-                // copy content to internal storage
                 File source = new File(storageManager.getMountedObbPath(obbFilePath.getAbsolutePath()));
                 String folderName = FilenameUtils.removeExtension(obbFilePath.getName());
                 File destination = new File(MainActivity.mainActivity.getFilesDir() + File.separator + folderName);
@@ -153,8 +217,27 @@ public class OBExpansionManager
                 {
                     FileUtils.copyDirectory(source, destination);
                     //
-                    MainActivity.mainActivity.addToPreferences("externalAssets", folderName);
-                    addExpansionAssetsFolder(folderName);
+                    String currentExternalAssets = MainActivity.mainActivity.getPreferences("externalAssets");
+                    if (currentExternalAssets == null)
+                    {
+                        MainActivity.mainActivity.addToPreferences("externalAssets", folderName);
+                        addExpansionAssetsFolder(folderName);
+                    }
+                    else
+                    {
+                        List<String> externalAssets = new ArrayList(Arrays.asList(currentExternalAssets.split(",")));
+                        if (!externalAssets.contains(folderName))
+                        {
+                            externalAssets.add(folderName);
+                            StringBuilder newExternalAssets = new StringBuilder();
+                            for (String folder : externalAssets)
+                            {
+                                externalAssets.add(folder + ",");
+                            }
+                            MainActivity.mainActivity.addToPreferences("externalAssets", newExternalAssets.toString());
+                            addExpansionAssetsFolder(folderName);
+                        }
+                    }
                     //
                     storageManager.unmountObb(obbFilePath.getPath(), true, eventListener);
                 }
@@ -200,8 +283,7 @@ public class OBExpansionManager
     };
 
 
-
-    protected void unpackOBB (String filePath)
+    private void unpackOBB (String filePath)
     {
         if (MainActivity.mainActivity.isStoragePermissionGranted())
         {
@@ -222,9 +304,6 @@ public class OBExpansionManager
             catch (Exception e)
             {
                 e.printStackTrace();
-                //
-                MainActivity.mainActivity.addToPreferences("externalAssets", null);
-                downloadOBB();
             }
         }
         else
@@ -234,9 +313,9 @@ public class OBExpansionManager
     }
 
 
-
-    protected void downloadOBB ()
+    private void downloadOBB (String fileName)
     {
+        MainActivity.mainActivity.log("Attempting to download OBB " + fileName + ".obb");
         String externalAssets = MainActivity.mainActivity.getPreferences("externalAssets");
         if (externalAssets == null)
         {
@@ -245,7 +324,7 @@ public class OBExpansionManager
                 MainActivity.mainActivity.log("downloading OBB");
                 MainActivity.mainActivity.registerReceiver(downloadCompleteReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
                 //
-                String url = MainActivity.mainActivity.Config().get(MainActivity.CONFIG_EXPANSION_URL) + "my-app-assets.obb"; // needs to be dynamic, grab the list and pick the file
+                String url = MainActivity.mainActivity.Config().get(MainActivity.CONFIG_EXPANSION_URL) + fileName + ".obb";
                 DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
                 request.setDescription("XPRZ0 assets");
                 request.setTitle("Downloading assets");
@@ -254,7 +333,7 @@ public class OBExpansionManager
                     request.allowScanningByMediaScanner();
                     request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                 }
-                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "my-app-assets.obb"); // needs to be dynamic, grab the name from the list
+                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName + ".obb");
                 if (downloadManager == null)
                     downloadManager = (DownloadManager) MainActivity.mainActivity.getSystemService(Context.DOWNLOAD_SERVICE);
                 downloadID = downloadManager.enqueue(request);
@@ -273,14 +352,32 @@ public class OBExpansionManager
     }
 
 
-    public void addExpansionAssetsFolder (String folderName)
+    private void addExpansionAssetsFolder (String folderName)
     {
-        File expansionFile = new File(MainActivity.mainActivity.getFilesDir() + File.separator + folderName);
-        mountedExpansionFiles.add(expansionFile);
+        try
+        {
+            File folder = new File(MainActivity.mainActivity.getFilesDir() + File.separator + folderName);
+            File versionXML = new File(folder.getAbsolutePath() + File.separator + "version.xml");
+            //
+            OBXMLManager manager = new OBXMLManager();
+            FileInputStream xmlFile = new FileInputStream(versionXML);
+            List<OBXMLNode> xml = manager.parseFile(xmlFile);
+            OBXMLNode rootNode = xml.get(0);
+            //
+            String id = rootNode.attributeStringValue("id");
+            String type = rootNode.attributeStringValue("type");
+            int version = rootNode.attributeIntValue("version");
+            //
+            OBExpansionFile expansionFile = new OBExpansionFile(id, type, version, folder);
+            internalExpansionFiles.put(expansionFile.id, expansionFile);
+            //
+            MainActivity.mainActivity.log("Expansion Folder Installed: " + id + " --> " + folder.getPath());
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
-
-
-
 
 
 //    protected void moveDownloadedFileToInternalStorage (String filePath) throws IOException
@@ -316,7 +413,6 @@ public class OBExpansionManager
 //        //
 //        unpackOBB(destination.getName());
 //    }
-
 
 
 }

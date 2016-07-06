@@ -104,7 +104,7 @@ public class MainActivity extends Activity
             CONFIG_FAT_CONTROLLER = "fatcontrollerclass";
 
 
-    public static String TAG = "XPRZ0";
+    public static String TAG = "livecode";
     public static OBExpansionManager expansionManager = new OBExpansionManager();
     public static MainActivity mainActivity;
     public static OBMainViewController mainViewController;
@@ -187,8 +187,8 @@ public class MainActivity extends Activity
         users = new ArrayList<OBUser>();
         try
         {
-            OBExpansionManager.sharedManager.downloadOBB();
             setUpConfig();
+            OBExpansionManager.sharedManager.installMissingExpansionFiles();
             mainViewController = new OBMainViewController(this);
             glSurfaceView.controller = mainViewController;
             new OBAudioManager();
@@ -506,7 +506,7 @@ public class MainActivity extends Activity
         if (requestCode == REQUEST_EXTERNAL_STORAGE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
         {
             log("received permission to access external storage. attempting to download again");
-            OBExpansionManager.sharedManager.downloadOBB();
+            OBExpansionManager.sharedManager.installMissingExpansionFiles();
         }
     }
 
@@ -518,7 +518,7 @@ public class MainActivity extends Activity
         edit.putString(key, value);
         edit.apply();
         //
-        log("Preferences set [" + key + "] --> " + value);
+        log("Preferences SET [" + key + "] --> " + value);
     }
 
 
