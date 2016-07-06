@@ -637,8 +637,13 @@ public class OBUtils
                 {
                     lamb.run();
                 }
+                catch (OBUserPressedBackException e)
+                {
+                    OBAudioManager.audioManager.stopAllAudio();
+                }
                 catch (Exception exception)
                 {
+
                 }
             }
         }.run();
@@ -654,8 +659,13 @@ public class OBUtils
                 {
                     lamb.run();
                 }
+                catch (OBUserPressedBackException e)
+                {
+                    OBAudioManager.audioManager.stopAllAudio();
+                }
                 catch (Exception exception)
                 {
+
                 }
                 return null;
             }
@@ -673,8 +683,13 @@ public class OBUtils
                     Thread.sleep(Math.round(delay * 1000));
                     lamb.run();
                 }
+                catch (OBUserPressedBackException e)
+                {
+                    OBAudioManager.audioManager.stopAllAudio();
+                }
                 catch (Exception exception)
                 {
+
                 }
                 return null;
             }

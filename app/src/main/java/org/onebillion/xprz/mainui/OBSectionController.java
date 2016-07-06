@@ -1632,7 +1632,8 @@ public class OBSectionController extends OBViewController
         if (fabort.value)
         {
             _aborting = true;
-            throw new Exception("BackException");
+            throw new OBUserPressedBackException();
+//            throw new Exception("BackException");
         }
     }
 
@@ -1746,18 +1747,30 @@ public class OBSectionController extends OBViewController
     public void waitAudioChannel (String ch) throws Exception
     {
         if (_aborting)
-            throw new Exception("BackException");
+        {
+            throw new OBUserPressedBackException();
+//            throw new Exception("BackException");
+        }
         OBAudioManager.audioManager.waitAudioChannel(ch);
         if (_aborting)
-            throw new Exception("BackException");
+        {
+            throw new OBUserPressedBackException();
+//            throw new Exception("BackException");
+        }
     }
 
     public void waitAudioAndCheck (long stTime) throws Exception
     {
         if (!statusChanged(stTime))
+        {
             waitAudio();
+        }
         if (statusChanged(stTime))
-            throw new Exception("BackException");
+        {
+            throw new OBUserPressedBackException();
+//            throw new Exception("BackException");
+        }
+
     }
 
     void _wait (double secs)
@@ -1780,9 +1793,14 @@ public class OBSectionController extends OBViewController
     public void waitForSecs (double secs) throws Exception
     {
         if (!_aborting)
+        {
             _wait(secs);
+        }
         if (_aborting)
-            throw new Exception("BackException");
+        {
+            throw new OBUserPressedBackException();
+//            throw new Exception("BackException");
+        }
     }
 
     public void displayTick () throws Exception
