@@ -74,6 +74,24 @@ public class XPRZ_SectionController extends OBSectionController {
         }
     }
 
+    public void playAudioQueuedScene(String scene,String event, float interval,boolean wait) throws Exception
+    {
+        if (audioScenes == null)
+            return;
+        Map<String,List<String>> sc = (Map<String,List<String>>)audioScenes.get(scene);
+        if (sc != null)
+        {
+            List<Object> arr = OBUtils.insertAudioInterval((List<Object>)(Object)sc.get(event), Math.round(interval*1000)); //yuk!
+            if (arr != null)
+                playAudioQueued(arr, wait);
+        }
+    }
+
+    public void playAudioQueuedScene(String audioCategory, float interval, boolean wait) throws Exception
+    {
+        playAudioQueuedScene(currentEvent(),audioCategory,interval, wait);
+    }
+
     public void playAudioQueuedScene(String audioCategory,boolean wait) throws Exception
     {
         playAudioQueuedScene(currentEvent(),audioCategory,wait);
@@ -469,6 +487,40 @@ public class XPRZ_SectionController extends OBSectionController {
         playAudioScene(currentEvent(),audio,index);
         waitAudio();
         waitForSecs(wait);
+    }
+
+    public void animateFrames(List<String> frames, float delay, OBGroup object) throws Exception
+    {
+        object.setSequence(frames);
+        for(int i=0; i<frames.size(); i++)
+        {
+            lockScreen();
+            object.setSequenceIndex(i);
+            unlockScreen();
+            waitForSecs(delay);
+        }
+
+    }
+
+    public List<String> getAudioForScene(String scene, String category)
+    {
+        Map<String,Object> aud1 = (Map<String,Object>)(audioScenes.get(scene));
+        if(aud1 == null)
+            return null;
+
+        List<String> aud2 = (List<String>)(aud1.get(category));
+        if(aud2 == null)
+            return null;
+
+        return aud2;
+    }
+
+
+    @Override
+    public void exitEvent()
+    {
+        super.exitEvent();
+        killAnimations();
     }
 
 }

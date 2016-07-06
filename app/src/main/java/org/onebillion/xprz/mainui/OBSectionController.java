@@ -9,6 +9,8 @@ import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -84,7 +86,7 @@ public class OBSectionController extends OBViewController
         buttons = new ArrayList<OBControl>();
         nonobjects = new ArrayList<OBControl>();
         attachedControls = new ArrayList<OBControl>();
-        sortedAttachedControls = new ArrayList<OBControl>();
+        sortedAttachedControls = Collections.synchronizedList(new ArrayList<OBControl>());
         events = new ArrayList<String>();
         eventAttributes = new HashMap<String, String>();
         objectDict = new HashMap<String, OBControl>();
@@ -1036,6 +1038,9 @@ public class OBSectionController extends OBViewController
         RectF f = control.frame();
         attachedControls.remove(control);
         control.controller = null;
+        if(control.texture != null)
+            control.texture.cleanUp();
+
         invalidateView((int) f.left, (int) f.top, (int) f.right, (int) f.bottom);
         sortedAttachedControlsValid = false;
     }
@@ -1097,15 +1102,26 @@ public class OBSectionController extends OBViewController
         return carr;
     }
 
-    void populateSortedAttachedControls ()
+    public void populateSortedAttachedControls()
     {
         if (!sortedAttachedControlsValid)
         {
-            sortedAttachedControls.clear();
-            sortedAttachedControls.addAll(attachedControls);
-            for (int i = 0; i < sortedAttachedControls.size(); i++)
-                sortedAttachedControls.get(i).tempSortInt = i;
-            Collections.sort(sortedAttachedControls, new Comparator<OBControl>()
+            List<OBControl> tempList = new ArrayList<>(attachedControls);
+            boolean quit = false;
+            for (int i = 0;i < tempList.size();i++)
+            {
+                if(tempList.get(i) == null)
+                {
+                    Logger logger = Logger.getAnonymousLogger();
+                    logger.log(Level.SEVERE, "ALAN SOMETHING HAPPENED WHILE WORKING WITH TEMP SORTEDATTACHEDCONTROL LIST");
+                    quit= true;
+                    break;
+                }
+                tempList.get(i).tempSortInt = i;
+            }
+            if(quit)
+                return;
+            Collections.sort(tempList, new Comparator<OBControl>()
             {
                 @Override
                 public int compare (OBControl lhs, OBControl rhs)
@@ -1121,7 +1137,14 @@ public class OBSectionController extends OBViewController
                     return 0;
                 }
             });
-            sortedAttachedControlsValid = true;
+
+            synchronized(sortedAttachedControls)
+            {
+                sortedAttachedControls.clear();
+                sortedAttachedControls.addAll(tempList);
+                sortedAttachedControlsValid = true;
+            }
+
         }
     }
 
@@ -1196,12 +1219,19 @@ public class OBSectionController extends OBViewController
         TextureShaderProgram textureShader = (TextureShaderProgram) renderer.textureProgram;
         textureShader.useProgram();
         populateSortedAttachedControls();
-        List<OBControl> clist = sortedAttachedControls;
-        for (OBControl control : clist)
+
+        List<OBControl> clist = null;
+        synchronized(sortedAttachedControls)
         {
-            if (!control.hidden())
-                control.render(renderer, this, renderer.projectionMatrix);
+            clist = sortedAttachedControls;
+            for (OBControl control : clist)
+            {
+                if (!control.hidden())
+                    control.render(renderer, this, renderer.projectionMatrix);
+            }
         }
+
+
 
     }
 
@@ -1843,6 +1873,11 @@ public class OBSectionController extends OBViewController
         return OBMainViewController.SHOW_TOP_LEFT_BUTTON | OBMainViewController.SHOW_TOP_RIGHT_BUTTON;
     }
 
+    public Path convertPathFromControl (Path p, OBControl c)
+    {
+        return c.convertPathToControl(p, null);
+    }
+
     public PointF convertPointFromControl (PointF pt, OBControl c)
     {
         return c.convertPointToControl(pt, null);
@@ -1943,15 +1978,16 @@ public class OBSectionController extends OBViewController
             @Override
             public void run () throws Exception
             {
-                if (statusChanged(sttime))
+                if (!statusChanged(sttime))
                 {
                     if (audio != null)
                     {
                         boolean wait = (actionBlock != null);
                         playAudioQueued(audio, wait);
-                        if (actionBlock != null)
-                            actionBlock.run();
                     }
+                    if (actionBlock != null)
+                        actionBlock.run();
+
                 }
             }
         });

@@ -99,7 +99,8 @@ public class OBGroup extends OBControl
         if (opacity > 0.0f)
         {
             int intop = Math.round(opacity * 255f);
-            col = col | (intop << 24);
+            //col = Color.argb(intop,Color.red(col),Color.green(col),Color.blue(col));
+            col = (intop << 24) | (col & 0x00ffffff);
         }
         return new Integer(col);
     }
@@ -966,9 +967,11 @@ public class OBGroup extends OBControl
         this.sequenceIndex = -1;
     }
 
+
     @Override
     public void setOpacity (float opacity)
     {
+        super.setOpacity(opacity);
         this.opacity = opacity;
         invalidate();
     }

@@ -28,7 +28,7 @@ public class OBEmitterCell
     public Texture texture;
     public String name;
     boolean running;
-    long startTime,birthCount;
+    long startTime,lastBirthTime,birthCount;
     List<OBEmittee>emittees;
     Matrix tempMatrix;
     public float[] modelMatrix = new float[16];
@@ -80,7 +80,7 @@ public class OBEmitterCell
     {
         texture = new Texture(contents,1);
 
-        startTime = SystemClock.uptimeMillis();
+        startTime = lastBirthTime = SystemClock.uptimeMillis();
         birthCount = 0;
     }
     public void updateEmittees()
@@ -104,14 +104,15 @@ public class OBEmitterCell
             return false;
         updateEmittees();
         long tm = SystemClock.uptimeMillis();
-        float secs = (tm - startTime) / 1000f;
-        int birthCountNeeded = (int)((birthRate * secs) - birthCount);
+        float secs = (tm - lastBirthTime) / 1000f;
+        int birthCountNeeded = (int)((birthRate * secs));
         synchronized (emittees)
         {
             for (int i = 0;i < birthCountNeeded;i++)
             {
                 emittees.add(createEmittee());
                 birthCount++;
+                lastBirthTime = SystemClock.uptimeMillis();
             }
         }
         return true;

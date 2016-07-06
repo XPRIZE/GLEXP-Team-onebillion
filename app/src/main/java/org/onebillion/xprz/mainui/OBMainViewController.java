@@ -40,6 +40,8 @@ public class OBMainViewController extends OBViewController
         /*view = new OBView(a,this);
         ViewGroup rootView = (ViewGroup) a.findViewById(android.R.id.content);
         rootView.addView(view,new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));*/
+        glView().controller = this;
+        enterGLMode();
         navigating = false;
     }
 
@@ -233,13 +235,23 @@ public class OBMainViewController extends OBViewController
         return MainActivity.mainActivity.glSurfaceView;
     }
 
+    public boolean glMode()
+    {
+        return glView().getParent() != null;
+    }
+
+    public void enterGLMode()
+    {
+        if (!glMode())
+        {
+            addView(glView());
+        }
+    }
     public void addView(View v)
     {
-       /* if (topLeftButton != null)
-        {
-            int idx = view.indexOfChild(topLeftButton);
-            view.addView(v, idx);
-        }*/
+        ViewGroup rootView = (ViewGroup) MainActivity.mainActivity.findViewById(android.R.id.content);
+        rootView.addView(v,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        //rootView.addView(v, 0);
     }
 
     private Class controllerClass(String name, String configPath)
@@ -364,60 +376,6 @@ public class OBMainViewController extends OBViewController
         }
         renderer.transitionScreenR = renderer.transitionScreenL = null;
         renderer.resetViewport();
-    }
-    public void pushViewControllerFromRight(Class<?> vcClass,Object _params,boolean fromRight,double duration)
-    {
-        if (!navigating)
-        {
-            Constructor<?> cons;
-            final OBSectionController controller;
-            try
-            {
-                cons = vcClass.getConstructor(Activity.class);
-                controller = (OBSectionController)cons.newInstance(activity);
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-                return;
-            }
-            viewControllers.add(controller);
-            controller.params = _params;
-            final OBView v = new OBView(activity, controller);
-            final int vw = view.getRight();
-            int vh = view.getBottom();
-            int vl;
-            if (fromRight)
-                vl = vw;
-            else
-                vl = -vw;
-            vl = 0;
-            v.layout(vl, 0, vl+vw, vh);
-            controller.view = v;
-            addView(v);
-            controller.prepare();
-            showButtons(controller.buttonFlags());
-            showHideButtons(controller.buttonFlags());
-
-
-            if (viewControllers.size() > 2)
-            {
-                OBSectionController oldvc = viewControllers.get(viewControllers.size()-2);
-                view.removeView(oldvc.view);
-                viewControllers.remove(viewControllers.size()-2);
-            }
-
-            final OBSectionController vc = controller;
-            navigating = false;
-            new Handler().post(new Runnable()
-            {
-                @Override
-                public void run() {
-                    vc.start();
-                }
-            });
-
-        }
     }
 
     public void popViewController()

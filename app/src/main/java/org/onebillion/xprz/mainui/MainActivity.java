@@ -185,12 +185,17 @@ public class MainActivity extends Activity
         });
         //
         users = new ArrayList<OBUser>();
+        setContentView(R.layout.activity_main);
+        //ViewGroup rootView = (ViewGroup) findViewById(android.R.id.content);
+        //rootView.addView(glSurfaceView,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+        //        setContentView(glSurfaceView);
         try
         {
             setUpConfig();
             OBExpansionManager.sharedManager.installMissingExpansionFiles();
             mainViewController = new OBMainViewController(this);
-            glSurfaceView.controller = mainViewController;
+            //glSurfaceView.controller = mainViewController;
             new OBAudioManager();
             ((ThreadPoolExecutor) AsyncTask.THREAD_POOL_EXECUTOR).setCorePoolSize(12);
         }
@@ -243,7 +248,6 @@ public class MainActivity extends Activity
             return;
         }
         //
-        setContentView(glSurfaceView);
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
 
