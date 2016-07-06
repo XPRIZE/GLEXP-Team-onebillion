@@ -31,6 +31,7 @@ import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBImage;
 import org.onebillion.xprz.mainui.MainActivity;
+import org.onebillion.xprz.mainui.OBExpansionManager;
 import org.onebillion.xprz.mainui.OBSectionController;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
 
@@ -132,10 +133,10 @@ public class OBUtils
         }
         catch (IOException e)
         {
-            Log.v("fileExistsAtPath", "unable to find asset in bundled assets " + path);
+//            Log.v("fileExistsAtPath", "unable to find asset in bundled assets " + path);
         }
         //
-        for (File mounted : MainActivity.mainActivity.mountedExpansionFiles)
+        for (File mounted : OBExpansionManager.sharedManager.mountedExpansionFiles)
         {
             try
             {
@@ -145,8 +146,8 @@ public class OBUtils
             }
             catch (Exception e)
             {
-                Log.v("getFilePathInAssets", "exception caught " + e.toString());
-                e.printStackTrace();
+//                Log.v("getFilePathInAssets", "exception caught " + e.toString());
+//                e.printStackTrace();
             }
         }
         //
@@ -161,13 +162,13 @@ public class OBUtils
             InputStream is = MainActivity.mainActivity.getAssets().open(path);
             return is;
         }
-        catch (IOException e)
+        catch (Exception e)
         {
-            Log.v("getInputStream", "unable to find bundled asset: " + path);
-            e.printStackTrace();
+//            Log.v("getInputStream", "unable to find bundled asset: " + path);
+//            e.printStackTrace();
         }
         //
-        for (File mounted : MainActivity.mainActivity.mountedExpansionFiles)
+        for (File mounted : OBExpansionManager.sharedManager.mountedExpansionFiles)
         {
             String extendedPath = mounted.getAbsolutePath() + "/" + path;
             try
@@ -182,8 +183,8 @@ public class OBUtils
             }
             catch (Exception e)
             {
-                Log.v("getInputStream", "unable to find downloaded asset: " + extendedPath);
-                e.printStackTrace();
+//                Log.v("getInputStream", "unable to find downloaded asset: " + extendedPath);
+//                e.printStackTrace();
             }
         }
         return null;
@@ -201,10 +202,10 @@ public class OBUtils
         }
         catch (IOException e)
         {
-            Log.v("getAssetFileDescriptor", "unable to find asset in bundled assets " + path);
+//            Log.v("getAssetFileDescriptor", "unable to find asset in bundled assets " + path);
         }
         // attempt to get from external assets
-        for (File mounted : MainActivity.mainActivity.mountedExpansionFiles)
+        for (File mounted : OBExpansionManager.sharedManager.mountedExpansionFiles)
         {
             File extendedFile = new File(mounted.getAbsolutePath() + "/" + path);
             Uri uri = Uri.fromFile(extendedFile);
@@ -215,7 +216,7 @@ public class OBUtils
             }
             catch (IOException e)
             {
-                Log.v("getAssetFileDescriptor", "unable to find asset in downloaded assets " + extendedFile);
+//                Log.v("getAssetFileDescriptor", "unable to find asset in downloaded assets " + extendedFile);
             }
         }
         return null;

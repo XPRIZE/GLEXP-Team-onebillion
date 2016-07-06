@@ -81,7 +81,7 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
             //
             OBPath stroke = (OBPath) box.copy();
             stroke.setZPosition(box.zPosition() - 0.001f);
-            stroke.setLineWidth(applyGraphicScale(10));
+            stroke.setLineWidth(applyGraphicScale(8));
             stroke.setStrokeColor(boxHighColour);
             attachControl(stroke);
             stroke.sizeToBoundingBoxIncludingStroke();
@@ -106,6 +106,9 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
             }
             OBGroup back = (OBGroup) backTemplate.copy();
             back.setPosition(box.position());
+            //
+            box.setFrame(back.frame());
+            //
             OBPath fill = (OBPath) back.objectDict.get("colour");
             fill.setFillColor(OBUtils.colorFromRGBString(templateColours_fill.get(colourIdx)));
             stroke = (OBPath) back.objectDict.get("frame");
