@@ -9,6 +9,8 @@ import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -84,7 +86,7 @@ public class OBSectionController extends OBViewController
         buttons = new ArrayList<OBControl>();
         nonobjects = new ArrayList<OBControl>();
         attachedControls = new ArrayList<OBControl>();
-        sortedAttachedControls = new ArrayList<OBControl>();
+        sortedAttachedControls = Collections.synchronizedList(new ArrayList<OBControl>());
         events = new ArrayList<String>();
         eventAttributes = new HashMap<String, String>();
         objectDict = new HashMap<String, OBControl>();
@@ -1028,6 +1030,9 @@ public class OBSectionController extends OBViewController
         RectF f = control.frame();
         attachedControls.remove(control);
         control.controller = null;
+        if(control.texture != null)
+            control.texture.cleanUp();
+
         invalidateView((int) f.left, (int) f.top, (int) f.right, (int) f.bottom);
         sortedAttachedControlsValid = false;
     }
@@ -1094,9 +1099,20 @@ public class OBSectionController extends OBViewController
         if (!sortedAttachedControlsValid)
         {
             List<OBControl> tempList = new ArrayList<>(attachedControls);
-
+            boolean quit = false;
             for (int i = 0;i < tempList.size();i++)
+            {
+                if(tempList.get(i) == null)
+                {
+                    Logger logger = Logger.getAnonymousLogger();
+                    logger.log(Level.SEVERE, "ALAN SOMETHING HAPPENED WHILE WORKING WITH TEMP SORTEDATTACHEDCONTROL LIST");
+                    quit= true;
+                    break;
+                }
                 tempList.get(i).tempSortInt = i;
+            }
+            if(quit)
+                return;
             Collections.sort(tempList, new Comparator<OBControl>()
             {
                 @Override
@@ -1114,9 +1130,10 @@ public class OBSectionController extends OBViewController
                 }
             });
 
-            synchronized(this)
+            synchronized(sortedAttachedControls)
             {
-                sortedAttachedControls = tempList;
+                sortedAttachedControls.clear();
+                sortedAttachedControls.addAll(tempList);
                 sortedAttachedControlsValid = true;
             }
 

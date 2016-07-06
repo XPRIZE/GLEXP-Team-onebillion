@@ -131,8 +131,8 @@ public class X_MakeSylWord extends XPRZ_SectionController
             public void run() throws Exception
             {
 
-                //demoStart();
-                startScene();
+                demoStart();
+
             }
         });
 
@@ -154,8 +154,8 @@ public class X_MakeSylWord extends XPRZ_SectionController
         currentMode = (int)curWord.get("mode");
         List<OBPhoneme> textParts = (List<OBPhoneme>)curWord.get("parts");
         Typeface font = OBUtils.standardTypeFace();
-        int fontSize = (currentMode == MODE_WORD) ? 120 : 140;
-        fontSize *=2;
+        float fontSize = applyGraphicScale((currentMode == MODE_WORD) ? 120 : 140);
+
         OBControl textBox = objectDict.get("textbox");
 
         OBPhoneme main = (OBPhoneme)curWord.get("main");
@@ -180,7 +180,6 @@ public class X_MakeSylWord extends XPRZ_SectionController
             OBPhoneme textPart = textParts.get(i);
 
             int rangeStart = main.text.indexOf(textPart.text,searchStart);
-            searchStart = rangeStart;
             if(rangeStart != -1)
             {
 
@@ -200,6 +199,7 @@ public class X_MakeSylWord extends XPRZ_SectionController
                 parts.add(partLabel);
                 partLabel.hide();
                 attachControl(partLabel);
+                searchStart += textPart.text.length();
             }
         }
 
@@ -221,7 +221,6 @@ public class X_MakeSylWord extends XPRZ_SectionController
         attachControl(objsGroup);
         objsGroup.setZPosition(10);
         objsGroup.setReversedDynamicMaskControl(box.mask);
-        objsGroup.maskControl.texturise(false,this);
         if(currentMode == MODE_WORD && showPicture)
         {
             screenImage = loadImageWithName(((OBWord)main).ImageFileName(),new PointF(0,0), new RectF(this.bounds()));
@@ -229,7 +228,7 @@ public class X_MakeSylWord extends XPRZ_SectionController
             OBControl bg = objectDict.get("imagebox");
             if(screenImage.width() > bg.width())
             {
-                screenImage.setScale((bg.width()-10.0f)/screenImage.width());
+                screenImage.setScale(screenImage.scale() *(bg.width()-10.0f)/screenImage.width());
             }
             screenImage.setZPosition(5);
             screenImage.setPosition( bg.position());
@@ -243,20 +242,15 @@ public class X_MakeSylWord extends XPRZ_SectionController
     }
 
 
-    public void fin()
+    public void finEvent() throws Exception
     {
-        try
-        {
+
             box.closeLid("lid_open");
             waitForSecs(0.3f);
             playAudioQueued(OBUtils.insertAudioInterval(audioForScene("finale", "DEMO"), 300), true);
             //(XPRZ_FatController)FatController().completeEvent(;
             displayAward();
             exitEvent();
-        }
-        catch (Exception exception)
-        {
-        }
 
     }
 
@@ -490,7 +484,7 @@ public class X_MakeSylWord extends XPRZ_SectionController
         currentWord++;
         if(currentWord >= wordEventDicts.size())
         {
-            fin();
+            finEvent();
         }
         else
         {

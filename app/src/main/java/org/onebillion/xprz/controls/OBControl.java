@@ -1160,6 +1160,9 @@ public class OBControl
             needsRetexture = false;
         }
         //tr.setUVs(0,0,uvRight,uvBottom);
+        if(texture == null || texture.bitmap() == null)
+            return;
+
         if(dynamicMask && maskControl != null)
             tr.draw(renderer,0,0,bounds.right - bounds.left,bounds.bottom - bounds.top,texture.bitmap(),maskControl.texture.bitmap());
         else
@@ -1311,6 +1314,11 @@ public class OBControl
 
     public void texturise(boolean shared,OBViewController vc)
     {
+        if(texture != null )
+        {
+            texture.cleanUp();
+            texture = null;
+        }
         texture=vc.createTexture(this,textureKey,shared);
     }
 
@@ -1628,7 +1636,7 @@ public class OBControl
 
     public void setAnchorPoint(PointF pt)
     {
-        anchorPoint.set(pt);
+        setAnchorPoint(pt.x,pt.y);
     }
 
     public void setAnchorPoint(final float x,final float y)
@@ -1820,4 +1828,7 @@ public class OBControl
         if (controller != null)
             controller.unlockScreen();
     }
+
+
+
 }

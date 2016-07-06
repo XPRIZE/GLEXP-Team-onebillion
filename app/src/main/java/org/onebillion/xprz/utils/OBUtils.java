@@ -20,6 +20,7 @@ import android.content.res.Resources;
 import android.graphics.*;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.text.TextPaint;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.ImageButton;
@@ -500,10 +501,13 @@ public class OBUtils
         return Math.max(sx, sy);
     }
 
-    public static List<Object> insertAudioInterval (Object audios, float interval)
+    public static List<Object> insertAudioInterval (Object audios, int interval)
     {
         List<Object> arr = new ArrayList<>();
         //
+        if(audios == null)
+            return null;
+
         if (audios instanceof String)
         {
             String audioFile = (String) audios;
@@ -900,6 +904,25 @@ public class OBUtils
         return label.convertRectToControl(pathBounds,null);
     }
 
+    public static float getFontXHeight(Typeface font, float fontSize)
+    {
+        TextPaint textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+        textPaint.setTypeface(font);
+        textPaint.setTextSize(fontSize);
+        Rect tempRect = new Rect();
+        textPaint.getTextBounds("x",0,1,tempRect);
+        return tempRect.height();
+    }
+
+    public static float getFontCapHeight(Typeface font, float fontSize)
+    {
+        TextPaint textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+        textPaint.setTypeface(font);
+        textPaint.setTextSize(fontSize);
+        Rect tempRect = new Rect();
+        textPaint.getTextBounds("H",0,1,tempRect);
+        return tempRect.height();
+    }
     public interface RunLambda
     {
         public void run () throws Exception;
