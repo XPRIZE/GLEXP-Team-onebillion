@@ -13,8 +13,6 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.storage.OnObbStateChangeListener;
 import android.os.storage.StorageManager;
-import android.renderscript.ScriptGroup;
-import android.util.Log;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -24,7 +22,6 @@ import org.onebillion.xprz.utils.OBXMLNode;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -71,9 +68,12 @@ public class OBExpansionManager
     public List<File> getExternalExpansionFolders ()
     {
         List<File> result = new ArrayList();
-        for (OBExpansionFile file : internalExpansionFiles.values())
+        if (internalExpansionFiles != null)
         {
-            if (file.folder != null) result.add(file.folder);
+            for (OBExpansionFile file : internalExpansionFiles.values())
+            {
+                if (file.folder != null) result.add(file.folder);
+            }
         }
         return result;
     }
@@ -87,6 +87,13 @@ public class OBExpansionManager
 
     public void installMissingExpansionFiles ()
     {
+        final String expansionURL = (String) MainActivity.mainActivity.Config().get(MainActivity.CONFIG_EXPANSION_URL);
+        //
+        if (expansionURL == null)
+        {
+            MainActivity.mainActivity.log("Expansion URL is null. nothing to do here");
+            return;
+        }
         if (internalExpansionFiles == null)
         {
             internalExpansionFiles = new HashMap<String, OBExpansionFile>();
@@ -100,7 +107,7 @@ public class OBExpansionManager
             {
                 try
                 {
-                    URL url = new URL(MainActivity.mainActivity.Config().get(MainActivity.CONFIG_EXPANSION_URL) + "list.xml");
+                    URL url = new URL(expansionURL + "list.xml");
                     HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                     urlConnection.connect();
                     OBXMLManager xmlManager = new OBXMLManager();
@@ -128,6 +135,9 @@ public class OBExpansionManager
     private void compareExpansionFilesAndInstallMissingOrOutdated ()
     {
         MainActivity.mainActivity.log("CompareExpansionFilesAndInstallMissingOrOutdate");
+        //
+        if (internalExpansionFiles == null) return;
+        //
         if (remoteExpansionFiles == null)
         {
             remoteExpansionFiles = new HashMap();
@@ -315,6 +325,13 @@ public class OBExpansionManager
 
     private void downloadOBB (String fileName)
     {
+        String expansionURL = (String) MainActivity.mainActivity.Config().get(MainActivity.CONFIG_EXPANSION_URL);
+        //
+        if (expansionURL == null)
+        {
+            MainActivity.mainActivity.log("Expansion URL is null. nothing to do here");
+        }
+        //
         MainActivity.mainActivity.log("Attempting to download OBB " + fileName + ".obb");
         String externalAssets = MainActivity.mainActivity.getPreferences("externalAssets");
         if (externalAssets == null)
@@ -324,7 +341,7 @@ public class OBExpansionManager
                 MainActivity.mainActivity.log("downloading OBB");
                 MainActivity.mainActivity.registerReceiver(downloadCompleteReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
                 //
-                String url = MainActivity.mainActivity.Config().get(MainActivity.CONFIG_EXPANSION_URL) + fileName + ".obb";
+                String url = expansionURL + fileName + ".obb";
                 DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
                 request.setDescription("XPRZ0 assets");
                 request.setTitle("Downloading assets");
