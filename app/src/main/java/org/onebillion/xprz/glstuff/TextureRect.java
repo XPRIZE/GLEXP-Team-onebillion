@@ -94,6 +94,36 @@ public class TextureRect
 
     }
 
+    public void draw(OBRenderer renderer, float l, float t, float r, float b, Bitmap bitmap, Bitmap mask)
+    {
+        fillOutRectVertexData(vertices,l,t,r,b,POSITION_COMPONENT_COUNT + UV_COMPONENT_COUNT);
+        fillOutRectTextureData(vertices,uvLeft,uvTop,uvRight,uvBottom,POSITION_COMPONENT_COUNT + UV_COMPONENT_COUNT);
+        if (vertexArray == null)
+            vertexArray = new VertexArray(vertices);
+        else
+            vertexArray.put(vertices);
+
+        if(mask != null)
+            bindData((TextureShaderProgram) renderer.textureProgram);
+        else
+            bindMaskData((MaskShaderProgram) renderer.maskProgram);
+
+        glBindTexture(GL_TEXTURE_2D, renderer.textureObjectIds[0]);
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+        GLES20.glEnable(GLES20.GL_BLEND);
+        texImage2D(GL_TEXTURE_2D,0,bitmap,0);
+        if(mask != null)
+        {
+            glBindTexture(GL_TEXTURE_2D, renderer.textureObjectIds[1]);
+            GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+            GLES20.glEnable(GLES20.GL_BLEND);
+            texImage2D(GL_TEXTURE_2D,0,mask,0);
+        }
+        glDrawArrays(GL_TRIANGLE_STRIP,0,4);
+
+    }
+
+
     public void bindData(TextureShaderProgram textureProgram)
     {
         vertexArray.setVertexAttribPointer(
@@ -105,6 +135,21 @@ public class TextureRect
         vertexArray.setVertexAttribPointer(
                 POSITION_COMPONENT_COUNT,
                 textureProgram.getTextureCoordinatesAttributeLocation(),
+                UV_COMPONENT_COUNT,
+                STRIDE);
+    }
+
+    public void bindMaskData(MaskShaderProgram maskProgram)
+    {
+        vertexArray.setVertexAttribPointer(
+                0,
+                maskProgram.getPositionAttributeLocation(),
+                POSITION_COMPONENT_COUNT,
+                STRIDE);
+
+        vertexArray.setVertexAttribPointer(
+                POSITION_COMPONENT_COUNT,
+                maskProgram.getTextureCoordinatesAttributeLocation(),
                 UV_COMPONENT_COUNT,
                 STRIDE);
     }

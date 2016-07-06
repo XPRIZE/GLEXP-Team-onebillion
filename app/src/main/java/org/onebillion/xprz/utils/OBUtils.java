@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
@@ -31,6 +33,8 @@ import android.widget.ImageView;
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBImage;
+import org.onebillion.xprz.controls.OBLabel;
+import org.onebillion.xprz.controls.OBTextLayer;
 import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.OBExpansionManager;
 import org.onebillion.xprz.mainui.OBSectionController;
@@ -647,7 +651,8 @@ public class OBUtils
                 }
                 catch (Exception exception)
                 {
-
+                    Logger logger = Logger.getAnonymousLogger();
+                    logger.log(Level.SEVERE, "Error in runOnMainThread", exception);
                 }
             }
         }.run();
@@ -669,7 +674,8 @@ public class OBUtils
                 }
                 catch (Exception exception)
                 {
-
+                    Logger logger = Logger.getAnonymousLogger();
+                    logger.log(Level.SEVERE, "Error in runOnOtherThread", exception);
                 }
                 return null;
             }
@@ -693,7 +699,8 @@ public class OBUtils
                 }
                 catch (Exception exception)
                 {
-
+                    Logger logger = Logger.getAnonymousLogger();
+                    logger.log(Level.SEVERE, "Error in runOnOtherThreadDelayed", exception);
                 }
                 return null;
             }
@@ -713,13 +720,23 @@ public class OBUtils
         return path;
     }
 
+    public static UCurve SimpleUCurve (PointF from, PointF to, float offset)
+    {
+        PointF c1 = OB_Maths.tPointAlongLine(0.33f, from, to);
+        PointF c2 = OB_Maths.tPointAlongLine(0.66f, from, to);
+        PointF lp = OB_Maths.ScalarTimesPoint(offset, OB_Maths.NormalisedVector(OB_Maths.lperp(OB_Maths.DiffPoints(to, from))));
+        PointF cp1 = OB_Maths.AddPoints(c1, lp);
+        PointF cp2 = OB_Maths.AddPoints(c2, lp);
+        return new UCurve(from.x,from.y,to.x,to.y,cp1.x,cp1.y,cp2.x,cp2.y);
+    }
+
     public static int DesaturatedColour (int colour, float sat)
     {
         float components[] = {0, 0, 0, 1};
-        components[0] = Color.red(colour);
-        components[1] = Color.green(colour);
-        components[2] = Color.blue(colour);
-        components[2] = Color.alpha(colour);
+        components[0] = Color.red(colour)/255f;
+        components[1] = Color.green(colour)/255f;
+        components[2] = Color.blue(colour)/255f;
+        components[3] = Color.alpha(colour)/255f;
         float weights[] = {0.299f, 0.587f, 0.114f};
         float greyVal = 0;
         for (int i = 0; i < 3; i++)
@@ -732,12 +749,12 @@ public class OBUtils
         return outcol;
     }
 
-    public static int highlightedColour (int colour)
+    public static int highlightedColour(int colour)
     {
         return Color.argb(255,
-                Math.round(Color.red(colour) * 0.8f),
-                Math.round(Color.green(colour) * 0.8f),
-                Math.round(Color.blue(colour) * 0.8f));
+                Math.round(Color.red(colour)*0.8f),
+                Math.round(Color.green(colour)*0.8f),
+                Math.round(Color.blue(colour)*0.8f));
     }
 
     static String getConfigFile (String fileName)
@@ -953,6 +970,59 @@ public class OBUtils
         return (Map<String, OBPhoneme>) (Object) dictionary;
     }
 
+    public static List<String> getFramesList(String prefix, int from, int to)
+    {
+        List<String> list = new ArrayList<>();
+        if(from < to)
+        {
+            for(int i = from; i <= to; i++)
+                list.add(String.format("%s%d",prefix,i));
+        }
+        else
+        {
+            for(int i = from; i >= to; i--)
+                list.add(String.format("%s%d",prefix,i));
+        }
+
+        return list;
+
+    }
+
+    public static boolean getBooleanValue(String val)
+    {
+        if(val == null)
+            return false;
+        if(val.equalsIgnoreCase("true"))
+            return true;
+        else
+            return false;
+    }
+
+    public static int getIntValue(String val)
+    {
+        if(val == null)
+            return 0;
+
+        try
+        {
+            return Integer.valueOf(val);
+        }
+        catch (Exception e)
+        {
+            return 0;
+        }
+
+    }
+
+    public static RectF getBoundsForSelectionInLabel(int start, int end, OBLabel label)
+    {
+        OBTextLayer textLayer = (OBTextLayer)label.layer;
+        Path path = new Path();
+        textLayer.stLayout.getSelectionPath(start,end,path);
+        RectF pathBounds = new RectF();
+        path.computeBounds(pathBounds,true);
+        return label.convertRectToControl(pathBounds,null);
+    }
 
     public static float getFontXHeight(Typeface font, float fontSize)
     {
@@ -977,6 +1047,4 @@ public class OBUtils
     {
         public void run () throws Exception;
     }
-
-
 }

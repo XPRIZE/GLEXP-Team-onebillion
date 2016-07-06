@@ -876,6 +876,19 @@ public class OBPath extends OBControl
         return bb;
     }
 
+    public void outdent (float f)
+    {
+        Path bez = path();
+        RectF b = bounds();
+        b.right += 2 * f;
+        b.bottom += 2 * f;
+        Matrix tr = new Matrix();
+        tr.setTranslate(f,f);
+        bez.transform(tr);
+        setBounds(b);
+    }
+
+
     public void sizeToBox(RectF bb)
     {
         Path bez = path();

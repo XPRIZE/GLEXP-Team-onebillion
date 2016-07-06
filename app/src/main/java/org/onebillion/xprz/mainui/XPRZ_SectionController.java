@@ -11,6 +11,7 @@ import android.view.View;
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBEmitter;
 import org.onebillion.xprz.controls.OBEmitterCell;
+import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBImage;
 import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.utils.OBAnim;
