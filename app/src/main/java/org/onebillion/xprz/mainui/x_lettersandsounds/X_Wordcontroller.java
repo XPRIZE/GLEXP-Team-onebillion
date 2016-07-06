@@ -7,4 +7,5 @@ import org.onebillion.xprz.mainui.XPRZ_SectionController;
  */
 public class X_Wordcontroller extends XPRZ_SectionController
 {
+    boolean needDemo;
 }
