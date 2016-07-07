@@ -1,12 +1,15 @@
 package org.onebillion.xprz.utils;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -923,8 +926,40 @@ public class OBUtils
         textPaint.getTextBounds("H",0,1,tempRect);
         return tempRect.height();
     }
+
+    public String filePathForTempFile(OBSectionController controller)
+    {
+        String fileName = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss").format(new Date());
+        String extension = "tmp";
+        try
+        {
+            File outputDir = controller.activity.getCacheDir();
+            File outputFile = File.createTempFile(fileName, extension, outputDir);
+            return outputFile.getPath();
+        }
+        catch (Exception exception)
+        {
+            Logger logger = Logger.getAnonymousLogger();
+            logger.log(Level.SEVERE, "Error in filePathForTempFile", exception);
+        }
+        return null;
+    }
+
+    public void cleanUpTempFiles(OBSectionController controller)
+    {
+
+        File outputDir = controller.activity.getCacheDir();
+        File[] files = outputDir.listFiles();
+        for(File file : files)
+        {
+            file.delete();
+        }
+    }
+
+
     public interface RunLambda
     {
         public void run () throws Exception;
     }
+
 }
