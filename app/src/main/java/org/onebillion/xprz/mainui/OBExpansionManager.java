@@ -79,12 +79,6 @@ public class OBExpansionManager
     }
 
 
-    public void stopListening ()
-    {
-        MainActivity.mainActivity.unregisterReceiver(downloadCompleteReceiver);
-    }
-
-
     public void installMissingExpansionFiles ()
     {
         final String expansionURL = (String) MainActivity.mainActivity.Config().get(MainActivity.CONFIG_EXPANSION_URL);
@@ -168,7 +162,7 @@ public class OBExpansionManager
     }
 
 
-    private BroadcastReceiver downloadCompleteReceiver = new BroadcastReceiver()
+    public BroadcastReceiver downloadCompleteReceiver = new BroadcastReceiver()
     {
         @Override
         public void onReceive (Context context, Intent intent)
@@ -339,7 +333,6 @@ public class OBExpansionManager
             if (MainActivity.mainActivity.isStoragePermissionGranted())
             {
                 MainActivity.mainActivity.log("downloading OBB");
-                MainActivity.mainActivity.registerReceiver(downloadCompleteReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
                 //
                 String url = expansionURL + fileName + ".obb";
                 DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));

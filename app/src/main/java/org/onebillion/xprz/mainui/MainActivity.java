@@ -3,7 +3,9 @@ package org.onebillion.xprz.mainui;
 import android.Manifest;
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.DownloadManager;
 import android.content.Context;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ConfigurationInfo;
 import android.content.pm.PackageManager;
@@ -431,6 +433,7 @@ public class MainActivity extends Activity
         {
             glSurfaceView.onPause();
         }
+        unregisterReceiver(OBExpansionManager.sharedManager.downloadCompleteReceiver);
     }
 
     @Override
@@ -442,13 +445,13 @@ public class MainActivity extends Activity
         {
             glSurfaceView.onResume();
         }
+        registerReceiver(OBExpansionManager.sharedManager.downloadCompleteReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
     }
 
 
     @Override
     protected void onStop ()
     {
-        OBExpansionManager.sharedManager.stopListening();
         super.onStop();
     }
 
