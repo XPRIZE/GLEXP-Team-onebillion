@@ -57,7 +57,7 @@ public class OBEmitter extends OBControl
     {
         setRunning(true);
         for (OBEmitterCell ec : cells)
-            ec.start(this);
+            ec.start();
     }
     public void drawLayer(Canvas canvas)
     {

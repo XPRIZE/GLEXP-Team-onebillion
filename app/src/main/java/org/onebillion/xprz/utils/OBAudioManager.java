@@ -112,20 +112,27 @@ public class OBAudioManager {
         String suffix = (String)config.get(MainActivity.CONFIG_AUDIO_SUFFIX);
         @SuppressWarnings("unchecked")
         List<String> searchPaths = (List<String>) config.get(MainActivity.CONFIG_AUDIO_SEARCH_PATH);
-        AssetManager am = MainActivity.mainActivity.getAssets();
         for (String path : searchPaths)
         {
-            String fullpath = path+"/"+fileName+"."+suffix;
-            try
-            {
-                AssetFileDescriptor fd = am.openFd(fullpath);
-                return fd;
-            }
-            catch (IOException e)
-            {
-            }
+            String fullPath = path + "/" + fileName + "." + suffix;
+            AssetFileDescriptor fd = OBUtils.getAssetFileDescriptorForPath(fullPath);
+            if (fd != null) return fd;
         }
         return null;
+//        AssetManager am = MainActivity.mainActivity.getAssets();
+//        for (String path : searchPaths)
+//        {
+//            String fullpath = path+"/"+fileName+"."+suffix;
+//            try
+//            {
+//                AssetFileDescriptor fd = am.openFd(fullpath);
+//                return fd;
+//            }
+//            catch (IOException e)
+//            {
+//            }
+//        }
+//        return null;
     }
 
     public void startPlaying(String fileName,String channel)

@@ -1,29 +1,28 @@
 package org.onebillion.xprz.mainui;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.ConfigurationInfo;
+import android.content.pm.PackageManager;
 import android.graphics.PointF;
 import android.graphics.Typeface;
 import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
-
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
-
 import org.onebillion.xprz.R;
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
@@ -62,8 +61,12 @@ public class MainActivity extends Activity
             CONFIG_AWARDAUDIO = "staraudio",
             CONFIG_APP_CODE = "app_code",
             CONFIG_USER = "user",
+            CONFIG_EXPANSION_URL = "expansionURL",
             CONFIG_FAT_CONTROLLER = "fatcontrollerclass";
 
+
+    public static String TAG = "livecode";
+    public static OBExpansionManager expansionManager = new OBExpansionManager();
     public static MainActivity mainActivity;
     public static OBMainViewController mainViewController;
     public static Typeface standardTypeFace;
@@ -73,6 +76,12 @@ public class MainActivity extends Activity
     public OBGLView glSurfaceView;
     public OBRenderer renderer;
     private int b;
+
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
 
     public static OBGroup armPointer ()
     {
@@ -94,6 +103,7 @@ public class MainActivity extends Activity
         //arm.borderWidth = 1;
         return arm;
     }
+
 
     public static Map<String, Object> Config ()
     {
@@ -144,6 +154,7 @@ public class MainActivity extends Activity
         try
         {
             setUpConfig();
+            OBExpansionManager.sharedManager.installMissingExpansionFiles();
             mainViewController = new OBMainViewController(this);
             //glSurfaceView.controller = mainViewController;
             new OBAudioManager();
@@ -433,5 +444,62 @@ public class MainActivity extends Activity
         }
     }
 
+
+    @Override
+    protected void onStop ()
+    {
+        OBExpansionManager.sharedManager.stopListening();
+        super.onStop();
+    }
+
+
+    public boolean isStoragePermissionGranted ()
+    {
+        Boolean writePermission = checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        Boolean readPermission = checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        //
+        Boolean result = writePermission && readPermission;
+        if (!result)
+            ActivityCompat.requestPermissions(this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
+        //
+        return result;
+    }
+
+
+    public void onRequestPermissionsResult (int requestCode, String permissions[], int[] grantResults)
+    {
+        if (requestCode == REQUEST_EXTERNAL_STORAGE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+        {
+            log("received permission to access external storage. attempting to download again");
+            OBExpansionManager.sharedManager.installMissingExpansionFiles();
+        }
+    }
+
+
+    public void addToPreferences (String key, String value)
+    {
+        SharedPreferences sharedPreferences = getSharedPreferences("preferences", Context.MODE_PRIVATE);
+        SharedPreferences.Editor edit = sharedPreferences.edit();
+        edit.putString(key, value);
+        edit.apply();
+        //
+        log("Preferences SET [" + key + "] --> " + value);
+    }
+
+
+    public String getPreferences (String key)
+    {
+        SharedPreferences sharedPreferences = getSharedPreferences("preferences", Context.MODE_PRIVATE);
+        String result = sharedPreferences.getString(key, null);
+        //
+        log("Preferences get [" + key + "] --> " + result);
+        //
+        return result;
+    }
+
+    public void log (String message)
+    {
+        Log.v(TAG, message);
+    }
 }
 

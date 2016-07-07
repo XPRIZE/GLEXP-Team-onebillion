@@ -1,5 +1,6 @@
 package org.onebillion.xprz.utils;
 
+import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -25,23 +26,24 @@ public class OBImageManager
 {
     public static int MAX_SVG_CACHE_COUNT = 32;
     protected static OBImageManager _sharedImageManager;
-    public static OBImageManager sharedImageManager()
+
+    public static OBImageManager sharedImageManager ()
     {
         if (_sharedImageManager == null)
             _sharedImageManager = new OBImageManager();
         return _sharedImageManager;
     }
 
-    public Map<String,OBXMLNode> svgCacheDict;
+    public Map<String, OBXMLNode> svgCacheDict;
     public List<OBXMLNode> svgCacheList;
 
-    public OBImageManager()
+    public OBImageManager ()
     {
-        svgCacheDict = new HashMap<String,OBXMLNode>();
+        svgCacheDict = new HashMap<String, OBXMLNode>();
         svgCacheList = new ArrayList<>();
     }
 
-    public String getImgPath(String imageName)
+    public String getImgPath (String imageName)
     {
         Map<String, Object> config = MainActivity.mainActivity.config;
         Object obj = config.get(MainActivity.CONFIG_IMAGE_SUFFIX);
@@ -49,53 +51,69 @@ public class OBImageManager
         if (obj instanceof String)
         {
             suffixes = new ArrayList<String>();
-            suffixes.add((String)obj);
+            suffixes.add((String) obj);
         }
         else
             suffixes = (List<String>) obj;
         List<String> searchPaths = (List<String>) config.get(MainActivity.CONFIG_IMAGE_SEARCH_PATH);
-        AssetManager am = MainActivity.mainActivity.getAssets();
+        //
         for (String imageSuffix : suffixes)
         {
             for (String path : searchPaths)
             {
-                String fullpath = path + "/" + imageName + "." + imageSuffix;
-                try
-                {
-                    InputStream is = am.open(fullpath);
-                    is.close();
-                    return fullpath;
-                }
-                catch (IOException e)
-                {
-                }
+                String fullPath = path + "/" + imageName + "." + imageSuffix;
+                if (OBUtils.fileExistsAtPath(fullPath)) return fullPath;
             }
         }
         return null;
+//        AssetManager am = MainActivity.mainActivity.getAssets();
+//        for (String imageSuffix : suffixes)
+//        {
+//            for (String path : searchPaths)
+//            {
+//                String fullpath = path + "/" + imageName + "." + imageSuffix;
+//                try
+//                {
+//                    InputStream is = am.open(fullpath);
+//                    is.close();
+//                    return fullpath;
+//                }
+//                catch (IOException e)
+//                {
+//                }
+//            }
+//        }
+//        return null;
     }
 
-    public String getVectorPath(String imageName)
+    public String getVectorPath (String imageName)
     {
         Map<String, Object> config = MainActivity.mainActivity.config;
         List<String> searchPaths = (List<String>) config.get(MainActivity.CONFIG_VECTOR_SEARCH_PATH);
-        AssetManager am = MainActivity.mainActivity.getAssets();
         for (String path : searchPaths)
         {
-            String fullpath = path + "/" + imageName + ".svg";
-            try
-            {
-                InputStream is = am.open(fullpath);
-                is.close();
-                return fullpath;
-            }
-            catch (IOException e)
-            {
-            }
+            String fullPath = path + "/" + imageName + ".svg";
+            if (OBUtils.fileExistsAtPath(fullPath)) return fullPath;
         }
         return null;
+//        AssetManager am = MainActivity.mainActivity.getAssets();
+//        for (String path : searchPaths)
+//        {
+//            String fullpath = path + "/" + imageName + ".svg";
+//            try
+//            {
+//                InputStream is = am.open(fullpath);
+//                is.close();
+//                return fullpath;
+//            }
+//            catch (IOException e)
+//            {
+//            }
+//        }
+//        return null;
     }
 
-    public Bitmap bitmapForName(String imageName)
+    public Bitmap bitmapForName (String imageName)
     {
         String path = getImgPath(imageName);
         if (path == null)
@@ -103,41 +121,44 @@ public class OBImageManager
         Bitmap b;
         BitmapFactory.Options opt = new BitmapFactory.Options();
         opt.inScaled = false;
-        try
-        {
-            b = BitmapFactory.decodeStream(MainActivity.mainActivity.getAssets().open(path),null,opt);
-        }
-        catch (IOException e)
-        {
-            return null;
-        }
+        b = BitmapFactory.decodeStream(OBUtils.getInputStreamForPath(path), null, opt);
+//        try
+//        {
+//            b = BitmapFactory.decodeStream(MainActivity.mainActivity.getAssets().open(path), null, opt);
+//        }
+//        catch (IOException e)
+//        {
+//            return null;
+//        }
         return b;
     }
-    public Drawable drawableForName(String imageName)
+
+    public Drawable drawableForName (String imageName)
     {
         String path = getImgPath(imageName);
         if (path == null)
             return null;
         Drawable d;
-        try
-        {
-            d = Drawable.createFromStream(MainActivity.mainActivity.getAssets().open(path), null);
-        }
-        catch (IOException e)
-        {
-            return null;
-        }
+        d = Drawable.createFromStream(OBUtils.getInputStreamForPath(path), null);
+//        try
+//        {
+//            d = Drawable.createFromStream(MainActivity.mainActivity.getAssets().open(path), null);
+//        }
+//        catch (IOException e)
+//        {
+//            return null;
+//        }
         float densityFactor = MainActivity.mainActivity.getResources().getDisplayMetrics().density;
         float imageScale = MainActivity.mainActivity.configFloatForKey(MainActivity.CONFIG_GRAPHIC_SCALE);
         int w = d.getIntrinsicWidth();
         int h = d.getIntrinsicHeight();
         w *= densityFactor;
         h *= densityFactor;
-        d.setBounds(0, 0, w,h);
+        d.setBounds(0, 0, w, h);
         return d;
     }
 
-    public OBImage imageForName(String imageName)
+    public OBImage imageForName (String imageName)
     {
         Bitmap b = bitmapForName(imageName);
         if (b != null)
@@ -148,34 +169,35 @@ public class OBImageManager
             int h = b.getHeight();
             //w *= densityFactor;
             //h *= densityFactor;
-            im.setBounds(0, 0, w,h);
+            im.setBounds(0, 0, w, h);
             return im;
         }
         return null;
     }
 
-    public Drawable imageNamed(String imageName)
+    public Drawable imageNamed (String imageName)
     {
         float densityFactor = MainActivity.mainActivity.getResources().getDisplayMetrics().density;
-        AssetManager assetManager = MainActivity.mainActivity.getAssets();
+//        AssetManager assetManager = MainActivity.mainActivity.getAssets();
         Drawable d;
         try
         {
-            d = Drawable.createFromStream(assetManager.open("sysimages/"+imageName+"@2x.png"), null);
+            d = Drawable.createFromStream(OBUtils.getInputStreamForPath("sysimages/" + imageName + "@2x.png"), null);
+//            d = Drawable.createFromStream(assetManager.open("sysimages/" + imageName + "@2x.png"), null);
             int w = d.getIntrinsicWidth();
             int h = d.getIntrinsicHeight();
             w *= densityFactor;
             h *= densityFactor;
-            d.setBounds(0, 0, w,h);
+            d.setBounds(0, 0, w, h);
         }
-        catch (IOException e)
+        catch (Exception e)
         {
             return null;
         }
         return d;
     }
 
-    public OBXMLNode svgXMLNodeForName(String name)
+    public OBXMLNode svgXMLNodeForName (String name)
     {
         OBXMLNode svgnode = svgCacheDict.get(name);
         if (svgnode == null)
@@ -184,11 +206,12 @@ public class OBImageManager
             OBXMLManager xmlManager = new OBXMLManager();
             try
             {
-                InputStream is = MainActivity.mainActivity.getAssets().open(path);
+                InputStream is = OBUtils.getInputStreamForPath(path);
+//                InputStream is = MainActivity.mainActivity.getAssets().open(path);
                 svgnode = xmlManager.parseFile(is).get(0);
                 if (svgnode == null)
                     return null;
-                svgCacheDict.put(name,svgnode);
+                svgCacheDict.put(name, svgnode);
             }
             catch (Exception e)
             {
@@ -210,7 +233,7 @@ public class OBImageManager
         return svgnode;
     }
 
-    public OBGroup groupForSVGName(String name)
+    public OBGroup groupForSVGName (String name)
     {
         OBXMLNode svgnode = svgXMLNodeForName(name);
         if (svgnode == null)
@@ -221,7 +244,7 @@ public class OBImageManager
         return g;
     }
 
-    public OBGroup vectorForName(String name)
+    public OBGroup vectorForName (String name)
     {
         return groupForSVGName(name);
     }

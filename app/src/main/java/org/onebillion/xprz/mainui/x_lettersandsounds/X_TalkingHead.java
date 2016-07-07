@@ -700,6 +700,8 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
         {
             if (selectWord(label))
             {
+                waitSFX();
+                //
                 lockScreen();
                 buttonShowState("inactive");
                 unlockScreen();
@@ -725,6 +727,8 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
             }
             else
             {
+                waitSFX();
+                //
                 gotItWrongWithSfx();
                 waitForSecs(0.3);
                 selectWord(null);

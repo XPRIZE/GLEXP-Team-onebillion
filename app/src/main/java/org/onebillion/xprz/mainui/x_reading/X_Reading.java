@@ -87,7 +87,8 @@ public class X_Reading extends XPRZ_SectionController
             {
                 OBXMLNode xmlNode = null;
                 OBXMLManager xmlManager = new OBXMLManager();
-                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
+                List<OBXMLNode> xl = xmlManager.parseFile(OBUtils.getInputStreamForPath(xmlPath));
+//                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
                 String filename = OBUtils.lastPathComponent(xmlPath);
                 boolean isSlow = (filename.startsWith("ps"));
                 if (isSlow)
@@ -132,7 +133,8 @@ public class X_Reading extends XPRZ_SectionController
             {
                 OBXMLNode xmlNode = null;
                 OBXMLManager xmlManager = new OBXMLManager();
-                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
+                List<OBXMLNode> xl = xmlManager.parseFile(OBUtils.getInputStreamForPath(xmlPath));
+//                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
                 xmlNode = xl.get(0);
                 List<OBXMLNode> arr = xmlNode.childrenOfType("timings");
                 OBXMLNode elem = arr.get(0);
@@ -164,7 +166,8 @@ public class X_Reading extends XPRZ_SectionController
             try
             {
                 OBXMLManager xmlManager = new OBXMLManager();
-                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
+                List<OBXMLNode> xl = xmlManager.parseFile(OBUtils.getInputStreamForPath(xmlPath));
+//                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
                 xmlNode = xl.get(0);
                 String str;
                 if ((str = xmlNode.attributeStringValue("fontsize"))!=null)

@@ -2,6 +2,8 @@ package org.onebillion.xprz.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -18,10 +20,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.*;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.text.TextPaint;
 import android.text.TextUtils;
@@ -35,6 +39,7 @@ import org.onebillion.xprz.controls.OBImage;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBTextLayer;
 import org.onebillion.xprz.mainui.MainActivity;
+import org.onebillion.xprz.mainui.OBExpansionManager;
 import org.onebillion.xprz.mainui.OBSectionController;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
 
@@ -110,20 +115,121 @@ public class OBUtils
         return Collections.emptyList();
     }
 
+//    public static Boolean fileExistsAtPath (String path)
+//    {
+//        AssetManager am = MainActivity.mainActivity.getAssets();
+//        try
+//        {
+//            InputStream pis = am.open(path);
+//            return (pis != null);
+//        }
+//        catch (IOException e)
+//        {
+//            //e.printStackTrace();
+//        }
+//        return false;
+//    }
+
+
     public static Boolean fileExistsAtPath (String path)
     {
-        AssetManager am = MainActivity.mainActivity.getAssets();
         try
         {
-            InputStream pis = am.open(path);
-            return (pis != null);
+            AssetManager am = MainActivity.mainActivity.getAssets();
+            InputStream is = am.open(path);
+            return (is != null);
         }
         catch (IOException e)
         {
-            //e.printStackTrace();
+//            Log.v("fileExistsAtPath", "unable to find asset in bundled assets " + path);
         }
+        //
+        for (File mounted : OBExpansionManager.sharedManager.getExternalExpansionFolders())
+        {
+            try
+            {
+                File extendedFile = new File(mounted.getAbsolutePath() + "/" + path);
+                Boolean fileExists = extendedFile.exists();
+                return fileExists;
+            }
+            catch (Exception e)
+            {
+//                Log.v("getFilePathInAssets", "exception caught " + e.toString());
+//                e.printStackTrace();
+            }
+        }
+        //
         return false;
     }
+
+
+    public static InputStream getInputStreamForPath (String path)
+    {
+        try
+        {
+            InputStream is = MainActivity.mainActivity.getAssets().open(path);
+            return is;
+        }
+        catch (Exception e)
+        {
+//            Log.v("getInputStream", "unable to find bundled asset: " + path);
+//            e.printStackTrace();
+        }
+        //
+        for (File mounted : OBExpansionManager.sharedManager.getExternalExpansionFolders())
+        {
+            String extendedPath = mounted.getAbsolutePath() + "/" + path;
+            try
+            {
+                File file = new File(extendedPath);
+                Boolean fileExists = file.exists();
+                if (fileExists)
+                {
+                    InputStream is = new FileInputStream(file);
+                    return is;
+                }
+            }
+            catch (Exception e)
+            {
+//                Log.v("getInputStream", "unable to find downloaded asset: " + extendedPath);
+//                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+
+    public static AssetFileDescriptor getAssetFileDescriptorForPath (String path)
+    {
+        AssetManager am = MainActivity.mainActivity.getAssets();
+        // attempts to get file descriptor from assets
+        try
+        {
+            AssetFileDescriptor fd = am.openFd(path);
+            return fd;
+        }
+        catch (IOException e)
+        {
+//            Log.v("getAssetFileDescriptor", "unable to find asset in bundled assets " + path);
+        }
+        // attempt to get from external assets
+        for (File mounted : OBExpansionManager.sharedManager.getExternalExpansionFolders())
+        {
+            File extendedFile = new File(mounted.getAbsolutePath() + "/" + path);
+            Uri uri = Uri.fromFile(extendedFile);
+            try
+            {
+                AssetFileDescriptor fd = MainActivity.mainActivity.getContentResolver().openAssetFileDescriptor(uri, "r");
+                return fd;
+            }
+            catch (IOException e)
+            {
+//                Log.v("getAssetFileDescriptor", "unable to find asset in downloaded assets " + extendedFile);
+            }
+        }
+        return null;
+    }
+
 
     public static void getFloatColour (int col, float outcol[])
     {
@@ -542,6 +648,10 @@ public class OBUtils
                 {
                     lamb.run();
                 }
+                catch (OBUserPressedBackException e)
+                {
+                    OBAudioManager.audioManager.stopAllAudio();
+                }
                 catch (Exception exception)
                 {
                     Logger logger = Logger.getAnonymousLogger();
@@ -560,6 +670,10 @@ public class OBUtils
                 try
                 {
                     lamb.run();
+                }
+                catch (OBUserPressedBackException e)
+                {
+                    OBAudioManager.audioManager.stopAllAudio();
                 }
                 catch (Exception exception)
                 {
@@ -581,6 +695,10 @@ public class OBUtils
                 {
                     Thread.sleep(Math.round(delay * 1000));
                     lamb.run();
+                }
+                catch (OBUserPressedBackException e)
+                {
+                    OBAudioManager.audioManager.stopAllAudio();
                 }
                 catch (Exception exception)
                 {
@@ -707,7 +825,8 @@ public class OBUtils
             try
             {
                 OBXMLManager xmlManager = new OBXMLManager();
-                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
+                List<OBXMLNode> xl = xmlManager.parseFile(OBUtils.getInputStreamForPath(xmlPath));
+//                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
                 xmlNode = xl.get(0);
                 OBXMLNode timingsNode = xmlNode.childrenOfType("timings").get(0);
                 for (OBXMLNode xtiming : timingsNode.childrenOfType("timing"))
@@ -751,7 +870,8 @@ public class OBUtils
             try
             {
                 OBXMLManager xmlManager = new OBXMLManager();
-                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
+                List<OBXMLNode> xl = xmlManager.parseFile(OBUtils.getInputStreamForPath(xmlPath));
+//                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
                 xmlNode = xl.get(0);
                 //
                 OBXMLNode phonemesNode = xmlNode.childrenOfType("phonemes").get(0);

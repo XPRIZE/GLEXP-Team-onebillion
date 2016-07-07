@@ -65,7 +65,6 @@ public class OBWord extends OBSyllable
                 {
                     OBSyllable sylCopy = syllable.copy();
                     sylCopy.timings = (List<Object>) (Object) sylTiming.get(index);
-                    sylCopy.soundID = partSylWordAudio;
                     timingSyllables.add(sylCopy);
                     index++;
                 }
@@ -99,7 +98,6 @@ public class OBWord extends OBSyllable
                 {
                     OBPhoneme phoCopy = phoneme.copy();
                     phoCopy.timings = (List<Object>) (Object) phoTiming.get(index);
-                    phoCopy.soundID = partPhoWordAudio;
                     timingPhonemes.add(phoCopy);
                     index++;
                 }
