@@ -1,6 +1,7 @@
 package org.onebillion.xprz.mainui;
 
 import android.app.DownloadManager;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -38,16 +39,25 @@ public class OBExpansionManager
     public static OBExpansionManager sharedManager;
     public Map<String, OBExpansionFile> internalExpansionFiles;
     public Map<String, OBExpansionFile> remoteExpansionFiles;
+    private Map<Long, String> downloadQueue;
 
-    DownloadManager downloadManager;
-    long downloadID;
-    File obbFilePath;
-    StorageManager storageManager;
+    private DownloadManager downloadManager;
+    private File obbFilePath;
+    private StorageManager storageManager;
+    private Boolean setupComplete;
+    private ProgressDialog waitDialog;
+    private OBUtils.RunLambda completionBlock;
 
     public OBExpansionManager ()
     {
+        downloadQueue = new HashMap();
         remoteExpansionFiles = new HashMap();
         sharedManager = this;
+        setupComplete = false;
+        /*
+        <key>expansionURL</key>
+	    <string>http://ting.onebillion.org:5007/obb/</string>
+         */
     }
 
 
@@ -65,6 +75,41 @@ public class OBExpansionManager
     }
 
 
+    public void checkIfSetupIsComplete()
+    {
+        if (downloadQueue.size() == 0)
+        {
+            setupComplete = true;
+            MainActivity.mainActivity.log("ExpansionManager has downloaded all the files it requires to continue.");
+            //
+            if (waitDialog != null)
+            {
+                waitDialog.dismiss();
+                waitDialog.cancel();
+            }
+            if (completionBlock != null)
+            {
+                OBUtils.runOnMainThread(completionBlock);
+            }
+        }
+    }
+
+
+    public void waitForDownload()
+    {
+        if (waitDialog == null)
+        {
+            waitDialog = new ProgressDialog(MainActivity.mainActivity);
+        }
+        waitDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+//        waitDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        waitDialog.setMessage("Loading. Please wait...");
+        waitDialog.setIndeterminate(true);
+        waitDialog.setCanceledOnTouchOutside(false);
+        waitDialog.show();
+    }
+
+
     public List<File> getExternalExpansionFolders ()
     {
         List<File> result = new ArrayList();
@@ -79,15 +124,25 @@ public class OBExpansionManager
     }
 
 
-    public void installMissingExpansionFiles ()
+    public void checkForUpdates(OBUtils.RunLambda whenComplete)
     {
-        final String expansionURL = (String) MainActivity.mainActivity.Config().get(MainActivity.CONFIG_EXPANSION_URL);
+        completionBlock = whenComplete;
         //
+        final String expansionURL = (String) MainActivity.mainActivity.Config().get(MainActivity.CONFIG_EXPANSION_URL);
         if (expansionURL == null)
         {
             MainActivity.mainActivity.log("Expansion URL is null. nothing to do here");
+            checkIfSetupIsComplete();
             return;
         }
+        //
+        if (!MainActivity.mainActivity.isStoragePermissionGranted())
+        {
+            MainActivity.mainActivity.log("User hasn't given permissions. Suspending operations until resolve");
+            // Setup is not complete here
+            return;
+        }
+        //
         if (internalExpansionFiles == null)
         {
             internalExpansionFiles = new HashMap<String, OBExpansionFile>();
@@ -123,7 +178,10 @@ public class OBExpansionManager
                 }
             }
         });
+        //
+        waitForDownload();
     }
+
 
 
     private void compareExpansionFilesAndInstallMissingOrOutdated ()
@@ -159,20 +217,26 @@ public class OBExpansionManager
                 MainActivity.mainActivity.log("Download NOT required --> " + remoteFile.id + " local:" + (internalFile != null ? internalFile.version : "missing") + "   remote:" + remoteFile.version);
             }
         }
+        checkIfSetupIsComplete();
     }
 
 
     public BroadcastReceiver downloadCompleteReceiver = new BroadcastReceiver()
     {
+
+
+
         @Override
         public void onReceive (Context context, Intent intent)
         {
             long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0L);
-            if (id != downloadID)
+            if (!downloadQueue.containsKey(id))
             {
                 MainActivity.mainActivity.log("Ignoring unrelated download " + id);
                 return;
             }
+            downloadQueue.remove(id);
+            //
             DownloadManager.Query query = new DownloadManager.Query();
             query.setFilterById(id);
             Cursor cursor = downloadManager.query(query);
@@ -242,6 +306,7 @@ public class OBExpansionManager
                             addExpansionAssetsFolder(folderName);
                         }
                     }
+                    checkIfSetupIsComplete();
                     //
                     storageManager.unmountObb(obbFilePath.getPath(), true, eventListener);
                 }
@@ -346,7 +411,8 @@ public class OBExpansionManager
                 request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName + ".obb");
                 if (downloadManager == null)
                     downloadManager = (DownloadManager) MainActivity.mainActivity.getSystemService(Context.DOWNLOAD_SERVICE);
-                downloadID = downloadManager.enqueue(request);
+                long downloadID = downloadManager.enqueue(request);
+                downloadQueue.put(downloadID, fileName);
             }
             else
             {

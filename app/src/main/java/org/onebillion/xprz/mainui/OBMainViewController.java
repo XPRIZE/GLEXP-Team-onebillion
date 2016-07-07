@@ -28,27 +28,26 @@ public class OBMainViewController extends OBViewController
             SHOW_BOTTOM_LEFT_BUTTON = 4,
             SHOW_BOTTOM_RIGHT_BUTTON = 8;
     public List<OBSectionController> viewControllers;
-    public OBControl topLeftButton,topRightButton,bottomLeftButton,bottomRightButton;
+    public OBControl topLeftButton, topRightButton, bottomLeftButton, bottomRightButton;
     protected Rect _buttonBoxRect = null;
     public boolean navigating;
     OBControl downButton;
 
-    public OBMainViewController(Activity a)
+    public OBMainViewController (Activity a)
     {
         super(a);
         viewControllers = new ArrayList<OBSectionController>();
-        /*view = new OBView(a,this);
-        ViewGroup rootView = (ViewGroup) a.findViewById(android.R.id.content);
-        rootView.addView(view,new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));*/
         glView().controller = this;
+        //
         enterGLMode();
         navigating = false;
     }
 
-    public void doButton(OBControl button, String source, boolean abutLeft, boolean abutTop)
+
+    public void doButton (OBControl button, String source, boolean abutLeft, boolean abutTop)
     {
         Bitmap im = OBImageManager.sharedImageManager().bitmapForName(source);
-        ((OBImage)button).setContents(im);
+        ((OBImage) button).setContents(im);
         float graphicScale = applyGraphicScale(1);
         button.setScale(graphicScale);
         if (abutLeft)
@@ -61,7 +60,7 @@ public class OBMainViewController extends OBViewController
             button.setBottom(bounds().height());
     }
 
-    public void addButtons()
+    public void addButtons ()
     {
         if (topLeftButton != null)
             return;
@@ -81,100 +80,103 @@ public class OBMainViewController extends OBViewController
         bottomRightButton.setBottom(bounds.height());
     }
 
-    public void buttonHit(PointF pt)
+    public void buttonHit (PointF pt)
     {
-        OBSectionController cont = viewControllers.get(viewControllers.size()-1);
-        if (topLeftButton.frame().contains(pt.x,pt.y))
+        OBSectionController cont = viewControllers.get(viewControllers.size() - 1);
+        if (topLeftButton.frame().contains(pt.x, pt.y))
             cont.exitEvent();
-        else if (topRightButton.frame().contains(pt.x,pt.y))
+        else if (topRightButton.frame().contains(pt.x, pt.y))
             cont.replayAudio();
-        else if (bottomLeftButton.frame().contains(pt.x,pt.y))
+        else if (bottomLeftButton.frame().contains(pt.x, pt.y))
             cont.prevPage();
-        else if (bottomRightButton.frame().contains(pt.x,pt.y))
+        else if (bottomRightButton.frame().contains(pt.x, pt.y))
             cont.nextPage();
     }
 
-    public void showButtons(int flags)
+    public void showButtons (int flags)
     {
         if (topLeftButton == null)
             addButtons();
-        if ((flags & SHOW_TOP_LEFT_BUTTON)== 0)
+        if ((flags & SHOW_TOP_LEFT_BUTTON) == 0)
             topLeftButton.setOpacity(0.0f);
         else
             topLeftButton.setOpacity(1.0f);
-        if ((flags & SHOW_TOP_RIGHT_BUTTON)== 0)
+        if ((flags & SHOW_TOP_RIGHT_BUTTON) == 0)
             topRightButton.setOpacity(0.0f);
         else
             topRightButton.setOpacity(1.0f);
-        if ((flags & SHOW_BOTTOM_LEFT_BUTTON)== 0)
+        if ((flags & SHOW_BOTTOM_LEFT_BUTTON) == 0)
             bottomLeftButton.setOpacity(0.0f);
         else
             bottomLeftButton.setOpacity(1.0f);
-        if ((flags & SHOW_BOTTOM_RIGHT_BUTTON)== 0)
+        if ((flags & SHOW_BOTTOM_RIGHT_BUTTON) == 0)
             bottomRightButton.setOpacity(0.0f);
         else
             bottomRightButton.setOpacity(1.0f);
     }
 
-    public void showHideButtons(int flags)
+    public void showHideButtons (int flags)
     {
         if (topLeftButton == null)
             addButtons();
-        topLeftButton.setHidden((flags & SHOW_TOP_LEFT_BUTTON)== 0);
-        topRightButton.setHidden((flags & SHOW_TOP_RIGHT_BUTTON)== 0);
-        bottomLeftButton.setHidden((flags & SHOW_BOTTOM_LEFT_BUTTON)== 0);
-        bottomRightButton.setHidden((flags & SHOW_BOTTOM_RIGHT_BUTTON)== 0);
-        invalidateView(0,0,glView().getRight(),(int)topLeftButton.height());
+        topLeftButton.setHidden((flags & SHOW_TOP_LEFT_BUTTON) == 0);
+        topRightButton.setHidden((flags & SHOW_TOP_RIGHT_BUTTON) == 0);
+        bottomLeftButton.setHidden((flags & SHOW_BOTTOM_LEFT_BUTTON) == 0);
+        bottomRightButton.setHidden((flags & SHOW_BOTTOM_RIGHT_BUTTON) == 0);
+        invalidateView(0, 0, glView().getRight(), (int) topLeftButton.height());
     }
 
-    public void viewWasLaidOut(boolean changed, int l, int t, int r, int b)
+    public void viewWasLaidOut (boolean changed, int l, int t, int r, int b)
     {
-        if (! inited)
+        if (!inited)
         {
             prepare();
             inited = true;
         }
     }
 
-    public void drawControls(Canvas canvas)
+    public void drawControls (Canvas canvas)
     {
         canvas.drawColor(Color.WHITE);
     }
 
-    public void highlightButton(OBControl but)
+    public void highlightButton (OBControl but)
     {
         but.highlight();
         glView().requestRender();
         downButton = but;
     }
 
-    OBControl buttonForPoint(float x,float y)
+    OBControl buttonForPoint (float x, float y)
     {
-        for (OBControl but : Arrays.asList(topLeftButton,topRightButton,bottomLeftButton,bottomRightButton))
+        for (OBControl but : Arrays.asList(topLeftButton, topRightButton, bottomLeftButton, bottomRightButton))
         {
-            if ((!but.hidden) && but.frame().contains(x,y))
+            if ((!but.hidden) && but.frame().contains(x, y))
                 return but;
         }
         return null;
     }
-    public void touchDownAtPoint(float x,float y,OBGLView v)
+
+    public void touchDownAtPoint (float x, float y, OBGLView v)
     {
-        OBControl but = buttonForPoint(x,y);
+        OBControl but = buttonForPoint(x, y);
         if (but == null)
-            topController().touchDownAtPoint(new PointF(x,y), v);
+            topController().touchDownAtPoint(new PointF(x, y), v);
         else
         {
             highlightButton(but);
 
         }
     }
-    public void touchUpAtPoint(float x,float y,OBGLView v)
+
+    public void touchUpAtPoint (float x, float y, OBGLView v)
     {
         final OBControl db = downButton;
         if (db != null)
-            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda() {
+            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
+            {
                 @Override
-                public void run() throws Exception
+                public void run () throws Exception
                 {
                     db.lowlight();
                     glView().requestRender();
@@ -182,12 +184,12 @@ public class OBMainViewController extends OBViewController
             });
         else
         {
-            topController().touchUpAtPoint(new PointF(x,y), v);
+            topController().touchUpAtPoint(new PointF(x, y), v);
             return;
         }
-        OBControl but = buttonForPoint(x,y);
+        OBControl but = buttonForPoint(x, y);
         if (db != but)
-            topController().touchUpAtPoint(new PointF(x,y), v);
+            topController().touchUpAtPoint(new PointF(x, y), v);
         else
         {
             downButton = null;
@@ -201,26 +203,28 @@ public class OBMainViewController extends OBViewController
                 topController().nextPage();
         }
     }
+
     @Override
 
-    public void prepare()
+    public void prepare ()
     {
         addButtons();
-        glView().setOnTouchListener(new View.OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event)
+        glView().setOnTouchListener(new View.OnTouchListener()
+        {
+            public boolean onTouch (View v, MotionEvent event)
             {
                 if (event.getAction() == MotionEvent.ACTION_DOWN)
                 {
-                    touchDownAtPoint(event.getX(),event.getY(),(OBGLView)v);
+                    touchDownAtPoint(event.getX(), event.getY(), (OBGLView) v);
                 }
                 else if (event.getAction() == MotionEvent.ACTION_MOVE)
                 {
-                    OBGLView ov = (OBGLView)v;
-                    topController().touchMovedToPoint(new PointF(event.getX(),event.getY()), ov);
+                    OBGLView ov = (OBGLView) v;
+                    topController().touchMovedToPoint(new PointF(event.getX(), event.getY()), ov);
                 }
                 else if (event.getAction() == MotionEvent.ACTION_UP)
                 {
-                    touchUpAtPoint(event.getX(),event.getY(),(OBGLView)v);
+                    touchUpAtPoint(event.getX(), event.getY(), (OBGLView) v);
                 }
                 return true;
             }
@@ -230,85 +234,93 @@ public class OBMainViewController extends OBViewController
         MainActivity.mainActivity.fatController.startUp();
     }
 
-    public OBGLView glView()
+    public OBGLView glView ()
     {
         return MainActivity.mainActivity.glSurfaceView;
     }
 
-    public boolean glMode()
+    public boolean glMode ()
     {
         return glView().getParent() != null;
     }
 
-    public void enterGLMode()
+    public void enterGLMode ()
     {
         if (!glMode())
         {
             addView(glView());
         }
     }
-    public void addView(View v)
+
+    public void addView (View v)
     {
         ViewGroup rootView = (ViewGroup) MainActivity.mainActivity.findViewById(android.R.id.content);
-        rootView.addView(v,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        rootView.addView(v, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         //rootView.addView(v, 0);
     }
 
-    private Class controllerClass(String name, String configPath)
+    public void removeView (View v)
+    {
+        ViewGroup rootView = (ViewGroup) MainActivity.mainActivity.findViewById(android.R.id.content);
+        rootView.removeView(v);
+    }
+
+    private Class controllerClass (String name, String configPath)
     {
         try
         {
-            String config ="";
-            if(configPath != null) {
+            String config = "";
+            if (configPath != null)
+            {
                 String[] paths = configPath.split("/");
                 config = paths[0];
                 config = config.replace("-", "_");
                 config += ".";
             }
-            Class cnm = Class.forName("org.onebillion.xprz.mainui."+config+name);
+            Class cnm = Class.forName("org.onebillion.xprz.mainui." + config + name);
             return cnm;
         }
-        catch(ClassNotFoundException e)
+        catch (ClassNotFoundException e)
         {
-            if(configPath != null)
+            if (configPath != null)
                 return controllerClass(name, null);
         }
         return null;
     }
 
-    public boolean pushViewControllerWithNameConfig(String nm, String configPath,boolean animate,boolean fromRight,Object _params)
+    public boolean pushViewControllerWithNameConfig (String nm, String configPath, boolean animate, boolean fromRight, Object _params)
     {
-        Class cnm = controllerClass(nm,configPath);
-        if(cnm == null)
+        Class cnm = controllerClass(nm, configPath);
+        if (cnm == null)
             return false;
 
-        pushViewController(cnm, animate,fromRight, _params,false);
+        pushViewController(cnm, animate, fromRight, _params, false);
         return true;
     }
 
-    public boolean pushViewControllerWithName(String nm,boolean animate,boolean fromRight,Object _params)
+    public boolean pushViewControllerWithName (String nm, boolean animate, boolean fromRight, Object _params)
     {
         try
         {
-            Class cnm = Class.forName("org.onebillion.xprz.mainui."+nm);
-            pushViewController(cnm, animate,fromRight, _params,false);
+            Class cnm = Class.forName("org.onebillion.xprz.mainui." + nm);
+            pushViewController(cnm, animate, fromRight, _params, false);
             return true;
         }
-        catch(ClassNotFoundException e)
+        catch (ClassNotFoundException e)
         {
             e.printStackTrace();
         }
         return false;
     }
 
-    public void pushViewController(Class<?> vcClass,Boolean animate,boolean fromRight,Object _params,boolean pop)
+    public void pushViewController (Class<?> vcClass, Boolean animate, boolean fromRight, Object _params, boolean pop)
     {
         Constructor<?> cons;
         OBSectionController controller;
         try
         {
             cons = vcClass.getConstructor();
-            controller = (OBSectionController)cons.newInstance();
+            controller = (OBSectionController) cons.newInstance();
         }
         catch (Exception e)
         {
@@ -317,28 +329,44 @@ public class OBMainViewController extends OBViewController
         }
         controller.params = _params;
         controller.prepare();
-        if (viewControllers.size() >= 1 && animate) {
+        if (viewControllers.size() >= 1 && animate)
+        {
             if (fromRight)
                 transition(topController(), controller, fromRight, 0.6);
             else
-                transition(controller,topController(), fromRight, 0.6);
+                transition(controller, topController(), fromRight, 0.6);
         }
         viewControllers.add(controller);
         if (pop)
-            viewControllers.remove(viewControllers.size()-2);
-        showButtons(controller.buttonFlags());
-        showHideButtons(controller.buttonFlags());
+        {
+            viewControllers.remove(viewControllers.size() - 2);
+        }
+        if (controller.requiresOpenGL)
+        {
+            enterGLMode();
+            showButtons(controller.buttonFlags());
+            showHideButtons(controller.buttonFlags());
+        }
+        else
+        {
+            ViewGroup vg = (ViewGroup) glView().getParent();
+            if (vg != null)
+            {
+                vg.removeView(glView());
+            }
+        }
         final OBSectionController vc = controller;
         new Handler().post(new Runnable()
         {
             @Override
-            public void run() {
+            public void run ()
+            {
                 vc.start();
             }
         });
     }
 
-    public void transition(OBSectionController l,OBSectionController r,boolean fromRight,double duration)
+    public void transition (OBSectionController l, OBSectionController r, boolean fromRight, double duration)
     {
 /*        if (!fromRight)
         {
@@ -354,11 +382,11 @@ public class OBMainViewController extends OBViewController
 
         long startms = SystemClock.uptimeMillis();
         double frac = 0;
-        while (frac <= 1.0 )
+        while (frac <= 1.0)
         {
             long currtime = SystemClock.uptimeMillis();
             frac = (currtime - startms) / (duration * 1000);
-            float f = (float)OB_Maths.clamp01(frac);
+            float f = (float) OB_Maths.clamp01(frac);
             if (fromRight)
                 f = 1 - f;
             renderer.transitionFrac = f;
@@ -378,32 +406,33 @@ public class OBMainViewController extends OBViewController
         renderer.resetViewport();
     }
 
-    public void popViewController()
+    public void popViewController ()
     {
-        OBSectionController topvc = viewControllers.get(viewControllers.size()-1);
-        OBSectionController nextvc = viewControllers.get(viewControllers.size()-2);
-        transition(nextvc,topvc,false,0.5);
-        viewControllers.remove(viewControllers.size()-1);
+        OBSectionController topvc = viewControllers.get(viewControllers.size() - 1);
+        OBSectionController nextvc = viewControllers.get(viewControllers.size() - 2);
+        transition(nextvc, topvc, false, 0.5);
+        viewControllers.remove(viewControllers.size() - 1);
         showButtons(nextvc.buttonFlags());
         showHideButtons(nextvc.buttonFlags());
         nextvc.start();
     }
 
-    public OBSectionController topController()
+    public OBSectionController topController ()
     {
         if (viewControllers.size() > 0)
-            return viewControllers.get(viewControllers.size()-1);
+            return viewControllers.get(viewControllers.size() - 1);
         return null;
 
     }
-    public void render(OBRenderer renderer)
+
+    public void render (OBRenderer renderer)
     {
         TextureShaderProgram textureShader = (TextureShaderProgram) renderer.textureProgram;
         textureShader.useProgram();
-        topLeftButton.render(renderer,this,renderer.projectionMatrix);
-        topRightButton.render(renderer,this,renderer.projectionMatrix);
-        bottomRightButton.render(renderer,this,renderer.projectionMatrix);
-        bottomLeftButton.render(renderer,this,renderer.projectionMatrix);
+        topLeftButton.render(renderer, this, renderer.projectionMatrix);
+        topRightButton.render(renderer, this, renderer.projectionMatrix);
+        bottomRightButton.render(renderer, this, renderer.projectionMatrix);
+        bottomLeftButton.render(renderer, this, renderer.projectionMatrix);
     }
 
 }
