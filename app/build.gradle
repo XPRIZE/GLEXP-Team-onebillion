@@ -2,13 +2,13 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 23
     buildToolsVersion '23.0.3'
+
     defaultConfig {
-        applicationId 'org.onebillion.xprz0'
+        applicationId 'org.onebillion.xprz0.pedro'
         minSdkVersion 23
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
-
     }
     buildTypes {
         debug {
@@ -33,13 +33,6 @@ android {
     }
     sourceSets { main { assets.srcDirs = ['src/main/assets', 'src/main/assets_obb'] } }
     productFlavors {
-        pedro {
-            minSdkVersion 23
-            applicationId 'org.onebillion.xprz0.pedro'
-            targetSdkVersion 23
-            versionCode 1
-            versionName '1.0'
-        }
     }
 }
 

@@ -1045,9 +1045,8 @@ public class OBSectionController extends OBViewController
         RectF f = control.frame();
         attachedControls.remove(control);
         control.controller = null;
-        if(control.texture != null)
-            control.texture.cleanUp();
-
+//        if(control.texture != null)
+//            control.texture.cleanUp();
         invalidateView((int) f.left, (int) f.top, (int) f.right, (int) f.bottom);
         sortedAttachedControlsValid = false;
     }
@@ -1854,6 +1853,10 @@ public class OBSectionController extends OBViewController
                     tick = loadVectorWithName("tick", new PointF(0.5f, 0.5f), new RectF(bounds()), false);
                     tick.setScale(graphicScale());
                     tick.setZPosition(100);
+                }
+                else
+                {
+                    MainActivity.mainActivity.log("say something pretty");
                 }
                 attachControl(tick);
             }

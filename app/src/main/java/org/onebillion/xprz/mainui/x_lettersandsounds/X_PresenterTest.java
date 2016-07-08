@@ -142,6 +142,14 @@ public class X_PresenterTest extends XPRZ_Generic_Event
         setStatus(STATUS_DOING_DEMO);
         waitForSecs(0.3);
         //
+        gotItRightBigTick(true);
+        waitForSecs(0.3);
+        //
+        gotItRightBigTick(true);
+        waitForSecs(0.3);
+        //
+        gotItRightBigTick(true);
+        waitForSecs(0.3);
         //
         //
         List aud = currentAudio("DEMO");
