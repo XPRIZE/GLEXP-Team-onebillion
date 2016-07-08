@@ -38,6 +38,9 @@ import org.onebillion.xprz.utils.OBUtils;
 
 public class MainActivity extends Activity
 {
+    private static final int REQUEST_EXTERNAL_STORAGE = 1,
+                    REQUEST_MICROPHONE = 2,
+                    REQUEST_CAMERA = 3;
     public static String CONFIG_IMAGE_SUFFIX = "image_suffix",
             CONFIG_AUDIO_SUFFIX = "audio_suffix",
             CONFIG_AUDIO_SEARCH_PATH = "audioSearchPath",
@@ -63,25 +66,27 @@ public class MainActivity extends Activity
             CONFIG_USER = "user",
             CONFIG_EXPANSION_URL = "expansionURL",
             CONFIG_FAT_CONTROLLER = "fatcontrollerclass";
-
-
     public static String TAG = "livecode";
     public static OBExpansionManager expansionManager = new OBExpansionManager();
     public static MainActivity mainActivity;
     public static OBMainViewController mainViewController;
     public static Typeface standardTypeFace;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+    private static String[] PERMISSIONS_MICROPHONE = {
+            Manifest.permission.RECORD_AUDIO
+    };
+    private static String[] PERMISSIONS_CAMERA = {
+            Manifest.permission.CAMERA
+    };
     public Map<String, Object> config;
     public List<OBUser> users;
     public OBFatController fatController;
     public OBGLView glSurfaceView;
     public OBRenderer renderer;
     private int b;
-
-    private static final int REQUEST_EXTERNAL_STORAGE = 1;
-    private static String[] PERMISSIONS_STORAGE = {
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-    };
 
     public static OBGroup armPointer ()
     {
@@ -463,6 +468,27 @@ public class MainActivity extends Activity
             ActivityCompat.requestPermissions(this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
         //
         return result;
+    }
+
+
+    public boolean isMicrophonePermissionGranted ()
+    {
+        Boolean micPermission = checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
+        //
+        if (!micPermission)
+            ActivityCompat.requestPermissions(this, PERMISSIONS_MICROPHONE, REQUEST_MICROPHONE);
+        //
+        return micPermission;
+    }
+
+    public boolean isCameraPermissionGranted ()
+    {
+        Boolean micPermission = checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+        //
+        if (!micPermission)
+            ActivityCompat.requestPermissions(this, PERMISSIONS_CAMERA, REQUEST_CAMERA);
+        //
+        return micPermission;
     }
 
 
