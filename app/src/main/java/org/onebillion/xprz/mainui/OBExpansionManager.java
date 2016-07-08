@@ -47,219 +47,6 @@ public class OBExpansionManager
     private Boolean setupComplete;
     private ProgressDialog waitDialog;
     private OBUtils.RunLambda completionBlock;
-
-    public OBExpansionManager ()
-    {
-        downloadQueue = new HashMap();
-        remoteExpansionFiles = new HashMap();
-        sharedManager = this;
-        setupComplete = false;
-        /*
-        <key>expansionURL</key>
-	    <string>http://ting.onebillion.org:5007/obb/</string>
-         */
-    }
-
-
-    private void mountAvailableExpansionFolders ()
-    {
-        String currentExternalAssets = MainActivity.mainActivity.getPreferences("externalAssets");
-        if (currentExternalAssets != null)
-        {
-            List<String> externalAssets = new ArrayList(Arrays.asList(currentExternalAssets.split(",")));
-            for (String folder : externalAssets)
-            {
-                addExpansionAssetsFolder(folder);
-            }
-        }
-    }
-
-
-    public void checkIfSetupIsComplete()
-    {
-        if (downloadQueue.size() == 0)
-        {
-            setupComplete = true;
-            MainActivity.mainActivity.log("ExpansionManager has downloaded all the files it requires to continue.");
-            //
-            if (waitDialog != null)
-            {
-                waitDialog.dismiss();
-                waitDialog.cancel();
-            }
-            if (completionBlock != null)
-            {
-                OBUtils.runOnMainThread(completionBlock);
-            }
-        }
-    }
-
-
-    public void waitForDownload()
-    {
-        if (waitDialog == null)
-        {
-            waitDialog = new ProgressDialog(MainActivity.mainActivity);
-        }
-        waitDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-//        waitDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        waitDialog.setMessage("Loading. Please wait...");
-        waitDialog.setIndeterminate(true);
-        waitDialog.setCanceledOnTouchOutside(false);
-        waitDialog.show();
-    }
-
-
-    public List<File> getExternalExpansionFolders ()
-    {
-        List<File> result = new ArrayList();
-        if (internalExpansionFiles != null)
-        {
-            for (OBExpansionFile file : internalExpansionFiles.values())
-            {
-                if (file.folder != null) result.add(file.folder);
-            }
-        }
-        return result;
-    }
-
-
-    public void checkForUpdates(OBUtils.RunLambda whenComplete)
-    {
-        completionBlock = whenComplete;
-        //
-        final String expansionURL = (String) MainActivity.mainActivity.Config().get(MainActivity.CONFIG_EXPANSION_URL);
-        if (expansionURL == null)
-        {
-            MainActivity.mainActivity.log("Expansion URL is null. nothing to do here");
-            checkIfSetupIsComplete();
-            return;
-        }
-        //
-        if (!MainActivity.mainActivity.isStoragePermissionGranted())
-        {
-            MainActivity.mainActivity.log("User hasn't given permissions. Suspending operations until resolve");
-            // Setup is not complete here
-            return;
-        }
-        //
-        if (internalExpansionFiles == null)
-        {
-            internalExpansionFiles = new HashMap<String, OBExpansionFile>();
-            mountAvailableExpansionFolders();
-        }
-        //
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-        {
-            @Override
-            public void run () throws Exception
-            {
-                try
-                {
-                    URL url = new URL(expansionURL + "list.xml");
-                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                    urlConnection.connect();
-                    OBXMLManager xmlManager = new OBXMLManager();
-                    List<OBXMLNode> xml = xmlManager.parseFile(urlConnection.getInputStream());
-                    OBXMLNode rootNode = xml.get(0);
-                    for (OBXMLNode xmlNode : rootNode.children)
-                    {
-                        String id = xmlNode.attributeStringValue("id");
-                        String type = xmlNode.attributeStringValue("type");
-                        int version = xmlNode.attributeIntValue("version");
-                        remoteExpansionFiles.put(id, new OBExpansionFile(id, type, version, null));
-                    }
-                    //
-                    compareExpansionFilesAndInstallMissingOrOutdated();
-                }
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
-            }
-        });
-        //
-        waitForDownload();
-    }
-
-
-
-    private void compareExpansionFilesAndInstallMissingOrOutdated ()
-    {
-        MainActivity.mainActivity.log("CompareExpansionFilesAndInstallMissingOrOutdate");
-        //
-        if (internalExpansionFiles == null) return;
-        //
-        if (remoteExpansionFiles == null)
-        {
-            remoteExpansionFiles = new HashMap();
-        }
-        //
-        for (OBExpansionFile remoteFile : remoteExpansionFiles.values())
-        {
-            if (remoteFile == null) continue;
-            MainActivity.mainActivity.log("checking: " + remoteFile.id + " " + remoteFile.version);
-            //
-            Boolean needsUpdate = true;
-            OBExpansionFile internalFile = internalExpansionFiles.get(remoteFile.id);
-            if (internalFile != null && internalFile.id.equals(remoteFile.id) && internalFile.version == remoteFile.version)
-            {
-                needsUpdate = false;
-            }
-            //
-            if (needsUpdate)
-            {
-                MainActivity.mainActivity.log("Download required --> " + remoteFile.id + " local:" + (internalFile != null ? internalFile.version : "missing") + "   remote:" + remoteFile.version);
-                downloadOBB(remoteFile.id);
-            }
-            else
-            {
-                MainActivity.mainActivity.log("Download NOT required --> " + remoteFile.id + " local:" + (internalFile != null ? internalFile.version : "missing") + "   remote:" + remoteFile.version);
-            }
-        }
-        checkIfSetupIsComplete();
-    }
-
-
-    public BroadcastReceiver downloadCompleteReceiver = new BroadcastReceiver()
-    {
-
-
-
-        @Override
-        public void onReceive (Context context, Intent intent)
-        {
-            long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0L);
-            if (!downloadQueue.containsKey(id))
-            {
-                MainActivity.mainActivity.log("Ignoring unrelated download " + id);
-                return;
-            }
-            downloadQueue.remove(id);
-            //
-            DownloadManager.Query query = new DownloadManager.Query();
-            query.setFilterById(id);
-            Cursor cursor = downloadManager.query(query);
-            if (!cursor.moveToFirst())
-            {
-                MainActivity.mainActivity.log("Empty row");
-                return;
-            }
-            int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
-            if (DownloadManager.STATUS_SUCCESSFUL != cursor.getInt(statusIndex))
-            {
-                MainActivity.mainActivity.log("Download Failed");
-                return;
-            }
-
-            int uriIndex = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
-            String downloadedPackageUriString = cursor.getString(uriIndex);
-            //
-            unpackOBB(downloadedPackageUriString);
-        }
-    };
-
-
     private OnObbStateChangeListener eventListener = new OnObbStateChangeListener()
     {
         @Override
@@ -350,7 +137,209 @@ public class OBExpansionManager
             }
         }
     };
+    public BroadcastReceiver downloadCompleteReceiver = new BroadcastReceiver()
+    {
 
+
+
+        @Override
+        public void onReceive (Context context, Intent intent)
+        {
+            long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0L);
+            if (!downloadQueue.containsKey(id))
+            {
+                MainActivity.mainActivity.log("Ignoring unrelated download " + id);
+                return;
+            }
+            downloadQueue.remove(id);
+            //
+            DownloadManager.Query query = new DownloadManager.Query();
+            query.setFilterById(id);
+            Cursor cursor = downloadManager.query(query);
+            if (!cursor.moveToFirst())
+            {
+                MainActivity.mainActivity.log("Empty row");
+                return;
+            }
+            int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
+            if (DownloadManager.STATUS_SUCCESSFUL != cursor.getInt(statusIndex))
+            {
+                MainActivity.mainActivity.log("Download Failed");
+                return;
+            }
+
+            int uriIndex = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
+            String downloadedPackageUriString = cursor.getString(uriIndex);
+            //
+            unpackOBB(downloadedPackageUriString);
+        }
+    };
+
+
+    public OBExpansionManager ()
+    {
+        downloadQueue = new HashMap();
+        remoteExpansionFiles = new HashMap();
+        sharedManager = this;
+        setupComplete = false;
+        /*
+        <key>expansionURL</key>
+	    <string>http://ting.onebillion.org:5007/obb/</string>
+         */
+    }
+
+    private void mountAvailableExpansionFolders ()
+    {
+        String currentExternalAssets = MainActivity.mainActivity.getPreferences("externalAssets");
+        if (currentExternalAssets != null)
+        {
+            List<String> externalAssets = new ArrayList(Arrays.asList(currentExternalAssets.split(",")));
+            for (String folder : externalAssets)
+            {
+                addExpansionAssetsFolder(folder);
+            }
+        }
+    }
+
+    public void checkIfSetupIsComplete()
+    {
+        if (downloadQueue.size() == 0)
+        {
+            setupComplete = true;
+            MainActivity.mainActivity.log("ExpansionManager has downloaded all the files it requires to continue.");
+            //
+            if (waitDialog != null)
+            {
+                waitDialog.dismiss();
+                waitDialog.cancel();
+            }
+            if (completionBlock != null)
+            {
+                OBUtils.runOnMainThread(completionBlock);
+            }
+        }
+    }
+
+    public void waitForDownload()
+    {
+        if (waitDialog == null)
+        {
+            waitDialog = new ProgressDialog(MainActivity.mainActivity);
+        }
+        waitDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+//        waitDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        waitDialog.setMessage("Loading. Please wait...");
+        waitDialog.setIndeterminate(true);
+        waitDialog.setCanceledOnTouchOutside(false);
+        waitDialog.show();
+    }
+
+    public List<File> getExternalExpansionFolders ()
+    {
+        List<File> result = new ArrayList();
+        if (internalExpansionFiles != null)
+        {
+            for (OBExpansionFile file : internalExpansionFiles.values())
+            {
+                if (file.folder != null) result.add(file.folder);
+            }
+        }
+        return result;
+    }
+
+    public void checkForUpdates(OBUtils.RunLambda whenComplete)
+    {
+        completionBlock = whenComplete;
+        //
+        final String expansionURL = (String) MainActivity.mainActivity.Config().get(MainActivity.CONFIG_EXPANSION_URL);
+        if (expansionURL == null)
+        {
+            MainActivity.mainActivity.log("Expansion URL is null. nothing to do here");
+            checkIfSetupIsComplete();
+            return;
+        }
+        //
+        if (!MainActivity.mainActivity.isStoragePermissionGranted())
+        {
+            MainActivity.mainActivity.log("User hasn't given permissions. Suspending operations until resolve");
+            // Setup is not complete here
+            return;
+        }
+        //
+        if (internalExpansionFiles == null)
+        {
+            internalExpansionFiles = new HashMap<String, OBExpansionFile>();
+            mountAvailableExpansionFolders();
+        }
+        //
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run () throws Exception
+            {
+                try
+                {
+                    URL url = new URL(expansionURL + "list.xml");
+                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                    urlConnection.connect();
+                    OBXMLManager xmlManager = new OBXMLManager();
+                    List<OBXMLNode> xml = xmlManager.parseFile(urlConnection.getInputStream());
+                    OBXMLNode rootNode = xml.get(0);
+                    for (OBXMLNode xmlNode : rootNode.children)
+                    {
+                        String id = xmlNode.attributeStringValue("id");
+                        String type = xmlNode.attributeStringValue("type");
+                        int version = xmlNode.attributeIntValue("version");
+                        remoteExpansionFiles.put(id, new OBExpansionFile(id, type, version, null));
+                    }
+                    //
+                    compareExpansionFilesAndInstallMissingOrOutdated();
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        });
+        //
+        waitForDownload();
+    }
+
+    private void compareExpansionFilesAndInstallMissingOrOutdated ()
+    {
+        MainActivity.mainActivity.log("CompareExpansionFilesAndInstallMissingOrOutdate");
+        //
+        if (internalExpansionFiles == null) return;
+        //
+        if (remoteExpansionFiles == null)
+        {
+            remoteExpansionFiles = new HashMap();
+        }
+        //
+        for (OBExpansionFile remoteFile : remoteExpansionFiles.values())
+        {
+            if (remoteFile == null) continue;
+            MainActivity.mainActivity.log("checking: " + remoteFile.id + " " + remoteFile.version);
+            //
+            Boolean needsUpdate = true;
+            OBExpansionFile internalFile = internalExpansionFiles.get(remoteFile.id);
+            if (internalFile != null && internalFile.id.equals(remoteFile.id) && internalFile.version == remoteFile.version)
+            {
+                needsUpdate = false;
+            }
+            //
+            if (needsUpdate)
+            {
+                MainActivity.mainActivity.log("Download required --> " + remoteFile.id + " local:" + (internalFile != null ? internalFile.version : "missing") + "   remote:" + remoteFile.version);
+                downloadOBB(remoteFile.id);
+            }
+            else
+            {
+                MainActivity.mainActivity.log("Download NOT required --> " + remoteFile.id + " local:" + (internalFile != null ? internalFile.version : "missing") + "   remote:" + remoteFile.version);
+            }
+        }
+        checkIfSetupIsComplete();
+    }
 
     private void unpackOBB (String filePath)
     {
