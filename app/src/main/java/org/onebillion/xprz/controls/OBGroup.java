@@ -99,7 +99,8 @@ public class OBGroup extends OBControl
         if (opacity > 0.0f)
         {
             int intop = Math.round(opacity * 255f);
-            col = col | (intop << 24);
+            //col = Color.argb(intop,Color.red(col),Color.green(col),Color.blue(col));
+            col = (intop << 24) | (col & 0x00ffffff);
         }
         return new Integer(col);
     }
@@ -771,13 +772,38 @@ public class OBGroup extends OBControl
         }
         matrix3dForDraw();
         if (doubleSided)
+        {
             GLES20.glDisable(GLES20.GL_CULL_FACE);
+        }
         else
+        {
             GLES20.glEnable(GLES20.GL_CULL_FACE);
+        }
+        //
         android.opengl.Matrix.multiplyMM(tempMatrix, 0, modelViewMatrix, 0, modelMatrix, 0);
         populateSortedAttachedControls();
+        //
         for (OBControl c : sortedAttachedControls)
+        {
+            if (OBPath.class.isInstance(c))
+            {
+//                OBPath path = (OBPath) c;
+//                RectF oldFrame = path.frame();
+//                path.sizeToBoundingBox();
+//                RectF newFrame = path.frame();
+//                MainActivity.mainActivity.log("Path: " + oldFrame + " --> " + newFrame);
+            }
+            else if (OBGroup.class.isInstance(c))
+            {
+                OBGroup group = (OBGroup) c;
+//                RectF oldFrame = group.frame();
+//                RectF newFrame = OBGroup.frameUnion(group.members);
+//                group.setFrame(newFrame);
+//                MainActivity.mainActivity.log("Group: " + oldFrame + " --> " + newFrame);
+            }
+            //
             c.render(renderer, vc, tempMatrix);
+        }
     }
 
     public void drawLayer (Canvas canvas)
@@ -811,16 +837,6 @@ public class OBGroup extends OBControl
             dad = (OBGroup) dad.parent;
         }
         return dad;
-    }
-
-    public void outdent (float f)
-    {
-        RectF b = bounds();
-        b.right += 2 * f;
-        b.bottom += 2 * f;
-        for (OBControl c : members)
-            c.setPosition(OB_Maths.OffsetPoint(c.position(), f, f));
-        setBounds(b);
     }
 
     public void sizeToMember (OBControl m)
@@ -976,9 +992,11 @@ public class OBGroup extends OBControl
         this.sequenceIndex = -1;
     }
 
+
     @Override
     public void setOpacity (float opacity)
     {
+        super.setOpacity(opacity);
         this.opacity = opacity;
         invalidate();
     }
@@ -1003,4 +1021,18 @@ public class OBGroup extends OBControl
             this.setNeedsRetexture();
         }
     }
+
+
+
+    public void setRasterScale (float rs)
+    {
+        float newRasterScale = this.scale() * rs;
+        super.setRasterScale(newRasterScale);
+        //
+        for (OBControl c : members)
+        {
+            c.setRasterScale(rs);
+        }
+    }
+
 }

@@ -30,9 +30,9 @@ import java.util.Map;
  */
 public class XPRZ_Generic_Event extends XPRZ_SectionController
 {
+    int currentDemoAudioIndex;
     public static float FIRST_REMINDER_DELAY = 6.0f;
     public static float SECOND_REMINDER_DELAY = 4.0f;
-    int currentDemoAudioIndex;
 
     public XPRZ_Generic_Event()
     {
@@ -201,6 +201,7 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     {
         playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentDemoAudioIndex, waitAudio);
         currentDemoAudioIndex++;
+        waitForSecs(0.01);
     }
 
 

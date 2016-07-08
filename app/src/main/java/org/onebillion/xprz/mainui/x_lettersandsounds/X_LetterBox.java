@@ -74,6 +74,7 @@ public class X_LetterBox
             control.setZPosition(2);
             //controller.attachControl(mask);
             control.show();
+        mask.texturise(false,sectionController);
 
     }
 
@@ -267,7 +268,7 @@ public class X_LetterBox
             uPath.subPaths.add(subPath);
 
             anims.add(OBAnim.pathMoveAnim(obj,uPath.bezierPath(),false,0));
-            anims.add(OBAnim.rotationAnim((float)Math.toRadians(360)*OB_Maths.randomInt(1,4),obj));
+            anims.add(OBAnim.rotationAnim(obj.rotation + (outside ? 1 : -1)*(float)Math.toRadians(360)*OB_Maths.randomInt(1,4),obj));
 
             if(outside)
                 obj.setScale(0.3f);

@@ -9,16 +9,18 @@ import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.app.Activity;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.*;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.util.Log;
 
 import org.onebillion.xprz.controls.*;
 import org.onebillion.xprz.glstuff.*;
@@ -79,12 +81,18 @@ public class OBSectionController extends OBViewController
 
     public OBSectionController (Activity a)
     {
+        this(a, true);
+    }
+
+
+    public OBSectionController (Activity a, Boolean requiresOpenGL)
+    {
         super(a);
         objects = new ArrayList<OBControl>();
         buttons = new ArrayList<OBControl>();
         nonobjects = new ArrayList<OBControl>();
         attachedControls = new ArrayList<OBControl>();
-        sortedAttachedControls = new ArrayList<OBControl>();
+        sortedAttachedControls = Collections.synchronizedList(new ArrayList<OBControl>());
         events = new ArrayList<String>();
         eventAttributes = new HashMap<String, String>();
         objectDict = new HashMap<String, OBControl>();
@@ -92,6 +100,7 @@ public class OBSectionController extends OBViewController
         _aborting = false;
         sequenceLock = new ReentrantLock();
         sortedAttachedControlsValid = true;
+        this.requiresOpenGL = requiresOpenGL;
     }
 
 
@@ -218,9 +227,10 @@ public class OBSectionController extends OBViewController
     {
         for (String path : (List<String>) Config().get(MainActivity.CONFIG_AUDIO_SEARCH_PATH))
         {
-            String fullpath = OBUtils.stringByAppendingPathComponent(path, fileName);
-            if (OBUtils.fileExistsAtPath(fullpath))
-                return fullpath;
+            String fullPath = OBUtils.stringByAppendingPathComponent(path, fileName);
+            if (OBUtils.fileExistsAtPath(fullPath)) return fullPath;
+//            if (OBUtils.fileExistsAtPath(fullPath))
+//                return fullPath;
         }
         return null;
     }
@@ -235,7 +245,8 @@ public class OBSectionController extends OBViewController
             {
                 Map<String, Object> mstr = null;
                 OBXMLManager xmlManager = new OBXMLManager();
-                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
+                List<OBXMLNode> xl = xmlManager.parseFile(OBUtils.getInputStreamForPath(xmlPath));
+//                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
                 xmlNode = xl.get(0);
                 List<OBXMLNode> xmlevents = xmlNode.childrenOfType("event");
                 for (OBXMLNode xmlevent : xmlevents)
@@ -276,7 +287,8 @@ public class OBSectionController extends OBViewController
     {
         try
         {
-            audioScenes = OBAudioManager.loadAudioXML(MainActivity.mainActivity.getAssets().open(xmlPath));
+            audioScenes = OBAudioManager.loadAudioXML(OBUtils.getInputStreamForPath(xmlPath));
+//            audioScenes = OBAudioManager.loadAudioXML(MainActivity.mainActivity.getAssets().open(xmlPath));
         }
         catch (Exception e)
         {
@@ -293,9 +305,14 @@ public class OBSectionController extends OBViewController
     {
         for (String path : (List<String>) Config().get(MainActivity.CONFIG_CONFIG_SEARCH_PATH))
         {
-            String fullpath = OBUtils.stringByAppendingPathComponent(path, cfgName);
-            if (OBUtils.fileExistsAtPath(fullpath))
-                return fullpath;
+            String fullPath = OBUtils.stringByAppendingPathComponent(path, cfgName);
+            Boolean fileExists = OBUtils.fileExistsAtPath(fullPath);
+            if (fileExists)
+            {
+                return fullPath;
+            }
+//            if (OBUtils.fileExistsAtPath(fullPath))
+//                return fullPath;
         }
         return null;
     }
@@ -1028,6 +1045,9 @@ public class OBSectionController extends OBViewController
         RectF f = control.frame();
         attachedControls.remove(control);
         control.controller = null;
+        if(control.texture != null)
+            control.texture.cleanUp();
+
         invalidateView((int) f.left, (int) f.top, (int) f.right, (int) f.bottom);
         sortedAttachedControlsValid = false;
     }
@@ -1094,9 +1114,20 @@ public class OBSectionController extends OBViewController
         if (!sortedAttachedControlsValid)
         {
             List<OBControl> tempList = new ArrayList<>(attachedControls);
-
+            boolean quit = false;
             for (int i = 0;i < tempList.size();i++)
+            {
+                if(tempList.get(i) == null)
+                {
+                    Logger logger = Logger.getAnonymousLogger();
+                    logger.log(Level.SEVERE, "ALAN SOMETHING HAPPENED WHILE WORKING WITH TEMP SORTEDATTACHEDCONTROL LIST");
+                    quit= true;
+                    break;
+                }
                 tempList.get(i).tempSortInt = i;
+            }
+            if(quit)
+                return;
             Collections.sort(tempList, new Comparator<OBControl>()
             {
                 @Override
@@ -1114,9 +1145,10 @@ public class OBSectionController extends OBViewController
                 }
             });
 
-            synchronized(this)
+            synchronized(sortedAttachedControls)
             {
-                sortedAttachedControls = tempList;
+                sortedAttachedControls.clear();
+                sortedAttachedControls.addAll(tempList);
                 sortedAttachedControlsValid = true;
             }
 
@@ -1196,16 +1228,17 @@ public class OBSectionController extends OBViewController
         populateSortedAttachedControls();
 
         List<OBControl> clist = null;
-        synchronized(this)
+        synchronized(sortedAttachedControls)
         {
             clist = sortedAttachedControls;
+            for (OBControl control : clist)
+            {
+                if (!control.hidden())
+                    control.render(renderer, this, renderer.projectionMatrix);
+            }
         }
 
-        for (OBControl control : clist)
-        {
-            if (!control.hidden())
-                control.render(renderer, this, renderer.projectionMatrix);
-        }
+
 
     }
 
@@ -1572,12 +1605,6 @@ public class OBSectionController extends OBViewController
 
     public void playAudioQueued (List<Object> qu, final boolean wait) throws Exception
     {
-        if(qu == null)
-        {
-            playAudio(null);
-            return;
-        }
-
         Lock lock = null;
         Condition condition = null;
         if (wait)
@@ -1642,7 +1669,8 @@ public class OBSectionController extends OBViewController
         if (fabort.value)
         {
             _aborting = true;
-            throw new Exception("BackException");
+            throw new OBUserPressedBackException();
+//            throw new Exception("BackException");
         }
     }
 
@@ -1713,7 +1741,6 @@ public class OBSectionController extends OBViewController
                 {
                     stopAllAudio();
                     MainActivity.mainViewController.popViewController();
-
                 }
             }.run();
         }
@@ -1757,18 +1784,30 @@ public class OBSectionController extends OBViewController
     public void waitAudioChannel (String ch) throws Exception
     {
         if (_aborting)
-            throw new Exception("BackException");
+        {
+            throw new OBUserPressedBackException();
+//            throw new Exception("BackException");
+        }
         OBAudioManager.audioManager.waitAudioChannel(ch);
         if (_aborting)
-            throw new Exception("BackException");
+        {
+            throw new OBUserPressedBackException();
+//            throw new Exception("BackException");
+        }
     }
 
     public void waitAudioAndCheck (long stTime) throws Exception
     {
         if (!statusChanged(stTime))
+        {
             waitAudio();
+        }
         if (statusChanged(stTime))
-            throw new Exception("BackException");
+        {
+            throw new OBUserPressedBackException();
+//            throw new Exception("BackException");
+        }
+
     }
 
     void _wait (double secs)
@@ -1791,9 +1830,14 @@ public class OBSectionController extends OBViewController
     public void waitForSecs (double secs) throws Exception
     {
         if (!_aborting)
+        {
             _wait(secs);
+        }
         if (_aborting)
-            throw new Exception("BackException");
+        {
+            throw new OBUserPressedBackException();
+//            throw new Exception("BackException");
+        }
     }
 
     public void displayTick () throws Exception

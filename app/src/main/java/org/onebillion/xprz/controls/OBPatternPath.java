@@ -53,6 +53,11 @@ public class OBPatternPath extends OBPath
         obj.tileTransform = new Matrix(tileTransform);
         obj.patternRect = new RectF(patternRect);
         obj.adjustLayers();
+        //
+        obj.strokeLayer = (OBShapeLayer) strokeLayer.copy();
+        obj.maskLayer = (OBShapeLayer) maskLayer.copy();
+        obj.patternLayer = patternLayer.copy();
+        //
         return obj;
     }
 
