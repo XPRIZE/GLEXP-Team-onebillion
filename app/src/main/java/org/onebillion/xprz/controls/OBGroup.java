@@ -785,22 +785,22 @@ public class OBGroup extends OBControl
         //
         for (OBControl c : sortedAttachedControls)
         {
-            if (OBPath.class.isInstance(c))
-            {
+//            if (OBPath.class.isInstance(c))
+//            {
 //                OBPath path = (OBPath) c;
 //                RectF oldFrame = path.frame();
 //                path.sizeToBoundingBox();
 //                RectF newFrame = path.frame();
 //                MainActivity.mainActivity.log("Path: " + oldFrame + " --> " + newFrame);
-            }
-            else if (OBGroup.class.isInstance(c))
-            {
-                OBGroup group = (OBGroup) c;
+//            }
+//            else if (OBGroup.class.isInstance(c))
+//            {
+//                OBGroup group = (OBGroup) c;
 //                RectF oldFrame = group.frame();
 //                RectF newFrame = OBGroup.frameUnion(group.members);
 //                group.setFrame(newFrame);
 //                MainActivity.mainActivity.log("Group: " + oldFrame + " --> " + newFrame);
-            }
+//            }
             //
             c.render(renderer, vc, tempMatrix);
         }

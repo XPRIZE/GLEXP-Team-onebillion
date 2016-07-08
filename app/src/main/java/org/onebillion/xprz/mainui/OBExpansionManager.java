@@ -307,7 +307,7 @@ public class OBExpansionManager
 
     private void compareExpansionFilesAndInstallMissingOrOutdated ()
     {
-        MainActivity.mainActivity.log("CompareExpansionFilesAndInstallMissingOrOutdate");
+        MainActivity.mainActivity.log("compareExpansionFilesAndInstallMissingOrOutdated");
         //
         if (internalExpansionFiles == null) return;
         //

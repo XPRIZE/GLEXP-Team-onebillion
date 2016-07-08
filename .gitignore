@@ -8,3 +8,4 @@
 /app/src/main/assets
 *.iml
 /app/build.gradle
+/app/src/build.gradle

@@ -196,19 +196,19 @@ public class OBUtils
             }
         }
         //
-        File file = new File (path);
-        Boolean fileExists = file.exists();
-        if (fileExists)
+        try
         {
-            try
+            File file = new File(path);
+            Boolean fileExists = file.exists();
+            if (fileExists)
             {
                 InputStream is = new FileInputStream(file);
                 return is;
             }
-            catch (Exception e)
-            {
-                // do nothing
-            }
+        }
+        catch (Exception e)
+        {
+            // do nothing
         }
         //
         return null;
@@ -243,15 +243,15 @@ public class OBUtils
 //                Log.v("getAssetFileDescriptor", "unable to find asset in downloaded assets " + extendedFile);
             }
         }
-
-        File extendedFile = new File(path);
-        Uri uri = Uri.fromFile(extendedFile);
         try
         {
+            File extendedFile = new File(path);
+            Uri uri = Uri.fromFile(extendedFile);
+            //
             AssetFileDescriptor fd = MainActivity.mainActivity.getContentResolver().openAssetFileDescriptor(uri, "r");
             return fd;
         }
-        catch(IOException e)
+        catch (Exception e)
         {
 
         }
@@ -642,7 +642,7 @@ public class OBUtils
     {
         List<Object> arr = new ArrayList<>();
         //
-        if(audios == null)
+        if (audios == null)
             return null;
 
         if (audios instanceof String)
@@ -758,16 +758,16 @@ public class OBUtils
         PointF lp = OB_Maths.ScalarTimesPoint(offset, OB_Maths.NormalisedVector(OB_Maths.lperp(OB_Maths.DiffPoints(to, from))));
         PointF cp1 = OB_Maths.AddPoints(c1, lp);
         PointF cp2 = OB_Maths.AddPoints(c2, lp);
-        return new UCurve(from.x,from.y,to.x,to.y,cp1.x,cp1.y,cp2.x,cp2.y);
+        return new UCurve(from.x, from.y, to.x, to.y, cp1.x, cp1.y, cp2.x, cp2.y);
     }
 
     public static int DesaturatedColour (int colour, float sat)
     {
         float components[] = {0, 0, 0, 1};
-        components[0] = Color.red(colour)/255f;
-        components[1] = Color.green(colour)/255f;
-        components[2] = Color.blue(colour)/255f;
-        components[3] = Color.alpha(colour)/255f;
+        components[0] = Color.red(colour) / 255f;
+        components[1] = Color.green(colour) / 255f;
+        components[2] = Color.blue(colour) / 255f;
+        components[3] = Color.alpha(colour) / 255f;
         float weights[] = {0.299f, 0.587f, 0.114f};
         float greyVal = 0;
         for (int i = 0; i < 3; i++)
@@ -780,12 +780,12 @@ public class OBUtils
         return outcol;
     }
 
-    public static int highlightedColour(int colour)
+    public static int highlightedColour (int colour)
     {
         return Color.argb(255,
-                Math.round(Color.red(colour)*0.8f),
-                Math.round(Color.green(colour)*0.8f),
-                Math.round(Color.blue(colour)*0.8f));
+                Math.round(Color.red(colour) * 0.8f),
+                Math.round(Color.green(colour) * 0.8f),
+                Math.round(Color.blue(colour) * 0.8f));
     }
 
     static String getConfigFile (String fileName)
@@ -1001,37 +1001,37 @@ public class OBUtils
         return (Map<String, OBPhoneme>) (Object) dictionary;
     }
 
-    public static List<String> getFramesList(String prefix, int from, int to)
+    public static List<String> getFramesList (String prefix, int from, int to)
     {
         List<String> list = new ArrayList<>();
-        if(from < to)
+        if (from < to)
         {
-            for(int i = from; i <= to; i++)
-                list.add(String.format("%s%d",prefix,i));
+            for (int i = from; i <= to; i++)
+                list.add(String.format("%s%d", prefix, i));
         }
         else
         {
-            for(int i = from; i >= to; i--)
-                list.add(String.format("%s%d",prefix,i));
+            for (int i = from; i >= to; i--)
+                list.add(String.format("%s%d", prefix, i));
         }
 
         return list;
 
     }
 
-    public static boolean getBooleanValue(String val)
+    public static boolean getBooleanValue (String val)
     {
-        if(val == null)
+        if (val == null)
             return false;
-        if(val.equalsIgnoreCase("true"))
+        if (val.equalsIgnoreCase("true"))
             return true;
         else
             return false;
     }
 
-    public static int getIntValue(String val)
+    public static int getIntValue (String val)
     {
-        if(val == null)
+        if (val == null)
             return 0;
 
         try
@@ -1045,37 +1045,37 @@ public class OBUtils
 
     }
 
-    public static RectF getBoundsForSelectionInLabel(int start, int end, OBLabel label)
+    public static RectF getBoundsForSelectionInLabel (int start, int end, OBLabel label)
     {
-        OBTextLayer textLayer = (OBTextLayer)label.layer;
+        OBTextLayer textLayer = (OBTextLayer) label.layer;
         Path path = new Path();
-        textLayer.stLayout.getSelectionPath(start,end,path);
+        textLayer.stLayout.getSelectionPath(start, end, path);
         RectF pathBounds = new RectF();
-        path.computeBounds(pathBounds,true);
-        return label.convertRectToControl(pathBounds,null);
+        path.computeBounds(pathBounds, true);
+        return label.convertRectToControl(pathBounds, null);
     }
 
-    public static float getFontXHeight(Typeface font, float fontSize)
+    public static float getFontXHeight (Typeface font, float fontSize)
     {
         TextPaint textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         textPaint.setTypeface(font);
         textPaint.setTextSize(fontSize);
         Rect tempRect = new Rect();
-        textPaint.getTextBounds("x",0,1,tempRect);
+        textPaint.getTextBounds("x", 0, 1, tempRect);
         return tempRect.height();
     }
 
-    public static float getFontCapHeight(Typeface font, float fontSize)
+    public static float getFontCapHeight (Typeface font, float fontSize)
     {
         TextPaint textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         textPaint.setTypeface(font);
         textPaint.setTextSize(fontSize);
         Rect tempRect = new Rect();
-        textPaint.getTextBounds("H",0,1,tempRect);
+        textPaint.getTextBounds("H", 0, 1, tempRect);
         return tempRect.height();
     }
 
-    public static String getFilePathForTempFile(OBSectionController controller)
+    public static String getFilePathForTempFile (OBSectionController controller)
     {
         String fileName = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss").format(new Date());
         try
@@ -1092,12 +1092,12 @@ public class OBUtils
         return null;
     }
 
-    public static void cleanUpTempFiles(OBSectionController controller)
+    public static void cleanUpTempFiles (OBSectionController controller)
     {
 
         File outputDir = controller.activity.getCacheDir();
         File[] files = outputDir.listFiles();
-        for(File file : files)
+        for (File file : files)
         {
             file.delete();
         }
@@ -1108,7 +1108,6 @@ public class OBUtils
     {
         public void run () throws Exception;
     }
-
 
 
 }
