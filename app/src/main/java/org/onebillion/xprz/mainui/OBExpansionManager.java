@@ -228,7 +228,7 @@ public class OBExpansionManager
         }
         waitDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 //        waitDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        waitDialog.setMessage("Loading. Please wait...");
+        waitDialog.setMessage("Downloading assets. Please wait...");
         waitDialog.setIndeterminate(true);
         waitDialog.setCanceledOnTouchOutside(false);
         waitDialog.show();
