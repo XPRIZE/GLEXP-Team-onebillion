@@ -1,16 +1,23 @@
 package org.onebillion.xprz.mainui.x_lettersandsounds;
 
 import android.graphics.Color;
+import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
+import org.onebillion.xprz.controls.OBImage;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
+import org.onebillion.xprz.utils.OBAnim;
+import org.onebillion.xprz.utils.OBAnimationGroup;
+import org.onebillion.xprz.utils.OBImageManager;
 import org.onebillion.xprz.utils.OBPhoneme;
 import org.onebillion.xprz.utils.OBUtils;
+import org.onebillion.xprz.utils.OBWord;
 import org.onebillion.xprz.utils.OB_Maths;
 
 import java.util.ArrayList;
@@ -31,7 +38,8 @@ public class X_Puzzle extends X_Wordcontroller
 
     List<String> words;
     String currWord;
-    List<OBPath> pieces,positions,puzzlePieces,swatches;
+    List<OBGroup> pieces;
+    List<OBPath> positions,puzzlePieces,swatches;
     List<RectF> homeRects;
     OBGroup puzzle;
     boolean gotoStage2;
@@ -124,6 +132,190 @@ public class X_Puzzle extends X_Wordcontroller
         PointF destpos = positions.get(idx).position();
         PointF pos = OB_Maths.AddPoints(offset, destpos);
         g.setProperty("origpos",pos);
+    }
+
+    public OBPath currentSwatch()
+    {
+        return swatches.get(currNo % swatches.size());
+    }
+
+    public void setUpImage(String fileName)
+    {
+        OBPath swatch = currentSwatch();
+        OBImage im = OBImageManager.sharedImageManager().imageForName(fileName);
+        puzzle = (OBGroup) objectDict.get("puzzle");
+        puzzlePieces = (List<OBPath>)(Object)puzzle.filterMembers("piece.*",true);
+        OBPath background = (OBPath)puzzle.objectDict.get("background");
+        background.setFillColor(swatch.fillColor());
+        background.setStrokeColor(0);
+        float scale = puzzle.bounds().height() / im.bounds().height();
+        im.setScale(scale);
+        im.setPosition(OB_Maths.locationForRect(0.5f, 0.5f, background.bounds()));
+        im.setZPosition(1);
+        background.parent.insertMember(im,0,"image") ;
+        im.setProperty("name","image") ;
+        List<RectF> prects = new ArrayList<>();
+        for(OBPath p : puzzlePieces)
+        {
+            p.setZPosition(12);
+            p.setFillColor(0);
+            RectF r = convertRectFromControl(p.bounds,p) ;
+            prects.add(r) ;
+        }
+        homeRects = prects;
+        List<OBGroup>newpieces = new ArrayList<>();
+        for(int i = 0;i < puzzlePieces.size();i++)
+        {
+            OBGroup g = (OBGroup) puzzle.copy();
+            attachControl(g);
+            maskImage(g,i) ;
+            newpieces.add(g);
+            g.setOpacity(0);
+        }
+        pieces = newpieces;
+        for(OBControl c : puzzlePieces)
+            c.hide() ;
+        puzzle.setZPosition(11);
+    }
+
+    public void setSceneXX(String  scene)
+    {
+        animDone = false;
+        if(firstTimeIn)
+        {
+            OBPath swatch = currentSwatch();
+            OBPath picBack = (OBPath) objectDict.get("backrect");
+            picBack.setFillColor(swatch.strokeColor());
+            firstTimeIn = false;
+        }
+        deleteControls("oldpuzzle.*");
+        if(objectDict.get("puzzle") != null)
+        {
+            objectDict.put("oldpuzzle",objectDict.get("puzzle"));
+            objectDict.remove("puzzle");
+            objectDict.get("oldpuzzle").setZPosition(12);
+        }
+        deleteControls("pos.*");
+        deleteControls("puzzle.*");
+        if(label != null)
+            detachControl(label);
+        String format = parameters.get("format") ;
+        if(format != null)
+            super.setSceneXX(format);
+        else
+            super.setSceneXX("puzzle9");
+        currWord = words.get(currNo) ;
+        positions = (List<OBPath>)(Object)sortedFilteredControls("pos_.*");
+        positions = OBUtils.randomlySortedArray(positions);
+        setUpImage(currWord);
+        targets = (List<OBControl>)(Object)pieces;
+        if(showText > 0)
+        {
+            OBWord rw = (OBWord) componentDict.get(currWord);
+            String word;
+            if(showText == SHOW_TEXT_INITIAL)
+                //word = rw.firstSound() ;
+                word = rw.syllables().get(0).phonemes.get(0).text;
+            else
+                word = rw.text ;
+            setUpLabel(word);
+            attachControl(label);
+        }
+        if(!preAssembled)
+        {
+            for(OBControl c : pieces)
+            {
+                c.setPosition((PointF) c.propertyValue("origpos"));
+                //c.show() ;
+                c.setOpacity(1);
+            }
+            puzzle.setOpacity(0);
+            //animDone = true;
+        }
+    }
+
+    public void setSceneb1()
+    {
+    }
+
+    public void setSceneb2()
+    {
+    }
+
+    public void setScenec()
+    {
+    }
+
+    public void setUpLabel(String tx)
+    {
+        Typeface tf = OBUtils.standardTypeFace();
+        label = new OBLabel(tx,tf,textSize);
+        label.setColour(Color.BLACK);
+        label.setPosition(textBox.position());
+        label.hide() ;
+    }
+
+    public void openingAnim1() throws Exception
+    {
+        playSfxAudio("lineson",false);
+        lockScreen();
+        for(OBControl p : pieces)
+            p.setOpacity(1);
+        puzzle.setOpacity(0);
+        unlockScreen();
+        waitSFX();
+    }
+
+    public void openingAnim2() throws Exception
+    {
+        List<OBAnim> anims = new ArrayList<>();
+        playSfxAudio("flyout",false);
+        for(OBControl p : pieces)
+        {
+            PointF startpos = p.position();
+            PointF endpos = (PointF) p.propertyValue("origpos");
+            float offset = applyGraphicScale(40);
+            if(endpos.x > startpos.x)
+                offset = -offset;
+            Path bez = OBUtils.SimplePath(startpos, endpos, offset);
+            anims.add(OBAnim.pathMoveAnim(p,bez,false,0));
+        }
+        OBAnimationGroup.runAnims(anims,0.75f,true,OBAnim.ANIM_EASE_IN_EASE_OUT,null);
+        animDone = true;
+    }
+
+    public void doAudio(String  scene) throws Exception
+    {
+        setReplayAudioScene(currentEvent(), "PROMPT.REPEAT");
+        playAudioQueuedScene(currentEvent(), "PROMPT", false);
+    }
+
+    public void doMainXX() throws Exception
+    {
+        doAudio(currentEvent());
+
+        if(firstTime)
+            firstTime = false;
+        else if(!animDone || !preAssembled)
+        {
+            //waitAudio();
+            waitForSecs(0.3);
+            waitAudio();
+            lockScreen();
+            objectDict.get("oldpuzzle").hide() ;
+            OBPath swatch = currentSwatch();
+            OBPath picBack = (OBPath) objectDict.get("backrect");
+            picBack.setFillColor(swatch.strokeColor());
+            unlockScreen();
+            playSfxAudio("imageon",true);
+        }
+        if(!animDone && preAssembled)
+        {
+            waitForSecs(0.4f);
+            openingAnim1();
+            waitForSecs(0.4f);
+            openingAnim2();
+        }
     }
 
 }
