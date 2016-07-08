@@ -1,37 +1,37 @@
 package org.onebillion.xprz.controls;
 
 
-        import java.lang.reflect.Constructor;
-        import java.util.ArrayList;
-        import java.util.Arrays;
-        import java.util.Collections;
-        import java.util.Comparator;
-        import java.util.HashMap;
-        import java.util.List;
-        import java.util.Map;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-        import android.graphics.*;
-        import android.graphics.Matrix;
-        import android.opengl.*;
-        import android.renderscript.Allocation;
-        import android.renderscript.RenderScript;
-        import android.renderscript.ScriptIntrinsicBlur;
-        import android.support.v4.app.NotificationCompatSideChannelService;
-        import android.util.Log;
+import android.graphics.*;
+import android.graphics.Matrix;
+import android.opengl.*;
+import android.renderscript.Allocation;
+import android.renderscript.RenderScript;
+import android.renderscript.ScriptIntrinsicBlur;
+import android.support.v4.app.NotificationCompatSideChannelService;
+import android.util.Log;
 
-        import org.onebillion.xprz.glstuff.ColorShaderProgram;
-        import org.onebillion.xprz.glstuff.GradientRect;
-        import org.onebillion.xprz.glstuff.MaskShaderProgram;
-        import org.onebillion.xprz.glstuff.OBRenderer;
-        import org.onebillion.xprz.glstuff.Texture;
-        import org.onebillion.xprz.glstuff.TextureRect;
-        import org.onebillion.xprz.glstuff.TextureShaderProgram;
-        import org.onebillion.xprz.mainui.MainActivity;
-        import org.onebillion.xprz.mainui.OBSectionController;
-        import org.onebillion.xprz.mainui.OBViewController;
-        import org.onebillion.xprz.utils.OBRunnableSyncUI;
-        import org.onebillion.xprz.utils.OB_Maths;
-        import org.onebillion.xprz.utils.OBUtils;
+import org.onebillion.xprz.glstuff.ColorShaderProgram;
+import org.onebillion.xprz.glstuff.GradientRect;
+import org.onebillion.xprz.glstuff.MaskShaderProgram;
+import org.onebillion.xprz.glstuff.OBRenderer;
+import org.onebillion.xprz.glstuff.Texture;
+import org.onebillion.xprz.glstuff.TextureRect;
+import org.onebillion.xprz.glstuff.TextureShaderProgram;
+import org.onebillion.xprz.mainui.MainActivity;
+import org.onebillion.xprz.mainui.OBSectionController;
+import org.onebillion.xprz.mainui.OBViewController;
+import org.onebillion.xprz.utils.OBRunnableSyncUI;
+import org.onebillion.xprz.utils.OB_Maths;
+import org.onebillion.xprz.utils.OBUtils;
 
 public class OBControl
 {
@@ -40,18 +40,18 @@ public class OBControl
             LCC_SELECTED = 2;
 
     public int state;
-    public Map<String,Object> settings;
+    public Map<String, Object> settings;
     public OBLayer layer;
     public PointF anchorPoint;
-    public RectF frame,bounds;
-    public Boolean hidden,animationsDisabled;
+    public RectF frame, bounds;
+    public Boolean hidden, animationsDisabled;
     public long animationKey;
-    public Matrix drawMatrix,convertMatrix;
-    public Bitmap cache,shadowCache;
-    public float scaleX,scaleY,rotation,yRotation,borderWidth;
+    public Matrix drawMatrix, convertMatrix;
+    public Bitmap cache, shadowCache;
+    public float scaleX, scaleY, rotation, yRotation, borderWidth;
     public float invalOutdent;
     public OBGroup parent;
-    public int backgroundColor,highlightColour,borderColour;
+    public int backgroundColor, highlightColour, borderColour;
     public int tempSortInt;
     public OBControl maskControl;
     public OBViewController controller;
@@ -59,27 +59,27 @@ public class OBControl
     public Texture texture;
     public float[] modelMatrix = new float[16];
     public float[] tempMatrix = new float[16];
-    public float blendColour[] = {1,1,1,1};
-    public float m34,cornerRadius;
-    public boolean doubleSided=true;
-    public boolean shouldTexturise=true;
+    public float blendColour[] = {1, 1, 1, 1};
+    public float m34, cornerRadius;
+    public boolean doubleSided = true;
+    public boolean shouldTexturise = true;
     PointF position;
     PointF tempPoint;
     RectF tempRect = new RectF();
-    float rasterScale,zPosition;
+    float rasterScale, zPosition;
     OBStroke stroke;
-    boolean frameValid,masksToBounds;
+    boolean frameValid, masksToBounds;
     boolean maskControlReversed = false, dynamicMask = false;
     int shadowColour;
-    float shadowOffsetX,shadowOffsetY,shadowOpacity,shadowRadius;
+    float shadowOffsetX, shadowOffsetY, shadowOpacity, shadowRadius;
     boolean needsRetexture;
-    float uvRight=1,uvBottom=1;
+    float uvRight = 1, uvBottom = 1;
 
-    public OBControl()
+    public OBControl ()
     {
         settings = new HashMap<String, Object>();
         position = new PointF();
-        anchorPoint = new PointF(0.5f,0.5f);
+        anchorPoint = new PointF(0.5f, 0.5f);
         frame = new RectF();
         frameValid = false;
         bounds = new RectF();
@@ -101,11 +101,13 @@ public class OBControl
         layer = new OBLayer();
     }
 
-    public static List<OBControl> controlsSortedFrontToBack(List<OBControl> controls)
+    public static List<OBControl> controlsSortedFrontToBack (List<OBControl> controls)
     {
         List<OBControl> arr = new ArrayList<>(controls);
-        Collections.sort(arr, new Comparator<OBControl>(){
-            public int compare(OBControl c1, OBControl c2) {
+        Collections.sort(arr, new Comparator<OBControl>()
+        {
+            public int compare (OBControl c1, OBControl c2)
+            {
                 if (c1.zPosition() == c2.zPosition())
                     return 0;
                 if (c1.zPosition() < c2.zPosition())
@@ -116,24 +118,24 @@ public class OBControl
         return arr;
     }
 
-    public boolean shouldTexturise()
+    public boolean shouldTexturise ()
     {
         return shouldTexturise;
     }
 
-    public void setShouldTexturise(boolean shouldTexturise)
+    public void setShouldTexturise (boolean shouldTexturise)
     {
         this.shouldTexturise = shouldTexturise;
     }
 
-    public OBControl copy()
+    public OBControl copy ()
     {
         OBControl obj;
         try
         {
             Constructor<?> cons;
             cons = getClass().getConstructor();
-            obj = (OBControl)cons.newInstance();
+            obj = (OBControl) cons.newInstance();
         }
         catch (Exception e)
         {
@@ -173,34 +175,34 @@ public class OBControl
         return obj;
     }
 
-    public void enable()
+    public void enable ()
     {
         state = LCC_NORMAL;
     }
 
-    public boolean isEnabled()
+    public boolean isEnabled ()
     {
         return (state == LCC_NORMAL);
     }
 
-    public void disable()
+    public void disable ()
     {
         state = LCC_DISABLED;
     }
 
-    public void select()
+    public void select ()
     {
         state = LCC_SELECTED;
     }
 
-    public float opacity()
+    public float opacity ()
     {
         if (layer != null)
             return layer.opacity();
         return 1.0f;
     }
 
-    public void setOpacity(float f)
+    public void setOpacity (float f)
     {
         if (layer != null)
             layer.setOpacity(f);
@@ -211,17 +213,18 @@ public class OBControl
 
     }
 
-    public RectF bounds()
+    public RectF bounds ()
     {
         bounds.set(layer.bounds());
         return bounds;
     }
 
-    public void setBounds(RectF b)
+    public void setBounds (RectF b)
     {
         setBounds(b.left, b.top, b.right, b.bottom);
     }
-    public void setBounds(float l,float t,float r,float b)
+
+    public void setBounds (float l, float t, float r, float b)
     {
         bounds.set(l, t, r, b);
         if (layer != null)
@@ -229,7 +232,8 @@ public class OBControl
         frameValid = false;
         invalidate();
     }
-    public RectF frame()
+
+    public RectF frame ()
     {
         frame.set(bounds());
         Matrix m = matrixForBackwardConvert();
@@ -238,7 +242,7 @@ public class OBControl
         return frame;
     }
 
-    public void setFrame(RectF f)
+    public void setFrame (RectF f)
     {
         if (f != frame)
             frame.set(f);
@@ -248,7 +252,7 @@ public class OBControl
         setNeedsRetexture();
     }
 
-    public void setFrame(float left,float top,float right,float bottom)
+    public void setFrame (float left, float top, float right, float bottom)
     {
         frame.left = left;
         frame.top = top;
@@ -257,11 +261,11 @@ public class OBControl
         setFrame(frame);
     }
 
-    public boolean hasTexturedParent()
+    public boolean hasTexturedParent ()
     {
         if (parent == null)
             return false;
-        List<OBControl> cnts  = controlsToAncestor(null);
+        List<OBControl> cnts = controlsToAncestor(null);
         for (OBControl cnt : cnts)
         {
             if (cnt.shouldTexturise())
@@ -271,12 +275,13 @@ public class OBControl
         }
         return false;
     }
-    public void setNeedsRetexture()
+
+    public void setNeedsRetexture ()
     {
         needsRetexture = true;
         if (parent != null)
         {
-            List<OBControl> cnts  = controlsToAncestor(null);
+            List<OBControl> cnts = controlsToAncestor(null);
             Collections.reverse(cnts);
             for (OBControl cnt : cnts)
             {
@@ -289,22 +294,23 @@ public class OBControl
         }
     }
 
-    public PointF position()
+    public PointF position ()
     {
         return position;
     }
 
-    public void setPosition(PointF pt)
+    public void setPosition (PointF pt)
     {
         setPosition(pt.x, pt.y);
     }
-    public void setPosition(final float x,final float y)
+
+    public void setPosition (final float x, final float y)
     {
         if (position.x != x || position.y != y)
         {
             new OBRunnableSyncUI()
             {
-                public void ex()
+                public void ex ()
                 {
                     invalidate();
                     position.set(x, y);
@@ -313,112 +319,112 @@ public class OBControl
                     setNeedsRetexture();
                 }
             }.run();
-         }
+        }
     }
 
-    public void setRight(float rt)
+    public void setRight (float rt)
     {
         frame();
         float diff = rt - frame.right;
         setPosition(position.x + diff, position.y);
     }
 
-    public float right()
+    public float right ()
     {
         return frame().right;
     }
 
-    public void setLeft(float lt)
+    public void setLeft (float lt)
     {
         frame();
         float diff = lt - frame.left;
         setPosition(position.x + diff, position.y);
     }
 
-    public float left()
+    public float left ()
     {
         frame.set(frame());
         return frame.left;
     }
 
-    public void setTop(float tp)
+    public void setTop (float tp)
     {
         frame();
         float diff = tp - frame.top;
         setPosition(position.x, diff + position.y);
     }
 
-    public float top()
+    public float top ()
     {
         return frame().top;
     }
 
-    public void setBottom(float bt)
+    public void setBottom (float bt)
     {
         frame();
         float diff = bt - frame.bottom;
         setPosition(position.x, diff + position.y);
     }
 
-    public float bottom()
+    public float bottom ()
     {
         return frame().bottom;
     }
 
-    public PointF bottomPoint()
+    public PointF bottomPoint ()
     {
         frame();
-        return new PointF((frame.left + frame.right) / 2,frame.bottom);
+        return new PointF((frame.left + frame.right) / 2, frame.bottom);
     }
 
-    public PointF bottomRight()
+    public PointF bottomRight ()
     {
         frame();
-        return new PointF(frame.right,frame.bottom);
+        return new PointF(frame.right, frame.bottom);
     }
 
-    public PointF bottomLeft()
+    public PointF bottomLeft ()
     {
         frame();
-        return new PointF(frame.left,frame.bottom);
+        return new PointF(frame.left, frame.bottom);
     }
 
-    public PointF topPoint()
+    public PointF topPoint ()
     {
         frame();
-        return new PointF((frame.left + frame.right) / 2,frame.top);
+        return new PointF((frame.left + frame.right) / 2, frame.top);
     }
 
-    public PointF topRight()
+    public PointF topRight ()
     {
         frame();
-        return new PointF(frame.right,frame.top);
+        return new PointF(frame.right, frame.top);
     }
 
-    public PointF topLeft()
+    public PointF topLeft ()
     {
         frame();
-        return new PointF(frame.left,frame.top);
+        return new PointF(frame.left, frame.top);
     }
 
-    public PointF rightPoint()
+    public PointF rightPoint ()
     {
         frame();
-        return new PointF(frame.right,frame.centerY());
+        return new PointF(frame.right, frame.centerY());
     }
 
-    public PointF leftPoint()
+    public PointF leftPoint ()
     {
         frame();
-        return new PointF(frame.left,frame.centerY());
+        return new PointF(frame.left, frame.centerY());
     }
 
-    public float zPosition()
+    public float zPosition ()
     {
         return zPosition;
     }
 
-    public void setZPosition(float f)
+    public void setZPosition (float f)
     {
         zPosition = f;
         invalidate();
@@ -428,39 +434,39 @@ public class OBControl
         }
         if (controller != null)
         {
-            ((OBSectionController)controller).sortedAttachedControlsValid = false;
+            ((OBSectionController) controller).sortedAttachedControlsValid = false;
         }
     }
 
-    public void setBackgroundColor(final int col)
+    public void setBackgroundColor (final int col)
     {
         if (col != backgroundColor)
         {
             new OBRunnableSyncUI()
             {
-                public void ex()
+                public void ex ()
                 {
                     backgroundColor = col;
                     invalidate();
-                    if(needsTexture())
+                    if (needsTexture())
                         setNeedsRetexture();
                 }
             }.run();
         }
     }
 
-    public int backgroundColor()
+    public int backgroundColor ()
     {
         return backgroundColor;
     }
 
-    public void setScaleX(final float sx)
+    public void setScaleX (final float sx)
     {
         if (scaleX != sx)
         {
             new OBRunnableSyncUI()
             {
-                public void ex()
+                public void ex ()
                 {
                     invalidate();
                     scaleX = sx;
@@ -471,13 +477,13 @@ public class OBControl
         }
     }
 
-    public void setScaleY(final float sy)
+    public void setScaleY (final float sy)
     {
         if (scaleY != sy)
         {
             new OBRunnableSyncUI()
             {
-                public void ex()
+                public void ex ()
                 {
                     invalidate();
                     scaleY = sy;
@@ -488,42 +494,45 @@ public class OBControl
         }
     }
 
-    public float scaleX()
+    public float scaleX ()
     {
         return scaleX;
     }
-    public float scaleY()
+
+    public float scaleY ()
     {
         return scaleY;
     }
-    public float scale()
+
+    public float scale ()
     {
         return scaleX();
     }
-    public void setScale(float sc)
+
+    public void setScale (float sc)
     {
         setScaleX(sc);
         setScaleY(sc);
     }
 
 
-    public void flipHoriz()
+    public void flipHoriz ()
     {
         setScaleX(-1 * scaleX());
     }
 
-    public void flipVert()
+    public void flipVert ()
     {
         setScaleY(-1 * scaleY());
     }
 
-    public float width()
+    public float width ()
     {
         frame();
         return frame.width();
     }
 
-    public void setWidth(float w)
+    public void setWidth (float w)
     {
         frame();
         float oldwidth = frame.width();
@@ -531,13 +540,14 @@ public class OBControl
         setScaleX(scaleX * ratio);
 
     }
-    public float height()
+
+    public float height ()
     {
         frame();
         return frame.height();
     }
 
-    public void setHeight(float h)
+    public void setHeight (float h)
     {
         frame();
         float oldHeight = frame.height();
@@ -546,14 +556,14 @@ public class OBControl
 
     }
 
-    public void pointAt(PointF pt)
+    public void pointAt (PointF pt)
     {
         PointF p = OB_Maths.DiffPoints(pt, position);
-        float ang = (float)Math.atan2(p.x, -p.y);
+        float ang = (float) Math.atan2(p.x, -p.y);
         setRotation(ang);
     }
 
-    public void drawLayer(Canvas canvas)
+    public void drawLayer (Canvas canvas)
     {
         if (layer != null)
         {
@@ -570,7 +580,7 @@ public class OBControl
         }
     }
 
-    public Matrix matrixForDraw()
+    public Matrix matrixForDraw ()
     {
         drawMatrix.reset();
         float ax = anchorPoint.x * bounds().width();
@@ -584,7 +594,7 @@ public class OBControl
         return drawMatrix;
     }
 
-    public Matrix totalMatrixForDraw()
+    public Matrix totalMatrixForDraw ()
     {
         List<OBControl> plist = controlsToAncestor(null);
         Collections.reverse(plist);
@@ -596,7 +606,8 @@ public class OBControl
         }
         return convertMatrix;
     }
-    public Matrix matrixForPointForwardConvert()
+
+    public Matrix matrixForPointForwardConvert ()
     {
         convertMatrix.reset();
         float ax = anchorPoint.x * bounds().width();
@@ -610,7 +621,7 @@ public class OBControl
         return convertMatrix;
     }
 
-    public Matrix matrixForPointBackwardConvert()
+    public Matrix matrixForPointBackwardConvert ()
     {
         convertMatrix.reset();
         float ax = anchorPoint.x * bounds().width();
@@ -624,7 +635,7 @@ public class OBControl
         return convertMatrix;
     }
 
-    public Matrix matrixForForwardConvert()
+    public Matrix matrixForForwardConvert ()
     {
         //return matrixForPointBackwardConvert();
 
@@ -639,7 +650,8 @@ public class OBControl
         convertMatrix.preTranslate(ax, ay);
         return convertMatrix;
     }
-    public Matrix matrixForBackwardConvert()
+
+    public Matrix matrixForBackwardConvert ()
     {
         //return matrixForPointForwardConvert();
 
@@ -657,26 +669,27 @@ public class OBControl
         return convertMatrix;
     }
 
-    public PointF convertPointFromParent(PointF pt)
+    public PointF convertPointFromParent (PointF pt)
     {
         Matrix m = matrixForForwardConvert();
         float[] pts = new float[2];
         pts[0] = pt.x;
         pts[1] = pt.y;
         m.mapPoints(pts);
-        return new PointF(pts[0],pts[1]);
+        return new PointF(pts[0], pts[1]);
     }
-    public PointF convertPointToParent(PointF pt)
+
+    public PointF convertPointToParent (PointF pt)
     {
         Matrix m = matrixForBackwardConvert();
         float[] pts = new float[2];
         pts[0] = pt.x;
         pts[1] = pt.y;
         m.mapPoints(pts);
-        return new PointF(pts[0],pts[1]);
+        return new PointF(pts[0], pts[1]);
     }
 
-    public List<OBControl>controlsToAncestor(OBControl ancestor)
+    public List<OBControl> controlsToAncestor (OBControl ancestor)
     {
         List<OBControl> alist = new ArrayList<OBControl>();
         OBControl pptr = parent;
@@ -689,16 +702,17 @@ public class OBControl
         }
         return alist;
     }
-    public List<OBControl>controlsToDescendant(OBControl descendant)
+
+    public List<OBControl> controlsToDescendant (OBControl descendant)
     {
         List<OBControl> alist = descendant.controlsToAncestor(this);
         Collections.reverse(alist);
         return alist;
     }
 
-    public OBControl commonParentWith(OBControl l)
+    public OBControl commonParentWith (OBControl l)
     {
-        OBControl selfp,p;
+        OBControl selfp, p;
         selfp = this;
         p = l;
         List<OBControl> parentSet = new ArrayList<OBControl>();
@@ -722,7 +736,7 @@ public class OBControl
         return null;
     }
 
-    public Matrix matrixForConvertToControl(OBControl c)
+    public Matrix matrixForConvertToControl (OBControl c)
     {
         Matrix m = new Matrix();
         if (c == this)
@@ -738,14 +752,14 @@ public class OBControl
         if (c == null)
             return m;
         List<OBControl> clist = c.controlsToAncestor(par);
-        clist.add(0,this);
+        clist.add(0, this);
         Collections.reverse(clist);
         for (OBControl ch : clist)
             m.preConcat(ch.matrixForForwardConvert());
         return m;
     }
 
-    public Matrix matrixToConvertPointToControl(OBControl c)
+    public Matrix matrixToConvertPointToControl (OBControl c)
     {
         Matrix m = new Matrix();
         if (c == this)
@@ -764,7 +778,8 @@ public class OBControl
         }
         return m;
     }
-    public Matrix matrixToConvertPointFromControl(OBControl c)
+
+    public Matrix matrixToConvertPointFromControl (OBControl c)
     {
         Matrix m = new Matrix();
         if (c == this)
@@ -773,14 +788,14 @@ public class OBControl
         if (par != c)
         {
             List<OBControl> clist = c.controlsToAncestor(par);
-            clist.add(0,c);
+            clist.add(0, c);
             for (OBControl ch : clist)
                 m.postConcat(ch.matrixForPointBackwardConvert());
         }
         if (par != this)
         {
             List<OBControl> alist = controlsToAncestor(par);
-            alist.add(0,this);
+            alist.add(0, this);
             Collections.reverse(alist);
             for (OBControl ch : alist)
                 m.postConcat(ch.matrixForPointForwardConvert());
@@ -788,7 +803,7 @@ public class OBControl
         return m;
     }
 
-    public Matrix matrixForConvertFromControl(OBControl c)
+    public Matrix matrixForConvertFromControl (OBControl c)
     {
         Matrix m = new Matrix();
         if (c == this)
@@ -797,28 +812,29 @@ public class OBControl
         if (par != c)
         {
             List<OBControl> clist = c.controlsToAncestor(par);
-            clist.add(0,c);
+            clist.add(0, c);
             for (OBControl ch : clist)
                 m.preConcat(ch.matrixForBackwardConvert());
         }
         List<OBControl> alist = controlsToAncestor(par);
-        alist.add(0,this);
+        alist.add(0, this);
         Collections.reverse(alist);
         for (OBControl ch : alist)
             m.preConcat(ch.matrixForForwardConvert());
         return m;
     }
 
-    public PointF convertPointToControl(PointF pt,OBControl c)
+    public PointF convertPointToControl (PointF pt, OBControl c)
     {
         Matrix m = matrixToConvertPointToControl(c);
         float[] pts = new float[2];
         pts[0] = pt.x;
         pts[1] = pt.y;
         m.mapPoints(pts);
-        return new PointF(pts[0],pts[1]);
+        return new PointF(pts[0], pts[1]);
     }
-    public Path convertPathToControl(Path p,OBControl c)
+
+    public Path convertPathToControl (Path p, OBControl c)
     {
         Matrix m = matrixToConvertPointToControl(c);
         Path newp = new Path(p);
@@ -826,17 +842,17 @@ public class OBControl
         return newp;
     }
 
-    public PointF convertPointFromControl(PointF pt,OBControl c)
+    public PointF convertPointFromControl (PointF pt, OBControl c)
     {
         Matrix m = matrixToConvertPointFromControl(c);
         float[] pts = new float[2];
         pts[0] = pt.x;
         pts[1] = pt.y;
         m.mapPoints(pts);
-        return new PointF(pts[0],pts[1]);
+        return new PointF(pts[0], pts[1]);
     }
 
-    public PointF getWorldPosition()
+    public PointF getWorldPosition ()
     {
         OBControl parent = this.parent;
         if (parent == null)
@@ -858,7 +874,7 @@ public class OBControl
         return null;
     }
 
-    public RectF convertRectToControl(RectF r,OBControl c)
+    public RectF convertRectToControl (RectF r, OBControl c)
     {
         Matrix m = matrixToConvertPointToControl(c);
         RectF nr = new RectF();
@@ -866,7 +882,7 @@ public class OBControl
         return nr;
     }
 
-    public RectF convertRectFromControl(RectF r,OBControl c)
+    public RectF convertRectFromControl (RectF r, OBControl c)
     {
         Matrix m = matrixToConvertPointFromControl(c);
         RectF nr = new RectF();
@@ -874,31 +890,31 @@ public class OBControl
         return nr;
     }
 
-    public void setPositionAndAngle(List list)
+    public void setPositionAndAngle (List list)
     {
-        if(list.get(0).getClass() == PointF.class)
-            setPosition((PointF)list.get(0));
+        if (list.get(0).getClass() == PointF.class)
+            setPosition((PointF) list.get(0));
 
-        if(list.get(1).getClass() == Float.class)
-            setRotation((float)list.get(1));
+        if (list.get(1).getClass() == Float.class)
+            setRotation((float) list.get(1));
     }
 
-    public List positionAndAngle()
+    public List positionAndAngle ()
     {
         return Arrays.asList(position(), rotation());
     }
 
 
-    public boolean intersectsWith(OBControl c)
+    public boolean intersectsWith (OBControl c)
     {
         OBControl par = commonParentWith(c);
         RectF thisFrame = convertRectToControl(bounds(), par);
-        RectF thatFrame = c.convertRectToControl(c.bounds(),par);
+        RectF thatFrame = c.convertRectToControl(c.bounds(), par);
         if (!thisFrame.intersect(thatFrame))
             return false;
         int width = (int) Math.ceil(thatFrame.right - thatFrame.left);
         int height = (int) Math.ceil(thatFrame.bottom - thatFrame.top);
-        Bitmap tinyCache = Bitmap.createBitmap(width,height,Bitmap.Config.ARGB_8888);
+        Bitmap tinyCache = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas1 = new Canvas(tinyCache);
         canvas1.save();
         Matrix m = totalMatrixForDraw();
@@ -907,7 +923,7 @@ public class OBControl
         simpleDraw(canvas1);
         canvas1.restore();
 
-        Bitmap tinyCache2 = Bitmap.createBitmap(width,height,Bitmap.Config.ARGB_8888);
+        Bitmap tinyCache2 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas2 = new Canvas(tinyCache2);
         canvas2.save();
         m = c.totalMatrixForDraw();
@@ -920,10 +936,10 @@ public class OBControl
         p.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
         canvas1.drawBitmap(tinyCache2, 0, 0, p);
         int pixels[] = new int[tinyCache.getWidth()];
-        for (int i = 0;i < tinyCache.getHeight();i++)
+        for (int i = 0; i < tinyCache.getHeight(); i++)
         {
-            tinyCache.getPixels(pixels,0,tinyCache.getWidth(),0,i,tinyCache.getWidth(),1);
-            for (int j = 0;j < tinyCache.getWidth();j++)
+            tinyCache.getPixels(pixels, 0, tinyCache.getWidth(), 0, i, tinyCache.getWidth(), 1);
+            for (int j = 0; j < tinyCache.getWidth(); j++)
             {
                 int col = pixels[j];
                 if (Color.alpha(col) > 0)
@@ -933,17 +949,17 @@ public class OBControl
         return false;
     }
 
-    public Bitmap intersectsWithx(OBControl c)
+    public Bitmap intersectsWithx (OBControl c)
     {
         OBControl par = commonParentWith(c);
         RectF thisFrame = convertRectToControl(bounds(), par);
-        RectF thatFrame = c.convertRectToControl(c.bounds(),par);
+        RectF thatFrame = c.convertRectToControl(c.bounds(), par);
         if (!thisFrame.intersect(thatFrame))
             return null;
         //thisFrame = thatFrame;
         int width = (int) Math.ceil(thisFrame.right - thisFrame.left);
         int height = (int) Math.ceil(thisFrame.bottom - thisFrame.top);
-        Bitmap tinyCache = Bitmap.createBitmap(width,height,Bitmap.Config.ARGB_8888);
+        Bitmap tinyCache = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas1 = new Canvas(tinyCache);
         canvas1.save();
         Matrix m = totalMatrixForDraw();
@@ -952,7 +968,7 @@ public class OBControl
         simpleDraw(canvas1);
         canvas1.restore();
 
-        Bitmap tinyCache2 = Bitmap.createBitmap(width,height,Bitmap.Config.ARGB_8888);
+        Bitmap tinyCache2 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas2 = new Canvas(tinyCache2);
         canvas2.save();
         m = c.totalMatrixForDraw();
@@ -966,10 +982,10 @@ public class OBControl
         canvas1.drawBitmap(tinyCache2, 0, 0, p);
 
         int pixels[] = new int[tinyCache.getWidth()];
-        for (int i = 0;i < tinyCache.getHeight();i++)
+        for (int i = 0; i < tinyCache.getHeight(); i++)
         {
-            tinyCache.getPixels(pixels,0,tinyCache.getWidth(),0,i,tinyCache.getWidth(),1);
-            for (int j = 0;j < tinyCache.getWidth();j++)
+            tinyCache.getPixels(pixels, 0, tinyCache.getWidth(), 0, i, tinyCache.getWidth(), 1);
+            for (int j = 0; j < tinyCache.getWidth(); j++)
             {
                 int col = pixels[j];
                 if (Color.alpha(col) > 0)
@@ -979,14 +995,14 @@ public class OBControl
         return tinyCache;
     }
 
-    public boolean intersectsWithn(OBControl c)
+    public boolean intersectsWithn (OBControl c)
     {
         RectF thisFrame = convertRectToControl(bounds(), null);
         RectF thatFrame = c.convertRectToControl(bounds(), null);
         if (!thisFrame.intersect(thatFrame))
             return false;
-        int w = (int)thisFrame.width();
-        int h = (int)thisFrame.height();
+        int w = (int) thisFrame.width();
+        int h = (int) thisFrame.height();
         Bitmap tinycache1 = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas canvas1 = new Canvas(tinycache1);
         canvas1.clipRect(0, 0, w, h);
@@ -994,7 +1010,7 @@ public class OBControl
         canvas1.translate(-thisFrame.left, -thisFrame.top);
         draw(canvas1);
         canvas1.restore();
-        Bitmap tinycache2 = Bitmap.createBitmap(w,h, Bitmap.Config.ARGB_8888);
+        Bitmap tinycache2 = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas canvas2 = new Canvas(tinycache2);
         canvas2.clipRect(0, 0, w, h);
         canvas2.translate(-thisFrame.left, -thisFrame.top);
@@ -1003,10 +1019,10 @@ public class OBControl
         p.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
         canvas1.drawBitmap(tinycache2, 0, 0, p);
         int pixels[] = new int[w];
-        for (int i = 0;i < h;i++)
+        for (int i = 0; i < h; i++)
         {
-            tinycache1.getPixels(pixels,0,w,0,i,w,1);
-            for (int j = 0;j < w;j++)
+            tinycache1.getPixels(pixels, 0, w, 0, i, w, 1);
+            for (int j = 0; j < w; j++)
             {
                 int px = pixels[j] & 0xFF000000;
                 if (px != 0)
@@ -1017,48 +1033,48 @@ public class OBControl
         return false;
     }
 
-    public Matrix matrixForCacheDraw()
+    public Matrix matrixForCacheDraw ()
     {
         convertMatrix.reset();
         float ax = anchorPoint.x * bounds().width();
         float ay = anchorPoint.y * bounds.height();
-        convertMatrix.preTranslate(ax,ay);
+        convertMatrix.preTranslate(ax, ay);
         if (rotation != 0)
             convertMatrix.preRotate(-rotation);
         if (scaleX != 1 || scaleY != 1)
-            convertMatrix.preScale(scaleX,scaleY);
+            convertMatrix.preScale(scaleX, scaleY);
         convertMatrix.preTranslate(-ax, -ay);
         return convertMatrix;
     }
 
-    public float cornerRadius()
+    public float cornerRadius ()
     {
         return cornerRadius;
     }
 
-    public void setCornerRadius(float cornerRadius)
+    public void setCornerRadius (float cornerRadius)
     {
         this.cornerRadius = cornerRadius;
     }
 
-    public void drawBorderAndBackground(Canvas canvas)
+    public void drawBorderAndBackground (Canvas canvas)
     {
         if (backgroundColor != 0)
         {
             Paint fillPaint = new Paint();
-            int col = OBUtils.applyColourOpacity(backgroundColor,opacity());
+            int col = OBUtils.applyColourOpacity(backgroundColor, opacity());
             fillPaint.setColor(col);
             fillPaint.setStyle(Paint.Style.FILL);
             if (cornerRadius == 0)
                 canvas.drawRect(bounds(), fillPaint);
             else
-                canvas.drawRoundRect(bounds(),cornerRadius,cornerRadius,fillPaint);
+                canvas.drawRoundRect(bounds(), cornerRadius, cornerRadius, fillPaint);
         }
         if (borderColour != 0 && borderWidth > 0.0)
         {
             Paint strokePaint = new Paint();
             strokePaint.setStrokeWidth(borderWidth);
-            int col = OBUtils.applyColourOpacity(borderColour,opacity());
+            int col = OBUtils.applyColourOpacity(borderColour, opacity());
             strokePaint.setColor(col);
             strokePaint.setStyle(Paint.Style.STROKE);
             if (cornerRadius == 0)
@@ -1069,7 +1085,7 @@ public class OBControl
                 if (masksToBounds())
                 {
                     Path p = new Path();
-                    p.addRoundRect(bounds(),cornerRadius(),cornerRadius(),Path.Direction.CCW);
+                    p.addRoundRect(bounds(), cornerRadius(), cornerRadius(), Path.Direction.CCW);
                     canvas.clipPath(p);
                 }
                 canvas.drawRoundRect(bounds(), cornerRadius, cornerRadius, strokePaint);
@@ -1078,7 +1094,7 @@ public class OBControl
         }
     }
 
-    public void simpleDraw(Canvas canvas)
+    public void simpleDraw (Canvas canvas)
     {
         canvas.save();
         boolean shadowrequired = (shadowColour != 0 && shadowRadius > 0);
@@ -1097,7 +1113,7 @@ public class OBControl
             }
             else if (shadowrequired)
             {
-                 if (shadowCache == null)
+                if (shadowCache == null)
                     createShadowCache();
                 canvas.drawBitmap(shadowCache, shadowOffsetX, shadowOffsetY, p);
 
@@ -1122,43 +1138,45 @@ public class OBControl
         canvas.restore();
     }
 
-    public void getModelViewMatrix(OBViewController vc)
+    public void getModelViewMatrix (OBViewController vc)
     {
         float mvm[] = vc.modelViewMatrix;
-        for (int i = 0; i < modelMatrix.length;i++)
+        for (int i = 0; i < modelMatrix.length; i++)
             modelMatrix[i] = mvm[i];
     }
 
-    public float[] matrix3dForDraw()
+    public float[] matrix3dForDraw ()
     {
         float[] wMatrix = new float[16];
-        android.opengl.Matrix.setIdentityM(wMatrix,0);
+        android.opengl.Matrix.setIdentityM(wMatrix, 0);
         if (m34 != 0)
             wMatrix[11] = m34;
 
-        android.opengl.Matrix.setIdentityM(tempMatrix,0);
-        android.opengl.Matrix.translateM(tempMatrix,0,position.x,position.y,0);
-        android.opengl.Matrix.multiplyMM(modelMatrix,0,tempMatrix,0,wMatrix,0);
+        android.opengl.Matrix.setIdentityM(tempMatrix, 0);
+        android.opengl.Matrix.translateM(tempMatrix, 0, position.x, position.y, 0);
+        android.opengl.Matrix.multiplyMM(modelMatrix, 0, tempMatrix, 0, wMatrix, 0);
 
         float ax = anchorPoint.x * bounds().width();
         float ay = anchorPoint.y * bounds.height();
         if (rotation != 0)
-            android.opengl.Matrix.rotateM(modelMatrix,0,(float) Math.toDegrees(rotation),0,0,1);
+            android.opengl.Matrix.rotateM(modelMatrix, 0, (float) Math.toDegrees(rotation), 0, 0, 1);
         if (yRotation != 0)
         {
             android.opengl.Matrix.rotateM(modelMatrix, 0, (float) Math.toDegrees(yRotation), 0, 1, 0);
         }
         if (scaleX != 1 || scaleY != 1)
-            android.opengl.Matrix.scaleM(modelMatrix,0,scaleX, scaleY,1);
-        android.opengl.Matrix.translateM(modelMatrix,0,-ax,-ay,0);
+            android.opengl.Matrix.scaleM(modelMatrix, 0, scaleX, scaleY, 1);
+        android.opengl.Matrix.translateM(modelMatrix, 0, -ax, -ay, 0);
         return modelMatrix;
 
     }
-    public boolean needsTexture()
+
+    public boolean needsTexture ()
     {
         return !(cornerRadius == 0 && (borderWidth == 0 || borderColour == 0));
     }
-    public void renderLayer(OBRenderer renderer,OBViewController vc)
+
+    public void renderLayer (OBRenderer renderer, OBViewController vc)
     {
         TextureRect tr = renderer.textureRect;
         if (texture == null || needsRetexture)
@@ -1167,37 +1185,45 @@ public class OBControl
             needsRetexture = false;
         }
         //tr.setUVs(0,0,uvRight,uvBottom);
-        if(texture == null || texture.bitmap() == null)
+        if (texture == null || texture.bitmap() == null)
             return;
 
-        if(dynamicMask && maskControl != null)
-            tr.draw(renderer,0,0,bounds.right - bounds.left,bounds.bottom - bounds.top,texture.bitmap(),maskControl.texture.bitmap());
+        if (dynamicMask && maskControl != null)
+            tr.draw(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, texture.bitmap(), maskControl.texture.bitmap());
         else
-            tr.draw(renderer,0,0,bounds.right - bounds.left,bounds.bottom - bounds.top,texture.bitmap());
+            tr.draw(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, texture.bitmap());
     }
-    public void render(OBRenderer renderer,OBViewController vc,float[] modelViewMatrix)
+
+    public void render (OBRenderer renderer, OBViewController vc, float[] modelViewMatrix)
     {
-        if (!hidden  && bounds().width() > 0 && bounds().height() > 0)
+        if (!hidden && bounds().width() > 0 && bounds().height() > 0)
         {
             matrix3dForDraw();
             if (doubleSided)
+            {
                 GLES20.glDisable(GLES20.GL_CULL_FACE);
+            }
             else
+            {
                 GLES20.glEnable(GLES20.GL_CULL_FACE);
-            android.opengl.Matrix.multiplyMM(tempMatrix,0,modelViewMatrix,0,modelMatrix,0);
+            }
+            //
+            android.opengl.Matrix.multiplyMM(tempMatrix, 0, modelViewMatrix, 0, modelMatrix, 0);
+            //
             if (needsTexture())
             {
-
                 float op = opacity();
                 float[] finalCol = new float[4];
                 for (int i = 0; i < 3; i++)
+                {
                     finalCol[i] = blendColour[i];
+                }
                 finalCol[3] = blendColour[3] * op;
-                if(dynamicMask && maskControl != null)
+                if (dynamicMask && maskControl != null)
                 {
                     MaskShaderProgram maskProgram = (MaskShaderProgram) renderer.maskProgram;
                     maskProgram.useProgram();
-                    maskProgram.setUniforms(tempMatrix,renderer.textureObjectIds[0], renderer.textureObjectIds[1], finalCol, maskControlReversed? 1:0);
+                    maskProgram.setUniforms(tempMatrix, renderer.textureObjectIds[0], renderer.textureObjectIds[1], finalCol, maskControlReversed ? 1 : 0);
 
                 }
                 else
@@ -1207,31 +1233,32 @@ public class OBControl
                     textureShader.setUniforms(tempMatrix, renderer.textureObjectIds[0], finalCol);
                 }
 
-                renderLayer(renderer,vc);
+                renderLayer(renderer, vc);
             }
             else
             {
                 ColorShaderProgram colourShader = (ColorShaderProgram) renderer.colourProgram;
-                float col[] = {1,1,1,1};
-                OBUtils.getFloatColour(backgroundColor,col);
+                float col[] = {1, 1, 1, 1};
+                OBUtils.getFloatColour(backgroundColor, col);
                 float op = opacity();
-                for (int i = 0;i < 3;i++)
-                    col[i] = col[i]*blendColour[i];
+                for (int i = 0; i < 3; i++)
+                    col[i] = col[i] * blendColour[i];
                 col[3] *= op;
                 colourShader.useProgram();
                 colourShader.setUniforms(tempMatrix);
                 GradientRect gr = renderer.gradientRect;
-                gr.draw(renderer,0,0,bounds.right - bounds.left,bounds.bottom - bounds.top,col,col);
+                gr.draw(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, col, col);
 
             }
         }
     }
-    public void draw(Canvas canvas)
+
+    public void draw (Canvas canvas)
     {
         if (!hidden)
         {
             canvas.save();
-             boolean shadowrequired = (shadowColour != 0 && shadowRadius > 0);
+            boolean shadowrequired = (shadowColour != 0 && shadowRadius > 0);
             if (cache != null)
             {
                 Matrix m = matrixForDraw();
@@ -1261,23 +1288,27 @@ public class OBControl
             {
                 canvas.concat(matrixForDraw());
                 if (masksToBounds)
+                {
                     canvas.clipRect(bounds());
+                }
                 if (shadowrequired)
                 {
                     Paint p = new Paint();
-                    p.setShadowLayer(shadowRadius,shadowOffsetX,shadowOffsetY,shadowColour);
-                    canvas.saveLayer(bounds(),p,Canvas.ALL_SAVE_FLAG);
+                    p.setShadowLayer(shadowRadius, shadowOffsetX, shadowOffsetY, shadowColour);
+                    canvas.saveLayer(bounds(), p, Canvas.ALL_SAVE_FLAG);
                 }
                 drawBorderAndBackground(canvas);
                 drawLayer(canvas);
                 if (shadowrequired)
+                {
                     canvas.restore();
+                }
             }
             canvas.restore();
         }
     }
 
-    public Bitmap drawn()
+    public Bitmap drawn ()
     {
         Bitmap bitmap = null;
         float fw = (bounds().right - bounds().left) * Math.abs(rasterScale);
@@ -1287,15 +1318,15 @@ public class OBControl
         //uvRight = fw / width;
         //uvBottom = fh / height;
         if (width == 0 || height == 0)
-            Log.i("error","drawn");
+            Log.i("error", "drawn");
         try
         {
-            bitmap = Bitmap.createBitmap(width,height, Bitmap.Config.ARGB_8888);
+            bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         }
-        catch(Exception exception)
+        catch (Exception exception)
         {
             exception.printStackTrace();
-            Log.i("drawn",String.format("%s %g %g",attributes().get("id"),width,height));
+            Log.i("drawn", String.format("%s %g %g", attributes().get("id"), width, height));
         }
         Canvas canvas = new Canvas(bitmap);
         Matrix m = new Matrix();
@@ -1313,23 +1344,24 @@ public class OBControl
         }
         return bitmap;
     }
-    public void enCache()
+
+    public void enCache ()
     {
         cache = drawn();
     }
 
 
-    public void texturise(boolean shared,OBViewController vc)
+    public void texturise (boolean shared, OBViewController vc)
     {
-        if(texture != null )
+        if (texture != null)
         {
             texture.cleanUp();
             texture = null;
         }
-        texture=vc.createTexture(this,textureKey,shared);
+        texture = vc.createTexture(this, textureKey, shared);
     }
 
-    private void blur(Bitmap bt,float radius)
+    private void blur (Bitmap bt, float radius)
     {
 
         RenderScript rs = RenderScript.create(MainActivity.mainActivity);
@@ -1351,24 +1383,24 @@ public class OBControl
         rs.destroy();
     }
 
-    public void setMasksToBounds(boolean m)
+    public void setMasksToBounds (boolean m)
     {
         masksToBounds = true;
     }
 
-    public boolean masksToBounds()
+    public boolean masksToBounds ()
     {
         return masksToBounds;
     }
 
-    public void createShadowCache()
+    public void createShadowCache ()
     {
         int width = (int) Math.ceil((bounds().right - bounds().left) * rasterScale);
         int height = (int) Math.ceil((bounds().bottom - bounds().top) * rasterScale);
-        shadowCache = Bitmap.createBitmap(width,height,Bitmap.Config.ALPHA_8);
+        shadowCache = Bitmap.createBitmap(width, height, Bitmap.Config.ALPHA_8);
         Canvas canvas = new Canvas(shadowCache);
         Matrix m = new Matrix();
-        m.preScale(rasterScale,rasterScale);
+        m.preScale(rasterScale, rasterScale);
         //canvas.concat(m);
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         /*BlurMaskFilter bmf = new BlurMaskFilter(3,BlurMaskFilter.Blur.NORMAL);
@@ -1378,60 +1410,62 @@ public class OBControl
         canvas.drawBitmap(cache,0,0,paint);*/
         Bitmap alpha = cache.extractAlpha();
         paint.setColor(shadowColour);
-        paint.setAlpha((int)(shadowOpacity * 255));
+        paint.setAlpha((int) (shadowOpacity * 255));
 
         canvas.drawBitmap(alpha, 0, 0, paint);
         // Create outer blur
        /* final BlurMaskFilter filter = new BlurMaskFilter(9, BlurMaskFilter.Blur.OUTER);
         paint.setMaskFilter(filter);
         canvas.drawBitmap(alpha, 0, 0, paint);*/
-        Log.i("shadow",String.format("%g",shadowRadius));
+        Log.i("shadow", String.format("%g", shadowRadius));
         blur(shadowCache, shadowRadius);
         //Runnable r2 = () -> System.out.println("Hello world two!");
     }
 
-    public float rasterScale()
+    public float rasterScale ()
     {
         return rasterScale;
     }
 
-    public void setRasterScale(float rs)
+    public void setRasterScale (float rs)
     {
         rasterScale = rs;
     }
-    public Bitmap renderedImage()
+
+    public Bitmap renderedImage ()
     {
-        Bitmap bm = Bitmap.createBitmap((int)(frame.right - frame.left),(int)(frame.bottom - frame.top), Bitmap.Config.ARGB_8888);
+        Bitmap bm = Bitmap.createBitmap((int) (frame.right - frame.left), (int) (frame.bottom - frame.top), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bm);
         drawLayer(canvas);
         return bm;
     }
 
-    public OBImage renderedImageControl()
+    public OBImage renderedImageControl ()
     {
         //BitmapDrawable bmd = new BitmapDrawable(MainActivity.mainActivity.getResources(),renderedImage());
         OBImage im = new OBImage(renderedImage());
         return im;
     }
 
-    public Bitmap renderedImageOverlay(int col)
+    public Bitmap renderedImageOverlay (int col)
     {
-        Bitmap bm = Bitmap.createBitmap((int)(frame.right - frame.left),(int)(frame.bottom - frame.top), Bitmap.Config.ARGB_8888);
+        Bitmap bm = Bitmap.createBitmap((int) (frame.right - frame.left), (int) (frame.bottom - frame.top), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bm);
         drawLayer(canvas);
         Paint paint = new Paint();
         paint.setColor(col);
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP));
-        canvas.drawRect(0,0,(int)(frame.right - frame.left),(int)(frame.bottom - frame.top),paint);
+        canvas.drawRect(0, 0, (int) (frame.right - frame.left), (int) (frame.bottom - frame.top), paint);
         return bm;
     }
 
 
-    public void unCache()
+    public void unCache ()
     {
         cache = null;
     }
-    public void setProperty(String prop,Object val)
+
+    public void setProperty (String prop, Object val)
     {
         if (val == null)
             settings.remove(prop);
@@ -1439,18 +1473,18 @@ public class OBControl
             settings.put(prop, val);
     }
 
-    public Object propertyValue(String prop)
+    public Object propertyValue (String prop)
     {
         return settings.get(prop);
     }
 
-    public void show()
+    public void show ()
     {
         if (hidden)
         {
             new OBRunnableSyncUI()
             {
-                public void ex()
+                public void ex ()
                 {
                     hidden = false;
                     invalidate();
@@ -1460,13 +1494,13 @@ public class OBControl
         }
     }
 
-    public void hide()
+    public void hide ()
     {
         if (!hidden)
         {
             new OBRunnableSyncUI()
             {
-                public void ex()
+                public void ex ()
                 {
                     hidden = true;
                     setNeedsRetexture();
@@ -1476,28 +1510,29 @@ public class OBControl
         }
     }
 
-    public void setDoubleSided(boolean t)
+    public void setDoubleSided (boolean t)
     {
         doubleSided = t;
     }
 
-    public boolean doubleSided()
+    public boolean doubleSided ()
     {
         return doubleSided;
     }
 
-    public void setHidden(boolean h)
+    public void setHidden (boolean h)
     {
         hidden = h;
         invalidate();
         setNeedsRetexture();
     }
 
-    public boolean hidden()
+    public boolean hidden ()
     {
         return hidden;
     }
-    public void setMaskControl(OBControl m)
+
+    public void setMaskControl (OBControl m)
     {
         dynamicMask = false;
         maskControlReversed = false;
@@ -1506,7 +1541,7 @@ public class OBControl
         setNeedsRetexture();
     }
 
-    public void setReversedMaskControl(OBControl m)
+    public void setReversedMaskControl (OBControl m)
     {
         dynamicMask = false;
         maskControlReversed = true;
@@ -1515,7 +1550,7 @@ public class OBControl
         setNeedsRetexture();
     }
 
-    public void setDynamicMaskControl(OBControl m)
+    public void setDynamicMaskControl (OBControl m)
     {
         dynamicMask = true;
         maskControlReversed = false;
@@ -1524,7 +1559,7 @@ public class OBControl
         setNeedsRetexture();
     }
 
-    public void setReversedDynamicMaskControl(OBControl m)
+    public void setReversedDynamicMaskControl (OBControl m)
     {
         dynamicMask = true;
         maskControlReversed = true;
@@ -1533,15 +1568,16 @@ public class OBControl
         setNeedsRetexture();
     }
 
-    public float rotation()
+    public float rotation ()
     {
         return rotation;
     }
-    public void setRotation(final float rt)
+
+    public void setRotation (final float rt)
     {
         new OBRunnableSyncUI()
         {
-            public void ex()
+            public void ex ()
             {
                 invalidate();
                 rotation = rt;
@@ -1550,15 +1586,17 @@ public class OBControl
             }
         }.run();
     }
-    public float yRotation()
+
+    public float yRotation ()
     {
         return yRotation;
     }
-    public void setYRotation(final float rt)
+
+    public void setYRotation (final float rt)
     {
         new OBRunnableSyncUI()
         {
-            public void ex()
+            public void ex ()
             {
                 invalidate();
                 yRotation = rt;
@@ -1635,25 +1673,25 @@ public class OBControl
         }
     }
 */
-    public boolean containsPoint(PointF pt)
+    public boolean containsPoint (PointF pt)
     {
-        pt = convertPointFromControl(pt,null);
+        pt = convertPointFromControl(pt, null);
         return bounds().contains(pt.x, pt.y);
     }
 
-    public void setAnchorPoint(PointF pt)
+    public void setAnchorPoint (PointF pt)
     {
-        setAnchorPoint(pt.x,pt.y);
+        setAnchorPoint(pt.x, pt.y);
     }
 
-    public void setAnchorPoint(final float x,final float y)
+    public void setAnchorPoint (final float x, final float y)
     {
         new OBRunnableSyncUI()
         {
-            public void ex()
+            public void ex ()
             {
                 PointF oldAnchor = new PointF(anchorPoint.x, anchorPoint.y);
-                anchorPoint.set(x,y);
+                anchorPoint.set(x, y);
                 PointF absPoint = OB_Maths.locationForRect(oldAnchor, frame());
                 PointF diff = OB_Maths.DiffPoints(position(), absPoint);
                 setPosition(OB_Maths.OffsetPoint(position(), diff.x, diff.y));
@@ -1661,7 +1699,7 @@ public class OBControl
         }.run();
     }
 
-    public void setShadow(float sradius,float sopacity,float soffsetx,float soffsety,int scolour)
+    public void setShadow (float sradius, float sopacity, float soffsetx, float soffsety, int scolour)
     {
         shadowRadius = sradius;
         shadowOffsetX = soffsetx;
@@ -1670,16 +1708,17 @@ public class OBControl
         shadowColour = scolour;
     }
 
-    public OBStroke stroke()
+    public OBStroke stroke ()
     {
         return stroke;
     }
 
-    public void setStroke(OBStroke s)
+    public void setStroke (OBStroke s)
     {
         stroke = s;
     }
-    public void invalidate()
+
+    public void invalidate ()
     {
         if (controller == null)
         {
@@ -1691,27 +1730,27 @@ public class OBControl
             final RectF f = frame();
             new OBRunnableSyncUI()
             {
-                public void ex()
+                public void ex ()
                 {
                     tempRect.set(f);
                     if (shadowColour != 0 && shadowRadius > 0 && shadowOpacity > 0)
                     {
-                        tempRect.offset(shadowOffsetX,shadowOffsetY);
+                        tempRect.offset(shadowOffsetX, shadowOffsetY);
                         tempRect.inset(-shadowRadius, -shadowRadius);
                         tempRect.union(f);
                     }
-                    controller.invalidateView((int) (tempRect.left - invalOutdent), (int) (tempRect.top - invalOutdent), (int) (tempRect.right + invalOutdent), (int) (tempRect.bottom+invalOutdent));
+                    controller.invalidateView((int) (tempRect.left - invalOutdent), (int) (tempRect.top - invalOutdent), (int) (tempRect.right + invalOutdent), (int) (tempRect.bottom + invalOutdent));
                 }
             }.run();
         }
     }
 
-    public int highlightColour()
+    public int highlightColour ()
     {
         return highlightColour;
     }
 
-    public void highlight()
+    public void highlight ()
     {
      /*   new OBRunnableSyncUI()
         {
@@ -1725,23 +1764,23 @@ public class OBControl
         setHighlightColour(Color.argb(200, 255, 255, 255));
     }
 
-    public void setHighlightColour(final int colour)
+    public void setHighlightColour (final int colour)
     {
         new OBRunnableSyncUI()
         {
-            public void ex()
+            public void ex ()
             {
                 highlightColour = colour;
-                float alpha = Color.alpha(colour)/255.0f;
-                OBUtils.setFloatColour(alpha * Color.red(colour)/255.0f,
-                        alpha * Color.green(colour)/255.0f,
-                        alpha * Color.blue(colour)/255.0f,1,blendColour);
+                float alpha = Color.alpha(colour) / 255.0f;
+                OBUtils.setFloatColour(alpha * Color.red(colour) / 255.0f,
+                        alpha * Color.green(colour) / 255.0f,
+                        alpha * Color.blue(colour) / 255.0f, 1, blendColour);
                 invalidate();
             }
         }.run();
     }
 
-    public void lowlight()
+    public void lowlight ()
     {
         /*
         new OBRunnableSyncUI()
@@ -1756,86 +1795,93 @@ public class OBControl
         */
         setHighlightColour(Color.argb(255, 255, 255, 255));
     }
-    public void setBorderColor(final int i)
+
+    public void setBorderColor (final int i)
     {
         new OBRunnableSyncUI()
         {
-            public void ex()
+            public void ex ()
             {
                 borderColour = i;
                 if (texture != null)
-                    needsRetexture = true;
-                invalidate();
-            }
-        }.run();
-    }
-    public void setBorderWidth(final float f)
-    {
-        new OBRunnableSyncUI()
-        {
-            public void ex()
-            {
-                borderWidth = f;
-                if (texture != null)
-                    needsRetexture = true;
+                {
+                    setNeedsRetexture();
+//                    needsRetexture = true;
+                }
                 invalidate();
             }
         }.run();
     }
 
-    public int colourAtPoint(float x,float y)
+    public void setBorderWidth (final float f)
     {
-        Bitmap tinycache = Bitmap.createBitmap(1,1, Bitmap.Config.ARGB_8888);
+        new OBRunnableSyncUI()
+        {
+            public void ex ()
+            {
+                borderWidth = f;
+                if (texture != null)
+                {
+                    setNeedsRetexture();
+//                    needsRetexture = true;
+                }
+                invalidate();
+            }
+        }.run();
+    }
+
+    public int colourAtPoint (float x, float y)
+    {
+        Bitmap tinycache = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(tinycache);
         canvas.clipRect(0, 0, 1, 1);
         canvas.translate(-x, -y);
         drawBorderAndBackground(canvas);
         drawLayer(canvas);
-        return tinycache.getPixel(0,0);
-    }
-    public float alphaAtPoint(float x,float y)
-    {
-        return (Color.alpha(colourAtPoint(x,y))/255f);
+        return tinycache.getPixel(0, 0);
     }
 
-    public Map<String,Object>attributes()
+    public float alphaAtPoint (float x, float y)
     {
-    return (Map<String,Object>)settings.get("attrs");
+        return (Color.alpha(colourAtPoint(x, y)) / 255f);
     }
 
-    public OBGroup primogenitor()
+    public Map<String, Object> attributes ()
+    {
+        return (Map<String, Object>) settings.get("attrs");
+    }
+
+    public OBGroup primogenitor ()
     {
         OBGroup dad = this.parent;
         if (dad == null)
             return null;
         while (dad.parent != null)
         {
-            dad = (OBGroup)dad.parent;
+            dad = (OBGroup) dad.parent;
         }
         return dad;
     }
 
-    public void reflectInAncestor(OBControl dad)
+    public void reflectInAncestor (OBControl dad)
     {
-        PointF pos = dad.convertPointFromControl(position(),parent);
+        PointF pos = dad.convertPointFromControl(position(), parent);
         float f = dad.bounds().width();
         pos.x = f - pos.x;
-        position = parent.convertPointFromControl(pos,dad);
+        position = parent.convertPointFromControl(pos, dad);
         setScaleX(-scaleX);
     }
 
-    public void lockScreen()
+    public void lockScreen ()
     {
         if (controller != null)
             controller.lockScreen();
     }
 
-    public void unlockScreen()
+    public void unlockScreen ()
     {
         if (controller != null)
             controller.unlockScreen();
     }
-
-
 
 }

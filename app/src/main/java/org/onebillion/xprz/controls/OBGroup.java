@@ -772,13 +772,38 @@ public class OBGroup extends OBControl
         }
         matrix3dForDraw();
         if (doubleSided)
+        {
             GLES20.glDisable(GLES20.GL_CULL_FACE);
+        }
         else
+        {
             GLES20.glEnable(GLES20.GL_CULL_FACE);
+        }
+        //
         android.opengl.Matrix.multiplyMM(tempMatrix, 0, modelViewMatrix, 0, modelMatrix, 0);
         populateSortedAttachedControls();
+        //
         for (OBControl c : sortedAttachedControls)
+        {
+            if (OBPath.class.isInstance(c))
+            {
+//                OBPath path = (OBPath) c;
+//                RectF oldFrame = path.frame();
+//                path.sizeToBoundingBox();
+//                RectF newFrame = path.frame();
+//                MainActivity.mainActivity.log("Path: " + oldFrame + " --> " + newFrame);
+            }
+            else if (OBGroup.class.isInstance(c))
+            {
+                OBGroup group = (OBGroup) c;
+//                RectF oldFrame = group.frame();
+//                RectF newFrame = OBGroup.frameUnion(group.members);
+//                group.setFrame(newFrame);
+//                MainActivity.mainActivity.log("Group: " + oldFrame + " --> " + newFrame);
+            }
+            //
             c.render(renderer, vc, tempMatrix);
+        }
     }
 
     public void drawLayer (Canvas canvas)
@@ -996,4 +1021,18 @@ public class OBGroup extends OBControl
             this.setNeedsRetexture();
         }
     }
+
+
+
+    public void setRasterScale (float rs)
+    {
+        float newRasterScale = this.scale() * rs;
+        super.setRasterScale(newRasterScale);
+        //
+        for (OBControl c : members)
+        {
+            c.setRasterScale(rs);
+        }
+    }
+
 }

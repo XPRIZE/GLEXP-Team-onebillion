@@ -3,7 +3,7 @@ android {
     compileSdkVersion 23
     buildToolsVersion '23.0.3'
     defaultConfig {
-        applicationId "org.onebillion.xprz0.pedro"
+        applicationId 'org.onebillion.xprz0'
         minSdkVersion 23
         targetSdkVersion 23
         versionCode 1
@@ -27,12 +27,20 @@ android {
         testCompile 'junit:junit:4.12'
         compile 'com.android.support:appcompat-v7:23.0.0'
     }
-
     dexOptions {
         incremental true
         javaMaxHeapSize "4096M"
     }
     sourceSets { main { assets.srcDirs = ['src/main/assets', 'src/main/assets_obb'] } }
+    productFlavors {
+        pedro {
+            minSdkVersion 23
+            applicationId 'org.onebillion.xprz0.pedro'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+        }
+    }
 }
 
 dependencies {

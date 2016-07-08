@@ -3,7 +3,10 @@ package org.onebillion.xprz.mainui;
 import android.Manifest;
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.DownloadManager;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ConfigurationInfo;
 import android.content.pm.PackageManager;
@@ -159,8 +162,7 @@ public class MainActivity extends Activity
         try
         {
             setUpConfig();
-            OBExpansionManager.sharedManager.installMissingExpansionFiles();
-            mainViewController = new OBMainViewController(this);
+            checkForUpdatesAndLoadMainViewController();
             //glSurfaceView.controller = mainViewController;
             new OBAudioManager();
             ((ThreadPoolExecutor) AsyncTask.THREAD_POOL_EXECUTOR).setCorePoolSize(12);
@@ -170,6 +172,29 @@ public class MainActivity extends Activity
             e.printStackTrace();
         }
     }
+
+
+    public void checkForUpdatesAndLoadMainViewController()
+    {
+        OBExpansionManager.sharedManager.checkForUpdates(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run () throws Exception
+            {
+                try
+                {
+                    mainViewController = new OBMainViewController(MainActivity.mainActivity);
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+
+
 
     void doGLStuff ()
     {
@@ -436,6 +461,7 @@ public class MainActivity extends Activity
         {
             glSurfaceView.onPause();
         }
+        unregisterReceiver(OBExpansionManager.sharedManager.downloadCompleteReceiver);
     }
 
     @Override
@@ -447,13 +473,13 @@ public class MainActivity extends Activity
         {
             glSurfaceView.onResume();
         }
+        registerReceiver(OBExpansionManager.sharedManager.downloadCompleteReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
     }
 
 
     @Override
     protected void onStop ()
     {
-        OBExpansionManager.sharedManager.stopListening();
         super.onStop();
     }
 
@@ -497,7 +523,7 @@ public class MainActivity extends Activity
         if (requestCode == REQUEST_EXTERNAL_STORAGE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
         {
             log("received permission to access external storage. attempting to download again");
-            OBExpansionManager.sharedManager.installMissingExpansionFiles();
+            checkForUpdatesAndLoadMainViewController();
         }
     }
 

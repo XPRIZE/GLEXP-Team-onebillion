@@ -81,6 +81,12 @@ public class OBSectionController extends OBViewController
 
     public OBSectionController (Activity a)
     {
+        this(a, true);
+    }
+
+
+    public OBSectionController (Activity a, Boolean requiresOpenGL)
+    {
         super(a);
         objects = new ArrayList<OBControl>();
         buttons = new ArrayList<OBControl>();
@@ -94,6 +100,7 @@ public class OBSectionController extends OBViewController
         _aborting = false;
         sequenceLock = new ReentrantLock();
         sortedAttachedControlsValid = true;
+        this.requiresOpenGL = requiresOpenGL;
     }
 
 
