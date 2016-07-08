@@ -482,14 +482,6 @@ public class XPRZ_SectionController extends OBSectionController {
         waitForSecs(wait);
     }
 
-    public void moveScenePointer(PointF point, float time, String audio, int index, float wait) throws Exception
-    {
-        movePointerToPoint(point,time,true);
-        playAudioScene(currentEvent(),audio,index);
-        waitAudio();
-        waitForSecs(wait);
-    }
-
     public void animateFrames(List<String> frames, float delay, OBGroup object) throws Exception
     {
         object.setSequence(frames);
@@ -502,6 +494,23 @@ public class XPRZ_SectionController extends OBSectionController {
         }
 
     }
+
+
+    @Override
+    public void exitEvent()
+    {
+        super.exitEvent();
+        killAnimations();
+    }
+
+    public void moveScenePointer(PointF point, float time, String audio, int index, float wait) throws Exception
+    {
+        movePointerToPoint(point,time,true);
+        playAudioScene(currentEvent(),audio,index);
+        waitAudio();
+        waitForSecs(wait);
+    }
+
 
     public List<String> getAudioForScene(String scene, String category)
     {
@@ -517,11 +526,5 @@ public class XPRZ_SectionController extends OBSectionController {
     }
 
 
-    @Override
-    public void exitEvent()
-    {
-        super.exitEvent();
-        killAnimations();
-    }
 
 }
