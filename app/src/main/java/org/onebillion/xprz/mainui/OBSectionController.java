@@ -1607,6 +1607,9 @@ public class OBSectionController extends OBViewController
 
     public void playAudioQueuedo (List<Object> qu, final boolean wait) throws Exception
     {
+        if(qu == null)
+            return;
+
         Lock lock = null;
         Condition condition = null;
         if (wait)

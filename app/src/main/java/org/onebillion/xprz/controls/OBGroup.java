@@ -839,6 +839,16 @@ public class OBGroup extends OBControl
         return dad;
     }
 
+    public void outdent (float f)
+    {
+        RectF b = bounds();
+        b.right += 2 * f;
+        b.bottom += 2 * f;
+        for (OBControl c : members)
+            c.setPosition(OB_Maths.OffsetPoint(c.position(), f, f));
+        setBounds(b);
+    }
+
     public void sizeToMember (OBControl m)
     {
         PointF oldmpos = convertPointFromControl(m.position(), m.parent);
@@ -1023,7 +1033,7 @@ public class OBGroup extends OBControl
     }
 
 
-
+/*
     public void setRasterScale (float rs)
     {
         super.setRasterScale(rs);
@@ -1032,5 +1042,5 @@ public class OBGroup extends OBControl
             c.setRasterScale(rs * c.scale());
         }
     }
-
+*/
 }

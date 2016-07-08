@@ -26,21 +26,19 @@ public class OBImageManager
 {
     public static int MAX_SVG_CACHE_COUNT = 32;
     protected static OBImageManager _sharedImageManager;
+    public Map<String, OBXMLNode> svgCacheDict;
+    public List<OBXMLNode> svgCacheList;
+    public OBImageManager ()
+    {
+        svgCacheDict = new HashMap<String, OBXMLNode>();
+        svgCacheList = new ArrayList<>();
+    }
 
     public static OBImageManager sharedImageManager ()
     {
         if (_sharedImageManager == null)
             _sharedImageManager = new OBImageManager();
         return _sharedImageManager;
-    }
-
-    public Map<String, OBXMLNode> svgCacheDict;
-    public List<OBXMLNode> svgCacheList;
-
-    public OBImageManager ()
-    {
-        svgCacheDict = new HashMap<String, OBXMLNode>();
-        svgCacheList = new ArrayList<>();
     }
 
     public String getImgPath (String imageName)

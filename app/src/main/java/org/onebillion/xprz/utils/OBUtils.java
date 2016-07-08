@@ -195,6 +195,22 @@ public class OBUtils
 //                e.printStackTrace();
             }
         }
+        //
+        File file = new File (path);
+        Boolean fileExists = file.exists();
+        if (fileExists)
+        {
+            try
+            {
+                InputStream is = new FileInputStream(file);
+                return is;
+            }
+            catch (Exception e)
+            {
+                // do nothing
+            }
+        }
+        //
         return null;
     }
 
@@ -226,6 +242,18 @@ public class OBUtils
             {
 //                Log.v("getAssetFileDescriptor", "unable to find asset in downloaded assets " + extendedFile);
             }
+        }
+
+        File extendedFile = new File(path);
+        Uri uri = Uri.fromFile(extendedFile);
+        try
+        {
+            AssetFileDescriptor fd = MainActivity.mainActivity.getContentResolver().openAssetFileDescriptor(uri, "r");
+            return fd;
+        }
+        catch(IOException e)
+        {
+
         }
         return null;
     }
@@ -1047,14 +1075,13 @@ public class OBUtils
         return tempRect.height();
     }
 
-    public String filePathForTempFile(OBSectionController controller)
+    public static String getFilePathForTempFile(OBSectionController controller)
     {
         String fileName = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss").format(new Date());
-        String extension = "tmp";
         try
         {
             File outputDir = controller.activity.getCacheDir();
-            File outputFile = File.createTempFile(fileName, extension, outputDir);
+            File outputFile = File.createTempFile(fileName, ".3gp", outputDir);
             return outputFile.getPath();
         }
         catch (Exception exception)
@@ -1065,7 +1092,7 @@ public class OBUtils
         return null;
     }
 
-    public void cleanUpTempFiles(OBSectionController controller)
+    public static void cleanUpTempFiles(OBSectionController controller)
     {
 
         File outputDir = controller.activity.getCacheDir();
@@ -1081,5 +1108,7 @@ public class OBUtils
     {
         public void run () throws Exception;
     }
+
+
 
 }
