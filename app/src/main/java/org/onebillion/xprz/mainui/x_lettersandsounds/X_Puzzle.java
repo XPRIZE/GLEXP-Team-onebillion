@@ -14,6 +14,7 @@ import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
+import org.onebillion.xprz.utils.OBConditionLock;
 import org.onebillion.xprz.utils.OBImageManager;
 import org.onebillion.xprz.utils.OBPhoneme;
 import org.onebillion.xprz.utils.OBUtils;
@@ -52,7 +53,7 @@ public class X_Puzzle extends X_Wordcontroller
     ReentrantLock finishLock;
     boolean animDone,preAssembled,firstTime;
     int showText;
-    ReentrantLock audioLock;
+    OBConditionLock audioLock;
     boolean firstTimeIn;
 
     public void miscSetUp()
@@ -287,7 +288,7 @@ public class X_Puzzle extends X_Wordcontroller
     public void doAudio(String  scene) throws Exception
     {
         setReplayAudioScene(currentEvent(), "PROMPT.REPEAT");
-        playAudioQueuedScene(currentEvent(), "PROMPT", false);
+        audioLock = playAudioQueuedScene(currentEvent(), "PROMPT", false);
     }
 
     public void doMainXX() throws Exception
@@ -299,8 +300,9 @@ public class X_Puzzle extends X_Wordcontroller
         else if(!animDone || !preAssembled)
         {
             //waitAudio();
-            waitForSecs(0.3);
-            waitAudio();
+            audioLock.lockWhenCondition(PROCESS_DONE);
+            audioLock.unlock();
+
             lockScreen();
             objectDict.get("oldpuzzle").hide() ;
             OBPath swatch = currentSwatch();
