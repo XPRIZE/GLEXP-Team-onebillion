@@ -27,12 +27,12 @@ public class OBEmitterCell
     public Bitmap contents;
     public Texture texture;
     public String name;
+    public float[] modelMatrix = new float[16];
+    public float[] finalMatrix = new float[16];
     boolean running;
     long startTime,lastBirthTime,birthCount;
     List<OBEmittee>emittees;
     Matrix tempMatrix;
-    public float[] modelMatrix = new float[16];
-    public float[] finalMatrix = new float[16];
 
     public OBEmitterCell()
     {

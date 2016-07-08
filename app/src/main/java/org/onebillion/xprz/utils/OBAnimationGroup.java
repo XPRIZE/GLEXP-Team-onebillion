@@ -252,6 +252,7 @@ public void applyAnimations(List<OBAnim>anims,double dur,int timingFunction,OBSe
                 }
             });
     }
+
     public void chainAnimations(List<List<OBAnim>> animArrays,List<Float>durations,List<Integer>timingFunctions,int noLoops,OBSectionController vc)
     {
         while (noLoops != 0)

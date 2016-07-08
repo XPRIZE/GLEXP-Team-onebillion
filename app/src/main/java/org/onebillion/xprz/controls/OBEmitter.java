@@ -19,8 +19,8 @@ import java.util.List;
  */
 public class OBEmitter extends OBControl
 {
-    boolean running;
     public List<OBEmitterCell>cells;
+    boolean running;
     public OBEmitter()
     {
         super();

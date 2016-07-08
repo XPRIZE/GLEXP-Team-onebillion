@@ -137,15 +137,7 @@ public class OBAudioManager {
 
     public void startPlaying(String fileName,String channel)
     {
-        OBAudioPlayer player = players.get(channel);
-        if (player == null)
-        {
-            player = new OBAudioPlayer();
-            synchronized(this)
-            {
-                players.put(channel,player);
-            }
-        }
+        OBAudioPlayer player = playerForChannel(channel);
         if (fileName == null)
             player.stopPlaying();
         else
@@ -157,15 +149,7 @@ public class OBAudioManager {
 
     public void startPlaying(String fileName,String channel,double atTime)
     {
-        OBAudioPlayer player = players.get(channel);
-        if (player == null)
-        {
-            player = new OBAudioPlayer();
-            synchronized(this)
-            {
-                players.put(channel,player);
-            }
-        }
+        OBAudioPlayer player = playerForChannel(channel);
         if (fileName == null)
             player.stopPlaying();
         else
@@ -233,7 +217,7 @@ public class OBAudioManager {
         return isPreparingChannel(AM_MAIN_CHANNEL);
     }
 
-    double durationForChannel(String ch)
+    public double durationForChannel(String ch)
     {
         OBAudioPlayer player = players.get(ch);
         if (player != null)
@@ -251,4 +235,26 @@ public class OBAudioManager {
     {
         return durationForChannel(AM_SFX_CHANNEL);
     }
+
+    public OBAudioPlayer playerForChannel(String channel)
+    {
+        OBAudioPlayer player = players.get(channel);
+        if (player == null)
+        {
+            player = new OBAudioPlayer();
+            synchronized(this)
+            {
+                players.put(channel,player);
+            }
+        }
+        return player;
+    }
+
+    public void prepareForChannel(final String fileName, final String channel)
+    {
+        OBAudioPlayer player = playerForChannel(channel);
+        AssetFileDescriptor fd = getAudioPathFD(fileName);
+        player.prepare(fd);
+    }
+
 }

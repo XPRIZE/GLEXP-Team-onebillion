@@ -325,7 +325,7 @@ public class XPRZ_SectionController extends OBSectionController {
                 finger = fingers.get(i);
             for (OBControl c : targets)
             {
-                if (filterDisabled && !c.isEnabled())
+                if (filterDisabled && !c.isEnabled() || c.hidden())
                     continue;
                 PointF lpt = pt;
                 if (finger != null)

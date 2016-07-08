@@ -96,6 +96,7 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
         player = new MediaPlayer();
         player.setOnPreparedListener(this);
         player.setOnSeekCompleteListener(this);
+        player.setOnCompletionListener(this);
         try
         {
             state = OBAP_PREPARING;
@@ -111,13 +112,47 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
 
     }
 
+    public void prepare (AssetFileDescriptor afd)
+    {
+        if (isPlaying())
+            stopPlaying();
+        fromTime = -1;
+        player = new MediaPlayer();
+        //player.setOnPreparedListener(this);
+        player.setOnCompletionListener(this);
+        try
+        {
+            state = OBAP_PREPARING;
+            player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            player.prepare();
+            setState(OBAP_PLAYING);
+            playerLock.lock();
+            condition.signalAll();
+            playerLock.unlock();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            setState(OBAP_IDLE);
+            return;
+        }
+
+    }
+
+    public void play() //call only after prepare!!!
+    {
+        setState(OBAP_PLAYING);
+        player.start();
+    }
 
     public void waitAudio ()
     {
         if (getState() == OBAP_IDLE)
             return;
         playerLock.lock();
-        while (getState() == OBAP_PLAYING || getState() == OBAP_PREPARING)
+        while (getState() == OBAP_PLAYING ||
+                getState() == OBAP_PREPARING ||
+                getState() == OBAP_SEEKING)
         {
             try
             {
@@ -201,9 +236,12 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
         else
         {
             setState(OBAP_PLAYING);
+
             playerLock.lock();
             condition.signalAll();
             playerLock.unlock();
+
+
             player.start();
         }
     }
