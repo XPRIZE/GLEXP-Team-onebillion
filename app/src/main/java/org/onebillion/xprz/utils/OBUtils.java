@@ -195,6 +195,22 @@ public class OBUtils
 //                e.printStackTrace();
             }
         }
+        //
+        File file = new File (path);
+        Boolean fileExists = file.exists();
+        if (fileExists)
+        {
+            try
+            {
+                InputStream is = new FileInputStream(file);
+                return is;
+            }
+            catch (Exception e)
+            {
+                // do nothing
+            }
+        }
+        //
         return null;
     }
 
