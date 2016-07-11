@@ -14,6 +14,7 @@ import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
+import org.onebillion.xprz.utils.OBUserPressedBackException;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OBXMLManager;
 import org.onebillion.xprz.utils.OBXMLNode;
@@ -71,22 +72,33 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
             @Override
             public void run () throws Exception
             {
-                if (!performSel("demo", currentEvent()))
+                try
                 {
-                    doBody(currentEvent());
-                }
-                //
-                OBUtils.runOnOtherThreadDelayed(3, new OBUtils.RunLambda()
-                {
-                    @Override
-                    public void run () throws Exception
+                    if (!performSel("demo", currentEvent()))
                     {
-                        if (!statusChanged(timeStamp))
-                        {
-                            playAudioQueuedScene(currentEvent(), "REMIND", false);
-                        }
+                        doBody(currentEvent());
                     }
-                });
+                    //
+                    OBUtils.runOnOtherThreadDelayed(3, new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run () throws Exception
+                        {
+                            if (!statusChanged(timeStamp))
+                            {
+                                playAudioQueuedScene(currentEvent(), "REMIND", false);
+                            }
+                        }
+                    });
+                }
+                catch (OBUserPressedBackException e)
+                {
+                    throw e;
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
             }
         });
     }

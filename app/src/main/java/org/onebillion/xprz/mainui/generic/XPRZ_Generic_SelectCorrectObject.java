@@ -12,21 +12,20 @@ import org.onebillion.xprz.utils.OBUtils;
 public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
 {
 
-    public XPRZ_Generic_SelectCorrectObject()
+    public XPRZ_Generic_SelectCorrectObject ()
     {
         super();
     }
 
 
     @Override
-    public String action_getObjectPrefix()
+    public String action_getObjectPrefix ()
     {
         return "platform";
     }
 
 
-
-    public void action_highlight(OBControl control) throws Exception
+    public void action_highlight (OBControl control) throws Exception
     {
         lockScreen();
         control.highlight();
@@ -34,8 +33,7 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
     }
 
 
-
-    public void action_lowlight(OBControl control) throws Exception
+    public void action_lowlight (OBControl control) throws Exception
     {
         lockScreen();
         control.lowlight();
@@ -43,14 +41,20 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
     }
 
 
-    public OBControl action_getCorrectAnswer()
+    public Boolean action_isAnswerCorrect(OBControl c)
+    {
+        return c.equals(action_getCorrectAnswer());
+    }
+
+
+    public OBControl action_getCorrectAnswer ()
     {
         String correctString = action_getObjectPrefix() + "_" + eventAttributes.get("correctAnswer");
         return objectDict.get(correctString);
     }
 
 
-    public void action_answerIsCorrect(OBControl target) throws Exception
+    public void action_answerIsCorrect (OBControl target) throws Exception
     {
         gotItRightBigTick(true);
         waitForSecs(0.3);
@@ -63,8 +67,7 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
     }
 
 
-
-    public void action_answerIsWrong(OBControl target) throws Exception
+    public void action_answerIsWrong (OBControl target) throws Exception
     {
         gotItWrongWithSfx();
         waitForSecs(0.3);
@@ -74,14 +77,14 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
     }
 
 
-    public void checkTarget(OBControl targ)
+    public void checkTarget (OBControl targ)
     {
         setStatus(STATUS_CHECKING);
         try
         {
             action_highlight(targ);
             //
-            if (targ.equals(action_getCorrectAnswer()))
+            if (action_isAnswerCorrect(targ))
             {
                 action_answerIsCorrect(targ);
                 //
@@ -93,13 +96,16 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
                 //
                 setStatus(STATUS_AWAITING_CLICK);
             }
-        } catch (Exception exception) {
+        }
+        catch (Exception exception)
+        {
+            exception.printStackTrace();
         }
     }
 
 
     @Override
-    public void touchDownAtPoint(PointF pt, View v)
+    public void touchDownAtPoint (PointF pt, View v)
     {
         if (status() == STATUS_AWAITING_CLICK)
         {
@@ -109,7 +115,7 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
                     @Override
-                    public void run() throws Exception
+                    public void run () throws Exception
                     {
                         checkTarget(c);
                     }
