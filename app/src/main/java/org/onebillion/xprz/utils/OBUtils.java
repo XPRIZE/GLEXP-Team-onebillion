@@ -1110,4 +1110,51 @@ public class OBUtils
     }
 
 
+    public static RectF unionBounds (OBGroup group)
+    {
+        if (group.members.size() == 0) return new RectF(group.bounds().left, group.bounds().top, group.bounds().right, group.bounds().bottom);
+        else
+        {
+            RectF result = new RectF();
+            for (OBControl c : group.members)
+            {
+                if (OBGroup.class.isInstance(c))
+                {
+                    OBGroup subGroup = (OBGroup) c;
+                    result.union(OBUtils.unionBounds(subGroup));
+                }
+                else
+                {
+                    result.union(c.bounds());
+                }
+            }
+            return result;
+        }
+    }
+
+
+
+    public static RectF unionFrame (OBGroup group)
+    {
+        if (group.members.size() == 0) return new RectF(group.frame().left, group.frame().top, group.frame().right, group.frame().bottom);
+        else
+        {
+            RectF result = new RectF();
+            for (OBControl c : group.members)
+            {
+                if (OBGroup.class.isInstance(c))
+                {
+                    OBGroup subGroup = (OBGroup) c;
+                    result.union(OBUtils.unionBounds(subGroup));
+                }
+                else
+                {
+                    result.union(c.frame());
+                }
+            }
+            return result;
+        }
+    }
+
+
 }

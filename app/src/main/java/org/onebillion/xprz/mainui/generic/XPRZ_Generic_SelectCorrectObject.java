@@ -52,13 +52,24 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
 
     public void action_answerIsCorrect(OBControl target) throws Exception
     {
+        gotItRightBigTick(true);
+        waitForSecs(0.3);
+        //
         playAudioQueuedScene(currentEvent(), "CORRECT", true);
+        //
+        action_lowlight(target);
+        //
+        playAudioQueuedScene(currentEvent(), "FINAL", true);
     }
 
 
 
-    public void action_answerIsWrong() throws Exception
+    public void action_answerIsWrong(OBControl target) throws Exception
     {
+        gotItWrongWithSfx();
+        waitForSecs(0.3);
+        //
+        action_lowlight(target);
         playAudioQueuedScene(currentEvent(), "INCORRECT", false);
     }
 
@@ -72,24 +83,13 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
             //
             if (targ.equals(action_getCorrectAnswer()))
             {
-                gotItRightBigTick(true);
-                waitForSecs(0.3);
-                //
                 action_answerIsCorrect(targ);
-                //
-                action_lowlight(targ);
-                //
-                playAudioQueuedScene(currentEvent(), "FINAL", true);
                 //
                 nextScene();
             }
             else
             {
-                gotItWrongWithSfx();
-                waitForSecs(0.3);
-                //
-                action_lowlight(targ);
-                action_answerIsWrong();
+                action_answerIsWrong(targ);
                 //
                 setStatus(STATUS_AWAITING_CLICK);
             }

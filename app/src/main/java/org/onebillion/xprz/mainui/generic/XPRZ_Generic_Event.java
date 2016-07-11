@@ -34,12 +34,12 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     public static float SECOND_REMINDER_DELAY = 4.0f;
     int currentDemoAudioIndex;
 
-    public XPRZ_Generic_Event()
+    public XPRZ_Generic_Event ()
     {
         super();
     }
 
-    public void prepare()
+    public void prepare ()
     {
         super.prepare();
         loadFingers();
@@ -62,15 +62,16 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     }
 
 
-    public void start()
+    public void start ()
     {
         final long timeStamp = setStatus(STATUS_WAITING_FOR_TRACE);
         //
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        {
             @Override
-            public void run() throws Exception
+            public void run () throws Exception
             {
-                if (!performSel("demo",currentEvent()))
+                if (!performSel("demo", currentEvent()))
                 {
                     doBody(currentEvent());
                 }
@@ -78,7 +79,7 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
                 OBUtils.runOnOtherThreadDelayed(3, new OBUtils.RunLambda()
                 {
                     @Override
-                    public void run() throws Exception
+                    public void run () throws Exception
                     {
                         if (!statusChanged(timeStamp))
                         {
@@ -90,7 +91,7 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
         });
     }
 
-    public void doAudio(String scene) throws Exception
+    public void doAudio (String scene) throws Exception
     {
         setReplayAudioScene(currentEvent(), "REPEAT");
         playAudioQueuedScene(scene, "PROMPT", false);
@@ -103,7 +104,6 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
         waitForSecs(FIRST_REMINDER_DELAY);
         doReminderWithStatusTime(stTime, true);
     }
-
 
 
     public void doReminderWithStatusTime (final long stTime, Boolean playAudio) throws Exception
@@ -129,7 +129,7 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     }
 
 
-    public void doMainXX() throws Exception
+    public void doMainXX () throws Exception
     {
         playAudioQueuedScene(currentEvent(), "DEMO", true);
         //
@@ -140,7 +140,7 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
 
 
     @Override
-    public void setSceneXX(String scene)
+    public void setSceneXX (String scene)
     {
         ArrayList<OBControl> oldControls = new ArrayList<>(objectDict.values());
         //
@@ -149,7 +149,7 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
         Boolean redraw = eventAttributes.get("redraw") != null && eventAttributes.get("redraw").equals("true");
         if (redraw)
         {
-            for(OBControl control : oldControls)
+            for (OBControl control : oldControls)
             {
                 if (control == null) continue;
                 detachControl(control);
@@ -158,23 +158,27 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
             //
             for (OBControl control : filterControls(".*"))
             {
-                String fit = (String) control.attributes().get("fit");
-                if (fit != null && fit.equals("fitwidth"))
+                Map attributes = control.attributes();
+                if (attributes != null)
                 {
-                    float scale = bounds().width() / control.width();
-                    PointF position = XPRZ_Generic.copyPoint(control.position());
-                    float originalHeight = control.height();
-                    control.setScale(scale * control.scale());
-                    float heightDiff = control.height() - originalHeight;
-                    position.y += heightDiff / 2;
-                    control.setPosition(position);
+                    String fit = (String) attributes.get("fit");
+                    if (fit != null && fit.equals("fitwidth"))
+                    {
+                        float scale = bounds().width() / control.width();
+                        PointF position = XPRZ_Generic.copyPoint(control.position());
+                        float originalHeight = control.height();
+                        control.setScale(scale * control.scale());
+                        float heightDiff = control.height() - originalHeight;
+                        position.y += heightDiff / 2;
+                        control.setPosition(position);
+                    }
                 }
             }
         }
         //
         targets = filterControls(action_getObjectPrefix() + ".*");
         //
-        for(OBControl control : targets)
+        for (OBControl control : targets)
         {
             PointF originalPosition = new PointF(control.position().x, control.position().y);
             control.setProperty("originalPosition", originalPosition);
@@ -188,16 +192,13 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     }
 
 
-
-
-
-    public void action_prepareScene(String scene, Boolean redraw)
+    public void action_prepareScene (String scene, Boolean redraw)
     {
 
     }
 
 
-    public void action_playNextDemoSentence(Boolean waitAudio) throws Exception
+    public void action_playNextDemoSentence (Boolean waitAudio) throws Exception
     {
         playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentDemoAudioIndex, waitAudio);
         currentDemoAudioIndex++;
@@ -205,14 +206,14 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     }
 
 
-    public void action_moveObjectToOriginalPosition(OBControl control, Boolean wait)
+    public void action_moveObjectToOriginalPosition (OBControl control, Boolean wait)
     {
-        OBAnim anim = OBAnim.moveAnim((PointF)control.propertyValue("originalPosition"), control);
+        OBAnim anim = OBAnim.moveAnim((PointF) control.propertyValue("originalPosition"), control);
         OBAnimationGroup.runAnims(Arrays.asList(anim), 0.3, wait, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
     }
 
 
-    public void action_moveObjectIntoContainer(OBControl control, OBControl container)
+    public void action_moveObjectIntoContainer (OBControl control, OBControl container)
     {
         List<OBControl> contained = (List<OBControl>) container.propertyValue("contained");
         if (contained == null) contained = new ArrayList<OBControl>();
@@ -241,7 +242,7 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     }
 
 
-    public void action_animatePlatform(OBControl platform, boolean wait) throws Exception
+    public void action_animatePlatform (OBControl platform, boolean wait) throws Exception
     {
         String platformName = (String) platform.attributes().get("id");
         String platformNumber = platformName.split("_")[1];
@@ -250,7 +251,7 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
         List<OBAnim> list_animMove1 = new ArrayList<OBAnim>();
         List<OBAnim> list_animMove2 = new ArrayList<OBAnim>();
         //
-        for(OBControl item : controls)
+        for (OBControl item : controls)
         {
             PointF startPosition = new PointF();
             startPosition.set(item.position());
@@ -271,39 +272,54 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
 //            waitForSecs(0.05);
         }
         OBAnimationGroup og = new OBAnimationGroup();
-        og.chainAnimations(Arrays.asList(list_animMove1, list_animMove2), Arrays.asList(0.4f,0.4f), wait, Arrays.asList(OBAnim.ANIM_EASE_IN, OBAnim.ANIM_EASE_OUT), 1, this);
+        og.chainAnimations(Arrays.asList(list_animMove1, list_animMove2), Arrays.asList(0.4f, 0.4f), wait, Arrays.asList(OBAnim.ANIM_EASE_IN, OBAnim.ANIM_EASE_OUT), 1, this);
     }
 
 
-
-    public OBControl action_getCorrectAnswer()
+    public OBControl action_getCorrectAnswer ()
     {
         String correctString = action_getObjectPrefix() + "_" + eventAttributes.get("correctAnswer");
         return objectDict.get(correctString);
     }
 
 
-    public String action_getObjectPrefix()
+    public String action_getObjectPrefix ()
     {
         return "number";
     }
 
 
-    public String action_getContainerPrefix()
+    public String action_getContainerPrefix ()
     {
         return "box";
     }
 
 
-    public String action_getScenesProperty()
+    public String action_getScenesProperty ()
     {
         return "scenes";
     }
 
 
-    public OBLabel action_createLabelForControl(OBControl control, float finalResizeFactor)
+
+
+    public OBLabel action_createLabelForControl (OBControl control)
     {
-        try {
+        return action_createLabelForControl(control, 1.0f, false);
+    }
+
+
+    public OBLabel action_createLabelForControl (OBControl control, float finalResizeFactor)
+    {
+        return action_createLabelForControl(control, finalResizeFactor, true);
+    }
+
+
+
+    public OBLabel action_createLabelForControl (OBControl control, float finalResizeFactor, Boolean insertIntoGroup)
+    {
+        try
+        {
             Boolean autoResize = eventAttributes.get("textSize") == null;
             float textSize = 1;
             //
@@ -320,11 +336,11 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
             //
             if (autoResize)
             {
-                OBTextLayer textLayer = (OBTextLayer)label.layer;
+                OBTextLayer textLayer = (OBTextLayer) label.layer;
                 textLayer.sizeToBoundingBox();
-                while(label.height() > 0 && label.height() < control.bounds.height())
+                while (label.height() > 0 && label.height() < control.bounds.height())
                 {
-                    textLayer.setTextSize(textLayer.textSize()+1);
+                    textLayer.setTextSize(textLayer.textSize() + 1);
                     textLayer.sizeToBoundingBox();
                 }
                 //
@@ -336,21 +352,30 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
             label.setZPosition(XPRZ_Generic.getNextZPosition(this));
             label.texturise(false, this);
             //
-            if (OBGroup.class.isInstance(control)) {
-                OBGroup group = (OBGroup) control;
-                attachControl(label);
-                group.insertMember(label, 0, "label");
+            if (insertIntoGroup)
+            {
+                if (OBGroup.class.isInstance(control))
+                {
+                    OBGroup group = (OBGroup) control;
+                    attachControl(label);
+                    group.insertMember(label, 0, "label");
+                }
+                else
+                {
+                    OBGroup group = new OBGroup(Arrays.asList(control, label));
+                    attachControl(group);
+                    group.objectDict.put("frame", control);
+                    group.objectDict.put("label", label);
+                    String controlID = (String) control.attributes().get("id");
+                    objectDict.put(controlID, group);
+                    String components[] = controlID.split("_");
+                    String labelID = "label_" + components[1];
+                    objectDict.put(labelID, label);
+                }
             }
-            else {
-                OBGroup group = new OBGroup(Arrays.asList(control, label));
-                attachControl(group);
-                group.objectDict.put("frame", control);
-                group.objectDict.put("label", label);
-                String controlID = (String)control.attributes().get("id");
-                objectDict.put(controlID, group);
-                String components[] = controlID.split("_");
-                String labelID = "label_" + components[1];
-                objectDict.put(labelID, label);
+            else
+            {
+                attachControl(label);
             }
             return label;
         }
@@ -364,13 +389,13 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
 
     // Finger and Touch functions
 
-    public OBControl findTarget(PointF pt)
+    public OBControl findTarget (PointF pt)
     {
         return finger(-1, 2, targets, pt, true);
     }
 
 
-    public Boolean audioSceneExists(String audioScene)
+    public Boolean audioSceneExists (String audioScene)
     {
         if (audioScenes == null) return false;
         //
@@ -383,15 +408,14 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     }
 
 
-
     // Miscelaneous Functions
-    public void playSceneAudio(String scene, Boolean wait) throws Exception
+    public void playSceneAudio (String scene, Boolean wait) throws Exception
     {
         playAudioQueuedScene(currentEvent(), scene, wait);
         if (!wait) waitForSecs(0.01);
     }
 
-    public void playSceneAudioIndex(String scene, int index, Boolean wait) throws Exception
+    public void playSceneAudioIndex (String scene, int index, Boolean wait) throws Exception
     {
         playAudioQueuedSceneIndex(currentEvent(), scene, index, wait);
         if (!wait) waitForSecs(0.01);
