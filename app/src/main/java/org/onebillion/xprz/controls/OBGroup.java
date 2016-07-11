@@ -1032,17 +1032,14 @@ public class OBGroup extends OBControl
         }
     }
 
-
-/*
+    
     public void setRasterScale (float rs)
     {
-        float newRasterScale = this.scale() * rs;
-        super.setRasterScale(newRasterScale);
-        //
+        super.setRasterScale(rs);
         for (OBControl c : members)
         {
-            c.setRasterScale(rs);
+            c.setRasterScale(rs * c.scale());
         }
     }
-*/
+
 }

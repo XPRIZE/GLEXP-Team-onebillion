@@ -17,6 +17,7 @@ import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBAudioManager;
+import org.onebillion.xprz.utils.OBConditionLock;
 import org.onebillion.xprz.utils.OBImageManager;
 import org.onebillion.xprz.utils.OBRunnableSyncUI;
 import org.onebillion.xprz.utils.OB_Maths;
@@ -62,17 +63,18 @@ public class XPRZ_SectionController extends OBSectionController {
         loadEvent(scene);
     }
 
-    public void playAudioQueuedScene(String scene,String event,boolean wait) throws Exception
+    public OBConditionLock playAudioQueuedScene(String scene, String event, boolean wait) throws Exception
     {
         if (audioScenes == null)
-            return;
+            return new OBConditionLock();
         Map<String,List<String>> sc = (Map<String,List<String>>)audioScenes.get(scene);
         if (sc != null)
         {
             List<Object> arr = (List<Object>)(Object)sc.get(event); //yuk!
             if (arr != null)
-                playAudioQueued(arr, wait);
+                return playAudioQueued(arr, wait);
         }
+        return new OBConditionLock();
     }
 
     public void playAudioQueuedScene(String scene,String event, float interval,boolean wait) throws Exception

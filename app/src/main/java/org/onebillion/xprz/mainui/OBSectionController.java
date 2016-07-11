@@ -61,6 +61,8 @@ public class OBSectionController extends OBViewController
             POINTER_LEFT = 2,
             POINTER_MIDDLE = 3,
             POINTER_RIGHT = 4;
+    public static int PROCESS_DONE = 1,
+        PROCESS_NOT_DONE = 2;
     public List<OBControl> objects, nonobjects, attachedControls, buttons, sortedAttachedControls;
     public List<String> events;
     public Map<String, Object> audioScenes, eventsDict;
@@ -1602,7 +1604,7 @@ public class OBSectionController extends OBViewController
         return eventd.get(audioCategory);
     }
 
-    public void playAudioQueued (List<Object> qu, final boolean wait) throws Exception
+    public void playAudioQueuedo (List<Object> qu, final boolean wait) throws Exception
     {
         if(qu == null)
             return;
@@ -1674,6 +1676,67 @@ public class OBSectionController extends OBViewController
             throw new OBUserPressedBackException();
 //            throw new Exception("BackException");
         }
+    }
+
+    public OBConditionLock playAudioQueued(List<Object> qu,boolean wait) throws OBUserPressedBackException
+    {
+        return playAudioQueued(qu,wait,1);
+    }
+
+    public OBConditionLock playAudioQueued(final List<Object> qu,final boolean wait,final int noLoops) throws OBUserPressedBackException
+    {
+        final OBConditionLock lock = new OBConditionLock(PROCESS_NOT_DONE) ;
+        final long token = updateAudioQueueToken();
+        final OBConditionLock flock = lock;
+        final OB_MutBoolean fabort = new OB_MutBoolean(_aborting);
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception {
+                try
+                {
+                    int _noLoops = noLoops;
+                    while(_noLoops != 0 && token == audioQueueToken)
+                    {
+                        for (Object obj : qu)
+                        {
+                            if (token != audioQueueToken)
+                                break;
+                            if (obj instanceof Integer)
+                            {
+                                Thread.sleep(((Integer) obj).intValue());
+                            }
+                            else
+                            {
+                                _playAudio((String) obj);
+                                if (wait)
+                                    waitAudio();
+                                else
+                                    waitAudioNoThrow();
+                            }
+                        }
+                        _noLoops--;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    fabort.value = true;
+                }
+                lock.lock() ;
+                lock.unlockWithCondition(PROCESS_DONE);
+           }
+        });
+
+        if(wait)
+        {
+            lock.lockWhenCondition(PROCESS_DONE);
+            lock.unlock() ;
+        }
+        if (fabort.value)
+        {
+            _aborting = true;
+            throw new OBUserPressedBackException();
+        }
+        return lock;
     }
 
     public void playAudioQueued (List<Object> qu) throws Exception
