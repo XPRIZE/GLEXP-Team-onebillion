@@ -62,6 +62,11 @@ public class XPRZ_Generic_DragObjectsToCorrectPlace extends XPRZ_Generic_Event
 
 
 
+    public void action_finalAnimation() throws Exception
+    {
+        playAudioQueuedScene(currentEvent(), "FINAL", true);
+    }
+
 
 
     @Override
@@ -73,7 +78,7 @@ public class XPRZ_Generic_DragObjectsToCorrectPlace extends XPRZ_Generic_Event
         target = null;
         //
         List<OBControl> containers = filterControls(action_getContainerPrefix() + ".*");
-        OBControl container = finger(0, 2, containers, pt, true);
+        OBControl container = finger(0, 1, containers, pt, true, true);
         //
         if (container != null)
         {
@@ -96,7 +101,7 @@ public class XPRZ_Generic_DragObjectsToCorrectPlace extends XPRZ_Generic_Event
                         gotItRightBigTick(true);
                         waitForSecs(0.3);
                         //
-                        playAudioQueuedScene(currentEvent(), "FINAL", true);
+                        action_finalAnimation();
                         //
                         nextScene();
                     }
@@ -131,6 +136,12 @@ public class XPRZ_Generic_DragObjectsToCorrectPlace extends XPRZ_Generic_Event
     }
 
 
+    @Override
+    public OBControl findTarget (PointF pt)
+    {
+        targets = filterControls(String.format("%s.*", action_getObjectPrefix()));
+        return super.findTarget(pt);
+    }
 
 
 

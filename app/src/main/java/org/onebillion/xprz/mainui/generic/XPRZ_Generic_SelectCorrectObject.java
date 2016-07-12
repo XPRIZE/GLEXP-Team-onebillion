@@ -17,13 +17,17 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
         super();
     }
 
-
     @Override
     public String action_getObjectPrefix ()
     {
         return "platform";
     }
 
+    @Override
+    public void action_prepareScene (String scene, Boolean redraw)
+    {
+        super.action_prepareScene(scene, redraw);
+    }
 
     public void action_highlight (OBControl control) throws Exception
     {
@@ -105,6 +109,13 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
 
 
     @Override
+    public OBControl findTarget (PointF pt)
+    {
+        targets = filterControls(String.format("%s.*", action_getObjectPrefix()));
+        return super.findTarget(pt);
+    }
+
+    @Override
     public void touchDownAtPoint (PointF pt, View v)
     {
         if (status() == STATUS_AWAITING_CLICK)
@@ -123,5 +134,6 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
             }
         }
     }
+
 
 }
