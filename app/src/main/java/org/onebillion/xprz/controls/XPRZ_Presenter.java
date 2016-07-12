@@ -2,6 +2,7 @@ package org.onebillion.xprz.controls;
 
 import android.graphics.Path;
 import android.graphics.PointF;
+import android.graphics.RectF;
 
 import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.OBSectionController;

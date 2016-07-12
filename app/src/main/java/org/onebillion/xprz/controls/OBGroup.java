@@ -975,6 +975,17 @@ public class OBGroup extends OBControl
 //            needsRetexture = true;
     }
 
+
+    public void substituteStrokeForAllMembers (String pattern, int stroke)
+    {
+        for (OBControl c : filterMembers(pattern))
+        {
+            if (OBPath.class.isInstance(c))
+                ((OBPath) c).setStrokeColor(stroke);
+        }
+    }
+
+
     public boolean needsTexture ()
     {
         return true;

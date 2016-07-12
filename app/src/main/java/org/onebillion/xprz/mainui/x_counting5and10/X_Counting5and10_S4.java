@@ -380,11 +380,7 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
             }
             else
             {
-                gotItWrongWithSfx();
-                waitForSecs(0.3);
-                //
-                action_lowlight(group);
-                action_answerIsWrong();
+                action_answerIsWrong(target);
                 //
                 setStatus(STATUS_AWAITING_CLICK);
             }

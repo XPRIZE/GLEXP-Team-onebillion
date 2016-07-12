@@ -60,7 +60,7 @@ public class X_Counting4To6_S5 extends XPRZ_Generic_SelectCorrectObject
         playAudioQueuedScene(currentEvent(), "CORRECT", false);
         action_animatePlatform(target, true);
         waitAudio();
+        //
+        nextScene();
     }
-
-    // DEMOS
 }

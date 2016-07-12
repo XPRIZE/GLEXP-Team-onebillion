@@ -38,6 +38,15 @@ import java.util.regex.Pattern;
  */
 public class XPRZ_Generic
 {
+
+
+    public static void pointer_nudge(float x, float y, float angle, float time, Boolean wait, XPRZ_SectionController sc)
+    {
+        PointF relativePosition = OB_Maths.relativePointInRectForLocation(sc.thePointer.position(), new RectF(sc.bounds()));
+        PointF nudge = OB_Maths.locationForRect(OB_Maths.AddPoints(relativePosition, new PointF(x, y)), new RectF(sc.bounds()));
+        sc.movePointerToPoint(nudge, angle, time, wait);
+    }
+
     public static void pointer_moveToObjectByName(String controlName, float angle, float secs, EnumSet<Anchor> anchorFlags, Boolean wait, XPRZ_SectionController sc)
     {
         OBControl control = sc.objectDict.get(controlName);
