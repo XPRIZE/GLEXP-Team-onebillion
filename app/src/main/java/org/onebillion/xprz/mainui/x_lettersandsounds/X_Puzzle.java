@@ -36,6 +36,8 @@ public class X_Puzzle extends X_Wordcontroller
     static final int SHOW_TEXT_NONE = 0,
     SHOW_TEXT_INITIAL = 1,
     SHOW_TEXT_WORD =2;
+    final static int  MSE_DN =0,
+        MSE_UP =1;
 
     List<String> words;
     String currWord;
@@ -50,7 +52,7 @@ public class X_Puzzle extends X_Wordcontroller
     Map<String,String> wordDict;
     Map<String,OBPhoneme> componentDict;
 
-    ReentrantLock finishLock;
+    OBConditionLock finishLock;
     boolean animDone,preAssembled,firstTime;
     int showText;
     OBConditionLock audioLock;
@@ -68,7 +70,7 @@ public class X_Puzzle extends X_Wordcontroller
         String ws = parameters.get("words");
         words = Arrays.asList(ws.split(","));
         currNo = 0;
-        finishLock = new ReentrantLock();
+        finishLock = new OBConditionLock();
         swatches = (List<OBPath>)(Object)OBUtils.randomlySortedArray(filterControls("swatch.*"));
         s = parameters.get("showtext");
         if (s != null)
@@ -318,6 +320,77 @@ public class X_Puzzle extends X_Wordcontroller
             waitForSecs(0.4f);
             openingAnim2();
         }
+    }
+
+    public void nextObj() throws Exception
+    {
+        if(targets.size()  == 0)
+        {
+            waitAudio();
+            stage2();
+        }
+        else
+        {
+            switchStatus(currentEvent());
+        }
+    }
+
+    public void stage2() throws Exception {
+        finishLock.lockWhenCondition(MSE_UP);
+        finishLock.unlock() ;
+        lockScreen();
+        puzzle.show() ;
+        label.setOpacity(0);
+        label.show() ;
+        unlockScreen();
+        waitForSecs(0.3f);
+
+        playSfxAudio("linesoff",false);
+        lockScreen();
+        for(OBControl p : pieces)
+            detachControl(p);
+        puzzle.setOpacity(1);
+        unlockScreen();
+        waitSFX();
+        waitForSecs(0.3f);
+
+        String word = currWord;
+        if(showText == SHOW_TEXT_NONE)
+        {
+            playAudio(word);
+        }
+        else
+        {
+            playSfxAudio("letteron",false);
+            lockScreen();
+            label.setOpacity(1);
+            label.show() ;
+            unlockScreen();
+            waitSFX();
+            waitForSecs(0.3f);
+            if(showText == SHOW_TEXT_INITIAL)
+            {
+                highlightLabel(label,true) ;
+                playFirstSoundOfWordId(currWord,(OBWord)componentDict.get(currWord));
+                waitForSecs(0.2f);
+                waitAudio();
+                waitForSecs(0.3f);
+                playAudio(word);
+                waitAudio();
+                highlightLabel(label,false) ;
+            }
+            else
+            {
+                OBWord rw = (OBWord) componentDict.get(currWord);
+                rw.properties.put("label",label);
+                highlightAndSpeakSyllablesForWord(rw);
+            }
+        }
+
+        waitAudio();
+        waitForSecs(1f);
+        currNo++;
+        nextScene();
     }
 
 }

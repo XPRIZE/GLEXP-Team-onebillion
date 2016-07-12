@@ -54,7 +54,7 @@ public class OBWord extends OBSyllable
     {
         if (!syllablesChecked)
         {
-            String partSylWordAudio = new String(soundID).replace("fc_", "fc_syl_");
+            String partSylWordAudio = new String(soundid).replace("fc_", "fc_syl_");
             List<List<Double>> sylTiming = OBUtils.ComponentTimingsForWord(partSylWordAudio + ".etpa");
             //
             if (sylTiming.size() > 0)
@@ -65,7 +65,7 @@ public class OBWord extends OBSyllable
                 {
                     OBSyllable sylCopy = syllable.copy();
                     sylCopy.timings = (List<Object>) (Object) sylTiming.get(index);
-                    sylCopy.soundID = partSylWordAudio;
+                    sylCopy.soundid = partSylWordAudio;
                     timingSyllables.add(sylCopy);
                     index++;
                 }
@@ -88,7 +88,7 @@ public class OBWord extends OBSyllable
                     phonemes.addAll(syllable.phonemes);
                 }
             }
-            String partPhoWordAudio = new String(soundID).replace("fc_", "fc_let_");
+            String partPhoWordAudio = new String(soundid).replace("fc_", "fc_let_");
             List<List<Double>> phoTiming = OBUtils.ComponentTimingsForWord(partPhoWordAudio + ".etpa");
             //
             if (phoTiming.size() > 0)
@@ -99,7 +99,7 @@ public class OBWord extends OBSyllable
                 {
                     OBPhoneme phoCopy = phoneme.copy();
                     phoCopy.timings = (List<Object>) (Object) phoTiming.get(index);
-                    phoCopy.soundID = partPhoWordAudio;
+                    phoCopy.soundid = partPhoWordAudio;
                     timingPhonemes.add(phoCopy);
                     index++;
                 }
@@ -119,7 +119,7 @@ public class OBWord extends OBSyllable
         {
             syllablesClone.add(syllable.copy());
         }
-        return new OBWord(text, soundID, timings, syllablesClone, imageName);
+        return new OBWord(text, soundid, timings, syllablesClone, imageName);
     }
 
 }
