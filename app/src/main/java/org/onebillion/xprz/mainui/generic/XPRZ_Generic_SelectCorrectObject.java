@@ -64,6 +64,8 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
         action_lowlight(target);
         //
         playAudioQueuedScene(currentEvent(), "FINAL", true);
+        //
+        nextScene();
     }
 
 
@@ -87,8 +89,6 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
             if (action_isAnswerCorrect(targ))
             {
                 action_answerIsCorrect(targ);
-                //
-                nextScene();
             }
             else
             {

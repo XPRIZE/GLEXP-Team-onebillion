@@ -114,6 +114,8 @@ public class X_AddTakeAway_S1 extends XPRZ_Generic_SelectCorrectObject
         {
             waitForSecs(0.7);
         }
+        //
+        nextScene();
     }
 
 

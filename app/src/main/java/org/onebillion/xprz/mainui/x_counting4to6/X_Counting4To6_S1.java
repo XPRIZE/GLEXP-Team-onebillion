@@ -58,6 +58,8 @@ public class X_Counting4To6_S1 extends XPRZ_Generic_SelectCorrectObject
         waitForSecs(0.7);
         //
         playSceneAudio("FINAL", true);
+        //
+        nextScene();
     }
 
 

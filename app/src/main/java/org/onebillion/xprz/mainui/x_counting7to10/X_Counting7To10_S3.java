@@ -50,6 +50,8 @@ public class X_Counting7To10_S3 extends XPRZ_Generic_SelectCorrectObject
         {
             waitForSecs(0.3);
         }
+        //
+        nextScene();
     }
 
 
