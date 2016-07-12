@@ -318,7 +318,14 @@ public class XPRZ_SectionController extends OBSectionController {
         return finger(startidx,endidx,targets,pt,false);
     }
 
+
     public OBControl finger(int startidx,int endidx,List<OBControl> targets,PointF pt,boolean filterDisabled)
+    {
+        return finger(startidx, endidx, targets, pt, filterDisabled, false);
+    }
+
+
+    public OBControl finger(int startidx,int endidx,List<OBControl> targets,PointF pt,boolean filterDisabled, boolean allowHidden)
     {
         for (int i = startidx;i <= endidx;i++)
         {
@@ -327,7 +334,7 @@ public class XPRZ_SectionController extends OBSectionController {
                 finger = fingers.get(i);
             for (OBControl c : targets)
             {
-                if (filterDisabled && !c.isEnabled() || c.hidden())
+                if (filterDisabled && !c.isEnabled() || (!allowHidden && c.hidden()))
                     continue;
                 PointF lpt = pt;
                 if (finger != null)
@@ -346,6 +353,8 @@ public class XPRZ_SectionController extends OBSectionController {
         }
         return null;
     }
+
+
 
     public void demoButtons() throws Exception
     {

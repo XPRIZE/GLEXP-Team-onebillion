@@ -206,7 +206,18 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
 
     public void action_prepareScene (String scene, Boolean redraw)
     {
-
+        for (OBControl control : filterControls(".*"))
+        {
+            control.setProperty("originalPosition", XPRZ_Generic.copyPoint(control.position()));
+            //
+            if (OBPath.class.isInstance(control))
+            {
+                OBPath path = (OBPath) control;
+                PointF position = path.getWorldPosition();
+                path.sizeToBoundingBoxIncludingStroke();
+                path.setPosition(position);
+            }
+        }
     }
 
 
@@ -249,7 +260,7 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
                 OBControl placedObject = contained.get(i);
                 animations.add(OBAnim.moveAnim(newPosition, placedObject));
             }
-            OBAnimationGroup.runAnims(animations, 0.3, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+            OBAnimationGroup.runAnims(animations, 0.15, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
         }
     }
 
