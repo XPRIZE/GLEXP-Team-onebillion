@@ -85,7 +85,8 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
 
     public void checkTarget (OBControl targ)
     {
-        setStatus(STATUS_CHECKING);
+        saveStatusClearReplayAudioSetChecking();
+        //
         try
         {
             action_highlight(targ);
@@ -98,7 +99,7 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
             {
                 action_answerIsWrong(targ);
                 //
-                setStatus(STATUS_AWAITING_CLICK);
+                revertStatusAndReplayAudio();
             }
         }
         catch (Exception exception)

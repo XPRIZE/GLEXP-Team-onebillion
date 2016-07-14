@@ -8,12 +8,14 @@ import android.view.View;
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBImage;
+import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.mainui.XPRZ_Tracer;
 import org.onebillion.xprz.utils.OBRunnableSyncUI;
 import org.onebillion.xprz.utils.OBUserPressedBackException;
 import org.onebillion.xprz.utils.OBUtils;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -34,6 +36,9 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
     protected OBImage dash;
     protected OBControl trace_arrow;
     private Boolean autoClean;
+
+    int savedStatus;
+    List<Object> savedReplayAudio;
 
     public XPRZ_Generic_Tracing (Boolean autoClean)
     {
@@ -108,10 +113,12 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
                 tracing_reset();
                 unlockScreen();
                 //
+                revertStatusAndReplayAudio();
                 setStatus(STATUS_WAITING_FOR_TRACE);
             }
             else
             {
+                revertStatusAndReplayAudio();
                 setStatus(STATUS_AWAITING_CLICK);
             }
         }
@@ -312,20 +319,34 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
 
     public void tracing_setup ()
     {
+        tracing_setup(null);
+    }
+
+    public void tracing_setup (final Integer number)
+    {
         new OBRunnableSyncUI()
         {
             public void ex ()
             {
+                String traceControl = (number == null) ? "trace" : String.format("trace_%d", number);
                 pathColour = Color.BLUE;
-                path1 = (OBGroup) objectDict.get("trace");
+                path1 = (OBGroup) objectDict.get(traceControl);
                 //
-                dash = (OBImage) objectDict.get("dash");
+                String dashControl = (number == null) ? "dash" : String.format("dash_%d", number);
+                dash = (OBImage) objectDict.get(dashControl);
+                if (dash != null)
+                {
+                    dash.show();
+                }
                 //
-                uPaths = tracing_processDigit(path1); // only one number to trace
-                subPaths = new ArrayList();
-                subPaths.addAll(tracing_subpathControlsFromPath("trace"));
-                path1.hide();
-                for (OBControl c : subPaths) c.hide();
+                if (path1 != null)
+                {
+                    uPaths = tracing_processDigit(path1); // only one number to trace
+                    subPaths = new ArrayList();
+                    subPaths.addAll(tracing_subpathControlsFromPath(traceControl));
+                    path1.hide();
+                    for (OBControl c : subPaths) c.hide();
+                }
             }
         }.run();
     }
@@ -398,7 +419,7 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
         {
             if (++subPathIndex >= subPaths.size())
             {
-                setStatus(STATUS_CHECKING);
+                saveStatusClearReplayAudioSetChecking();
                 //
                 action_answerIsCorrect();
             }
@@ -412,6 +433,7 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
                     segmentIndex = 0;
                     positionArrow();
                 }
+                revertStatusAndReplayAudio();
                 setStatus(STATUS_WAITING_FOR_TRACE);
             }
         }
@@ -494,8 +516,8 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
 
     public void checkTraceStart (PointF pt)
     {
-        int saveStatus = status();
-        setStatus(STATUS_CHECKING);
+        saveStatusClearReplayAudioSetChecking();
+        //
         boolean ok = pointInSegment(pt, segmentIndex);
         if (!ok && currentTrace != null)
         {
@@ -518,11 +540,12 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
                 PointF cpt = convertPointToControl(pt, currentTrace);
                 currentTrace.addLineToPoint(cpt.x, cpt.y);
             }
+            revertStatusAndReplayAudio();
             setStatus(STATUS_TRACING);
         }
         else
         {
-            setStatus(saveStatus);
+            revertStatusAndReplayAudio();
         }
     }
 
@@ -531,7 +554,8 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
     {
         if (status() == STATUS_TRACING)
         {
-            setStatus(STATUS_CHECKING);
+            saveStatusClearReplayAudioSetChecking();
+            //
             effectMoveToPoint(pt);
             if (finished)
             {
@@ -546,6 +570,7 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
             }
             else
             {
+                revertStatusAndReplayAudio();
                 setStatus(STATUS_WAITING_FOR_TRACE);
             }
         }
@@ -561,24 +586,45 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
     }
 
 
+    public Boolean performTouchDown(PointF pt)
+    {
+        try
+        {
+            Method m = this.getClass().getMethod("action_touchDown", PointF.class);
+            m.invoke(this, pt);
+            return true;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+
+
     public void touchDownAtPoint (PointF pt, View v)
     {
         if (status() == STATUS_AWAITING_CLICK)
         {
-            OBControl dash = objectDict.get("dash");
-            OBControl closestTarget = finger(-1, 2, filterControls("dash"), pt);
-            if (closestTarget != null)
+            if (!performTouchDown(pt))
             {
-                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                List<OBControl> controls = new ArrayList();
+                if (dash != null) controls.add(dash);
+                OBControl closestTarget = finger(-1, 2, controls, pt);
+                if (closestTarget != null)
                 {
-                    @Override
-                    public void run () throws Exception
+                    OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                     {
-                        tracing_reset();
-                        tracing_position_arrow();
-                        setStatus(STATUS_WAITING_FOR_TRACE);
-                    }
-                });
+                        @Override
+                        public void run () throws Exception
+                        {
+                            tracing_reset();
+                            tracing_position_arrow();
+                            setStatus(STATUS_WAITING_FOR_TRACE);
+                        }
+                    });
+                }
             }
         }
         else if (status() == STATUS_WAITING_FOR_TRACE)
@@ -591,6 +637,56 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
     public String action_getScenesProperty ()
     {
         return "scenes";
+    }
+
+
+    // Miscelaneous Functions
+    public void playSceneAudio (String scene, Boolean wait) throws Exception
+    {
+        playAudioQueuedScene(currentEvent(), scene, wait);
+        if (!wait) waitForSecs(0.01);
+    }
+
+    public void playSceneAudioIndex (String scene, int index, Boolean wait) throws Exception
+    {
+        playAudioQueuedSceneIndex(currentEvent(), scene, index, wait);
+        if (!wait) waitForSecs(0.01);
+    }
+
+
+    public OBLabel action_createLabelForControl (OBControl control)
+    {
+        return action_createLabelForControl(control, 1.0f, false);
+    }
+
+
+    public OBLabel action_createLabelForControl (OBControl control, float finalResizeFactor)
+    {
+        return action_createLabelForControl(control, finalResizeFactor, true);
+    }
+
+
+    public OBLabel action_createLabelForControl (OBControl control, float finalResizeFactor, Boolean insertIntoGroup)
+    {
+        return XPRZ_Generic.action_createLabelForControl(control, finalResizeFactor, insertIntoGroup, this);
+    }
+
+
+    // CHECKING functions
+
+    public void saveStatusClearReplayAudioSetChecking()
+    {
+        savedStatus = status();
+        setStatus(STATUS_CHECKING);
+        //
+        savedReplayAudio = _replayAudio;
+        setReplayAudio(null);
+    }
+
+    public void revertStatusAndReplayAudio()
+    {
+        setStatus(savedStatus);
+        setReplayAudio(savedReplayAudio);
     }
 
 }

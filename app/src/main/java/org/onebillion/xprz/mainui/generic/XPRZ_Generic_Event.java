@@ -19,6 +19,7 @@ import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OBXMLManager;
 import org.onebillion.xprz.utils.OBXMLNode;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -34,6 +35,8 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     public static float FIRST_REMINDER_DELAY = 6.0f;
     public static float SECOND_REMINDER_DELAY = 4.0f;
     int currentDemoAudioIndex;
+    int savedStatus;
+    List<Object> savedReplayAudio;
 
     public XPRZ_Generic_Event ()
     {
@@ -339,75 +342,9 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     }
 
 
-
     public OBLabel action_createLabelForControl (OBControl control, float finalResizeFactor, Boolean insertIntoGroup)
     {
-        try
-        {
-            Boolean autoResize = eventAttributes.get("textSize") == null;
-            float textSize = 1;
-            //
-            if (!autoResize)
-            {
-                textSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("textSize")));
-            }
-            String content = (String) control.attributes().get("text");
-            if (content == null) content = (String) control.attributes().get("number");
-            if (content == null) content = "";
-            //
-            Typeface tf = OBUtils.standardTypeFace();
-            OBLabel label = new OBLabel(content, tf, textSize);
-            //
-            if (autoResize)
-            {
-                OBTextLayer textLayer = (OBTextLayer) label.layer;
-                textLayer.sizeToBoundingBox();
-                while (label.height() > 0 && label.height() < control.bounds.height())
-                {
-                    textLayer.setTextSize(textLayer.textSize() + 1);
-                    textLayer.sizeToBoundingBox();
-                }
-                //
-                textLayer.setTextSize(textLayer.textSize() * finalResizeFactor);
-                textLayer.sizeToBoundingBox();
-            }
-            //
-            label.setPosition(control.position());
-            label.setZPosition(XPRZ_Generic.getNextZPosition(this));
-            label.texturise(false, this);
-            //
-            if (insertIntoGroup)
-            {
-                if (OBGroup.class.isInstance(control))
-                {
-                    OBGroup group = (OBGroup) control;
-                    attachControl(label);
-                    group.insertMember(label, 0, "label");
-                }
-                else
-                {
-                    OBGroup group = new OBGroup(Arrays.asList(control, label));
-                    attachControl(group);
-                    group.objectDict.put("frame", control);
-                    group.objectDict.put("label", label);
-                    String controlID = (String) control.attributes().get("id");
-                    objectDict.put(controlID, group);
-                    String components[] = controlID.split("_");
-                    String labelID = "label_" + components[1];
-                    objectDict.put(labelID, label);
-                }
-            }
-            else
-            {
-                attachControl(label);
-            }
-            return label;
-        }
-        catch (Exception e)
-        {
-            System.out.println("XPRZ_Generic_Event:action_createLabelForControl:exception" + e.toString());
-        }
-        return null;
+        return XPRZ_Generic.action_createLabelForControl(control, finalResizeFactor, insertIntoGroup, this);
     }
 
 
@@ -443,6 +380,25 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     {
         playAudioQueuedSceneIndex(currentEvent(), scene, index, wait);
         if (!wait) waitForSecs(0.01);
+    }
+
+
+
+    // CHECKING functions
+
+    public void saveStatusClearReplayAudioSetChecking()
+    {
+        savedStatus = status();
+        setStatus(STATUS_CHECKING);
+        //
+        savedReplayAudio = _replayAudio;
+        setReplayAudio(null);
+    }
+
+    public void revertStatusAndReplayAudio()
+    {
+        setStatus(savedStatus);
+        setReplayAudio(savedReplayAudio);
     }
 
 }

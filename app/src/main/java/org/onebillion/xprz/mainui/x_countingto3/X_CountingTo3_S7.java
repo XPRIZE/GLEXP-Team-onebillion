@@ -1,12 +1,20 @@
 package org.onebillion.xprz.mainui.x_countingto3;
 
+import android.graphics.Color;
+import android.graphics.PointF;
+
+import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
+import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic_Tracing;
+import org.onebillion.xprz.utils.OBAnim;
+import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -15,10 +23,10 @@ import java.util.List;
 public class X_CountingTo3_S7 extends XPRZ_Generic_Tracing
 {
 
-    List numberSequence;
+    List<Integer> numberSequence;
     int sequenceIndex;
 
-    public X_CountingTo3_S7()
+    public X_CountingTo3_S7 ()
     {
         super(false);
     }
@@ -35,201 +43,183 @@ public class X_CountingTo3_S7 extends XPRZ_Generic_Tracing
         //
         deleteControls("trace");
         deleteControls("dash");
+        //
+        if (redraw)
+        {
+            int numberColour = OBUtils.colorFromRGBString(eventAttributes.get("font_colour"));
+            for (OBControl label : filterControls("label.*"))
+            {
+                OBLabel number = action_createLabelForControl(label, 1.2f, false);
+                number.setColour(numberColour);
+                label.hide();
+            }
+        }
     }
 
-    public void action_flashButton(Boolean turnedOn) throws Exception
+    public void action_flashButton (Boolean turnedOn) throws Exception
     {
         if (status() == STATUS_AWAITING_CLICK)
         {
-            OBGroup button = (OBGroup) objectDict.get("button");
+            OBGroup wheel = (OBGroup) objectDict.get("wheel");
+            OBControl button = wheel.objectDict.get("button");
             XPRZ_Generic.colourObject(button, OBUtils.colorFromRGBString((turnedOn) ? eventAttributes.get("button_on") : eventAttributes.get("button_off")));
             waitForSecs(0.6);
             action_flashButton(!turnedOn);
         }
     }
 
-    public void action_spinWheel(int number)
+    public void action_spinWheel (final int number) throws Exception
     {
-//        OBControl wheel = objectDict.get("wheel");
-//        OContro
+        OBGroup wheel = (OBGroup) objectDict.get("wheel");
+        OBControl arrow = wheel.objectDict.get("arrow");
+        Integer previousNumber = (Integer) arrow.propertyValue("previousNumber");
+        float angle = 90 * number;
+        if (previousNumber != null)
+        {
+            angle += Math.toDegrees(arrow.rotation()) - 90 * previousNumber;
+        }
+        arrow.setProperty("previousNumber", number);
+        OBAnim rotateAnim = OBAnim.rotationAnim((float) Math.toRadians(1440 + angle), arrow);
+        playSfxAudio("wheel_spin", false);
+        OBAnimationGroup.runAnims(Arrays.asList(rotateAnim), 1.0 + (0.1 * number), false, OBAnim.ANIM_EASE_IN_EASE_OUT, new OBUtils.RunLambda()
+        {
+            @Override
+            public void run () throws Exception
+            {
+                playSfxAudio("wheel_stop", false);
+                //
+                action_updateProgress();
+                tracing_setup(number);
+                //
+                if (sequenceIndex == 0)
+                {
+                    List<String> replayAudioList = getAudioForScene(currentEvent(), "REPEAT2");
+                    List replayAudio = new ArrayList();
+                    replayAudio.add(replayAudioList.get(0));
+                    setReplayAudio(replayAudio);
+                    playSceneAudioIndex("PROMPT2", 0, false);
+                }
+                else
+                {
+                    List<String> replayAudioList = getAudioForScene(currentEvent(), "REPEAT2");
+                    List replayAudio = new ArrayList();
+                    replayAudio.add(replayAudioList.get(1));
+                    setReplayAudio(replayAudio);
+                    playSceneAudioIndex("PROMPT2", 1, false);
+                }
+                //
+                setStatus(STATUS_WAITING_FOR_TRACE);
+            }
+        }, this);
+    }
+
+    public void action_updateProgress ()
+    {
+        lockScreen();
+        for (OBControl control : filterControls("progress.*"))
+        {
+            XPRZ_Generic.colourObject(control, OBUtils.colorFromRGBString(eventAttributes.get("progress_off")));
+        }
+        for (int i = 0; i <= sequenceIndex; i++)
+        {
+            OBControl control = objectDict.get(String.format("progress_%d", i));
+            XPRZ_Generic.colourObject(control, OBUtils.colorFromRGBString(eventAttributes.get("progress_on")));
+        }
+        unlockScreen();
     }
 
 
-
-}
-
-
-
-/*
-
-
--(void)animate_spinWheel:(int) number
-{
-    OBGroup *wheel = self.objectDict[@"wheel"];
-    OBGroup *arrow = wheel.objectDict[@"arrow"];
-    int angle = 0 + 90 * number;
-    OBAnim *rotateAnim = [OBAnim rotationAnim:RADIANS(1440+angle) obj:arrow];
-    //
-    [self playSfxAudio:@"wheel_spin" wait:NO];
-    [OBAnimationGroup runAnims:@[rotateAnim] duration:1.0+(0.1*number) wait:YES timingFunction:ANIM_LINEAR completionBlock:^{
-        [self playSfxAudio:@"wheel_stop" wait:NO];
-    }];
-}
-
-
-
--(void)prepareScene
-{
-    DoBlockWithScreenLocked(^{
-        NSArray *oldObjs = [self filterControls:@".*"];
-
-        [super setSceneXX:[self currentEvent]];
-
-        if([self.eventAttributes[@"redraw"] isEqual:@"true"])
-        {
-            for(OBControl *obj in oldObjs)
-            {
-                [self detachControl:obj];
-            }
-            UIColor *numberColour = uicolorFromRGBString(self.eventAttributes[@"font_colour"]);
-            for (OBControl *label in [self filterControls:@"label.*"])
-            {
-                OBLabel *number = [self createLabelForNumberBox:label finalResizeFactor:1.2];
-                number.colour = numberColour;
-                [self attachControl:number];
-            }
-        }
-    });
-    [self statusSetLocked];
-}
-
-
--(void)demo7a
-{
-    [self statusSetLocked];
-    [self loadPointer:POINTER_MIDDLE];
-    //
-    [self playSceneAudio:@"DEMO" atIndex:0 wait:NO]; //Look
-    OBGroup *wheel = self.objectDict[@"wheel"];
-    OBGroup *button = wheel.objectDict[@"button"];
-    [self movePointerToObject:button anchor:ANCHOR_BOTTOM rotation:-15 time:0.6 wait:YES];
-    //
-    [self playSceneAudio:@"PROMPT" atIndex:sequenceIndex wait:NO];
-    [self setReplayAudio:InsertAudioInterval(audioScenes[[self currentEvent]][@"REPEAT"][sequenceIndex], 300)];
-    //
-    [self waitAudio];
-    [thePointer hide];
-    //
-    [self statusSetWaitClick];
-    [self animate_flashButton];
-}
-
-
-
--(void) showSequenceProgress
-{
-    DoBlockWithScreenLocked(^{
-        NSArray *controls = [self filterControls:@"progress.*"];
-        for(OBGroup *control in controls)
-        {
-            [self colourObjectWith:control colourRGB:self.eventAttributes[@"progress_off"]];
-        }
-        //
-        for(int i = 0; i <= sequenceIndex; i++)
-        {
-            OBGroup *progress = self.objectDict[[NSString stringWithFormat:@"progress_%d", i]];
-            [self colourObjectWith:progress colourRGB:self.eventAttributes[@"progress_on"]];
-        }
-    });
-}
-
-
-
--(void)touchDownAtPoint:(CGPoint)pt view:(UIView*)v
-{
-    DoSafeBlockOnThread(^{
-        if([self statusWaitTrace])
-        {
-            [self checkTraceStart:pt];
-        } else if ([self statusWaitClick])
-        {
-            [self checkButtonClick:pt];
-        }
-    });
-}
-
-
--(void)checkButtonClick:(CGPoint)pt
-{
-    OBGroup *wheel = self.objectDict[@"wheel"];
-    OBGroup *button = wheel.objectDict[@"button"];
-    OBControl *c =[self finger:0 to:1 objects:@[button] point:pt filterDisabled:NO];
-    if (c)
+    public void action_touchDown (PointF pt)
     {
-        [self statusSetWaitTrace];
-        int number = [numberSequence[sequenceIndex] intValue];
-        [self animate_spinWheel:number];
-        [self showSequenceProgress];
-        [self setUpTracing:number];
-        if (sequenceIndex == 0)
+        try
         {
-            [self playSceneAudio:@"PROMPT2" atIndex:0 wait:NO];
-            [self setReplayAudio:InsertAudioInterval(audioScenes[[self currentEvent]][@"REPEAT2"][0], 300)];
-        } else {
-            [self playSceneAudio:@"PROMPT2" atIndex:1 wait:NO];
-            [self setReplayAudio:InsertAudioInterval(audioScenes[[self currentEvent]][@"REPEAT2"][1], 300)];
-        }
-    }
-}
-
-
-
-
--(void)nextSubpath
-{
-    @try
-    {
-        if (++subPathIndex >= [subPaths count])
-        {
-            [self gotItRightBigTick:YES];
-            [self.target hide];
-            self.targets = [self.targets arrayByRemovingObject:self.target];
-            int number = [numberSequence[sequenceIndex] intValue];
-            [self playSceneAudio:@"CORRECT" atIndex:number wait:YES];
-            [self waitForSecs:0.3];
+            saveStatusClearReplayAudioSetChecking();
             //
-            if (sequenceIndex == [numberSequence count] - 1)
+            OBGroup wheel = (OBGroup) objectDict.get("wheel");
+            OBControl button = wheel.objectDict.get("button");
+            OBControl c = finger(-1, 2, Arrays.asList(button), pt);
+            if (c != null)
             {
-                [self playSceneAudio:@"FINAL" wait:YES];
-                [self waitForSecs:0.3];
-                [self nextScene];
-            } else {
-                DoBlockWithScreenLocked(^{
-                    [self resetTracing];
-                    [dash hide];
-                });
-                sequenceIndex++;
-                [self playSceneAudio:@"PROMPT" atIndex:sequenceIndex wait:NO];
-                [self setReplayAudio:InsertAudioInterval(audioScenes[[self currentEvent]][@"REPEAT"][sequenceIndex], 300)];
-                [self statusSetWaitClick];
-                [self animate_flashButton];
+                int number = numberSequence.get(sequenceIndex);
+                action_spinWheel(number);
             }
+            else
+            {
+                revertStatusAndReplayAudio();
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void action_answerIsCorrect () throws Exception
+    {
+        gotItRightBigTick(true);
+        //
+        int number = numberSequence.get(sequenceIndex);
+        playSceneAudioIndex("CORRECT", number, true);
+        waitForSecs(0.3);
+        //
+        if (sequenceIndex == numberSequence.size() - 1)
+        {
+            playSceneAudio("FINAL", true);
+            waitForSecs(0.3);
+            //
+            nextScene();
         }
         else
         {
-            if (currentTrace)
+            lockScreen();
+            if (dash != null) dash.hide();
+            tracing_reset();
+            unlockScreen();
+            //
+            sequenceIndex++;
+            List<String> replayAudioList = getAudioForScene(currentEvent(), "REPEAT");
+            List replayAudio = new ArrayList();
+            replayAudio.add(replayAudioList.get(sequenceIndex));
+            setReplayAudio(replayAudio);
+            //
+            playSceneAudioIndex("PROMPT", sequenceIndex, false);
+            setStatus(STATUS_AWAITING_CLICK);
+            //
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
-                [doneTraces addObject:currentTrace];
-                currentTrace = nil;
-                currDrawingPath = nil;
-                finished = NO;
-                segmentIndex = 0;
-                [self positionArrow];
-            }
+                @Override
+                public void run () throws Exception
+                {
+                    action_flashButton(true);
+                }
+            });
         }
     }
-    @catch (NSException *exception) {
-    }
-}
 
- */
+
+    public void demo7a () throws Exception
+    {
+        setStatus(STATUS_DOING_DEMO);
+        loadPointer(POINTER_MIDDLE);
+        //
+        action_playNextDemoSentence(false); // Look
+        OBGroup wheel = (OBGroup) objectDict.get("wheel");
+        OBControl button = wheel.objectDict.get("button");
+        XPRZ_Generic.pointer_moveToObject(button, -15, 0.6f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_BOTTOM), true, this);
+        //
+        List<String> replayAudioList = getAudioForScene(currentEvent(), "REPEAT");
+        List replayAudio = new ArrayList();
+        replayAudio.add(replayAudioList.get(sequenceIndex));
+        setReplayAudio(replayAudio);
+        //
+        playSceneAudioIndex("PROMPT", sequenceIndex, true);
+        //
+        thePointer.hide();
+        //
+        setStatus(STATUS_AWAITING_CLICK);
+        action_flashButton(true);
+    }
+
+
+}
