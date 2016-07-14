@@ -93,6 +93,7 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
                 }
                 catch (OBUserPressedBackException e)
                 {
+                    stopAllAudio();
                     throw e;
                 }
                 catch (Exception e)

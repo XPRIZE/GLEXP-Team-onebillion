@@ -8,15 +8,16 @@ import java.io.File;
 public class OBExpansionFile
 {
 
-    public String id, type;
+    public String id, bundle, destination;
     public int version;
     public File folder;
 
-    public OBExpansionFile(String id, String type, int version, File folder)
+    public OBExpansionFile(String id, String bundle, String destination, int version, File folder)
     {
         super();
         this.id = id;
-        this.type = type;
+        this.bundle = bundle;
+        this.destination = destination;
         this.version = version;
         this.folder = folder;
     }

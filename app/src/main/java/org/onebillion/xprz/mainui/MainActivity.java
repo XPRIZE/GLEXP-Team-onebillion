@@ -10,14 +10,17 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ConfigurationInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Typeface;
 import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -398,8 +401,15 @@ public class MainActivity extends Activity
         OBXMLManager xmlManager = new OBXMLManager();
         config = (Map<String, Object>) xmlManager.parsePlist(pis);
 
-        float h = getResources().getDisplayMetrics().heightPixels;
-        float w = getResources().getDisplayMetrics().widthPixels;
+//        float h = getResources().getDisplayMetrics().heightPixels;
+//        float w = getResources().getDisplayMetrics().widthPixels;
+        //
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getRealSize(size);
+        float h = size.y;
+        float w = size.x;
+        //
         if (h > w)
         {
             float temp = w;
