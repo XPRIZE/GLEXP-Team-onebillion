@@ -400,25 +400,11 @@ public class MainActivity extends Activity
         pis = getAssets().open("config/settings.plist");
         OBXMLManager xmlManager = new OBXMLManager();
         config = (Map<String, Object>) xmlManager.parsePlist(pis);
-
-//        float h = getResources().getDisplayMetrics().heightPixels;
-//        float w = getResources().getDisplayMetrics().widthPixels;
         //
-        Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getRealSize(size);
-        float h = size.y;
-        float w = size.x;
+        float h = getResources().getDisplayMetrics().heightPixels;
+        float w = getResources().getDisplayMetrics().widthPixels;
+        updateGraphicScale(w, h);
         //
-        if (h > w)
-        {
-            float temp = w;
-            w = h;
-            h = temp;
-        }
-        float graphicScale = h / 768;
-        config.put(CONFIG_GRAPHIC_SCALE, graphicScale);
-
         config.put(CONFIG_DEFAULT_LANGUAGE, configStringForKey(CONFIG_LANGUAGE));
         config.put(CONFIG_LEFT_BUTTON_POS, new PointF(0.0677f, 0.075f));
         config.put(CONFIG_RIGHT_BUTTON_POS, new PointF(0.9323f, 0.075f));
@@ -452,6 +438,20 @@ public class MainActivity extends Activity
         Constructor<?> cons = aClass.getConstructor();
         fatController = (OBFatController) cons.newInstance();
     }
+
+
+    public void updateGraphicScale(float newWidth, float newHeight)
+    {
+        if (newHeight > newWidth)
+        {
+            float temp = newWidth;
+            newWidth = newHeight;
+            newHeight = temp;
+        }
+        float graphicScale = newHeight / 768;
+        config.put(CONFIG_GRAPHIC_SCALE, graphicScale);
+    }
+
 
     void retrieveUsers ()
     {
