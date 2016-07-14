@@ -814,6 +814,19 @@ public class OBGroup extends OBControl
             canvas.saveLayerAlpha(bounds(), (int) (opacity() * 255));
         for (OBControl c : sortedAttachedControls)
             c.draw(canvas);
+        if (maskControl != null)
+        {
+            Paint p = new Paint();
+            p.setXfermode(new PorterDuffXfermode(maskControlReversed ? PorterDuff.Mode.DST_OUT : PorterDuff.Mode.DST_IN));
+            float fw = (bounds().right - bounds().left) * Math.abs(rasterScale);
+            float fh = (bounds().bottom - bounds().top) * Math.abs(rasterScale);
+            int width = (int) Math.ceil(fw);
+            int height = (int) Math.ceil(fh);
+            canvas.saveLayer(0, 0, width, height, p, Canvas.ALL_SAVE_FLAG);
+            maskControl.draw(canvas);
+            canvas.restore();
+        }
+
         if (needsRestore)
             canvas.restore();
     }

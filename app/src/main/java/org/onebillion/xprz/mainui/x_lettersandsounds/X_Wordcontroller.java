@@ -1,13 +1,16 @@
 package org.onebillion.xprz.mainui.x_lettersandsounds;
 
 import android.graphics.Color;
+import android.graphics.PointF;
 import android.os.SystemClock;
 
+import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.utils.OBSyllable;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OBWord;
+import org.onebillion.xprz.utils.OB_Maths;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,6 +21,26 @@ import java.util.List;
 public class X_Wordcontroller extends XPRZ_SectionController
 {
     boolean needDemo;
+
+    public void start()
+    {
+        setStatus(0);
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        {
+            public void run() throws Exception
+            {
+                try
+                {
+                    if(!performSel("demo",currentEvent()) )
+                    {
+                        doBody(currentEvent());
+                    }
+                }
+                catch(Exception exception) {
+                }
+            }
+        });
+    }
 
     public long switchStatus(String scene)
     {
@@ -139,5 +162,6 @@ public class X_Wordcontroller extends XPRZ_SectionController
             lab.setHighRange(-1,-1,Color.BLACK);
         unlockScreen();
     }
+
 
 }

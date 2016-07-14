@@ -42,7 +42,7 @@ public class XPRZ_SectionController extends OBSectionController {
 
     public List<OBControl> targets, fingers;
     public Map<String,OBAnimationGroup> animations = new HashMap<>();
-    PointF dragOffset;
+    public PointF dragOffset;
     long animToken;
     boolean needsRounding;
 
