@@ -26,6 +26,8 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.onebillion.xprz.R;
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
@@ -89,6 +91,7 @@ public class MainActivity extends Activity
     public OBFatController fatController;
     public OBGLView glSurfaceView;
     public OBRenderer renderer;
+    public ReentrantLock suspendLock = new ReentrantLock();
     private int b;
 
     public static OBGroup armPointer ()
@@ -462,6 +465,7 @@ public class MainActivity extends Activity
             glSurfaceView.onPause();
         }
         unregisterReceiver(OBExpansionManager.sharedManager.downloadCompleteReceiver);
+        suspendLock.lock();
     }
 
     @Override
@@ -474,6 +478,7 @@ public class MainActivity extends Activity
             glSurfaceView.onResume();
         }
         registerReceiver(OBExpansionManager.sharedManager.downloadCompleteReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+        suspendLock.unlock();
     }
 
 

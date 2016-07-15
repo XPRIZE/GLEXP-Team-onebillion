@@ -458,5 +458,15 @@ public class OB_Maths
             return OB_Maths.locationForRect(x,y, control.parent.convertRectToControl(control.frame(),null));
     }
 
+    public static float PolygonArea(PointF points[],int count)
+    {
+        float area = 0.0f;
+        for(int i = 0;i < count;i++)
+        {
+            int j =(i + 1)%count;
+            area +=((points[i].x * points[j].y)-(points[j].x*points[i].y));
+        }
+        return area / 2.0f;
+    }
 
 }
