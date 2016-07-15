@@ -115,16 +115,16 @@ public class X_Wordcontroller extends XPRZ_SectionController
             int rangelocation = 0,rangelength = 0;
             for (OBSyllable syllable : w.syllables())
             {
-                long currTime = SystemClock.uptimeMillis() - startTime;
+                double currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
                 List<Double> timing = timings.get(i);
                 double timeStart = timing.get(0);
                 double timeEnd = timing.get(1);
-                double waitTime = timeStart - currTime / 1000.0;
+                double waitTime = timeStart - currTime;
                 if (waitTime > 0.0)
                     waitForSecs(waitTime);
                 rangelength = syllable.text.length();
                 highlightWrd(w,rangelocation,rangelocation+rangelength,true);
-                currTime = SystemClock.uptimeMillis() - startTime;
+                currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
                 waitTime = timeEnd - currTime;
                 if (waitTime > 0.0)
                     waitForSecs(waitTime);
@@ -135,9 +135,9 @@ public class X_Wordcontroller extends XPRZ_SectionController
                 i++;
             }
             waitForSecs(0.3f);
-            highlightWrd(w,rangelocation,rangelocation+rangelength,true);
+            highlightWrd(w,0,w.text.length(),true);
             playAudioQueued(Collections.singletonList((Object)wordID),true);
-            highlightWrd(w,rangelocation,rangelocation+rangelength,false);
+            highlightWrd(w,0,w.text.length(),false);
             waitForSecs(0.3f);
         }
         catch (Exception exception)

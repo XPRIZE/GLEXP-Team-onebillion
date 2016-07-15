@@ -208,7 +208,7 @@ public class OBControl
             layer.setOpacity(f);
         invalidate();
 
-        if (hasTexturedParent())
+        //if (hasTexturedParent())
             setNeedsRetexture();
 
     }

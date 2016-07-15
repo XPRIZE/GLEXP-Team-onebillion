@@ -488,7 +488,14 @@ public class MainActivity extends Activity
             glSurfaceView.onResume();
         }
         registerReceiver(OBExpansionManager.sharedManager.downloadCompleteReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
-        suspendLock.unlock();
+        try
+        {
+            suspendLock.unlock();
+        }
+        catch (Exception e)
+        {
+
+        }
     }
 
 
