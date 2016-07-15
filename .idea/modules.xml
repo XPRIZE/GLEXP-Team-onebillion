@@ -3,8 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/XPRIZE-ob-android.iml" filepath="$PROJECT_DIR$/XPRIZE-ob-android.iml" />
-      <module fileurl="file://$PROJECT_DIR$/XPRIZE-pedro.iml" filepath="$PROJECT_DIR$/XPRIZE-pedro.iml" />
-      <module fileurl="file://$PROJECT_DIR$/XprappGL.iml" filepath="$PROJECT_DIR$/XprappGL.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
