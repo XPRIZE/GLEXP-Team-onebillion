@@ -1583,6 +1583,7 @@ public class OBControl
                 rotation = rt;
                 frameValid = false;
                 invalidate();
+                setNeedsRetexture();
             }
         }.run();
     }
@@ -1848,6 +1849,11 @@ public class OBControl
 
     public Map<String, Object> attributes ()
     {
+        Map<String, Object> result = (Map<String, Object>) settings.get("attrs");
+        if (result == null)
+        {
+            settings.put("attrs", new HashMap<String, Object>());
+        }
         return (Map<String, Object>) settings.get("attrs");
     }
 

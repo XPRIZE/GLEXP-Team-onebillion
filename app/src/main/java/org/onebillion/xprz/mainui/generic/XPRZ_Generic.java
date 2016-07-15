@@ -2,13 +2,16 @@ package org.onebillion.xprz.mainui.generic;
 
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.os.SystemClock;
 import android.telephony.SmsMessage;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
+import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.controls.OBShapeLayer;
+import org.onebillion.xprz.controls.OBTextLayer;
 import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.OBSectionController;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
@@ -22,6 +25,7 @@ import org.onebillion.xprz.utils.ULine;
 import org.onebillion.xprz.utils.UPath;
 import org.onebillion.xprz.utils.USubPath;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,6 +42,15 @@ import java.util.regex.Pattern;
  */
 public class XPRZ_Generic
 {
+
+
+    public static void pointer_nudge(float x, float y, float angle, float time, Boolean wait, XPRZ_SectionController sc)
+    {
+        PointF relativePosition = OB_Maths.relativePointInRectForLocation(sc.thePointer.position(), new RectF(sc.bounds()));
+        PointF nudge = OB_Maths.locationForRect(OB_Maths.AddPoints(relativePosition, new PointF(x, y)), new RectF(sc.bounds()));
+        sc.movePointerToPoint(nudge, angle, time, wait);
+    }
+
     public static void pointer_moveToObjectByName(String controlName, float angle, float secs, EnumSet<Anchor> anchorFlags, Boolean wait, XPRZ_SectionController sc)
     {
         OBControl control = sc.objectDict.get(controlName);
@@ -303,4 +316,77 @@ public class XPRZ_Generic
             this.anchor = 1 << this.ordinal();
         }
     }
+
+
+
+    public static OBLabel action_createLabelForControl (OBControl control, float finalResizeFactor, Boolean insertIntoGroup, XPRZ_SectionController sc)
+    {
+        try
+        {
+            Boolean autoResize = sc.eventAttributes.get("textSize") == null;
+            float textSize = 1;
+            //
+            if (!autoResize)
+            {
+                textSize = sc.applyGraphicScale(Float.parseFloat(sc.eventAttributes.get("textSize")));
+            }
+            String content = (String) control.attributes().get("text");
+            if (content == null) content = (String) control.attributes().get("number");
+            if (content == null) content = "";
+            //
+            Typeface tf = OBUtils.standardTypeFace();
+            OBLabel label = new OBLabel(content, tf, textSize);
+            //
+            if (autoResize)
+            {
+                OBTextLayer textLayer = (OBTextLayer) label.layer;
+                textLayer.sizeToBoundingBox();
+                while (label.height() > 0 && label.height() < control.bounds.height())
+                {
+                    textLayer.setTextSize(textLayer.textSize() + 1);
+                    textLayer.sizeToBoundingBox();
+                }
+                //
+                textLayer.setTextSize(textLayer.textSize() * finalResizeFactor);
+                textLayer.sizeToBoundingBox();
+            }
+            //
+            label.setPosition(control.position());
+            label.setZPosition(XPRZ_Generic.getNextZPosition(sc));
+            label.texturise(false, sc);
+            //
+            if (insertIntoGroup)
+            {
+                if (OBGroup.class.isInstance(control))
+                {
+                    OBGroup group = (OBGroup) control;
+                    sc.attachControl(label);
+                    group.insertMember(label, 0, "label");
+                }
+                else
+                {
+                    OBGroup group = new OBGroup(Arrays.asList(control, label));
+                    sc.attachControl(group);
+                    group.objectDict.put("frame", control);
+                    group.objectDict.put("label", label);
+                    String controlID = (String) control.attributes().get("id");
+                    sc.objectDict.put(controlID, group);
+                    String components[] = controlID.split("_");
+                    String labelID = "label_" + components[1];
+                    sc.objectDict.put(labelID, label);
+                }
+            }
+            else
+            {
+                sc.attachControl(label);
+            }
+            return label;
+        }
+        catch (Exception e)
+        {
+            System.out.println("XPRZ_Generic_Event:action_createLabelForControl:exception" + e.toString());
+        }
+        return null;
+    }
+
 }

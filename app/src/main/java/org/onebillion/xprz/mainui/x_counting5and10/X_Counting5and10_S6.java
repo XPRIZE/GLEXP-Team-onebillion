@@ -319,7 +319,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
 
     public void checkDot (OBControl dot)
     {
-        setStatus(STATUS_CHECKING);
+        saveStatusClearReplayAudioSetChecking();
         //
         OBControl correctDot = objectDict.get(String.format("dot_%d", currentAnswer));
         String dotID = (String) dot.attributes().get("id");
@@ -364,7 +364,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
                 }
                 else
                 {
-                    setStatus(STATUS_AWAITING_CLICK);
+                    revertStatusAndReplayAudio();
                 }
             }
             else
@@ -382,7 +382,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
                 selectedNumber.setColour(Color.BLACK);
                 unlockScreen();
                 //
-                setStatus(STATUS_AWAITING_CLICK);
+                revertStatusAndReplayAudio();
             }
         }
         catch (Exception e)
@@ -401,7 +401,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
 
     public void checkPaintPot (OBControl paintpot)
     {
-        setStatus(STATUS_CHECKING);
+        saveStatusClearReplayAudioSetChecking();
         //
         try
         {
@@ -416,7 +416,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
             //
             selectedColour = OBUtils.colorFromRGBString((String) paintpot.attributes().get("fill"));
             //
-            setStatus(STATUS_AWAITING_CLICK);
+            revertStatusAndReplayAudio();
         }
         catch (Exception e)
         {
@@ -446,7 +446,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
 
     public void checkColourableObject (OBControl selectedObject, PointF pt)
     {
-        setStatus(STATUS_CHECKING);
+        saveStatusClearReplayAudioSetChecking();
         //
         try
         {
@@ -455,7 +455,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
                 gotItWrongWithSfx();
                 waitForSecs(0.3);
                 //
-                setStatus(STATUS_AWAITING_CLICK);
+                revertStatusAndReplayAudio();
             }
             else
             {
@@ -528,12 +528,12 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
                     }
                     else
                     {
-                        setStatus(STATUS_AWAITING_CLICK);
+                        revertStatusAndReplayAudio();
                     }
                 }
                 else
                 {
-                    setStatus(STATUS_AWAITING_CLICK);
+                    revertStatusAndReplayAudio();
                 }
             }
         }

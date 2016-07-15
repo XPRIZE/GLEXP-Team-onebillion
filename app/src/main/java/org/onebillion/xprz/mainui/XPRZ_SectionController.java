@@ -17,6 +17,7 @@ import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBAudioManager;
+import org.onebillion.xprz.utils.OBConditionLock;
 import org.onebillion.xprz.utils.OBImageManager;
 import org.onebillion.xprz.utils.OBRunnableSyncUI;
 import org.onebillion.xprz.utils.OB_Maths;
@@ -41,7 +42,7 @@ public class XPRZ_SectionController extends OBSectionController {
 
     public List<OBControl> targets, fingers;
     public Map<String,OBAnimationGroup> animations = new HashMap<>();
-    PointF dragOffset;
+    public PointF dragOffset;
     long animToken;
     boolean needsRounding;
 
@@ -62,17 +63,18 @@ public class XPRZ_SectionController extends OBSectionController {
         loadEvent(scene);
     }
 
-    public void playAudioQueuedScene(String scene,String event,boolean wait) throws Exception
+    public OBConditionLock playAudioQueuedScene(String scene, String event, boolean wait) throws Exception
     {
         if (audioScenes == null)
-            return;
+            return new OBConditionLock();
         Map<String,List<String>> sc = (Map<String,List<String>>)audioScenes.get(scene);
         if (sc != null)
         {
             List<Object> arr = (List<Object>)(Object)sc.get(event); //yuk!
             if (arr != null)
-                playAudioQueued(arr, wait);
+                return playAudioQueued(arr, wait);
         }
+        return new OBConditionLock();
     }
 
     public void playAudioQueuedScene(String scene,String event, float interval,boolean wait) throws Exception
@@ -316,7 +318,14 @@ public class XPRZ_SectionController extends OBSectionController {
         return finger(startidx,endidx,targets,pt,false);
     }
 
+
     public OBControl finger(int startidx,int endidx,List<OBControl> targets,PointF pt,boolean filterDisabled)
+    {
+        return finger(startidx, endidx, targets, pt, filterDisabled, false);
+    }
+
+
+    public OBControl finger(int startidx,int endidx,List<OBControl> targets,PointF pt,boolean filterDisabled, boolean allowHidden)
     {
         for (int i = startidx;i <= endidx;i++)
         {
@@ -325,7 +334,7 @@ public class XPRZ_SectionController extends OBSectionController {
                 finger = fingers.get(i);
             for (OBControl c : targets)
             {
-                if (filterDisabled && !c.isEnabled() || c.hidden())
+                if (filterDisabled && !c.isEnabled() || (!allowHidden && c.hidden()))
                     continue;
                 PointF lpt = pt;
                 if (finger != null)
@@ -344,6 +353,8 @@ public class XPRZ_SectionController extends OBSectionController {
         }
         return null;
     }
+
+
 
     public void demoButtons() throws Exception
     {

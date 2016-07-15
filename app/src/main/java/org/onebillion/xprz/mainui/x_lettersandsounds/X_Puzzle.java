@@ -5,15 +5,18 @@ import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBImage;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
+import org.onebillion.xprz.mainui.OBSectionController;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
+import org.onebillion.xprz.utils.OBConditionLock;
 import org.onebillion.xprz.utils.OBImageManager;
 import org.onebillion.xprz.utils.OBPhoneme;
 import org.onebillion.xprz.utils.OBUtils;
@@ -22,6 +25,7 @@ import org.onebillion.xprz.utils.OB_Maths;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -35,6 +39,8 @@ public class X_Puzzle extends X_Wordcontroller
     static final int SHOW_TEXT_NONE = 0,
     SHOW_TEXT_INITIAL = 1,
     SHOW_TEXT_WORD =2;
+    final static int  MSE_DN =0,
+        MSE_UP =1;
 
     List<String> words;
     String currWord;
@@ -49,16 +55,15 @@ public class X_Puzzle extends X_Wordcontroller
     Map<String,String> wordDict;
     Map<String,OBPhoneme> componentDict;
 
-    ReentrantLock finishLock;
+    OBConditionLock finishLock;
     boolean animDone,preAssembled,firstTime;
     int showText;
-    ReentrantLock audioLock;
+    OBConditionLock audioLock;
     boolean firstTimeIn;
 
     public void miscSetUp()
     {
         firstTimeIn = true;
-        //wordDict = LoadFlashcardXML(getLocalPath("flashcards.xml"));
         componentDict = OBUtils.LoadWordComponentsXML(true);
 
         String s = eventAttributes.get("textsize");
@@ -67,7 +72,7 @@ public class X_Puzzle extends X_Wordcontroller
         String ws = parameters.get("words");
         words = Arrays.asList(ws.split(","));
         currNo = 0;
-        finishLock = new ReentrantLock();
+        finishLock = new OBConditionLock();
         swatches = (List<OBPath>)(Object)OBUtils.randomlySortedArray(filterControls("swatch.*"));
         s = parameters.get("showtext");
         if (s != null)
@@ -208,7 +213,8 @@ public class X_Puzzle extends X_Wordcontroller
         positions = (List<OBPath>)(Object)sortedFilteredControls("pos_.*");
         positions = OBUtils.randomlySortedArray(positions);
         setUpImage(currWord);
-        targets = (List<OBControl>)(Object)pieces;
+        targets = new ArrayList<>();
+        targets.addAll(pieces);
         if(showText > 0)
         {
             OBWord rw = (OBWord) componentDict.get(currWord);
@@ -287,7 +293,7 @@ public class X_Puzzle extends X_Wordcontroller
     public void doAudio(String  scene) throws Exception
     {
         setReplayAudioScene(currentEvent(), "PROMPT.REPEAT");
-        playAudioQueuedScene(currentEvent(), "PROMPT", false);
+        audioLock = playAudioQueuedScene(currentEvent(), "PROMPT", false);
     }
 
     public void doMainXX() throws Exception
@@ -299,8 +305,9 @@ public class X_Puzzle extends X_Wordcontroller
         else if(!animDone || !preAssembled)
         {
             //waitAudio();
-            waitForSecs(0.3);
-            waitAudio();
+            audioLock.lockWhenCondition(PROCESS_DONE);
+            audioLock.unlock();
+
             lockScreen();
             objectDict.get("oldpuzzle").hide() ;
             OBPath swatch = currentSwatch();
@@ -315,6 +322,243 @@ public class X_Puzzle extends X_Wordcontroller
             openingAnim1();
             waitForSecs(0.4f);
             openingAnim2();
+        }
+    }
+
+    public void nextObj() throws Exception
+    {
+        if(targets.size()  == 0)
+        {
+            waitAudio();
+            stage2();
+        }
+        else
+        {
+            switchStatus(currentEvent());
+        }
+    }
+
+    public void stage2() throws Exception {
+        finishLock.lockWhenCondition(MSE_UP);
+        finishLock.unlock() ;
+        lockScreen();
+        puzzle.show() ;
+        label.setOpacity(0);
+        label.show() ;
+        unlockScreen();
+        waitForSecs(0.3f);
+
+        playSfxAudio("linesoff",false);
+        lockScreen();
+        for(OBControl p : pieces)
+            detachControl(p);
+        puzzle.setOpacity(1);
+        unlockScreen();
+        waitSFX();
+        waitForSecs(0.3f);
+
+        String word = currWord;
+        if(showText == SHOW_TEXT_NONE)
+        {
+            playAudio(word);
+        }
+        else
+        {
+            playSfxAudio("letteron",false);
+            lockScreen();
+            label.setOpacity(1);
+            label.show() ;
+            unlockScreen();
+            waitSFX();
+            waitForSecs(0.3f);
+            if(showText == SHOW_TEXT_INITIAL)
+            {
+                highlightLabel(label,true) ;
+                playFirstSoundOfWordId(currWord,(OBWord)componentDict.get(currWord));
+                waitForSecs(0.2f);
+                waitAudio();
+                waitForSecs(0.3f);
+                playAudio(word);
+                waitAudio();
+                highlightLabel(label,false) ;
+            }
+            else
+            {
+                OBWord rw = (OBWord) componentDict.get(currWord);
+                rw.properties.put("label",label);
+                highlightAndSpeakSyllablesForWord(rw);
+            }
+        }
+
+        waitAudio();
+        waitForSecs(1f);
+        currNo++;
+        nextScene();
+    }
+
+    public void demoa() throws Exception
+    {
+        waitForSecs(0.3f);
+        playAudioQueued((List<Object>)(Object)currentAudio("DEMO"),true);
+        waitForSecs(0.4f);
+        if(!animDone && preAssembled)
+        {
+            openingAnim1();
+            waitForSecs(0.3f);
+            openingAnim2();
+        }
+        nextScene();
+    }
+
+    public void demoa1() throws Exception
+    {
+        demoa();
+    }
+
+    public void demoa2() throws Exception
+    {
+        demoa();
+    }
+
+    public void demob() throws Exception
+    {
+        waitForSecs(0.5f);
+        OBControl piece = pieces.get(pieces.size()-1) ;
+        PointF destpt = OB_Maths.locationForRect(0.9f, 0.9f, piece.frame());
+        PointF startpt = new PointF(destpt.x,destpt.y);
+        startpt.y = (bounds().height() + 1);
+        loadPointerStartPoint(startpt,destpt);
+        movePointerForwards(applyGraphicScale(60),-1) ;
+        List<String> aud = currentAudio("DEMO");
+        playAudioQueued(Collections.singletonList((Object)aud.get(0)),true);
+        movePointerToPoint(destpt,-1,true);
+        waitForSecs(0.3f);
+        piece.setZPosition(13);
+        moveObjects(Arrays.asList(piece,thePointer),puzzle.position(),-0.8f,OBAnim.ANIM_EASE_IN_EASE_OUT) ;
+        piece.setZPosition(12);
+        targets.remove(piece);
+        playSfxAudio("snap",false);
+        waitForSecs(0.02f);
+        movePointerForwards(applyGraphicScale(-100),0.1f) ;
+        waitSFX();
+        waitForSecs(0.5f);
+        thePointer.hide();
+        waitForSecs(0.3f);
+        playAudioQueued(Collections.singletonList((Object)aud.get(1)),true);
+        nextScene();
+    }
+
+    public void demob1() throws Exception
+    {
+        demob();
+    }
+
+    public void demob2() throws Exception
+    {
+        demob();
+    }
+
+    public void touchUpAtPoint(PointF pto,View v)
+    {
+        if(status()  == STATUS_DRAGGING)
+        {
+            setStatus(STATUS_CHECKING);
+            final PointF pt = (PointF)target.propertyValue("origpos");
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                public void run() throws Exception
+                {
+                    moveObjects(Collections.singletonList(target),pt,-2,OBAnim.ANIM_EASE_IN_EASE_OUT);
+                    switchStatus(currentEvent());
+                    target.setZPosition(2);
+                    target = null;
+                }
+            });
+            return;
+        }
+        finishLock.lock();
+        finishLock.unlockWithCondition(MSE_UP);
+    }
+
+    public void touchMovedToPoint(PointF pt,View v)
+    {
+        if(status()  == STATUS_DRAGGING)
+        {
+            PointF newpos = OB_Maths.AddPoints(pt, dragOffset);
+            target.setPosition(newpos);
+            int idx = pieces.indexOf(target);
+            RectF r = homeRects.get(idx);
+            if(r.contains(pt.x, pt.y))
+            {
+                setStatus(STATUS_CHECKING);
+                targets.remove(target);
+                final OBControl c = target;
+                c.setZPosition(13);
+                final OBSectionController fthis = this;
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    public void run() throws Exception
+                    {
+                        try
+                        {
+                            OBAnimationGroup.runAnims(Collections.singletonList(OBAnim.moveAnim(puzzle.position(),c)),0.2,true,OBAnim.ANIM_EASE_IN_EASE_OUT,fthis);
+                            c.setZPosition(12);
+                            playSfxAudio("snap",false);
+                            nextObj();
+                        }
+                        catch(Exception exception)
+                        {
+                        }
+                    }
+                });
+            }
+
+
+        }
+    }
+
+    public void checkTarget(OBControl targ,PointF pt)
+    {
+        setStatus(STATUS_DRAGGING);
+        targ.setZPosition(13);
+        dragOffset = OB_Maths.DiffPoints(targ.position(), pt);
+        finishLock.lock();
+        finishLock.unlockWithCondition(MSE_DN);
+    }
+
+    public Object findTarget(PointF pt)
+    {
+        for(OBGroup g : (List<OBGroup>)(Object)targets)
+        {
+            OBGroup gp = g.objectDict.get("background").parent;
+            OBPath mask =(OBPath)gp.maskControl;
+            PointF lpt = convertPointToControl(pt,gp);
+            if(mask.frame.contains(lpt.x, lpt.y))
+            {
+                lpt.x -= mask.frame.left;
+                lpt.y -= mask.frame.top;
+                if(mask.alphaAtPoint(lpt.x,lpt.y) > 0.0)
+                    return g;
+            }
+        }
+        return null;
+    }
+
+    public void touchDownAtPoint(final PointF pt,View v)
+    {
+        if(status()  == STATUS_AWAITING_CLICK)
+        {
+            target = (OBControl) findTarget(pt);
+            if(target != null)
+            {
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    public void run() throws Exception
+                    {
+                        checkTarget(target,pt);
+                    }
+                });
+            }
         }
     }
 

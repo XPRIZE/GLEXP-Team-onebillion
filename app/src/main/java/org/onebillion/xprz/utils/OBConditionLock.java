@@ -15,6 +15,11 @@ public class OBConditionLock
     {
         condition = lock.newCondition();
     }
+    public OBConditionLock(int cond)
+    {
+        this();
+        conditionValue = cond;
+    }
     public void lock()
     {
         lock.lock();
@@ -35,8 +40,6 @@ public class OBConditionLock
     }
     public void lockWhenCondition(int c)
     {
-        if (c == conditionValue)
-            return;
         lock.lock();
         while (c != conditionValue)
         {

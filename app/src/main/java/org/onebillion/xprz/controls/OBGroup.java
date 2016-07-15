@@ -785,22 +785,22 @@ public class OBGroup extends OBControl
         //
         for (OBControl c : sortedAttachedControls)
         {
-            if (OBPath.class.isInstance(c))
-            {
+//            if (OBPath.class.isInstance(c))
+//            {
 //                OBPath path = (OBPath) c;
 //                RectF oldFrame = path.frame();
 //                path.sizeToBoundingBox();
 //                RectF newFrame = path.frame();
 //                MainActivity.mainActivity.log("Path: " + oldFrame + " --> " + newFrame);
-            }
-            else if (OBGroup.class.isInstance(c))
-            {
-                OBGroup group = (OBGroup) c;
+//            }
+//            else if (OBGroup.class.isInstance(c))
+//            {
+//                OBGroup group = (OBGroup) c;
 //                RectF oldFrame = group.frame();
 //                RectF newFrame = OBGroup.frameUnion(group.members);
 //                group.setFrame(newFrame);
 //                MainActivity.mainActivity.log("Group: " + oldFrame + " --> " + newFrame);
-            }
+//            }
             //
             c.render(renderer, vc, tempMatrix);
         }
@@ -814,6 +814,19 @@ public class OBGroup extends OBControl
             canvas.saveLayerAlpha(bounds(), (int) (opacity() * 255));
         for (OBControl c : sortedAttachedControls)
             c.draw(canvas);
+        if (maskControl != null)
+        {
+            Paint p = new Paint();
+            p.setXfermode(new PorterDuffXfermode(maskControlReversed ? PorterDuff.Mode.DST_OUT : PorterDuff.Mode.DST_IN));
+            float fw = (bounds().right - bounds().left) * Math.abs(rasterScale);
+            float fh = (bounds().bottom - bounds().top) * Math.abs(rasterScale);
+            int width = (int) Math.ceil(fw);
+            int height = (int) Math.ceil(fh);
+            canvas.saveLayer(0, 0, width, height, p, Canvas.ALL_SAVE_FLAG);
+            maskControl.draw(canvas);
+            canvas.restore();
+        }
+
         if (needsRestore)
             canvas.restore();
     }
@@ -975,6 +988,17 @@ public class OBGroup extends OBControl
 //            needsRetexture = true;
     }
 
+
+    public void substituteStrokeForAllMembers (String pattern, int stroke)
+    {
+        for (OBControl c : filterMembers(pattern))
+        {
+            if (OBPath.class.isInstance(c))
+                ((OBPath) c).setStrokeColor(stroke);
+        }
+    }
+
+
     public boolean needsTexture ()
     {
         return true;
@@ -1032,17 +1056,14 @@ public class OBGroup extends OBControl
         }
     }
 
-
-/*
+    
     public void setRasterScale (float rs)
     {
-        float newRasterScale = this.scale() * rs;
-        super.setRasterScale(newRasterScale);
-        //
+        super.setRasterScale(rs);
         for (OBControl c : members)
         {
-            c.setRasterScale(rs);
+            c.setRasterScale(rs * c.scale());
         }
     }
-*/
+
 }

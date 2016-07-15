@@ -61,6 +61,8 @@ public class OBSectionController extends OBViewController
             POINTER_LEFT = 2,
             POINTER_MIDDLE = 3,
             POINTER_RIGHT = 4;
+    public static int PROCESS_DONE = 1,
+        PROCESS_NOT_DONE = 2;
     public List<OBControl> objects, nonobjects, attachedControls, buttons, sortedAttachedControls;
     public List<String> events;
     public Map<String, Object> audioScenes, eventsDict;
@@ -1045,9 +1047,8 @@ public class OBSectionController extends OBViewController
         RectF f = control.frame();
         attachedControls.remove(control);
         control.controller = null;
-        if(control.texture != null)
-            control.texture.cleanUp();
-
+//        if(control.texture != null)
+//            control.texture.cleanUp();
         invalidateView((int) f.left, (int) f.top, (int) f.right, (int) f.bottom);
         sortedAttachedControlsValid = false;
     }
@@ -1603,7 +1604,7 @@ public class OBSectionController extends OBViewController
         return eventd.get(audioCategory);
     }
 
-    public void playAudioQueued (List<Object> qu, final boolean wait) throws Exception
+    public void playAudioQueuedo (List<Object> qu, final boolean wait) throws Exception
     {
         if(qu == null)
             return;
@@ -1675,6 +1676,67 @@ public class OBSectionController extends OBViewController
             throw new OBUserPressedBackException();
 //            throw new Exception("BackException");
         }
+    }
+
+    public OBConditionLock playAudioQueued(List<Object> qu,boolean wait) throws OBUserPressedBackException
+    {
+        return playAudioQueued(qu,wait,1);
+    }
+
+    public OBConditionLock playAudioQueued(final List<Object> qu,final boolean wait,final int noLoops) throws OBUserPressedBackException
+    {
+        final OBConditionLock lock = new OBConditionLock(PROCESS_NOT_DONE) ;
+        final long token = updateAudioQueueToken();
+        final OBConditionLock flock = lock;
+        final OB_MutBoolean fabort = new OB_MutBoolean(_aborting);
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception {
+                try
+                {
+                    int _noLoops = noLoops;
+                    while(_noLoops != 0 && token == audioQueueToken)
+                    {
+                        for (Object obj : qu)
+                        {
+                            if (token != audioQueueToken)
+                                break;
+                            if (obj instanceof Integer)
+                            {
+                                Thread.sleep(((Integer) obj).intValue());
+                            }
+                            else
+                            {
+                                _playAudio((String) obj);
+                                if (wait)
+                                    waitAudio();
+                                else
+                                    waitAudioNoThrow();
+                            }
+                        }
+                        _noLoops--;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    fabort.value = true;
+                }
+                lock.lock() ;
+                lock.unlockWithCondition(PROCESS_DONE);
+           }
+        });
+
+        if(wait)
+        {
+            lock.lockWhenCondition(PROCESS_DONE);
+            lock.unlock() ;
+        }
+        if (fabort.value)
+        {
+            _aborting = true;
+            throw new OBUserPressedBackException();
+        }
+        return lock;
     }
 
     public void playAudioQueued (List<Object> qu) throws Exception
@@ -1863,6 +1925,10 @@ public class OBSectionController extends OBViewController
                     tick.setScale(graphicScale());
                     tick.setZPosition(100);
                 }
+                else
+                {
+                    MainActivity.mainActivity.log("say something pretty");
+                }
                 attachControl(tick);
             }
         }.run();
@@ -2010,6 +2076,22 @@ public class OBSectionController extends OBViewController
             }
         });
     }
+
+    public void mergeAudioScenesForPrefix(String mergePrefix)
+    {
+        mergePrefix = mergePrefix +".";
+        for(String ksc : audioScenes.keySet())
+        {
+            Map<String,List> scene = (Map<String, List>) audioScenes.get(ksc);
+            for(String kac : scene.keySet() )
+                if(kac.startsWith(mergePrefix))
+                {
+                    String targPrefix = kac.substring(mergePrefix.length() );
+                    scene.put(targPrefix,scene.get(kac));
+                }
+        }
+    }
+
 
     public void onResume()
     {

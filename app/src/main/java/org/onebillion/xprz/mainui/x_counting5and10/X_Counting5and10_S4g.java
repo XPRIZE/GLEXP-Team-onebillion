@@ -326,7 +326,7 @@ public class X_Counting5and10_S4g extends XPRZ_Generic_SelectCorrectObject
 
     public void checkTarget(OBControl targ)
     {
-        setStatus(STATUS_CHECKING);
+        saveStatusClearReplayAudioSetChecking();
         try
         {
             final OBLabel label = (OBLabel) targ;
@@ -375,7 +375,7 @@ public class X_Counting5and10_S4g extends XPRZ_Generic_SelectCorrectObject
                         }
                     });
                     //
-                    setStatus(STATUS_AWAITING_CLICK);
+                    revertStatusAndReplayAudio();
                 }
             }
             else
@@ -391,7 +391,7 @@ public class X_Counting5and10_S4g extends XPRZ_Generic_SelectCorrectObject
                     }
                 });
                 //
-                setStatus(STATUS_AWAITING_CLICK);
+                revertStatusAndReplayAudio();
             }
         }
         catch (Exception e)

@@ -96,6 +96,7 @@ public class OBRenderer implements GLSurfaceView.Renderer
         glViewport(0, 0, width, height);
         w = width;
         h = height;
+        MainActivity.mainActivity.updateGraphicScale(w, h);
     }
 
     /**

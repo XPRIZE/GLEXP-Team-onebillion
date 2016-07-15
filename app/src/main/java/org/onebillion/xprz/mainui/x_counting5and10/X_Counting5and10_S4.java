@@ -355,7 +355,7 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
 
     public void checkTarget(OBControl targ)
     {
-        setStatus(STATUS_CHECKING);
+        saveStatusClearReplayAudioSetChecking();
         OBGroup group = (OBGroup) targ;
         try
         {
@@ -380,13 +380,9 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
             }
             else
             {
-                gotItWrongWithSfx();
-                waitForSecs(0.3);
+                action_answerIsWrong(target);
                 //
-                action_lowlight(group);
-                action_answerIsWrong();
-                //
-                setStatus(STATUS_AWAITING_CLICK);
+                revertStatusAndReplayAudio();
             }
         }
         catch (Exception exception)

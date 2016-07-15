@@ -68,6 +68,9 @@ public class X_CountingTo3_S1 extends XPRZ_Generic_SelectCorrectObject
         playAudioQueuedScene(currentEvent(), "CORRECT", false);
         action_animatePlatform(target, true);
         waitAudio();
+        //
+        //
+        nextScene();
     }
 
 

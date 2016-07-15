@@ -402,7 +402,7 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
     {
         final OBControl target = targ;
         //
-        setStatus(STATUS_DOING_DEMO);
+        saveStatusClearReplayAudioSetChecking();
         //
         try
         {
@@ -612,7 +612,7 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
                     });
                 }
             }
-            setStatus(STATUS_AWAITING_CLICK);
+            revertStatusAndReplayAudio();
         }
         catch (Exception e)
         {
