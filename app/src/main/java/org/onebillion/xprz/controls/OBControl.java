@@ -1583,6 +1583,7 @@ public class OBControl
                 rotation = rt;
                 frameValid = false;
                 invalidate();
+                setNeedsRetexture();
             }
         }.run();
     }

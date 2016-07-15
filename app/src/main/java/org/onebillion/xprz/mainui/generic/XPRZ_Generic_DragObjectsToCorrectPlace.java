@@ -72,7 +72,7 @@ public class XPRZ_Generic_DragObjectsToCorrectPlace extends XPRZ_Generic_Event
     @Override
     public void checkDragAtPoint(PointF pt)
     {
-        setStatus(STATUS_CHECKING);
+        saveStatusClearReplayAudioSetChecking();
         //
         OBControl dragged = target;
         target = null;
@@ -107,7 +107,7 @@ public class XPRZ_Generic_DragObjectsToCorrectPlace extends XPRZ_Generic_Event
                     }
                     else
                     {
-                        setStatus(STATUS_AWAITING_CLICK);
+                        revertStatusAndReplayAudio();
                     }
                 }
                 catch (Exception e)
@@ -115,7 +115,7 @@ public class XPRZ_Generic_DragObjectsToCorrectPlace extends XPRZ_Generic_Event
                     System.out.println("XPRZ_Generic_DragObjectsToCorrectPlace.exception caught:" + e.toString());
                     e.printStackTrace();
                     //
-                    setStatus(STATUS_AWAITING_CLICK);
+                    revertStatusAndReplayAudio();
                     System.out.println("XPRZ_Generic_DragObjectsToCorrectPlace.setting status to awaiting click");
                 }
             }
@@ -124,14 +124,14 @@ public class XPRZ_Generic_DragObjectsToCorrectPlace extends XPRZ_Generic_Event
                 gotItWrongWithSfx();
                 action_moveObjectToOriginalPosition(dragged, false);
                 //
-                setStatus(STATUS_AWAITING_CLICK);
+                revertStatusAndReplayAudio();
             }
         }
         else
         {
             action_moveObjectToOriginalPosition(dragged, false);
             //
-            setStatus(STATUS_AWAITING_CLICK);
+            revertStatusAndReplayAudio();
         }
     }
 
