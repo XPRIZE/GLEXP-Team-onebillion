@@ -6,6 +6,7 @@ import android.app.ActivityManager;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ConfigurationInfo;
@@ -17,6 +18,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -43,7 +45,8 @@ public class MainActivity extends Activity
 {
     private static final int REQUEST_EXTERNAL_STORAGE = 1,
                     REQUEST_MICROPHONE = 2,
-                    REQUEST_CAMERA = 3;
+                    REQUEST_CAMERA = 3,
+                    REQUEST_ALL = 4;
     public static String CONFIG_IMAGE_SUFFIX = "image_suffix",
             CONFIG_AUDIO_SUFFIX = "audio_suffix",
             CONFIG_AUDIO_SEARCH_PATH = "audioSearchPath",
@@ -82,6 +85,13 @@ public class MainActivity extends Activity
             Manifest.permission.RECORD_AUDIO
     };
     private static String[] PERMISSIONS_CAMERA = {
+            Manifest.permission.CAMERA
+    };
+
+    private static String[] PERMISSION_ALL = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.RECORD_AUDIO,
             Manifest.permission.CAMERA
     };
     public Map<String, Object> config;
@@ -456,7 +466,7 @@ public class MainActivity extends Activity
     protected void onPause ()
     {
         super.onPause();
-
+        mainViewController.onPause();
         if (renderer != null)
         {
             glSurfaceView.onPause();
@@ -469,6 +479,7 @@ public class MainActivity extends Activity
     {
         super.onResume();
         //
+        mainViewController.onResume();
         if (renderer != null)
         {
             glSurfaceView.onResume();
@@ -525,6 +536,20 @@ public class MainActivity extends Activity
             log("received permission to access external storage. attempting to download again");
             checkForUpdatesAndLoadMainViewController();
         }
+    }
+
+    public boolean isAllPermissionGranted ()
+    {
+        Boolean writePermission = checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        Boolean readPermission = checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        Boolean micPermission = checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
+        Boolean cameraPersmission = checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+        //
+        Boolean result = writePermission && readPermission && micPermission && cameraPersmission;
+        if (!result)
+            ActivityCompat.requestPermissions(this, PERMISSION_ALL, REQUEST_ALL);
+        //
+        return result;
     }
 
 

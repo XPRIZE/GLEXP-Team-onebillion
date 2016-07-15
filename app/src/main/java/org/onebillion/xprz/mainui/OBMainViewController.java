@@ -435,4 +435,25 @@ public class OBMainViewController extends OBViewController
         bottomLeftButton.render(renderer, this, renderer.projectionMatrix);
     }
 
+    public void onResume()
+    {
+        if(viewControllers != null && viewControllers.size() > 0)
+        {
+            OBSectionController controller = viewControllers.get(viewControllers.size()-1);
+            if(controller != null)
+                controller.onResume();
+        }
+
+    }
+
+    public void onPause()
+    {
+        if(viewControllers != null && viewControllers.size() > 0)
+        {
+            OBSectionController controller = viewControllers.get(viewControllers.size()-1);
+            if(controller != null)
+                controller.onPause();
+        }
+    }
+
 }

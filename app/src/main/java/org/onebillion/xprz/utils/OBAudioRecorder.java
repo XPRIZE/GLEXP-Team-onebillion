@@ -7,6 +7,7 @@ import android.util.Log;
 import org.onebillion.xprz.mainui.OBSectionController;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.locks.Condition;
@@ -19,33 +20,33 @@ import java.util.concurrent.locks.ReentrantLock;
 public class OBAudioRecorder
 {
 
-    public Lock recorderLock;
-    MediaRecorder mediaRecorder;
-    String recordedPath;
-    Timer recordingTimer;
-    boolean recording;
-    int recordCount;
-    long expectedAudioLength;
-    long timeLastSound, timeRecordingStart, timeFirstSound;
-    OBSectionController sectionController;
-    int voiceThreshold = 1500;
-    Condition condition;
+    public boolean activityPaused;
+    protected Lock recorderLock;
+    protected MediaRecorder mediaRecorder;
+    protected String recordedPath;
+    protected Timer recordingTimer;
+    protected boolean recording;
+    protected int recordCount;
+    protected long expectedAudioLength;
+    protected long timeLastSound, timeRecordingStart, timeFirstSound;
+    protected WeakReference<OBSectionController> sectionController;
+    protected int voiceThreshold = 1500;
+    protected Condition condition;
 
 
     public OBAudioRecorder(String recordFilePath, OBSectionController controller)
     {
+        activityPaused= false;
         recordedPath =recordFilePath;
-        sectionController = controller;
+        sectionController = new WeakReference<>(controller);
 
         recording = false;
 
         recorderLock = new ReentrantLock();
-        condition = recorderLock.newCondition();
-
     }
 
 
-    private void resetAudioRecorder()
+    protected void initRecorder()
     {
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
@@ -59,42 +60,68 @@ public class OBAudioRecorder
 
     public void startRecording(double audioLength)
     {
+        if(activityPaused)
+            return;
+
+        prepareForRecording(audioLength);
+        startMediaRecorderAndTimer();
+    }
+
+    public void prepareForRecording(double audioLength)
+    {
+        condition = recorderLock.newCondition();
         expectedAudioLength = Math.round(audioLength * 1000);
         recordCount = 0;
         recording = true;
-        resetAudioRecorder();
-        recordingTimer = new Timer();
-        timeRecordingStart = timeLastSound = timeFirstSound = System.currentTimeMillis();
+        initRecorder();
         try
         {
             mediaRecorder.prepare();
-            mediaRecorder.start();
         } catch (IOException e)
         {
             e.printStackTrace();
         }
-
-        recordingTimer.scheduleAtFixedRate(new TimerTask()
-        {
-
-            @Override
-            public void run()
-            {
-                recordingTimerFire();
-            }
-        }, 50,50);
-
     }
+
+    public void startMediaRecorderAndTimer()
+    {
+        if(mediaRecorder != null && !activityPaused)
+        {
+            timeRecordingStart = timeLastSound = timeFirstSound = System.currentTimeMillis();
+            recordingTimer = new Timer();
+            mediaRecorder.start();
+            recordingTimer.scheduleAtFixedRate(new TimerTask()
+            {
+
+                @Override
+                public void run()
+                {
+                    recordingTimerFire();
+                }
+            }, 50, 50);
+        }
+    }
+
+
 
     public void stopRecording()
     {
-        recording = false;
-        recordingTimer.cancel();
-        recordingTimer.purge();
-        mediaRecorder.stop();
-        mediaRecorder.release();
-        mediaRecorder = null;
-        //mediaRecorder.reset();
+        try
+        {
+            if (recording)
+            {
+                recording = false;
+                recordingTimer.cancel();
+                recordingTimer.purge();
+                mediaRecorder.stop();
+                mediaRecorder.reset();
+                mediaRecorder.release();
+                mediaRecorder = null;
+            }
+        }catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public void playRecording()
@@ -119,7 +146,7 @@ public class OBAudioRecorder
 
     public void recordingTimerFire()
     {
-        if(recording && !sectionController._aborting)
+        if(recording && !sectionController.get()._aborting)
         {
             long currentTime = System.currentTimeMillis();
             int val = getAverangePower();
@@ -157,6 +184,9 @@ public class OBAudioRecorder
 
     public void waitForRecord()
     {
+        if(condition == null)
+            return;
+
         recorderLock.lock();
         try
         {
@@ -173,8 +203,13 @@ public class OBAudioRecorder
         }
     }
 
-    public void finishWait()
+    private void finishWait()
     {
+        stopRecording();
+
+        if(condition == null)
+            return;
+
         recorderLock.lock();
         try
         {
@@ -185,9 +220,27 @@ public class OBAudioRecorder
             recorderLock.unlock();
 
         }
-        stopRecording();
+        condition = null;
+
     }
 
+
+    public String getRecordingPath()
+    {
+        return recordedPath;
+    }
+
+    public void onResume()
+    {
+        activityPaused = false;
+    }
+
+
+    public void onPause()
+    {
+        activityPaused = true;
+        finishWait();
+    }
 
 
 }

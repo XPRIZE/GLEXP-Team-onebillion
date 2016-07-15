@@ -1,6 +1,8 @@
 package org.onebillion.xprz.glstuff;
 
 import android.graphics.Bitmap;
+import android.graphics.SurfaceTexture;
+import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 
 import static android.opengl.GLES20.GL_TEXTURE_2D;
@@ -123,6 +125,34 @@ public class TextureRect
 
     }
 
+    public void drawSurface(OBRenderer renderer, float l, float t, float r, float b, SurfaceTexture surfaceTexture)
+    {
+        fillOutRectVertexData(vertices,l,t,r,b,POSITION_COMPONENT_COUNT + UV_COMPONENT_COUNT);
+        fillOutRectTextureData(vertices,uvLeft,uvTop,uvRight,uvBottom,POSITION_COMPONENT_COUNT + UV_COMPONENT_COUNT);
+        if (vertexArray == null)
+            vertexArray = new VertexArray(vertices);
+        else
+            vertexArray.put(vertices);
+
+        bindSurfaceData((SurfaceShaderProgram) renderer.surfaceProgram);
+
+        try
+        {
+            surfaceTexture.updateTexImage();
+        }catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
+        glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,renderer.textureObjectIds[2]);
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+        GLES20.glEnable(GLES20.GL_BLEND);
+
+
+        glDrawArrays(GL_TRIANGLE_STRIP,0,4);
+
+        GLES20.glFinish();
+    }
 
     public void bindData(TextureShaderProgram textureProgram)
     {
@@ -150,6 +180,21 @@ public class TextureRect
         vertexArray.setVertexAttribPointer(
                 POSITION_COMPONENT_COUNT,
                 maskProgram.getTextureCoordinatesAttributeLocation(),
+                UV_COMPONENT_COUNT,
+                STRIDE);
+    }
+
+    public void bindSurfaceData(SurfaceShaderProgram surfaceProgram)
+    {
+        vertexArray.setVertexAttribPointer(
+                0,
+                surfaceProgram.getPositionAttributeLocation(),
+                POSITION_COMPONENT_COUNT,
+                STRIDE);
+
+        vertexArray.setVertexAttribPointer(
+                POSITION_COMPONENT_COUNT,
+                surfaceProgram.getTextureCoordinatesAttributeLocation(),
                 UV_COMPONENT_COUNT,
                 STRIDE);
     }

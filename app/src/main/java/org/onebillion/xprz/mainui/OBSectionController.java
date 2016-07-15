@@ -1843,6 +1843,14 @@ public class OBSectionController extends OBViewController
         }
     }
 
+    public void checkAbort() throws Exception
+    {
+        if (_aborting)
+        {
+            throw new OBUserPressedBackException();
+        }
+    }
+
     public void displayTick () throws Exception
     {
         new OBRunnableSyncUI()
@@ -2001,6 +2009,16 @@ public class OBSectionController extends OBViewController
                 }
             }
         });
+    }
+
+    public void onResume()
+    {
+
+    }
+
+    public void onPause()
+    {
+
     }
 }
 
