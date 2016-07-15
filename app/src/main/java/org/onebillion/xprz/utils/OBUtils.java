@@ -211,6 +211,27 @@ public class OBUtils
         catch (Exception e)
         {
             // do nothing
+        try
+        {
+            File file = new File (path);
+            Boolean fileExists = file.exists();
+            if (fileExists)
+            {
+                try
+                {
+                    InputStream is = new FileInputStream(file);
+                    return is;
+                }
+                catch (Exception e)
+                {
+                    // do nothing
+                }
+            }
+        }
+        catch (Exception e)
+        {
+//                Log.v("getInputStream", "unable to find downloaded asset: " + extendedPath);
+//                e.printStackTrace();
         }
         //
         return null;
@@ -1083,7 +1104,7 @@ public class OBUtils
         try
         {
             File outputDir = controller.activity.getCacheDir();
-            File outputFile = File.createTempFile(fileName, ".3gp", outputDir);
+            File outputFile = File.createTempFile(fileName, ".tmp", outputDir);
             return outputFile.getPath();
         }
         catch (Exception exception)
