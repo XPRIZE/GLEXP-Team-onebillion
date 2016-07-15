@@ -211,6 +211,7 @@ public class OBUtils
         catch (Exception e)
         {
             // do nothing
+        }
         try
         {
             File file = new File (path);
@@ -222,13 +223,13 @@ public class OBUtils
                     InputStream is = new FileInputStream(file);
                     return is;
                 }
-                catch (Exception e)
+                catch (Exception ef)
                 {
                     // do nothing
                 }
             }
         }
-        catch (Exception e)
+        catch (Exception eg)
         {
 //                Log.v("getInputStream", "unable to find downloaded asset: " + extendedPath);
 //                e.printStackTrace();
