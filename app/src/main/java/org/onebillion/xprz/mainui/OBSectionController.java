@@ -1905,6 +1905,14 @@ public class OBSectionController extends OBViewController
         }
     }
 
+    public void checkAbort() throws Exception
+    {
+        if (_aborting)
+        {
+            throw new OBUserPressedBackException();
+        }
+    }
+
     public void displayTick () throws Exception
     {
         new OBRunnableSyncUI()
@@ -2067,6 +2075,32 @@ public class OBSectionController extends OBViewController
                 }
             }
         });
+    }
+
+    public void mergeAudioScenesForPrefix(String mergePrefix)
+    {
+        mergePrefix = mergePrefix +".";
+        for(String ksc : audioScenes.keySet())
+        {
+            Map<String,List> scene = (Map<String, List>) audioScenes.get(ksc);
+            for(String kac : scene.keySet() )
+                if(kac.startsWith(mergePrefix))
+                {
+                    String targPrefix = kac.substring(mergePrefix.length() );
+                    scene.put(targPrefix,scene.get(kac));
+                }
+        }
+    }
+
+
+    public void onResume()
+    {
+
+    }
+
+    public void onPause()
+    {
+
     }
 }
 

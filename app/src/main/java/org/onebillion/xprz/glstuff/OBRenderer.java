@@ -1,5 +1,7 @@
 package org.onebillion.xprz.glstuff;
 
+import android.opengl.GLES11Ext;
+import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 
@@ -9,6 +11,7 @@ import org.onebillion.xprz.mainui.OBViewController;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
+import javax.microedition.khronos.opengles.GL10Ext;
 
 import static android.opengl.GLES20.GL_CLAMP_TO_EDGE;
 import static android.opengl.GLES20.GL_COLOR_BUFFER_BIT;
@@ -33,8 +36,8 @@ import static android.opengl.Matrix.orthoM;
  */
 public class OBRenderer implements GLSurfaceView.Renderer
 {
-    public final int[] textureObjectIds = new int[2];
-    public ShaderProgram colourProgram,textureProgram, maskProgram;
+    public final int[] textureObjectIds = new int[3];
+    public ShaderProgram colourProgram,textureProgram, maskProgram, surfaceProgram;
     public TextureRect textureRect;
     public GradientRect gradientRect;
     public float[] projectionMatrix = new float[16];
@@ -48,8 +51,9 @@ public class OBRenderer implements GLSurfaceView.Renderer
         colourProgram = new ColorShaderProgram();
         textureProgram = new TextureShaderProgram();
         maskProgram = new MaskShaderProgram();
+        surfaceProgram = new SurfaceShaderProgram();
 
-        glGenTextures(2, textureObjectIds, 0);
+        glGenTextures(3, textureObjectIds, 0);
 
         if (textureObjectIds[0] == 0) {
             Log.w("onSurfaceCreated", "Could not generate a new OpenGL texture object.");
@@ -58,27 +62,28 @@ public class OBRenderer implements GLSurfaceView.Renderer
 
         textureRect = new TextureRect();
         gradientRect = new GradientRect();
-        glBindTexture(GL_TEXTURE_2D, textureObjectIds[0]);
 
-        // Set filtering: a default must be set, or the texture will be
-        // black.
-        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        bindStandardTextureForId(textureObjectIds[0]);
+        bindStandardTextureForId(textureObjectIds[1]);
+        bindExternalTextureForId(textureObjectIds[2]);
+    }
+
+    public void bindStandardTextureForId(int id)
+    {
+        glBindTexture(GL_TEXTURE_2D, id);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    }
 
-        glBindTexture(GL_TEXTURE_2D, textureObjectIds[1]);
-
-        // Set filtering: a default must be set, or the texture will be
-        // black.
-        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-
+    public void bindExternalTextureForId(int id)
+    {
+        glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, id);
+        glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
 
     public void resetViewport()
@@ -91,6 +96,7 @@ public class OBRenderer implements GLSurfaceView.Renderer
         glViewport(0, 0, width, height);
         w = width;
         h = height;
+        MainActivity.mainActivity.updateGraphicScale(w, h);
     }
 
     /**

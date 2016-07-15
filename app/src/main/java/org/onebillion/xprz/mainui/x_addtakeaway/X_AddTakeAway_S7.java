@@ -468,7 +468,7 @@ public class X_AddTakeAway_S7 extends XPRZ_Generic_Event
 
     public void checkDropAtPoint (PointF pt)
     {
-    setStatus(STATUS_CHECKING);
+        saveStatusClearReplayAudioSetChecking();
         //
         try
         {
@@ -576,7 +576,7 @@ public class X_AddTakeAway_S7 extends XPRZ_Generic_Event
             e.printStackTrace();
         }
         //
-        setStatus(STATUS_AWAITING_CLICK);
+        revertStatusAndReplayAudio();
     }
 
 
@@ -594,7 +594,7 @@ public class X_AddTakeAway_S7 extends XPRZ_Generic_Event
 
     public void checkTumbler (OBControl targ)
     {
-        setStatus(STATUS_CHECKING);
+        saveStatusClearReplayAudioSetChecking();
         //
         try
         {
@@ -612,7 +612,7 @@ public class X_AddTakeAway_S7 extends XPRZ_Generic_Event
             e.printStackTrace();
         }
         //
-        setStatus(STATUS_AWAITING_CLICK);
+        revertStatusAndReplayAudio();
     }
 
 

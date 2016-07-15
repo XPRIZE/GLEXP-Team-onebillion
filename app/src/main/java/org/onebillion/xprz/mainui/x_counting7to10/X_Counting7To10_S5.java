@@ -190,7 +190,7 @@ public class X_Counting7To10_S5 extends XPRZ_Generic_Event
 
     public void checkTrace ()
     {
-        setStatus(STATUS_CHECKING);
+        saveStatusClearReplayAudioSetChecking();
         //
         try
         {
@@ -222,7 +222,7 @@ public class X_Counting7To10_S5 extends XPRZ_Generic_Event
                 //
                 playAudioQueuedScene(currentEvent(), "INCORRECT", false);
                 //
-                setStatus(STATUS_AWAITING_CLICK);
+                revertStatusAndReplayAudio();
             }
         }
         catch (Exception e)

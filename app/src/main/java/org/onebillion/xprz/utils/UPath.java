@@ -48,4 +48,32 @@ public class UPath
         for (USubPath usp : subPaths)
             usp.transformByMatrix(t);
     }
+
+    public USubPath convexHull()
+    {
+        List<PointF>points = new ArrayList<>();
+        for(USubPath usp : subPaths )
+        {
+            if(usp.elements.size()  > 0)
+            {
+                ULine ulx = usp.elements.get(0);
+                points.add(ulx.pt0);
+                for(ULine ul : usp.elements)
+                {
+                    points.add(ul.pt1);
+                    if(ul instanceof UCurve)
+                    {
+                        UCurve uc =(UCurve)ul;
+                        if(!(uc.cp0.equals(ul.pt0)))
+                            points.add(uc.cp0);
+                        if(!(uc.cp1.equals(ul.pt1)))
+                            points.add(uc.cp1);
+                    }
+                }
+            }
+        }
+        List<PointF> hull = OBUtils.convexHullFromPoints(points);
+        return USubPath.uSubPathFromPoints(hull);
+    }
+
 }

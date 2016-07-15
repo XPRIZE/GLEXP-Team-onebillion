@@ -1,18 +1,15 @@
 package org.onebillion.xprz.mainui.x_lettersandsounds;
 
 import android.graphics.Color;
-import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
-import android.text.format.Time;
 import android.util.ArrayMap;
 import android.view.View;
 
 import org.onebillion.xprz.controls.*;
 import org.onebillion.xprz.controls.XPRZ_Presenter;
 import org.onebillion.xprz.mainui.MainActivity;
-import org.onebillion.xprz.mainui.OBSectionController;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 import org.onebillion.xprz.utils.OBAnim;
@@ -24,13 +21,9 @@ import org.onebillion.xprz.utils.OB_Maths;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Created by michal on 04/07/16.
@@ -155,7 +148,7 @@ public class X_Mgp extends XPRZ_SectionController
 
         List<OBPhoneme> distractors = new ArrayList<>();
         List<String> parms = new ArrayList<>(Arrays.asList(parameters.get("phasec").split(",")));
-        parms.remove(targetPhoneme.soundID);
+        parms.remove(targetPhoneme.soundid);
         for(String disc : parms)
         {
             distractors.add(componentsDict.get(disc));

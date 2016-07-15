@@ -52,8 +52,6 @@ public class X_WordAudioRec extends XPRZ_SectionController
 
     public void prepare()
     {
-        boolean permission1 = MainActivity.mainActivity.isStoragePermissionGranted();
-        boolean permission2 = MainActivity.mainActivity.isMicrophonePermissionGranted();
         setStatus(STATUS_BUSY);
         super.prepare();
         loadFingers();
@@ -372,6 +370,7 @@ public class X_WordAudioRec extends XPRZ_SectionController
         startRecording();
 
         audioRecorder.waitForRecord();
+        audioRecorder.stopRecording();
         if(count < 2 && !audioRecorder.audioRecorded())
         {
             setStatus(STATUS_BUSY);

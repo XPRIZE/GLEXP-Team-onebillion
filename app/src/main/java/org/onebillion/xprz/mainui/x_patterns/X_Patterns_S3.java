@@ -1,17 +1,12 @@
 package org.onebillion.xprz.mainui.x_patterns;
 
-import android.graphics.Path;
+
 import android.graphics.PointF;
 
 import org.onebillion.xprz.controls.OBControl;
-import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
+import org.onebillion.xprz.mainui.generic.XPRZ_Generic_CompleteSequence;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic_DragObjectsToCorrectPlace;
-import org.onebillion.xprz.mainui.x_countingto3.X_CountingTo3_S4f;
-import org.onebillion.xprz.utils.OBAnim;
-import org.onebillion.xprz.utils.OBAnimationGroup;
-import org.onebillion.xprz.utils.OBUtils;
-import org.onebillion.xprz.utils.OB_Maths;
 
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -20,86 +15,8 @@ import java.util.List;
 /**
  * Created by pedroloureiro on 23/06/16.
  */
-public class X_Patterns_S3 extends XPRZ_Generic_DragObjectsToCorrectPlace
+public class X_Patterns_S3 extends XPRZ_Generic_CompleteSequence
 {
-    public X_Patterns_S3()
-    {
-        super();
-    }
-
-
-    public void setSceneXX(String scene)
-    {
-        super.setSceneXX(scene);
-        //
-        for (OBControl control : filterControls(action_getObjectPrefix() + ".*"))
-        {
-            String locked = (String) control.attributes().get("locked");
-            //
-            if (locked == null || locked.equals("yes") || locked.equals("true"))
-            {
-                control.disable();
-            }
-            else
-            {
-                control.enable();
-            }
-        }
-        //
-        for (OBControl control : filterControls("place.*"))
-        {
-            control.hide();
-        }
-    }
-
-
-    public String action_getObjectPrefix()
-    {
-        return "obj";
-    }
-
-
-
-    public String action_getContainerPrefix()
-    {
-        return "place";
-    }
-
-
-    public Boolean action_isPlacementCorrect(OBControl dragged, OBControl container)
-    {
-        return container.attributes().get("type").equals(dragged.attributes().get("type"));
-    }
-
-
-
-    public Boolean action_isEventOver()
-    {
-        List<OBControl> controls = filterControls(action_getContainerPrefix() + ".*");
-        for (OBControl control : controls)
-        {
-            if (control.isEnabled()) return false;
-        }
-        return true;
-    }
-
-
-
-    public void action_correctAnswer(OBControl dragged, OBControl container) throws Exception
-    {
-        for (OBControl dash : filterControls("dash.*"))
-        {
-            String parent = (String) dash.attributes().get("parent");
-            if (parent.equals(container.attributes().get("id")))
-            {
-                dash.hide();
-            }
-        }
-        container.disable();
-    }
-
-
-
 
     public void demo3a() throws Exception
     {

@@ -62,18 +62,23 @@ public class XPRZ_Generic_DragObjectsToCorrectPlace extends XPRZ_Generic_Event
 
 
 
+    public void action_finalAnimation() throws Exception
+    {
+        playAudioQueuedScene(currentEvent(), "FINAL", true);
+    }
+
 
 
     @Override
     public void checkDragAtPoint(PointF pt)
     {
-        setStatus(STATUS_CHECKING);
+        saveStatusClearReplayAudioSetChecking();
         //
         OBControl dragged = target;
         target = null;
         //
         List<OBControl> containers = filterControls(action_getContainerPrefix() + ".*");
-        OBControl container = finger(0, 2, containers, pt, true);
+        OBControl container = finger(0, 1, containers, pt, true, true);
         //
         if (container != null)
         {
@@ -96,13 +101,13 @@ public class XPRZ_Generic_DragObjectsToCorrectPlace extends XPRZ_Generic_Event
                         gotItRightBigTick(true);
                         waitForSecs(0.3);
                         //
-                        playAudioQueuedScene(currentEvent(), "FINAL", true);
+                        action_finalAnimation();
                         //
                         nextScene();
                     }
                     else
                     {
-                        setStatus(STATUS_AWAITING_CLICK);
+                        revertStatusAndReplayAudio();
                     }
                 }
                 catch (Exception e)
@@ -110,7 +115,7 @@ public class XPRZ_Generic_DragObjectsToCorrectPlace extends XPRZ_Generic_Event
                     System.out.println("XPRZ_Generic_DragObjectsToCorrectPlace.exception caught:" + e.toString());
                     e.printStackTrace();
                     //
-                    setStatus(STATUS_AWAITING_CLICK);
+                    revertStatusAndReplayAudio();
                     System.out.println("XPRZ_Generic_DragObjectsToCorrectPlace.setting status to awaiting click");
                 }
             }
@@ -119,18 +124,24 @@ public class XPRZ_Generic_DragObjectsToCorrectPlace extends XPRZ_Generic_Event
                 gotItWrongWithSfx();
                 action_moveObjectToOriginalPosition(dragged, false);
                 //
-                setStatus(STATUS_AWAITING_CLICK);
+                revertStatusAndReplayAudio();
             }
         }
         else
         {
             action_moveObjectToOriginalPosition(dragged, false);
             //
-            setStatus(STATUS_AWAITING_CLICK);
+            revertStatusAndReplayAudio();
         }
     }
 
 
+    @Override
+    public OBControl findTarget (PointF pt)
+    {
+        targets = filterControls(String.format("%s.*", action_getObjectPrefix()));
+        return super.findTarget(pt);
+    }
 
 
 

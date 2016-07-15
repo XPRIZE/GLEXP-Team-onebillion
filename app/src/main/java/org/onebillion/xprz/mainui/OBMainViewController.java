@@ -32,6 +32,7 @@ public class OBMainViewController extends OBViewController
     public boolean navigating;
     protected Rect _buttonBoxRect = null;
     OBControl downButton;
+    private Integer currentTouchID;
 
     public OBMainViewController (Activity a)
     {
@@ -213,24 +214,31 @@ public class OBMainViewController extends OBViewController
         {
             public boolean onTouch (View v, MotionEvent event)
             {
-                if (event.getAction() == MotionEvent.ACTION_DOWN)
+                int pointerIndex = event.getActionIndex();
+                int pointerID = event.getPointerId(pointerIndex);
+                int action = event.getAction() & event.ACTION_MASK;
+                //
+                if (currentTouchID == null && (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN))
                 {
+                    currentTouchID = pointerID;
                     touchDownAtPoint(event.getX(), event.getY(), (OBGLView) v);
+//                    MainActivity.mainActivity.log("DOWN --> " + event.getPointerId(pointerIndex));
                 }
-                else if (event.getAction() == MotionEvent.ACTION_MOVE)
+                else if (action == MotionEvent.ACTION_MOVE && currentTouchID != null && currentTouchID == pointerID)
                 {
                     OBGLView ov = (OBGLView) v;
                     topController().touchMovedToPoint(new PointF(event.getX(), event.getY()), ov);
+//                    MainActivity.mainActivity.log("MOVE --> " + event.getPointerId(pointerIndex));
                 }
-                else if (event.getAction() == MotionEvent.ACTION_UP)
+                else if (currentTouchID != null && currentTouchID == pointerID && (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_POINTER_UP))
                 {
+                    currentTouchID = null;
                     touchUpAtPoint(event.getX(), event.getY(), (OBGLView) v);
+//                    MainActivity.mainActivity.log("UP   --> " + event.getPointerId(pointerIndex));
                 }
                 return true;
             }
         });
-
-
         MainActivity.mainActivity.fatController.startUp();
     }
 
@@ -433,6 +441,27 @@ public class OBMainViewController extends OBViewController
         topRightButton.render(renderer, this, renderer.projectionMatrix);
         bottomRightButton.render(renderer, this, renderer.projectionMatrix);
         bottomLeftButton.render(renderer, this, renderer.projectionMatrix);
+    }
+
+    public void onResume()
+    {
+        if(viewControllers != null && viewControllers.size() > 0)
+        {
+            OBSectionController controller = viewControllers.get(viewControllers.size()-1);
+            if(controller != null)
+                controller.onResume();
+        }
+
+    }
+
+    public void onPause()
+    {
+        if(viewControllers != null && viewControllers.size() > 0)
+        {
+            OBSectionController controller = viewControllers.get(viewControllers.size()-1);
+            if(controller != null)
+                controller.onPause();
+        }
     }
 
 }

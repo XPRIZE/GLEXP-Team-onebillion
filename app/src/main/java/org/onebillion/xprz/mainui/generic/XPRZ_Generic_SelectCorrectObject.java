@@ -12,21 +12,24 @@ import org.onebillion.xprz.utils.OBUtils;
 public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
 {
 
-    public XPRZ_Generic_SelectCorrectObject()
+    public XPRZ_Generic_SelectCorrectObject ()
     {
         super();
     }
 
-
     @Override
-    public String action_getObjectPrefix()
+    public String action_getObjectPrefix ()
     {
         return "platform";
     }
 
+    @Override
+    public void action_prepareScene (String scene, Boolean redraw)
+    {
+        super.action_prepareScene(scene, redraw);
+    }
 
-
-    public void action_highlight(OBControl control) throws Exception
+    public void action_highlight (OBControl control) throws Exception
     {
         lockScreen();
         control.highlight();
@@ -34,8 +37,7 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
     }
 
 
-
-    public void action_lowlight(OBControl control) throws Exception
+    public void action_lowlight (OBControl control) throws Exception
     {
         lockScreen();
         control.lowlight();
@@ -43,63 +45,79 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
     }
 
 
-    public OBControl action_getCorrectAnswer()
+    public Boolean action_isAnswerCorrect(OBControl c)
+    {
+        return c.equals(action_getCorrectAnswer());
+    }
+
+
+    public OBControl action_getCorrectAnswer ()
     {
         String correctString = action_getObjectPrefix() + "_" + eventAttributes.get("correctAnswer");
         return objectDict.get(correctString);
     }
 
 
-    public void action_answerIsCorrect(OBControl target) throws Exception
+    public void action_answerIsCorrect (OBControl target) throws Exception
     {
+        gotItRightBigTick(true);
+        waitForSecs(0.3);
+        //
         playAudioQueuedScene(currentEvent(), "CORRECT", true);
+        //
+        action_lowlight(target);
+        //
+        playAudioQueuedScene(currentEvent(), "FINAL", true);
+        //
+        nextScene();
     }
 
 
-
-    public void action_answerIsWrong() throws Exception
+    public void action_answerIsWrong (OBControl target) throws Exception
     {
+        gotItWrongWithSfx();
+        waitForSecs(0.3);
+        //
+        action_lowlight(target);
         playAudioQueuedScene(currentEvent(), "INCORRECT", false);
     }
 
 
-    public void checkTarget(OBControl targ)
+    public void checkTarget (OBControl targ)
     {
-        setStatus(STATUS_CHECKING);
+        saveStatusClearReplayAudioSetChecking();
+        //
         try
         {
             action_highlight(targ);
             //
-            if (targ.equals(action_getCorrectAnswer()))
+            if (action_isAnswerCorrect(targ))
             {
-                gotItRightBigTick(true);
-                waitForSecs(0.3);
-                //
                 action_answerIsCorrect(targ);
-                //
-                action_lowlight(targ);
-                //
-                playAudioQueuedScene(currentEvent(), "FINAL", true);
-                //
-                nextScene();
             }
             else
             {
-                gotItWrongWithSfx();
-                waitForSecs(0.3);
+                action_answerIsWrong(targ);
                 //
-                action_lowlight(targ);
-                action_answerIsWrong();
-                //
-                setStatus(STATUS_AWAITING_CLICK);
+                revertStatusAndReplayAudio();
             }
-        } catch (Exception exception) {
+        }
+        catch (Exception exception)
+        {
+            exception.printStackTrace();
         }
     }
 
 
     @Override
-    public void touchDownAtPoint(PointF pt, View v)
+    public OBControl findTarget (PointF pt)
+    {
+        targets = filterControls(String.format("%s.*", action_getObjectPrefix()));
+        return super.findTarget(pt);
+    }
+
+    @Override
+    public void touchDownAtPoint (PointF pt, View v)
     {
         if (status() == STATUS_AWAITING_CLICK)
         {
@@ -109,7 +127,7 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
                     @Override
-                    public void run() throws Exception
+                    public void run () throws Exception
                     {
                         checkTarget(c);
                     }
@@ -117,5 +135,6 @@ public class XPRZ_Generic_SelectCorrectObject extends XPRZ_Generic_Event
             }
         }
     }
+
 
 }

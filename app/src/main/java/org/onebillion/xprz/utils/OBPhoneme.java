@@ -14,8 +14,8 @@ public class OBPhoneme
 {
     public String text;
     public List<Object> timings;
-    public String soundID;
-    Map<String, Object> properties;
+    public String soundid;
+    public Map<String, Object> properties;
 
 
     public OBPhoneme ()
@@ -44,7 +44,7 @@ public class OBPhoneme
     {
         super();
         this.text = text;
-        this.soundID = soundID;
+        this.soundid = soundID;
         this.timings = (timings == null) ? new ArrayList<Object>() : new ArrayList<Object>(timings);
         this.properties = (properties == null) ? new HashMap<String, Object>() : new HashMap<String, Object>(properties);
     }
@@ -52,7 +52,7 @@ public class OBPhoneme
 
     public String audio ()
     {
-        return soundID;
+        return soundid;
     }
 
 
@@ -80,6 +80,6 @@ public class OBPhoneme
         {
             timingsClone.add(new Double(timing));
         }
-        return new OBPhoneme(text, soundID, (List<Object>) (Object) timingsClone);
+        return new OBPhoneme(text, soundid, (List<Object>) (Object) timingsClone);
     }
 }

@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +38,7 @@ import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBImage;
 import org.onebillion.xprz.controls.OBLabel;
+import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.controls.OBTextLayer;
 import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.OBExpansionManager;
@@ -209,6 +211,27 @@ public class OBUtils
         catch (Exception e)
         {
             // do nothing
+        try
+        {
+            File file = new File (path);
+            Boolean fileExists = file.exists();
+            if (fileExists)
+            {
+                try
+                {
+                    InputStream is = new FileInputStream(file);
+                    return is;
+                }
+                catch (Exception e)
+                {
+                    // do nothing
+                }
+            }
+        }
+        catch (Exception e)
+        {
+//                Log.v("getInputStream", "unable to find downloaded asset: " + extendedPath);
+//                e.printStackTrace();
         }
         //
         return null;
@@ -1081,7 +1104,7 @@ public class OBUtils
         try
         {
             File outputDir = controller.activity.getCacheDir();
-            File outputFile = File.createTempFile(fileName, ".3gp", outputDir);
+            File outputFile = File.createTempFile(fileName, ".tmp", outputDir);
             return outputFile.getPath();
         }
         catch (Exception exception)
@@ -1109,5 +1132,122 @@ public class OBUtils
         public void run () throws Exception;
     }
 
+
+    public static RectF unionBounds (OBGroup group)
+    {
+        if (group.members.size() == 0) return new RectF(group.bounds().left, group.bounds().top, group.bounds().right, group.bounds().bottom);
+        else
+        {
+            RectF result = new RectF();
+            for (OBControl c : group.members)
+            {
+                if (OBGroup.class.isInstance(c))
+                {
+                    OBGroup subGroup = (OBGroup) c;
+                    result.union(OBUtils.unionBounds(subGroup));
+                }
+                else
+                {
+                    result.union(c.bounds());
+                }
+            }
+            return result;
+        }
+    }
+
+
+
+    public static RectF unionFrame (OBGroup group)
+    {
+        if (group.members.size() == 0) return new RectF(group.frame().left, group.frame().top, group.frame().right, group.frame().bottom);
+        else
+        {
+            RectF result = new RectF();
+            for (OBControl c : group.members)
+            {
+                if (OBGroup.class.isInstance(c))
+                {
+                    OBGroup subGroup = (OBGroup) c;
+                    result.union(OBUtils.unionBounds(subGroup));
+                }
+                else
+                {
+                    result.union(c.frame());
+                }
+            }
+            return result;
+        }
+    }
+
+    public static boolean AreAntiClockWise(PointF p0,PointF p1,PointF p2)
+    {
+        PointF pts[] = {p0,p1,p2};
+        return OB_Maths.PolygonArea(pts, 3) > 0;
+    }
+
+    public static boolean LastThreeAntiClockWise(List<PointF> arr)
+    {
+        int ct = arr.size();
+        if(ct < 3)
+            return false;
+        return AreAntiClockWise(arr.get(ct-3),arr.get(ct-2),arr.get(ct-1));
+    }
+    public static List<PointF>convexHullFromPoints(List<PointF>pts)
+    {
+        List<PointF>points = new ArrayList<>(pts);
+        Collections.sort(points, new Comparator<PointF>()
+        {
+            @Override
+            public int compare (PointF p1, PointF p2)
+            {
+                if(p1.x < p2.x)
+                    return -1;
+                if(p1.x > p2.x)
+                    return 1;
+                if(p1.y < p2.y)
+                    return -1;
+                if(p1.y > p2.y)
+                    return 1;
+                return 0;
+            }
+        });
+
+        for(int i = points.size()  - 1;i > 0;i--)
+            if(points.get(i).equals(points.get(i-1)))
+                points.remove(i);
+        if(points.size() < 3)
+            return points;
+        List<PointF> upperHull = new ArrayList<>();
+        upperHull.add(points.get(0));
+        upperHull.add(points.get(1));
+        for(int i = 2;i < points.size();i++)
+        {
+            upperHull.add(points.get(i));
+            while(upperHull.size()  >= 3 && LastThreeAntiClockWise(upperHull))
+                upperHull.remove(upperHull.size() -2);
+        }
+        int n = points.size();
+        List<PointF> lowerHull = new ArrayList<>();
+        lowerHull.add(points.get(n - 1));
+        lowerHull.add(points.get(n - 2));
+        for(int i = n - 3;i >= 0;i--)
+        {
+            lowerHull.add(points.get(i));
+            while(lowerHull.size()  >= 3 && LastThreeAntiClockWise(lowerHull))
+                lowerHull.remove(lowerHull.size() - 2);
+        }
+        List<PointF> hull = new ArrayList<>();
+        hull.addAll(upperHull);
+        hull.addAll(lowerHull.subList(1, lowerHull.size()  - 1));
+        return hull;
+    }
+
+    public static RectF PathsUnionRect(List<OBPath> paths)
+    {
+        RectF r = new RectF(paths.get(0).frame());
+        for(OBPath p : paths)
+            r.union(p.frame());
+        return r;
+    }
 
 }

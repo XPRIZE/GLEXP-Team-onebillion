@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -85,9 +86,10 @@ public class OBExpansionManager
                         {
                             externalAssets.add(folderName);
                             StringBuilder newExternalAssets = new StringBuilder();
+                            //
                             for (String folder : externalAssets)
                             {
-                                externalAssets.add(folder + ",");
+                                newExternalAssets.append(folder + ",");
                             }
                             MainActivity.mainActivity.addToPreferences("externalAssets", newExternalAssets.toString());
                             addExpansionAssetsFolder(folderName);
@@ -139,7 +141,6 @@ public class OBExpansionManager
     };
     public BroadcastReceiver downloadCompleteReceiver = new BroadcastReceiver()
     {
-
 
 
         @Override
@@ -201,7 +202,7 @@ public class OBExpansionManager
         }
     }
 
-    public void checkIfSetupIsComplete()
+    public void checkIfSetupIsComplete ()
     {
         if (downloadQueue.size() == 0)
         {
@@ -220,7 +221,7 @@ public class OBExpansionManager
         }
     }
 
-    public void waitForDownload()
+    public void waitForDownload ()
     {
         if (waitDialog == null)
         {
@@ -247,7 +248,7 @@ public class OBExpansionManager
         return result;
     }
 
-    public void checkForUpdates(OBUtils.RunLambda whenComplete)
+    public void checkForUpdates (OBUtils.RunLambda whenComplete)
     {
         completionBlock = whenComplete;
         //
@@ -288,9 +289,10 @@ public class OBExpansionManager
                     for (OBXMLNode xmlNode : rootNode.children)
                     {
                         String id = xmlNode.attributeStringValue("id");
-                        String type = xmlNode.attributeStringValue("type");
+                        String bundle = xmlNode.attributeStringValue("bundle");
+                        String destination = xmlNode.attributeStringValue("destination");
                         int version = xmlNode.attributeIntValue("version");
-                        remoteExpansionFiles.put(id, new OBExpansionFile(id, type, version, null));
+                        remoteExpansionFiles.put(id, new OBExpansionFile(id, bundle, destination, version, null));
                     }
                     //
                     compareExpansionFilesAndInstallMissingOrOutdated();
@@ -381,38 +383,28 @@ public class OBExpansionManager
         }
         //
         MainActivity.mainActivity.log("Attempting to download OBB " + fileName + ".obb");
-        String externalAssets = MainActivity.mainActivity.getPreferences("externalAssets");
-        if (externalAssets == null)
+        if (MainActivity.mainActivity.isStoragePermissionGranted())
         {
-            if (MainActivity.mainActivity.isStoragePermissionGranted())
+            MainActivity.mainActivity.log("downloading OBB");
+            //
+            String url = expansionURL + fileName + ".obb";
+            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+            request.setDescription("XPRZ0 assets");
+            request.setTitle("Downloading assets");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
             {
-                MainActivity.mainActivity.log("downloading OBB");
-                //
-                String url = expansionURL + fileName + ".obb";
-                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-                request.setDescription("XPRZ0 assets");
-                request.setTitle("Downloading assets");
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-                {
-                    request.allowScanningByMediaScanner();
-                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                }
-                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName + ".obb");
-                if (downloadManager == null)
-                    downloadManager = (DownloadManager) MainActivity.mainActivity.getSystemService(Context.DOWNLOAD_SERVICE);
-                long downloadID = downloadManager.enqueue(request);
-                downloadQueue.put(downloadID, fileName);
+                request.allowScanningByMediaScanner();
+                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
             }
-            else
-            {
-                MainActivity.mainActivity.log("User didn't give permission to access storage");
-            }
+            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName + ".obb");
+            if (downloadManager == null)
+                downloadManager = (DownloadManager) MainActivity.mainActivity.getSystemService(Context.DOWNLOAD_SERVICE);
+            long downloadID = downloadManager.enqueue(request);
+            downloadQueue.put(downloadID, fileName);
         }
         else
         {
-            MainActivity.mainActivity.log("already downloaded external assets. nothing to do here");
-            //
-            addExpansionAssetsFolder(externalAssets);
+            MainActivity.mainActivity.log("User didn't give permission to access storage");
         }
     }
 
@@ -430,10 +422,11 @@ public class OBExpansionManager
             OBXMLNode rootNode = xml.get(0);
             //
             String id = rootNode.attributeStringValue("id");
-            String type = rootNode.attributeStringValue("type");
+            String bundle = rootNode.attributeStringValue("bundle");
+            String destination = rootNode.attributeStringValue("destination");
             int version = rootNode.attributeIntValue("version");
             //
-            OBExpansionFile expansionFile = new OBExpansionFile(id, type, version, folder);
+            OBExpansionFile expansionFile = new OBExpansionFile(id, bundle, destination, version, folder);
             internalExpansionFiles.put(expansionFile.id, expansionFile);
             //
             MainActivity.mainActivity.log("Expansion Folder Installed: " + id + " --> " + folder.getPath());
