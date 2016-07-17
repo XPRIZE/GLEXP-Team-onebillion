@@ -68,6 +68,7 @@ public class X_LetterTrace extends X_Wordcontroller
         hotPath.setLineJoin(OBStroke.kCALineJoinRound);
         hotPath.sizeToBoundingBoxIncludingStroke();
         hotPath.setZPosition(100);
+        attachControl(hotPath);
     }
 
     public void loadLetters()
@@ -84,8 +85,9 @@ public class X_LetterTrace extends X_Wordcontroller
             List<UPath> lup = new ArrayList<>();
             for (String s : idlst)
             {
-                OBPath p = (OBPath) objectDict.get("s");
-                UPath up = deconstructedPath(character,s);
+                OBPath p = (OBPath) objectDict.get(s);
+                p.sizeToBoundingBoxIncludingStroke();
+                UPath up = deconstructedPath(l,s);
                 lup.add(up);
             }
             upaths.add(lup);
@@ -143,7 +145,7 @@ public class X_LetterTrace extends X_Wordcontroller
         loadFingers();
         loadEvent("mastera");
         String[] eva = ((String)eventAttributes.get("scenes")).split(",");
-        events = Arrays.asList(eva);
+        events = new ArrayList<>(Arrays.asList(eva));
         String s;
         if((s = parameters.get("intro")) != null && s.equals("true"))
             events.add(0,"intro");
@@ -164,7 +166,7 @@ public class X_LetterTrace extends X_Wordcontroller
             }
         }
 
-        Map<String, Object>ed = loadXML(getConfigPath(String.format("%@.xml","tracingletters")));
+        Map<String, Object>ed = loadXML(getConfigPath(String.format("%s.xml","tracingletters")));
         eventsDict.putAll(ed);
         letter = parameters.get("letter");
         if(letter == null)
@@ -421,6 +423,63 @@ public class X_LetterTrace extends X_Wordcontroller
         for(OBPath p : greyPaths)
             p.show();
         unlockScreen();
+    }
+
+    public void demointro() throws Exception
+    {
+        presenter.walk((PointF) presenter.control.settings.get("restpos"));
+        presenter.faceFront();
+        waitForSecs(0.2f);
+        List<Object> aud = (List<Object>)(Object)currentAudio("DEMO");
+        presenter.speak(Arrays.asList(aud.get(0)),this);
+        waitForSecs(1.5f);
+        presenter.speak(Arrays.asList(aud.get(1)),this);
+        waitForSecs(0.5f);
+
+        OBControl head = presenter.control.objectDict.get("head");
+        PointF right = convertPointFromControl(new PointF(head.width(),0),head);
+        PointF currPos = presenter.control.position();
+        float margin = right.x - currPos.x + applyGraphicScale(20);
+        PointF edgepos = new PointF(bounds().width() - margin, currPos.y);
+        presenter.walk(edgepos);
+        presenter.faceFront();
+        waitForSecs(0.2f);
+        presenter.speak(Arrays.asList(aud.get(2)),this);
+        waitForSecs(0.2f);
+        OBControl faceright = presenter.control.objectDict.get("faceright");
+        PointF lp = presenter.control.convertPointFromControl(new PointF(0, 0),faceright);
+        PointF destpos = new PointF(bounds().width() + lp.x + 1, currPos.y);
+        presenter.walk(destpos);
+        detachControl(presenter.control);
+        presenter = null;
+        nextScene();
+    }
+
+    public void demoa() throws Exception
+    {
+        List<OBAnim> anims = new ArrayList<>();
+        for (OBControl obj : paths)
+            anims.add(OBAnim.moveAnim((PointF) obj.propertyValue("origpos"),obj));
+        playSfxAudio("slide",false);
+        OBAnimationGroup.runAnims(anims,0.6f,true,OBAnim.ANIM_EASE_OUT,this);
+        waitForSecs(0.3f);
+
+        float rt = hotPath.right() + paths.get(0).lineWidth();
+        PointF destpt = OB_Maths.locationForRect(0, 0.6f, bounds());
+        destpt.set(rt, destpt.y);
+
+        PointF startpt = OB_Maths.locationForRect(1, 1, bounds());
+        loadPointerStartPoint(startpt,destpt);
+        movePointerToPoint(OB_Maths.tPointAlongLine(0.4f, startpt, destpt),-1,true);
+        waitForSecs(0.3f);
+        playAudioQueuedSceneIndex(currentEvent(),"DEMO",0,true);
+        waitForSecs(0.3f);
+        movePointerToPoint(destpt,-1,true);
+        playAudioQueuedSceneIndex(currentEvent(),"DEMO",1,true);
+        waitForSecs(0.6f);
+        thePointer.hide();
+        waitForSecs(0.4f);
+        nextScene();
     }
 
     public void animatePathDraw(OBPath path)

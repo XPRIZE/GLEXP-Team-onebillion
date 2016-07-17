@@ -755,6 +755,8 @@ public class OBSectionController extends OBViewController
             {
                 OBStroke str = new OBStroke(attrs, true);
                 im.setStroke(str);
+                if (im instanceof OBPath)
+                    ((OBPath)im).setLineWidth(graphicScale * ((OBPath)im).lineWidth());
             }
             if (attrs.get("opacity") != null)
             {
@@ -1223,6 +1225,7 @@ public class OBSectionController extends OBViewController
 
     public void render (OBRenderer renderer)
     {
+        renderLock.lock();
         renderBackground(renderer);
         TextureShaderProgram textureShader = (TextureShaderProgram) renderer.textureProgram;
         textureShader.useProgram();
@@ -1239,7 +1242,7 @@ public class OBSectionController extends OBViewController
             }
         }
 
-
+        renderLock.unlock();
 
     }
 

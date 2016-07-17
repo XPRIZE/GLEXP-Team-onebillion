@@ -25,6 +25,7 @@ package org.onebillion.xprz.mainui;
         import java.util.HashMap;
         import java.util.List;
         import java.util.Map;
+        import java.util.concurrent.locks.ReentrantLock;
 
 
 public class OBViewController
@@ -34,6 +35,7 @@ public class OBViewController
     public boolean inited = false;
     public boolean requiresOpenGL = true;
     public int screenLock = 0; // public for now
+    public ReentrantLock renderLock = new ReentrantLock();
     RectF lockedInvalidRect;
     List<GraphicState> graphicStateStack = new ArrayList<>();
     public float[] projectionMatrix;
@@ -65,6 +67,8 @@ public class OBViewController
 
     public void lockScreen()
     {
+        if (screenLock == 0)
+            renderLock.lock();
         screenLock++;
     }
 
@@ -78,6 +82,7 @@ public class OBViewController
                 invalidateView((int)lockedInvalidRect.left,(int)lockedInvalidRect.top,(int)lockedInvalidRect.right,(int)lockedInvalidRect.bottom);
                 lockedInvalidRect = null;
             }
+            renderLock.unlock();
         }
 
     }

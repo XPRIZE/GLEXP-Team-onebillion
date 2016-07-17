@@ -493,7 +493,8 @@ public class MainActivity extends Activity
     {
         super.onResume();
         //
-        mainViewController.onResume();
+        if (mainViewController != null)
+            mainViewController.onResume();
         if (renderer != null)
         {
             glSurfaceView.onResume();

@@ -70,8 +70,8 @@ public class X_Wordcontroller extends XPRZ_SectionController
 
     public boolean itemsInSameDirectory(String item1,String item2)
     {
-        String p1 = OBUtils.stringByDeletingLastPathComponent(getLocalPath(String.format("%@.m4a",item1)));
-        String p2 = OBUtils.stringByDeletingLastPathComponent(getLocalPath(String.format("%@.m4a",item2)));
+        String p1 = OBUtils.stringByDeletingLastPathComponent(getLocalPath(String.format("%s.m4a",item1)));
+        String p2 = OBUtils.stringByDeletingLastPathComponent(getLocalPath(String.format("%s.m4a",item2)));
         return p1.equals(p2);
     }
 
