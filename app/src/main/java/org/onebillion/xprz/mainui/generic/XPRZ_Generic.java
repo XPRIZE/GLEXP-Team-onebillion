@@ -300,25 +300,6 @@ public class XPRZ_Generic
         return (int) Math.round(min + (max - min) * dval);
     }
 
-
-    public static enum Anchor
-    {
-        ANCHOR_MIDDLE,
-        ANCHOR_LEFT,
-        ANCHOR_RIGHT,
-        ANCHOR_TOP,
-        ANCHOR_BOTTOM;
-
-        public final int anchor;
-
-        Anchor()
-        {
-            this.anchor = 1 << this.ordinal();
-        }
-    }
-
-
-
     public static OBLabel action_createLabelForControl (OBControl control, float finalResizeFactor, Boolean insertIntoGroup, XPRZ_SectionController sc)
     {
         try
@@ -387,6 +368,24 @@ public class XPRZ_Generic
             System.out.println("XPRZ_Generic_Event:action_createLabelForControl:exception" + e.toString());
         }
         return null;
+    }
+
+
+
+    public static enum Anchor
+    {
+        ANCHOR_MIDDLE,
+        ANCHOR_LEFT,
+        ANCHOR_RIGHT,
+        ANCHOR_TOP,
+        ANCHOR_BOTTOM;
+
+        public final int anchor;
+
+        Anchor()
+        {
+            this.anchor = 1 << this.ordinal();
+        }
     }
 
 }

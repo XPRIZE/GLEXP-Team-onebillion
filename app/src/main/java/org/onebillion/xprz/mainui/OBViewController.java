@@ -36,15 +36,20 @@ public class OBViewController
     public boolean requiresOpenGL = true;
     public int screenLock = 0; // public for now
     public ReentrantLock renderLock = new ReentrantLock();
-    RectF lockedInvalidRect;
-    List<GraphicState> graphicStateStack = new ArrayList<>();
     public float[] projectionMatrix;
     public float[] modelViewMatrix;
     protected Map<String,List<Texture>> textureDictionary = new HashMap();
+    RectF lockedInvalidRect;
+    List<GraphicState> graphicStateStack = new ArrayList<>();
 
     public OBViewController(Activity a)
     {
         activity = a;
+    }
+
+    public static OBMainViewController MainViewController()
+    {
+        return MainActivity.mainViewController;
     }
 
     public void viewWasLaidOut(boolean changed, int l, int t, int r, int b)
@@ -130,7 +135,6 @@ public class OBViewController
     {
     }
 
-
     public void touchMovedToPoint(PointF pt,View v)
     {
 
@@ -163,6 +167,7 @@ public class OBViewController
                 return t;
         return null;
     }
+
     public Texture createTexture(OBControl c,String src,boolean shared)
     {
         if (shared)
@@ -185,13 +190,10 @@ public class OBViewController
         }
         return t;
     }
+
     public float applyGraphicScale(float amt)
     {
         return MainActivity.mainActivity.applyGraphicScale(amt);
-    }
-    public static OBMainViewController MainViewController()
-    {
-        return MainActivity.mainViewController;
     }
 }
 

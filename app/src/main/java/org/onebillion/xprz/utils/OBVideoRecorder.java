@@ -1,6 +1,7 @@
 package org.onebillion.xprz.utils;
 
 
+import android.content.res.AssetFileDescriptor;
 import android.hardware.camera2.CaptureRequest;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
@@ -8,6 +9,7 @@ import android.os.Handler;
 import android.util.Size;
 import android.view.Surface;
 
+import org.onebillion.xprz.controls.OBVideoPlayer;
 import org.onebillion.xprz.mainui.OBSectionController;
 
 /**
@@ -59,7 +61,28 @@ public class OBVideoRecorder extends OBAudioRecorder
         return mediaRecorder.getSurface();
     }
 
+    public void playVideoRecording(final OBVideoPlayer videoPlayer)
+    {
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                AssetFileDescriptor afd = OBUtils.getAssetFileDescriptorForPath(recordedPath);
+                if(audioRecorded())
+                {
+                    long audioStart = timeFirstSound-timeRecordingStart;
+                    videoPlayer.startPlayingAtTime(afd, audioStart-400>0?audioStart-400:0);
+                }
+                else
+                {
+                    long audioStart = 5000 - expectedAudioLength;
+                    videoPlayer.startPlayingAtTime(afd,audioStart>0?audioStart:0);
+                }
+            }
+        });
 
+    }
 
 
 }

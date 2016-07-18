@@ -12,10 +12,10 @@ import java.util.List;
  */
 public class USubPath
 {
-    float length;
     public List<ULine> elements;
-    PointF currPoint;
     public boolean closed;
+    float length;
+    PointF currPoint;
     public USubPath()
     {
         length = -1;
