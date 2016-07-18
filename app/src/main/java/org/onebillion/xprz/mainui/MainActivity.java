@@ -71,6 +71,7 @@ public class MainActivity extends Activity
             CONFIG_APP_CODE = "app_code",
             CONFIG_USER = "user",
             CONFIG_EXPANSION_URL = "expansionURL",
+            CONFIG_OBB_PASSWORD = "obbPassword",
             CONFIG_FAT_CONTROLLER = "fatcontrollerclass";
     public static String TAG = "livecode";
     public static OBExpansionManager expansionManager = new OBExpansionManager();
