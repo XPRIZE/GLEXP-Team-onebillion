@@ -68,7 +68,7 @@ public class X_Puzzle extends X_Wordcontroller
 
         String s = eventAttributes.get("textsize");
         if (s != null)
-            textSize = Float.parseFloat(s);
+            textSize = applyGraphicScale(Float.parseFloat(s));
         String ws = parameters.get("words");
         words = Arrays.asList(ws.split(","));
         currNo = 0;

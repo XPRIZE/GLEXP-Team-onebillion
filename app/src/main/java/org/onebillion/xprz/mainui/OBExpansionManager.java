@@ -55,6 +55,7 @@ public class OBExpansionManager
         {
             if (state == OnObbStateChangeListener.ERROR_COULD_NOT_MOUNT)
             {
+                updateProgressDialog("Error: could not mount OBB file", true);
                 MainActivity.mainActivity.log("Could not mount OBB file " + path);
             }
             else if (state == OnObbStateChangeListener.ERROR_ALREADY_MOUNTED)
@@ -123,6 +124,7 @@ public class OBExpansionManager
             }
             else if (state == OnObbStateChangeListener.ERROR_PERMISSION_DENIED)
             {
+                updateProgressDialog("Error: could not mount OBB file. Permission Denied.", true);
                 MainActivity.mainActivity.log("Permission Denied " + path);
             }
             else if (state == OnObbStateChangeListener.ERROR_COULD_NOT_UNMOUNT)
@@ -131,10 +133,12 @@ public class OBExpansionManager
             }
             else if (state == OnObbStateChangeListener.ERROR_INTERNAL)
             {
+                updateProgressDialog("Error: could not mount OBB file. Internal Error.", true);
                 MainActivity.mainActivity.log("Internal Error " + path);
             }
             else
             {
+                updateProgressDialog("Error: could not mount OBB file. Unkown Error.", true);
                 MainActivity.mainActivity.log("Unknown Error " + path);
             }
         }
@@ -229,7 +233,7 @@ public class OBExpansionManager
         }
         waitDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 //        waitDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        waitDialog.setMessage("Downloading assets. Please wait...");
+        updateProgressDialog("Downloading assets. Please wait...", false);
         waitDialog.setIndeterminate(true);
         waitDialog.setCanceledOnTouchOutside(false);
         waitDialog.show();
@@ -345,9 +349,11 @@ public class OBExpansionManager
 
     private void unpackOBB (String filePath)
     {
+        updateProgressDialog("Unpacking assets", false);
+        //
         if (MainActivity.mainActivity.isStoragePermissionGranted())
         {
-            String password = null; // "4asterix";
+            String password = (String) MainActivity.mainActivity.Config().get(MainActivity.CONFIG_OBB_PASSWORD); // due to a bug in the Android SDK we cannot use encryted OBB files --> http://stackoverflow.com/questions/21161475/can-mount-unencrypted-obb-but-with-encrypted-error-21/30301701#30301701
             storageManager = (StorageManager) MainActivity.mainActivity.getSystemService(Context.STORAGE_SERVICE);
             //
             try
@@ -359,7 +365,7 @@ public class OBExpansionManager
                 String packageName = info.packageName;
                 String file = info.filename;
                 MainActivity.mainActivity.log("Info from downloaded OBB: " + packageName + " " + file);
-                storageManager.mountObb(obbFilePath.getPath(), password, eventListener);
+                storageManager.mountObb(obbFilePath.getPath(), null, eventListener);
             }
             catch (Exception e)
             {
@@ -434,6 +440,19 @@ public class OBExpansionManager
         catch (Exception e)
         {
             e.printStackTrace();
+        }
+    }
+
+
+    public void updateProgressDialog(String message, Boolean killDialog)
+    {
+        if (waitDialog != null)
+        {
+            waitDialog.setMessage(message);
+        }
+        if (killDialog)
+        {
+            waitDialog.setCanceledOnTouchOutside(true);
         }
     }
 

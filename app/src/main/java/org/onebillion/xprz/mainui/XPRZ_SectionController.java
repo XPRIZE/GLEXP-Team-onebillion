@@ -66,7 +66,7 @@ public class XPRZ_SectionController extends OBSectionController {
     public OBConditionLock playAudioQueuedScene(String scene, String event, boolean wait) throws Exception
     {
         if (audioScenes == null)
-            return new OBConditionLock();
+            return new OBConditionLock(PROCESS_DONE);
         Map<String,List<String>> sc = (Map<String,List<String>>)audioScenes.get(scene);
         if (sc != null)
         {
@@ -74,7 +74,7 @@ public class XPRZ_SectionController extends OBSectionController {
             if (arr != null)
                 return playAudioQueued(arr, wait);
         }
-        return new OBConditionLock();
+        return new OBConditionLock(PROCESS_DONE);
     }
 
     public void playAudioQueuedScene(String scene,String event, float interval,boolean wait) throws Exception

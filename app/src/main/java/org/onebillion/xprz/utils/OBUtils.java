@@ -212,6 +212,28 @@ public class OBUtils
         {
             // do nothing
         }
+        try
+        {
+            File file = new File (path);
+            Boolean fileExists = file.exists();
+            if (fileExists)
+            {
+                try
+                {
+                    InputStream is = new FileInputStream(file);
+                    return is;
+                }
+                catch (Exception ef)
+                {
+                    // do nothing
+                }
+            }
+        }
+        catch (Exception eg)
+        {
+//                Log.v("getInputStream", "unable to find downloaded asset: " + extendedPath);
+//                e.printStackTrace();
+        }
         //
         return null;
     }
@@ -1083,7 +1105,7 @@ public class OBUtils
         try
         {
             File outputDir = controller.activity.getCacheDir();
-            File outputFile = File.createTempFile(fileName, ".avi", outputDir);
+            File outputFile = File.createTempFile(fileName, ".tmp", outputDir);
             return outputFile.getPath();
         }
         catch (Exception exception)
@@ -1104,6 +1126,13 @@ public class OBUtils
             file.delete();
         }
     }
+
+
+    public interface RunLambda
+    {
+        public void run () throws Exception;
+    }
+
 
     public static RectF unionBounds (OBGroup group)
     {
@@ -1126,6 +1155,8 @@ public class OBUtils
             return result;
         }
     }
+
+
 
     public static RectF unionFrame (OBGroup group)
     {
@@ -1162,7 +1193,6 @@ public class OBUtils
             return false;
         return AreAntiClockWise(arr.get(ct-3),arr.get(ct-2),arr.get(ct-1));
     }
-
     public static List<PointF>convexHullFromPoints(List<PointF>pts)
     {
         List<PointF>points = new ArrayList<>(pts);
@@ -1219,11 +1249,6 @@ public class OBUtils
         for(OBPath p : paths)
             r.union(p.frame());
         return r;
-    }
-
-    public interface RunLambda
-    {
-        public void run () throws Exception;
     }
 
 }
