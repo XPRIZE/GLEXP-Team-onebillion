@@ -28,6 +28,17 @@ public class UCurve extends ULine
         return new UCurve(c1EndPt.x,c1EndPt.y,endPt.x,endPt.y,c1CP0.x,c1CP0.y,c1CP1.x,c1CP1.y);
     }
 
+    public UCurve copy()
+    {
+        UCurve obj = new UCurve(pt0.x,pt0.y,pt1.x,pt1.y,cp0.x,cp0.y,cp1.x,cp1.y);
+        obj.length = length;
+        obj.proportionalLength = proportionalLength;
+        obj.spStartT = spStartT;
+        obj.spEndT = spEndT;
+        return obj;
+    }
+
+
     public void calculateLength()
     {
         length = OB_Maths.curveLength(pt0, pt1, cp0, cp1);
