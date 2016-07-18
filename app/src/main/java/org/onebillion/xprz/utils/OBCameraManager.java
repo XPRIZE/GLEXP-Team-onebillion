@@ -219,7 +219,7 @@ public class OBCameraManager
 
     private void startPreviewForControls(final OBVideoPlayer videoPlayer, final OBVideoRecorder videoRecorder, double audioLength)
     {
-        if (videoPlayer == null || activityPaused || controller.get()._aborting || videoRecorder.activityPaused || videoPlayer.activityPaused)
+        if (videoPlayer == null || activityPaused || controller.get()._aborting || videoPlayer.activityPaused)
             return;
 
         try

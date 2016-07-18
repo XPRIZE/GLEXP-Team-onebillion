@@ -99,6 +99,9 @@ public class X_Mgp extends XPRZ_SectionController
                 if(componentsDict.get(let) != null)
                     letters.add(componentsDict.get(let));
 
+            if(letters.size() >5)
+                letters = letters.subList(0,5);
+
             addEventPhase(PHASE_A1, phaseDict.get(PHASE_A1),OBUtils.randomlySortedArray(letters),null);
 
             for(int i=0; i<letters.size(); i++)
@@ -600,6 +603,8 @@ public class X_Mgp extends XPRZ_SectionController
     {
         for(int i=0; i<letters.size(); i++)
         {
+            if(locs.size() <= i)
+                break;
             OBPhoneme pho = letters.get(i);
             OBLabel letterLabel = new OBLabel(pho.text,font,fontSize);
             letterLabel.setColour(Color.BLACK);

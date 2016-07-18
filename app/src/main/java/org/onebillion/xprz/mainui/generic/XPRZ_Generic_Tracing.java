@@ -35,10 +35,9 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
     protected OBGroup path1, path2;
     protected OBImage dash;
     protected OBControl trace_arrow;
-    private Boolean autoClean;
-
     int savedStatus;
     List<Object> savedReplayAudio;
+    private Boolean autoClean;
 
     public XPRZ_Generic_Tracing (Boolean autoClean)
     {

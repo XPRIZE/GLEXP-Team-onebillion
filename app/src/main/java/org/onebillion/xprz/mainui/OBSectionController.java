@@ -1686,6 +1686,8 @@ public class OBSectionController extends OBViewController
     public OBConditionLock playAudioQueued(final List<Object> qu,final boolean wait,final int noLoops) throws OBUserPressedBackException
     {
         final OBConditionLock lock = new OBConditionLock(PROCESS_NOT_DONE) ;
+        if(qu == null)
+            return lock;
         final long token = updateAudioQueueToken();
         final OBConditionLock flock = lock;
         final OB_MutBoolean fabort = new OB_MutBoolean(_aborting);
