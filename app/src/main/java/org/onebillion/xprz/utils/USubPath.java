@@ -23,6 +23,16 @@ public class USubPath
         currPoint = new PointF();
     }
 
+    public static USubPath uSubPathFromPoints(List<PointF>arr)
+    {
+        USubPath usp = new USubPath();
+        if(arr.size()  == 0)
+            return usp;
+        usp.moveToPoint(arr.get(0));
+        for(int i = 1;i < arr.size();i++)
+            usp.lineToPoint(arr.get(i));
+        return usp;
+    }
     public void moveToPoint(PointF pt)
     {
         currPoint.set(pt);

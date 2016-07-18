@@ -64,12 +64,11 @@ public class X_Puzzle extends X_Wordcontroller
     public void miscSetUp()
     {
         firstTimeIn = true;
-        //wordDict = LoadFlashcardXML(getLocalPath("flashcards.xml"));
         componentDict = OBUtils.LoadWordComponentsXML(true);
 
         String s = eventAttributes.get("textsize");
         if (s != null)
-            textSize = Float.parseFloat(s);
+            textSize = applyGraphicScale(Float.parseFloat(s));
         String ws = parameters.get("words");
         words = Arrays.asList(ws.split(","));
         currNo = 0;
@@ -214,7 +213,8 @@ public class X_Puzzle extends X_Wordcontroller
         positions = (List<OBPath>)(Object)sortedFilteredControls("pos_.*");
         positions = OBUtils.randomlySortedArray(positions);
         setUpImage(currWord);
-        targets = (List<OBControl>)(Object)pieces;
+        targets = new ArrayList<>();
+        targets.addAll(pieces);
         if(showText > 0)
         {
             OBWord rw = (OBWord) componentDict.get(currWord);
@@ -425,7 +425,7 @@ public class X_Puzzle extends X_Wordcontroller
         waitForSecs(0.5f);
         OBControl piece = pieces.get(pieces.size()-1) ;
         PointF destpt = OB_Maths.locationForRect(0.9f, 0.9f, piece.frame());
-        PointF startpt = destpt;
+        PointF startpt = new PointF(destpt.x,destpt.y);
         startpt.y = (bounds().height() + 1);
         loadPointerStartPoint(startpt,destpt);
         movePointerForwards(applyGraphicScale(60),-1) ;

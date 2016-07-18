@@ -28,6 +28,8 @@ public class XPRZ_Menu extends XPRZ_SectionController
                 ((OBGroup) but).outdent(applyGraphicScale(8));
         for (OBControl c : attachedControls)
             c.texturise(true,this);
+
+        boolean permission1 = MainActivity.mainActivity.isAllPermissionGranted();
     }
 
     public int buttonFlags()

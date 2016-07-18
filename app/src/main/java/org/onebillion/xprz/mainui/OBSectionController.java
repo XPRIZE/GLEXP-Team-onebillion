@@ -755,6 +755,8 @@ public class OBSectionController extends OBViewController
             {
                 OBStroke str = new OBStroke(attrs, true);
                 im.setStroke(str);
+                if (im instanceof OBPath)
+                    ((OBPath)im).setLineWidth(graphicScale * ((OBPath)im).lineWidth());
             }
             if (attrs.get("opacity") != null)
             {
@@ -1223,6 +1225,7 @@ public class OBSectionController extends OBViewController
 
     public void render (OBRenderer renderer)
     {
+        renderLock.lock();
         renderBackground(renderer);
         TextureShaderProgram textureShader = (TextureShaderProgram) renderer.textureProgram;
         textureShader.useProgram();
@@ -1239,7 +1242,7 @@ public class OBSectionController extends OBViewController
             }
         }
 
-
+        renderLock.unlock();
 
     }
 
@@ -1905,6 +1908,14 @@ public class OBSectionController extends OBViewController
         }
     }
 
+    public void checkAbort() throws Exception
+    {
+        if (_aborting)
+        {
+            throw new OBUserPressedBackException();
+        }
+    }
+
     public void displayTick () throws Exception
     {
         new OBRunnableSyncUI()
@@ -2067,6 +2078,32 @@ public class OBSectionController extends OBViewController
                 }
             }
         });
+    }
+
+    public void mergeAudioScenesForPrefix(String mergePrefix)
+    {
+        mergePrefix = mergePrefix +".";
+        for(String ksc : audioScenes.keySet())
+        {
+            Map<String,List> scene = (Map<String, List>) audioScenes.get(ksc);
+            for(String kac : scene.keySet() )
+                if(kac.startsWith(mergePrefix))
+                {
+                    String targPrefix = kac.substring(mergePrefix.length() );
+                    scene.put(targPrefix,scene.get(kac));
+                }
+        }
+    }
+
+
+    public void onResume()
+    {
+
+    }
+
+    public void onPause()
+    {
+
     }
 }
 
