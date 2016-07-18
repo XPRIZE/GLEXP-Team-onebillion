@@ -263,7 +263,7 @@ public class OBCameraManager
                     if (videoRecorder != null)
                         videoRecorder.startMediaRecorderAndTimer();
 
-                    controller.get().unlockScreen();
+
                     finishCameraWait();
 
                 }
@@ -283,6 +283,7 @@ public class OBCameraManager
                 }
             }, backgroundHandler);
             waitForCameraReady();
+            controller.get().unlockScreen();
         } catch (CameraAccessException e)
         {
             e.printStackTrace();
