@@ -8,7 +8,7 @@ import android.graphics.PointF;
  */
 public class ULine
 {
-    float length,proportionalLength;
+    float length,proportionalLength,spStartT,spEndT;;
     public PointF pt0,pt1;
     public ULine(float x0,float y0,float x1,float y1)
     {
@@ -16,6 +16,16 @@ public class ULine
         pt0 = new PointF(x0,y0);
         pt1 = new PointF(x1,y1);
         length = -1;
+    }
+
+    public ULine copy()
+    {
+        ULine obj = new ULine(pt0.x,pt0.y,pt1.x,pt1.y);
+        obj.length = length;
+        obj.proportionalLength = proportionalLength;
+        obj.spStartT = spStartT;
+        obj.spEndT = spEndT;
+        return obj;
     }
 
     public float length()

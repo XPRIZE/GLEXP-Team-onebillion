@@ -5,6 +5,7 @@ import android.graphics.Matrix;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
@@ -18,6 +19,7 @@ import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBConditionLock;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OB_Maths;
+import org.onebillion.xprz.utils.OB_MutFloat;
 import org.onebillion.xprz.utils.UPath;
 import org.onebillion.xprz.utils.USubPath;
 
@@ -42,7 +44,8 @@ public class X_LetterTrace extends X_Wordcontroller
     int currPathIdx;
     PointF lastTracePoint;
     float tSoFar,tLookAhead,currPathLen,allowedDistance;
-    List<List<UPath>>upaths = new ArrayList<>();
+    List<List<UPath>>letterupaths = new ArrayList<>();
+    List<UPath>upaths = new ArrayList<>();
     UPath currUPath;
     boolean traceComplete;
     OBConditionLock promptAudioLock;
@@ -52,7 +55,7 @@ public class X_LetterTrace extends X_Wordcontroller
     public void createConvexHull()
     {
         UPath up = new UPath();
-        for(List<UPath>lup : upaths)
+        for(List<UPath>lup : letterupaths)
         {
             for (UPath upx : lup)
                 up.subPaths.addAll(upx.subPaths);
@@ -61,7 +64,7 @@ public class X_LetterTrace extends X_Wordcontroller
         Path bez = uspch.bezierPath();
         bez.close();
         hotPath = new OBPath(bez);
-        int col = Color.argb((int)0.7*255,255,0,0);
+        int col = Color.argb((int)(0.7*255),255,0,0);
         hotPath.setFillColor(col);
         hotPath.setStrokeColor(col);
         hotPath.setLineWidth(applyGraphicScale(paths.get(0).lineWidth() ));
@@ -90,7 +93,7 @@ public class X_LetterTrace extends X_Wordcontroller
                 UPath up = deconstructedPath(l,s);
                 lup.add(up);
             }
-            upaths.add(lup);
+            letterupaths.add(lup);
             List<OBPath>lpaths = (List<OBPath>)(Object)sortedFilteredControls("Path.*");
             letterPaths.add(lpaths);
             OBControl xbox = objectDict.get("xbox");
@@ -129,7 +132,7 @@ public class X_LetterTrace extends X_Wordcontroller
 
                 Matrix m = new Matrix();
                 m.postTranslate(xdiff,ydiff);
-                List<UPath> lup = upaths.get(i);
+                List<UPath> lup = letterupaths.get(i);
                 for (UPath up : lup)
                     up.transformByMatrix(m);
                 left += xb.width();
@@ -425,6 +428,98 @@ public class X_LetterTrace extends X_Wordcontroller
         unlockScreen();
     }
 
+
+    public void doMainl() throws Exception
+    {
+        showLetter();
+        waitSFX();
+        waitForSecs(0.3f);
+        doMainXX();
+        waitForSecs(0.3f);
+        preTrace(0);
+    }
+    public void doMainm() throws Exception
+    {
+        doMainl();
+    }
+
+    public void doMainn() throws Exception
+    {
+        doMainl();
+    }
+
+    public void endBody()
+    {
+        try
+        {
+            if(currentAudio("PROMPT.REMINDER") != null)
+                doReminder();
+            if(status()  == STATUS_AWAITING_CLICK2 || status()  == STATUS_WAITING_FOR_TRACE)
+            {
+                deployPulseAnim();
+            }
+        }
+        catch (Exception e)
+        {
+
+        }
+    }
+
+    public void highlightLetter(boolean high)
+    {
+        int col = high?hiColour:normalColour;
+        lockScreen();
+        for(OBPath p : paths)
+            p.setStrokeColor(col);
+        unlockScreen();
+    }
+
+    public void deployPulseAnim() throws Exception
+    {
+        final long sttime = statusTime;
+        waitForSecs(0.1f);
+        waitAudio();
+        final OBSectionController fthis = this;
+        OBUtils.runOnOtherThreadDelayed(3,new OBUtils.RunLambda()
+        {
+            public void run() throws Exception
+            {
+                if(statusTime  == sttime)
+                {
+                    OBAnim a1 = OBAnim.scaleAnim(1.3f,dot);
+                    OBAnim a2 = OBAnim.scaleAnim(1,dot);
+                    OBAnimationGroup gp = new OBAnimationGroup();
+                    registerAnimationGroup(gp,"anim");
+                    gp.chainAnimations(Arrays.asList(Collections.singletonList(a1),(Collections.singletonList(a2))),
+                            Arrays.asList(0.6f,0.6f),
+                    Arrays.asList(OBAnim.ANIM_EASE_IN_EASE_OUT,OBAnim.ANIM_EASE_IN_EASE_OUT),-1,fthis);
+                    dot.setScale(1);
+                }
+            }
+        });
+    }
+
+    public void doReminder() throws Exception
+    {
+        List reminderAudio = currentAudio("PROMPT.REMINDER");
+        if(reminderAudio != null)
+        {
+            Map<String,Object> asc = (Map<String, Object>) audioScenes.get(currentEvent());
+            asc.remove("PROMPT.REMINDER");
+            long sttime = statusTime;
+            promptAudioLock.lockWhenCondition(PROCESS_DONE);
+            promptAudioLock.unlock();
+            if(sttime == statusTime)
+            {
+                waitForSecs(4f);
+                if(sttime == statusTime)
+                    playAudioQueued(reminderAudio,true);
+
+                //reprompt(sttime audio:reminderAudio after:4);
+            }
+        }
+    }
+
     public void demointro() throws Exception
     {
         presenter.walk((PointF) presenter.control.settings.get("restpos"));
@@ -709,6 +804,232 @@ public class X_LetterTrace extends X_Wordcontroller
             anims.add(OBAnim.moveAnim(OB_Maths.OffsetPoint(obj.position(),-bounds().width(), 0),obj));
         playSfxAudio("slide",false);
         OBAnimationGroup.runAnims(anims,0.8f,true,OBAnim.ANIM_EASE_OUT,this);
+    }
+
+    public void nextPath() throws Exception
+    {
+        if(++currPathIdx >= paths.size() )
+        {
+            waitForSecs(0.3f);
+            playLetterSound(letter);
+            waitAudio();
+            waitForSecs(0.5f);
+            if(currentEvent().equals("i"))
+                gotItRightBigTick(true);
+            waitForSecs(1f);
+            slideOff();
+            waitForSecs(0.3f);
+            nextScene();
+        }
+        else
+        {
+            waitForSecs(0.5f);
+            prepareForTrace(currPathIdx);
+            PointF pt = paths.get(currPathIdx).sAlongPath(0,null);
+            pt = convertPointFromControl(pt,paths.get(currPathIdx));
+            dot.setPosition(pt);
+            dot.show();
+            playSfxAudio("doton",true);
+            waitForSecs(0.3f);
+            String audiocat = StrAndNo("PROMPT", currPathIdx+1);
+            if(currentAudio(audiocat) != null )
+                playAudioQueuedScene(audiocat,false);
+            switchStatus(currentEvent());
+            endBody();
+        }
+    }
+
+    public void checkTargetg2(OBControl targ,PointF pt)
+    {
+        setStatus(STATUS_CHECKING);
+        try
+        {
+            killAnimations();
+            dot.hide();
+            strokePath(paths.get(currPathIdx));
+            waitForSecs(0.3f);
+            nextPath();
+        }
+        catch(Exception exception)
+        {
+        }
+
+    }
+
+    public void nextTracePath() throws Exception
+    {
+        if(++currPathIdx >= paths.size() )
+        {
+            playLetterSound(letter);
+            waitAudio();
+            waitForSecs(0.4f);
+            if(eventIndex < events.size()  - 1)
+                slideOff();
+            else
+                gotItRightBigTick(true);
+            nextScene();
+        }
+        else
+        {
+            prepareForTrace(currPathIdx);
+            preTrace(currPathIdx);
+            String audiocat = StrAndNo("PROMPT", currPathIdx+1);
+            if(currentAudio(audiocat) != null)
+                playAudioQueuedScene(audiocat,false);
+            setStatus(STATUS_WAITING_FOR_TRACE);
+            endBody();
+        }
+    }
+
+    public void finishPath() throws Exception
+    {
+        stopAllAudio();
+        playSfxAudio("ping",true);
+        lockScreen();
+        dot.setOpacity(1);
+        dot.hide();
+        unlockScreen();
+        waitForSecs(0.4f);
+        nextTracePath();
+    }
+
+    public void effectMoveToPoint(PointF pt)
+    {
+        if(tSoFar >= 1)
+            return;
+        PointF ppt = convertPointToControl(pt,paths.get(currPathIdx));
+        USubPath usp = currUPath.subPaths.get(0);
+        OB_MutFloat distance = new OB_MutFloat(0);
+        float endT = tSoFar + tLookAhead;
+        if(endT > 1)
+            endT = 1;
+        float tryT = usp.nearestPointOnSubPathForPoint(ppt,distance,allowedDistance,tSoFar,endT);
+        if(tryT > tSoFar)
+        {
+            paths.get(currPathIdx).setStrokeEnd(tryT);
+            if(tryT >= 1)
+                traceComplete = true;
+            tSoFar = tryT;
+            if(tSoFar > 0 && !dot.hidden() && dot.opacity() == 1)
+                fadeOutDot();
+        }
+    }
+
+    public void touchUpAtPoint(PointF pt,View v)
+    {
+        if(status()  == STATUS_TRACING)
+        {
+            setStatus(STATUS_CHECKING);
+            final OBSectionController fthis = this;
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                public void run() throws Exception
+                {
+                    try
+                    {
+                        if(traceComplete)
+                            finishPath();
+                        else if(tSoFar > 1.0 - tLookAhead)
+                        {
+                            float duration = (currPathLen *(1 - tSoFar)) / theMoveSpeed;
+                            if(duration < 0.2)
+                                duration = 0.2f;
+                            OBAnimationGroup.runAnims(Collections.singletonList(OBAnim.propertyAnim("strokeEnd",1.0f,paths.get(currPathIdx))),
+                            duration,true,OBAnim.ANIM_EASE_IN_EASE_OUT,fthis);
+                            traceComplete = true;
+                            finishPath();
+                        }
+                        else
+                            setStatus(STATUS_WAITING_FOR_TRACE);
+                    }
+                    catch(Exception exception)
+                    {
+                    }
+                }
+            });
+        }
+    }
+
+    public void touchMovedToPoint(PointF pt,View v)
+    {
+        if(status()  == STATUS_TRACING)
+        {
+            effectMoveToPoint(pt);
+        }
+    }
+
+
+    public void checkTraceStart(PointF pt)
+    {
+        setStatus(STATUS_TRACING);
+        killAnimations();
+        effectMoveToPoint(pt);
+    }
+
+    public void checkTarget(OBControl targ,PointF pt)
+    {
+        setStatus(STATUS_CHECKING);
+        try
+        {
+            highlightLetter(true);
+            playLetterSound(letter);
+            waitAudio();
+            waitForSecs(0.7f);
+            highlightLetter(false);
+            waitForSecs(0.3f);
+            nextScene();
+        }
+        catch(Exception exception)
+        {
+        }
+    }
+
+    public Object findTarget(PointF pt)
+    {
+        OBControl c = finger(-1,2,targets,pt);
+        return c;
+    }
+
+    public void touchDownAtPoint(final PointF pt,View v)
+    {
+        if(status()  == STATUS_AWAITING_CLICK)
+        {
+            target = (OBControl) findTarget(pt);
+            if(target != null)
+            {
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    public void run() throws Exception
+                    {
+                        checkTarget(target,pt);
+                    }
+                });
+            }
+        }
+        else if(status()  == STATUS_AWAITING_CLICK2)
+        {
+            target = (OBControl) findTarget(pt);
+            if(target != null)
+            {
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    public void run() throws Exception
+                    {
+                        checkTargetg2(target,pt);
+                    }
+                });
+            }
+        }
+        else if(status()  == STATUS_WAITING_FOR_TRACE)
+        {
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                public void run() throws Exception
+                {
+                    checkTraceStart(pt);
+                }
+            });
+        }
     }
 
 }
