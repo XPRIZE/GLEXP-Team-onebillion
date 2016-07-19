@@ -10,6 +10,7 @@ import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBImage;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
+import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.XPRZ_Tracer;
 import org.onebillion.xprz.utils.OBRunnableSyncUI;
 import org.onebillion.xprz.utils.OBUserPressedBackException;
@@ -160,9 +161,16 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
     }
 
 
+    @Override
+    public long switchStatus (String scene)
+    {
+        return setStatus(STATUS_WAITING_FOR_TRACE);
+    }
+
+
     public void start ()
     {
-        final long timeStamp = setStatus(STATUS_WAITING_FOR_TRACE);
+        final long timeStamp = switchStatus(currentEvent());
         //
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
@@ -276,8 +284,18 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
 
     // TRACING
 
+    public void tracing_reset()
+    {
+        tracing_reset(null);
+    }
 
-    public void tracing_reset ()
+    public void tracing_reset(Integer number)
+    {
+        tracing_reset(number, Color.BLUE);
+    }
+
+
+    public void tracing_reset (final Integer number, final int traceColour)
     {
         uPaths = null;
         if (subPaths != null)
@@ -310,7 +328,7 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
         {
             public void ex ()
             {
-                tracing_setup();
+                tracing_setup(number, traceColour);
                 tracing_position_arrow();
             }
         }.run();
@@ -322,14 +340,20 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
         tracing_setup(null);
     }
 
-    public void tracing_setup (final Integer number)
+    public void tracing_setup(Integer number)
     {
+        tracing_setup(number, Color.BLUE);
+    }
+
+    public void tracing_setup (final Integer number, final int traceColour)
+    {
+        MainActivity.mainActivity.log("tracing_setup: " + number);
         new OBRunnableSyncUI()
         {
             public void ex ()
             {
                 String traceControl = (number == null) ? "trace" : String.format("trace_%d", number);
-                pathColour = Color.BLUE;
+                pathColour = traceColour;
                 path1 = (OBGroup) objectDict.get(traceControl);
                 //
                 String dashControl = (number == null) ? "dash" : String.format("dash_%d", number);
@@ -518,7 +542,7 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
     {
         saveStatusClearReplayAudioSetChecking();
         //
-        boolean ok = pointInSegment(pt, segmentIndex);
+        boolean ok = condition_isPointInSegment(pt);
         if (!ok && currentTrace != null)
         {
             ok = pointInSegment(lastTracedPoint(), segmentIndex + 1) && pointInSegment(pt, segmentIndex + 1);
@@ -547,6 +571,16 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
         {
             revertStatusAndReplayAudio();
         }
+    }
+
+
+    public Boolean condition_isPointInSegment(PointF pt)
+    {
+        if (uPaths == null || uPaths.size() == 0) return false;
+        //
+        if (subPaths == null || subPaths.size() == 0) return false;
+        //
+        return pointInSegment(pt, segmentIndex);
     }
 
 
