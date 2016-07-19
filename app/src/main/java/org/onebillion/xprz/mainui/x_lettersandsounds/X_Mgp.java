@@ -44,7 +44,6 @@ public class X_Mgp extends XPRZ_SectionController
     List<String> phaseDict;
     boolean useAltAudio, presenterShow;
     Map<String,List<PointF>> letterLocs;
-    OBGroup objsGroup;
     OBControl screenImage;
 
 
@@ -98,6 +97,9 @@ public class X_Mgp extends XPRZ_SectionController
             for(String let : parameters.get("phasea").split(","))
                 if(componentsDict.get(let) != null)
                     letters.add(componentsDict.get(let));
+
+            if(letters.size() >5)
+                letters = letters.subList(0,5);
 
             addEventPhase(PHASE_A1, phaseDict.get(PHASE_A1),OBUtils.randomlySortedArray(letters),null);
 
@@ -579,8 +581,11 @@ public class X_Mgp extends XPRZ_SectionController
 
     public void clearTargets()
     {
-        detachControl(objsGroup);
-        objsGroup = null;
+        for(OBControl targ : eventTargets)
+        {
+            detachControl(targ);
+        }
+
         eventTargets.clear();
     }
 
@@ -600,6 +605,8 @@ public class X_Mgp extends XPRZ_SectionController
     {
         for(int i=0; i<letters.size(); i++)
         {
+            if(locs.size() <= i)
+                break;
             OBPhoneme pho = letters.get(i);
             OBLabel letterLabel = new OBLabel(pho.text,font,fontSize);
             letterLabel.setColour(Color.BLACK);
@@ -612,16 +619,12 @@ public class X_Mgp extends XPRZ_SectionController
             letterLabel.setPosition(OB_Maths.locationForRect(0.5f,0.5f,bounds()));
             attachControl(letterLabel);
             eventTargets.add(letterLabel);
+            letterLabel.setReversedScreenMaskControl(box.mask);
         }
 
         OBControl frameCont = new OBControl();
         frameCont.setFrame(new RectF(bounds()));
         List<OBControl> targs = new ArrayList<>(eventTargets);
-        targs.add(frameCont);
-        objsGroup = new OBGroup(targs);
-        attachControl(objsGroup);
-        objsGroup.setZPosition(10);
-        objsGroup.setReversedDynamicMaskControl(box.mask);
 
     }
 

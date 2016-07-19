@@ -12,10 +12,10 @@ import java.util.List;
  */
 public class USubPath
 {
-    float length;
     public List<ULine> elements;
-    PointF currPoint;
     public boolean closed;
+    float length;
+    PointF currPoint;
     public USubPath()
     {
         length = -1;
@@ -104,6 +104,81 @@ public class USubPath
         return bez;
     }
 
+    public USubPath subPathFrom(float startS,float endS)
+    {
+        USubPath usp = new USubPath();
+        float finishS = endS;
+        if(endS > 1.0)
+            endS = 1.0f;
+        length();
+        if(startS < 0.0)
+        {
+            PointF outVec = new PointF();
+            elements.get(0).tAlongt(0.0f,outVec);
+            float reqLen = length()  * -startS;
+            outVec = OB_Maths.ScalarTimesPoint(reqLen, OB_Maths.NormalisedVector(outVec));
+            PointF pt1 = elements.get(0).pt0;
+            PointF pt0 = OB_Maths.OffsetPoint(pt1, -outVec.x, -outVec.y);
+            usp.elements.add(new ULine(pt0.x,pt0.y,pt1.x,pt1.y));
+        }
+        float cumS = 0.0f;
+        int startidx = 0;
+        while(startidx < elements.size()  && cumS + elements.get(startidx).proportionalLength < startS)
+        {
+            cumS += elements.get(startidx).proportionalLength;
+            startidx++;
+        }
+        ULine l = elements.get(startidx);
+        float rems = startS - cumS;
+        float propStartS = rems / l.proportionalLength;
+        int endidx = startidx;
+        while(endidx < elements.size()  && cumS + elements.get(endidx).proportionalLength < endS)
+        {
+            cumS += elements.get(endidx).proportionalLength;
+            endidx++;
+        }
+        if(endidx == elements.size() )
+        {
+            //endidx--;
+            rems = 0;
+        }
+        else
+            rems = endS - cumS;
+        if(startidx == endidx)
+        {
+            float propEndS = rems / l.proportionalLength;
+            usp.elements.add(l.objectFromMinT(propStartS,propEndS));
+        }
+        else
+        {
+            usp.elements.add(l.objectFromMinT(propStartS,1.0f));
+            int idx = startidx + 1;
+            while(idx < endidx)
+            {
+                usp.elements.add(elements.get(idx).copy());
+                idx++;
+            }
+            if(rems > 0)
+            {
+                l = elements.get(idx);
+                float propEndS = rems / l.proportionalLength;
+                usp.elements.add(l.objectFromMinT(0,propEndS));
+            }
+        }
+        if(finishS > 1.0)
+        {
+            PointF outVec = new PointF();
+            l = elements.get(elements.size()-1);
+            l.tAlongt(1.0f,outVec);
+            float reqLen = length()  * (finishS - 1.0f);
+            outVec = OB_Maths.ScalarTimesPoint(reqLen,OB_Maths.NormalisedVector(outVec));
+            PointF pt0 = elements.get(elements.size()-1).pt1;
+            PointF pt1 = OB_Maths.OffsetPoint(pt0, outVec.x, outVec.y);
+            usp.elements.add(new ULine(pt0.x,pt0.y,pt1.x,pt1.y));
+        }
+        return usp;
+    }
+
     public float subPathTForPathElement(int idx,float t)
     {
         float cumT = 0;
@@ -134,4 +209,45 @@ public class USubPath
             ul.transformByMatrix(t);
         }
     }
+
+
+    public float nearestPointOnSubPathForPoint(PointF testPoint,OB_MutFloat distance,float threshold)
+    {
+        PointF hitPoint = new PointF();
+        OB_MutFloat outt = new OB_MutFloat(0),outdistance = new OB_MutFloat(threshold);
+        float closestDist = 1000000;
+        float closestT = -1;
+        length();
+        for(ULine ul : elements)
+        {
+            boolean success = ul.nearestPointTestPt(testPoint,outt,hitPoint,outdistance,threshold);
+            if(success && outdistance.value < closestDist)
+            {
+                closestDist = outdistance.value;
+                closestT = OB_Maths.interpolateVal(ul.spStartT, ul.spEndT, outt.value);
+                if(threshold > closestDist)
+                    threshold = closestDist;
+            }
+        }
+        if(closestT >=0 && distance != null)
+            distance.value = closestDist;
+        return closestT;
+    }
+
+    public float nearestPointOnSubPathForPoint(PointF testPoint,OB_MutFloat distance,float threshold,float startT,float endT)
+    {
+        USubPath sp = subPathFrom(startT,endT);
+        OB_MutFloat outDistance = null;
+        if (distance != null)
+            outDistance = new OB_MutFloat(0);
+        float t = sp.nearestPointOnSubPathForPoint(testPoint,outDistance,threshold);
+        if(t >=0)
+        {
+            if (distance != null)
+                distance.value = outDistance.value;
+            t = OB_Maths.interpolateVal(startT, endT, t);
+        }
+        return t;
+    }
+
 }

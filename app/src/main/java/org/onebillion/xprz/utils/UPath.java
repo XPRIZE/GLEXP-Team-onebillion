@@ -12,8 +12,8 @@ import java.util.List;
  */
 public class UPath
 {
-    float length;
     public List<USubPath> subPaths;
+    float length;
 
     public UPath()
     {

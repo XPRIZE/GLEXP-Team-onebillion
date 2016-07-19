@@ -21,12 +21,16 @@ public class MaskShaderProgram extends ShaderProgram
 {
     protected static final String U_TEXTURE_MASK = "u_TextureMask";
     protected static final String U_BLEND_REVERSE = "u_BlendReverse";
+    protected static final String U_SCREEN_WIDTH = "u_ScreenWidth";
+    protected static final String U_SCREEN_HEIGHT = "u_ScreenHeight";
     // Uniform locations
     private final int uMatrixLocation;
     private final int uMainTextureLocation;
     private final int uMaskTextureLocation;
     private final int uBlendColourLocation;
     private final int uBlendReverseLocation;
+    private final int uScreenWidth;
+    private final int uScreenHeight;
     // Attribute locations
     private final int aPositionLocation;
     private final int aTextureCoordinatesLocation;
@@ -43,9 +47,12 @@ public class MaskShaderProgram extends ShaderProgram
         uBlendReverseLocation = glGetUniformLocation(program, U_BLEND_REVERSE);
         aPositionLocation = glGetAttribLocation(program, A_POSITION);
         aTextureCoordinatesLocation = glGetAttribLocation(program, A_TEXTURE_COORDINATES);
+
+        uScreenWidth = glGetUniformLocation(program, U_SCREEN_WIDTH);
+        uScreenHeight = glGetUniformLocation(program, U_SCREEN_HEIGHT);
     }
 
-    public void setUniforms(float[] matrix, int textureId, int textureId2, float[] blendColour, float blendReverse)
+    public void setUniforms(float[] matrix, int textureId, int textureId2, float[] blendColour, float blendReverse, float width, float height)
     {
         // Pass the matrix into the shader program.
         glUniformMatrix4fv(uMatrixLocation, 1, false, matrix, 0);
@@ -67,6 +74,9 @@ public class MaskShaderProgram extends ShaderProgram
 
         glUniform4fv(uBlendColourLocation,1,blendColour,0);
         glUniform1f(uBlendReverseLocation,blendReverse);
+
+        glUniform1f(uScreenWidth,width);
+        glUniform1f(uScreenHeight,height);
 
     }
 

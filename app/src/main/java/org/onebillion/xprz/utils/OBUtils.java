@@ -1127,13 +1127,6 @@ public class OBUtils
         }
     }
 
-
-    public interface RunLambda
-    {
-        public void run () throws Exception;
-    }
-
-
     public static RectF unionBounds (OBGroup group)
     {
         if (group.members.size() == 0) return new RectF(group.bounds().left, group.bounds().top, group.bounds().right, group.bounds().bottom);
@@ -1155,8 +1148,6 @@ public class OBUtils
             return result;
         }
     }
-
-
 
     public static RectF unionFrame (OBGroup group)
     {
@@ -1193,6 +1184,7 @@ public class OBUtils
             return false;
         return AreAntiClockWise(arr.get(ct-3),arr.get(ct-2),arr.get(ct-1));
     }
+
     public static List<PointF>convexHullFromPoints(List<PointF>pts)
     {
         List<PointF>points = new ArrayList<>(pts);
@@ -1249,6 +1241,11 @@ public class OBUtils
         for(OBPath p : paths)
             r.union(p.frame());
         return r;
+    }
+
+    public interface RunLambda
+    {
+        public void run () throws Exception;
     }
 
 }

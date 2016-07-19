@@ -146,20 +146,19 @@ public class OBVideoPlayer extends OBControl
     }
 
 
-
-    public void startPlayingAtTime(String filePath, long fr)
+    public void startPlayingAtTime(AssetFileDescriptor afd, long fr)
     {
-        if(filePath == null || activityPaused )
+        if(afd == null || activityPaused )
             return;
         condition = playerLock.newCondition();
         fromTime = fr;
-        AssetFileDescriptor afd = OBUtils.getAssetFileDescriptorForPath(filePath);
+
         player = new MediaPlayer();
         player.setSurface(surface);
         //surface.release();
         player.setOnPreparedListener(this);
         player.setOnCompletionListener(this);
-
+        player.setOnSeekCompleteListener(this);
 
         try
         {

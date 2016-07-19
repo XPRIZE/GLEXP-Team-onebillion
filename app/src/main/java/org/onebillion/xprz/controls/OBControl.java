@@ -1223,7 +1223,10 @@ public class OBControl
                 {
                     MaskShaderProgram maskProgram = (MaskShaderProgram) renderer.maskProgram;
                     maskProgram.useProgram();
-                    maskProgram.setUniforms(tempMatrix, renderer.textureObjectIds[0], renderer.textureObjectIds[1], finalCol, maskControlReversed ? 1 : 0);
+                    float width = renderer.w;
+                    if( renderer.transitionScreenL != null && renderer.transitionScreenR != null)
+                        width = renderer.w*2;
+                    maskProgram.setUniforms(tempMatrix, renderer.textureObjectIds[0], renderer.textureObjectIds[1], finalCol, maskControlReversed ? 1 : 0, width,renderer.h);
 
                 }
                 else
@@ -1550,7 +1553,7 @@ public class OBControl
         setNeedsRetexture();
     }
 
-    public void setDynamicMaskControl (OBControl m)
+    public void setScreenMaskControl(OBGroup m)
     {
         dynamicMask = true;
         maskControlReversed = false;
@@ -1559,7 +1562,7 @@ public class OBControl
         setNeedsRetexture();
     }
 
-    public void setReversedDynamicMaskControl (OBControl m)
+    public void setReversedScreenMaskControl(OBGroup m)
     {
         dynamicMask = true;
         maskControlReversed = true;
