@@ -35,29 +35,16 @@ public class X_LetterBox
 
     public X_LetterBox(OBGroup group, XPRZ_SectionController sectionController)
     {
-            control = group;
-            controller = sectionController;
+        control = group;
+        controller = sectionController;
 
-            OBGroup glow = (OBGroup)control.objectDict.get("glow");
+        OBGroup glow = (OBGroup)control.objectDict.get("glow");
 
-            glow.show();
-            glow.setOpacity(0);
-            animateGlow = false;
+        glow.show();
+        glow.setOpacity(0);
+        animateGlow = false;
 
-            OBControl masktop = control.objectDict.get("masktop");
-
-           /* RectF rect = controller.convertRectFromControl(masktop.bounds(), masktop);
-            OBControl mask1 = new OBControl();
-            mask1.setFrame(new RectF(0, 0, controller.bounds().width(), rect.top));
-            mask1.setBackgroundColor(Color.BLACK);
-            mask1.setZPosition(1);
-            OBControl mask2 = new OBControl();
-            mask2.setFrame(new RectF(control.right(), 0, controller.bounds().width(), controller.bounds().height()));
-            mask2.setBackgroundColor(Color.BLACK);
-            mask2.setZPosition(1);
-            */
-
-
+        OBControl masktop = control.objectDict.get("masktop");
         RectF rect = controller.convertRectFromControl(masktop.bounds(), masktop);
         OBControl mask1 = new OBControl();
         mask1.setFrame(new RectF(0, rect.top,control.right(), controller.bounds().height()));
@@ -70,10 +57,10 @@ public class X_LetterBox
         mask2.setZPosition(1);
         mask = new OBGroup(Arrays.asList(mask1,mask2));
 
-            mask.setZPosition(1);
-            control.setZPosition(2);
-            //controller.attachControl(mask);
-            control.show();
+        mask.setZPosition(1);
+        control.setZPosition(2);
+
+        control.show();
         mask.texturise(false,sectionController);
 
     }
