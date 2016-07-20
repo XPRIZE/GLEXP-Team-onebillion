@@ -36,7 +36,7 @@ public class X_LetterTrace extends X_Wordcontroller
 {
     String letter;
     List<OBPath> paths;
-    List<OBPath> greyPaths,orangePaths;
+    List<OBPath> greyPaths = new ArrayList<>(),orangePaths;
     List<OBControl>xboxes;
     List<List<OBPath>>letterPaths;
     int normalColour,hiColour,orange,grey;
@@ -71,7 +71,7 @@ public class X_LetterTrace extends X_Wordcontroller
         hotPath.setLineJoin(OBStroke.kCALineJoinRound);
         hotPath.sizeToBoundingBoxIncludingStroke();
         hotPath.setZPosition(100);
-        attachControl(hotPath);
+        //attachControl(hotPath);
     }
 
     public void loadLetters()
@@ -140,6 +140,8 @@ public class X_LetterTrace extends X_Wordcontroller
         }
         for(List arr : letterPaths)
             paths.addAll(arr);
+        for(List arr : letterupaths)
+            upaths.addAll(arr);
     }
 
     public void prepare()
@@ -184,9 +186,9 @@ public class X_LetterTrace extends X_Wordcontroller
 
     public long switchStatus(String scene)
     {
-        if(scene.compareTo("g") == -1)
+        if(scene.compareTo("g") < 0)
             return setStatus(STATUS_AWAITING_CLICK);
-        if(scene.compareTo("k") == -1)
+        if(scene.compareTo("k") < 0)
             return setStatus(STATUS_AWAITING_CLICK2);
         return setStatus(STATUS_WAITING_FOR_TRACE);
     }
@@ -262,6 +264,7 @@ public class X_LetterTrace extends X_Wordcontroller
         setSceneXX(currentEvent());
         prepareForStroke();
         dot = objectDict.get("dot");
+        ((OBPath)dot).sizeToBoundingBoxIncludingStroke();
         dot.setZPosition(30);
         PointF pt = paths.get(0).sAlongPath(0,null);
         pt = convertPointFromControl(pt,paths.get(0));
@@ -319,6 +322,7 @@ public class X_LetterTrace extends X_Wordcontroller
         greyPaths = gryPaths;
         orangePaths = orngePaths;
         dot = objectDict.get("dot2");
+        ((OBPath)dot).sizeToBoundingBoxIncludingStroke();
         dot.setZPosition(10);
         dot.hide();
     }
@@ -343,13 +347,14 @@ public class X_LetterTrace extends X_Wordcontroller
     public void prepareForTrace(int i)
     {
         tSoFar = 0;
-        //currUPath = DeconstructedPath([pathsi.()  path]);
+        currUPath = upaths.get(i);
         currPathLen = paths.get(i).length();
         tLookAhead = allowedDistance / currPathLen;
         traceComplete = false;
         paths.get(i).setStrokeEnd(0);
         paths.get(i).show();
-        paths.get(i).setZPosition(greyPaths.get(i).zPosition() + 0.01f);
+        if (greyPaths != null && greyPaths.size() > i)
+            paths.get(i).setZPosition(greyPaths.get(i).zPosition() + 0.01f);
     }
 
     public void setScenek2()
