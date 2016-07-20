@@ -902,13 +902,13 @@ public class X_LetterTrace extends X_Wordcontroller
     {
         if(tSoFar >= 1)
             return;
-        PointF ppt = convertPointToControl(pt,paths.get(currPathIdx));
+//        PointF ppt = convertPointToControl(pt,paths.get(currPathIdx));
         USubPath usp = currUPath.subPaths.get(0);
         OB_MutFloat distance = new OB_MutFloat(0);
         float endT = tSoFar + tLookAhead;
         if(endT > 1)
             endT = 1;
-        float tryT = usp.nearestPointOnSubPathForPoint(ppt,distance,allowedDistance,tSoFar,endT);
+        float tryT = usp.nearestPointOnSubPathForPoint(pt,distance,allowedDistance,tSoFar,endT);
         if(tryT > tSoFar)
         {
             paths.get(currPathIdx).setStrokeEnd(tryT);
