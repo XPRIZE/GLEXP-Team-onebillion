@@ -480,12 +480,18 @@ public class MainActivity extends Activity
     protected void onPause ()
     {
         super.onPause();
-        mainViewController.onPause();
+        if (mainViewController != null)
+        {
+            mainViewController.onPause();
+        }
         if (renderer != null)
         {
             glSurfaceView.onPause();
         }
-        unregisterReceiver(OBExpansionManager.sharedManager.downloadCompleteReceiver);
+        if (OBExpansionManager.sharedManager.downloadCompleteReceiver != null)
+        {
+            unregisterReceiver(OBExpansionManager.sharedManager.downloadCompleteReceiver);
+        }
         suspendLock.lock();
     }
 

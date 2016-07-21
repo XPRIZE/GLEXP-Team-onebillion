@@ -1043,6 +1043,12 @@ public class OBPath extends OBControl
         invalidate();
     }
 
+    public float strokeEnd()
+    {
+        OBShapeLayer dr = shapeLayer();
+        return dr.strokeEnd;
+    }
+
     public void moveToPoint(float x, float y)
     {
         OBShapeLayer dr = shapeLayer();
