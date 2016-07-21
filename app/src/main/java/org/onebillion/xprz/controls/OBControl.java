@@ -1227,16 +1227,13 @@ public class OBControl
                 if (dynamicMask && maskControl != null)
                 {
                     float[] maskFrame = new float[4];
-                    maskFrame[0] = maskControl.frame().left;
-                    maskFrame[1] = maskControl.frame().top;
-                    maskFrame[2] = maskControl.frame().right;
-                    maskFrame[3] = maskControl.frame().bottom;
+                    maskFrame[0] = maskControl.frame().left+vc.viewPortLeft;
+                    maskFrame[1] = maskControl.frame().top+vc.viewPortTop;
+                    maskFrame[2] = maskControl.frame().right+vc.viewPortLeft;
+                    maskFrame[3] = maskControl.frame().bottom+vc.viewPortTop;
                     MaskShaderProgram maskProgram = (MaskShaderProgram) renderer.maskProgram;
                     maskProgram.useProgram();
-                    float width = renderer.w;
-                    if( renderer.transitionScreenL != null && renderer.transitionScreenR != null)
-                        width = renderer.w*2;
-                    maskProgram.setUniforms(tempMatrix, renderer.textureObjectIds[0], renderer.textureObjectIds[1], finalCol, maskControlReversed ? 1 : 0, width,renderer.h, maskFrame);
+                    maskProgram.setUniforms(tempMatrix, renderer.textureObjectIds[0], renderer.textureObjectIds[1], finalCol, maskControlReversed ? 1 : 0,  renderer.w,renderer.h, maskFrame);
 
                 }
                 else
