@@ -531,6 +531,7 @@ public class X_Lg1 extends XPRZ_SectionController
     public void animateShutters(final boolean open,float duration, String audio) throws Exception
     {
         List<OBAnim> anims = new ArrayList<>();
+        lockScreen();
         for(final OBGroup con : shutters)
         {
 
@@ -573,9 +574,10 @@ public class X_Lg1 extends XPRZ_SectionController
             }
 
         }
+        unlockScreen();
         playSfxAudio(audio,false);
         OBAnimationGroup.runAnims(anims,duration,true,open ? OBAnim.ANIM_EASE_IN : OBAnim.ANIM_EASE_OUT,this);
-
+        lockScreen();
         for(OBControl con : shutters)
         {
             if(open)
@@ -588,6 +590,7 @@ public class X_Lg1 extends XPRZ_SectionController
                     ((OBControl) con.propertyValue("bg")).hide();
             }
         }
+        unlockScreen();
 
     }
 
@@ -670,6 +673,7 @@ public class X_Lg1 extends XPRZ_SectionController
 
 
         for (int i = 0; i < controlsGrid.size(); i++)
+        {
             for (int j = 0; j < controlsGrid.get(i).size(); j++)
             {
                 if ((i * controlsGrid.get(i).size() + j) % 2 == 0)
@@ -691,20 +695,23 @@ public class X_Lg1 extends XPRZ_SectionController
                     starCopy.setOpacity(0.5f);
 
                     shutters.add(shutter);
-                    shutter.setProperty("bg",null);
+                    shutter.setProperty("bg", null);
                     stars.add(starCopy);
                 }
             }
+        }
         detachControl(star);
         unlockScreen();
         animateStarsTwinkle(stars);
         animateShutters(true, 0.5f, "stars");
 
         for (int i = 0; i < controlsGrid.size(); i++)
+        {
             for (int j = 0; j < controlsGrid.get(i).size(); j++)
             {
                 controlsGrid.get(i).get(j).maskControl = null;
             }
+        }
 
 
         waitForSecs(1f);
