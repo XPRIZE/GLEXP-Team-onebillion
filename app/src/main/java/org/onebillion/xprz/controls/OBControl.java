@@ -1221,7 +1221,8 @@ public class OBControl
                     finalCol[i] = blendColour[i];
                 }
                 finalCol[3] = blendColour[3] * op;
-
+                for (int i = 0;i < 3;i++)
+                    finalCol[i] *= op;
 
 
                 if (dynamicMask && maskControl != null)
