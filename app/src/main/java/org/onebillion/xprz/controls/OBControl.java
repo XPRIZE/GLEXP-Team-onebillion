@@ -1312,7 +1312,7 @@ public class OBControl
                     canvas.saveLayer(bounds(), p, Canvas.ALL_SAVE_FLAG);
                 }
                 drawBorderAndBackground(canvas);
-                drawLayer(canvas,0 );
+                drawLayer(canvas,0);
                 if (shadowrequired)
                 {
                     canvas.restore();
