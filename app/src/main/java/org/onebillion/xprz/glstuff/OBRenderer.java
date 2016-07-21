@@ -128,6 +128,7 @@ public class OBRenderer implements GLSurfaceView.Renderer
         int fw = (int)(frac * w);
         if (fw > 0)
         {
+            screenl.setViewPort(0,0,fw,h);
             glViewport(0, 0, fw, h);
             colourProgram.useProgram();
             orthoM(projectionMatrix,0, w - fw, w, h, 0, -1024f, 1024f);
@@ -137,6 +138,7 @@ public class OBRenderer implements GLSurfaceView.Renderer
         }
         if (fw < w)
         {
+            screenr.setViewPort(fw,0,w-fw,h);
             glViewport(fw, 0, w-fw, h);
             colourProgram.useProgram();
             orthoM(projectionMatrix,0,0, w - fw, h, 0, -1024f, 1024f);

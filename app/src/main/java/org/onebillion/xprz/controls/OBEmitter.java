@@ -1,9 +1,6 @@
 package org.onebillion.xprz.controls;
 
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.RectF;
 import android.os.AsyncTask;
 
 import org.onebillion.xprz.glstuff.OBRenderer;
@@ -59,7 +56,7 @@ public class OBEmitter extends OBControl
         for (OBEmitterCell ec : cells)
             ec.start();
     }
-    public void drawLayer(Canvas canvas)
+    public void drawLayer(Canvas canvas, int flags)
     {
         for (OBEmitterCell ec : cells)
             ec.draw(canvas);

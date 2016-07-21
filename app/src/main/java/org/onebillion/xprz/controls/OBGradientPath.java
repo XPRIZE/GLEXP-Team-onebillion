@@ -141,7 +141,7 @@ public class OBGradientPath extends OBPath
         setStops(ugradient.stops);
     }
 
-    public void drawLayer(Canvas canvas)
+    public void drawLayer(Canvas canvas, int flags)
     {
         if (gradientLayer != null)
         {
