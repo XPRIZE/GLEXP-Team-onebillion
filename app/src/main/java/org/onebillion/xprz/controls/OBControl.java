@@ -1190,7 +1190,7 @@ public class OBControl
         if (texture == null || texture.bitmap() == null)
             return;
 
-        if (dynamicMask && maskControl != null)
+        if (dynamicMask && maskControl != null && maskControl.texture != null)
             tr.draw(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, texture.bitmap(), maskControl.texture.bitmap());
         else
             tr.draw(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, texture.bitmap());
@@ -1221,14 +1221,22 @@ public class OBControl
                     finalCol[i] = blendColour[i];
                 }
                 finalCol[3] = blendColour[3] * op;
+
+
+
                 if (dynamicMask && maskControl != null)
                 {
+                    float[] maskFrame = new float[4];
+                    maskFrame[0] = maskControl.frame().left;
+                    maskFrame[1] = maskControl.frame().top;
+                    maskFrame[2] = maskControl.frame().right;
+                    maskFrame[3] = maskControl.frame().bottom;
                     MaskShaderProgram maskProgram = (MaskShaderProgram) renderer.maskProgram;
                     maskProgram.useProgram();
                     float width = renderer.w;
                     if( renderer.transitionScreenL != null && renderer.transitionScreenR != null)
                         width = renderer.w*2;
-                    maskProgram.setUniforms(tempMatrix, renderer.textureObjectIds[0], renderer.textureObjectIds[1], finalCol, maskControlReversed ? 1 : 0, width,renderer.h);
+                    maskProgram.setUniforms(tempMatrix, renderer.textureObjectIds[0], renderer.textureObjectIds[1], finalCol, maskControlReversed ? 1 : 0, width,renderer.h, maskFrame);
 
                 }
                 else
@@ -1555,8 +1563,9 @@ public class OBControl
         setNeedsRetexture();
     }
 
-    public void setScreenMaskControl(OBGroup m)
+    public void setScreenMaskControl(OBControl m)
     {
+        m.texturise(false,controller);
         dynamicMask = true;
         maskControlReversed = false;
         maskControl = m;
@@ -1564,8 +1573,9 @@ public class OBControl
         setNeedsRetexture();
     }
 
-    public void setReversedScreenMaskControl(OBGroup m)
+    public void setReversedScreenMaskControl(OBControl m)
     {
+        m.texturise(false,controller);
         dynamicMask = true;
         maskControlReversed = true;
         maskControl = m;

@@ -84,22 +84,13 @@ public class X_WordVideoRec extends XPRZ_SectionController
         if(parameters.get("demo").equalsIgnoreCase("true") && parameters.get("presenter").equalsIgnoreCase("true"))
         {
             showControls("presenter.*");
-            OBControl mask1 = new OBControl();
+            OBControl mask = new OBControl();
 
-            mask1.setFrame(new RectF(videoBox.frame()));
-            mask1.setBackgroundColor(Color.BLACK);
-            mask1.setOpacity(1);
-            OBControl mask2 = new OBControl();
-            mask2.setFrame(new RectF(this.bounds()));
-            mask2.setBackgroundColor(Color.BLACK);
-            mask2.setOpacity(0);
-            OBGroup mask = new OBGroup(Arrays.asList(mask1,mask2));
+            mask.setFrame(new RectF(videoBox.frame()));
+            mask.setBackgroundColor(Color.BLACK);
+            mask.setOpacity(1);
             mask.texturise(false,this);
 
-           // OBGroup presenterGroup = new OBGroup(Arrays.asList(presenter.control, mask2.copy()));
-            //presenter.control.masksToBounds();
-            //attachControl(presenterGroup);
-           // mask.setZPosition(100);
             presenter.control.setScreenMaskControl(mask);
         }
 
