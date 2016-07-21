@@ -100,12 +100,12 @@ public class OBPatternPath extends OBPath
         if (patternLayer != null)
         {
             Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-            pattern.patternContents.drawLayer(canvas);
+            pattern.patternContents.drawLayer(canvas,APPLY_EFFECTS );
         }
     }
 
 
-    public void drawLayer(Canvas canvas)
+    public void drawLayer(Canvas canvas, int flags)
     {
         if (layer != null)
         {
