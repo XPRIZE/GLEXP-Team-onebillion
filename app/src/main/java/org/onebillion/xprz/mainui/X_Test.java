@@ -38,99 +38,12 @@ public class X_Test extends XPRZ_SectionController
         super.prepare();
          loadFingers();
         loadEvent("mastera");
-        OBControl c = objectDict.get("path1");
-        UPath p = deconstructedPath("mastera","path1");
-        targets = new ArrayList<>();
-        targets.add(c);
         events = Collections.singletonList("1a");
 
-        OBControl bob = new OBControl();
-        bob.setFrame(100,100,500,400);
-        bob.setBackgroundColor(Color.WHITE);
-        bob.setBorderColor(Color.BLACK);
-        bob.setBorderWidth(4);
-        attachControl(bob);
-        objectDict.put("bob",bob);
-        doVisual(currentEvent());
+         doVisual(currentEvent());
         setStatus(STATUS_AWAITING_CLICK);
     }
 
-    public void checkTarget()
-    {
-        if (emitter != null && emitter.running())
-        {
-            emitter.stop();
-            return;
-        }
-        emitter = new OBEmitter();
-        emitter.setFrame(0,0,bounds().width(),bounds().height());
-        OBEmitterCell cell = new OBEmitterCell();
-        cell.birthRate = 5;
-        cell.velocity = 240;
-        cell.velocityRange = 30;
-        cell.lifeTime = 5;
-        cell.emissionRange = (float)(2 * Math.PI);
-        cell.scale = 1f;
-        cell.scaleSpeed = -0.1f;
-        //cell.spin = (float)(Math.PI / 12);
-        cell.spinRange = (float)(2 * Math.PI / 2);
-        cell.posX = bounds().width()/2;
-        cell.posY = bounds().height()/2;
-        cell.alphaSpeed = -0.2f;
-        //OBControl c = objectDict.get("Path1");
-        OBPath star = StarWithScale(bounds().height() * 0.1f,true);
-        star.enCache();
-        cell.contents = star.cache;
-        emitter.cells.add(cell);
-        attachControl(emitter);
-        emitter.run();
-    }
-
-    void doOpac()
-    {
-        OBAnim an = OBAnim.opacityAnim(0.2f,objectDict.get("bob"));
-        OBAnim an2 = OBAnim.opacityAnim(0.2f,objectDict.get("obj"));
-        OBAnimationGroup gp = new OBAnimationGroup();
-        gp.runAnims(Arrays.asList(an,an2),2,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
-    }
-    OBControl findTarget(PointF pt)
-    {
-        OBControl a =  finger(0,0,targets,pt);
-        //tempBitmap = fingers.get(0).intersectsWithx(targets.get(0));
-        //invalidateView(0, 0, view.getRight(), view.getBottom());
-        return a;
-    }
-
-    @Override
-    public void touchDownAtPoint(PointF pt,View v)
-    {
-        if (status() == STATUS_AWAITING_CLICK)
-        {
-            //final OBControl c = findTarget(pt);
-            //if (c != null)
-            {
-                new AsyncTask<Void, Void, Void>()
-                {
-                    protected Void doInBackground(Void... params)
-                    {
-                        //playAudio("correct");
-                        //checkTarget();
-                        try
-                        {
-                            doOpac();
-                        }
-                        catch (Exception e)
-                        {
-                            e.printStackTrace();
-                        }
-                        return null;
-                    }
-                }.execute();
-
-            }
-        }
-
-    }
 
     /*public void drawControls(Canvas canvas)
     {

@@ -16,7 +16,6 @@ import android.opengl.*;
 import android.renderscript.Allocation;
 import android.renderscript.RenderScript;
 import android.renderscript.ScriptIntrinsicBlur;
-import android.support.v4.app.NotificationCompatSideChannelService;
 import android.util.Log;
 
 import org.onebillion.xprz.glstuff.ColorShaderProgram;
@@ -38,7 +37,7 @@ public class OBControl
     public static int LCC_NORMAL = 0,
             LCC_DISABLED = 1,
             LCC_SELECTED = 2;
-
+    public static int APPLY_EFFECTS = 1;
     public int state;
     public Map<String, Object> settings;
     public OBLayer layer;
@@ -563,17 +562,20 @@ public class OBControl
         setRotation(ang);
     }
 
-    public void drawLayer (Canvas canvas)
+    public void drawLayer(Canvas canvas, int flags)
     {
         if (layer != null)
         {
-            if (highlightColour != 0)
-            {
-                layer.setColourFilter(new PorterDuffColorFilter(highlightColour, PorterDuff.Mode.SRC_ATOP));
-            }
             boolean needsRestore = false;
-            if (needsRestore = (opacity() != 1.0f))
-                canvas.saveLayerAlpha(bounds(), (int) (opacity() * 255));
+            if ((flags & APPLY_EFFECTS) != 0)
+            {
+                if (highlightColour != 0)
+                {
+                    layer.setColourFilter(new PorterDuffColorFilter(highlightColour, PorterDuff.Mode.SRC_ATOP));
+                }
+                if (needsRestore = (opacity() != 1.0f))
+                    canvas.saveLayerAlpha(bounds(), (int) (opacity() * 255));
+            }
             layer.draw(canvas);
             if (needsRestore)
                 canvas.restore();
@@ -1131,7 +1133,7 @@ public class OBControl
                 canvas.saveLayer(bounds(), p, Canvas.ALL_SAVE_FLAG);
             }
             drawBorderAndBackground(canvas);
-            drawLayer(canvas);
+            drawLayer(canvas,0 );
             if (shadowrequired)
                 canvas.restore();
         }
@@ -1301,7 +1303,7 @@ public class OBControl
                     canvas.saveLayer(bounds(), p, Canvas.ALL_SAVE_FLAG);
                 }
                 drawBorderAndBackground(canvas);
-                drawLayer(canvas);
+                drawLayer(canvas,0 );
                 if (shadowrequired)
                 {
                     canvas.restore();
@@ -1336,7 +1338,7 @@ public class OBControl
         m.preScale(rasterScale, rasterScale);
         canvas.concat(m);
         drawBorderAndBackground(canvas);
-        drawLayer(canvas);
+        drawLayer(canvas,0 );
         if (maskControl != null && !dynamicMask)
         {
             Paint p = new Paint();
@@ -1439,7 +1441,7 @@ public class OBControl
     {
         Bitmap bm = Bitmap.createBitmap((int) (frame.right - frame.left), (int) (frame.bottom - frame.top), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bm);
-        drawLayer(canvas);
+        drawLayer(canvas,APPLY_EFFECTS);
         return bm;
     }
 
@@ -1454,7 +1456,7 @@ public class OBControl
     {
         Bitmap bm = Bitmap.createBitmap((int) (frame.right - frame.left), (int) (frame.bottom - frame.top), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bm);
-        drawLayer(canvas);
+        drawLayer(canvas,APPLY_EFFECTS );
         Paint paint = new Paint();
         paint.setColor(col);
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP));
@@ -1841,7 +1843,7 @@ public class OBControl
         canvas.clipRect(0, 0, 1, 1);
         canvas.translate(-x, -y);
         drawBorderAndBackground(canvas);
-        drawLayer(canvas);
+        drawLayer(canvas,APPLY_EFFECTS);
         return tinycache.getPixel(0, 0);
     }
 
