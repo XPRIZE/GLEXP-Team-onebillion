@@ -169,7 +169,15 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
             {
                 if (control == null) continue;
                 detachControl(control);
-                objectDict.remove(control);
+                String id = (String) control.attributes().get("id");
+                if (id != null)
+                {
+                    OBControl remainder = objectDict.get(id);
+                    if (remainder != null && remainder.equals(control))
+                    {
+                        objectDict.remove(id);
+                    }
+                }
             }
             //
             for (OBControl control : filterControls(".*"))

@@ -1932,7 +1932,7 @@ public class OBSectionController extends OBViewController
                 }
                 else
                 {
-                    MainActivity.mainActivity.log("say something pretty");
+//                    MainActivity.mainActivity.log("say something pretty"); // MICHAL!!!
                 }
                 attachControl(tick);
             }
