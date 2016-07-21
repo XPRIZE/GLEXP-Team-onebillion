@@ -34,11 +34,12 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
     protected int currentTry;
     //
     protected OBGroup path1, path2;
-    protected OBImage dash;
+    protected OBImage dash1, dash2;
     protected OBControl trace_arrow;
     int savedStatus;
     List<Object> savedReplayAudio;
     private Boolean autoClean;
+
 
     public XPRZ_Generic_Tracing (Boolean autoClean)
     {
@@ -157,6 +158,7 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
         {
             doVisual(currentEvent());
         }
+        pathColour = Color.BLUE;
     }
 
 
@@ -288,13 +290,7 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
         tracing_reset(null);
     }
 
-    public void tracing_reset(Integer number)
-    {
-        tracing_reset(number, Color.BLUE);
-    }
-
-
-    public void tracing_reset (final Integer number, final int traceColour)
+    public void tracing_reset (final Integer number)
     {
         uPaths = null;
         if (subPaths != null)
@@ -327,7 +323,7 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
         {
             public void ex ()
             {
-                tracing_setup(number, traceColour);
+                tracing_setup(number);
                 tracing_position_arrow();
             }
         }.run();
@@ -339,27 +335,21 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
         tracing_setup(null);
     }
 
-    public void tracing_setup(Integer number)
+    public void tracing_setup (final Integer number)
     {
-        tracing_setup(number, Color.BLUE);
-    }
-
-    public void tracing_setup (final Integer number, final int traceColour)
-    {
-        MainActivity.mainActivity.log("tracing_setup: " + number);
+//        MainActivity.mainActivity.log("tracing_setup: " + number);
         new OBRunnableSyncUI()
         {
             public void ex ()
             {
                 String traceControl = (number == null) ? "trace" : String.format("trace_%d", number);
-                pathColour = traceColour;
                 path1 = (OBGroup) objectDict.get(traceControl);
                 //
                 String dashControl = (number == null) ? "dash" : String.format("dash_%d", number);
-                dash = (OBImage) objectDict.get(dashControl);
-                if (dash != null)
+                dash1 = (OBImage) objectDict.get(dashControl);
+                if (dash1 != null)
                 {
-                    dash.show();
+                    dash1.show();
                 }
                 //
                 if (path1 != null)
@@ -468,7 +458,7 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
 
     public void pointer_traceAlongPath (final OBPath p, float durationMultiplier) throws Exception
     {
-        p.setStrokeColor(Color.BLUE);
+        p.setStrokeColor(pathColour);
         p.setStrokeEnd(0.0f);
         p.setOpacity(1.0f);
         //
@@ -528,7 +518,10 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
 
     public OBControl findTarget (PointF pt)
     {
-        if (!dash.frame.contains(pt.x, pt.y))
+        Boolean contained1 = dash1 != null && dash1.frame.contains(pt.x, pt.y);
+        Boolean contained2 = dash2 != null && dash2.frame.contains(pt.x, pt.y);
+        //
+        if (!contained1 && !contained2)
         {
             return null;
         }
@@ -550,7 +543,10 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
         }
         if (ok)
         {
-            trace_arrow.hide();
+            if (trace_arrow != null)
+            {
+                trace_arrow.hide();
+            }
             //
             if (currentTrace == null)
             {
@@ -643,7 +639,8 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
             if (!performTouchDown(pt))
             {
                 List<OBControl> controls = new ArrayList();
-                if (dash != null) controls.add(dash);
+                if (dash1 != null) controls.add(dash1);
+                if (dash2 != null) controls.add(dash2);
                 OBControl closestTarget = finger(-1, 2, controls, pt);
                 if (closestTarget != null)
                 {

@@ -24,7 +24,6 @@ public class X_Counting4To6_S7 extends XPRZ_Generic_Tracing
     List<Integer> numberSequence;
     int sequenceIndex;
     int colouredObjects;
-    int traceColour;
 
     public X_Counting4To6_S7 ()
     {
@@ -72,14 +71,6 @@ public class X_Counting4To6_S7 extends XPRZ_Generic_Tracing
                 XPRZ_Generic.colourObject(star, Color.WHITE);
                 star.enable();
             }
-            //
-//            int numberColour = OBUtils.colorFromRGBString(eventAttributes.get("font_colour"));
-//            for (OBControl label : filterControls("label.*"))
-//            {
-//                OBLabel number = action_createLabelForControl(label, 1.2f, false);
-//                number.setColour(numberColour);
-//                label.hide();
-//            }
         }
     }
 
@@ -156,7 +147,7 @@ public class X_Counting4To6_S7 extends XPRZ_Generic_Tracing
                 //
                 OBGroup currentDot = (OBGroup) c;
                 int number = numberSequence.get(sequenceIndex);
-                traceColour = OBUtils.colorFromRGBString((String)currentDot.attributes().get("colour"));
+                pathColour = OBUtils.colorFromRGBString((String)currentDot.attributes().get("colour"));
                 //
                 lockScreen();
                 for (OBControl star : filterControls("star.*"))
@@ -167,8 +158,8 @@ public class X_Counting4To6_S7 extends XPRZ_Generic_Tracing
                 colouredObjects = 0;
                 hideControls("trace.*");
                 hideControls("dash.*");
-                tracing_reset(number, traceColour);
-                XPRZ_Generic.colourObject(currentDot, traceColour);
+                tracing_reset(number);
+                XPRZ_Generic.colourObject(currentDot, pathColour);
                 currentDot.disable();
                 unlockScreen();
                 //
@@ -197,7 +188,7 @@ public class X_Counting4To6_S7 extends XPRZ_Generic_Tracing
                 //
                 lockScreen();
                 star.disable();
-                XPRZ_Generic.colourObject(star, traceColour);
+                XPRZ_Generic.colourObject(star, pathColour);
                 unlockScreen();
                 //
                 int number = numberSequence.get(sequenceIndex);
@@ -282,11 +273,10 @@ public class X_Counting4To6_S7 extends XPRZ_Generic_Tracing
         playSfxAudio("select_dot", false);
         //
         OBGroup dot = (OBGroup) objectDict.get("dot_1");
-        traceColour = OBUtils.colorFromRGBString((String)dot.attributes().get("colour"));
         lockScreen();
-        XPRZ_Generic.colourObject(dot, traceColour);
-        tracing_reset();
-        tracing_setup(6, traceColour);
+        pathColour = OBUtils.colorFromRGBString((String)dot.attributes().get("colour"));
+        XPRZ_Generic.colourObject(dot, pathColour);
+        tracing_reset(6);
         unlockScreen();
         //
         waitAudio();
@@ -298,7 +288,7 @@ public class X_Counting4To6_S7 extends XPRZ_Generic_Tracing
         waitForSecs(0.3);
         //
         action_playNextDemoSentence(false); // Now touch six stars, to match your number
-        XPRZ_Generic.pointer_moveToObject(dash, -15, 0.6f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_RIGHT), true, this);
+        XPRZ_Generic.pointer_moveToObject(dash1, -15, 0.6f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_RIGHT), true, this);
         waitForSecs(0.3);
         //
         for (int i = 0; i < 6; i++)
@@ -307,7 +297,7 @@ public class X_Counting4To6_S7 extends XPRZ_Generic_Tracing
             XPRZ_Generic.pointer_moveToObject(star, -10, 0.4f, EnumSet.of(XPRZ_Generic.Anchor.ANCHOR_MIDDLE), true, this);
             playSfxAudio("select_star", false);
             lockScreen();
-            XPRZ_Generic.colourObject(star, traceColour);
+            XPRZ_Generic.colourObject(star, pathColour);
             unlockScreen();
             waitForSecs(0.1);
         }

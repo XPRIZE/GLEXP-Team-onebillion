@@ -5,11 +5,15 @@ import android.graphics.PointF;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
+import org.onebillion.xprz.controls.OBImage;
 import org.onebillion.xprz.controls.OBLabel;
+import org.onebillion.xprz.controls.OBPath;
+import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic_Tracing;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
+import org.onebillion.xprz.utils.OBRunnableSyncUI;
 import org.onebillion.xprz.utils.OBUtils;
 
 import java.util.ArrayList;
@@ -173,7 +177,8 @@ public class X_CountingTo3_S7 extends XPRZ_Generic_Tracing
         else
         {
             lockScreen();
-            if (dash != null) dash.hide();
+            if (dash1 != null) dash1.hide();
+            if (dash2 != null) dash2.hide();
             tracing_reset();
             unlockScreen();
             //
@@ -196,6 +201,7 @@ public class X_CountingTo3_S7 extends XPRZ_Generic_Tracing
             });
         }
     }
+
 
 
     public void demo7a () throws Exception
