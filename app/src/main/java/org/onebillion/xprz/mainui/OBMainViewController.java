@@ -410,6 +410,9 @@ public class OBMainViewController extends OBViewController
             else
                 l.waitForSecsNoThrow(0.01);
         }
+        renderer.transitionScreenR.setViewPort(0,0,renderer.w,renderer.h);
+        renderer.transitionScreenL.setViewPort(0,0,renderer.w,renderer.h);
+        glv.requestRender();
         renderer.transitionScreenR = renderer.transitionScreenL = null;
         renderer.resetViewport();
     }
