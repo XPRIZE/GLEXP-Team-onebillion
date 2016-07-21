@@ -79,8 +79,14 @@ public class USubPath
         length = 0;
         for (ULine gl : elements)
             length += gl.length();
+        float stt = 0;
         for (ULine gl : elements)
+        {
+            gl.spStartT = stt;
             gl.proportionalLength = gl.length() / length;
+            gl.spEndT = stt + gl.proportionalLength;
+            stt = gl.spEndT;
+        }
     }
 
     public Path bezierPath()
