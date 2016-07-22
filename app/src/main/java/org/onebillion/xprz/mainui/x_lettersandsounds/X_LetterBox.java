@@ -28,52 +28,32 @@ import java.util.List;
 public class X_LetterBox
 {
     public OBGroup control;
-    public OBGroup mask;
+    public OBControl mask;
     private XPRZ_SectionController controller;
     private boolean animateGlow;
 
 
     public X_LetterBox(OBGroup group, XPRZ_SectionController sectionController)
     {
-            control = group;
-            controller = sectionController;
+        control = group;
+        controller = sectionController;
 
-            OBGroup glow = (OBGroup)control.objectDict.get("glow");
+        OBGroup glow = (OBGroup)control.objectDict.get("glow");
 
-            glow.show();
-            glow.setOpacity(0);
-            animateGlow = false;
+        glow.show();
+        glow.setOpacity(0);
+        animateGlow = false;
 
-            OBControl masktop = control.objectDict.get("masktop");
-
-           /* RectF rect = controller.convertRectFromControl(masktop.bounds(), masktop);
-            OBControl mask1 = new OBControl();
-            mask1.setFrame(new RectF(0, 0, controller.bounds().width(), rect.top));
-            mask1.setBackgroundColor(Color.BLACK);
-            mask1.setZPosition(1);
-            OBControl mask2 = new OBControl();
-            mask2.setFrame(new RectF(control.right(), 0, controller.bounds().width(), controller.bounds().height()));
-            mask2.setBackgroundColor(Color.BLACK);
-            mask2.setZPosition(1);
-            */
-
-
+        OBControl masktop = control.objectDict.get("masktop");
         RectF rect = controller.convertRectFromControl(masktop.bounds(), masktop);
-        OBControl mask1 = new OBControl();
-        mask1.setFrame(new RectF(0, rect.top,control.right(), controller.bounds().height()));
-        mask1.setBackgroundColor(Color.BLACK);
-        mask1.setZPosition(1);
-        OBControl mask2 = new OBControl();
-        mask2.setFrame(new RectF(sectionController.bounds()));
-        mask2.setBackgroundColor(Color.BLACK);
-        mask2.setOpacity(0);
-        mask2.setZPosition(1);
-        mask = new OBGroup(Arrays.asList(mask1,mask2));
+        mask = new OBControl();
+        mask.setFrame(new RectF(0, rect.top,control.right(), controller.bounds().height()));
+        mask.setBackgroundColor(Color.BLACK);
+        mask.setZPosition(1);
 
-            mask.setZPosition(1);
-            control.setZPosition(2);
-            //controller.attachControl(mask);
-            control.show();
+        control.setZPosition(2);
+
+        control.show();
         mask.texturise(false,sectionController);
 
     }

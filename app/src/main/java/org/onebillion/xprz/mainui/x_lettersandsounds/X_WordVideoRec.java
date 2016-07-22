@@ -37,12 +37,10 @@ import java.util.Map;
 public class X_WordVideoRec extends XPRZ_SectionController
 {
     static final int MODE_WORD = 1;
-    String text;
 
     OBLabel wordLabel;
     double expectedAudioLength;
     int  currentWord, currentMode;
-    OBControl lastFrame;
     XPRZ_Presenter presenter;
     List<Map<String,Object>> eventsData;
     OBVideoRecorder videoRecorder;
@@ -58,8 +56,7 @@ public class X_WordVideoRec extends XPRZ_SectionController
         loadFingers();
         loadEvent("master");
 
-        OBGroup presenterbox = (OBGroup)objectDict.get("presenterbox");
-        presenter = XPRZ_Presenter.characterWithGroup((OBGroup)presenterbox.objectDict.get("presenter"));
+        presenter = XPRZ_Presenter.characterWithGroup((OBGroup)objectDict.get("presenter"));
         presenter.faceFront();
 
         Map<String,OBPhoneme> componentDict = OBUtils.LoadWordComponentsXML(true);
@@ -83,12 +80,24 @@ public class X_WordVideoRec extends XPRZ_SectionController
 
         currentWord = 1;
 
-        if(parameters.get("demo").equalsIgnoreCase("true") &&
-        parameters.get("presenter").equalsIgnoreCase("true"))
-        objectDict.get("presenterbox").show();
+        OBControl videoBox = objectDict.get("videobox");
+        if(parameters.get("demo").equalsIgnoreCase("true") && parameters.get("presenter").equalsIgnoreCase("true"))
+        {
+            showControls("presenter.*");
+            OBControl mask = new OBControl();
+
+            mask.setFrame(new RectF(videoBox.frame()));
+            mask.setBackgroundColor(Color.BLACK);
+            mask.setOpacity(1);
+            mask.texturise(false,this);
+
+            presenter.control.setScreenMaskControl(mask);
+        }
+
         videoRecorder = new OBVideoRecorder(OBUtils.getFilePathForTempFile(this),this);
-        videoPlayer = new OBVideoPlayer(objectDict.get("videobox").frame(),this);
-        videoPlayer.setZPosition(100);
+        videoPlayer = new OBVideoPlayer(videoBox.frame(),this);
+        videoPlayer.setZPosition(videoBox.zPosition());
+        videoBox.hide();
 
         cameraManager = new OBCameraManager(this);
         attachControl(videoPlayer);
@@ -498,11 +507,13 @@ public class X_WordVideoRec extends XPRZ_SectionController
             presenterSpeak(getSceneAudio("DEMO"));
             waitForSecs(0.5f);
             PointF loc = XPRZ_Generic.copyPoint(presenter.control.position());
-            loc.x += objectDict.get("presenterbox").width();
+            loc.x = this.bounds().width();
             presenter.walk(loc);
             waitForSecs(0.5f);
             showVideoPreview();
-            objectDict.get("presenterbox").hide();
+            lockScreen();
+            hideControls("presenter.*");
+            unlockScreen();
         }
         else
         {

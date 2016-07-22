@@ -1,7 +1,6 @@
 package org.onebillion.xprz.mainui.x_lettersandsounds;
 
 import android.graphics.Color;
-import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
@@ -9,7 +8,6 @@ import android.util.ArrayMap;
 import android.view.View;
 
 import org.onebillion.xprz.controls.*;
-import org.onebillion.xprz.mainui.OBViewController;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 import org.onebillion.xprz.utils.OBAnim;
@@ -24,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Created by michal on 29/06/16.
@@ -39,7 +36,6 @@ public class X_MakeSylWord extends XPRZ_SectionController
     int currentMode, currentWord, currentPart, currentRepeat;
     int totalRepeats;
     OBLabel fullWordLabel;
-    OBGroup objsGroup;
     boolean showDemo, showPicture, useSyllables;
     OBControl screenImage;
     XPRZ_Presenter presenter;
@@ -200,6 +196,7 @@ public class X_MakeSylWord extends XPRZ_SectionController
                 partLabel.hide();
                 attachControl(partLabel);
                 searchStart += textPart.text.length();
+                partLabel.setReversedScreenMaskControl(box.mask);
             }
         }
 
@@ -214,13 +211,6 @@ public class X_MakeSylWord extends XPRZ_SectionController
         }
         OBControl frameCont = new OBControl();
         frameCont.setFrame(new RectF(this.bounds()));
-        List<OBControl> allControls = new ArrayList<>((List<OBControl>)(Object)parts);
-        allControls.add(fullWordLabel);
-        allControls.add(frameCont);
-        objsGroup = new OBGroup(allControls);
-        attachControl(objsGroup);
-        objsGroup.setZPosition(10);
-        objsGroup.setReversedDynamicMaskControl(box.mask);
         if(currentMode == MODE_WORD && showPicture)
         {
             screenImage = loadImageWithName(((OBWord)main).ImageFileName(),new PointF(0,0), new RectF(this.bounds()));
@@ -286,11 +276,12 @@ public class X_MakeSylWord extends XPRZ_SectionController
 
         if(status() == STATUS_AWAITING_CLICK)
         {
-            setStatus(STATUS_BUSY);
+
             if(currentPart == -1)
             {
                 if(finger(0,2, (List<OBControl>)(Object)Collections.singletonList(box.control), pt) != null)
                 {
+                    setStatus(STATUS_BUSY);
                     OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                     {
 
@@ -317,6 +308,7 @@ public class X_MakeSylWord extends XPRZ_SectionController
                 final XPRZ_SectionController controller = this;
                 if(finger(0,2, Collections.singletonList(button), pt) != null)
                 {
+                    setStatus(STATUS_BUSY);
                     OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                     {
 
@@ -477,7 +469,8 @@ public class X_MakeSylWord extends XPRZ_SectionController
     public void nextWord() throws Exception
     {
         lockScreen();
-        detachControl(objsGroup);
+        for(OBControl con : parts)
+            detachControl(con);
         parts.clear();
         detachControl(fullWordLabel);
         unlockScreen();

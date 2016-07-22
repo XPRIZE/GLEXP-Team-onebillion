@@ -71,7 +71,7 @@ public class X_Counting7To10_S6 extends XPRZ_Generic_Tracing
                 //
                 for (OBControl c : subPaths) c.hide();
                 //
-                dash = (OBImage) objectDict.get("dash");
+                dash1 = (OBImage) objectDict.get("dash");
             }
         }.run();
     }

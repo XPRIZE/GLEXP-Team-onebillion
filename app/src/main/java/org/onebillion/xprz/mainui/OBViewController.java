@@ -34,6 +34,7 @@ public class OBViewController
     public Activity activity;
     public boolean inited = false;
     public boolean requiresOpenGL = true;
+    public int viewPortLeft,viewPortRight,viewPortTop,viewPortBottom;
     public int screenLock = 0; // public for now
     public ReentrantLock renderLock = new ReentrantLock();
     public float[] projectionMatrix;
@@ -194,6 +195,14 @@ public class OBViewController
     public float applyGraphicScale(float amt)
     {
         return MainActivity.mainActivity.applyGraphicScale(amt);
+    }
+
+    public void setViewPort(int l,int t,int r,int b)
+    {
+        viewPortLeft = l;
+        viewPortRight = r;
+        viewPortTop = t;
+        viewPortBottom = b;
     }
 }
 

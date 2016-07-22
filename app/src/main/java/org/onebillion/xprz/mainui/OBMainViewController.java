@@ -335,6 +335,12 @@ public class OBMainViewController extends OBViewController
             e.printStackTrace();
             return;
         }
+        OBRenderer renderer = MainActivity.mainActivity.renderer;
+        if (renderer != null)
+        {
+            controller.setViewPort(0,0,renderer.w,renderer.h);
+        }
+
         controller.params = _params;
         controller.prepare();
         if (viewControllers.size() >= 1 && animate)
@@ -376,12 +382,6 @@ public class OBMainViewController extends OBViewController
 
     public void transition (OBSectionController l, OBSectionController r, boolean fromRight, double duration)
     {
-/*        if (!fromRight)
-        {
-            OBSectionController swap = l;
-            l = r;
-            r = swap;
-        }*/
         OBRenderer renderer = MainActivity.mainActivity.renderer;
         renderer.transitionFrac = 0;
         renderer.transitionScreenL = l;
@@ -410,6 +410,9 @@ public class OBMainViewController extends OBViewController
             else
                 l.waitForSecsNoThrow(0.01);
         }
+        renderer.transitionScreenR.setViewPort(0,0,renderer.w,renderer.h);
+        renderer.transitionScreenL.setViewPort(0,0,renderer.w,renderer.h);
+        glv.requestRender();
         renderer.transitionScreenR = renderer.transitionScreenL = null;
         renderer.resetViewport();
     }

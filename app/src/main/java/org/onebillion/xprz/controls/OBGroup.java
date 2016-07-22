@@ -806,15 +806,16 @@ public class OBGroup extends OBControl
         }
     }
 
-    public void drawLayer (Canvas canvas)
+    public void drawLayer(Canvas canvas, int flags)
     {
         populateSortedAttachedControls();
+        boolean applyEffects = ((flags & APPLY_EFFECTS) != 0);
         boolean needsRestore = false;
-        if (needsRestore = (opacity() != 1.0f))
+        if (needsRestore = applyEffects && (opacity() != 1.0f))
             canvas.saveLayerAlpha(bounds(), (int) (opacity() * 255));
         for (OBControl c : sortedAttachedControls)
             c.draw(canvas);
-        if (maskControl != null)
+        if (maskControl != null && dynamicMask == false)
         {
             Paint p = new Paint();
             p.setXfermode(new PorterDuffXfermode(maskControlReversed ? PorterDuff.Mode.DST_OUT : PorterDuff.Mode.DST_IN));

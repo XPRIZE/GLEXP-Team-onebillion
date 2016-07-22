@@ -404,7 +404,8 @@ public class OB_Maths
     public static boolean nearestPointOnLine(PointF pt0,PointF pt1,PointF testPoint,OB_MutFloat t,
                                              PointF hitpointonline,OB_MutFloat distance,float threshold)
     {
-        return pointDistanceFromLineSegment(pt0,pt1,testPoint,t,hitpointonline) < threshold;
+        distance.value = pointDistanceFromLineSegment(pt0,pt1,testPoint,t,hitpointonline);
+        return distance.value < threshold;
     }
 
     public static float flatness3(PointF centrepoint,PointF pt0,PointF pt1)
