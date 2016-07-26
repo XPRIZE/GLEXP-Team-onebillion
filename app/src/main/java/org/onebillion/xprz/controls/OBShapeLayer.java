@@ -82,8 +82,8 @@ public class OBShapeLayer extends OBLayer
         if (stroke != null)
         {
             strokePaint.setStrokeWidth(stroke.lineWidth);
-            int col = OBUtils.applyColourOpacity(stroke.colour,opacity);
-            strokePaint.setColor(col);
+            //int col = OBUtils.applyColourOpacity(stroke.colour,opacity);
+            strokePaint.setColor(stroke.colour);
             strokePaint.setStrokeCap(stroke.paintLineCap());
             strokePaint.setStrokeJoin(stroke.paintLineJoin());
             DashPathEffect dpe = stroke.dashPathEffect();
@@ -95,8 +95,8 @@ public class OBShapeLayer extends OBLayer
         }
         if (fillColour != 0)
         {
-            int col = OBUtils.applyColourOpacity(fillColour,opacity);
-            fillPaint.setColor(col);
+            //int col = OBUtils.applyColourOpacity(fillColour,opacity);
+            fillPaint.setColor(fillColour);
             //fillPaint.setMaskFilter(new BlurMaskFilter(7, BlurMaskFilter.Blur.NORMAL));
             fillPaint.setStyle(Paint.Style.FILL);
         }

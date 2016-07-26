@@ -1221,7 +1221,8 @@ public class OBControl
                     finalCol[i] = blendColour[i];
                 }
                 finalCol[3] = blendColour[3] * op;
-
+                for (int i = 0;i < 3;i++)
+                    finalCol[i] *= op;
 
 
                 if (dynamicMask && maskControl != null)
@@ -1308,7 +1309,7 @@ public class OBControl
                     canvas.saveLayer(bounds(), p, Canvas.ALL_SAVE_FLAG);
                 }
                 drawBorderAndBackground(canvas);
-                drawLayer(canvas,0 );
+                drawLayer(canvas,APPLY_EFFECTS);
                 if (shadowrequired)
                 {
                     canvas.restore();
