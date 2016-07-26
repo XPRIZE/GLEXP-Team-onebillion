@@ -315,7 +315,8 @@ public class OBControl
                     position.set(x, y);
                     frameValid = false;
                     invalidate();
-                    setNeedsRetexture();
+                    if(hasTexturedParent())
+                         setNeedsRetexture();
                 }
             }.run();
         }
@@ -1234,7 +1235,7 @@ public class OBControl
                     maskFrame[3] = maskControl.frame().bottom+vc.viewPortTop;
                     MaskShaderProgram maskProgram = (MaskShaderProgram) renderer.maskProgram;
                     maskProgram.useProgram();
-                    maskProgram.setUniforms(tempMatrix, renderer.textureObjectIds[0], renderer.textureObjectIds[1], finalCol, maskControlReversed ? 1 : 0,  renderer.w,renderer.h, maskFrame);
+                    maskProgram.setUniforms(tempMatrix, renderer.textureObjectIds[0], renderer.textureObjectIds[1], finalCol, maskControlReversed ? 1.0f : 0.0f,  renderer.w,renderer.h, maskFrame);
 
                 }
                 else
@@ -1568,7 +1569,6 @@ public class OBControl
         maskControlReversed = false;
         maskControl = m;
         invalidate();
-        setNeedsRetexture();
     }
 
     public void setReversedScreenMaskControl(OBControl m)
@@ -1578,7 +1578,6 @@ public class OBControl
         maskControlReversed = true;
         maskControl = m;
         invalidate();
-        setNeedsRetexture();
     }
 
     public float rotation ()
@@ -1596,7 +1595,8 @@ public class OBControl
                 rotation = rt;
                 frameValid = false;
                 invalidate();
-                setNeedsRetexture();
+                if(hasTexturedParent())
+                    setNeedsRetexture();
             }
         }.run();
     }

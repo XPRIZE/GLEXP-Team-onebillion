@@ -1,8 +1,6 @@
 package org.onebillion.xprz.mainui.x_lettersandsounds;
 
 import android.graphics.Color;
-import android.graphics.PointF;
-import android.graphics.RectF;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
@@ -13,10 +11,7 @@ import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBPhoneme;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OB_Maths;
-import org.onebillion.xprz.utils.UPath;
-import org.onebillion.xprz.utils.USubPath;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -50,28 +45,23 @@ public class X_Hw1 extends X_Hw
 
         guideGroup = (OBGroup)exampleGroup.copy();
         attachControl(guideGroup);
+        showAllStrokes(guideGroup);
         guideGroup.setOpacity(0.3f);
         guideGroup.setPosition(OB_Maths.locationForRect(0.75f,0.5f,objectDict.get("board").frame()));
         guideGroup.hide();
-
-        // createDrawRectForGroup(guideGroup);
 
         setGroupPaths(guideGroup,applyGraphicScale(15));
 
         if (targetPhoneme.text.length() > 1)
             mergeAudioScenesForPrefix("ALT");
 
-        guideGroup.hide();
 
-
-        guideGroup.setScreenMaskControl(guideMask);
-        lineTop.setScreenMaskControl(guideMask);
-        lineBottom.setScreenMaskControl(guideMask);
-
+        guideGroup.setScreenMaskControl(boardMask);
+        lineTop.setScreenMaskControl(boardMask);
+        lineBottom.setScreenMaskControl(boardMask);
 
         preparePaintForDrawing();
         preparePaintForErasing();
-
 
 
         setSceneXX(currentEvent());
@@ -108,7 +98,7 @@ public class X_Hw1 extends X_Hw
         if(currentEvent().startsWith("a"))
         {
             playSfxAudio("guidewipe",false);
-            OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("width", 1, guideMask),
+            OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("width", 1, boardMask),
                     new OBAnimBlock()
                     {
                         @Override
@@ -120,9 +110,9 @@ public class X_Hw1 extends X_Hw
                         }
                     }),0.5f,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
             waitSFX();
-            guideMask.hide();
             hideLines();
-            lineTop.hide();
+            guideGroup.hide();
+            resetGuideMask();
             waitForSecs(0.3f);
             playAudioQueuedScene("FINAL",300,true);
 
@@ -134,12 +124,11 @@ public class X_Hw1 extends X_Hw
             waitForSecs(0.3f);
         }
 
-        if(currentEvent().equalsIgnoreCase(events.get(events.size()-1)))
+        if(!currentEvent().equalsIgnoreCase(events.get(events.size()-1)))
                 cleanUpBoard(currentEvent().startsWith("b")?false:true,false);
 
         waitForSecs(0.4f);
         nextScene();
-
     }
 
     public void start()
@@ -158,8 +147,7 @@ public class X_Hw1 extends X_Hw
     public void setSceneXX(String sceneXX)
     {
         initScene();
-        guideMask.show();
-        guideMask.setWidth((float)guideMask.settings.get("startWidth"));
+        boardMask.setWidth((float) boardMask.settings.get("startWidth"));
     }
 
     public void doMainXX() throws Exception

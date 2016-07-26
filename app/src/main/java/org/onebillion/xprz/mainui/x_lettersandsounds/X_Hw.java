@@ -1,7 +1,6 @@
 package org.onebillion.xprz.mainui.x_lettersandsounds;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -10,8 +9,6 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Shader;
-import android.graphics.drawable.ShapeDrawable;
 import android.view.View;
 
 import org.onebillion.xprz.controls.*;
@@ -36,7 +33,7 @@ import java.util.Map;
 public class X_Hw extends XPRZ_SectionController
 {
     protected Map<String,OBPhoneme> componentDict;
-    protected OBControl drawRect,board,eraser, eraser2,arrowButton, guideMask;
+    protected OBControl drawRect,board,eraser, eraser2,arrowButton, boardMask;
     protected OBPath  lineTop,lineBottom;
     protected XPRZ_Presenter presenter;
 
@@ -119,12 +116,14 @@ public class X_Hw extends XPRZ_SectionController
 
         eraser.show();
 
-        guideMask = new OBControl();
-        guideMask.setFrame(board.frame());
-        guideMask.setZPosition(50);
-        guideMask.setBackgroundColor(Color.BLUE);
-        guideMask.setAnchorPoint(new PointF(1, 0.5f));
-        guideMask.setProperty("startWidth",guideMask.width());
+        boardMask = new OBControl();
+        boardMask.setFrame(board.frame());
+        boardMask.setBackgroundColor(Color.BLACK);
+        boardMask.setAnchorPoint(new PointF(1, 0.5f));
+        boardMask.setProperty("startWidth", boardMask.width());
+        boardMask.setOpacity(1.0f);
+
+        setupCanvas();
     }
 
     public int buttonFlags()
@@ -172,7 +171,7 @@ public class X_Hw extends XPRZ_SectionController
                     });
 
                 }
-                drawPath(pt,pt);
+                drawPoint(pt);
                 setStatus(STATUS_DRAGGING);
 
             }
@@ -340,34 +339,42 @@ public class X_Hw extends XPRZ_SectionController
     }
     public void startScene() throws Exception
     {
-        setupCanvas();
         setReplayAudioScene(currentEvent(),"PROMPT.REPEAT");
         playAudioQueuedScene("PROMPT",true);
         reprompt(setStatus(STATUS_WAITING_FOR_DRAG), OBUtils.insertAudioInterval(currentAudio("REMIND"),300),4);
     }
 
+    public void drawPoint(PointF point)
+    {
+        PointF pt1 = this.convertPointToControl(point, board);
+        canvas.drawPoint(pt1.x,pt1.y,drawingPaint);
+        refreshDrawingBoard();
+    }
 
     public void drawPath(PointF fromPoint, PointF toPoint)
     {
-
         PointF pt1 = this.convertPointToControl(fromPoint, board);
         PointF pt2 = this.convertPointToControl(toPoint, board);
 
-        canvas.drawLine(pt1.x,pt1.y,pt2.x,pt2.y,drawingPaint);
+        canvas.drawLine(pt1.x, pt1.y, pt2.x, pt2.y, drawingPaint);
 
+        refreshDrawingBoard();
+    }
+
+    private void refreshDrawingBoard()
+    {
         drawOn.setContents(drawBitmap);
         drawOn.setNeedsRetexture();
         drawOn.invalidate();
     }
+
 
     public void eraseAtEraserLoc()
     {
         RectF frame = this.convertRectToControl(eraser2.frame(), board);
 
         canvas.drawBitmap(eraserBitmap,(int)frame.left, (int)frame.top,erasingPaint);
-        drawOn.setContents(drawBitmap);
-        drawOn.setNeedsRetexture();
-        drawOn.invalidate();
+        refreshDrawingBoard();
     }
 
     // call at the end of prepare!!
@@ -505,7 +512,7 @@ public class X_Hw extends XPRZ_SectionController
             {
                 OBPath p = paths.get(j);
                 Map<String, Object> dict = p.attributes();
-                dict.put(String.format("Path%d_%d",i+1,j+1), "id");
+                dict.put("id", String.format("Path%d_%d",i+1,j+1));
                 p.setProperty("attrs",dict);
                 p.setProperty("name",p.attributes().get("id"));
                 letterGrp.objectDict.put((String)p.attributes().get("id"),p);
@@ -551,15 +558,10 @@ public class X_Hw extends XPRZ_SectionController
 
     public void cleanUpDrawing()
     {
-        if(drawBitmap != null)
-        {
-            drawOn.layer.setContents(null);
-            drawBitmap.recycle();
-            drawBitmap = null;
-        }
+        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        drawOn.setContents(drawBitmap);
         drawOn.setNeedsRetexture();
         drawOn.invalidate();
-        //CGContextClearRect(bitmapContext, board.bounds);
     }
 
     public void animateLinesOn()
@@ -600,5 +602,22 @@ public class X_Hw extends XPRZ_SectionController
         }
     }
 
+    public void showAllStrokes(OBGroup group)
+    {
+        lockScreen();
+        for(OBControl p : group.filterMembers("Path.*",true))
+        {
+            OBPath path = (OBPath)p;
+           // path.setStrokeStart(0);
+            path.setStrokeEnd(1);
+        }
+        unlockScreen();
+
+    }
+
+    public void resetGuideMask()
+    {
+        boardMask.setWidth((float) boardMask.propertyValue("startWidth"));
+    }
 
 }
