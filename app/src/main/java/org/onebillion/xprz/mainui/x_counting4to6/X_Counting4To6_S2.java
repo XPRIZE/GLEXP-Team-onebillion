@@ -97,7 +97,7 @@ public class X_Counting4To6_S2 extends XPRZ_Generic_AddRemoveObjectsToScene
             PointF destination = OB_Maths.AddPoints(new PointF(-bounds().width(), 0), XPRZ_Generic.copyPoint(control.position()));
             OBAnim anim = OBAnim.moveAnim(destination, control);
             OBAnimationGroup.runAnims(Arrays.asList(anim), 0.7f, false, OBAnim.ANIM_LINEAR, this);
-            waitForSecs(XPRZ_Generic.randomInt(50, 100) / (float) 1000);
+            waitForSecs(XPRZ_Generic.randomInt(50, 75) / (float) 1000);
         }
     }
 

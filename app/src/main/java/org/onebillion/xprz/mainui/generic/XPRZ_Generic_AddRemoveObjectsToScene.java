@@ -208,6 +208,12 @@ public class XPRZ_Generic_AddRemoveObjectsToScene extends XPRZ_Generic_Event
     }
 
 
+    public Boolean condition_isValidTouch(PointF pt)
+    {
+        return true;
+    }
+
+
     @Override
     public void touchDownAtPoint (final PointF pt, View v)
     {
@@ -236,7 +242,10 @@ public class XPRZ_Generic_AddRemoveObjectsToScene extends XPRZ_Generic_Event
                     @Override
                     public void run () throws Exception
                     {
-                        action_revealClosestHiddenObject(pt);
+                        if (condition_isValidTouch(pt))
+                        {
+                            action_revealClosestHiddenObject(pt);
+                        }
                     }
                 });
             }
