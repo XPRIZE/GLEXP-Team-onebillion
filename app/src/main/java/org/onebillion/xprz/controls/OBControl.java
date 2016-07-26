@@ -315,7 +315,8 @@ public class OBControl
                     position.set(x, y);
                     frameValid = false;
                     invalidate();
-                    setNeedsRetexture();
+                    if (hasTexturedParent())
+                        setNeedsRetexture();
                 }
             }.run();
         }
@@ -1599,7 +1600,8 @@ public class OBControl
                 rotation = rt;
                 frameValid = false;
                 invalidate();
-                setNeedsRetexture();
+                if (hasTexturedParent())
+                    setNeedsRetexture();
             }
         }.run();
     }
