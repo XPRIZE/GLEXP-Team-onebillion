@@ -1067,4 +1067,29 @@ public class OBGroup extends OBControl
         }
     }
 
+    public void recalculateFrameForPath(List<OBControl> paths)
+    {
+        RectF fullBounds = paths.get(0).frame();
+        for(OBControl stroke : paths)
+        {
+            if(stroke.getClass() == OBPath.class)
+            {
+
+                ((OBPath) stroke).sizeToBoundingBoxIncludingStroke();
+                fullBounds.union(stroke.frame());
+            }
+        }
+        for(OBControl stroke : paths)
+        {
+            if(stroke.getClass() == OBPath.class)
+            {
+                PointF pos = OB_Maths.OffsetPoint(stroke.position(), -fullBounds.left, -fullBounds.top);
+                stroke.setPosition(pos);
+            }
+
+        }
+        this.setPosition(new PointF(fullBounds.left + (fullBounds.right - fullBounds.left) / 2.0f, fullBounds.top + (fullBounds.bottom - fullBounds.top) / 2.0f));
+        this.setBounds(0,0,fullBounds.right-fullBounds.left,fullBounds.bottom-fullBounds.top);
+    }
+
 }
