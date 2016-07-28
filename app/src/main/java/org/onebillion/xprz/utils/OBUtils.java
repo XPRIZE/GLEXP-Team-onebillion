@@ -1243,11 +1243,6 @@ public class OBUtils
         return r;
     }
 
-    public interface RunLambda
-    {
-        public void run () throws Exception;
-    }
-
     private static RectF RectIntersection(RectF r1, RectF r2)
     {
         if (r1.intersect(r2))
@@ -1264,7 +1259,6 @@ public class OBUtils
         }
     }
 
-
     public static float RectOverlapRatio(RectF rect1, RectF rect2)
     {
         RectF intersect = RectIntersection(rect1, rect2);
@@ -1273,5 +1267,11 @@ public class OBUtils
             return (intersect.width() * intersect.height()) / (rect1.height() * rect1.width());
         }
         return 0;
+    }
+
+
+    public interface RunLambda
+    {
+        public void run () throws Exception;
     }
 }

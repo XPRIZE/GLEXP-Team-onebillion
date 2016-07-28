@@ -1119,7 +1119,7 @@ public class OBControl
             else if (shadowrequired)
             {
                 if (shadowCache == null)
-                    createShadowCache();
+                    createShadowCache(cache);
                 canvas.drawBitmap(shadowCache, shadowOffsetX, shadowOffsetY, p);
 
             }
@@ -1407,7 +1407,7 @@ public class OBControl
         return masksToBounds;
     }
 
-    public void createShadowCache ()
+    public void createShadowCache (Bitmap bitmap)
     {
         int width = (int) Math.ceil((bounds().right - bounds().left) * rasterScale);
         int height = (int) Math.ceil((bounds().bottom - bounds().top) * rasterScale);
@@ -1422,7 +1422,7 @@ public class OBControl
         paint.setColor(Color.BLACK);
         paint.setFilterBitmap(true);
         canvas.drawBitmap(cache,0,0,paint);*/
-        Bitmap alpha = cache.extractAlpha();
+        Bitmap alpha = bitmap.extractAlpha();
         paint.setColor(shadowColour);
         paint.setAlpha((int) (shadowOpacity * 255));
 
@@ -1782,11 +1782,22 @@ public class OBControl
 
     public void setHighlightColour (final int colour)
     {
+        setHighlightColourAndMode(colour,1);
+    }
+
+    public void setColourOverlay (final int colour)
+    {
+        setHighlightColourAndMode(colour,0);
+    }
+
+    private void setHighlightColourAndMode(final int colour, final float mode)
+    {
         new OBRunnableSyncUI()
         {
             public void ex ()
             {
                 highlightColour = colour;
+                blendMode = mode;
                 float alpha = Color.alpha(colour) / 255.0f;
                 OBUtils.setFloatColour(alpha * Color.red(colour) / 255.0f,
                         alpha * Color.green(colour) / 255.0f,
@@ -1795,6 +1806,7 @@ public class OBControl
             }
         }.run();
     }
+
 
     public void lowlight ()
     {
