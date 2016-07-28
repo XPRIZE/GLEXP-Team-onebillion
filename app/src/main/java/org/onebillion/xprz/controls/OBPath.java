@@ -7,6 +7,7 @@ import org.onebillion.xprz.utils.OBXMLNode;
 import org.onebillion.xprz.utils.OB_Maths;
 import org.onebillion.xprz.utils.OB_MutInt;
 import org.onebillion.xprz.utils.UGradient;
+import org.onebillion.xprz.utils.ULine;
 import org.onebillion.xprz.utils.UPath;
 import org.onebillion.xprz.utils.URadialGradient;
 import org.onebillion.xprz.utils.USubPath;
@@ -30,20 +31,7 @@ public class OBPath extends OBControl
     public OBPath(Path p)
     {
         this();
-        ((OBShapeLayer) layer).path = p;
-        if (p != null)
-        {
-            RectF bb = new RectF();
-            p.computeBounds(bb, true);
-            frame.set(bb);
-            Matrix tr = new Matrix();
-            tr.setTranslate(-bb.left, -bb.top);
-            p.transform(tr);
-
-            layer.setBounds(0, 0, (frame.right - frame.left), (frame.bottom - frame.top));
-            PointF pt = OB_Maths.midPoint(frame);
-            setPosition(pt);
-        }
+        initForPath(p);
     }
 
     public OBPath(Path p, float w, float h, float posx, float posy)
@@ -54,6 +42,17 @@ public class OBPath extends OBControl
         frame.set(bb);
 
         setPosition(posx, posy);
+    }
+
+    public OBPath(PointF pt1, PointF pt2)
+    {
+        this();
+        ULine line = new ULine(pt1.x, pt1.y, pt2.x, pt2.y);
+        USubPath subPath = new USubPath();
+        subPath.elements.add(line);
+        UPath path = new UPath();
+        path.subPaths.add(subPath);
+        initForPath(path.bezierPath());
     }
 
     public static Class classForSettings(Map<String, Object> settings)
@@ -835,6 +834,24 @@ public class OBPath extends OBControl
         return pathWithPath(p, settingsStack);
     }
 
+    private void initForPath(Path p)
+    {
+        ((OBShapeLayer) layer).path = p;
+        if (p != null)
+        {
+            RectF bb = new RectF();
+            p.computeBounds(bb, true);
+            frame.set(bb);
+            Matrix tr = new Matrix();
+            tr.setTranslate(-bb.left, -bb.top);
+            p.transform(tr);
+
+            layer.setBounds(0, 0, (frame.right - frame.left), (frame.bottom - frame.top));
+            PointF pt = OB_Maths.midPoint(frame);
+            setPosition(pt);
+        }
+    }
+
     @Override
     public OBControl copy()
     {
@@ -1049,6 +1066,20 @@ public class OBPath extends OBControl
         return dr.strokeEnd;
     }
 
+    public void setStrokeStart(float f)
+    {
+        OBShapeLayer dr = shapeLayer();
+        dr.setStrokeStart(f);
+        setNeedsRetexture();
+        invalidate();
+    }
+
+    public float strokeStart()
+    {
+        OBShapeLayer dr = shapeLayer();
+        return dr.strokeStart;
+    }
+
     public void moveToPoint(float x, float y)
     {
         OBShapeLayer dr = shapeLayer();
@@ -1063,6 +1094,16 @@ public class OBPath extends OBControl
         dr.path.lineTo(x, y);
         setNeedsRetexture();
         invalidate();
+    }
+
+    public PointF firstPoint()
+    {
+        return sAlongPath(0.0f,null);
+    }
+
+    public PointF lastPoint()
+    {
+        return sAlongPath(1.0f,null);
     }
 
 

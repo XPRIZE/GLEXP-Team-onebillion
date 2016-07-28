@@ -8,6 +8,7 @@ import static android.opengl.GLES20.glActiveTexture;
 import static android.opengl.GLES20.glBindTexture;
 import static android.opengl.GLES20.glGetAttribLocation;
 import static android.opengl.GLES20.glGetUniformLocation;
+import static android.opengl.GLES20.glUniform1f;
 import static android.opengl.GLES20.glUniform1i;
 import static android.opengl.GLES20.glUniform4fv;
 import static android.opengl.GLES20.glUniformMatrix4fv;
@@ -18,6 +19,7 @@ public class TextureShaderProgram extends ShaderProgram {
     private final int uMatrixLocation;
     private final int uTextureUnitLocation;
     private final int uBlendColourLocation;
+    private final int uBlendModeLocation;
 
     // Attribute locations
     private final int aPositionLocation;
@@ -32,6 +34,7 @@ public class TextureShaderProgram extends ShaderProgram {
         uMatrixLocation = glGetUniformLocation(program, U_MATRIX);
         uTextureUnitLocation = glGetUniformLocation(program, U_TEXTURE_UNIT);
         uBlendColourLocation = glGetUniformLocation(program, U_BLEND_COLOUR);
+        uBlendModeLocation = glGetUniformLocation(program, U_BLEND_MODE);
 
         // Retrieve attribute locations for the shader program.
         aPositionLocation = glGetAttribLocation(program, A_POSITION);
@@ -39,7 +42,7 @@ public class TextureShaderProgram extends ShaderProgram {
                 glGetAttribLocation(program, A_TEXTURE_COORDINATES);
     }
 
-    public void setUniforms(float[] matrix, int textureId,float[] blendColour) {
+    public void setUniforms(float[] matrix, int textureId,float[] blendColour, float blendMode) {
         // Pass the matrix into the shader program.
         glUniformMatrix4fv(uMatrixLocation, 1, false, matrix, 0);
 
@@ -54,6 +57,8 @@ public class TextureShaderProgram extends ShaderProgram {
         glUniform1i(uTextureUnitLocation, 0);
 
         glUniform4fv(uBlendColourLocation,1,blendColour,0);
+
+        glUniform1f(uBlendModeLocation, blendMode);
     }
 
     public int getPositionAttributeLocation() {

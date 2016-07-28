@@ -571,7 +571,7 @@ public class X_Hw extends XPRZ_SectionController
 
     public void hideLines()
     {
-       // lineTop.setStrokeStart(0);
+        //lineTop.setStrokeStart(0);
        // lineBottom.setStrokeStart(0);
         lineTop.setStrokeEnd(0);
         lineBottom.setStrokeEnd(0);

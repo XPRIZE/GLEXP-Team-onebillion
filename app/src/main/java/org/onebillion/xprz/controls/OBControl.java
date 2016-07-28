@@ -73,6 +73,7 @@ public class OBControl
     float shadowOffsetX, shadowOffsetY, shadowOpacity, shadowRadius;
     boolean needsRetexture;
     float uvRight = 1, uvBottom = 1;
+    float blendMode;
 
     public OBControl ()
     {
@@ -97,6 +98,7 @@ public class OBControl
         invalOutdent = 0;
         setOpacity(1);
         rasterScale = 1;
+        blendMode = 1;
         layer = new OBLayer();
     }
 
@@ -168,6 +170,7 @@ public class OBControl
         obj.textureKey = textureKey;
         obj.cornerRadius = cornerRadius();
         obj.blendColour = blendColour.clone();
+        obj.blendMode = blendMode;
         if (maskControl != null)
             obj.maskControl = maskControl;
         obj.m34 = m34;
@@ -1117,7 +1120,7 @@ public class OBControl
             else if (shadowrequired)
             {
                 if (shadowCache == null)
-                    createShadowCache();
+                    createShadowCache(cache);
                 canvas.drawBitmap(shadowCache, shadowOffsetX, shadowOffsetY, p);
 
             }
@@ -1235,14 +1238,14 @@ public class OBControl
                     maskFrame[3] = maskControl.frame().bottom+vc.viewPortTop;
                     MaskShaderProgram maskProgram = (MaskShaderProgram) renderer.maskProgram;
                     maskProgram.useProgram();
-                    maskProgram.setUniforms(tempMatrix, renderer.textureObjectIds[0], renderer.textureObjectIds[1], finalCol, maskControlReversed ? 1.0f : 0.0f,  renderer.w,renderer.h, maskFrame);
+                    maskProgram.setUniforms(tempMatrix, renderer.textureObjectIds[0], renderer.textureObjectIds[1], finalCol, blendMode, maskControlReversed ? 1.0f : 0.0f,  renderer.w,renderer.h, maskFrame);
 
                 }
                 else
                 {
                     TextureShaderProgram textureShader = (TextureShaderProgram) renderer.textureProgram;
                     textureShader.useProgram();
-                    textureShader.setUniforms(tempMatrix, renderer.textureObjectIds[0], finalCol);
+                    textureShader.setUniforms(tempMatrix, renderer.textureObjectIds[0], finalCol, blendMode);
                 }
 
                 renderLayer(renderer, vc);
@@ -1290,7 +1293,7 @@ public class OBControl
                     //p.setShadowLayer(shadowRadius, shadowOffsetX, shadowOffsetY, shadowColour);
                     //p.setAntiAlias(true);
                     if (shadowCache == null)
-                        createShadowCache();
+                        createShadowCache(cache);
                     canvas.drawBitmap(shadowCache, shadowOffsetX, shadowOffsetY, p);
 
                 }
@@ -1305,16 +1308,16 @@ public class OBControl
                 }
                 if (shadowrequired)
                 {
-                    Paint p = new Paint();
+                   /* Paint p = new Paint();
                     p.setShadowLayer(shadowRadius, shadowOffsetX, shadowOffsetY, shadowColour);
-                    canvas.saveLayer(bounds(), p, Canvas.ALL_SAVE_FLAG);
+                    canvas.saveLayer(bounds(), p, Canvas.ALL_SAVE_FLAG);*/
+                    if (shadowCache == null)
+                        createShadowCache(drawn());
+                    canvas.drawBitmap(shadowCache, shadowOffsetX, shadowOffsetY, new Paint());
                 }
                 drawBorderAndBackground(canvas);
                 drawLayer(canvas,APPLY_EFFECTS);
-                if (shadowrequired)
-                {
-                    canvas.restore();
-                }
+
             }
             canvas.restore();
         }
@@ -1343,7 +1346,9 @@ public class OBControl
         Canvas canvas = new Canvas(bitmap);
         Matrix m = new Matrix();
         m.preScale(rasterScale, rasterScale);
+
         canvas.concat(m);
+
         drawBorderAndBackground(canvas);
         drawLayer(canvas,0 );
         if (maskControl != null && !dynamicMask)
@@ -1405,7 +1410,7 @@ public class OBControl
         return masksToBounds;
     }
 
-    public void createShadowCache ()
+    public void createShadowCache (Bitmap bitmap)
     {
         int width = (int) Math.ceil((bounds().right - bounds().left) * rasterScale);
         int height = (int) Math.ceil((bounds().bottom - bounds().top) * rasterScale);
@@ -1420,7 +1425,7 @@ public class OBControl
         paint.setColor(Color.BLACK);
         paint.setFilterBitmap(true);
         canvas.drawBitmap(cache,0,0,paint);*/
-        Bitmap alpha = cache.extractAlpha();
+        Bitmap alpha = bitmap.extractAlpha();
         paint.setColor(shadowColour);
         paint.setAlpha((int) (shadowOpacity * 255));
 
@@ -1461,13 +1466,13 @@ public class OBControl
 
     public Bitmap renderedImageOverlay (int col)
     {
-        Bitmap bm = Bitmap.createBitmap((int) (frame.right - frame.left), (int) (frame.bottom - frame.top), Bitmap.Config.ARGB_8888);
+        Bitmap bm = Bitmap.createBitmap((int) (frame().right - frame().left), (int) (frame().bottom - frame().top), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bm);
         drawLayer(canvas,APPLY_EFFECTS );
         Paint paint = new Paint();
         paint.setColor(col);
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP));
-        canvas.drawRect(0, 0, (int) (frame.right - frame.left), (int) (frame.bottom - frame.top), paint);
+        canvas.drawRect(0, 0, (int) (frame().right - frame().left), (int) (frame().bottom - frame().top), paint);
         return bm;
     }
 
@@ -1780,11 +1785,22 @@ public class OBControl
 
     public void setHighlightColour (final int colour)
     {
+        setHighlightColourAndMode(colour,1);
+    }
+
+    public void setColourOverlay (final int colour)
+    {
+        setHighlightColourAndMode(colour,0);
+    }
+
+    private void setHighlightColourAndMode(final int colour, final float mode)
+    {
         new OBRunnableSyncUI()
         {
             public void ex ()
             {
                 highlightColour = colour;
+                blendMode = mode;
                 float alpha = Color.alpha(colour) / 255.0f;
                 OBUtils.setFloatColour(alpha * Color.red(colour) / 255.0f,
                         alpha * Color.green(colour) / 255.0f,
@@ -1793,6 +1809,7 @@ public class OBControl
             }
         }.run();
     }
+
 
     public void lowlight ()
     {
@@ -1901,6 +1918,15 @@ public class OBControl
     {
         if (controller != null)
             controller.unlockScreen();
+    }
+
+    public void sizeToFrameIncludingShadow()
+    {
+        RectF f = new RectF(frame());
+
+        f.inset(shadowOffsetX, shadowOffsetY);
+        setBounds(0,0,f.width(),f.height());
+        setFrame(f);
     }
 
 }
