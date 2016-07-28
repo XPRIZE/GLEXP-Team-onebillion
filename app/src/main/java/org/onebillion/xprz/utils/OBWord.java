@@ -1,5 +1,7 @@
 package org.onebillion.xprz.utils;
 
+import org.onebillion.xprz.mainui.MainActivity;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,13 +40,18 @@ public class OBWord extends OBSyllable
         this.syllablesChecked = false;
         this.phonemesChecked = false;
         this.syllables = (syllables == null) ? new ArrayList<OBSyllable>() : new ArrayList<OBSyllable>(syllables);
-        this.imageName = (imageName == null) ? null : (imageName.equals("true")) ? soundID : imageName;
+//        this.imageName = (imageName == null) ? null : (imageName.equals("true")) ? soundID : imageName;
+        this.imageName = (imageName == null) ? soundID : imageName;
     }
 
 
 
     public String ImageFileName()
     {
+        if (this.imageName == null)
+        {
+            MainActivity.mainActivity.log("OBWord.MISSING IMAGE FOR WORD " + this.soundid);
+        }
         return this.imageName;
     }
 

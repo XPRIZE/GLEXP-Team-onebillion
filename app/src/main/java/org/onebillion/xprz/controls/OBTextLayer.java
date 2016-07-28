@@ -37,17 +37,23 @@ public class OBTextLayer extends OBLayer
     SpannableString spanner;
     boolean displayObjectsValid = false;
 
-    public OBTextLayer(Typeface tf,float size,int col,String s)
+    public OBTextLayer()
     {
         super();
-        typeFace = tf;
-        textSize = size;
-        text = s;
-        colour = col;
         textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         textPaint.setStyle(Paint.Style.FILL);
         tempRect = new Rect();
     }
+
+    public OBTextLayer(Typeface tf,float size,int col,String s)
+    {
+        this();
+        typeFace = tf;
+        textSize = size;
+        text = s;
+        colour = col;
+    }
+
     @Override
     public OBLayer copy()
     {
@@ -60,11 +66,10 @@ public class OBTextLayer extends OBLayer
         obj.textPaint = new TextPaint(textPaint);
         obj.lineOffset = lineOffset;
         obj.letterSpacing = letterSpacing;
-        obj.hiStartIdx= hiStartIdx;
-        obj.hiEndIdx= hiEndIdx;
+        obj.hiStartIdx = hiStartIdx;
+        obj.hiEndIdx = hiEndIdx;
         obj.hiRangeColour = hiRangeColour;
         obj.justification = justification;
-
         return obj;
     }
 

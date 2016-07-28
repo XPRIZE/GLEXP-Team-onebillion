@@ -25,6 +25,12 @@ public class XPRZ_Generic_WordsEvent extends XPRZ_Generic_Event
     }
 
 
+    public void miscSetup()
+    {
+        wordComponents = OBUtils.LoadWordComponentsXML(true);
+    }
+
+
     @Override
     public void setSceneXX (String scene)
     {
