@@ -4,11 +4,12 @@ android {
     buildToolsVersion '23.0.3'
 
     defaultConfig {
-        applicationId 'org.onebillion.xprz0.pedro'
+        applicationId 'org.onebillion.xprz0'
         minSdkVersion 23
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+        resValue "string", "app_name", "Literacy Project"
     }
     buildTypes {
         debug {
@@ -39,6 +40,15 @@ android {
             targetSdkVersion 23
             versionCode 1
             versionName '1.0'
+            resValue "string", "app_name", "Literacy Project - Alan"
+        }
+        pedroConfig {
+            minSdkVersion 23
+            applicationId 'org.onebillion.xprz0.pedro'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "Literacy Project - Pedro"
         }
     }
 }

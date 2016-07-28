@@ -87,4 +87,9 @@ public class OBLabel extends OBControl
         }
      }
 
+    public String text()
+    {
+        return ((OBTextLayer)layer).text;
+    }
+
 }

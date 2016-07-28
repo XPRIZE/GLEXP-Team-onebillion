@@ -170,7 +170,6 @@ public class OBControl
         obj.textureKey = textureKey;
         obj.cornerRadius = cornerRadius();
         obj.blendColour = blendColour.clone();
-        obj.blendMode = blendMode;
         if (maskControl != null)
             obj.maskControl = maskControl;
         obj.m34 = m34;
@@ -1120,7 +1119,7 @@ public class OBControl
             else if (shadowrequired)
             {
                 if (shadowCache == null)
-                    createShadowCache(cache);
+                    createShadowCache();
                 canvas.drawBitmap(shadowCache, shadowOffsetX, shadowOffsetY, p);
 
             }
@@ -1346,9 +1345,7 @@ public class OBControl
         Canvas canvas = new Canvas(bitmap);
         Matrix m = new Matrix();
         m.preScale(rasterScale, rasterScale);
-
         canvas.concat(m);
-
         drawBorderAndBackground(canvas);
         drawLayer(canvas,0 );
         if (maskControl != null && !dynamicMask)
@@ -1410,7 +1407,7 @@ public class OBControl
         return masksToBounds;
     }
 
-    public void createShadowCache (Bitmap bitmap)
+    public void createShadowCache ()
     {
         int width = (int) Math.ceil((bounds().right - bounds().left) * rasterScale);
         int height = (int) Math.ceil((bounds().bottom - bounds().top) * rasterScale);
@@ -1425,7 +1422,7 @@ public class OBControl
         paint.setColor(Color.BLACK);
         paint.setFilterBitmap(true);
         canvas.drawBitmap(cache,0,0,paint);*/
-        Bitmap alpha = bitmap.extractAlpha();
+        Bitmap alpha = cache.extractAlpha();
         paint.setColor(shadowColour);
         paint.setAlpha((int) (shadowOpacity * 255));
 
@@ -1466,13 +1463,13 @@ public class OBControl
 
     public Bitmap renderedImageOverlay (int col)
     {
-        Bitmap bm = Bitmap.createBitmap((int) (frame().right - frame().left), (int) (frame().bottom - frame().top), Bitmap.Config.ARGB_8888);
+        Bitmap bm = Bitmap.createBitmap((int) (frame.right - frame.left), (int) (frame.bottom - frame.top), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bm);
         drawLayer(canvas,APPLY_EFFECTS );
         Paint paint = new Paint();
         paint.setColor(col);
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP));
-        canvas.drawRect(0, 0, (int) (frame().right - frame().left), (int) (frame().bottom - frame().top), paint);
+        canvas.drawRect(0, 0, (int) (frame.right - frame.left), (int) (frame.bottom - frame.top), paint);
         return bm;
     }
 
@@ -1785,22 +1782,11 @@ public class OBControl
 
     public void setHighlightColour (final int colour)
     {
-        setHighlightColourAndMode(colour,1);
-    }
-
-    public void setColourOverlay (final int colour)
-    {
-        setHighlightColourAndMode(colour,0);
-    }
-
-    private void setHighlightColourAndMode(final int colour, final float mode)
-    {
         new OBRunnableSyncUI()
         {
             public void ex ()
             {
                 highlightColour = colour;
-                blendMode = mode;
                 float alpha = Color.alpha(colour) / 255.0f;
                 OBUtils.setFloatColour(alpha * Color.red(colour) / 255.0f,
                         alpha * Color.green(colour) / 255.0f,
@@ -1809,7 +1795,6 @@ public class OBControl
             }
         }.run();
     }
-
 
     public void lowlight ()
     {
@@ -1918,15 +1903,6 @@ public class OBControl
     {
         if (controller != null)
             controller.unlockScreen();
-    }
-
-    public void sizeToFrameIncludingShadow()
-    {
-        RectF f = new RectF(frame());
-
-        f.inset(shadowOffsetX, shadowOffsetY);
-        setBounds(0,0,f.width(),f.height());
-        setFrame(f);
     }
 
 }

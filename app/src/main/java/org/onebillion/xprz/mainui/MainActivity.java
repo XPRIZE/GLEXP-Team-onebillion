@@ -261,7 +261,8 @@ public class MainActivity extends Activity
 
     public String languageCode ()
     {
-        return "en_gb";
+        return configStringForKey(CONFIG_LANGUAGE);
+//        return "en_gb";
     }
 
     OBSectionController topController ()
@@ -419,7 +420,10 @@ public class MainActivity extends Activity
         float w = getResources().getDisplayMetrics().widthPixels;
         updateGraphicScale(w, h);
         //
-        config.put(CONFIG_DEFAULT_LANGUAGE, configStringForKey(CONFIG_LANGUAGE));
+//        config.put(CONFIG_DEFAULT_LANGUAGE, configStringForKey(CONFIG_LANGUAGE)); // original
+//        config.put(CONFIG_DEFAULT_LANGUAGE, configStringForKey(CONFIG_DEFAULT_LANGUAGE));
+//        config.put(CONFIG_LANGUAGE, configStringForKey(CONFIG_LANGUAGE));
+        //
         config.put(CONFIG_LEFT_BUTTON_POS, new PointF(0.0677f, 0.075f));
         config.put(CONFIG_RIGHT_BUTTON_POS, new PointF(0.9323f, 0.075f));
         List<String> cols = (List<String>) config.get(CONFIG_COLOURS);
