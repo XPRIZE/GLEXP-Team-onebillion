@@ -37,6 +37,7 @@ public class X_Count20_S5 extends XPRZ_Tracer
     OBGroup p1,p2;
 
     OBGroup box;
+    OBPath screenMask;
     List<OBControl> counters,numbers,randomCounters;
     double lastTime;
 
@@ -60,14 +61,14 @@ public class X_Count20_S5 extends XPRZ_Tracer
         float textSize = Float.parseFloat(eventAttributes.get("textsize")) / graphicScale;
         textSize = MainActivity.mainActivity.applyGraphicScale(textSize);
         Typeface tf = OBUtils.standardTypeFace();
-        float x = parent.bounds().width() / 2;
+        float x = screenMask.position().x;
         counters = new ArrayList<>();
         numbers = new ArrayList<>();
         for (int i = 1;i <= 10;i++)
         {
             String counterName = String.format("counter%d",i);
             OBGroup cou = (OBGroup)objectDict.get(counterName);
-            detachControl(cou);
+            //detachControl(cou);
             counters.add(cou);
             Map<String,String> attrs = (Map<String, String>) cou.propertyValue("attrs");
             String colour = attrs.get("col");
@@ -77,18 +78,19 @@ public class X_Count20_S5 extends XPRZ_Tracer
                 cou.substituteFillForAllMembers("col.*",col);
             }
             float sc = cou.scale();
-            cou.setScale(1.0f);
+            //cou.setScale(1.0f);
             OBLabel txt = new OBLabel(String.format("%d",i+10),tf,textSize);
             txt.setColour(Color.BLACK);
             txt.setPosition(cou.position());
             numbers.add(txt);
             cou.insertMember(txt, -1, "txt");
             txt.setPosition(cou.bounds().width() / 2, cou.bounds().height() / 2);
-            cou.setRasterScale(2.0f);
-            cou.enCache();
-            parent.insertMember(cou,-1,counterName);
+            //cou.setRasterScale(2.0f);
+            //cou.enCache();
+            //parent.insertMember(cou,-1,counterName);
             cou.setProperty("n",i);
-            cou.setScale(sc);
+            //cou.setScale(sc);
+            cou.setScreenMaskControl(screenMask);
         }
         float y = 0;
         targets = new ArrayList<>(counters);
@@ -112,11 +114,20 @@ public class X_Count20_S5 extends XPRZ_Tracer
         box = (OBGroup)objectDict.get("box_group");
         OBControl mask = objectDict.get("box_mask");
         OBControl shape = objectDict.get("box_shape");
+        OBPath boxstroke = (OBPath) objectDict.get("box_stroke");
         mask.parent.removeMember(mask);
+        screenMask = (OBPath) mask.copy();
+        screenMask.setFillColor(Color.BLUE);
+        boxstroke.parent.removeMember(boxstroke);
+        attachControl(boxstroke);
+        boxstroke.setZPosition(30f);
+        //screenMask.setLineWidth(boxstroke.lineWidth());
+        //screenMask.setStrokeColor(boxstroke.strokeColor());
+        //attachControl(screenMask);
         mask.setPosition(new PointF(shape.bounds().width() / 2, shape.bounds().height() / 2));
         mask.enCache();
-        box.texturise(false,this);
         shape.setMaskControl(mask);
+        box.texturise(false,this);
         //mask.hide();
         shape.enCache();
         for (OBControl c : filterControls("circle_p.*"))
@@ -230,25 +241,23 @@ public class X_Count20_S5 extends XPRZ_Tracer
             return;
         }
         final OBSectionController obs = this;
-        new OBRunnableSyncUI(){public void ex()
+        lockScreen();
+        long currTime = SystemClock.uptimeMillis();
+        double distance = (currTime - lastTime) * pixelsPerSecond / 1000;
+        for (OBControl counter : counters)
         {
-            long currTime = SystemClock.uptimeMillis();
-            double distance = (currTime - lastTime) * pixelsPerSecond / 1000;
-            for (OBControl counter : counters)
+            PointF pt = counter.position();
+            float y = pt.y;
+            y -= distance;
+            if (y < ballFrame.top)
             {
-                PointF pt = counter.position();
-                float y = pt.y;
-                y -= distance;
-                if (y < ballFrame.top)
-                {
-                    float diff = y - ballFrame.top;
-                    y = ballFrame.bottom + diff;
-                }
-                counter.setPosition(pt.x,y);
+                float diff = y - ballFrame.top;
+                y = ballFrame.bottom + diff;
             }
-            box.texturise(false,obs);
-            lastTime = currTime;
-        }}.run();
+            counter.setPosition(pt.x,y);
+        }
+        lastTime = currTime;
+        unlockScreen();
     }
 
     void startAnimations()
