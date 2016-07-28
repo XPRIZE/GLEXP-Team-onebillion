@@ -80,6 +80,7 @@ public class OBSectionController extends OBViewController
 
     float topColour[] = {1, 1, 1, 1};
     float bottomColour[] = {1, 1, 1, 1};
+    List<Integer> busyStatuses =Arrays.asList(STATUS_BUSY,STATUS_DOING_DEMO,STATUS_DRAGGING,STATUS_CHECKING);
 
     public OBSectionController (Activity a)
     {
@@ -772,11 +773,11 @@ public class OBSectionController extends OBViewController
                 if (attrs.get("shadowopacity") != null)
                     opacity = Float.parseFloat((String) attrs.get("shadowopacity"));
                 if (attrs.get("shadowradius") != null)
-                    rad = Float.parseFloat((String) attrs.get("shadowradius"));
+                    rad = Float.parseFloat((String) attrs.get("shadowradius")) * ratio;
                 if (attrs.get("shadowxoffset") != null)
-                    xoff = Float.parseFloat((String) attrs.get("shadowxoffset"));
+                    xoff = Float.parseFloat((String) attrs.get("shadowxoffset")) * ratio;
                 if (attrs.get("shadowyoffset") != null)
-                    yoff = Float.parseFloat((String) attrs.get("shadowyoffset"));
+                    yoff = Float.parseFloat((String) attrs.get("shadowyoffset"))* ratio;
                 im.setShadow(rad, opacity, xoff, yoff, col);
             }
             im.setZPosition((floatOrZero(attrs, "zpos")));
@@ -1480,7 +1481,7 @@ public class OBSectionController extends OBViewController
     }
 
 
-    protected void playSFX (final String fileName)
+    public void playSFX (final String fileName)
     {
         new OBRunnableSyncUI()
         {
@@ -1782,8 +1783,11 @@ public class OBSectionController extends OBViewController
         }
     }
 
-    public void replayAudio ()
+    public void replayAudio()
     {
+        if(busyStatuses.contains(status()))
+            return;
+
         if (_replayAudio != null)
         {
             setStatus(status());
@@ -1932,7 +1936,7 @@ public class OBSectionController extends OBViewController
                 }
                 else
                 {
-                    MainActivity.mainActivity.log("say something pretty");
+//                    MainActivity.mainActivity.log("say something pretty"); // MICHAL!!!
                 }
                 attachControl(tick);
             }

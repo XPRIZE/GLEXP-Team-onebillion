@@ -82,8 +82,8 @@ public class OBShapeLayer extends OBLayer
         if (stroke != null)
         {
             strokePaint.setStrokeWidth(stroke.lineWidth);
-            //int col = OBUtils.applyColourOpacity(stroke.colour,opacity);
-            strokePaint.setColor(stroke.colour);
+            int col = OBUtils.applyColourOpacity(stroke.colour,opacity);
+            strokePaint.setColor(col);
             strokePaint.setStrokeCap(stroke.paintLineCap());
             strokePaint.setStrokeJoin(stroke.paintLineJoin());
             DashPathEffect dpe = stroke.dashPathEffect();
@@ -95,8 +95,8 @@ public class OBShapeLayer extends OBLayer
         }
         if (fillColour != 0)
         {
-            //int col = OBUtils.applyColourOpacity(fillColour,opacity);
-            fillPaint.setColor(fillColour);
+            int col = OBUtils.applyColourOpacity(fillColour,opacity);
+            fillPaint.setColor(col);
             //fillPaint.setMaskFilter(new BlurMaskFilter(7, BlurMaskFilter.Blur.NORMAL));
             fillPaint.setStyle(Paint.Style.FILL);
         }
@@ -122,17 +122,31 @@ public class OBShapeLayer extends OBLayer
     public void setStrokeEnd(float f)
     {
         strokeEnd = OB_Maths.clamp01(f);
+        setupStrokeDashes();
+    }
+
+    public void setStrokeStart(float f)
+    {
+        strokeStart = OB_Maths.clamp01(f);
+        setupStrokeDashes();
+    }
+
+    private void setupStrokeDashes()
+    {
         float len = length();
-        if (strokeEnd < 1)
+        if (strokeEnd < 1 || strokeStart > 0)
         {
-            List<Float> lst = new ArrayList<>(2);
-            lst.add(strokeEnd * len);
+            List<Float> lst = new ArrayList<>(4);
+            lst.add(0f);
+            lst.add(strokeStart * len);
+            lst.add(OB_Maths.clamp01(strokeEnd-strokeStart) * len);
             lst.add(32767f);
             stroke.dashes = lst;
         }
         else
             stroke.dashes = null;
     }
+
 
     public void moveToPoint(float x,float y)
     {

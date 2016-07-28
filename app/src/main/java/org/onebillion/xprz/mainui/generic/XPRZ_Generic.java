@@ -5,6 +5,7 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.SystemClock;
 import android.telephony.SmsMessage;
+import android.view.animation.Animation;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
@@ -387,5 +388,162 @@ public class XPRZ_Generic
             this.anchor = 1 << this.ordinal();
         }
     }
+
+
+    public static enum AnimationType
+    {
+        IDLE,
+        ACTIVE,
+        MOVEMENT;
+    }
+
+
+
+
+    public static void animate_frogs(List<OBGroup> controls, AnimationType animationType, String specificEvent, XPRZ_SectionController sc)
+    {
+        try
+        {
+            if (specificEvent.equals(sc.currentEvent()))
+            {
+                List<OBGroup> randomControls = OBUtils.randomlySortedArray(controls);
+                for (OBGroup control : randomControls)
+                {
+                    if (animationType == AnimationType.IDLE)
+                    {
+                        OBGroup rightEye = (OBGroup) control.objectDict.get("right");
+                        OBAnim blinkAnim1 = OBAnim.sequenceAnim(rightEye, Arrays.asList("eyelid_right_open", "eyelid_right_closed", "eyelid_right_open"), 0.1f, false);
+                        OBGroup leftEye = (OBGroup) control.objectDict.get("left");
+                        OBAnim blinkAnim2 = OBAnim.sequenceAnim(rightEye, Arrays.asList("eyelid_left_open", "eyelid_left_closed", "eyelid_left_open"), 0.1f, false);
+                        OBAnimationGroup.runAnims(Arrays.asList(blinkAnim1,blinkAnim2), 0.3, true, OBAnim.ANIM_LINEAR, sc);
+                        sc.waitForSecs(randomInt(50, 250) / (float) 1000);
+                    }
+                    else if (animationType == AnimationType.ACTIVE)
+                    {
+                        OBAnim rotateAnim1 = OBAnim.rotationAnim((float) Math.toRadians(-180f), control);
+                        OBAnim rotateAnim2 = OBAnim.rotationAnim((float) Math.toRadians(-360f), control);
+                        PointF startPoint = copyPoint(control.position());
+                        PointF endPoint = new PointF(startPoint.x, startPoint.y - (1.25f * control.height()));
+                        OBAnim moveAnim1 = OBAnim.moveAnim(endPoint, control);
+                        OBAnim moveAnim2 = OBAnim.moveAnim(startPoint, control);
+                        OBAnimationGroup.chainAnimations(Arrays.asList(Arrays.asList(moveAnim1, rotateAnim1), Arrays.asList(moveAnim2, rotateAnim2)), Arrays.asList(0.4f,0.4f), false, Arrays.asList(OBAnim.ANIM_EASE_IN, OBAnim.ANIM_EASE_OUT), 1, sc);
+                        sc.waitForSecs(0.05);
+                    }
+                    else if (animationType == AnimationType.MOVEMENT)
+                    {
+                        //
+                    }
+                }
+                //
+                if (animationType == AnimationType.IDLE)
+                {
+                    sc.waitForSecs(randomInt(1, 3));
+                    animate_frogs(controls, animationType, specificEvent, sc);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
+    public static void animate_birds(List<OBGroup> controls, AnimationType animationType, String specificEvent, XPRZ_SectionController sc)
+    {
+        try
+        {
+            if (specificEvent.equals(sc.currentEvent()))
+            {
+                List<OBGroup> randomControls = OBUtils.randomlySortedArray(controls);
+                for (OBGroup control : randomControls)
+                {
+                    if (animationType == AnimationType.IDLE)
+                    {
+                        OBAnim flapAnim = OBAnim.sequenceAnim(control, Arrays.asList("frame2", "frame1", "frame2", "frame1"), 0.1f, false);
+                        OBAnimationGroup.runAnims(Arrays.asList(flapAnim), 0.6, true, OBAnim.ANIM_LINEAR, sc);
+                        sc.waitForSecs(randomInt(50, 250) / (float) 1000);
+                    }
+                    else if (animationType == AnimationType.ACTIVE)
+                    {
+                        OBAnim flapAnim = OBAnim.sequenceAnim(control, Arrays.asList("frame2", "frame1", "frame2", "frame1"), 0.1f, false);
+                        PointF startPoint = copyPoint(control.position());
+                        PointF endPoint = new PointF(startPoint.x, startPoint.y - (1.0f * control.height()));
+                        OBAnim moveAnim1 = OBAnim.moveAnim(endPoint, control);
+                        OBAnim moveAnim2 = OBAnim.moveAnim(startPoint, control);
+                        OBAnimationGroup.chainAnimations(Arrays.asList(Arrays.asList(moveAnim1, flapAnim), Arrays.asList(moveAnim2, flapAnim)), Arrays.asList(0.4f,0.4f), false, Arrays.asList(OBAnim.ANIM_EASE_IN, OBAnim.ANIM_EASE_OUT), 1, sc);
+                        sc.waitForSecs(0.05);
+                    }
+                    else if (animationType == AnimationType.MOVEMENT)
+                    {
+                        //
+                    }
+                }
+                //
+                if (animationType == AnimationType.IDLE)
+                {
+                    sc.waitForSecs(randomInt(1, 3));
+                    animate_birds(controls, animationType, specificEvent, sc);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
+    public static void animate_ladybirds(List<OBGroup> controls, AnimationType animationType, String specificEvent, XPRZ_SectionController sc)
+    {
+        try
+        {
+            if (specificEvent.equals(sc.currentEvent()))
+            {
+                List<OBGroup> randomControls = OBUtils.randomlySortedArray(controls);
+                for (OBGroup control : randomControls)
+                {
+                    if (animationType == AnimationType.IDLE)
+                    {
+                        OBAnim flapAnim = OBAnim.sequenceAnim(control, Arrays.asList("frame2", "frame3", "frame2", "frame1"), 0.1f, false);
+                        OBAnimationGroup.runAnims(Arrays.asList(flapAnim), 0.6, true, OBAnim.ANIM_LINEAR, sc);
+                        sc.waitForSecs(randomInt(50, 250) / (float) 1000);
+                    }
+                    else if (animationType == AnimationType.ACTIVE)
+                    {
+                        OBAnim rotateAnim1 = OBAnim.rotationAnim((float) Math.toRadians(-180f), control);
+                        OBAnim rotateAnim2 = OBAnim.rotationAnim((float) Math.toRadians(-360f), control);
+                        OBAnim flapAnim = OBAnim.sequenceAnim(control, Arrays.asList("frame2", "frame3", "frame2", "frame1"), 0.1f, false);
+                        PointF startPoint = copyPoint(control.position());
+                        PointF endPoint = new PointF(startPoint.x, startPoint.y - (0.75f * control.height()));
+                        OBAnim moveAnim1 = OBAnim.moveAnim(endPoint, control);
+                        OBAnim moveAnim2 = OBAnim.moveAnim(startPoint, control);
+                        OBAnimationGroup.chainAnimations(Arrays.asList(Arrays.asList(moveAnim1, rotateAnim1, flapAnim), Arrays.asList(moveAnim2, rotateAnim2, flapAnim)), Arrays.asList(0.4f,0.4f), false, Arrays.asList(OBAnim.ANIM_EASE_IN, OBAnim.ANIM_EASE_OUT), 1, sc);
+                        sc.waitForSecs(0.05);
+                    }
+                    else if (animationType == AnimationType.MOVEMENT)
+                    {
+                        //
+                    }
+                }
+                //
+                if (animationType == AnimationType.IDLE)
+                {
+                    sc.waitForSecs(randomInt(1, 3));
+                    animate_ladybirds(controls, animationType, specificEvent, sc);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+
 
 }

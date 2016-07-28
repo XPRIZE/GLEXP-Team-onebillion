@@ -34,6 +34,7 @@ public class MaskShaderProgram extends ShaderProgram
     private final int uScreenWidthLocation;
     private final int uScreenHeightLocation;
     private final int uMaskFrameLocation;
+    private final int uBlendModeLocation;
 
     // Attribute locations
     private final int aPositionLocation;
@@ -56,9 +57,11 @@ public class MaskShaderProgram extends ShaderProgram
         uScreenHeightLocation = glGetUniformLocation(program, U_SCREEN_HEIGHT);
 
         uMaskFrameLocation = glGetUniformLocation(program, U_MASK_FRAME);
+
+        uBlendModeLocation = glGetUniformLocation(program, U_BLEND_MODE);
     }
 
-    public void setUniforms(float[] matrix, int textureId, int textureId2, float[] blendColour, float blendReverse, float width, float height, float[] maskFrame)
+    public void setUniforms(float[] matrix, int textureId, int textureId2, float[] blendColour, float blendMode, float blendReverse, float width, float height, float[] maskFrame)
     {
 
         glUniformMatrix4fv(uMatrixLocation, 1, false, matrix, 0);
@@ -80,6 +83,8 @@ public class MaskShaderProgram extends ShaderProgram
         glUniform1f(uScreenHeightLocation,height);
 
         glUniform4fv(uMaskFrameLocation,1,maskFrame,0);
+
+        glUniform1f(uBlendModeLocation,blendMode);
 
     }
 

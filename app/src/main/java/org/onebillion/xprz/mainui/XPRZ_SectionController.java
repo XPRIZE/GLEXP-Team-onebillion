@@ -232,22 +232,39 @@ public class XPRZ_SectionController extends OBSectionController {
     {
         if (status() == STATUS_DRAGGING)
         {
-            target.setZPosition(target.zPosition() - 30);
-            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            if (target != null)
             {
-                @Override
-                public void run() throws Exception
+                target.setZPosition(target.zPosition() - 30);
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
-                    checkDragAtPoint(pt);
-                }
-            });
+                    @Override
+                    public void run () throws Exception
+                    {
+                        checkDragAtPoint(pt);
+                    }
+                });
+            }
+            else
+            {
+                setStatus(STATUS_AWAITING_CLICK);
+            }
         }
     }
 
     public void touchMovedToPoint(PointF pt,View v)
     {
         if (status() == STATUS_DRAGGING)
-            target.setPosition(OB_Maths.AddPoints(pt, dragOffset));
+        {
+            if (target != null)
+            {
+                target.setPosition(OB_Maths.AddPoints(pt, dragOffset));
+            }
+            else
+            {
+                setStatus(STATUS_AWAITING_CLICK);
+            }
+        }
+
     }
 
 
