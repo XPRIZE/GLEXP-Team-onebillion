@@ -27,7 +27,7 @@ void main(void)
         vec4 mask = texture2D(u_TextureMask, loc);
         maskAlpha = mask.a;
     }
-    col.a *= abs(u_BlendReverse-maskAlpha);
+    col *= abs(u_BlendReverse-maskAlpha);
     gl_FragColor = col;
 
 }

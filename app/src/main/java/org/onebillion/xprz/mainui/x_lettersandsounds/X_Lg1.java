@@ -132,28 +132,7 @@ public class X_Lg1 extends XPRZ_SectionController
 
                 if(strokes != null)
                 {
-                    RectF f = shutter.frame();
-                    RectF fullBounds = strokes.members.get(0).frame();
-                    for(OBControl stroke : strokes.members)
-                    {
-                        if(stroke.getClass() == OBPath.class)
-                        {
-
-                            ((OBPath) stroke).sizeToBoundingBoxIncludingStroke();
-                            fullBounds.union(stroke.frame());
-                        }
-                    }
-                    for(OBControl stroke : strokes.members)
-                    {
-                        if(stroke.getClass() == OBPath.class)
-                        {
-                            PointF pos = OB_Maths.OffsetPoint(stroke.position(), -fullBounds.left, -fullBounds.top);
-                            stroke.setPosition(pos);
-                        }
-
-                    }
-                    strokes.setPosition(new PointF(fullBounds.left + (fullBounds.right - fullBounds.left) / 2.0f, fullBounds.top + (fullBounds.bottom - fullBounds.top) / 2.0f));
-                    strokes.setBounds(0,0,fullBounds.right-fullBounds.left,fullBounds.bottom-fullBounds.top);
+                    strokes.recalculateFrameForPath(strokes.members);
                 }
 
                 shutter.setZPosition(20);
