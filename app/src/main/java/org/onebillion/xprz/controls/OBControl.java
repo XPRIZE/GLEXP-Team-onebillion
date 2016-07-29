@@ -1526,6 +1526,7 @@ public class OBControl
 
     public void setDoubleSided (boolean t)
     {
+        Log.d("test","test")
         doubleSided = t;
         invalidate();
     }
