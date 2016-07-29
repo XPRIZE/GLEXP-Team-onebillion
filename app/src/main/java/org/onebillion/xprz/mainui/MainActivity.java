@@ -14,6 +14,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Typeface;
+import android.media.AudioManager;
 import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -140,6 +141,7 @@ public class MainActivity extends Activity
     {
         super.onCreate(savedInstanceState);
         //
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         //

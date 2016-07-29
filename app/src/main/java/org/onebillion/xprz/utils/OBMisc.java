@@ -1,9 +1,14 @@
 package org.onebillion.xprz.utils;
 
+import android.graphics.PointF;
 import android.util.ArrayMap;
 
+import org.onebillion.xprz.controls.*;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
+import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +50,35 @@ public class OBMisc
         if(remindDelay > 0 && remindAudio != null && remindAudio.size() > 0)
             controller.reprompt(statusTime,OBUtils.insertAudioInterval(remindAudio,300),remindDelay);
 
+    }
+
+    public static void prepareForDragging(OBControl cont, PointF pt, XPRZ_SectionController controller)
+    {
+        controller.target = cont;
+        cont.setZPosition(cont.zPosition()+10);
+        controller.dragOffset = OB_Maths.DiffPoints(cont.position(), pt);
+    }
+
+    public static void moveControlWithAttached(final OBControl mainControl, final List<OBControl> attached, PointF point, float duration, int easing, XPRZ_SectionController controller)
+    {
+        final List<PointF> points = new ArrayList<>();
+        for(int i=0; i<attached.size(); i++)
+        {
+            points.add(OB_Maths.DiffPoints(attached.get(i).position(), mainControl.position()));
+        }
+
+        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.moveAnim(point, mainControl),
+                new OBAnimBlock()
+                {
+                    @Override
+                    public void runAnimBlock(float frac)
+                    {
+                        for(int i=0; i<attached.size(); i++)
+                        {
+                            attached.get(i).setPosition(OB_Maths.AddPoints(mainControl.position(), points.get(i)));
+                        }
+                    }
+                }),duration,true,easing, controller);
     }
 
 

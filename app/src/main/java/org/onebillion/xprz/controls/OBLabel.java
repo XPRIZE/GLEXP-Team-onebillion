@@ -3,6 +3,7 @@ package org.onebillion.xprz.controls;
 import android.graphics.Color;
 import android.graphics.Typeface;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -91,5 +92,18 @@ public class OBLabel extends OBControl
     {
         return ((OBTextLayer)layer).text;
     }
+
+    public Typeface typeface()
+    {
+        return ((OBTextLayer)layer).typeFace;
+    }
+
+    public float fontSize()
+    {
+        return ((OBTextLayer)layer).textSize;
+    }
+
+
+
 
 }

@@ -115,17 +115,10 @@ public class X_MoreAddSubtract_S6 extends XPRZ_SectionController
     }
 
     @Override
-    public void doMainXX()
+    public void doMainXX() throws Exception
     {
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-        {
-            @Override
-            public void run() throws Exception
-            {
-                startPhase();
-            }
-        });
 
+        startPhase();
     }
 
     @Override
@@ -134,7 +127,7 @@ public class X_MoreAddSubtract_S6 extends XPRZ_SectionController
         try
         {
             waitForSecs(0.3f);
-            // goToCard(X_MoreAddSubtract_S6i.getClass(), "event6");
+            goToCard(X_MoreAddSubtract_S6i.class, "event6");
         }
         catch (Exception e)
         {
@@ -148,17 +141,18 @@ public class X_MoreAddSubtract_S6 extends XPRZ_SectionController
     public void touchDownAtPoint(final PointF pt, View v)
     {
         final XPRZ_SectionController controller = this;
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+
+        if(status() == STATUS_AWAITING_CLICK)
         {
-            public void run() throws Exception
+            if(currentPhase == 1 || currentPhase == 3)
             {
-                if(status() == STATUS_AWAITING_CLICK)
+                if(objectDict.get("box").frame().contains(pt.x, pt.y))
                 {
-                    if(currentPhase == 1 || currentPhase == 3)
+                    setStatus(STATUS_BUSY);
+                    OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                     {
-                        if(objectDict.get("box").frame().contains(pt.x, pt.y))
+                        public void run() throws Exception
                         {
-                            setStatus(STATUS_BUSY);
                             playAudio(null);
                             boxTouched();
                             currentPhase++;
@@ -166,67 +160,79 @@ public class X_MoreAddSubtract_S6 extends XPRZ_SectionController
                             showPhaseEquation();
                             startPhase();
                         }
-                    }
-                    else
-                    {
-                        OBControl conLabel = finger(0,1,numTargets,pt);
-                        if(conLabel != null)
-                        {
-                            setStatus(STATUS_BUSY);
-                            playAudio(null);
-                            OBLabel label = (OBLabel)conLabel;
-                            label.setColour(Color.RED);
-
-                            if((int)label.settings.get("num_value") == correctNums.get(currentPhase <= 2 ? 0 : 1))
-                            {
-                                lockScreen();
-                                objectDict.get("cover").hide();
-                                X_Numberlines_Additions.getLabelForEquation(5,(OBGroup)objectDict.get(String.format("equation_%d",currentPhase <= 2 ? 1 : 2))).show();
-                                unlockScreen();
-                                gotItRightBigTick(true);
-                                currentPhase++;
-                                waitForSecs(0.3f);
-
-
-                                if(currentPhase == 5)
-                                {
-                                    label.setColour(Color.BLACK);
-                                    for(int i = 0; i<2; i++)
-                                    {
-                                        OBGroup equ = (OBGroup)objectDict.get(String.format("equation_%d", i+1));
-                                        X_Numberlines_Additions.colourEquation(equ,1,5,Color.RED, controller);
-                                        playAudioScene("FINAL",i,true);
-                                        waitForSecs(0.3f);
-                                        X_Numberlines_Additions.colourEquation(equ,1,5,eventColour.get("equation"), controller);
-                                        waitForSecs(0.3f);
-                                    }
-                                    waitForSecs(0.7f);
-
-                                    nextScene();
-                                }
-                                else
-                                {
-                                    lockScreen();
-                                    label.setColour(Color.BLACK);
-                                    for(OBControl con : numTargets)
-                                        con.hide();
-                                    unlockScreen();
-                                    startPhase();
-                                }
-                            }
-                            else
-                            {
-                                gotItWrongWithSfx();
-                                waitSFX();
-                                label.setColour(Color.BLACK);
-                                setStatus(STATUS_AWAITING_CLICK);
-                                playAudioQueuedScene(currentPhase == 1 ? "INCORRECT" : "INCORRECT2",300, false);
-                            }
-                        }
-                    }
+                    });
                 }
             }
-        });
+            else
+            {
+                final OBControl conLabel = finger(0,1,numTargets,pt);
+                if(conLabel != null)
+                {
+                    setStatus(STATUS_BUSY);
+                    OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                    {
+                        public void run() throws Exception
+                        {
+                            checkTarget((OBLabel) conLabel);
+                        }
+                    });
+                }
+            }
+        }
+
+    }
+
+    private void checkTarget(OBLabel conLabel) throws Exception
+    {
+        playAudio(null);
+        OBLabel label = conLabel;
+        label.setColour(Color.RED);
+
+        if((int)label.settings.get("num_value") == correctNums.get(currentPhase <= 2 ? 0 : 1))
+        {
+            lockScreen();
+            objectDict.get("cover").hide();
+            X_Numberlines_Additions.getLabelForEquation(5,(OBGroup)objectDict.get(String.format("equation_%d",currentPhase <= 2 ? 1 : 2))).show();
+            unlockScreen();
+            gotItRightBigTick(true);
+            currentPhase++;
+            waitForSecs(0.3f);
+
+
+            if(currentPhase == 5)
+            {
+                label.setColour(Color.BLACK);
+                for(int i = 0; i<2; i++)
+                {
+                    OBGroup equ = (OBGroup)objectDict.get(String.format("equation_%d", i+1));
+                    X_Numberlines_Additions.colourEquation(equ,1,5,Color.RED, this);
+                    playAudioScene("FINAL",i,true);
+                    waitForSecs(0.3f);
+                    X_Numberlines_Additions.colourEquation(equ,1,5,eventColour.get("equation"), this);
+                    waitForSecs(0.3f);
+                }
+                waitForSecs(0.7f);
+
+                nextScene();
+            }
+            else
+            {
+                lockScreen();
+                label.setColour(Color.BLACK);
+                for(OBControl con : numTargets)
+                    con.hide();
+                unlockScreen();
+                startPhase();
+            }
+        }
+        else
+        {
+            gotItWrongWithSfx();
+            waitSFX();
+            label.setColour(Color.BLACK);
+            setStatus(STATUS_AWAITING_CLICK);
+            playAudioQueuedScene(currentPhase == 1 ? "INCORRECT" : "INCORRECT2",300, false);
+        }
     }
 
 
