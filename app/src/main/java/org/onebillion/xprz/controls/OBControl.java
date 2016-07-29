@@ -1527,6 +1527,7 @@ public class OBControl
     public void setDoubleSided (boolean t)
     {
         doubleSided = t;
+        invalidate();
     }
 
     public boolean doubleSided ()
