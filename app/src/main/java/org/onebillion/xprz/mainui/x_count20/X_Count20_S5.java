@@ -40,8 +40,7 @@ public class X_Count20_S5 extends XPRZ_Tracer
     OBPath screenMask;
     List<OBControl> counters,numbers,randomCounters;
     double lastTime;
-
-    Timer timer;
+    long animToken = 0;
 
     public X_Count20_S5()
     {
@@ -229,8 +228,7 @@ public class X_Count20_S5 extends XPRZ_Tracer
 
     void stopAnimations()
     {
-        timer.cancel();
-        timer = null;
+        animToken = 0;
     }
 
     void doFrame()
@@ -262,19 +260,22 @@ public class X_Count20_S5 extends XPRZ_Tracer
 
     void startAnimations()
     {
-        lastTime = SystemClock.uptimeMillis();
-        pixelsPerSecond = bounds().height() / 4;
-        if (timer != null)
-            stopAnimations();
-        timer = new Timer();
-        timer.schedule(new TimerTask()
+        lastTime = animToken = SystemClock.uptimeMillis();
+        final long tok = animToken;
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             @Override
-            public void run()
+            public void run() throws Exception
             {
-                doFrame();
+                long token = tok;
+                pixelsPerSecond = bounds().height() / 4;
+                while (token == animToken)
+                {
+                    doFrame();
+                    waitForSecs(0.02);
+                }
             }
-        }, 0, 30);
+        });
     }
 
     void swapCounterPositions(final OBControl c1,final OBControl c2)
