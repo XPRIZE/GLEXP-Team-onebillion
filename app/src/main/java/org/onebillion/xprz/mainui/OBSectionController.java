@@ -1352,10 +1352,6 @@ public class OBSectionController extends OBViewController
     public void loadPointerStartPoint (final PointF startPoint, final PointF targetPoint)
     {
         final OBSectionController vc = this;
-        new OBRunnableSyncUI()
-        {
-            public void ex ()
-            {
                 lockScreen();
                 if (thePointer == null)
                 {
@@ -1374,11 +1370,6 @@ public class OBSectionController extends OBViewController
                 thePointer.setPosition(startPoint);
                 thePointer.pointAt(targetPoint);
                 unlockScreen();
-            }
-        }.run();
-
-        //thePointer.frame();
-        //invalidateView((int) thePointer.frame.left, (int) thePointer.frame.top, (int) thePointer.frame.right, (int) thePointer.frame.bottom);
     }
 
     public void loadPointer (int orientation)
