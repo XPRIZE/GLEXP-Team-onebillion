@@ -1395,7 +1395,7 @@ public class OBSectionController extends OBViewController
                 targetPoint = new PointF(1, 1);
                 break;
             case POINTER_LEFT:
-                startPoint = new PointF(0.75f, 1);
+                startPoint = new PointF(0.75f, 1.1f);
                 targetPoint = new PointF(0, 0);
                 break;
             case POINTER_MIDDLE:

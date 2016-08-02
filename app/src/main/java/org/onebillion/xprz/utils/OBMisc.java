@@ -1,14 +1,18 @@
 package org.onebillion.xprz.utils;
 
+import android.graphics.Point;
 import android.graphics.PointF;
+import android.graphics.Typeface;
 import android.util.ArrayMap;
 
 import org.onebillion.xprz.controls.*;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -44,13 +48,26 @@ public class OBMisc
         else
             controller.setReplayAudio(OBUtils.insertAudioInterval(controller.getAudioForScene(event,String.format("REPEAT%s",postfix)),300));
 
-        controller.playAudioQueuedScene(event,prompt,300,false);
+        controller.playAudioQueuedScene(event,prompt,300,true);
 
         List<String> remindAudio = controller.getAudioForScene(event,repeat);
         if(remindDelay > 0 && remindAudio != null && remindAudio.size() > 0)
             controller.reprompt(statusTime,OBUtils.insertAudioInterval(remindAudio,300),remindDelay);
 
     }
+
+    public static void  doSceneAudio(float remindDelay,String event, long statusTime, XPRZ_SectionController controller) throws Exception
+    {
+        doSceneAudio(remindDelay,event,statusTime,"",controller);
+    }
+
+    public static void  doSceneAudio(float remindDelay, long statusTime, XPRZ_SectionController
+            controller) throws Exception
+    {
+        doSceneAudio(remindDelay,controller.currentEvent(),statusTime,controller);
+    }
+
+
 
     public static void prepareForDragging(OBControl cont, PointF pt, XPRZ_SectionController controller)
     {
@@ -79,6 +96,66 @@ public class OBMisc
                         }
                     }
                 }),duration,true,easing, controller);
+    }
+
+    public static void loadNumbersFrom(int from,int to, int colour, String name, String prefix, XPRZ_SectionController controller)
+    {
+        OBControl box = controller.objectDict.get(name);
+        Typeface font = OBUtils.standardTypeFace();
+        float fontSize = 60*box.height()/62.0f;
+
+        for(int i = from; i <= to; i++)
+        {
+            OBLabel numLabel = new OBLabel(String.format("%d",i),font,fontSize);
+            numLabel.setPosition(OB_Maths.locationForRect((i-from+1.0f)*(1.0f/(to-from+2)),0.5f,box.frame()));
+            controller.attachControl(numLabel);
+            numLabel.setColour(colour);
+            numLabel.setProperty("num_value",i);
+            controller.objectDict.put(String.format("%s%d",prefix,i),numLabel);
+            numLabel.hide();
+            numLabel.setZPosition(10);
+        }
+
+    }
+
+    public static OBAnim attachedAnim(final OBControl mainControl, final List<OBControl> attached)
+    {
+
+        final List<PointF> points = new ArrayList<>();
+        for(int i=0; i<attached.size(); i++)
+        {
+            points.add(OB_Maths.DiffPoints(attached.get(i).position(), mainControl.position()));
+        }
+
+        OBAnim anim = new OBAnimBlock()
+        {
+            @Override
+            public void runAnimBlock(float frac)
+            {
+                for(int i=0; i<attached.size(); i++)
+                {
+                    attached.get(i).setPosition(OB_Maths.AddPoints(mainControl.position(), points.get(i)));
+                }
+            }
+        };
+
+        return anim;
+    }
+
+    public static void insertLabelIntoGroup(OBGroup group, int num, float size, int colour, PointF position, XPRZ_SectionController controller)
+    {
+        Typeface font = OBUtils.standardTypeFace();
+        OBLabel label = new OBLabel(String.format("%d",num),font,size);
+        label.setColour(colour);
+        label.setScale(1.0f/group.scale());
+        OBGroup numGroup = new OBGroup(Collections.singletonList((OBControl)label));
+       // numGroup.sizeToTightBoundingBox();
+        controller.attachControl(numGroup);
+        numGroup.setPosition(position);
+
+        group.insertMember(numGroup,0,"number");
+        numGroup.setZPosition(10);
+        group.objectDict.put("label",label);
     }
 
 

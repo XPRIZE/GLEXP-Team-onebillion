@@ -115,9 +115,7 @@ public class OB_Maths
 
     public static PointF relativePointInRectForLocation(PointF loc,RectF r)
     {
-        loc.x -= r.left;
-        loc.y -= r.top;
-        return new PointF(loc.x / r.width(), loc.y / r.height());
+        return new PointF((loc.x - r.left) / r.width(), (loc.y-r.top) / r.height());
     }
 
     public static RectF denormaliseRect(RectF inRect,RectF refRect)
@@ -470,4 +468,33 @@ public class OB_Maths
         return area / 2.0f;
     }
 
+    public static Boolean lineSegmentsIntersect(PointF a,PointF b,PointF c,PointF d, PointF intersectPoint)
+    {
+        float s,t,num,denom;
+        denom = a.x * (d.y - c.y) +
+                b.x * (c.y - d.y) +
+                d.x * (b.y - a.y) +
+                c.x * (a.y - b.y);
+        if (denom == 0.0)							// lines are parallel
+            return false;
+        num =   a.x * (d.y - c.y) +
+                c.x * (a.y - d.y) +
+                d.x * (c.y - a.y);
+        if (num == 0.0 || num == denom)
+            return false;
+        s = num/denom;
+        num = -(a.x * (c.y - b.y) +
+                b.x * (a.y - c.y) +
+                c.x * (b.y - a.y));
+        if (num == 0.0 || num == denom)
+            return false;
+        t = num/denom;
+        if (s > 0.0 && s < 1.0 && t > 0.0 && t < 1.0)
+        {
+            intersectPoint.x = a.x + s * (b.x - a.x);
+            intersectPoint.y = a.y + s * (b.y - a.y);
+            return true;
+        }
+        return false;
+    }
 }

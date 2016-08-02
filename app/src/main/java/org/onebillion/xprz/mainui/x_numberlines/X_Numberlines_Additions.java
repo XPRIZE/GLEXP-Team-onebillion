@@ -75,12 +75,11 @@ public class X_Numberlines_Additions
         animateCurve(num,clockwise,duration,audio, label, clockwise? OBUtils.colorFromRGBString("255,252,0") : OBUtils.colorFromRGBString("255,83,0"), controller);
     }
 
-    public static void animateCurve(int num,boolean clockwise ,float duration, boolean audio, boolean label, int colour, XPRZ_SectionController controller) throws Exception
+    public static void animateCurve(int num, boolean clockwise , float duration, boolean audio, boolean label, int colour, final XPRZ_SectionController controller) throws Exception
     {
         drawCurveLine(num,clockwise,label, colour, controller);
 
-        OBPath curveLine = (OBPath)controller.objectDict.get(String.format("curveline_%d", num));
-        curveLine.sizeToBox(controller.objectDict.get("numberline").bounds());
+        final OBPath curveLine = (OBPath)controller.objectDict.get(String.format("curveline_%d", num));
         controller.objectDict.get("arrowhead").setPosition(curveLine.firstPoint());
         curveLine.setStrokeEnd(0);
 
@@ -91,14 +90,22 @@ public class X_Numberlines_Additions
         shortenDiv(num, controller);
 
         List<OBAnim> anims = new ArrayList<>();
-        anims.add(OBAnim.propertyAnim( "strokeEnd",1,curveLine));
-        anims.add(OBAnim.pathMoveAnim(controller.objectDict.get("arrowhead"),curveLine.path(),false,0));
+        final OBControl arrowHead = controller.objectDict.get("arrowhead");
+        anims.add(OBAnim.propertyAnim("strokeEnd",1,curveLine));
+        anims.add(new OBAnimBlock()
+        {
+            @Override
+            public void runAnimBlock(float frac)
+            {
+                arrowHead.setPosition(curveLine.convertPointToControl(curveLine.sAlongPath(frac,null), null));
+            }
+        });
         anims.add(OBAnim.rotationAnim((clockwise ? (float)Math.toRadians(180): (float)Math.toRadians(-180)),controller.objectDict.get("arrowhead")));
 
 
         if(label)
         {
-            final OBLabel linelabel = (OBLabel)controller.objectDict.get(String.format("linelabel_%d",num));
+            final OBGroup linelabel = (OBGroup)controller.objectDict.get(String.format("linelabel_%d",num));
             linelabel.setOpacity(0);
             linelabel.show();
             anims.add(new OBAnimBlock()
@@ -165,8 +172,8 @@ public class X_Numberlines_Additions
 
     public static void drawCurveLine(int num,boolean clockwise, boolean label, int colour, XPRZ_SectionController controller)
     {
-        OBPath startDiv = (OBPath)controller.objectDict.get(String.format("divline_%d", num));
-        OBPath endDiv = (OBPath)controller.objectDict.get(String.format("divline_%d", clockwise ? num+1 : num-1));
+        OBPath startDiv = (OBPath)controller.objectDict.get(String.format("divline_%d",clockwise ? num : num-1));
+        OBPath endDiv = (OBPath)controller.objectDict.get(String.format("divline_%d", clockwise ? num+1 : num));
         OBPath mainLine = (OBPath)controller.objectDict.get("mainline");
 
         OBPath curveLine =  new OBPath();
@@ -174,14 +181,17 @@ public class X_Numberlines_Additions
         PointF centrePoint = new PointF(startDiv.position().x +(endDiv.position().x - startDiv.position().x)/2.0f , mainLine.position().y);
         float radius = Math.abs((endDiv.position().x - startDiv.position().x))/2.0f;
         Path path = new Path();
-        path.addArc(new RectF(startDiv.position().x,startDiv.position().y-radius,endDiv.position().x,startDiv.position().y+radius),clockwise ? (float)Math.toRadians(180) : (float)Math.toRadians(360),
-                clockwise ? (float)Math.toRadians(360) : (float)Math.toRadians(180));
+
+        RectF rect = new RectF(startDiv.position().x,startDiv.position().y-radius,endDiv.position().x,startDiv.position().y+radius);
+        path.addArc(rect,clockwise ? 180 : 0, clockwise ? 180 : -180);
         curveLine.setPath(path);
         curveLine.setLineWidth(startDiv.lineWidth());
-        curveLine.setBottom(mainLine.top()-0.5f*mainLine.lineWidth());
+
         curveLine.setStrokeColor(colour);
         curveLine.setZPosition(5);
         curveLine.sizeToBoundingBox();
+        curveLine.setBottom(mainLine.top()+ 0.5f*mainLine.lineWidth());
+        curveLine.sizeToBoundingBoxIncludingStroke();
         curveLine.hide();
         controller.attachControl(curveLine);
         controller.objectDict.put(String.format("curveline_%d", num),curveLine);

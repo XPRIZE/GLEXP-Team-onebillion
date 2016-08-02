@@ -73,8 +73,8 @@ public class OBViewController
 
     public void lockScreen()
     {
-        if (screenLock == 0)
-            renderLock.lock();
+      //  if (screenLock == 0)
+        renderLock.lock();
         screenLock++;
     }
 
@@ -88,8 +88,9 @@ public class OBViewController
                 invalidateView((int)lockedInvalidRect.left,(int)lockedInvalidRect.top,(int)lockedInvalidRect.right,(int)lockedInvalidRect.bottom);
                 lockedInvalidRect = null;
             }
-            renderLock.unlock();
+
         }
+        renderLock.unlock();
 
     }
 

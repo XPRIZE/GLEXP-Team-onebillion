@@ -141,8 +141,11 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
 
     public void play() //call only after prepare!!!
     {
-        setState(OBAP_PLAYING);
-        player.start();
+        if(player != null)
+        {
+            setState(OBAP_PLAYING);
+            player.start();
+        }
     }
 
     public void waitAudio ()
