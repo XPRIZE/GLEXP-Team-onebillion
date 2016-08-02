@@ -158,5 +158,26 @@ public class OBMisc
         group.objectDict.put("label",label);
     }
 
+    public static OBControl nearestControlToPoint(List<OBControl> controls, PointF point)
+    {
+        OBControl result = null;
 
+        if(controls == null || controls.size() == 0)
+            return null;
+
+        if(controls.size() == 1)
+            return controls.get(0);
+
+        float dist =  -1;
+        for(OBControl control : controls)
+        {
+            float currentDist = OB_Maths.PointDistance(point, control.position());
+            if(result == null || dist > currentDist || dist == -1)
+            {
+                result = control;
+                dist = currentDist;
+            }
+        }
+        return result;
+    }
 }

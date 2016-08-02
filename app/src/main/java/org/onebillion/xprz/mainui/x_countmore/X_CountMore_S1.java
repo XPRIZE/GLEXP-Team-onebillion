@@ -83,7 +83,7 @@ public class X_CountMore_S1 extends XPRZ_SectionController
         try
         {
             waitForSecs(0.3f);
-            //goToCard(X_CountMore_S1n.class, "event1");
+            goToCard(X_CountMore_S1n.class, "event1");
         }
         catch (Exception e)
         {
@@ -327,7 +327,7 @@ public class X_CountMore_S1 extends XPRZ_SectionController
             OBGroup child = (OBGroup)objectDict.get(childName);
             child.setZPosition(5-OBUtils.getIntValue(num));
             PointF loc = XPRZ_Generic.copyPoint(child.position());
-            OBControl reload = objectDict.get(String.format("reload_%s",child.propertyValue("id")));
+            OBControl reload = objectDict.get(String.format("reload_%s",child.attributes().get("id")));
             if(reload == null)
             {
                 child.setProperty("start_loc",loc);
@@ -452,13 +452,13 @@ public class X_CountMore_S1 extends XPRZ_SectionController
 
     public void demo1b() throws Exception
     {
-        //demoButtons();
-        //movePointerToPoint(OB_Maths.locationForRect(0.9f,0.9f,this.bounds()),-35,0.5f,true);
+        demoButtons();
+        movePointerToPoint(OB_Maths.locationForRect(0.9f,0.9f,this.bounds()),-35,0.5f,true);
         loadChildAndWalkIn();
-      //  moveScenePointer(OB_Maths.locationForRect(0.1f,1f,objectDict.get("race_track").frame()),-40,0.5f,"DEMO",0,0.3f);
-       // waitForSecs(0.3f);
-       // moveScenePointer(OB_Maths.locationForRect(1f,1f,objectDict.get("button").frame()),-40,0.5f,"DEMO",1,0.5f);
-        //thePointer.hide();
+        moveScenePointer(OB_Maths.locationForRect(0.1f,1f,objectDict.get("race_track").frame()),-40,0.5f,"DEMO",0,0.3f);
+        waitForSecs(0.3f);
+        moveScenePointer(OB_Maths.locationForRect(1f,1f,objectDict.get("button").frame()),-40,0.5f,"DEMO",1,0.5f);
+        thePointer.hide();
         startScene();
     }
 
