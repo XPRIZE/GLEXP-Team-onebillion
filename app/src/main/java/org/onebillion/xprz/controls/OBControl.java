@@ -866,7 +866,7 @@ public class OBControl
         }
         else
         {
-            while (parent.parent != null)
+          /* while (parent.parent != null)
             {
                 parent = parent.parent;
             }
@@ -874,9 +874,24 @@ public class OBControl
             if (controller != null)
             {
                 return controller.convertPointFromControl(this.position, this.parent);
-            }
+            }*/
+
+            return this.parent.convertPointToControl(this.position, null);
         }
-        return null;
+       // return null;
+    }
+
+    public RectF getWorldFrame ()
+    {
+        OBControl parent = this.parent;
+        if (parent == null)
+        {
+            return this.frame();
+        }
+        else
+        {
+            return this.parent.convertRectToControl(this.frame(), null);
+        }
     }
 
     public RectF convertRectToControl (RectF r, OBControl c)
@@ -1258,6 +1273,10 @@ public class OBControl
                 for (int i = 0; i < 3; i++)
                     col[i] = col[i] * blendColour[i];
                 col[3] *= op;
+
+                for (int i = 0;i < 3;i++)
+                    col[i] *= op;
+
                 colourShader.useProgram();
                 colourShader.setUniforms(tempMatrix);
                 GradientRect gr = renderer.gradientRect;
@@ -1501,8 +1520,8 @@ public class OBControl
                 public void ex ()
                 {
                     hidden = false;
-                    invalidate();
                     setNeedsRetexture();
+                    invalidate();
                 }
             }.run();
         }
@@ -1778,7 +1797,7 @@ public class OBControl
                 invalidate();
             }
         }.run();*/
-        setHighlightColour(Color.argb(200, 255, 255, 255));
+        setHighlightColour(Color.argb(255, 127, 127, 127));
     }
 
     public void setHighlightColour (final int colour)

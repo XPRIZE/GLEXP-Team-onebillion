@@ -732,7 +732,8 @@ public class OBGroup extends OBControl
 
     public void setFrame (RectF f)
     {
-        frame = f;
+        super.setFrame(f);
+       // frame = f;
     }
 
     void populateSortedAttachedControls ()
@@ -1090,6 +1091,85 @@ public class OBGroup extends OBControl
         }
         this.setPosition(new PointF(fullBounds.left + (fullBounds.right - fullBounds.left) / 2.0f, fullBounds.top + (fullBounds.bottom - fullBounds.top) / 2.0f));
         this.setBounds(0,0,fullBounds.right-fullBounds.left,fullBounds.bottom-fullBounds.top);
+    }
+
+    public void sizeToTightBoundingBox()
+    {
+        sizeToBox(minimalRenderedRect());
+    }
+
+    private RectF minimalRenderedRect()
+    {
+        Bitmap bitmap = this.drawn().extractAlpha();
+
+        int w = bitmap.getWidth();
+        int h = bitmap.getHeight();
+
+        int topRow=0,bottomRow = h-1,leftColumn=0,rightColumn=w-1;
+        boolean op = false;
+        for (int row = topRow;row <= bottomRow && !op ;row++)
+        {
+            for (int j = 0;j < w && !op;j++)
+                op = (Color.alpha(bitmap.getPixel(j,row)) != 0);
+            if (op)
+                topRow = row;
+        }
+        op = false;
+        for (int row = bottomRow;row >= topRow && !op;row--)
+        {
+            for (int j = 0;j < w && !op;j++)
+                op = (Color.alpha(bitmap.getPixel(j,row)) != 0);
+            if (op)
+                bottomRow = row;
+        }
+        op = false;
+        for (int col = leftColumn;col <= rightColumn && !op;col++)
+        {
+            for (int i = topRow;i <= bottomRow && !op;i++)
+            {
+                op = (Color.alpha(bitmap.getPixel(col,i)) != 0);
+                if (op)
+                    leftColumn = col;
+            }
+        }
+        op = false;
+        for (int col = rightColumn;col >= leftColumn && !op;col--)
+        {
+            for (int i = topRow;i <= bottomRow && !op;i++)
+            {
+                op =(Color.alpha(bitmap.getPixel(col,i)) != 0);
+                if (op)
+                    rightColumn = col;
+            }
+        }
+
+        RectF imageBounds = new RectF(leftColumn,topRow,rightColumn,bottomRow);
+        return imageBounds;
+    }
+
+    public void sizeToBox(final RectF bb)
+    {
+        new OBRunnableSyncUI()
+        {
+            public void ex()
+            {
+                RectF oldBounds = bounds();
+
+                float dx = oldBounds.left - bb.left;
+                float dy = oldBounds.top - bb.top;
+                for (OBControl m : members)
+                    m.setPosition(OB_Maths.OffsetPoint(m.position(), dx, dy));
+
+
+                RectF rCopy = new RectF(bb);
+
+                Matrix m = matrixForBackwardConvert();
+                m.mapRect(rCopy);
+                setFrame(rCopy);
+
+
+            }
+        }.run();
     }
 
 }

@@ -11,10 +11,15 @@ import android.view.View;
 import org.onebillion.xprz.controls.*;
 import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
+import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
+import org.onebillion.xprz.utils.OBMisc;
 import org.onebillion.xprz.utils.OB_Maths;
 import org.onebillion.xprz.utils.OBUtils;
+import org.onebillion.xprz.utils.ULine;
+import org.onebillion.xprz.utils.UPath;
+import org.onebillion.xprz.utils.USubPath;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -34,20 +39,20 @@ public class X_Count100_S1  extends XPRZ_SectionController
     OBControl line;
     OBLabel counter;
 
+    @Override
     public void prepare()
     {
         lockScreen();
         super.prepare();
         loadFingers();
         loadEvent("master1");
-        String[] eva = ((String)eventAttributes.get("scenes")).split(",");
-        events = Arrays.asList(eva);
+        events = Arrays.asList(eventAttributes.get("scenes").split(","));
 
         line = objectDict.get("line");
         Typeface tf = OBUtils.standardTypeFace();
         float textSize = MainActivity.mainActivity.applyGraphicScale(80);
         counter = new OBLabel("000",tf,textSize);
-        counter.setColour(Color.RED);
+        counter.setColour(Color.BLACK);
         counter.setPosition(objectDict.get("numbox").position());
         counter.setZPosition((float)1.5);
 
@@ -57,17 +62,19 @@ public class X_Count100_S1  extends XPRZ_SectionController
         unlockScreen();
     }
 
+    @Override
     public void start()
     {
         OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
             @Override
             public void run() throws Exception {
-                startScene(true);
+                demo1a();
 
             }
         });
     }
 
+    @Override
     public void setSceneXX(String scene)
     {
         deleteControls("sea");
@@ -100,12 +107,10 @@ public class X_Count100_S1  extends XPRZ_SectionController
             float d2=Float.valueOf(locs[2]);
             int redraw = Integer.valueOf(eventAttributes.get("redraw"));
             OBControl workrect = objectDict.get("workrect");
-            //workrect.hide();
+
             for(int i=1; i<=redraw; i++)
             {
                 OBGroup cont = (OBGroup) loadImage.copy();
-                //cont.texturise(true,this);
-                //
 
                 float x1 = x+((i-1)%10)*d1;
                 float y1 = (float)(y+(Math.ceil(i/10f)-1)*d2);
@@ -124,11 +129,25 @@ public class X_Count100_S1  extends XPRZ_SectionController
 
     }
 
+    @Override
     public void doMainXX() throws Exception
     {
         startScene(true);
     }
 
+    @Override
+    public void fin()
+    {
+        try
+        {
+            waitForSecs(0.3f);
+            goToCard(X_Count100_S1i.class,"event1");
+        }
+        catch (Exception e)
+        {
+
+        }
+    }
 
     void startScene(boolean demo) throws Exception
     {
@@ -139,38 +158,18 @@ public class X_Count100_S1  extends XPRZ_SectionController
             setupLine();
         }
 
-        setReplayAudioScene(currentEvent(),"REPEAT");
-        final long time = setStatus(STATUS_AWAITING_CLICK);
-        playAudioQueuedScene(currentEvent(),"PROMPT",true);
-
-        OBUtils.runOnOtherThreadDelayed(3, new OBUtils.RunLambda()
-        {
-            @Override
-            public void run() throws Exception
-            {
-                if(!statusChanged(time))
-                {
-                    playAudioQueuedScene(currentEvent(),"REMIND",true);
-                }
-            }
-        });
+        OBMisc.doSceneAudio(4,setStatus(STATUS_AWAITING_CLICK),this);
 
     }
 
     void setupLine() throws Exception
     {
-        OBUtils.runOnMainThread(new OBUtils.RunLambda()
-        {
-            @Override
-            public void run() throws Exception
-            {
-                OBControl targ = objectDict.get("obj"+curTarget);
-                line.setPosition(targ.position().x,0);
-                line.setTop(targ.bottom());
-                line.show();
-            }
-        });
-
+        lockScreen();
+        OBControl targ = objectDict.get("obj"+curTarget);
+        line.setPosition(targ.position().x,0);
+        line.setTop(targ.bottom());
+        line.show();
+        unlockScreen();
         playSfxAudio("snap",true);
     }
 
@@ -255,6 +254,7 @@ public class X_Count100_S1  extends XPRZ_SectionController
         playAudioScene(currentEvent(),"DEMO",1);
         waitAudio();
         thePointer.hide();
+        OBMisc.doSceneAudio(4,setStatus(STATUS_AWAITING_CLICK),this);
     }
 
 
@@ -268,8 +268,7 @@ public class X_Count100_S1  extends XPRZ_SectionController
         anims1.add(OBAnim.colourAnim("fillColor",Color.argb(255,175,175,175),numbox));
         anims2.add(OBAnim.colourAnim("fillColor",Color.argb(255,255,255,255),numbox));
 
-
-        int col1 = Color.argb(127,255,255,255);
+        int col1 = Color.argb(255,127,127,127);
         int col2 = Color.argb(255,255,255,255);
         for(int i=1; i<=maxTarget; i++)
         {
@@ -293,15 +292,16 @@ public class X_Count100_S1  extends XPRZ_SectionController
         bee.setZPosition(2);
         OBControl workrect = objectDict.get("workrect");
         OBPath path1 = (OBPath)objectDict.get("path1");
-        path1.sizeToBox(workrect.bounds());
+
         OBPath path2 = (OBPath)objectDict.get("path2");
+
+        path1.sizeToBox(workrect.bounds());
         path2.sizeToBox(workrect.bounds());
 
-       /* path1.firstPoint = -1*bee.width,path1.firstPoint.y;
-        bee.position = path1.firstPoint;
+        XPRZ_Generic.setFirstPoint(path1, new PointF(-1*bee.width(), path1.firstPoint().y), this);
+        setFirstLastPoints(path2,path1.lastPoint(),new PointF(path2.lastPoint().x, -1*bee.width()));
 
-        path2.firstPoint = path1.lastPoint;
-        path2.lastPoint = path2.lastPoint.x, -1*bee.width;*/
+        bee.setPosition(path1.firstPoint());
 
         bee.show();
 
@@ -382,8 +382,9 @@ public class X_Count100_S1  extends XPRZ_SectionController
         fish1.setZPosition(2f);
         fish2.setZPosition(2.1f);
 
-       // path1.firstPoint = path2.lastPoint = fish1.position;
-       // path2.firstPoint = path1.lastPoint = fish2.position;
+        setFirstLastPoints(path1, fish1.position(),fish2.position());
+        setFirstLastPoints(path2, fish2.position(),fish1.position());
+
 
         fish2.flipHoriz();
         playSfxAudio("fish1",false);
@@ -444,7 +445,8 @@ public class X_Count100_S1  extends XPRZ_SectionController
         OBPath path1 = (OBPath)objectDict.get("path1");
         path1.sizeToBox(workrect.bounds());
         OBGroup ladybug = (OBGroup)objectDict.get("obj7");
-        //path1.firstPoint = path1.lastPoint = ladybug.position;
+        setFirstLastPoints(path1,ladybug.position(),ladybug.position());
+
         ladybug.setZPosition(2);
         OBAnimationGroup.runAnims(Arrays.asList(OBAnim.pathMoveAnim(ladybug,path1.path(),true,0),
                 OBAnim.sequenceAnim(ladybug,Arrays.asList("frame2", "frame3", "frame2", "frame1"),0.1f,true)),3.5f,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
@@ -477,10 +479,14 @@ public class X_Count100_S1  extends XPRZ_SectionController
         path4.sizeToBox(workrect.bounds());
 
         OBControl ball = objectDict.get("obj21");
-       // path1.firstPoint = path4.lastPoint = ball.position;
-        //path1.lastPoint = path2.firstPoint = path1.lastPoint.x, view.frame.size.height - 0.5*ball.height;
-        //path2.lastPoint = path3.firstPoint =  view.frame.size.width - 0.5*ball.width, path2.lastPoint.y;
-        //path3.lastPoint = path4.firstPoint = path3.lastPoint.x,  0.5*ball.height;
+
+        PointF loc1 = new PointF(path1.lastPoint().x, bounds().height() - 0.5f*ball.height());
+        PointF loc2 = new PointF(bounds().width() - 0.5f*ball.width(), path2.lastPoint().y);
+        PointF loc3 = new PointF(path3.lastPoint().x, 0.5f*ball.height());
+        setFirstLastPoints(path1,ball.position(),loc1);
+        setFirstLastPoints(path2,loc1,loc2);
+        setFirstLastPoints(path3,loc2,loc3);
+        setFirstLastPoints(path4,loc3,ball.position());
 
         ball.setZPosition(2);
         boolean playSound = false;
@@ -535,5 +541,22 @@ public class X_Count100_S1  extends XPRZ_SectionController
         }
     }
 
+
+    public void setFirstLastPoints(OBPath path, PointF firstPoint, PointF lastPoint)
+    {
+        String name = (String) path.attributes().get("id");
+        if (name == null) name = (String) path.settings.get("name");
+        if (name == null) return;
+        UPath deconPath = deconstructedPath(currentEvent(), name);
+
+        USubPath subPath = deconPath.subPaths.get(0);
+        ULine line = subPath.elements.get(0);
+        line.pt0 = firstPoint;
+
+        USubPath subPath2 = deconPath.subPaths.get(deconPath.subPaths.size() - 1);
+        ULine line2 = subPath2.elements.get(subPath2.elements.size() - 1);
+        line2.pt1 = lastPoint;
+        path.setPath(deconPath.bezierPath());
+    }
 
 }

@@ -11,6 +11,7 @@ import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
+import org.onebillion.xprz.utils.OBMisc;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OB_Maths;
 
@@ -19,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Created by michal on 27/06/16.
@@ -49,24 +51,12 @@ public class X_Count100_S5 extends XPRZ_SectionController
         X_Count100_Additions.drawGrid(10,objectDict.get("workrect"),OBUtils.colorFromRGBString(eventAttributes.get("linecolour")),numcolour,false,this);
         hideControls("num_.*");
         hideControls("box_.*");
-/*
-        RectF boxf = new RectF(0,0,401,301);
-        OBControl box = new OBControl();
-        box.setFrame(boxf);
-        box.setPosition(OB_Maths.locationForRect(0.5f,0.5f,this.bounds()));
-        //box.layer.allowsEdgeAntialiasing = false;
-        box.setBorderWidth(3);
-        box.setBorderColor(Color.BLUE);
-        box.setBackgroundColor(Color.WHITE);
-        box.setZPosition(1);
-        attachControl(box);
-*/
+
         targetBoxes = new ArrayList<OBControl>();
         targetNums =  new ArrayList<OBControl>();
         targetMasks =  new ArrayList<OBControl>();
 
         X_Count100_Additions.loadNumbersAudio(this);
-
         rowBorder = new OBControl();
         rowBorder.setBorderWidth(objectDict.get("box_1").borderWidth);
         rowBorder.setBorderColor(Color.RED);
@@ -86,7 +76,6 @@ public class X_Count100_S5 extends XPRZ_SectionController
             @Override
             public void run() throws Exception
             {
-
                 demo();
             }
         });
@@ -108,7 +97,9 @@ public class X_Count100_S5 extends XPRZ_SectionController
         playSfxAudio("numbers",false);
         for(OBControl num : OBUtils.randomlySortedArray(filterControls("num_.*")))
         {
+            lockScreen();
             num.show();
+            unlockScreen();
             waitForSecs(0.025f);
         }
         waitSFX();
@@ -317,7 +308,7 @@ public class X_Count100_S5 extends XPRZ_SectionController
                     newMask.setBackgroundColor(col);
 
                     OBControl alignBox = objectDict.get(String.format("box_%d", 1 + (maskNumInt - 1) * 10));
-                    RectF alignRect = convertRectFromControl(alignBox.frame(),alignBox.parent);
+                    RectF alignRect = alignBox.getWorldFrame();
                     newMask.setLeft(alignRect.left + alignBox.borderWidth / 2);
                     newMask.setTop(alignRect.top + alignBox.borderWidth / 2);
                     targetMasks.add(newMask);
@@ -350,7 +341,6 @@ public class X_Count100_S5 extends XPRZ_SectionController
 
             }
         }
-        populateSortedAttachedControls();
 
     }
 
@@ -390,11 +380,11 @@ public class X_Count100_S5 extends XPRZ_SectionController
     public void startScene() throws Exception
     {
 
-        setReplayAudioScene(currentEvent(),"REPEAT");
+        setReplayAudio(OBUtils.insertAudioInterval(getAudioForScene(currentEvent(),"REPEAT"),300));
         final long time = setStatus(maskMode ? STATUS_AWAITING_CLICK : STATUS_WAITING_FOR_DRAG);
         playAudioQueuedScene("PROMPT",true);
 
-        reprompt(time, OBUtils.insertAudioInterval(currentAudio("PROMPT2"),300),4);
+        reprompt(time, OBUtils.insertAudioInterval(getAudioForScene(currentEvent(),"PROMPT2"),300),4);
     }
 
 
@@ -444,9 +434,12 @@ public class X_Count100_S5 extends XPRZ_SectionController
 
     public void completeRow() throws Exception
     {
-        playAudioQueuedScene("FINAL",true);
-        if(currentAudio("FINAL") == null)
+        List<String> aud = getAudioForScene(currentEvent(),"FINAL");
+
+        if(aud == null)
              waitForSecs(0.3f);
+        else
+            playAudioQueued(OBUtils.insertAudioInterval(aud,300));
 
         int col = OBUtils.colorFromRGBString(eventAttributes.get("numcol"));
         List<OBAnim> anims = new ArrayList<>();
@@ -474,8 +467,7 @@ public class X_Count100_S5 extends XPRZ_SectionController
         rowBorder.hide();
         rowBorder.setOpacity(1);
 
-        if(eventAttributes.get("reset") != null &&
-                eventAttributes.get("reset").equalsIgnoreCase("true"))
+        if(OBUtils.getBooleanValue(eventAttributes.get("reset")))
         {
             waitForSecs(1f);
             animateGridReset();

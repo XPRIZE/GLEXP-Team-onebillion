@@ -169,6 +169,7 @@ public class OBEmitterCell
         float h2 = contents.getHeight()/2;
         float blendColour[] = {1,1,1,1};
         TextureShaderProgram textureShader = (TextureShaderProgram) renderer.textureProgram;
+        textureShader.useProgram();
         TextureRect tr = renderer.textureRect;
         synchronized (emittees)
         {

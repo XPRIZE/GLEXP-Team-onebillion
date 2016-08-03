@@ -27,7 +27,7 @@ public class X_Count100_Additions
 
     public static void drawGrid(int count, OBControl rect, int borderColour, int textColour, boolean single, OBSectionController controller)
     {
-        List<OBControl> allControls = new ArrayList<>();
+
         OBMainViewController mainViewController = OBMainViewController.MainViewController();
         while(rect.frame().intersect(mainViewController.topRightButton.frame())||
                 rect.frame().intersect(mainViewController.topLeftButton.frame()))
@@ -110,8 +110,6 @@ public class X_Count100_Additions
 
                 controller.attachControl(box);
                 controller.attachControl(txt);
-                allControls.add(box);
-                allControls.add(txt);
             }
             if(!single)
             {
@@ -149,15 +147,30 @@ public class X_Count100_Additions
             r.union(boxes.get(boxes.size()-1).frame());
             frame.setFrame(r);
             frame.setBorderWidth(lineSize *1.5f);
-            //frame.layer.allowsEdgeAntialiasing = false;
             frame.setBorderColor(borderColour);
             controller.objectDict.put(String.format("frame_%d",count), frame);
             controller.attachControl(frame);
         }
 
-        OBGroup group = new OBGroup(allControls);controller.attachControl(group);
-        group.setPosition(OB_Maths.locationForRect(0.5f,0.5f,controller.bounds()));
-        controller.objectDict.put("grid_group", group);
+        OBGroup groupBoxes = new OBGroup(boxes);
+        controller.attachControl(groupBoxes);
+        controller.objectDict.put("grid_box", groupBoxes);
+
+     /*   for (int i = 0;i < count;i++)
+        {
+            List<OBControl> numberControls = new ArrayList<>();
+            for(int j = 0; j<10; j++)
+            {
+                numberControls.add(numbers.get(((10*j)+i)));
+            }
+            OBGroup groupNums = new OBGroup(numberControls);
+            controller.attachControl(groupNums);
+            controller.objectDict.put(String.format("grid_row_%d",i+1), groupNums);
+        }*/
+       /* OBGroup group2 = new OBGroup(numbers);
+        controller.attachControl(group2);
+        controller.objectDict.put("grid_group_num", group2);*/
+
     }
 
     public static void loadNumbersAudio(OBSectionController controller)
@@ -169,6 +182,9 @@ public class X_Count100_Additions
     public static void playNumberAudio(int num, boolean wait, OBSectionController controller) throws Exception
     {
         Map<String,Object> map = (Map<String,Object>)controller.audioScenes.get("extra");
+        if(map == null)
+            return;
+
         List<Object> audios = (List<Object>)map.get("numbers");
 
         if(audios.size() > num-1)
