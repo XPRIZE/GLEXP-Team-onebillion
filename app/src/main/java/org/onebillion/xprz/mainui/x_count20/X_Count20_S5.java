@@ -282,15 +282,13 @@ public class X_Count20_S5 extends XPRZ_Tracer
     {
         if (c1 == c2)
             return;
-        new OBRunnableSyncUI(){public void ex()
-        {
-            PointF pt = c1.position();
-            float x = pt.x;
-            float y = pt.y;
-            c1.setPosition(c2.position());
-            c2.setPosition(x,y);
-
-        }}.run();
+        lockScreen();
+        PointF pt = c1.position();
+        float x = pt.x;
+        float y = pt.y;
+        c1.setPosition(c2.position());
+        c2.setPosition(x,y);
+        unlockScreen();
 
     }
 
@@ -300,11 +298,11 @@ public class X_Count20_S5 extends XPRZ_Tracer
         float minTop = 100000;
         OBControl minC = null;
         for (OBControl c : counters)
-        if (c.top() > bot && c.top() < minTop)
-        {
-            minTop = c.top();
-            minC = c;
-        }
+            if (c.top() > bot && c.top() < minTop)
+            {
+                minTop = c.top();
+                minC = c;
+            }
         return minC;
     }
 
@@ -378,16 +376,15 @@ public class X_Count20_S5 extends XPRZ_Tracer
     void tracePointerAlongPath(final OBPath p,float durationMultiplier) throws Exception
 
     {
-        new OBRunnableSyncUI(){public void ex()
-        {
-            //p.setLineWidth(traceLineWidth);
-            p.setStrokeColor(Color.RED);
-            p.setStrokeEnd(0.0f);
-            p.setOpacity(1.0f);
-            p.parent.primogenitor().show();
-            p.show();
-            objectDict.get("tracearrow").hide();
-        }}.run();
+        lockScreen();
+        //p.setLineWidth(traceLineWidth);
+        p.setStrokeColor(Color.RED);
+        p.setStrokeEnd(0.0f);
+        p.setOpacity(1.0f);
+        p.parent.primogenitor().show();
+        p.show();
+        objectDict.get("tracearrow").hide();
+        unlockScreen();
         long starttime = SystemClock.uptimeMillis();
         float duration = p.length() * 2 * durationMultiplier / theMoveSpeed;
         float frac = 0;
@@ -396,12 +393,11 @@ public class X_Count20_S5 extends XPRZ_Tracer
             long currtime = SystemClock.uptimeMillis();
             frac = (float)(currtime - starttime) / (duration * 1000);
             final float t = (frac);
-            new OBRunnableSyncUI(){public void ex()
-            {
-                p.setStrokeEnd(t);
-                thePointer.setPosition(convertPointFromControl(p.sAlongPath(t, null), p));
-                p.parent.primogenitor().setNeedsRetexture();
-            }}.run();
+            lockScreen();
+            p.setStrokeEnd(t);
+            thePointer.setPosition(convertPointFromControl(p.sAlongPath(t, null), p));
+            p.parent.primogenitor().setNeedsRetexture();
+            unlockScreen();
             waitForSecs(0.02f);
         }
 
@@ -431,7 +427,8 @@ public class X_Count20_S5 extends XPRZ_Tracer
         if (c2 != null && c2 != counter)
             swapCounterPositions(counter,c2);
         PointF destPt = OB_Maths.locationForRect(0.5f, 0.5f,box.frame());
-        double dur = (counter.position().y - convertPointToControl(destPt,box).y) / pixelsPerSecond;
+        //double dur = (counter.position().y - convertPointToControl(destPt,box).y) / pixelsPerSecond;
+        double dur = (counter.position().y - destPt.y) / pixelsPerSecond;
         waitForSecs(dur * 0.75f);
         movePointerToPoint(destPt, (float) dur * 0.25f, true);
         stopAnimations();
