@@ -1098,55 +1098,6 @@ public class OBGroup extends OBControl
         sizeToBox(minimalRenderedRect());
     }
 
-    private RectF minimalRenderedRect()
-    {
-        Bitmap bitmap = this.drawn().extractAlpha();
-
-        int w = bitmap.getWidth();
-        int h = bitmap.getHeight();
-
-        int topRow=0,bottomRow = h-1,leftColumn=0,rightColumn=w-1;
-        boolean op = false;
-        for (int row = topRow;row <= bottomRow && !op ;row++)
-        {
-            for (int j = 0;j < w && !op;j++)
-                op = (Color.alpha(bitmap.getPixel(j,row)) != 0);
-            if (op)
-                topRow = row;
-        }
-        op = false;
-        for (int row = bottomRow;row >= topRow && !op;row--)
-        {
-            for (int j = 0;j < w && !op;j++)
-                op = (Color.alpha(bitmap.getPixel(j,row)) != 0);
-            if (op)
-                bottomRow = row;
-        }
-        op = false;
-        for (int col = leftColumn;col <= rightColumn && !op;col++)
-        {
-            for (int i = topRow;i <= bottomRow && !op;i++)
-            {
-                op = (Color.alpha(bitmap.getPixel(col,i)) != 0);
-                if (op)
-                    leftColumn = col;
-            }
-        }
-        op = false;
-        for (int col = rightColumn;col >= leftColumn && !op;col--)
-        {
-            for (int i = topRow;i <= bottomRow && !op;i++)
-            {
-                op =(Color.alpha(bitmap.getPixel(col,i)) != 0);
-                if (op)
-                    rightColumn = col;
-            }
-        }
-
-        RectF imageBounds = new RectF(leftColumn,topRow,rightColumn,bottomRow);
-        return imageBounds;
-    }
-
     public void sizeToBox(final RectF bb)
     {
         new OBRunnableSyncUI()
