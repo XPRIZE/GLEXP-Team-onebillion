@@ -114,13 +114,13 @@ public class X_Hw1 extends X_Hw
             guideGroup.hide();
             resetGuideMask();
             waitForSecs(0.3f);
-            playAudioQueuedScene("FINAL",300,true);
+            playAudioQueuedScene("FINAL",0.3f,true);
 
             waitForSecs(1.5f);
         }
         else
         {
-            playAudioQueuedScene("FINAL",300,true);
+            playAudioQueuedScene("FINAL",0.3f,true);
             waitForSecs(0.3f);
         }
 
@@ -154,7 +154,7 @@ public class X_Hw1 extends X_Hw
     {
         if(currentEvent().startsWith("a"))
         {
-            playAudioQueuedScene("DEMO",300,true);
+            playAudioQueuedScene("DEMO",0.3f,true);
             waitForSecs(0.3f);
             demoLetterPaths();
             waitForSecs(1f);

@@ -168,7 +168,7 @@ public class X_CountMore_S1 extends XPRZ_SectionController
             long time = setStatus(STATUS_AWAITING_CLICK);
             waitSFX();
             if(time == statusTime)
-                playAudioQueuedScene("INCORRECT",300,false);
+                playAudioQueuedScene("INCORRECT",0.3f,false);
 
         }
     }

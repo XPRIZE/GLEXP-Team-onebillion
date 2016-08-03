@@ -277,7 +277,7 @@ public class X_Numberlines_S3 extends XPRZ_SectionController
             else
                 cont.setColour(numColour);
 
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
             setStatus(STATUS_AWAITING_CLICK);
         }
     }
@@ -333,12 +333,12 @@ public class X_Numberlines_S3 extends XPRZ_SectionController
                     }
                     else
                     {
-                        playAudioQueuedScene("INCORRECT",300,false);
+                        playAudioQueuedScene("INCORRECT",0.3f,false);
                     }
                 }
                 else
                 {
-                    playAudioQueuedScene("INCORRECT",300,false);
+                    playAudioQueuedScene("INCORRECT",0.3f,false);
                 }
             }
         }
@@ -361,7 +361,7 @@ public class X_Numberlines_S3 extends XPRZ_SectionController
             gotItWrongWithSfx();
             waitSFX();
             numControl.setColour ( numColour);
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
             animateFrogIdle(setStatus(STATUS_AWAITING_CLICK));
         }
     }
@@ -383,7 +383,7 @@ public class X_Numberlines_S3 extends XPRZ_SectionController
             gotItWrongWithSfx();
             waitSFX();
             cont.setColour ( numColour);
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
             animateFrogIdle(setStatus(STATUS_AWAITING_CLICK));
         }
     }

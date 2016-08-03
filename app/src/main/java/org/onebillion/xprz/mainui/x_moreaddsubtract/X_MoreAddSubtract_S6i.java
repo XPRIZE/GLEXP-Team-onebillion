@@ -215,7 +215,7 @@ public class X_MoreAddSubtract_S6i extends XPRZ_SectionController
                 long time = setStatus(STATUS_WAITING_FOR_DRAG);
                 waitSFX();
                 if(time == statusTime)
-                    playAudioQueuedScene(currentPhase == 1 ? "INCORRECT" : "INCORRECT2",300,false);
+                    playAudioQueuedScene(currentPhase == 1 ? "INCORRECT" : "INCORRECT2",0.3f,false);
             }
         }
         else
@@ -277,7 +277,7 @@ public class X_MoreAddSubtract_S6i extends XPRZ_SectionController
         {
             if(currentPhase == 1)
             {
-                playAudioQueuedScene("DEMO",300,true);
+                playAudioQueuedScene("DEMO",0.3f,true);
             }
             slideEquation();
             showDragTargets();

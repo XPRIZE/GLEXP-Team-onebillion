@@ -145,7 +145,7 @@ public class X_CountMore_S1n extends XPRZ_SectionController
             gotItWrongWithSfx();
             waitSFX();
             setStatus(STATUS_WAITING_FOR_DRAG);
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
 
         }
     }
@@ -170,13 +170,13 @@ public class X_CountMore_S1n extends XPRZ_SectionController
             {
                 waitForSecs(0.3f);
                 OBLabel label = showChildLabel(child);
-                playAudioQueuedScene("FINAL",300,true);
+                playAudioQueuedScene("FINAL",0.3f,true);
                 waitForSecs(0.3f);
                 label.hide();
             }
             else
             {
-                playAudioQueuedScene("FINAL",300,true);
+                playAudioQueuedScene("FINAL",0.3f,true);
 
             }
 
@@ -196,7 +196,7 @@ public class X_CountMore_S1n extends XPRZ_SectionController
             waitSFX();
             X_CountMore_S1.hiliteClothes(child,false,this);
             setStatus(STATUS_AWAITING_CLICK);
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
         }
     }
 
@@ -252,7 +252,7 @@ public class X_CountMore_S1n extends XPRZ_SectionController
             waitAudio();
             waitForSecs(0.3f);
             OBLabel label = showChildLabel(child);
-            playAudioQueuedScene("FINAL", 300, true);
+            playAudioQueuedScene("FINAL", 0.3f, true);
             waitForSecs(0.3f);
             label.hide();
             nextScene();
@@ -262,7 +262,7 @@ public class X_CountMore_S1n extends XPRZ_SectionController
             moveControlBack(child);
             waitSFX();
             setStatus(STATUS_WAITING_FOR_DRAG);
-            playAudioQueuedScene("INCORRECT", 300, false);
+            playAudioQueuedScene("INCORRECT", 0.3f, false);
         }
     }
 
@@ -349,7 +349,7 @@ public class X_CountMore_S1n extends XPRZ_SectionController
 
     public void demo1n()throws Exception
     {
-        playAudioQueuedScene("DEMO",300,true);
+        playAudioQueuedScene("DEMO",0.3f,true);
         waitForSecs(0.3f);
         startScene();
     }

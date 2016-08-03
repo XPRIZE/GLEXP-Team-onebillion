@@ -205,8 +205,10 @@ public class X_Numberlines_Additions
             numLabel.setColour(Color.BLACK);
             eqLabel.setColour(Color.BLACK);
             OBGroup eqGroup = new OBGroup(Collections.singletonList((OBControl)eqLabel));
+            eqGroup.sizeToTightBoundingBox();
 
             OBGroup numGroup =  new OBGroup(Collections.singletonList((OBControl)numLabel));
+            numGroup.sizeToTightBoundingBox();
 
             eqGroup.setPosition (numGroup.position());
             eqGroup.setRight(numGroup.left() - eqGroup.width() * 0.3f);
@@ -287,6 +289,7 @@ public class X_Numberlines_Additions
             eqLabel.setColour(colour);
 
             OBGroup labelGroup = new OBGroup(Collections.singletonList((OBControl)eqLabel));
+            labelGroup.sizeToTightBoundingBox();
             labelGroup.objectDict.put("label",eqLabel);
             labelGroup.setZPosition(1.5f);
 

@@ -48,7 +48,7 @@ public class OBMisc
         else
             controller.setReplayAudio(OBUtils.insertAudioInterval(controller.getAudioForScene(event,String.format("REPEAT%s",postfix)),300));
 
-        controller.playAudioQueuedScene(event,prompt,300,true);
+        controller.playAudioQueuedScene(event,prompt,0.3f,true);
 
         List<String> remindAudio = controller.getAudioForScene(event,repeat);
         if(remindDelay > 0 && remindAudio != null && remindAudio.size() > 0)

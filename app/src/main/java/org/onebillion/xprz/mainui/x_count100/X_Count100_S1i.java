@@ -68,7 +68,12 @@ public class X_Count100_S1i extends XPRZ_SectionController
             largenum.objectDict.put("num",numLabelLarge);
             largenum.sizeToTightBoundingBox();
 
-            largenum.setProperty("resize",largenum.height() *1.0f/ numLabelLarge.height());
+
+            OBGroup testGroup = new OBGroup(Collections.singletonList(objectDict.get(String.format("num_%d",lastnum)).copy()));
+            testGroup.sizeToTightBoundingBox();
+
+            largenum.setProperty("dest_scale", testGroup.height()*1.0f/largenum.height());
+            largenum.setProperty("dest_loc", testGroup.position());
             largenum.setPosition(box.getWorldPosition());
             RectF rect = box.getWorldFrame();
             if(largenum.right()>rect.right){
@@ -266,9 +271,8 @@ public class X_Count100_S1i extends XPRZ_SectionController
                     waitSFX();
                 }
 
-                OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("width",num.width(),largenum),
-                        OBAnim.propertyAnim("height",num.height()*(float)largenum.propertyValue("resize"),largenum),
-                        OBAnim.moveAnim(num.position(),largenum)),0.3f,true,OBAnim.ANIM_LINEAR,this);
+                OBAnimationGroup.runAnims(Arrays.asList(OBAnim.scaleAnim((float)largenum.propertyValue("dest_scale"),largenum),
+                        OBAnim.moveAnim((PointF) largenum.propertyValue("dest_loc"),largenum)),0.3f,true,OBAnim.ANIM_LINEAR,this);
 
 
                 double timing = 0.04;

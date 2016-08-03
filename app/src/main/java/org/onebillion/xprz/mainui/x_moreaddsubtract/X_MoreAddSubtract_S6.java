@@ -231,7 +231,7 @@ public class X_MoreAddSubtract_S6 extends XPRZ_SectionController
             waitSFX();
             label.setColour(Color.BLACK);
             setStatus(STATUS_AWAITING_CLICK);
-            playAudioQueuedScene(currentPhase == 1 ? "INCORRECT" : "INCORRECT2",300, false);
+            playAudioQueuedScene(currentPhase == 1 ? "INCORRECT" : "INCORRECT2",0.3f, false);
         }
     }
 
@@ -301,7 +301,7 @@ public class X_MoreAddSubtract_S6 extends XPRZ_SectionController
         if(!performSel("demo",String.format("%s%d",currentEvent(), currentPhase)))
         {
             waitForSecs(0.3f);
-            playAudioQueuedScene(currentPhase == 1 ? "DEMO" : String.format("DEMO%d",currentPhase),300,true);
+            playAudioQueuedScene(currentPhase == 1 ? "DEMO" : String.format("DEMO%d",currentPhase),0.3f,true);
             waitForSecs(0.3f);
             if(currentPhase == 1 || currentPhase == 3)
                 showPhaseEquation();

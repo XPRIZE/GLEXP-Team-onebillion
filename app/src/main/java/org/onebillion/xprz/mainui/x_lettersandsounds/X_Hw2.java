@@ -96,7 +96,7 @@ public class X_Hw2 extends X_Hw
         guideGroup.hide();
         resetGuideMask();
         waitForSecs(0.3f);
-        playAudioQueuedScene("FINAL",300,true);
+        playAudioQueuedScene("FINAL",0.3f,true);
         waitForSecs(3f);
 
         if(currentEvent() != events.get(events.size()-1))

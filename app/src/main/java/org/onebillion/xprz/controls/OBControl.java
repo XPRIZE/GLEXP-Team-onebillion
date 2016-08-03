@@ -1952,9 +1952,11 @@ public class OBControl
         for (int row = topRow;row <= bottomRow && !op ;row++)
         {
             for (int j = 0;j < w && !op;j++)
-                op = (Color.alpha(bitmap.getPixel(j,row)) != 0);
-            if (op)
-                topRow = row;
+            {
+                op = (Color.alpha(bitmap.getPixel(j, row)) != 0);
+                if (op)
+                    topRow = row-1;
+            }
         }
         op = false;
         for (int row = bottomRow;row >= topRow && !op;row--)
@@ -1962,7 +1964,7 @@ public class OBControl
             for (int j = 0;j < w && !op;j++)
                 op = (Color.alpha(bitmap.getPixel(j,row)) != 0);
             if (op)
-                bottomRow = row;
+                bottomRow = row+1;
         }
         op = false;
         for (int col = leftColumn;col <= rightColumn && !op;col++)
@@ -1971,7 +1973,7 @@ public class OBControl
             {
                 op = (Color.alpha(bitmap.getPixel(col,i)) != 0);
                 if (op)
-                    leftColumn = col;
+                    leftColumn = col-1;
             }
         }
         op = false;
@@ -1981,7 +1983,7 @@ public class OBControl
             {
                 op =(Color.alpha(bitmap.getPixel(col,i)) != 0);
                 if (op)
-                    rightColumn = col;
+                    rightColumn = col+1;
             }
         }
 
