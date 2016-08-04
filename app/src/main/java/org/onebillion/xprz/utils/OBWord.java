@@ -11,8 +11,8 @@ import java.util.List;
 public class OBWord extends OBSyllable
 {
 
-    List<OBSyllable> syllables;
-    String imageName;
+    public List<OBSyllable> syllables;
+    public String imageName;
     Boolean syllablesChecked, phonemesChecked;
 
 
