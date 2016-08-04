@@ -277,6 +277,8 @@ public class OBExpansionManager
             mountAvailableExpansionFolders();
         }
         //
+        waitForDownload();
+        //
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             @Override
@@ -304,11 +306,12 @@ public class OBExpansionManager
                 catch (Exception e)
                 {
                     e.printStackTrace();
+                    updateProgressDialog(e.getMessage(), true);
+                    checkIfSetupIsComplete();
+                    return;
                 }
             }
         });
-        //
-        waitForDownload();
     }
 
     private void compareExpansionFilesAndInstallMissingOrOutdated ()
