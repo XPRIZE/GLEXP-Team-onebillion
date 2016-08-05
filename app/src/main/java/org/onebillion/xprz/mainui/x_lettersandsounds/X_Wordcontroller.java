@@ -11,10 +11,15 @@ import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.utils.OBSyllable;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OBWord;
+import org.onebillion.xprz.utils.OBXMLManager;
+import org.onebillion.xprz.utils.OBXMLNode;
 import org.onebillion.xprz.utils.OB_Maths;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by alan on 27/06/16.
@@ -175,5 +180,41 @@ public class X_Wordcontroller extends XPRZ_SectionController
         unlockScreen();
     }
 
+    public Map LoadLetterXML(String xmlPath)
+    {
+    Map dict = new HashMap();
+    if(xmlPath != null)
+    {
+        try
+        {
+            OBXMLManager xmlman = new OBXMLManager();
+            List<OBXMLNode> xl = xmlman.parseFile(OBUtils.getInputStreamForPath(xmlPath));
+            OBXMLNode root = xl.get(0);
+            for(OBXMLNode letterNode : root.childrenOfType("letter"))
+            {
+                String name = letterNode.attributeStringValue("Object");
+                String tags = letterNode.attributeStringValue("tags");
+                Map lttr = new HashMap();
+                for(String tag : tags.split("/"))
+                {
+                    List<String> pars = Arrays.asList(tag.split("="));
+                    String k = pars.get(0);
+                    String val;
+                    if(pars.size()  < 2)
+                        val = "true";
+                    else
+                        val = pars.get(1);
+                    lttr.put(k,val);
+                }
+                dict.put(name,lttr);
+            }
+        }
+        catch(Exception e)
+        {
+
+        }
+    }
+    return dict;
+}
 
 }
