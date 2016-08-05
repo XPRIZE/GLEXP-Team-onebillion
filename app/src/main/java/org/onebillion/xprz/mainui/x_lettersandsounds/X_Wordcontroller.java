@@ -3,6 +3,7 @@ package org.onebillion.xprz.mainui.x_lettersandsounds;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.os.SystemClock;
+import android.util.Log;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBLabel;
@@ -70,8 +71,18 @@ public class X_Wordcontroller extends XPRZ_SectionController
 
     public boolean itemsInSameDirectory(String item1,String item2)
     {
-        String p1 = OBUtils.stringByDeletingLastPathComponent(getLocalPath(String.format("%s.m4a",item1)));
-        String p2 = OBUtils.stringByDeletingLastPathComponent(getLocalPath(String.format("%s.m4a",item2)));
+        String path1 = getLocalPath(String.format("%s.m4a",item1));
+        if (path1 == null)
+            return false;
+        String p1 = OBUtils.stringByDeletingLastPathComponent(path1);
+        if (p1 == null)
+            return false;
+        String path2 = getLocalPath(String.format("%s.m4a",item2));
+        if (path2 == null)
+            return false;
+        String p2 = OBUtils.stringByDeletingLastPathComponent(path2);
+        if (p2 == null)
+            return false;
         return p1.equals(p2);
     }
 
@@ -99,6 +110,7 @@ public class X_Wordcontroller extends XPRZ_SectionController
         }
         catch(Exception exception)
         {
+            Log.i("itemsinsame","here");
         }
     }
 

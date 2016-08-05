@@ -1,6 +1,7 @@
 package org.onebillion.xprz.utils;
 
 import org.onebillion.xprz.mainui.MainActivity;
+import org.onebillion.xprz.mainui.OBSectionController;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,21 +63,25 @@ public class OBWord extends OBSyllable
         if (!syllablesChecked)
         {
             String partSylWordAudio = new String(soundid).replace("fc_", "fc_syl_");
-            List<List<Double>> sylTiming = OBUtils.ComponentTimingsForWord(partSylWordAudio + ".etpa");
-            //
-            if (sylTiming.size() > 0)
+            String fullpath = locationInSameDirectory(soundid,partSylWordAudio+".etpa");
+            if (fullpath != null)
             {
-                List timingSyllables = new ArrayList();
-                int index = 0;
-                for (OBSyllable syllable : syllables)
+                List<List<Double>> sylTiming = OBUtils.ComponentTimingsForWord(fullpath);
+                //
+                if (sylTiming.size() > 0)
                 {
-                    OBSyllable sylCopy = syllable.copy();
-                    sylCopy.timings = (List<Object>) (Object) sylTiming.get(index);
-                    sylCopy.soundid = partSylWordAudio;
-                    timingSyllables.add(sylCopy);
-                    index++;
+                    List timingSyllables = new ArrayList();
+                    int index = 0;
+                    for (OBSyllable syllable : syllables)
+                    {
+                        OBSyllable sylCopy = syllable.copy();
+                        sylCopy.timings = (List<Object>) (Object) sylTiming.get(index);
+                        sylCopy.soundid = partSylWordAudio;
+                        timingSyllables.add(sylCopy);
+                        index++;
+                    }
+                    syllables = timingSyllables;
                 }
-                syllables = timingSyllables;
             }
             syllablesChecked = true;
         }
@@ -96,21 +101,25 @@ public class OBWord extends OBSyllable
                 }
             }
             String partPhoWordAudio = new String(soundid).replace("fc_", "fc_let_");
-            List<List<Double>> phoTiming = OBUtils.ComponentTimingsForWord(partPhoWordAudio + ".etpa");
-            //
-            if (phoTiming.size() > 0)
+            String fullpath = locationInSameDirectory(soundid,partPhoWordAudio+".etpa");
+            if (fullpath != null)
             {
-                List timingPhonemes = new ArrayList();
-                int index = 0;
-                for (OBPhoneme phoneme : phonemes)
+                List<List<Double>> phoTiming = OBUtils.ComponentTimingsForWord(fullpath);
+                //
+                if (phoTiming.size() > 0)
                 {
-                    OBPhoneme phoCopy = phoneme.copy();
-                    phoCopy.timings = (List<Object>) (Object) phoTiming.get(index);
-                    phoCopy.soundid = partPhoWordAudio;
-                    timingPhonemes.add(phoCopy);
-                    index++;
+                    List timingPhonemes = new ArrayList();
+                    int index = 0;
+                    for (OBPhoneme phoneme : phonemes)
+                    {
+                        OBPhoneme phoCopy = phoneme.copy();
+                        phoCopy.timings = (List<Object>) (Object) phoTiming.get(index);
+                        phoCopy.soundid = partPhoWordAudio;
+                        timingPhonemes.add(phoCopy);
+                        index++;
+                    }
+                    phonemes = timingPhonemes;
                 }
-                phonemes = timingPhonemes;
             }
             phonemesChecked = true;
         }
@@ -127,6 +136,20 @@ public class OBWord extends OBSyllable
             syllablesClone.add(syllable.copy());
         }
         return new OBWord(text, soundid, timings, syllablesClone, imageName);
+    }
+
+    public static String locationInSameDirectory(String item1,String item2)
+    {
+        String p1 = OBSectionController.getLocalPath(item1);
+        if (p1 == null)
+            return null;
+        String p2 = OBSectionController.getLocalPath(String.format("%@.m4a",item2));
+        if (p2 == null)
+            return null;
+        if(OBUtils.stringByDeletingLastPathComponent(p1).equals(OBUtils.stringByDeletingLastPathComponent(p2) ) )
+            return p1;
+        else
+            return null;
     }
 
 }
