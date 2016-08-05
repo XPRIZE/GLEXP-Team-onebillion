@@ -88,6 +88,7 @@ public class X_Crdw extends X_Wordcontroller
         pos11 = objectDict.get("front2").position();
         OBControl front = objectDict.get("front1");
         List crds = new ArrayList<OBControl>();
+        float amt = applyGraphicScale(-4);
         for(int i = 0;i < NO_CARDS / 2;i++)
         {
             OBControl c = front.copy();
@@ -117,6 +118,13 @@ public class X_Crdw extends X_Wordcontroller
             g2.objectDict.put("label",lab2);
             g2.setProperty("wordid",wordid);
             g2.setProperty("readingword",rw2);
+            RectF f = new RectF(g.bounds());
+            f.inset(amt,amt);
+            g.sizeToBox(f);
+            f = new RectF(g2.bounds());
+            f.inset(amt,amt);
+            g2.sizeToBox(f);
+
             crds.add(g);
             crds.add(g2);
             attachControl(g);
@@ -130,6 +138,12 @@ public class X_Crdw extends X_Wordcontroller
         {
             c.setPosition(position(i++));
         }
+
+        OBGroup bigcard = (OBGroup) objectDict.get("bigcard");
+        RectF f = new RectF(bigcard.bounds());
+        f.inset(amt,amt);
+        bigcard.sizeToBox(f);
+        bigcard.hide();
     }
 
     public void getOrigPathAttrs(OBGroup obj)
@@ -140,7 +154,7 @@ public class X_Crdw extends X_Wordcontroller
         float y = Float.parseFloat((String) attrs.get("y"));
         float w = Float.parseFloat((String) attrs.get("width"));
         float h = Float.parseFloat((String) attrs.get("height"));
-        RectF f = OB_Maths.denormaliseRect(new RectF(x,y,x+w,y+h),new RectF(bounds()));
+        RectF f = OB_Maths.denormaliseRect(new RectF(x,y,x+w,y+h),boundsf());
         if(attrs.get("widthtracksheight") != null && attrs.get("widthtracksheight").equals("true"))
         {
             float origheight = Float.parseFloat((String) attrs.get("pxheight"));
@@ -167,7 +181,6 @@ public class X_Crdw extends X_Wordcontroller
     {
         cardStuff();
         targets = (List<OBControl>)(Object)cards;
-        objectDict.get("bigcard").hide();
         getOrigPathAttrs((OBGroup) objectDict.get("bigcard"));
         for(OBControl c : targets)
             c.hide();
@@ -292,11 +305,16 @@ public class X_Crdw extends X_Wordcontroller
 
         final OBLabel label = (OBLabel) card1.objectDict.get("label");
         lockScreen();
+        PointF newpos = bigCard.convertPointFromControl(label.position(),label.parent);
+        label.parent.removeMember(label);
         bigCard.insertMember(label,-1,"label");
+        label.setPosition(newpos);
         label.setZPosition(55);
         unlockScreen();
-        final PointF labelstartpos = label.position();
-        final PointF labelendpos = bigCard.objectDict.get("textbox").position();
+        final PointF labelstartpos = new PointF();
+        labelstartpos.set(label.position());
+        final PointF labelendpos = new PointF();
+        labelendpos.set(bigCard.objectDict.get("textbox").position());
         final OBPath bigcardstroke = (OBPath) bigCard.objectDict.get("stroke");
         RectF bigcardrect = (RectF) bigCard.propertyValue("strokerect");
         bigcardrect = convertRectToControl(bigcardrect,bigcardstroke);
@@ -313,8 +331,8 @@ public class X_Crdw extends X_Wordcontroller
         bigcardstroke.setPath(path);
         card1.objectDict.get("stroke").hide();
         unlockScreen();
-        final float adjTextSize = applyGraphicScale(textSize);
-        final float adjBigTextSize = applyGraphicScale(bigTextSize);
+        final float adjTextSize = (textSize);
+        final float adjBigTextSize = (bigTextSize);
         final RectF fsmallcardrect = smallcardrect;
         final RectF fbigcardrect = bigcardrect;
         OBAnimBlock blockAnim = new OBAnimBlock()
@@ -327,7 +345,7 @@ public class X_Crdw extends X_Wordcontroller
                 float w = OB_Maths.interpolateVal(fsmallcardrect.width(), fbigcardrect.width(), frac);
                 float h = OB_Maths.interpolateVal(fsmallcardrect.height(), fbigcardrect.height(), frac);
                 float cr = OB_Maths.interpolateVal(smallcornerradius, bigcornerradius, frac);
-                RectF r = new RectF(x, y, x+w, x+h);
+                RectF r = new RectF(x, y, x+w, y+h);
                 Path path = new Path();
                 path.addRoundRect(r,cr,cr, Path.Direction.CCW);
                 bigcardstroke.setPath(path);
