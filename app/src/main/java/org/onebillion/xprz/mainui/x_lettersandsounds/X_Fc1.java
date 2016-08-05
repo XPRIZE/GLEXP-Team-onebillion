@@ -182,7 +182,7 @@ public class X_Fc1 extends X_Wordcontroller
             pt.x =((cardFront.width()/2) + 2 + bounds().width());
         else
             pt.x = -(cardFront.width()/2  - 2);
-        OBAnimationGroup.runAnims(Collections.singletonList(OBAnim.moveAnim(pt,cardFront)),0.4,true,OBAnim.ANIM_EASE_OUT,this);
+        OBAnimationGroup.runAnims(Collections.singletonList(OBAnim.moveAnim(pt,cardFront)),0.4,true,OBAnim.ANIM_EASE_IN,this);
     }
 
     public void highlightWord(OBWord w,boolean h,boolean withBackground)

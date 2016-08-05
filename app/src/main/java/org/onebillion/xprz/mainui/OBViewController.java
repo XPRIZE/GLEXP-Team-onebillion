@@ -100,6 +100,12 @@ public class OBViewController
         return new Rect(0,0,gls.getRight(),gls.getBottom());
     }
 
+    public RectF boundsf()
+    {
+        GLSurfaceView gls = MainActivity.mainViewController.glView();
+        return new RectF(0,0,gls.getRight(),gls.getBottom());
+    }
+
     public void invalidateView(int left,int top,int right,int bottom)
     {
         if (screenLock > 0)
