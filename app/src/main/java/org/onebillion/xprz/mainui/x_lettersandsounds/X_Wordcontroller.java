@@ -169,6 +169,54 @@ public class X_Wordcontroller extends XPRZ_SectionController
         });
     }
 
+    public void highlightAndSpeakComponents(List<OBLabel> labs,String wordID,String s,String fileName)
+    {
+        long token = -1;
+        try
+        {
+            token = takeSequenceLockInterrupt(true);
+            if(token == sequenceToken)
+            {
+                List<List<Double>> timings = OBUtils.ComponentTimingsForWord(getLocalPath(fileName+".etpa"));
+                playAudio(fileName);
+                long startTime = SystemClock.uptimeMillis();
+                int rangelocation = 0,rangelength = 0;
+                for(int i = 0; i < labs.size();i++)
+                {
+                    double currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
+                    List<Double> timing = timings.get(i);
+                    double timeStart = timing.get(0);
+                    double timeEnd = timing.get(1);
+                    double waitTime = timeStart - currTime;
+                    if (waitTime > 0.0)
+                        waitForSecs(waitTime);
+                    checkSequenceToken(token);
+                    rangelocation = i;
+                    rangelength = 1;
+                    highlightLabel(labs.get(i),true);
+                    currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
+                    waitTime = timeEnd - currTime;
+                    if(waitTime > 0.0 && token == sequenceToken)
+                        waitForSecs(waitTime);
+                    highlightLabel(labs.get(i),false);
+                    checkSequenceToken(token);
+
+                    rangelength = 0;
+                }
+                checkSequenceToken(token);
+                waitForSecs(0.3f);
+            }
+        }
+        catch(Exception exception)
+        {
+        }
+        lockScreen();
+        for(OBLabel l : labs)
+            highlightLabel(l,false);
+        unlockScreen();
+        sequenceLock.unlock();
+    }
+
     public void highlightWrd(OBWord w,int rangestart,int rangeend,boolean h)
     {
         OBLabel lab = (OBLabel) w.properties.get("label");

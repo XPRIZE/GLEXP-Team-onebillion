@@ -126,6 +126,15 @@ public class OBLabel extends OBControl
         }
     }
 
+    public float baselineOffset()
+    {
+        OBTextLayer tl = (OBTextLayer)layer;
+        return tl.baselineOffset();
+    }
 
-
+    public float textOffset(int idx)
+    {
+        OBTextLayer tl = (OBTextLayer)layer;
+        return tl.textOffset(idx);
+    }
 }

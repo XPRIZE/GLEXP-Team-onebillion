@@ -131,7 +131,29 @@ public class OBTextLayer extends OBLayer
         hiStartIdx = 0;hiEndIdx = text.length();
     }
 
+    public float baselineOffset()
+    {
+        if (!displayObjectsValid)
+            makeDisplayObjects();
+        return stLayout.getLineBaseline(0);
+    }
 
+    public float textWidth(String tx)
+    {
+        TextPaint tp = new TextPaint();
+        tp.setTextSize(textSize);
+        tp.setTypeface(typeFace);
+        tp.setColor(colour);
+        SpannableString ss = new SpannableString(text);
+        StaticLayout sl = new StaticLayout(ss,tp,4000, Layout.Alignment.ALIGN_NORMAL,1,0,false);
+        return sl.getLineWidth(0);
+    }
+    public float textOffset(int idx)
+    {
+        if (idx == 0)
+            return 0;
+        return textWidth(text.substring(0,idx + 1)) - textWidth(text.substring(idx,idx + 1));
+    }
     public void calcBounds(RectF bb)
     {
         if (!displayObjectsValid)
@@ -140,32 +162,10 @@ public class OBTextLayer extends OBLayer
         bb.top = 0;
         bb.right = stLayout.getLineWidth(0);
         bb.bottom = stLayout.getLineBottom(0);
-        /*
-        Paint.FontMetrics fm = textPaint.getFontMetrics();
-        float maxAscender = fm.top;
-        float maxDescender = fm.bottom;
-        lineOffset = -maxAscender;
-        Rect b = new Rect();
-        textPaint.getTextBounds(text,0,text.length(),b);
-        float ex = b.left;
-        bb.right = b.right ;
-        if (letterSpacing != 0)
-            bb.right += (text.length() * letterSpacing);
-        bb.right = textPaint.measureText(text) + ex;
-        if (letterSpacing != 0)
-            bb.right += (text.length() * letterSpacing);
-        bb.left = 0;
-        bb.top = 0;
-        bb.bottom = (int)(Math.ceil((double)(maxDescender - maxAscender)));
-        */
     }
     public void sizeToBoundingBox()
     {
         RectF b = new RectF();
-/*        textPaint.setTextSize(textSize);
-        textPaint.setTypeface(typeFace);
-        if (letterSpacing != 0)
-            textPaint.setLetterSpacing(letterSpacing / textSize);*/
         calcBounds(b);
         setBounds(b);
     }
