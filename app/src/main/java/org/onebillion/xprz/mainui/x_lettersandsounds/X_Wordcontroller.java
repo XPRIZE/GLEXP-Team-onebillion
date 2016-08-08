@@ -3,6 +3,7 @@ package org.onebillion.xprz.mainui.x_lettersandsounds;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.os.SystemClock;
+import android.util.Log;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBLabel;
@@ -10,10 +11,15 @@ import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.utils.OBSyllable;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OBWord;
+import org.onebillion.xprz.utils.OBXMLManager;
+import org.onebillion.xprz.utils.OBXMLNode;
 import org.onebillion.xprz.utils.OB_Maths;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by alan on 27/06/16.
@@ -70,8 +76,18 @@ public class X_Wordcontroller extends XPRZ_SectionController
 
     public boolean itemsInSameDirectory(String item1,String item2)
     {
-        String p1 = OBUtils.stringByDeletingLastPathComponent(getLocalPath(String.format("%s.m4a",item1)));
-        String p2 = OBUtils.stringByDeletingLastPathComponent(getLocalPath(String.format("%s.m4a",item2)));
+        String path1 = getLocalPath(String.format("%s.m4a",item1));
+        if (path1 == null)
+            return false;
+        String p1 = OBUtils.stringByDeletingLastPathComponent(path1);
+        if (p1 == null)
+            return false;
+        String path2 = getLocalPath(String.format("%s.m4a",item2));
+        if (path2 == null)
+            return false;
+        String p2 = OBUtils.stringByDeletingLastPathComponent(path2);
+        if (p2 == null)
+            return false;
         return p1.equals(p2);
     }
 
@@ -99,6 +115,7 @@ public class X_Wordcontroller extends XPRZ_SectionController
         }
         catch(Exception exception)
         {
+            Log.i("itemsinsame","here");
         }
     }
 
@@ -152,6 +169,54 @@ public class X_Wordcontroller extends XPRZ_SectionController
         });
     }
 
+    public void highlightAndSpeakComponents(List<OBLabel> labs,String wordID,String s,String fileName)
+    {
+        long token = -1;
+        try
+        {
+            token = takeSequenceLockInterrupt(true);
+            if(token == sequenceToken)
+            {
+                List<List<Double>> timings = OBUtils.ComponentTimingsForWord(getLocalPath(fileName+".etpa"));
+                playAudio(fileName);
+                long startTime = SystemClock.uptimeMillis();
+                int rangelocation = 0,rangelength = 0;
+                for(int i = 0; i < labs.size();i++)
+                {
+                    double currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
+                    List<Double> timing = timings.get(i);
+                    double timeStart = timing.get(0);
+                    double timeEnd = timing.get(1);
+                    double waitTime = timeStart - currTime;
+                    if (waitTime > 0.0)
+                        waitForSecs(waitTime);
+                    checkSequenceToken(token);
+                    rangelocation = i;
+                    rangelength = 1;
+                    highlightLabel(labs.get(i),true);
+                    currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
+                    waitTime = timeEnd - currTime;
+                    if(waitTime > 0.0 && token == sequenceToken)
+                        waitForSecs(waitTime);
+                    highlightLabel(labs.get(i),false);
+                    checkSequenceToken(token);
+
+                    rangelength = 0;
+                }
+                checkSequenceToken(token);
+                waitForSecs(0.3f);
+            }
+        }
+        catch(Exception exception)
+        {
+        }
+        lockScreen();
+        for(OBLabel l : labs)
+            highlightLabel(l,false);
+        unlockScreen();
+        sequenceLock.unlock();
+    }
+
     public void highlightWrd(OBWord w,int rangestart,int rangeend,boolean h)
     {
         OBLabel lab = (OBLabel) w.properties.get("label");
@@ -163,5 +228,41 @@ public class X_Wordcontroller extends XPRZ_SectionController
         unlockScreen();
     }
 
+    public Map LoadLetterXML(String xmlPath)
+    {
+    Map dict = new HashMap();
+    if(xmlPath != null)
+    {
+        try
+        {
+            OBXMLManager xmlman = new OBXMLManager();
+            List<OBXMLNode> xl = xmlman.parseFile(OBUtils.getInputStreamForPath(xmlPath));
+            OBXMLNode root = xl.get(0);
+            for(OBXMLNode letterNode : root.childrenOfType("letter"))
+            {
+                String name = letterNode.attributeStringValue("Object");
+                String tags = letterNode.attributeStringValue("tags");
+                Map lttr = new HashMap();
+                for(String tag : tags.split("/"))
+                {
+                    List<String> pars = Arrays.asList(tag.split("="));
+                    String k = pars.get(0);
+                    String val;
+                    if(pars.size()  < 2)
+                        val = "true";
+                    else
+                        val = pars.get(1);
+                    lttr.put(k,val);
+                }
+                dict.put(name,lttr);
+            }
+        }
+        catch(Exception e)
+        {
+
+        }
+    }
+    return dict;
+}
 
 }

@@ -32,14 +32,20 @@ public class OBLabel extends OBControl
         return obj;
     }
 
+    public void sizeToBoundingBox()
+    {
+        ((OBTextLayer)layer).sizeToBoundingBox();
+        setNeedsRetexture();
+        invalidate();
+    }
     public void setColour(int col)
     {
         ((OBTextLayer)layer).setColour(col);
-        invalidate();
 //        if (texture != null)
 //        {
             setNeedsRetexture();
 //        }
+        invalidate();
     }
 
     public int colour()
@@ -103,7 +109,32 @@ public class OBLabel extends OBControl
         return ((OBTextLayer)layer).textSize;
     }
 
+    public void setFontSize(float f)
+    {
+        OBTextLayer tl = (OBTextLayer)layer;
+        if (tl.textSize != f)
+        {
+            synchronized (this)
+            {
+                tl.setTextSize(f);
+                if (texture != null)
+                {
+                    setNeedsRetexture();
+                }
+            }
+            invalidate();
+        }
+    }
 
+    public float baselineOffset()
+    {
+        OBTextLayer tl = (OBTextLayer)layer;
+        return tl.baselineOffset();
+    }
 
-
+    public float textOffset(int idx)
+    {
+        OBTextLayer tl = (OBTextLayer)layer;
+        return tl.textOffset(idx);
+    }
 }

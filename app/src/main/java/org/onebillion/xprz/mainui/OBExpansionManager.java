@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -277,6 +278,8 @@ public class OBExpansionManager
             mountAvailableExpansionFolders();
         }
         //
+        waitForDownload();
+        //
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             @Override
@@ -301,14 +304,21 @@ public class OBExpansionManager
                     //
                     compareExpansionFilesAndInstallMissingOrOutdated();
                 }
+                catch (UnknownHostException e)
+                {
+                    updateProgressDialog(e.getMessage(), true);
+                    checkIfSetupIsComplete();
+                    return;
+                }
                 catch (Exception e)
                 {
                     e.printStackTrace();
+                    updateProgressDialog(e.getMessage(), true);
+                    checkIfSetupIsComplete();
+                    return;
                 }
             }
         });
-        //
-        waitForDownload();
     }
 
     private void compareExpansionFilesAndInstallMissingOrOutdated ()

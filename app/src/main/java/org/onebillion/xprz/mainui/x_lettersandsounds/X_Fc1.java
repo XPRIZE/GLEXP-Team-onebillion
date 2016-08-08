@@ -4,19 +4,26 @@ import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBImage;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
+import org.onebillion.xprz.mainui.OBSectionController;
+import org.onebillion.xprz.utils.OBAnim;
+import org.onebillion.xprz.utils.OBAnimBlock;
+import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBPhoneme;
 import org.onebillion.xprz.utils.OBReadingWord;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OBWord;
+import org.onebillion.xprz.utils.OB_Maths;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +33,8 @@ import java.util.Map;
 public class X_Fc1 extends X_Wordcontroller
 {
     final static int STATUS_AWAITING_CLICK3 = 1010;
+    final static float Z_DIST = 1400;
+    float zDist;
     Map<String,OBPhoneme> wordDict;
     List<String> words;
     float textSize;
@@ -33,10 +42,11 @@ public class X_Fc1 extends X_Wordcontroller
     PointF cardPos;
     boolean inFinalSection;
     String prefix;
-    OBReadingWord currWord;
+    OBWord currWord;
 
     public void miscSetUp()
     {
+        zDist = applyGraphicScale(Z_DIST);
         wordDict = OBUtils.LoadWordComponentsXML(true);
         String ws = parameters.get("words");
         words = OBUtils.randomlySortedArray(Arrays.asList(ws.split(",")));
@@ -80,8 +90,10 @@ public class X_Fc1 extends X_Wordcontroller
             cardFront.setYRotation((float)Math.PI);
             cardBack.setLeft(bounds().width() + 2);
         }
+        cardFront.setDoubleSided(false);
+        cardBack.setDoubleSided(false);
         String wordId = words.get(wno);
-        //currWord = wordDict.get(wordId).toReadingWord();
+        currWord = (OBWord) wordDict.get(wordId);
 
         OBImage im = (OBImage) cardFront.objectDict.get("im");
         if(im != null)
@@ -97,8 +109,7 @@ public class X_Fc1 extends X_Wordcontroller
         lab.setZPosition(10);
         if(!inFinalSection)
             lab.hide();
-        currWord.label=lab;
-        //String imagename = wordId.substringFromIndex(2);
+        currWord.properties.put("label",lab);
         im = loadImageWithName(currWord.imageName,new PointF(0,0),new RectF(bounds()),false);
         if(im != null)
         {
@@ -112,15 +123,19 @@ public class X_Fc1 extends X_Wordcontroller
 
     public void cardStuff()
     {
-        textSize = Float.parseFloat(eventAttributes.get("textsize"));
+        textSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("textsize")));
         cardBack = (OBGroup) objectDict.get("cardback");
-        OBControl backfront = cardBack.filterMembers("back").get(0);
+        /*OBControl backfront = cardBack.filterMembers("back").get(0);
         RectF r = convertRectFromControl(backfront.bounds(),backfront);
-        //cardBack.size(r.inset( -4, -4));
+        r.inset(-4,-4);
+        cardBack.sizeToBox(r);*/
         cardBack.setDoubleSided(false);
 
         cardFront = (OBGroup) objectDict.get("cardfront");
-        cardPos = cardFront.position();
+        cardPos = new PointF(cardFront.position().x,cardFront.position().y);
+        RectF f = new RectF(cardFront.bounds());
+        f.inset(-4,-4);
+        cardFront.sizeToBox(f);
         cardFront.setDoubleSided(false);
 
         OBPath stroke2 = (OBPath) cardFront.objectDict.get("stroke").copy();
@@ -131,5 +146,350 @@ public class X_Fc1 extends X_Wordcontroller
 
     }
 
+    public void setSceneXX(String  scene)
+    {
+        setUpCard(currNo);
+        targets = Collections.singletonList((OBControl)cardBack);
+    }
+
+    public void doAudio(String  scene) throws Exception
+    {
+        setReplayAudioScene(currentEvent(), "PROMPT.REPEAT");
+        playAudioQueuedScene(currentEvent(), "PROMPT", false);
+    }
+    public void doMainXX() throws Exception
+    {
+        flyOnCard();
+        waitForSecs(0.2f);
+        doAudio(currentEvent());
+    }
+
+    public void flyOnCard() throws Exception
+    {
+        OBControl card = inFinalSection?cardFront:cardBack;
+        if(card.position().x < 0 || card.position().x > bounds().width())
+        {
+            playSfxAudio("slide",false);
+            OBAnimationGroup.runAnims(Collections.singletonList(OBAnim.moveAnim(cardPos,card)),0.4,true,OBAnim.ANIM_EASE_OUT,this);
+        }
+    }
+
+    public void flyOffCard() throws Exception
+    {
+        PointF pt = new PointF(0,cardFront.position().y);
+        playSfxAudio("slide",false);
+        if(inFinalSection)
+            pt.x =((cardFront.width()/2) + 2 + bounds().width());
+        else
+            pt.x = -(cardFront.width()/2  - 2);
+        OBAnimationGroup.runAnims(Collections.singletonList(OBAnim.moveAnim(pt,cardFront)),0.4,true,OBAnim.ANIM_EASE_IN,this);
+    }
+
+    public void highlightWord(OBWord w,boolean h,boolean withBackground)
+    {
+        lockScreen();
+        OBLabel label = (OBLabel) w.properties.get("label");
+        if(h)
+        {
+            label.setColour(Color.RED);
+            if(withBackground)
+                label.setBackgroundColor(Color.argb(255,255,243,243));
+        }
+        else
+        {
+            label.setColour(Color.BLACK);
+            if(withBackground)
+                label.setBackgroundColor(0);
+        }
+        unlockScreen();
+    }
+
+    public void highlightAndSpeakWord(OBWord w,String wordID)
+    {
+        try
+        {
+            lockScreen();
+            highlightWord(w,true,false);
+            unlockScreen();
+            playAudioQueued(Collections.singletonList((Object)wordID) ,true);
+            lockScreen();
+            highlightWord(w,false,false);
+            unlockScreen();
+        }
+        catch(Exception exception)
+        {
+        }
+    }
+
+    public void fin()
+    {
+        try
+        {
+            for(int i = currNo - 1;i >= 0;i--)
+            {
+                String wordID = words.get(i);
+                lockScreen();
+                setUpCard(i);
+                unlockScreen();
+                flyOnCard();
+                waitForSecs(0.3f);
+                highlightAndSpeakWord(currWord,wordID);
+                if(i > 0)
+                    flyOffCard();
+            }
+            waitForSecs(0.4f);
+            super.fin();
+        }
+        catch (Exception e)
+        {
+
+        }
+    }
+
+    public void cancelAnimationsWithKeys(List<String> animkeys)
+    {
+        for(String k : animkeys)
+        {
+            OBAnimationGroup gp = animations.get(k);
+            gp.flags = (gp.flags | OBAnimationGroup.ANIM_CANCEL);
+            animations.remove(k);
+        }
+    }
+
+    public void cancelAllAnimations()
+    {
+        List<String>l = new ArrayList<>(animations.keySet());
+        cancelAnimationsWithKeys(l);
+    }
+
+    public void deployPulseAnim()
+    {
+        final long sttime = statusTime;
+        final OBPath path = (OBPath) cardFront.filterMembers("stroke2").get(0);
+        final OBSectionController fthis = this;
+        OBUtils.runOnOtherThreadDelayed(3,new OBUtils.RunLambda()
+        {
+            public void run() throws Exception
+            {
+                if(statusTime  == sttime)
+                {
+                    OBAnim a1 = OBAnim.colourAnim("strokeColor",Color.argb(255,253,187,9),path);
+                    OBAnim a2 = OBAnim.colourAnim("strokeColor",Color.BLACK,path);
+                    OBAnimationGroup gp = new OBAnimationGroup();
+                    registerAnimationGroup(gp,"anim");
+                    List<OBAnim> lob0 = Arrays.asList((OBAnim)a1);
+                    List<OBAnim> lob1 = Arrays.asList((OBAnim)a2);
+                    OBAnimationGroup.chainAnimations(Arrays.asList(lob0,lob1),Arrays.asList(0.6f,0.6f),true,Arrays.asList(OBAnim.ANIM_EASE_IN_EASE_OUT,OBAnim.ANIM_EASE_IN_EASE_OUT),2,fthis);
+                    path.setStrokeColor(Color.BLACK);
+                }
+            }
+        });
+    }
+
+    public void animateCardDown(final boolean down) throws Exception
+    {
+        playSfxAudio("flip",false);
+        OBAnimBlock bloc = new OBAnimBlock()
+        {
+            @Override
+            public void runAnimBlock(float frac)
+            {
+                OBControl card = cardFront;
+                OBControl back = cardBack;
+                float ang;
+                if(down)
+                    ang = (float)Math.PI * frac;
+                else
+                    ang = (float)Math.PI + (float)Math.PI * frac;
+                card.m34 = (1.0f / -zDist);
+                card.setYRotation(ang);
+
+                if(down)
+                    ang = (float)Math.PI + (float)Math.PI * frac;
+                else
+                    ang = (float)Math.PI * frac;
+                back.m34 = (1.0f / -zDist);
+                back.setYRotation(ang);
+            }
+        };
+        OBAnimationGroup.runAnims(Collections.singletonList((OBAnim)bloc),0.7,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
+    }
+
+    public void demoa() throws Exception
+    {
+        waitForSecs(0.5f);
+        flyOnCard();
+        waitForSecs(0.5f);
+
+
+        PointF destpt = OB_Maths.locationForRect(0.8f,0.8f, cardBack.frame());
+        PointF startpt = pointForDestPoint(destpt,35);
+        startpt.y += 5;
+        loadPointerStartPoint(startpt,destpt);
+        movePointerToPoint(OB_Maths.tPointAlongLine(0.3f, startpt, destpt),-0.8f,true);
+
+        playAudioScene("DEMO",0,true);
+        waitForSecs(0.3f);
+
+        movePointerToPoint(destpt,-1,true);
+        playSfxAudio("tap",false);
+        waitForSecs(0.05f);
+        movePointerForwards(applyGraphicScale(-120),-1);
+        waitSFX();
+        waitForSecs(0.3f);
+        playAudioScene("DEMO",1,true);
+        waitForSecs(0.3f);
+
+        animateCardDown(false);
+        waitForSecs(0.1f);
+
+        playAudioScene("DEMO",2,true);
+        movePointerToPoint(destpt,-1,true);
+        playSfxAudio("tap",false);
+        waitForSecs(0.05f);
+        movePointerForwards(applyGraphicScale(-120),-1);
+        waitSFX();
+        waitForSecs(0.3f);
+
+        cardFront.objectDict.get("lab").show();
+
+        highlightAndSpeakSyllablesForWord(currWord);
+        waitForSecs(1f);
+
+
+        playAudioScene("DEMO",3,true);
+        waitForSecs(0.3f);
+        movePointerToPoint(destpt,-1,true);
+        playSfxAudio("tap",false);
+        waitForSecs(0.05f);
+        movePointerForwards(applyGraphicScale(-120),-1);
+        waitSFX();
+        waitForSecs(0.3f);
+
+        waitForSecs(0.3f);
+        flyOffCard();
+        waitForSecs(0.3f);
+        thePointer.hide();
+        nextScene();
+    }
+
+    public void nextScene()
+    {
+        if(++eventIndex >= events.size() )
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                public void run() throws Exception
+                {
+                    try
+                    {
+                        inFinalSection = true;
+                        flyOffCard();
+                        fin();
+                    }
+                    catch(Exception exception)
+                    {
+                    }
+
+                }
+            });
+        else
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                public void run() throws Exception
+                {
+                    try
+                    {
+                        flyOffCard();
+                        currNo++;
+                        setScene(events.get(eventIndex));
+                    }
+                    catch(Exception exception)
+                    {
+                    }
+                }
+            });
+    }
+
+    public void checkTarget3(Object targ)
+    {
+        setStatus(STATUS_CHECKING);
+        emptyReplayAudio();
+        try
+        {
+            cancelAllAnimations();
+            playSfxAudio("tap",false);
+            waitSFX();
+            if(eventIndex == events.size()  - 1)
+                inFinalSection = true;
+            nextScene();
+        }
+        catch(Exception exception)
+        {
+        }
+    }
+
+    public void checkTarget2(Object targ)
+    {
+        setStatus(STATUS_CHECKING);
+        emptyReplayAudio();
+        try
+        {
+            cancelAllAnimations();
+            playSfxAudio("tap",false);
+            cardFront.objectDict.get("lab").show();
+            waitSFX();
+            waitForSecs(0.5f);
+            String wordID = words.get(currNo);
+            highlightAndSpeakSyllablesForWord(currWord);
+            setStatus(STATUS_AWAITING_CLICK3);
+            deployPulseAnim();
+        }
+        catch(Exception exception)
+        {
+        }
+    }
+
+    public void checkTarget(Object targ)
+    {
+        setStatus(STATUS_CHECKING);
+        List saveReplay = emptyReplayAudio();
+        try
+        {
+            playSfxAudio("tap",false);
+            waitSFX();
+            animateCardDown(false);
+            setReplayAudio(saveReplay);
+            setStatus(STATUS_AWAITING_CLICK2);
+            deployPulseAnim();
+        }
+        catch(Exception exception)
+        {
+        }
+    }
+
+    OBControl findTarget(PointF pt)
+    {
+        return finger(-1,2,targets,pt);
+    }
+
+    public void touchDownAtPoint(PointF pt,View v)
+    {
+        final Object obj = findTarget(pt);
+        if(obj != null)
+        {
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                public void run() throws Exception
+                {
+                    if(status()  == STATUS_AWAITING_CLICK)
+                        checkTarget(obj);
+                    else if(status()  == STATUS_AWAITING_CLICK2)
+                        checkTarget2(obj);
+                    else if(status()  == STATUS_AWAITING_CLICK3)
+                        checkTarget3(obj);
+                }
+            });
+        }
+    }
 
 }

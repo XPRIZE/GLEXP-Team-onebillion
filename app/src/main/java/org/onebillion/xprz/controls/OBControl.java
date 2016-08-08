@@ -379,6 +379,15 @@ public class OBControl
         return new PointF((frame.left + frame.right) / 2, frame.bottom);
     }
 
+    public void setBottomPoint(PointF bp)
+    {
+        frame();
+        PointF oldbp = bottomPoint();
+        PointF currPos = position();
+        setPosition(currPos.x + bp.x - oldbp.x,currPos.y + bp.y - oldbp.y);
+        invalidate();
+    }
+
     public PointF bottomRight ()
     {
         frame();
