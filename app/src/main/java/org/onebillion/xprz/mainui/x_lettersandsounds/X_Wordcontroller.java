@@ -230,39 +230,44 @@ public class X_Wordcontroller extends XPRZ_SectionController
 
     public Map LoadLetterXML(String xmlPath)
     {
-    Map dict = new HashMap();
-    if(xmlPath != null)
-    {
-        try
+        Map dict = new HashMap();
+        if(xmlPath != null)
         {
-            OBXMLManager xmlman = new OBXMLManager();
-            List<OBXMLNode> xl = xmlman.parseFile(OBUtils.getInputStreamForPath(xmlPath));
-            OBXMLNode root = xl.get(0);
-            for(OBXMLNode letterNode : root.childrenOfType("letter"))
+            try
             {
-                String name = letterNode.attributeStringValue("Object");
-                String tags = letterNode.attributeStringValue("tags");
-                Map lttr = new HashMap();
-                for(String tag : tags.split("/"))
+                OBXMLManager xmlman = new OBXMLManager();
+                List<OBXMLNode> xl = xmlman.parseFile(OBUtils.getInputStreamForPath(xmlPath));
+                OBXMLNode root = xl.get(0);
+                for(OBXMLNode letterNode : root.childrenOfType("letter"))
                 {
-                    List<String> pars = Arrays.asList(tag.split("="));
-                    String k = pars.get(0);
-                    String val;
-                    if(pars.size()  < 2)
-                        val = "true";
-                    else
-                        val = pars.get(1);
-                    lttr.put(k,val);
+                    String name = letterNode.attributeStringValue("Object");
+                    String tags = letterNode.attributeStringValue("tags");
+                    Map lttr = new HashMap();
+                    for(String tag : tags.split("/"))
+                    {
+                        List<String> pars = Arrays.asList(tag.split("="));
+                        String k = pars.get(0);
+                        String val;
+                        if(pars.size()  < 2)
+                            val = "true";
+                        else
+                            val = pars.get(1);
+                        lttr.put(k,val);
+                    }
+                    dict.put(name,lttr);
                 }
-                dict.put(name,lttr);
+            }
+            catch(Exception e)
+            {
+
             }
         }
-        catch(Exception e)
-        {
-
-        }
+        return dict;
     }
-    return dict;
-}
+
+    public Object findTarget(PointF pt)
+    {
+        return finger(-1,2,targets,pt);
+    }
 
 }

@@ -353,10 +353,6 @@ public class X_Alpha1 extends X_Wordcontroller
 
     }
 
-    public Object findTarget(PointF pt)
-    {
-        return finger(-1,2,targets,pt);
-    }
 
     public void touchDownAtPoint(final PointF pt,View v)
     {

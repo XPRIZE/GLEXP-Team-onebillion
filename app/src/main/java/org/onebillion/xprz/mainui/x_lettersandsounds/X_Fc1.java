@@ -467,10 +467,6 @@ public class X_Fc1 extends X_Wordcontroller
         }
     }
 
-    OBControl findTarget(PointF pt)
-    {
-        return finger(-1,2,targets,pt);
-    }
 
     public void touchDownAtPoint(PointF pt,View v)
     {
