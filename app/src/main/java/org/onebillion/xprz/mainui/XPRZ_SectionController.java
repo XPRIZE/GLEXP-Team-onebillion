@@ -111,9 +111,9 @@ public class XPRZ_SectionController extends OBSectionController {
         }
     }
 
-    public void playAudioScene(String event,int idx,boolean wait) throws Exception
+    public void playAudioScene(String audioCategory,int idx,boolean wait) throws Exception
     {
-        playAudioScene(currentEvent(),event,idx);
+        playAudioScene(currentEvent(),audioCategory,idx);
         if(wait)
             waitAudio();
     }
