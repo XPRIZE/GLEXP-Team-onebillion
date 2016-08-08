@@ -1123,4 +1123,14 @@ public class OBGroup extends OBControl
         }.run();
     }
 
+    public List<OBControl> ungroup()
+    {
+        List<OBControl> arrc = new ArrayList<>(members);
+        for (int i = arrc.size() - 1;i >= 0;i--)
+        {
+            removeMemberAtIndex(i);
+        }
+        return arrc;
+    }
+
 }

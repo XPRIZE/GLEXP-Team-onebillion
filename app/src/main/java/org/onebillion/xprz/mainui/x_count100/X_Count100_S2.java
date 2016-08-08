@@ -70,7 +70,7 @@ public class X_Count100_S2 extends XPRZ_SectionController
         try
         {
             animateGridReset();
-           // goToCard(X_Count100_S2j.class,"event2");
+            goToCard(X_Count100_S2j.class,"event2");
         }
         catch (Exception e)
         {
