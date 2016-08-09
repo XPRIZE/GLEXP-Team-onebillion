@@ -68,7 +68,7 @@ public class X_Wm1 extends X_Wordcontroller
         deleteControls("pic");
         wordsRect = (OBPath) objectDict.get("wordsrect");
         wordLine = (OBPath) objectDict.get("wordline");
-
+        wordLine.sizeToBoundingBoxIncludingStroke();
         dashTargetPosition = new PointF();
         finishLock = new OBConditionLock();
     }
@@ -146,6 +146,17 @@ public class X_Wm1 extends X_Wordcontroller
         return sl.getLineBaseline(0);
     }
 
+    public static RectF boundingBoxForText(String tx,Typeface ty,float textsize)
+    {
+        TextPaint tp = new TextPaint();
+        tp.setTextSize(textsize);
+        tp.setTypeface(ty);
+        tp.setColor(Color.BLACK);
+        SpannableString ss = new SpannableString(tx);
+        StaticLayout sl = new StaticLayout(ss,tp,4000, Layout.Alignment.ALIGN_NORMAL,1,0,false);
+        return new RectF(0,0,sl.getLineRight(0),sl.getLineBottom(0));
+    }
+
     public void setSceneXX(String  scene)
     {
         for(OBControl c : labels)
@@ -171,8 +182,9 @@ public class X_Wm1 extends X_Wordcontroller
         if(dashTargetPosition.equals(new PointF()))
         {
             float h = baselineOffsetForText("My",OBUtils.standardTypeFace(),textSize);
-            dashTargetPosition = wordLine.position();
-            dashTargetPosition.y = wordLine.top() + h + applyGraphicScale(12);
+            dashTargetPosition = new PointF(wordLine.position().x,wordLine.position().y);
+            RectF b = boundingBoxForText("My",OBUtils.standardTypeFace(),textSize);
+            dashTargetPosition.y -= (h - b.height() / 2 + applyGraphicScale(12));
         }
         targets = (List<OBControl>)(Object)labels;
     }
