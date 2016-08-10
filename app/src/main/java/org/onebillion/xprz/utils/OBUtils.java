@@ -617,6 +617,38 @@ public class OBUtils
         return randomlySortedArray(new ArrayList<T>(), new ArrayList<T>(inarray));
     }
 
+    static <T> boolean VeryRandomlySortedArray(List<T> result,List<T> inArray,int idx,List<T> unused)
+    {
+        if(unused.size()  == 0)
+            return true;
+        for(int i = 0;i < unused.size();i++)
+        {
+            if(!unused.get(i).equals(inArray.get(idx)))
+            {
+                result.add(unused.get(i));
+                List<T> arr = new ArrayList<>(unused);
+                arr.remove(i);
+                if(VeryRandomlySortedArray(result, inArray, idx + 1, arr))
+                    return true;
+                else
+                {
+                    result.remove(result.size()-1);
+                }
+            }
+        }
+        return false;
+    }
+
+    public static <T> List  VeryRandomlySortedArray(List<T> inArray)
+    {
+        List<T> result = new ArrayList<>();
+        List<T> rarray =  OBUtils.randomlySortedArray(inArray);
+        if(VeryRandomlySortedArray(result, inArray, 0, rarray))
+            return result;
+        return rarray;
+    }
+
+
     public static String readTextFileFromResource (int resourceId)
     {
         Context context = MainActivity.mainActivity;
