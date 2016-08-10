@@ -2,7 +2,13 @@ package org.onebillion.xprz.mainui.x_lettersandsounds;
 
 import android.graphics.Color;
 import android.graphics.PointF;
+import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.os.SystemClock;
+import android.text.Layout;
+import android.text.SpannableString;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.util.Log;
 
 import org.onebillion.xprz.controls.OBControl;
@@ -268,6 +274,28 @@ public class X_Wordcontroller extends XPRZ_SectionController
     public Object findTarget(PointF pt)
     {
         return finger(-1,2,targets,pt);
+    }
+
+    public static float baselineOffsetForText(String tx, Typeface ty, float textsize)
+    {
+        TextPaint tp = new TextPaint();
+        tp.setTextSize(textsize);
+        tp.setTypeface(ty);
+        tp.setColor(Color.BLACK);
+        SpannableString ss = new SpannableString(tx);
+        StaticLayout sl = new StaticLayout(ss,tp,4000, Layout.Alignment.ALIGN_NORMAL,1,0,false);
+        return sl.getLineBaseline(0);
+    }
+
+    public static RectF boundingBoxForText(String tx, Typeface ty, float textsize)
+    {
+        TextPaint tp = new TextPaint();
+        tp.setTextSize(textsize);
+        tp.setTypeface(ty);
+        tp.setColor(Color.BLACK);
+        SpannableString ss = new SpannableString(tx);
+        StaticLayout sl = new StaticLayout(ss,tp,4000, Layout.Alignment.ALIGN_NORMAL,1,0,false);
+        return new RectF(0,0,sl.getLineRight(0),sl.getLineBottom(0));
     }
 
 }
