@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * Created by alan on 10/08/16.
  */
-public class X_Segblendx extends X_Wordcontroller
+public class X_Segblend extends X_Wordcontroller
 {
     List<String>words,sounds;
     String currWord,firstSound;
