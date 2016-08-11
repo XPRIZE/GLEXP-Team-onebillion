@@ -149,7 +149,7 @@ public class X_Segblend extends X_Wordcontroller
             l.setColour(Color.BLACK);
             l.setPosition(mLabel.position());
             if (i == 0)
-                syllableLefts.add(0);
+                syllableLefts.add(0f);
             else
                 syllableLefts.add(rights.get(i-1));
             l.setRight(mLabel.left() + rights.get(i));
@@ -172,7 +172,7 @@ public class X_Segblend extends X_Wordcontroller
         mainLabel.setColour(Color.BLACK);
 
         float h = baselineOffsetForText("My",OBUtils.standardTypeFace(),textSize);
-        mainLabel.setAnchorPoint(0.5f, h / mainLabel.bounds.height());
+        mainLabel.setAnchorPoint(0.5f, h / mainLabel.bounds().height());
         mainLabel.setPosition(centrePos);
         attachControl(mainLabel);
         mainLabel.hide();
@@ -292,16 +292,18 @@ public class X_Segblend extends X_Wordcontroller
         unlockScreen();
         playSfxAudio("texton",true);
         waitForSecs(0.4f);
-        playAudioQueued(Arrays.asList((Object)words.get(i),true));
+        playAudioQueued(Arrays.asList((Object)words.get(i)),true);
         waitForSecs(0.4f);
         playSfxAudio("segment",false);
         segmentComponents(wordLabels,leftOffsets,mainLabel);
+        waitForSecs(0.4f);
         String infix = syllableMode?"_syl_":"_let_";
-        String fileName = words.get(i).replaceFirst(words.get(i),infix);
+        String fileName = words.get(i).replaceFirst("_",infix);
         highlightAndSpeakComponents(wordLabels,words.get(i),currReadingWord.text,fileName);
         waitForSecs(0.5f);
         playAudio("blend");
         joinComponents(wordLabels,leftOffsets,mainLabel);
+        waitForSecs(0.4f);
         lockScreen();
         for(OBLabel l : wordLabels)
             highlightLabel(l,true);
