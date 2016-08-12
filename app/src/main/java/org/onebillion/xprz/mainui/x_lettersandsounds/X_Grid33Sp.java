@@ -33,7 +33,7 @@ public class X_Grid33Sp extends X_Grid33S
     int dashNormalColour,dashHiColour,squareColour;
     List<OBPath>dashes;
     PointF centrePos;
-    List<OBLabel> wordLabels;
+    List<OBLabel> wordLabels = new ArrayList<>();
     OBLabel mainLabel;
     Map<String,Map<String,String>> letterDict;
     int vowelColour;
@@ -58,9 +58,12 @@ public class X_Grid33Sp extends X_Grid33S
         String ws = parameters.get("words");
         words = Arrays.asList(ws.split(","));
         dashes = (List<OBPath>)(Object)sortedFilteredControls("lne.*");
+        for (OBPath d : dashes)
+            d.sizeToBoundingBoxIncludingStroke();
         dashHiColour = dashes.get(0).strokeColor();
         dashNormalColour = dashes.get(1).strokeColor();
-        centrePos = dashes.get(0).position();
+        centrePos = new PointF();
+        centrePos.set(dashes.get(0).position());
         centrePos.x = ((dashes.get(0).left() + dashes.get(dashes.size() - 1) .right()) / 2);
         centrePos.y -= applyGraphicScale(8);
         OBPath vs = (OBPath) objectDict.get("vowelswatch");
@@ -142,7 +145,7 @@ public class X_Grid33Sp extends X_Grid33S
         OBLabel label = new OBLabel(tx,tf,bigTextSize);
         label.setColour(Color.BLACK);
         float h = label.baselineOffset();
-        label.setAnchorPoint(0.5f, h / label.bounds.height());
+        label.setAnchorPoint(0.5f, h / label.bounds().height());
         label.setZPosition(12);
         return label;
     }
@@ -164,7 +167,8 @@ public class X_Grid33Sp extends X_Grid33S
             String sound = currWord.substring(i,i + 1);
             OBLabel l = setUpWordLabel(sound);
             ls.add(l);
-            PointF pt = dashes.get(i).position();
+            PointF pt = new PointF();
+            pt.set(dashes.get(i).position());
             pt.y -= applyGraphicScale(8);
             l.setPosition(pt);
             l.setLeft(mainLabel.left() + lefts.get(i));
@@ -187,7 +191,7 @@ public class X_Grid33Sp extends X_Grid33S
         mainLabel = new OBLabel(tx,tf,bigTextSize);
         mainLabel.setColour(Color.BLACK);
         float h = mainLabel.baselineOffset();
-        mainLabel.setAnchorPoint(0.5f, h / mainLabel.bounds.height());
+        mainLabel.setAnchorPoint(0.5f, h / mainLabel.bounds().height());
         mainLabel.setPosition(centrePos);
         attachControl(mainLabel);
         mainLabel.hide();

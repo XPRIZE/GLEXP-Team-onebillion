@@ -246,19 +246,22 @@ public class X_Wordcontroller extends XPRZ_SectionController
                 OBXMLNode root = xl.get(0);
                 for(OBXMLNode letterNode : root.childrenOfType("letter"))
                 {
-                    String name = letterNode.attributeStringValue("Object");
+                    String name = letterNode.attributeStringValue("id");
                     String tags = letterNode.attributeStringValue("tags");
                     Map lttr = new HashMap();
-                    for(String tag : tags.split("/"))
+                    if (tags != null)
                     {
-                        List<String> pars = Arrays.asList(tag.split("="));
-                        String k = pars.get(0);
-                        String val;
-                        if(pars.size()  < 2)
-                            val = "true";
-                        else
-                            val = pars.get(1);
-                        lttr.put(k,val);
+                        for(String tag : tags.split("/"))
+                        {
+                            List<String> pars = Arrays.asList(tag.split("="));
+                            String k = pars.get(0);
+                            String val;
+                            if(pars.size()  < 2)
+                                val = "true";
+                            else
+                                val = pars.get(1);
+                            lttr.put(k,val);
+                        }
                     }
                     dict.put(name,lttr);
                 }

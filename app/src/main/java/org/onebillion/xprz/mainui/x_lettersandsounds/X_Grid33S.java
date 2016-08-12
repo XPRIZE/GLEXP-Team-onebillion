@@ -29,7 +29,7 @@ public class X_Grid33S extends X_Wordcontroller
     List<String>words,sounds;
     String currWord,firstSound;
     float textSize,bigTextSize;
-    List<OBLabel> labels;
+    List<OBLabel> labels = new ArrayList<>();
     Map<String, OBPhoneme> wordDict;
     List<OBPath>squares;
     OBWord currReadingWord;

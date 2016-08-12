@@ -144,7 +144,7 @@ public class OBTextLayer extends OBLayer
         tp.setTextSize(textSize);
         tp.setTypeface(typeFace);
         tp.setColor(colour);
-        SpannableString ss = new SpannableString(text);
+        SpannableString ss = new SpannableString(tx);
         StaticLayout sl = new StaticLayout(ss,tp,4000, Layout.Alignment.ALIGN_NORMAL,1,0,false);
         return sl.getLineWidth(0);
     }

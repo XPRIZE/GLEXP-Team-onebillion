@@ -1,11 +1,18 @@
 package org.onebillion.xprz.mainui.x_lettersandsounds;
 
+import android.graphics.Color;
+import android.graphics.PointF;
+import android.graphics.RectF;
+import android.graphics.Typeface;
+
+import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.utils.OBSyllable;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OBWord;
+import org.onebillion.xprz.utils.OB_Maths;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -97,13 +104,16 @@ public class X_G3x3syl1 extends X_Grid33Sp
         buildEvents();
         OBGroup gtl = (OBGroup) objectDict.get("gridtext");
         OBLabel tl = (OBLabel) gtl.objectDict.get("t");
-        textSize = tl.fontSize()  * 1 / graphicScale();
+        textSize = tl.fontSize();
         bigTextSize = textSize * 1.5f;
         dashes = (List<OBPath>)(Object)sortedFilteredControls("lne.*");
+        for (OBPath d : dashes)
+            d.sizeToBoundingBoxIncludingStroke();
         dashHiColour = dashes.get(0).strokeColor();
         dashNormalColour = dashes.get(1).strokeColor();
 
-        centrePos = dashes.get(0).position();
+        centrePos = new PointF();
+        centrePos.set(dashes.get(0).position());
         centrePos.x = ((dashes.get(0).left() + dashes.get(dashes.size()-1).right()) / 2);
         centrePos.y -= applyGraphicScale(8);
         for(OBPath s : squares)
@@ -115,15 +125,332 @@ public class X_G3x3syl1 extends X_Grid33Sp
 
     public List pickSyllables(OBWord rw)
     {
-        Set sylls = new HashSet();
-        sylls.addAll(rw.syllables());
-        List allSyls = Arrays.asList(syllableSet);
+        Set<String> sylls = new HashSet();
+        for (OBSyllable syl : rw.syllables())
+            sylls.add(syl.text);
+        List allSyls = Arrays.asList(syllableSet.toArray());
         int i = 0;
         while(sylls.size()  < squares.size() )
         {
-            sylls.add(allSyls.get(i++) );
+            sylls.add((String) allSyls.get(i++));
         }
-        return Arrays.asList(sylls);
+        return Arrays.asList(sylls.toArray());
+    }
+
+    public void setUpWordLabels()
+    {
+        Typeface tf = OBUtils.standardTypeFace();
+        OBLabel label = new OBLabel(currWord,tf,bigTextSize);
+        List<Float> lefts = new ArrayList<>();
+        int i = 0;
+        for(OBSyllable syl : currReadingWord.syllables())
+        {
+            String sound = syl.text;
+            float f = label.textOffset(i);
+            lefts.add(f);
+            i += syl.text.length();
+        }
+
+        i = 0;
+        List<OBLabel>ls = new ArrayList<>();
+        for(OBSyllable syl : currReadingWord.syllables())
+        {
+            String sound = syl.text;
+            OBLabel l = setUpWordLabel(sound);
+            ls.add(l);
+            PointF pt = new PointF();
+            pt.set(dashes.get(i).position());
+            pt.y -= applyGraphicScale(8);
+            l.setPosition(pt);
+            l.setLeft(mainLabel.left() + lefts.get(i));
+            PointF pt2 = new PointF();
+            pt2.set(l.position());
+            l.setProperty("endposition",pt2);
+            l.setPosition(pt);
+            attachControl(l);
+            //l.hide();
+            l.setProperty("sound",sound);
+            i++;
+        }
+        wordLabels = ls;
+    }
+
+    public void setSceneXX(String  scene)
+    {
+        if(needRegen)
+        {
+            for(OBLabel l : labels)
+                detachControl(l);
+            for(OBLabel l : wordLabels)
+                detachControl(l);
+            deleteControls("im");
+            String wordid = words.get(currNo);
+            currReadingWord = (OBWord) wordDict.get(wordid);
+            currWord = currReadingWord.text;
+            if(hasPicture)
+                setUpImage(currReadingWord.imageName);
+            sounds = pickSyllables(currReadingWord);
+            setUpMainLabel(currWord);
+            setUpLabels(Color.BLACK);
+            setUpWordLabels();
+            for(OBLabel l : wordLabels)
+                l.hide();
+            componentNo = 0;
+            highlightDash(componentNo);
+            hideControls("lne.*");
+            for(OBLabel l : labels)
+                l.setProperty("correct",l.propertyValue("sound").equals(firstSound));
+            objectDict.get("im").hide();
+            targets = (List<OBControl>)(Object)squares;
+        }
+        needRegen = true;
+    }
+
+    public void setSceneb()
+    {
+        needRegen = true;
+    }
+
+    public void _replayAudio()
+    {
+        List lst = new ArrayList(_replayAudio);
+        lst.add(300);
+        lst.add(words.get(currNo));
+        try
+        {
+            playAudioQueued(lst,false);
+        }
+        catch(Exception exception)
+        {
+        }
+    }
+
+    public void showStuff() throws Exception
+    {
+        if(labels.get(0).hidden() )
+        {
+            playSfxAudio("splat",false);
+            lockScreen();
+            for(OBLabel l : labels)
+                l.show();
+            unlockScreen();
+            waitForSecs(0.2f);
+            waitSFX();
+            waitForSecs(0.2f);
+            playSfxAudio("lines",false);
+            lockScreen();
+            showControls("lne.*");
+            unlockScreen();
+        }
+    }
+
+    public void demoa() throws Exception
+    {
+        waitForSecs(0.3f);
+        showStuff();
+        waitForSecs(0.3f);
+        playAudioScene("DEMO",0,true);
+        needRegen = false;
+        nextScene();
+    }
+
+    public List<OBControl> syllableSquaresForWord(String wordId)
+    {
+        OBWord rw = (OBWord) wordDict.get(wordId);
+        List<OBSyllable> sylls = rw.syllables();
+        List<OBControl> squs = new ArrayList<>();
+        for(int i = 0;i < sylls.size();i++)
+        {
+            OBSyllable syl = sylls.get(i);
+            String l = syl.text;
+            for(int j = 0;j < labels.size();j++)
+            {
+                OBLabel lab = labels.get(j);
+                String s = (String) lab.propertyValue("sound");
+                if(s.equals(l))
+                {
+                    squs.add(squares.get(j));
+                    break;
+                }
+            }
+        }
+        return squs;
+
+    }
+
+
+    public void demob() throws Exception
+    {
+        waitForSecs(0.2f);
+
+        OBControl lne = objectDict.get("lne1");
+        PointF destpt = lne.bottomPoint();
+        float ptrAng = 30;
+        PointF startpt = pointForDestPoint(destpt,ptrAng);
+        loadPointerStartPoint(startpt,destpt);
+        movePointerToPoint(OB_Maths.tPointAlongLine(0.5f, startpt, destpt),-1,true);
+        playAudioScene("DEMO",0,true);
+        waitForSecs(0.2f);
+        playCurrentWordWait(true);
+        waitForSecs(0.2f);
+        playAudioScene("DEMO",1,true);
+
+        List<OBControl> squs = syllableSquaresForWord(words.get(currNo));
+        float sp = -1;
+        for(OBControl sq : squs)
+        {
+            PointF pt = convertPointFromControl(OB_Maths.locationForRect(0.7f, 0.7f, sq.bounds()),sq);
+            movePointerToPoint(pt,sp,true);
+            sp = -0.6f;
+            waitForSecs(0.2f);
+            playSfxAudio("touch",false);
+            sq.highlight();
+            movePointerToPoint(OB_Maths.locationForRect(1.1f, 1.1f, objectDict.get("grid").frame()),-1,true);
+
+            playSfxAudio("letteron",false);
+            wordLabels.get(componentNo).show();
+            waitForSecs(0.2f);
+            waitSFX();
+            waitForSecs(0.4f);
+            sq.lowlight();
+            highlightDash(++componentNo);
+        }
+        waitForSecs(0.4f);
+        movePointerToPoint(OB_Maths.tPointAlongLine(0.5f, startpt, destpt),-1,true);
+        waitForSecs(0.4f);
+        lockScreen();
+        hideControls("lne.*");
+        thePointer.hide();
+        unlockScreen();
+        endOfScene(false);
+        currNo++;
+        waitForSecs(1f);
+        playAudioQueuedScene("DEMO3",true);
+        nextScene();
+
+    }
+
+    public void nextComponent()
+    {
+        componentNo++;
+        if(componentNo >= currReadingWord.syllables().size())
+        {
+            try
+            {
+                endOfScene(hasPicture);
+                gotItRightBigTick(true);
+            }
+            catch(Exception exception)
+            {
+            }
+            currNo++;
+            nextScene();
+        }
+        else
+        {
+            highlightDash(componentNo);
+            switchStatus(currentEvent());
+        }
+
+    }
+
+    public void checkTarget(final OBControl targ,PointF pt)
+    {
+        int saveStatus = status();
+        setStatus(STATUS_CHECKING);
+        List saverep = emptyReplayAudio();
+        targ.highlight();
+        try
+        {
+            int idx = squares.indexOf((Object)targ);
+            if(labels.get(idx).propertyValue("sound").equals(currReadingWord.syllables().get(componentNo).text))
+            {
+                playSfxAudio("touch",false);
+                waitForSecs(0.2f);
+                waitSFX();
+                playSfxAudio("letteron",false);
+                wordLabels.get(componentNo).show();
+                waitForSecs(0.4f);
+                targ.lowlight();
+                setReplayAudio(saverep);
+                nextComponent();
+            }
+            else
+            {
+                gotItWrongWithSfx();
+                waitSFX();
+                setReplayAudio(saverep);
+                setStatus(saveStatus);
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    public void run() throws Exception
+                    {
+                        List ws = new ArrayList(currentAudio("INCORRECT"));
+                        ws.add(words.get(currNo));
+
+                        playAudioQueued(ws);
+                    }
+                });
+                OBUtils.runOnOtherThreadDelayed(0.2f,new OBUtils.RunLambda()
+                {
+                    public void run() throws Exception
+                    {
+                        targ.lowlight();
+                    }
+                });
+            }
+        }
+        catch(Exception exception)
+        {
+        }
+    }
+
+    public void endOfScene(boolean showImage)
+    {
+        try
+        {
+            lockScreen();
+            hideControls("lne.*");
+            unlockScreen();
+
+            waitForSecs(0.5f);
+            String infix = "fc_syl_";
+            String fileName = words.get(currNo).replaceFirst("fc_",infix);
+            highlightAndSpeakComponents(wordLabels,words.get(currNo),currWord,fileName);
+
+            blendLabels(wordLabels);
+
+            waitForSecs(0.5f);
+
+            lockScreen();
+            for(OBLabel l : wordLabels)
+                SetColourForLabel(l,Color.RED );
+            unlockScreen();
+            playCurrentWordWait(true);
+            waitForSecs(0.3f);
+            lockScreen();
+            for(OBLabel l : wordLabels)
+                SetColourForLabel(l,Color.BLACK );
+            unlockScreen();
+            waitForSecs(0.6f);
+            if(showImage)
+            {
+                playSfxAudio("picon",false);
+                showControls("im");
+                waitForSecs(0.2f);
+                waitSFX();
+                waitForSecs(0.3f);
+                playCurrentWordWait(true);
+                waitForSecs(1f);
+            }
+            waitAudio();
+
+        }
+        catch (Exception e)
+        {
+
+        }
+
     }
 
 }
