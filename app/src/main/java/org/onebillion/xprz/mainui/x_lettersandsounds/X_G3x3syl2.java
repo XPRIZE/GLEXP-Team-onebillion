@@ -1,5 +1,6 @@
 package org.onebillion.xprz.mainui.x_lettersandsounds;
 
+import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.utils.OBSyllable;
 import org.onebillion.xprz.utils.OBUserPressedBackException;
@@ -30,11 +31,12 @@ public class X_G3x3syl2 extends X_G3x3syl1
             List syllables = new ArrayList();
             for(String syllable : syllables_array)
             {
-                String syllID = String.format("isyl_%", syllable);
+                String syllID = String.format("isyl_%s", syllable);
                 OBSyllable syll = (OBSyllable) wd.get(syllID);
                 syllables.add(syll);
             }
-            OBWord word = new OBWord(null,w.replace(",",""),syllables);
+            String tx = w.replace(",","");
+            OBWord word = new OBWord(tx,tx,syllables);
             mw.add(word.text);
             wd.put(word.text,word);
         }
@@ -56,15 +58,39 @@ public class X_G3x3syl2 extends X_G3x3syl1
         List marr = new ArrayList<>();
         for(OBSyllable sy : rw.syllables() )
         {
-            //String s = sy.text;
-            //marr.add(String.format("isyl_%", s));
-            marr.add(sy.soundid);
+            String s = sy.text;
+            marr.add(String.format("isyl_%s", s));
+            //marr.add(sy.soundid);
         }
         return marr;
     }
     public void playCurrentWordWait(boolean w) throws OBUserPressedBackException
     {
         playAudioQueued(arrayOfCurrentWord(),w);
+    }
+
+    public void highlightAndSpeakComponents(List<OBLabel>labs,String wordID,String s,String fileName)
+    {
+        List wds = arrayOfCurrentWord();
+        try
+        {
+            for(int i = 0; i < labs.size();i++)
+            {
+                highlightLabel(labs.get(i),true);
+                playAudioQueued(Arrays.asList(wds.get(i)),true);
+                waitForSecs(0.2f);
+                highlightLabel(labs.get(i),false);
+
+            }
+            waitForSecs(0.3f);
+        }
+        catch(Exception exception)
+        {
+        }
+        lockScreen();
+        for(OBLabel l : labs)
+            highlightLabel(l,false);
+        unlockScreen();
     }
 
 }

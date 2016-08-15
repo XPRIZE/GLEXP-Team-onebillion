@@ -200,7 +200,7 @@ public class X_G3x3syl1 extends X_Grid33Sp
             hideControls("lne.*");
             for(OBLabel l : labels)
                 l.setProperty("correct",l.propertyValue("sound").equals(firstSound));
-            objectDict.get("im").hide();
+            hideControls("im");
             targets = (List<OBControl>)(Object)squares;
         }
         needRegen = true;
@@ -211,11 +211,16 @@ public class X_G3x3syl1 extends X_Grid33Sp
         needRegen = true;
     }
 
+    public List arrayOfCurrentWord()
+    {
+        return Arrays.asList(words.get(currNo));
+    }
+
     public void _replayAudio()
     {
         List lst = new ArrayList(_replayAudio);
         lst.add(300);
-        lst.add(words.get(currNo));
+        lst.addAll(arrayOfCurrentWord());
         try
         {
             playAudioQueued(lst,false);
