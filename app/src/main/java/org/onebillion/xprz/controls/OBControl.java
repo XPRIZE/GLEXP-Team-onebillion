@@ -1834,9 +1834,9 @@ public class OBControl
                 OBUtils.setFloatColour( Color.red(colour) / 255.0f,
                          Color.green(colour) / 255.0f,
                          Color.blue(colour) / 255.0f, Color.alpha(colour)/255.0f, blendColour);
-                invalidate();
                 if (hasTexturedParent())
                     parent.setNeedsRetexture();
+                invalidate();
             }
         }.run();
     }
