@@ -458,9 +458,9 @@ public class OBControl
                 public void ex ()
                 {
                     backgroundColor = col;
-                    invalidate();
                     if (needsTexture())
                         setNeedsRetexture();
+                    invalidate();
                 }
             }.run();
         }
@@ -470,6 +470,17 @@ public class OBControl
     {
         return backgroundColor;
     }
+
+    public int fillColor()
+    {
+        return backgroundColor();
+    }
+
+    public void setFillColor(int col)
+    {
+        setBackgroundColor(col);
+    }
+
 
     public void setScaleX (final float sx)
     {
