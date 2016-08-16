@@ -101,6 +101,8 @@ public class X_Crdp extends X_Wordcontroller
                 stroke2.setFillColor(0);
                 c.insertMember(stroke2,0,"stroke2");
                 stroke2.setZPosition(13);
+                stroke2.sizeToBoundingBoxIncludingStroke();
+                c.sizeToMember(stroke2);
             }
             OBGroup c2 = (OBGroup) c.copy();
             c2.setPosition(position(i*2+1));
@@ -173,7 +175,7 @@ public class X_Crdp extends X_Wordcontroller
         //back.sizeToBox(RectFInset(r, -3, -3));
         detachControl(back);
         cardStuff();
-        targets = (List<OBControl>)(Object)backs;
+        targets = new ArrayList<OBControl>(backs);
         hideControls("bigcard");
         for(OBControl c : targets)
             c.hide();
