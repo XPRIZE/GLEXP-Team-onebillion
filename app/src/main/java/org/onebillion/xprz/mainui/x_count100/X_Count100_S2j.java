@@ -53,7 +53,6 @@ public class X_Count100_S2j extends XPRZ_SectionController
 
         X_Count100_Additions.loadNumbersAudio(this);
 
-        eventIndex=3;
         dragTargets = new ArrayList<>();
         setSceneXX(currentEvent());
     }
@@ -65,7 +64,7 @@ public class X_Count100_S2j extends XPRZ_SectionController
         {
             public void run() throws Exception
             {
-                doMainXX();
+                demo();
             }
         });
     }
@@ -468,7 +467,7 @@ public class X_Count100_S2j extends XPRZ_SectionController
         OBControl targ = dragTargets.get(0);
 
         targ.setZPosition(10 + targ.zPosition());
-        movePointerToPoint(OB_Maths.locationForRect(new PointF(0.7f, 0.7f), targ.frame),-25 ,0.3f,true);
+        movePointerToPoint(OB_Maths.locationForRect(new PointF(0.7f, 0.7f), targ.frame),-25 ,0.5f,true);
         playSfxAudio("drag",false);
 
 

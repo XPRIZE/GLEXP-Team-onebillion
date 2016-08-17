@@ -1,12 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
+              android:orientation="horizontal"
               android:layout_width="match_parent"
-              android:layout_height="match_parent">
+              android:layout_height="match_parent"
+              android:weightSum="1">
 
     <ListView
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="545dp"
         android:id="@+id/listView"
-        />
+        android:layout_weight="0.8"
+        android:choiceMode="singleChoice"/>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:orientation="vertical"
+                  android:layout_width="wrap_content"
+                  android:layout_height="match_parent"
+                  android:weightSum="1">
+    <Button
+        android:layout_width="143dp"
+        android:layout_height="wrap_content"
+        android:text="Next"
+        android:id="@+id/nextButton"/>
+
+    <Button
+        android:layout_width="139dp"
+        android:layout_height="wrap_content"
+        android:text="refresh"
+        android:id="@+id/refreshButton"/>
+    </LinearLayout>
 </LinearLayout>

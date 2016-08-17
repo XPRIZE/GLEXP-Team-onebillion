@@ -1,12 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="horizontal"
+              android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent">
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:orientation="horizontal"
+                  android:layout_width="match_parent"
+                  android:layout_height="700dp"
+                  android:weightSum="1">
 
-    <ListView
+        <ListView
+            android:layout_width="1000dp"
+            android:layout_height="match_parent"
+            android:id="@+id/listView"
+            android:choiceMode="singleChoice"/>
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                      android:orientation="vertical"
+                      android:layout_width="wrap_content"
+                      android:layout_height="match_parent"
+                      android:layout_weight="0.4"
+                      android:weightSum="1">
+            <RelativeLayout
+                android:layout_width="250dp"
+                android:layout_height="match_parent"
+                >
+                <Button
+                    android:layout_width="143dp"
+                    android:layout_height="wrap_content"
+                    android:text="Next"
+                    android:layout_centerInParent="true"
+                    android:id="@+id/nextButton"/>
+            </RelativeLayout>
+
+
+        </LinearLayout>
+    </LinearLayout>
+    <RelativeLayout
         android:layout_width="wrap_content"
-        android:layout_height="545dp"
-        android:id="@+id/listView"
-        />
+        android:layout_height="match_parent">
+    <Button
+        android:layout_width="139dp"
+        android:layout_height="wrap_content"
+        android:text="refresh"
+        android:layout_centerInParent="true"
+        android:id="@+id/refreshButton"/>
+    </RelativeLayout>
 </LinearLayout>

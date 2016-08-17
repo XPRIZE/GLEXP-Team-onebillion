@@ -25,8 +25,7 @@
         android:debuggable="true"
         <activity
             android:name="org.onebillion.xprz.mainui.MainActivity"
-            android:screenOrientation="landscape"
-            android:theme="@android:style/Theme.Holo.NoActionBar">
+            android:screenOrientation="landscape">
             <!--    android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen"-->
             <!--android:theme="@style/AppTheme.NoActionBar">-->
             <!--android:theme="@android:style/Theme.NoTitleBar">-->

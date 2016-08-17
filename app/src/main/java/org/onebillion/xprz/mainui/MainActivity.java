@@ -394,13 +394,20 @@ public class MainActivity extends Activity
 
     public void updateConfigPaths (String newAppCode, Boolean force)
     {
+        updateConfigPaths(newAppCode,force,null);
+    }
+
+    public void updateConfigPaths (String newAppCode, Boolean force, String language)
+    {
         String lastAppCode = (String) config.get(CONFIG_APP_CODE);
         if (lastAppCode.equals(newAppCode) && !force)
             return;
         config.put(CONFIG_APP_CODE, newAppCode);
         String appDir = newAppCode;
         String genDir = (String) config.get("gen_code");
-        String languageCode = languageCode();
+        String languageCode = language;
+        if(languageCode == null)
+            languageCode = languageCode();
         if (languageCode != null)
             config.put(CONFIG_LANGUAGE, languageCode);
         else
