@@ -724,6 +724,13 @@ public class OBSectionController extends OBViewController
                 {
                     scy = floatOrZero(attrs, "scaley") * graphicScale;
                 }
+                if (im instanceof OBImage)
+                {
+                    OBImage obim = (OBImage) im;
+                    scx *= (1f / obim.intrinsicScale());
+                    scy *= (1f / obim.intrinsicScale());
+                }
+
                 if (!(scx == 1 && scy == 1))
                 {
                     im.setScaleX(scx);
