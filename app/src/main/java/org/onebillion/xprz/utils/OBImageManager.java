@@ -111,15 +111,27 @@ public class OBImageManager
 //        return null;
     }
 
-    public Bitmap bitmapForName (String imageName)
+    static boolean HighResPath(String path)
+    {
+        path = OBUtils.stringByDeletingLastPathComponent(path);
+        String last = OBUtils.lastPathComponent(path);
+        if(last.equals("shared_4"))
+            return true;
+        return false;
+    }
+
+    public Bitmap bitmapForName (String imageName,OB_MutFloat scale)
     {
         String path = getImgPath(imageName);
         if (path == null)
             return null;
         Bitmap b;
+        scale.value = 1.0f;
         BitmapFactory.Options opt = new BitmapFactory.Options();
         opt.inScaled = false;
         b = BitmapFactory.decodeStream(OBUtils.getInputStreamForPath(path), null, opt);
+        if (HighResPath(path))
+            scale.value = 2.0f;
 //        try
 //        {
 //            b = BitmapFactory.decodeStream(MainActivity.mainActivity.getAssets().open(path), null, opt);
@@ -131,43 +143,17 @@ public class OBImageManager
         return b;
     }
 
-    public Drawable drawableForName (String imageName)
-    {
-        String path = getImgPath(imageName);
-        if (path == null)
-            return null;
-        Drawable d;
-        d = Drawable.createFromStream(OBUtils.getInputStreamForPath(path), null);
-//        try
-//        {
-//            d = Drawable.createFromStream(MainActivity.mainActivity.getAssets().open(path), null);
-//        }
-//        catch (IOException e)
-//        {
-//            return null;
-//        }
-        float densityFactor = MainActivity.mainActivity.getResources().getDisplayMetrics().density;
-        float imageScale = MainActivity.mainActivity.configFloatForKey(MainActivity.CONFIG_GRAPHIC_SCALE);
-        int w = d.getIntrinsicWidth();
-        int h = d.getIntrinsicHeight();
-        w *= densityFactor;
-        h *= densityFactor;
-        d.setBounds(0, 0, w, h);
-        return d;
-    }
-
     public OBImage imageForName (String imageName)
     {
-        Bitmap b = bitmapForName(imageName);
+        OB_MutFloat fileScale = new OB_MutFloat(1.0f);
+        Bitmap b = bitmapForName(imageName,fileScale);
         if (b != null)
         {
             OBImage im = new OBImage(b);
-            float densityFactor = MainActivity.mainActivity.getResources().getDisplayMetrics().density;
             int w = b.getWidth();
             int h = b.getHeight();
-            //w *= densityFactor;
-            //h *= densityFactor;
             im.setBounds(0, 0, w, h);
+            im.setIntrinsicScale(fileScale.value);
             return im;
         }
         return null;
