@@ -338,13 +338,17 @@ public class X_Puzzle extends X_Wordcontroller
         }
     }
 
-    public void stage2() throws Exception {
+    public void stage2() throws Exception
+    {
         finishLock.lockWhenCondition(MSE_UP);
         finishLock.unlock() ;
         lockScreen();
         puzzle.show() ;
-        label.setOpacity(0);
-        label.show() ;
+        if (label != null)
+        {
+            label.setOpacity(0);
+            label.show() ;
+        }
         unlockScreen();
         waitForSecs(0.3f);
 

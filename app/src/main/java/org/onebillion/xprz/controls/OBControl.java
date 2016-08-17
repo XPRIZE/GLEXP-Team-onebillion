@@ -249,8 +249,8 @@ public class OBControl
             frame.set(f);
         position.set(OB_Maths.midPoint(frame));
         setBounds(0, 0, (f.right - f.left), (f.bottom - f.top));
-        invalidate();
         setNeedsRetexture();
+        invalidate();
     }
 
     public void setFrame (float left, float top, float right, float bottom)

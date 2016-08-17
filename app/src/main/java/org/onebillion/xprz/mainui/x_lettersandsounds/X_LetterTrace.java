@@ -110,10 +110,11 @@ public class X_LetterTrace extends X_Wordcontroller
                 xboxeswidth += f.width();
                 List<OBPath> arr = letterPaths.get(i);
                 RectF fp = OBUtils.PathsUnionRect(arr);
-                fp.top -= f.top;
+                fp.offset(0,-f.top);
+                //fp.top -= f.top;
                 if(fp.top < miny)
                     miny = fp.top;
-                float thismaxy = fp.top + fp.height();
+                float thismaxy = fp.bottom;
                 if(thismaxy > maxy)
                     maxy = thismaxy;
             }
