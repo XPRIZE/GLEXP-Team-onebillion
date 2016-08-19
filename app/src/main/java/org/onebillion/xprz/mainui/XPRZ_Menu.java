@@ -53,7 +53,8 @@ public class XPRZ_Menu extends XPRZ_SectionController
         MainActivity.mainViewController.topRightButton.setImageDrawable(d);
     }*/
 
-    public void viewWillAppear(boolean animated)
+    @Override
+    public void viewWillAppear (Boolean animated)
     {
         super.viewWillAppear(animated);
         for (OBControl c : filterControls("button.*"))

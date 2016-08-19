@@ -29,7 +29,7 @@ public class XPRZ_FatController extends OBFatController
     public OBUser currentUser;
 
 
-    private static final int OFC_SUCCEEDED = 1,
+    public static final int OFC_SUCCEEDED = 1,
             OFC_FINISHED_LOW_SCORE = 2,
             OFC_TIMED_OUT = 3,
             OFC_SESSION_TIMED_OUT = 4,
@@ -50,7 +50,7 @@ public class XPRZ_FatController extends OBFatController
                 try
                 {
                    // db.beginTransaction();
-                    String mlname = (String) MainActivity.mainActivity.config.get("masterlist");
+                    String mlname = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_MASTER_LIST);
                     OBXMLManager xmlManager = new OBXMLManager();
                     InputStream is = OBUtils.getInputStreamForPath(String.format("config/%s", mlname));
                     List<OBXMLNode> xml = xmlManager.parseFile(is);
@@ -246,7 +246,7 @@ public class XPRZ_FatController extends OBFatController
             @Override
             public void run() throws Exception
             {
-               OBMainViewController.MainViewController().pushViewControllerWithNameConfig(currunit.target,currunit.config,true,false,currunit.params);
+               OBMainViewController.MainViewController().pushViewControllerWithNameConfig(currunit.target,currunit.config,true,true,currunit.params);
             }
         });
 

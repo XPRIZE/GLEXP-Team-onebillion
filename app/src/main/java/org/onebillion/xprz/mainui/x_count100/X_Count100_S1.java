@@ -55,7 +55,6 @@ public class X_Count100_S1  extends XPRZ_SectionController
         counter.setColour(Color.BLACK);
         counter.setPosition(objectDict.get("numbox").position());
         counter.setZPosition((float)1.5);
-
         counter.setString("0");
         attachControl(counter);
         setSceneXX(currentEvent());

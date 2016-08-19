@@ -808,6 +808,7 @@ public class X_Mgp extends XPRZ_SectionController
 
     public void demoStartb() throws Exception
     {
+        loadPointer(POINTER_LEFT);
         if(presenterShow)
         {
             PointF presenterLoc = (PointF)presenter.control.settings.get("startloc");
@@ -831,7 +832,7 @@ public class X_Mgp extends XPRZ_SectionController
         List<String> arr = getCurrentAudio("DEMO3");
         playAudio(arr.get(0));
         waitAudio();
-        loadPointer(POINTER_LEFT);
+
         movePointerToPoint(OB_Maths.locationForRect(0.85f,0.8f,box.control.frame()), 0.5f, true);
         playAudio(arr.get(1));
         waitAudio();

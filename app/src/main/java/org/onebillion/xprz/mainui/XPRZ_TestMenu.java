@@ -14,10 +14,11 @@ import android.widget.TextView;
 
 import org.onebillion.xprz.R;
 import org.onebillion.xprz.utils.DBSQL;
+import org.onebillion.xprz.utils.MlUnit;
 import org.onebillion.xprz.utils.XPRZ_FatController;
 
 
-
+import java.util.ArrayList;
 import java.util.Arrays;
 
 
@@ -51,6 +52,7 @@ public class XPRZ_TestMenu extends OBSectionController
             public void onItemClick(AdapterView<?> parent, View view, int position, long id)
             {
                 currentUnitId = id;
+                controller.firstUnstartedIndex = id;
             }
         });
 
@@ -61,8 +63,15 @@ public class XPRZ_TestMenu extends OBSectionController
             @Override
             public void onClick(View v)
             {
-                if(currentUnitId >= 0)
-                    loadUnit(currentUnitId);
+
+                String menuClassName = (String)Config().get(MainActivity.CONFIG_MENU_CLASS);
+                String appCode = (String)Config().get(MainActivity.CONFIG_APP_CODE);
+                if (menuClassName != null && appCode != null)
+                {
+                    db.close();
+                    MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
+                }
+
             }
         });
 
@@ -98,6 +107,7 @@ public class XPRZ_TestMenu extends OBSectionController
 
     public void loadUnit (long unitId)
     {
+        cursorAdapter.swapCursor(null);
         db.close();
         controller.startSectionByIndex(unitId);
     }
@@ -109,7 +119,6 @@ public class XPRZ_TestMenu extends OBSectionController
         try
         {
 
-
         }
         catch (Exception e)
         {
@@ -120,7 +129,16 @@ public class XPRZ_TestMenu extends OBSectionController
     @Override
     public void start ()
     {
-        initScreen();
+
+        try
+        {
+           initScreen();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
     }
 
 

@@ -651,8 +651,7 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         starEmitter.setBounds(0,0,64,64);
         starEmitter.setPosition(firstpt);
         OBEmitterCell cell = starEmitterCell(0, smallStar.cache, 0, 0, 0);
-        cell.posX = 32;
-        cell.posY = 32;
+        cell.position = OB_Maths.locationForRect(0.5f,0.5f,starEmitter.bounds());
         starEmitter.cells.add(cell);
 
         starEmitter.setZPosition(100);

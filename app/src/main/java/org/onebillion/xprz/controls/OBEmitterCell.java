@@ -5,6 +5,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Point;
+import android.graphics.PointF;
 import android.os.SystemClock;
 
 import org.onebillion.xprz.glstuff.OBRenderer;
@@ -23,7 +25,8 @@ public class OBEmitterCell
 {
     public float birthRate,lifeTime,lifeTimeRange,velocity,velocityRange,emissionAngle,emissionRange,red,green,blue,alpha,
             blueSpeed,redSpeed,greenSpeed,
-            alphaSpeed,spin,spinRange,scale,scaleRange,scaleSpeed,posX,posY;
+            alphaSpeed,spin,spinRange,scale,scaleRange,scaleSpeed;
+    public PointF position;
     public Bitmap contents;
     public Texture texture;
     public String name;
@@ -33,6 +36,7 @@ public class OBEmitterCell
     long startTime,lastBirthTime,birthCount;
     List<OBEmittee>emittees;
     Matrix tempMatrix;
+    OBEmitter emitter;
 
     public OBEmitterCell()
     {
@@ -66,8 +70,9 @@ public class OBEmitterCell
         float y = (float)Math.sin(ang);
         ee.xVelocity = x * vel;
         ee.yVelocity = y * vel;
-        ee.posX = posX;
-        ee.posY = posY;
+        PointF loc = emitter.convertPointToControl(position,null);
+        ee.posX = loc.x;
+        ee.posY = loc.y;
         float life = rValue(lifeTime,lifeTimeRange);
         ee.startTime = ee.lastTime = SystemClock.uptimeMillis();
         ee.endTime = ee.startTime + (long)(life * 1000f);
@@ -76,10 +81,10 @@ public class OBEmitterCell
         return ee;
     }
 
-    public void start()
+    public void start(OBEmitter parent)
     {
         texture = new Texture(contents,1);
-
+        emitter = parent;
         startTime = lastBirthTime = SystemClock.uptimeMillis();
         birthCount = 0;
     }
@@ -98,21 +103,24 @@ public class OBEmitterCell
         }
     }
 
-    public boolean doCycle()
+    public boolean doCycle(boolean withBirth)
     {
-        if (emittees.size() == 0 && birthRate == 0)
+        if (emittees.size() == 0 && (!withBirth || birthRate == 0))
             return false;
         updateEmittees();
         long tm = SystemClock.uptimeMillis();
         float secs = (tm - lastBirthTime) / 1000f;
         int birthCountNeeded = (int)((birthRate * secs));
-        synchronized (emittees)
+        if(withBirth)
         {
-            for (int i = 0;i < birthCountNeeded;i++)
+            synchronized (emittees)
             {
-                emittees.add(createEmittee());
-                birthCount++;
-                lastBirthTime = SystemClock.uptimeMillis();
+                for (int i = 0; i < birthCountNeeded; i++)
+                {
+                    emittees.add(createEmittee());
+                    birthCount++;
+                    lastBirthTime = SystemClock.uptimeMillis();
+                }
             }
         }
         return true;

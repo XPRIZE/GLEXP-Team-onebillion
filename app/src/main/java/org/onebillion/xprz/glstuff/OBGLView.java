@@ -2,7 +2,9 @@ package org.onebillion.xprz.glstuff;
 
 import android.content.Context;
 import android.opengl.GLSurfaceView;
+import android.view.View;
 
+import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.OBViewController;
 
 /**
@@ -15,6 +17,15 @@ public class OBGLView extends GLSurfaceView
     public OBGLView(Context context)
     {
         super(context);
+        this.addOnLayoutChangeListener(new OnLayoutChangeListener()
+        {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int
+                    oldLeft, int oldTop, int oldRight, int oldBottom)
+            {
+                MainActivity.mainActivity.updateGraphicScale(right-left,bottom-top);
+            }
+        });
     }
 
     @Override
@@ -23,6 +34,7 @@ public class OBGLView extends GLSurfaceView
         if (controller != null)
             controller.viewWasLaidOut(changed, l, t, r, b);
     }
+
 
 
 }

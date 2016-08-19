@@ -193,8 +193,7 @@ public class XPRZ_SectionController extends OBSectionController {
         cell.scaleSpeed = -0.1f;
         //cell.spin = (float)(Math.PI / 12);
         cell.spinRange = (float)(2 * Math.PI / 2);
-        cell.posX = bounds().width()/2;
-        cell.posY = bounds().height()/2;
+        cell.position = OB_Maths.locationForRect(0.5f,0.5f,emitter.bounds());
         cell.alphaSpeed = -0.2f;
         OBPath star = StarWithScale(bounds().height() * 0.1f,true);
         star.enCache();

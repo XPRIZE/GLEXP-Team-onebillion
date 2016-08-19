@@ -342,6 +342,7 @@ public class OBMainViewController extends OBViewController
         }
 
         controller.params = _params;
+        controller.viewWillAppear(animate);
         controller.prepare();
         if (viewControllers.size() >= 1 && animate)
         {
@@ -421,6 +422,7 @@ public class OBMainViewController extends OBViewController
     {
         OBSectionController topvc = viewControllers.get(viewControllers.size() - 1);
         OBSectionController nextvc = viewControllers.get(viewControllers.size() - 2);
+        nextvc.viewWillAppear(false);
         transition(nextvc, topvc, false, 0.5);
         viewControllers.remove(viewControllers.size() - 1);
         showButtons(nextvc.buttonFlags());

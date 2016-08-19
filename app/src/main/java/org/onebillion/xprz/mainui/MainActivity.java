@@ -78,7 +78,9 @@ public class MainActivity extends Activity
             CONFIG_USER = "user",
             CONFIG_EXPANSION_URL = "expansionURL",
             CONFIG_OBB_PASSWORD = "obbPassword",
-            CONFIG_FAT_CONTROLLER = "fatcontrollerclass";
+            CONFIG_FAT_CONTROLLER = "fatcontrollerclass",
+            CONFIG_MASTER_LIST = "masterlist",
+            CONFIG_MENU_CLASS = "menuclass";
     public static String TAG = "livecode";
     public static OBExpansionManager expansionManager = new OBExpansionManager();
     public static MainActivity mainActivity;
@@ -154,8 +156,6 @@ public class MainActivity extends Activity
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-        //
-        getWindow().getDecorView().setSystemUiVisibility(flags);
 
         //
         final View decorView = getWindow().getDecorView();
@@ -172,6 +172,8 @@ public class MainActivity extends Activity
             }
         });
         //
+        decorView.setSystemUiVisibility(flags);
+
         users = new ArrayList<OBUser>();
         setContentView(R.layout.activity_main);
         //ViewGroup rootView = (ViewGroup) findViewById(android.R.id.content);
@@ -465,7 +467,6 @@ public class MainActivity extends Activity
         Constructor<?> cons = aClass.getConstructor();
         fatController = (OBFatController) cons.newInstance();
     }
-
 
     public void updateGraphicScale(float newWidth, float newHeight)
     {

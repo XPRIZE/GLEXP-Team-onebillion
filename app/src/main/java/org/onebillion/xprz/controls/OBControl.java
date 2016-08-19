@@ -2013,4 +2013,29 @@ public class OBControl
         return imageBounds;
     }
 
+    public float getShadowRadius()
+    {
+        return shadowRadius;
+    }
+
+    public float getShadowOffsetX()
+    {
+        return shadowOffsetX;
+    }
+
+    public float getShadowOffsetY()
+    {
+        return shadowOffsetY;
+    }
+
+    public float getShadowOpacity()
+    {
+        return shadowOpacity;
+    }
+
+    public int getShadowColour()
+    {
+        return shadowColour;
+    }
+
 }

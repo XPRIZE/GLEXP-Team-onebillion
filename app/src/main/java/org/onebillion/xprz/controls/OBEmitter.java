@@ -1,6 +1,7 @@
 package org.onebillion.xprz.controls;
 
 import android.graphics.Canvas;
+import android.graphics.PointF;
 import android.os.AsyncTask;
 
 import org.onebillion.xprz.glstuff.OBRenderer;
@@ -10,6 +11,9 @@ import org.onebillion.xprz.utils.OBRunnableSyncUI;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by alan on 19/02/16.
@@ -17,10 +21,14 @@ import java.util.List;
 public class OBEmitter extends OBControl
 {
     public List<OBEmitterCell>cells;
-    boolean running;
+    private boolean running,birthCells;
+    protected Lock emitterLoc;
+    protected Condition condition;
+
     public OBEmitter()
     {
         super();
+        emitterLoc = new ReentrantLock();
         cells = new ArrayList<>();
     }
     public void doCycle()
@@ -31,7 +39,7 @@ public class OBEmitter extends OBControl
             {
                 boolean stillGoing = false;
                 for (OBEmitterCell ec : cells)
-                    stillGoing = stillGoing || ec.doCycle();
+                    stillGoing = ec.doCycle(birthCells()) || stillGoing;
                 setRunning(stillGoing);
                 invalidate();
             }
@@ -40,21 +48,35 @@ public class OBEmitter extends OBControl
     public synchronized void setRunning(boolean b)
     {
         running = b;
+        if(!b)
+            finishWait();
     }
     public synchronized boolean running()
     {
         return running;
     }
+
+    private synchronized void setBirthRate(boolean b)
+    {
+        birthCells = b;
+    }
+
+    private synchronized boolean birthCells()
+    {
+        return birthCells;
+    }
+
     public void stop()
     {
-        for (OBEmitterCell ec : cells)
-            ec.birthRate = 0;
+        setBirthRate(false);
     }
-    public void start()
+    private void start()
     {
+        condition = emitterLoc.newCondition();
         setRunning(true);
+        setBirthRate(true);
         for (OBEmitterCell ec : cells)
-            ec.start();
+            ec.start(this);
     }
     public void drawLayer(Canvas canvas, int flags)
     {
@@ -85,5 +107,47 @@ public class OBEmitter extends OBControl
         for (OBEmitterCell ec : cells)
             ec.render(renderer,vc,modelViewMatrix);
     }
+
+
+    public void waitForCells()
+    {
+        if(condition == null)
+            return;
+
+        emitterLoc.lock();
+        try
+        {
+            condition.await();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
+            emitterLoc.unlock();
+
+        }
+    }
+
+    private void finishWait()
+    {
+        if(condition == null)
+            return;
+
+        emitterLoc.lock();
+        try
+        {
+            condition.signalAll();
+        }
+        finally
+        {
+            emitterLoc.unlock();
+
+        }
+        condition = null;
+
+    }
+
 
 }
