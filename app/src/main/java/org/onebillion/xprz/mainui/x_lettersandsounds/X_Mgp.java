@@ -53,7 +53,6 @@ public class X_Mgp extends XPRZ_SectionController
         phaseDict = Arrays.asList("a","a","b","b","c");
         setStatus(STATUS_BUSY);
 
-
         loadFingers();
         loadEvent("master");
         eventTargets = new ArrayList<>();
@@ -381,6 +380,7 @@ public class X_Mgp extends XPRZ_SectionController
                                     for(OBControl con : eventTargets)
                                     {
                                         ((OBLabel)con).setColour( con == targ ? Color.RED : Color.GRAY);
+                                        con.disable();
                                     }
                                     unlockScreen();
 
@@ -398,12 +398,15 @@ public class X_Mgp extends XPRZ_SectionController
                                 }
                                 else
                                 {
+                                    targ.disable();
                                     targ.setColour(Color.GRAY);
                                     gotItWrongWithSfx();
                                     List<String> wrongAudio = getCurrentAudio("INCORRECT");
+                                    targ.enable();
                                     long time = setStatus(STATUS_AWAITING_CLICK);
                                     waitSFX();
-                                    targ.setColour(Color.BLACK);
+                                    if(targ.isEnabled())
+                                         targ.setColour(Color.BLACK);
 
                                     if(time == statusTime)
                                     {
@@ -413,10 +416,8 @@ public class X_Mgp extends XPRZ_SectionController
                                     }
                                 }
                             }
-
                         }
                     });
-
                 }
             }
         }
