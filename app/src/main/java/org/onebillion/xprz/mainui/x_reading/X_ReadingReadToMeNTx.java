@@ -676,7 +676,7 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         Path p = convertPathFromControl(shape.path(),shape);
         //Path p = shape.convertPathToControl(shape.path(),starEmitter);
         OBAnim anim = OBAnim.pathMoveAnim(starEmitter,p,false,0);
-        anim.key = "layer.emitterPosition";
+        //anim.key = "layer.emitterPosition";
         OBAnimationGroup agp = new OBAnimationGroup();
         agp.applyAnimations(Collections.singletonList(anim),2,false,OBAnim.ANIM_LINEAR,2,null,this);
     }
