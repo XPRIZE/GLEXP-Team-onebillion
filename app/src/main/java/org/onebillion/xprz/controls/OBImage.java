@@ -26,4 +26,14 @@ public class OBImage extends OBControl
         layer.setContents(d);
         layer.setBounds(0,0,d.getWidth(),d.getHeight());
     }
+
+    public void setIntrinsicScale(float f)
+    {
+        intrinsicScale = f;
+    }
+
+    public float intrinsicScale()
+    {
+        return intrinsicScale;
+    }
 }

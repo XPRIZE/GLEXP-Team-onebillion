@@ -691,6 +691,8 @@ public class OBSectionController extends OBViewController
                 pt.y += lf.height() / 2;
                 lab.setPosition(pt);
                 lab.setZPosition(1f);
+                //lab.setBorderColor(Color.BLACK);
+                //lab.setBorderWidth(2f);
                 grp.insertMember(lab, 0, "t");
 
             }
@@ -722,6 +724,13 @@ public class OBSectionController extends OBViewController
                 {
                     scy = floatOrZero(attrs, "scaley") * graphicScale;
                 }
+                if (im instanceof OBImage)
+                {
+                    OBImage obim = (OBImage) im;
+                    scx *= (1f / obim.intrinsicScale());
+                    scy *= (1f / obim.intrinsicScale());
+                }
+
                 if (!(scx == 1 && scy == 1))
                 {
                     im.setScaleX(scx);
@@ -1596,6 +1605,8 @@ public class OBSectionController extends OBViewController
     public List<String> currentAudio (String audioCategory)
     {
         Map<String, List> eventd = (Map<String, List>) audioScenes.get(currentEvent());
+        if (eventd == null)
+            return null;
         return eventd.get(audioCategory);
     }
 
@@ -1752,8 +1763,12 @@ public class OBSectionController extends OBViewController
     public void setReplayAudioScene (String scene, String event)
     {
         Map<String, List<String>> sc = (Map<String, List<String>>) audioScenes.get(scene);
-        List<Object> arr = (List<Object>) (Object) sc.get(event); //yuk!
-        setReplayAudio(arr);
+        if (sc != null)
+        {
+            List<Object> arr = (List<Object>) (Object) sc.get(event); //yuk!
+            if (arr != null)
+                setReplayAudio(arr);
+        }
     }
 
     public List<Object> emptyReplayAudio ()

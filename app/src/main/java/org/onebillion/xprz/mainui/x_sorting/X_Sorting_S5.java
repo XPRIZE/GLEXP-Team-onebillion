@@ -196,7 +196,9 @@ public class X_Sorting_S5 extends XPRZ_SectionController
         setStatus(STATUS_CHECKING);
         try
         {
+            lockScreen();
             drawingSurface.sizeToBoundingBoxIncludingStroke();
+            unlockScreen();
             if (intersectsCorrectly())
             {
                 new AsyncTask<Void, Void, Void>()

@@ -200,6 +200,7 @@ public class X_Sorting_S2 extends XPRZ_SectionController
     public void checkTarget2k(final OBControl targ)
     {
         int saveStatus = status();
+        setStatus(STATUS_CHECKING);
         int targInt = Integer.parseInt((String) targ.attributes().get("tag"));
 
         try

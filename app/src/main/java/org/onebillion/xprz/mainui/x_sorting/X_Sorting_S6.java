@@ -3,6 +3,7 @@ package org.onebillion.xprz.mainui.x_sorting;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.AsyncTask;
+import android.os.SystemClock;
 import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
@@ -335,31 +336,36 @@ public class X_Sorting_S6 extends XPRZ_SectionController
     }
     OBControl findTarget(PointF pt)
     {
-        return finger(-1,2,targets,pt);
+        return finger(-1,2,filterControls("obj.*"),pt);
+    }
+
+    public void checkDragTarget(OBControl targ,PointF pt)
+    {
+        if (targets.contains(targ))
+        {
+            setStatus(STATUS_DRAGGING);
+            target = targ;
+            targ.setZPosition(targ.zPosition()+ 30 + currNo);
+            targ.animationKey = SystemClock.uptimeMillis();
+            dragOffset = OB_Maths.DiffPoints(targ.position(), pt);
+        }
+        else
+        {
+            gotItWrongWithSfx();
+            animateSelected(targ);
+            switchStatus(currentEvent());
+        }
     }
 
     @Override
     public void touchDownAtPoint(final PointF pt, View v)
     {
-        for (OBControl box : filterControls("bigBox.*"))
-        {
-            if (box.frame().contains(pt.x, pt.y))
-            {
-                for (OBControl targ : filterControls("obj.*"))
-                    if (targ.frame().contains(pt.x,pt.y))
-                    {
-                        gotItWrongWithSfx();
-                        animateSelected(targ);
-                        break;
-                    }
-                break;
-            }
-        }
         if (status() == STATUS_WAITING_FOR_DRAG)
         {
             final OBControl c = findTarget(pt);
             if (c != null)
             {
+                setStatus(STATUS_CHECKING);
                 new AsyncTask<Void, Void, Void>()
                 {
                     protected Void doInBackground(Void... params)

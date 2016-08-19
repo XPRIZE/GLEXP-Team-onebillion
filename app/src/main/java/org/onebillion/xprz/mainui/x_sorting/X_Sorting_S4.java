@@ -1,6 +1,7 @@
 package org.onebillion.xprz.mainui.x_sorting;
 
 import android.graphics.Color;
+import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.AsyncTask;
@@ -8,6 +9,7 @@ import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
+import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.utils.OBAnim;
@@ -23,12 +25,13 @@ import java.util.Map;
  */
 public class X_Sorting_S4 extends XPRZ_SectionController
 {
-    int totalObjectCount;
+    int totalObjectCount = 0;
     OBControl correctPaintPot,currentPaintPot;
     List<OBControl> correctObjArray,pots;
     int correctColour;
     List<OBControl> boyObj;
     List<OBControl> girlObj;
+    OBPath collar = null;
 
     public void prepare()
     {
@@ -71,7 +74,11 @@ public class X_Sorting_S4 extends XPRZ_SectionController
     public void setSceneXX(String scene)
     {
         if (totalObjectCount == 0)
+        {
             deleteControls("obj.*");
+            if (collar != null)
+                collar.hide();
+        }
         super.setSceneXX(scene);
 
         currentPaintPot = null;
@@ -94,7 +101,19 @@ public class X_Sorting_S4 extends XPRZ_SectionController
             }
         }
         pots = filterControls("objpot.*");
-
+        if (collar == null)
+        {
+            float w = pots.get(0).width()+applyGraphicScale(4f);
+            Path p = new Path();
+            p.addCircle(w/2, w/2, w/2, Path.Direction.CCW);
+            collar = new OBPath(p);
+            //collar.setLineWidth(applyGraphicScale(4f));
+            collar.sizeToBoundingBoxIncludingStroke();
+            collar.setFillColor(Color.GRAY);
+            collar.setZPosition(pots.get(0).zPosition()-0.01f);
+            attachControl(collar);
+            collar.hide();
+        }
     }
 
     public void setScene4n()
@@ -328,9 +347,11 @@ public class X_Sorting_S4 extends XPRZ_SectionController
     void addColourBorder(OBControl colour)
     {
         lockScreen();
-        colour.setBorderWidth(MainActivity.mainActivity.applyGraphicScale(8.0f));
-        colour.setCornerRadius(colour.width() / 2f);
-        colour.setBorderColor(Color.GRAY);
+        //colour.setBorderWidth(MainActivity.mainActivity.applyGraphicScale(8.0f));
+        //colour.setCornerRadius(colour.width() / 2f);
+        //colour.setBorderColor(Color.GRAY);
+        collar.setPosition(colour.position());
+        collar.show();
         unlockScreen();
     }
 
@@ -339,9 +360,10 @@ public class X_Sorting_S4 extends XPRZ_SectionController
         lockScreen();
         for (OBControl borderObject : pots)
         {
-            borderObject.setBorderWidth(0);
-            borderObject.setBorderColor(0);
+            //borderObject.setBorderWidth(0);
+            //borderObject.setBorderColor(0);
         }
+        collar.hide();
         unlockScreen();
     }
 

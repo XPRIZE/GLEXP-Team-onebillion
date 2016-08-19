@@ -45,22 +45,6 @@ public class OBMainViewController extends OBViewController
     }
 
 
-    public void doButton (OBControl button, String source, boolean abutLeft, boolean abutTop)
-    {
-        Bitmap im = OBImageManager.sharedImageManager().bitmapForName(source);
-        ((OBImage) button).setContents(im);
-        float graphicScale = applyGraphicScale(1);
-        button.setScale(graphicScale);
-        if (abutLeft)
-            button.setLeft(0);
-        else
-            button.setRight(bounds().width());
-        if (abutTop)
-            button.setTop(0);
-        else
-            button.setBottom(bounds().height());
-    }
-
     public void addButtons ()
     {
         if (topLeftButton != null)
