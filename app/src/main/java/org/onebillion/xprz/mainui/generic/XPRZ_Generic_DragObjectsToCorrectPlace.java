@@ -55,6 +55,7 @@ public class XPRZ_Generic_DragObjectsToCorrectPlace extends XPRZ_Generic_Event
         //
         int number = Integer.parseInt((String) dragged.attributes().get("number"));
         playAudioQueuedSceneIndex(currentEvent(), "CORRECT", number, false);
+        waitForSecs(0.1);
         //
         OBControl platform = objectDict.get(String.format("platform_%d", number));
         action_animatePlatform(platform, false);
