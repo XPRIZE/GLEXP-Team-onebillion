@@ -37,7 +37,7 @@ import static android.opengl.Matrix.orthoM;
 public class OBRenderer implements GLSurfaceView.Renderer
 {
     public final int[] textureObjectIds = new int[3];
-    public ShaderProgram colourProgram,textureProgram, maskProgram, surfaceProgram;
+    public ShaderProgram colourProgram,textureProgram, maskProgram, surfaceProgram, shadowProgram;
     public TextureRect textureRect;
     public GradientRect gradientRect;
     public float[] projectionMatrix = new float[16];
@@ -52,6 +52,7 @@ public class OBRenderer implements GLSurfaceView.Renderer
         textureProgram = new TextureShaderProgram();
         maskProgram = new MaskShaderProgram();
         surfaceProgram = new SurfaceShaderProgram();
+        shadowProgram = new ShadowShaderProgram();
 
         glGenTextures(3, textureObjectIds, 0);
 

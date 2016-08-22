@@ -22,6 +22,7 @@ import org.onebillion.xprz.glstuff.ColorShaderProgram;
 import org.onebillion.xprz.glstuff.GradientRect;
 import org.onebillion.xprz.glstuff.MaskShaderProgram;
 import org.onebillion.xprz.glstuff.OBRenderer;
+import org.onebillion.xprz.glstuff.ShadowShaderProgram;
 import org.onebillion.xprz.glstuff.Texture;
 import org.onebillion.xprz.glstuff.TextureRect;
 import org.onebillion.xprz.glstuff.TextureShaderProgram;
@@ -59,6 +60,7 @@ public class OBControl
     public float[] modelMatrix = new float[16];
     public float[] tempMatrix = new float[16];
     public float blendColour[] = {1, 1, 1, 1};
+    public float shadowBlendColour[] = {0,0,0,0};
     public float m34, cornerRadius;
     public boolean doubleSided = true;
     public boolean shouldTexturise = true;
@@ -69,7 +71,7 @@ public class OBControl
     OBStroke stroke;
     boolean frameValid, masksToBounds;
     boolean maskControlReversed = false, dynamicMask = false;
-    int shadowColour;
+    private int shadowColour;
     float shadowOffsetX, shadowOffsetY, shadowOpacity, shadowRadius;
     boolean needsRetexture;
     float uvRight = 1, uvBottom = 1;
@@ -170,6 +172,7 @@ public class OBControl
         obj.textureKey = textureKey;
         obj.cornerRadius = cornerRadius();
         obj.blendColour = blendColour.clone();
+        obj.shadowBlendColour = shadowBlendColour.clone();
         if (maskControl != null)
             obj.maskControl = maskControl;
         obj.m34 = m34;
@@ -1228,6 +1231,9 @@ public class OBControl
         if (texture == null || texture.bitmap() == null)
             return;
 
+        if(drawShadow())
+            tr.drawShadow(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, texture.bitmap());
+
         if (dynamicMask && maskControl != null && maskControl.texture != null)
             tr.draw(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, texture.bitmap(), maskControl.texture.bitmap());
         else
@@ -1262,6 +1268,12 @@ public class OBControl
                 for (int i = 0;i < 3;i++)
                     finalCol[i] *= op;
 
+                if(drawShadow())
+                {
+                    ShadowShaderProgram shadowShader = (ShadowShaderProgram) renderer.shadowProgram;
+                    shadowShader.useProgram();
+                    shadowShader.setUniforms(modelViewMatrix,modelMatrix,renderer.textureObjectIds[0],shadowOffsetX,shadowOffsetY,shadowBlendColour,finalCol);
+                }
 
                 if (dynamicMask && maskControl != null)
                 {
@@ -1755,14 +1767,36 @@ public class OBControl
         }.run();
     }
 
-    public void setShadow (float sradius, float sopacity, float soffsetx, float soffsety, int scolour)
+    public void setShadow (final float sradius, final float sopacity, final float soffsetx, final float soffsety, final int scolour)
     {
-        shadowRadius = sradius;
-        shadowOffsetX = soffsetx;
-        shadowOffsetY = soffsety;
-        shadowOpacity = sopacity;
-        shadowColour = scolour;
+        new OBRunnableSyncUI()
+        {
+            @Override
+            public void ex()
+            {
+                shadowRadius = sradius;
+                shadowOffsetX = soffsetx;
+                shadowOffsetY = soffsety;
+                shadowOpacity = sopacity;
+                shadowColour = scolour;
+                OBUtils.setFloatColour( Color.red(scolour) / 255.0f,
+                        Color.green(scolour) / 255.0f,
+                        Color.blue(scolour) / 255.0f, Color.alpha(scolour)/255.0f, shadowBlendColour);
+
+                for(int i=0; i<4; i++)
+                    shadowBlendColour[i] *= sopacity;
+                invalidate();
+            }
+        }.run();
+
     }
+
+    private boolean drawShadow()
+    {
+        return false;
+        //return shadowOffsetX != 0 || shadowOffsetY != 0;
+    }
+
 
     public OBStroke stroke ()
     {
@@ -1789,12 +1823,12 @@ public class OBControl
                 public void ex ()
                 {
                     tempRect.set(f);
-                    if (shadowColour != 0 && shadowRadius > 0 && shadowOpacity > 0)
+                   /* if (shadowColour != 0 && shadowRadius > 0 && shadowOpacity > 0)
                     {
                         tempRect.offset(shadowOffsetX, shadowOffsetY);
                         tempRect.inset(-shadowRadius, -shadowRadius);
                         tempRect.union(f);
-                    }
+                    }*/
                     controller.invalidateView((int) (tempRect.left - invalOutdent), (int) (tempRect.top - invalOutdent), (int) (tempRect.right + invalOutdent), (int) (tempRect.bottom + invalOutdent));
                 }
             }.run();
@@ -2012,6 +2046,7 @@ public class OBControl
         RectF imageBounds = new RectF(leftColumn,topRow,rightColumn,bottomRow);
         return imageBounds;
     }
+
 
     public float getShadowRadius()
     {

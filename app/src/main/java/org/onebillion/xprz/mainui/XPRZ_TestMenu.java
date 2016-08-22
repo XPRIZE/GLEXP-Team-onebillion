@@ -43,7 +43,7 @@ public class XPRZ_TestMenu extends OBSectionController
         db = new DBSQL(false);
         controller = (XPRZ_FatController)MainActivity.mainActivity.fatController;
         currentUnitId = controller.lastPlayedUnitIndex(db);
-
+        controller.firstUnstartedIndex = currentUnitId;
         MainActivity.mainActivity.setContentView(R.layout.list_menu);
         listView = (ListView)MainActivity.mainActivity.findViewById(R.id.listView);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener()
@@ -55,7 +55,6 @@ public class XPRZ_TestMenu extends OBSectionController
                 controller.firstUnstartedIndex = id;
             }
         });
-
 
         Button nextButton = (Button)MainActivity.mainActivity.findViewById(R.id.nextButton);
         nextButton.setOnClickListener(new View.OnClickListener()

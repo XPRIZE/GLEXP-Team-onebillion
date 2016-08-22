@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by michal on 08/08/16.
@@ -239,16 +241,36 @@ public class XPRZ_FatController extends OBFatController
     {
         sectionStartedWithIndex(unitId);
         final MlUnit currunit = MlUnit.mlUnitFromDBforUnitID(unitId);
-        MainActivity.mainActivity.updateConfigPaths(currunit.config, false, currunit.lang);
+        final String lastAppCode = (String)MainActivity.mainActivity.config.get(MainActivity.CONFIG_APP_CODE);
 
-        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+
+        new OBRunnableSyncUI()
+        {
+            @Override
+            public void ex ()
+            {
+                try
+                {
+                    MainActivity.mainActivity.updateConfigPaths(currunit.config, false, currunit.lang);
+                    OBMainViewController.MainViewController().pushViewControllerWithNameConfig(currunit.target,currunit.config,true,true,currunit.params);
+                }
+                catch (Exception exception)
+                {
+                    Logger logger = Logger.getAnonymousLogger();
+                    logger.log(Level.SEVERE, "Error in runOnMainThread", exception);
+
+                    MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                }
+            }
+        }.run();
+       /* OBUtils.runOnMainThread(new OBUtils.RunLambda()
         {
             @Override
             public void run() throws Exception
             {
                OBMainViewController.MainViewController().pushViewControllerWithNameConfig(currunit.target,currunit.config,true,true,currunit.params);
             }
-        });
+        });*/
 
     }
 
@@ -259,7 +281,7 @@ public class XPRZ_FatController extends OBFatController
 
     public long lastPlayedUnitIndex(DBSQL db)
     {
-        return MlUnitInstance.lastPlayedUnitIndex(db);
+        return MlUnitInstance.lastPlayedUnitIndex(db, currentUser.userid);
     }
 
 

@@ -54,7 +54,7 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
     @Override
     public String sectionAudioName()
     {
-        return "menuaudio";
+        return "menu";
     }
 
     @Override
@@ -144,8 +144,6 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         {
             public void run() throws Exception
             {
-                animateBigStar();
-                animateStarOff();
                 int previousLevel = currentLevel;
 
                 if(lastCommand == 0)
@@ -334,13 +332,14 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         bigIcon.objectDict.put("icon",bigic);
         bigIcon.setProperty("unit",unit);
 
-        attachControl(bigIcon);
+
         bigIcon.setOpacity(0);
         bigIcon.setPosition(OB_Maths.locationForRect(0.5f,0.5f,this.bounds()));
         bigIcon.show();
         bigIcon.setScale(1.1f);
         bigIcon.setZPosition(20);
-        setObjectShadow(bigic,1.5f);
+        setObjectShadow(bigIcon,1.5f);
+        attachControl(bigIcon);
         unlockScreen();
     }
 

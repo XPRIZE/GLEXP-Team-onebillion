@@ -534,30 +534,19 @@ public class X_Lg1 extends XPRZ_SectionController
 
            // anims.add(OBAnim.propertyAnim("width",open ? 1 : (float) con.maskControl.propertyValue("startWidth"), con.maskControl));
             final float widthDif = (float) con.maskControl.propertyValue("startWidth") - 1.0f;
-            if(open)
+
+
+            anims.add(new OBAnimBlock()
             {
-                anims.add(new OBAnimBlock()
+                @Override
+                public void runAnimBlock(float frac)
                 {
-                    @Override
-                    public void runAnimBlock(float frac)
-                    {
-                        con.maskControl.setWidth(1.0f + (1.0f-frac)*widthDif);
-                        con.invalidate();
-                    }
-                });
-            }
-            else
-            {
-                anims.add(new OBAnimBlock()
-                {
-                    @Override
-                    public void runAnimBlock(float frac)
-                    {
-                        con.maskControl.setWidth(1.0f + (frac*widthDif));
-                        con.invalidate();
-                    }
-                });
-            }
+                    con.maskControl.setWidth(open ? 1.0f + (1.0f-frac) * widthDif :1.0f + (frac*widthDif) );
+                    con.invalidate();
+                }
+            });
+
+
 
         }
         unlockScreen();

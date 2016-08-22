@@ -87,6 +87,8 @@ public class TextureRect
             vertexArray = new VertexArray(vertices);
         else
             vertexArray.put(vertices);
+
+        //renderer.textureProgram.useProgram();
         bindData((TextureShaderProgram) renderer.textureProgram);
         glBindTexture(GL_TEXTURE_2D, renderer.textureObjectIds[0]);
         GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
@@ -106,9 +108,15 @@ public class TextureRect
             vertexArray.put(vertices);
 
         if(mask != null)
+        {
+            //renderer.textureProgram.useProgram();
             bindData((TextureShaderProgram) renderer.textureProgram);
+        }
         else
+        {
+           // renderer.maskProgram.useProgram();
             bindMaskData((MaskShaderProgram) renderer.maskProgram);
+        }
 
         glBindTexture(GL_TEXTURE_2D, renderer.textureObjectIds[0]);
         GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
@@ -156,6 +164,25 @@ public class TextureRect
         GLES20.glFinish();
     }
 
+    public void drawShadow(OBRenderer renderer, float l, float t, float r, float b, Bitmap bitmap)
+    {
+        fillOutRectVertexData(vertices,l,t,r,b,POSITION_COMPONENT_COUNT + UV_COMPONENT_COUNT);
+        fillOutRectTextureData(vertices,uvLeft,uvTop,uvRight,uvBottom,POSITION_COMPONENT_COUNT + UV_COMPONENT_COUNT);
+        if (vertexArray == null)
+            vertexArray = new VertexArray(vertices);
+        else
+            vertexArray.put(vertices);
+
+        renderer.shadowProgram.useProgram();
+        bindData((ShadowShaderProgram) renderer.shadowProgram);
+        glBindTexture(GL_TEXTURE_2D, renderer.textureObjectIds[0]);
+        GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+//        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+        GLES20.glEnable(GLES20.GL_BLEND);
+        texImage2D(GL_TEXTURE_2D,0,bitmap,0);
+        glDrawArrays(GL_TRIANGLE_STRIP,0,4);
+    }
+
     public void bindData(TextureShaderProgram textureProgram)
     {
         vertexArray.setVertexAttribPointer(
@@ -167,6 +194,22 @@ public class TextureRect
         vertexArray.setVertexAttribPointer(
                 POSITION_COMPONENT_COUNT,
                 textureProgram.getTextureCoordinatesAttributeLocation(),
+                UV_COMPONENT_COUNT,
+                STRIDE);
+    }
+
+
+    public void bindData(ShadowShaderProgram shadowProgram)
+    {
+        vertexArray.setVertexAttribPointer(
+                0,
+                shadowProgram.getPositionAttributeLocation(),
+                POSITION_COMPONENT_COUNT,
+                STRIDE);
+
+        vertexArray.setVertexAttribPointer(
+                POSITION_COMPONENT_COUNT,
+                shadowProgram.getTextureCoordinatesAttributeLocation(),
                 UV_COMPONENT_COUNT,
                 STRIDE);
     }
@@ -200,6 +243,7 @@ public class TextureRect
                 UV_COMPONENT_COUNT,
                 STRIDE);
     }
+
 
 
 }

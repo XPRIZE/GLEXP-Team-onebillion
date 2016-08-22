@@ -1247,8 +1247,7 @@ public class OBSectionController extends OBViewController
             clist = sortedAttachedControls;
             for (OBControl control : clist)
             {
-                if (!control.hidden())
-                    control.render(renderer, this, renderer.projectionMatrix);
+                control.render(renderer, this, renderer.projectionMatrix);
             }
         }
 

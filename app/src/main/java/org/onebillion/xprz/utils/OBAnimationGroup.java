@@ -109,8 +109,10 @@ public class OBAnimationGroup
     {
         final float t = (float)OB_Maths.clamp01(interpolator.getInterpolation((float)frac));
         //final float t = OB_Maths.bezef((float)frac);
+
         new OBRunnableSyncUI(){public void ex()
         {
+            owner.lockScreen();
             for (OBAnim anim : animations)
             {
                 Object val = anim.valueForT(t);
@@ -127,6 +129,7 @@ public class OBAnimationGroup
                     }
                 }
             }
+            owner.unlockScreen();
         }
         }.run();
 

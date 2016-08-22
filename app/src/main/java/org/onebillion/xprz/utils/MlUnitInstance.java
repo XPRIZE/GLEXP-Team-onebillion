@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.util.ArrayMap;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -110,9 +111,9 @@ public class MlUnitInstance extends MlObject
         return result;
     }
 
-    public static long lastPlayedUnitIndex(DBSQL db)
+    public static long lastPlayedUnitIndex(DBSQL db, int userid)
     {
-        Cursor cursor = db.prepareSelectOnTable("unitinstances",Collections.singletonList("unitid"),null,"starttime DESC");
+        Cursor cursor = db.prepareRawQuery("SELECT unitid, MAX(starttime) FROM unitinstances WHERE userid = ? GROUP BY userid", Collections.singletonList(String.valueOf(userid)));
         int maxId = 0;
         if(cursor.moveToFirst())
         {
