@@ -215,6 +215,10 @@ public class MainActivity extends Activity
     }
 
 
+    public void onBackPressed()
+    {
+        // do nothing
+    }
 
 
     void doGLStuff ()

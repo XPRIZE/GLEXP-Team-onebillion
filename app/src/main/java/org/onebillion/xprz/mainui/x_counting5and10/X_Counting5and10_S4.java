@@ -380,13 +380,15 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
             }
             else
             {
-                action_answerIsWrong(target);
+                action_answerIsWrong(group);
+                action_lowlight(group);
                 //
                 revertStatusAndReplayAudio();
             }
         }
-        catch (Exception exception)
+        catch (Exception e)
         {
+            e.printStackTrace();
         }
     }
 

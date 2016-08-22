@@ -18,12 +18,12 @@ import java.util.EnumSet;
 public class X_Counting7To10_S6 extends XPRZ_Generic_Tracing
 {
 
-    public X_Counting7To10_S6()
+    public X_Counting7To10_S6 ()
     {
         super(true);
     }
 
-    public void action_flashDots() throws Exception
+    public void action_flashDots () throws Exception
     {
         OBGroup dots = (OBGroup) objectDict.get("dots");
         //
@@ -44,11 +44,49 @@ public class X_Counting7To10_S6 extends XPRZ_Generic_Tracing
     }
 
 
-    public void tracing_setup()
+    public void action_answerIsCorrect () throws Exception
+    {
+        if (currentTry == 1)
+        {
+            gotItRightBigTick(false);
+            waitSFX();
+            waitForSecs(0.3);
+            //
+            playAudioQueuedScene(currentEvent(), "CORRECT", true);
+            waitForSecs(0.7);
+            //
+            currentTry++;
+            playAudioQueuedScene(currentEvent(), "PROMPT2", false);
+            //
+            lockScreen();
+            tracing_reset();
+            unlockScreen();
+            //
+            revertStatusAndReplayAudio();
+            setStatus(STATUS_WAITING_FOR_TRACE);
+        }
+        else
+        {
+            gotItRightBigTick(true);
+            //
+            playAudioQueuedScene(currentEvent(), "CORRECT", false);
+            action_flashDots();
+            waitAudio();
+            waitForSecs(0.3);
+            //
+            playAudioQueuedScene(currentEvent(), "FINAL", true);
+            waitForSecs(0.3);
+            //
+            nextScene();
+        }
+    }
+
+
+    public void tracing_setup (final Integer number)
     {
         new OBRunnableSyncUI()
         {
-            public void ex()
+            public void ex ()
             {
                 pathColour = Color.BLUE;
                 //
@@ -77,8 +115,7 @@ public class X_Counting7To10_S6 extends XPRZ_Generic_Tracing
     }
 
 
-
-    public void demo6a() throws Exception
+    public void demo6a () throws Exception
     {
         setStatus(STATUS_DOING_DEMO);
         loadPointer(POINTER_MIDDLE);
@@ -106,7 +143,7 @@ public class X_Counting7To10_S6 extends XPRZ_Generic_Tracing
     }
 
 
-    public void demo6b() throws Exception
+    public void demo6b () throws Exception
     {
         setStatus(STATUS_DOING_DEMO);
         loadPointer(POINTER_MIDDLE);
@@ -133,13 +170,13 @@ public class X_Counting7To10_S6 extends XPRZ_Generic_Tracing
     }
 
 
-    public void demo6c() throws Exception
+    public void demo6c () throws Exception
     {
         demo6b();
     }
 
 
-    public void demo6d() throws Exception
+    public void demo6d () throws Exception
     {
         setStatus(STATUS_DOING_DEMO);
         loadPointer(POINTER_MIDDLE);

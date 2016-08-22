@@ -202,11 +202,11 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
         //
         targets = filterControls(action_getObjectPrefix() + ".*");
         //
-        for (OBControl control : targets)
-        {
-            PointF originalPosition = new PointF(control.position().x, control.position().y);
-            control.setProperty("originalPosition", originalPosition);
-        }
+//        for (OBControl control : targets)
+//        {
+//            PointF originalPosition = new PointF(control.position().x, control.position().y);
+//            control.setProperty("originalPosition", originalPosition);
+//        }
         //
         currentDemoAudioIndex = 0;
         //
@@ -225,7 +225,8 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
             if (OBPath.class.isInstance(control))
             {
                 OBPath path = (OBPath) control;
-                PointF position = path.getWorldPosition();
+//                PointF position = path.getWorldPosition();
+                PointF position = path.position();
                 path.sizeToBoundingBoxIncludingStroke();
                 path.setPosition(position);
             }

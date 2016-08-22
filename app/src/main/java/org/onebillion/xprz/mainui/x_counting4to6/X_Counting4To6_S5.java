@@ -30,7 +30,21 @@ public class X_Counting4To6_S5 extends XPRZ_Generic_SelectCorrectObject
         {
             for (OBControl number : filterControls("number.*"))
             {
-                OBLabel label = action_createLabelForControl(number, 1.2f);
+                OBLabel label = action_createLabelForControl(number, 1.1f);
+            }
+        }
+        else
+        {
+            try
+            {
+                for (OBControl control : filterControls(".*"))
+                {
+                    action_lowlight(control);
+                }
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
             }
         }
     }
@@ -57,6 +71,7 @@ public class X_Counting4To6_S5 extends XPRZ_Generic_SelectCorrectObject
     @Override
     public void action_answerIsCorrect(OBControl target) throws Exception
     {
+        gotItRightBigTick(true);
         playAudioQueuedScene(currentEvent(), "CORRECT", false);
         action_animatePlatform(target, true);
         waitAudio();

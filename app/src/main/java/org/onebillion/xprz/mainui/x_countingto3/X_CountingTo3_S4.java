@@ -37,7 +37,7 @@ public class X_CountingTo3_S4 extends XPRZ_Generic_DragObjectsToCorrectPlace
         //
         for(OBControl number : filterControls("number.*"))
         {
-            OBLabel label = action_createLabelForControl(number, 1.2f);
+            OBLabel label = action_createLabelForControl(number, 1.0f);
         }
     }
 

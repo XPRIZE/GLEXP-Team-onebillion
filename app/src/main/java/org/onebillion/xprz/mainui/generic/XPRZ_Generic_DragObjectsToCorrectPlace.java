@@ -72,6 +72,7 @@ public class XPRZ_Generic_DragObjectsToCorrectPlace extends XPRZ_Generic_Event
     @Override
     public void checkDragAtPoint(PointF pt)
     {
+        setStatus(STATUS_AWAITING_CLICK);
         saveStatusClearReplayAudioSetChecking();
         //
         OBControl dragged = target;
@@ -108,6 +109,7 @@ public class XPRZ_Generic_DragObjectsToCorrectPlace extends XPRZ_Generic_Event
                     else
                     {
                         revertStatusAndReplayAudio();
+
                     }
                 }
                 catch (Exception e)

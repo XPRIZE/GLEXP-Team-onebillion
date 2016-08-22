@@ -284,10 +284,6 @@ public class X_Counting7To10_S5 extends XPRZ_Generic_Event
                 }
             });
         }
-        else
-        {
-            setStatus(STATUS_WAITING_FOR_TRACE);
-        }
     }
 
 
@@ -312,12 +308,18 @@ public class X_Counting7To10_S5 extends XPRZ_Generic_Event
 
 
 
-    public void touchDownAtPoint (PointF pt, View v)
+    public void touchDownAtPoint (final PointF pt, View v)
     {
-        if (status() == STATUS_AWAITING_CLICK || status() == STATUS_WAITING_FOR_TRACE)
+        if (status() == STATUS_AWAITING_CLICK || status() == STATUS_WAITING_FOR_TRACE || status() == STATUS_TRACING)
         {
-            checkTraceStart(pt);
-
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run () throws Exception
+                {
+                    checkTraceStart(pt);
+                }
+            });
         }
     }
 

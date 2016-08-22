@@ -170,11 +170,10 @@ public class XPRZ_SectionController extends OBSectionController {
         star.setScale(0.04f);
         attachControl(star);
         miscObjects.put("star", star);
-
-        playAudio((String) Config().get(MainActivity.CONFIG_AWARDAUDIO));
+        String audioFile = (String) Config().get(MainActivity.CONFIG_AWARDAUDIO);
+        playAudio(audioFile);
         double duration = OBAudioManager.audioManager.duration();
         completeDisplay((duration < 1.0) ? 1.0 : duration);
-
     }
 
     public void completeDisplay(double duration) throws Exception
