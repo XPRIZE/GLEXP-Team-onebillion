@@ -37,7 +37,7 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
 {
     OBEmitter emitter;
     int lastCommand, currentLevel;
-    OBGroup bigIcon;
+    OBImage bigIcon;
     XPRZ_FatController fatController;
     long startIndex;
     MlUnit lastUnit;
@@ -127,7 +127,7 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         currentAudio="1";
 
         OBGroup star = (OBGroup)objectDict.get("complete_star");
-        setObjectShadow(star, 0.5f);
+        setObjectShadow(star, 1f);
         star.setZPosition (200);
         star.setProperty("start_scale",star.scale());
     }
@@ -231,7 +231,6 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
                         waitForSecs(0.5f);
                         bigIcon.lowlight();
                     }
-
                 }
 
             }
@@ -260,7 +259,6 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
     public void loadEmitter()
     {
         emitter = new OBEmitter();
-        //emitter.setFrame(0,0,bounds().width(),bounds().height());
         emitter.setBounds(0,0,64,64);
         emitter.setPosition(OB_Maths.locationForRect(0.5f,0.5f,this.bounds()));
         emitter.cells.addAll(Arrays.asList(emitterCell(0,OBUtils.colorFromRGBString("46,190,44")),
@@ -269,7 +267,6 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         emitterCell(3 ,OBUtils.colorFromRGBString("0,143,255"))));
 
         emitter.setZPosition(100);
-      //  miscObjects.put("emitter",emitter);
         objectDict.put("starEmitter", emitter);
         attachControl(emitter);
     }
@@ -319,24 +316,23 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
     {
         lockScreen();
         String imgName = String.format("%s_big",unit.icon);
-        OBControl bigic = null;
 
         if(OBImageManager.sharedImageManager().getImgPath(imgName) != null)
-            bigic = loadImageWithName(imgName,new PointF(0,0), new RectF(bounds()));
+            bigIcon = loadImageWithName(imgName,new PointF(0,0), new RectF(bounds()));
         else
-            bigic = loadImageWithName("icon_default_big",new PointF(0,0), new RectF(bounds()));
+            bigIcon = loadImageWithName("icon_default_big",new PointF(0,0), new RectF(bounds()));
 
-        bigic.setScale(applyGraphicScale(1));
-        bigic.setRasterScale(bigic.scale());
-        bigIcon= new OBGroup(Collections.singletonList(bigic));
-        bigIcon.objectDict.put("icon",bigic);
+        bigIcon.setScale(applyGraphicScale(1));
+        bigIcon.setRasterScale(applyGraphicScale(1));
+        //bigIcon= new OBGroup(Collections.singletonList(bigic));
+       // bigIcon.objectDict.put("icon",bigic);
         bigIcon.setProperty("unit",unit);
 
 
         bigIcon.setOpacity(0);
         bigIcon.setPosition(OB_Maths.locationForRect(0.5f,0.5f,this.bounds()));
         bigIcon.show();
-        bigIcon.setScale(1.1f);
+        //bigIcon.setScale(1.1f);
         bigIcon.setZPosition(20);
         setObjectShadow(bigIcon,1.5f);
         attachControl(bigIcon);
@@ -361,19 +357,13 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         obj.setShadow(shadow.getShadowRadius(),shadow.getShadowOpacity(),shadow.getShadowOffsetY()*scale,shadow.getShadowOffsetY()*scale,shadow.getShadowColour());
     }
 
-    public void rotateShadowToObject(OBControl obj,double radians, RectF anOffset)
-    {
-        double x = anOffset.height()*Math.sin(radians) + anOffset.width()*Math.cos(radians);
-        double y = anOffset.height()*Math.cos(radians) - anOffset.width()*Math.sin(radians);
-        obj.setShadow(obj.getShadowRadius(),obj.getShadowOpacity(),(float)x,(float)y,obj.getShadowColour());
-    }
-
-
 
     public void animateBigIconShow() throws Exception
     {
         playSfxAudio("button_show",false);
-        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.scaleAnim(1f,bigIcon), OBAnim.opacityAnim(1,bigIcon)),0.5,true,OBAnim.ANIM_EASE_OUT,this);
+        float startScale = bigIcon.scale();
+        bigIcon.setScale(startScale * 1.1f);
+        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.scaleAnim(startScale,bigIcon), OBAnim.opacityAnim(1,bigIcon)),0.5,true,OBAnim.ANIM_EASE_OUT,this);
     }
 
 
@@ -408,7 +398,6 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
             @Override
             public void runAnimBlock(float frac)
             {
-                rotateShadowToObject(star,star.rotation,shadowOffset);
                 emitter.setPosition(star.position());
             }
         }
@@ -417,7 +406,7 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
                OBAnim.scaleAnim((float) star.settings.get("start_scale"), star),
                OBAnim.rotationAnim(rotation - (float) Math.toRadians(360 * 5), star),
                blockAnim
-               ),3,true,OBAnim.ANIM_EASE_OUT,null);
+               ),3,true,OBAnim.ANIM_EASE_OUT,this);
         waitForSecs(0.5f);
         setEmitter(false);
         emitter.waitForCells();
@@ -458,7 +447,6 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         long time = setStatus(STATUS_AWAITING_CLICK);
 
         presenterSpeak(getSceneAudio("DEMO2"));
-
     }
 
     public void demoStar2() throws Exception
@@ -466,7 +454,6 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         waitForSecs(0.3f);
         animateBigStar();
         presenterSpeak(getSceneAudio("DEMO"));
-
     }
 
 
@@ -496,7 +483,4 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
 
         presenterSpeak(getSceneAudio("DEMO"));
     }
-
-
-
 }

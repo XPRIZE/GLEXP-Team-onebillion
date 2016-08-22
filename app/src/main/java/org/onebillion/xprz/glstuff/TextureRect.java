@@ -88,7 +88,7 @@ public class TextureRect
         else
             vertexArray.put(vertices);
 
-        //renderer.textureProgram.useProgram();
+        renderer.textureProgram.useProgram();
         bindData((TextureShaderProgram) renderer.textureProgram);
         glBindTexture(GL_TEXTURE_2D, renderer.textureObjectIds[0]);
         GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
@@ -107,30 +107,23 @@ public class TextureRect
         else
             vertexArray.put(vertices);
 
-        if(mask != null)
-        {
-            //renderer.textureProgram.useProgram();
-            bindData((TextureShaderProgram) renderer.textureProgram);
-        }
-        else
-        {
-           // renderer.maskProgram.useProgram();
-            bindMaskData((MaskShaderProgram) renderer.maskProgram);
-        }
+
+        renderer.maskProgram.useProgram();
+        bindMaskData((MaskShaderProgram) renderer.maskProgram);
+
 
         glBindTexture(GL_TEXTURE_2D, renderer.textureObjectIds[0]);
         GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 //        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
         GLES20.glEnable(GLES20.GL_BLEND);
         texImage2D(GL_TEXTURE_2D,0,bitmap,0);
-        if(mask != null)
-        {
-            glBindTexture(GL_TEXTURE_2D, renderer.textureObjectIds[1]);
-            GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-            //GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-            GLES20.glEnable(GLES20.GL_BLEND);
-            texImage2D(GL_TEXTURE_2D,0,mask,0);
-        }
+
+        glBindTexture(GL_TEXTURE_2D, renderer.textureObjectIds[1]);
+        GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+        //GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+        GLES20.glEnable(GLES20.GL_BLEND);
+        texImage2D(GL_TEXTURE_2D,0,mask,0);
+
         glDrawArrays(GL_TRIANGLE_STRIP,0,4);
 
     }
