@@ -1247,7 +1247,8 @@ public class OBSectionController extends OBViewController
             clist = sortedAttachedControls;
             for (OBControl control : clist)
             {
-                control.render(renderer, this, renderer.projectionMatrix);
+                if (!control.hidden())
+                    control.render(renderer, this, renderer.projectionMatrix);
             }
         }
 
@@ -2016,7 +2017,7 @@ public class OBSectionController extends OBViewController
         if (duration < 0)
         {
             OBControl c = objs.get(0);
-            duration = OBUtils.durationForPointDist(c.position(), pos, theMoveSpeed);
+            duration = OBUtils.durationForPointDist(c.position(), pos, theMoveSpeed * -duration);
         }
         OBAnimationGroup.runAnims(animsForMoveToPoint(objs, pos), duration, true, timingFunction, this);
     }

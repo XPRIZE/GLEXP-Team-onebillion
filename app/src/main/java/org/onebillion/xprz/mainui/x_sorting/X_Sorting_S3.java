@@ -400,7 +400,9 @@ public class X_Sorting_S3 extends XPRZ_SectionController
     void flyHome()
     {
         PointF targPoint = (PointF) target.propertyValue("origpos");
-        moveObjects(Arrays.asList(target),targPoint,-1,OBAnim.ANIM_EASE_IN_EASE_OUT);
+        target.setZPosition(target.zPosition() + 30);
+        moveObjects(Arrays.asList(target),targPoint,-3f,OBAnim.ANIM_EASE_IN_EASE_OUT);
+        target.setZPosition(target.zPosition() - 30);
     }
 
     OBControl dropPointUnderPoint(PointF pt)

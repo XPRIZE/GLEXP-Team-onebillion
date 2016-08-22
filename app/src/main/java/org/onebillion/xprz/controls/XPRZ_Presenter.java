@@ -215,8 +215,9 @@ public class XPRZ_Presenter extends OBCharacter
                 } else
                 {
                     showOnly("mouth_0", mouth);
-                    float f = (Float) af;
-                    controller.waitForSecs(f / 1000);
+                    //float f = (Float) af;
+                    int i = (Integer)af;
+                    controller.waitForSecs(i / 1000f);
                 }
                 control.needsRetexture = true;
                 control.invalidate();

@@ -208,33 +208,17 @@ public class X_Sorting_S2 extends XPRZ_SectionController
             if (targInt == currentCount)
             {
                 final OBControl collar = objectDict.get("collar");
-                new OBRunnableSyncUI()
-                {
-                    public void ex()
-                    {
-                        //targ.unCache();
-                        //targ.setBorderWidth(8.0f);
-                        //targ.cornerRadius = 60;
-                        //targ.setBorderColor(Color.LTGRAY);
-                        collar.setPosition(targ.position());
-                        collar.show();
-                    }
-                }.run();
-
-
+                lockScreen();
+                collar.setPosition(targ.position());
+                collar.show();
+                unlockScreen();
 
                 gotItRightBigTick(true);
                 waitForSecs(0.5f);
 
+                lockScreen();
                 collar.hide();
-                new OBRunnableSyncUI()
-                {
-                    public void ex()
-                    {
-                        //targ.borderWidth = 0;
-                        //targ.setBorderColor(0);
-                    }
-                }.run();
+                unlockScreen();
 
                 currentCount ++;
                 validObjects.remove(targ);
@@ -256,7 +240,7 @@ public class X_Sorting_S2 extends XPRZ_SectionController
     public void checkTarget(OBControl targ)
     {
         int saveStatus = status();
-        List<Object> saveReplay = emptyReplayAudio();
+        //List<Object> saveReplay = emptyReplayAudio();
         setStatus(STATUS_CHECKING);
         try
         {

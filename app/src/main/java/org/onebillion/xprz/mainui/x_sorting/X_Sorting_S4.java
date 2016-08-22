@@ -351,6 +351,7 @@ public class X_Sorting_S4 extends XPRZ_SectionController
         //colour.setCornerRadius(colour.width() / 2f);
         //colour.setBorderColor(Color.GRAY);
         collar.setPosition(colour.position());
+        collar.setZPosition(colour.zPosition()-0.0001f);
         collar.show();
         unlockScreen();
     }

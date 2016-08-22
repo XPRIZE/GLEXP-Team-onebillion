@@ -256,7 +256,7 @@ public class X_Sorting_S6 extends XPRZ_SectionController
     void moveToOriginalPosition()
     {
         PointF targOriginalPoint = (PointF) target.propertyValue("origpos");
-        moveObjects(Arrays.asList(target),targOriginalPoint,-1,OBAnim.ANIM_EASE_IN_EASE_OUT);
+        moveObjects(Arrays.asList(target),targOriginalPoint,-2,OBAnim.ANIM_EASE_IN_EASE_OUT);
         target.setZPosition(target.zPosition() - 30);
     }
 
