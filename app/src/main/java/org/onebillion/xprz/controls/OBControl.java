@@ -312,18 +312,12 @@ public class OBControl
     {
         if (position.x != x || position.y != y)
         {
-            new OBRunnableSyncUI()
-            {
-                public void ex ()
-                {
-                    invalidate();
-                    position.set(x, y);
-                    frameValid = false;
-                    invalidate();
-                    if(hasTexturedParent())
-                         setNeedsRetexture();
-                }
-            }.run();
+            position.set(x, y);
+            frameValid = false;
+            invalidate();
+            if(hasTexturedParent())
+                setNeedsRetexture();
+
         }
     }
 
@@ -456,16 +450,10 @@ public class OBControl
     {
         if (col != backgroundColor)
         {
-            new OBRunnableSyncUI()
-            {
-                public void ex ()
-                {
-                    backgroundColor = col;
-                    if (needsTexture())
-                        setNeedsRetexture();
-                    invalidate();
-                }
-            }.run();
+            backgroundColor = col;
+            if (needsTexture())
+                setNeedsRetexture();
+            invalidate();
         }
     }
 
@@ -489,16 +477,9 @@ public class OBControl
     {
         if (scaleX != sx)
         {
-            new OBRunnableSyncUI()
-            {
-                public void ex ()
-                {
-                    invalidate();
-                    scaleX = sx;
-                    frameValid = false;
-                    invalidate();
-                }
-            }.run();
+            scaleX = sx;
+            frameValid = false;
+            invalidate();
         }
     }
 
@@ -506,16 +487,9 @@ public class OBControl
     {
         if (scaleY != sy)
         {
-            new OBRunnableSyncUI()
-            {
-                public void ex ()
-                {
-                    invalidate();
-                    scaleY = sy;
-                    frameValid = false;
-                    invalidate();
-                }
-            }.run();
+            scaleY = sy;
+            frameValid = false;
+            invalidate();
         }
     }
 
@@ -1231,7 +1205,7 @@ public class OBControl
         if (texture == null || texture.bitmap() == null)
             return;
 
-        if(drawShadow())
+        if(shouldRenderShadow())
             tr.drawShadow(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, texture.bitmap());
 
         if (dynamicMask && maskControl != null && maskControl.texture != null)
@@ -1268,7 +1242,7 @@ public class OBControl
                 for (int i = 0;i < 3;i++)
                     finalCol[i] *= op;
 
-                if(drawShadow())
+                if(shouldRenderShadow())
                 {
                     ShadowShaderProgram shadowShader = (ShadowShaderProgram) renderer.shadowProgram;
                     shadowShader.useProgram();
@@ -1547,15 +1521,9 @@ public class OBControl
     {
         if (hidden)
         {
-            new OBRunnableSyncUI()
-            {
-                public void ex ()
-                {
-                    hidden = false;
-                    setNeedsRetexture();
-                    invalidate();
-                }
-            }.run();
+            hidden = false;
+            setNeedsRetexture();
+            invalidate();
         }
     }
 
@@ -1563,15 +1531,9 @@ public class OBControl
     {
         if (!hidden)
         {
-            new OBRunnableSyncUI()
-            {
-                public void ex ()
-                {
-                    hidden = true;
-                    setNeedsRetexture();
-                    invalidate();
-                }
-            }.run();
+            hidden = true;
+            setNeedsRetexture();
+            invalidate();
         }
     }
 
@@ -1641,18 +1603,11 @@ public class OBControl
 
     public void setRotation (final float rt)
     {
-        new OBRunnableSyncUI()
-        {
-            public void ex ()
-            {
-                invalidate();
-                rotation = rt;
-                frameValid = false;
-                invalidate();
-                if(hasTexturedParent())
-                    setNeedsRetexture();
-            }
-        }.run();
+        rotation = rt;
+        frameValid = false;
+        invalidate();
+        if(hasTexturedParent())
+            setNeedsRetexture();
     }
 
     public float yRotation ()
@@ -1662,16 +1617,9 @@ public class OBControl
 
     public void setYRotation (final float rt)
     {
-        new OBRunnableSyncUI()
-        {
-            public void ex ()
-            {
-                invalidate();
-                yRotation = rt;
-                frameValid = false;
-                invalidate();
-            }
-        }.run();
+        yRotation = rt;
+        frameValid = false;
+        invalidate();
     }
 
     /*
@@ -1754,47 +1702,35 @@ public class OBControl
 
     public void setAnchorPoint (final float x, final float y)
     {
-        new OBRunnableSyncUI()
-        {
-            public void ex ()
-            {
-                PointF oldAnchor = new PointF(anchorPoint.x, anchorPoint.y);
-                anchorPoint.set(x, y);
-                PointF absPoint = OB_Maths.locationForRect(oldAnchor, frame());
-                PointF diff = OB_Maths.DiffPoints(position(), absPoint);
-                setPosition(OB_Maths.OffsetPoint(position(), diff.x, diff.y));
-            }
-        }.run();
+
+        PointF oldAnchor = new PointF(anchorPoint.x, anchorPoint.y);
+        anchorPoint.set(x, y);
+        PointF absPoint = OB_Maths.locationForRect(oldAnchor, frame());
+        PointF diff = OB_Maths.DiffPoints(position(), absPoint);
+        setPosition(OB_Maths.OffsetPoint(position(), diff.x, diff.y));
+
     }
 
     public void setShadow (final float sradius, final float sopacity, final float soffsetx, final float soffsety, final int scolour)
     {
-        new OBRunnableSyncUI()
-        {
-            @Override
-            public void ex()
-            {
-                shadowRadius = sradius;
-                shadowOffsetX = soffsetx;
-                shadowOffsetY = soffsety;
-                shadowOpacity = sopacity;
-                shadowColour = scolour;
-                OBUtils.setFloatColour( Color.red(scolour) / 255.0f,
-                        Color.green(scolour) / 255.0f,
-                        Color.blue(scolour) / 255.0f, Color.alpha(scolour)/255.0f, shadowBlendColour);
+        shadowRadius = sradius;
+        shadowOffsetX = soffsetx;
+        shadowOffsetY = soffsety;
+        shadowOpacity = sopacity;
+        shadowColour = scolour;
+        OBUtils.setFloatColour( Color.red(scolour) / 255.0f,
+                Color.green(scolour) / 255.0f,
+                Color.blue(scolour) / 255.0f, Color.alpha(scolour)/255.0f, shadowBlendColour);
 
-                for(int i=0; i<4; i++)
-                    shadowBlendColour[i] *= sopacity;
-                invalidate();
-            }
-        }.run();
+        for(int i=0; i<4; i++)
+            shadowBlendColour[i] *= sopacity;
+        invalidate();
 
     }
 
-    private boolean drawShadow()
+    private boolean shouldRenderShadow()
     {
-        return false;
-        //return shadowOffsetX != 0 || shadowOffsetY != 0;
+        return parent == null &&(shadowOffsetX != 0 || shadowOffsetY != 0);
     }
 
 
@@ -1818,20 +1754,16 @@ public class OBControl
         else
         {
             final RectF f = frame();
-            new OBRunnableSyncUI()
+
+            tempRect.set(f);
+           /* if (shadowColour != 0 && shadowRadius > 0 && shadowOpacity > 0)
             {
-                public void ex ()
-                {
-                    tempRect.set(f);
-                   /* if (shadowColour != 0 && shadowRadius > 0 && shadowOpacity > 0)
-                    {
-                        tempRect.offset(shadowOffsetX, shadowOffsetY);
-                        tempRect.inset(-shadowRadius, -shadowRadius);
-                        tempRect.union(f);
-                    }*/
-                    controller.invalidateView((int) (tempRect.left - invalOutdent), (int) (tempRect.top - invalOutdent), (int) (tempRect.right + invalOutdent), (int) (tempRect.bottom + invalOutdent));
-                }
-            }.run();
+                tempRect.offset(shadowOffsetX, shadowOffsetY);
+                tempRect.inset(-shadowRadius, -shadowRadius);
+                tempRect.union(f);
+            }*/
+            controller.invalidateView((int) (tempRect.left - invalOutdent), (int) (tempRect.top - invalOutdent), (int) (tempRect.right + invalOutdent), (int) (tempRect.bottom + invalOutdent));
+
         }
     }
 
@@ -1842,15 +1774,6 @@ public class OBControl
 
     public void highlight ()
     {
-     /*   new OBRunnableSyncUI()
-        {
-            public void ex()
-            {
-                highlightColour = Color.argb(127, 0, 0, 0);
-                OBUtils.setFloatColour(.8f,.8f,.8f,1,blendColour);
-                invalidate();
-            }
-        }.run();*/
         setHighlightColour(Color.argb(255, 127, 127, 127));
     }
 
@@ -1866,75 +1789,46 @@ public class OBControl
 
     private void setHighlightColourAndMode(final int colour, final float mode)
     {
-        new OBRunnableSyncUI()
-        {
-            public void ex ()
-            {
-                highlightColour = colour;
-                blendMode = mode;
-              /*  float alpha = Color.alpha(colour) / 255.0f;
-                OBUtils.setFloatColour(alpha * Color.red(colour) / 255.0f,
-                        alpha * Color.green(colour) / 255.0f,
-                        alpha * Color.blue(colour) / 255.0f, 1, blendColour);*/
-                OBUtils.setFloatColour( Color.red(colour) / 255.0f,
-                         Color.green(colour) / 255.0f,
-                         Color.blue(colour) / 255.0f, Color.alpha(colour)/255.0f, blendColour);
-                if (hasTexturedParent())
-                    parent.setNeedsRetexture();
-                invalidate();
-            }
-        }.run();
+
+        highlightColour = colour;
+        blendMode = mode;
+      /*  float alpha = Color.alpha(colour) / 255.0f;
+        OBUtils.setFloatColour(alpha * Color.red(colour) / 255.0f,
+                alpha * Color.green(colour) / 255.0f,
+                alpha * Color.blue(colour) / 255.0f, 1, blendColour);*/
+        OBUtils.setFloatColour( Color.red(colour) / 255.0f,
+                 Color.green(colour) / 255.0f,
+                 Color.blue(colour) / 255.0f, Color.alpha(colour)/255.0f, blendColour);
+        if (hasTexturedParent())
+            parent.setNeedsRetexture();
+        invalidate();
+
     }
 
 
     public void lowlight ()
     {
-        /*
-        new OBRunnableSyncUI()
-        {
-            public void ex()
-            {
-                highlightColour = 0;
-                OBUtils.setFloatColour(1,1,1,1,blendColour);
-                invalidate();
-            }
-        }.run();
-        */
         setHighlightColour(Color.argb(255, 255, 255, 255));
     }
 
     public void setBorderColor (final int i)
     {
-        new OBRunnableSyncUI()
+        borderColour = i;
+        if (texture != null)
         {
-            public void ex ()
-            {
-                borderColour = i;
-                if (texture != null)
-                {
-                    setNeedsRetexture();
-//                    needsRetexture = true;
-                }
-                invalidate();
-            }
-        }.run();
+            setNeedsRetexture();
+        }
+        invalidate();
     }
 
     public void setBorderWidth (final float f)
     {
-        new OBRunnableSyncUI()
+        borderWidth = f;
+        if (texture != null)
         {
-            public void ex ()
-            {
-                borderWidth = f;
-                if (texture != null)
-                {
-                    setNeedsRetexture();
-//                    needsRetexture = true;
-                }
-                invalidate();
-            }
-        }.run();
+            setNeedsRetexture();
+        }
+        invalidate();
     }
 
     public int colourAtPoint (float x, float y)
