@@ -37,8 +37,8 @@ public class X_Counting7To10_S3 extends XPRZ_Generic_SelectCorrectObject
         gotItRightBigTick(true);
         waitForSecs(0.3);
         //
-        action_lowlight(target);
-        waitForSecs(0.3);
+//        action_lowlight(target);
+//        waitForSecs(0.3);
         //
         playSceneAudio("CORRECT", true);
         if (audioSceneExists("FINAL"))

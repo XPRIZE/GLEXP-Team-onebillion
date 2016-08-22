@@ -436,7 +436,8 @@ public class X_AddTakeAway_S7 extends XPRZ_Generic_Event
         waitForSecs(0.7);
         //
         setStatus(STATUS_AWAITING_CLICK);
-        playSceneAudio("PROMPT", false);
+        doAudio(currentEvent());
+//        playSceneAudio("PROMPT", false);
     }
 
 
@@ -562,7 +563,10 @@ public class X_AddTakeAway_S7 extends XPRZ_Generic_Event
                 {
                     cell.lowlight();
                 }
-                closestCell.highlight();
+                if (closestCell != null)
+                {
+                    closestCell.highlight();
+                }
                 unlockScreen();
                 //
                 currentCell = objectDict.get(String.format("cell_%d", currentPosition));

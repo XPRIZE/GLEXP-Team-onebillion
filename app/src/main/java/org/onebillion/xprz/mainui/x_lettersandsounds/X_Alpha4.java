@@ -185,8 +185,6 @@ public class X_Alpha4 extends X_Alpha3
                     //
                     playSceneAudio("FINAL", true);
                     waitForSecs(0.3);
-                    //
-                    nextScene();
                 }
                 else if (currentEvent().equals(events.get(events.size() - 2)))
                 {

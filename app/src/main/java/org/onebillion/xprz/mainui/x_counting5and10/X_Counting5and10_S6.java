@@ -48,6 +48,7 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
         //
         super.setSceneXX(scene);
         //
+        selectedColour = 0;
         int count = 0;
         for (OBControl number : sortedFilteredControls("number.*"))
         {
