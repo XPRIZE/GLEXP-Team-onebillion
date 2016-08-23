@@ -165,6 +165,36 @@ public class OBUtils
     }
 
 
+
+
+    public static String getAbsolutePathForFile (String path)
+    {
+        try
+        {
+            AssetManager am = MainActivity.mainActivity.getAssets();
+            InputStream is = am.open(path);
+            if (is != null) return "android_asset/" + path;
+        }
+        catch (IOException e)
+        {
+//             e.printStackTrace();
+        }
+        for (File mounted : OBExpansionManager.sharedManager.getExternalExpansionFolders())
+        {
+            try
+            {
+                File extendedFile = new File(mounted.getAbsolutePath() + "/" + path);
+                if (extendedFile.exists()) return extendedFile.getAbsolutePath();
+            }
+            catch (Exception e)
+            {
+//                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+
     public static InputStream getInputStreamForPath (String path)
     {
         try

@@ -429,6 +429,7 @@ public class MainActivity extends Activity
         InputStream pis;
         pis = getAssets().open("config/settings.plist");
 //        pis = getAssets().open("config/settings_pedro.plist");
+//        pis = getAssets().open("config/settings_judge_menu.plist");
         OBXMLManager xmlManager = new OBXMLManager();
         config = (Map<String, Object>) xmlManager.parsePlist(pis);
         //

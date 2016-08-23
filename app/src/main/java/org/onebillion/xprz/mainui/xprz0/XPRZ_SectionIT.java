@@ -1,4 +1,4 @@
-package org.onebillion.xprz.mainui;
+package org.onebillion.xprz.mainui.xprz0;
 
 import android.graphics.Color;
 import android.graphics.PointF;
@@ -9,6 +9,7 @@ import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBLabel;
+import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OB_Maths;
