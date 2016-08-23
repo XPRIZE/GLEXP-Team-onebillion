@@ -63,9 +63,10 @@ public class OBWord extends OBSyllable
         if (!syllablesChecked)
         {
             String partSylWordAudio = new String(soundid).replace("fc_", "fc_syl_");
-            String fullpath = locationInSameDirectory(soundid,partSylWordAudio+".etpa");
+            String fullpath = locationInSameDirectory(soundid, partSylWordAudio);
             if (fullpath != null)
             {
+                fullpath = String.format("%s%s.%s", fullpath, partSylWordAudio, "etpa");
                 List<List<Double>> sylTiming = OBUtils.ComponentTimingsForWord(fullpath);
                 //
                 if (sylTiming.size() > 0)
@@ -82,8 +83,8 @@ public class OBWord extends OBSyllable
                     }
                     syllables = timingSyllables;
                 }
+                syllablesChecked = true;
             }
-            syllablesChecked = true;
         }
         return syllables;
     }
@@ -101,9 +102,10 @@ public class OBWord extends OBSyllable
                 }
             }
             String partPhoWordAudio = new String(soundid).replace("fc_", "fc_let_");
-            String fullpath = locationInSameDirectory(soundid,partPhoWordAudio+".etpa");
+            String fullpath = locationInSameDirectory(soundid, partPhoWordAudio);
             if (fullpath != null)
             {
+                fullpath = String.format("%s%s.%s", fullpath, partPhoWordAudio, "etpa");
                 List<List<Double>> phoTiming = OBUtils.ComponentTimingsForWord(fullpath);
                 //
                 if (phoTiming.size() > 0)
@@ -120,8 +122,8 @@ public class OBWord extends OBSyllable
                     }
                     phonemes = timingPhonemes;
                 }
+                phonemesChecked = true;
             }
-            phonemesChecked = true;
         }
         return phonemes;
     }
@@ -140,16 +142,24 @@ public class OBWord extends OBSyllable
 
     public static String locationInSameDirectory(String item1,String item2)
     {
-        String p1 = OBSectionController.getLocalPath(item1);
+        String p1 = OBSectionController.getLocalPath(String.format("%s.%s", item1,  MainActivity.Config().get(MainActivity.CONFIG_AUDIO_SUFFIX)));
         if (p1 == null)
+        {
             return null;
-        String p2 = OBSectionController.getLocalPath(String.format("%@.m4a",item2));
+        }
+        String p2 = OBSectionController.getLocalPath(String.format("%s.%s",item2,  MainActivity.Config().get(MainActivity.CONFIG_AUDIO_SUFFIX)));
         if (p2 == null)
+        {
             return null;
-        if(OBUtils.stringByDeletingLastPathComponent(p1).equals(OBUtils.stringByDeletingLastPathComponent(p2) ) )
-            return p1;
+        }
+        if(OBUtils.stringByDeletingLastPathComponent(p1).equals(OBUtils.stringByDeletingLastPathComponent(p2)))
+        {
+            return OBUtils.stringByDeletingLastPathComponent(p1) + "/";
+        }
         else
+        {
             return null;
+        }
     }
 
 }

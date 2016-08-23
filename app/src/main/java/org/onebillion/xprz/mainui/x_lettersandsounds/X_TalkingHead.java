@@ -468,53 +468,60 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
     }
 
 
-    public void avatarSay_syllables () throws Exception
+    public void avatarSay_syllables ()
     {
-        OBWord correctAnswer = (OBWord) answers.get(currNo);
-        OBLabel label = action_getCorrectLabel();
-        //
-        List<OBSyllable> breakdown = correctAnswer.syllables();
-        //
-        String filename = new String(correctAnswer.audio()).replace("fc_", "fc_syl_");
-        playAudio(filename);
-        //
-        Double startTime = XPRZ_Generic.currentTime();
-        Integer startRange = 0;
-        int i = 0;
-        //
-        for (OBSyllable syllable : breakdown)
+        try
         {
-            Double timeStart = (Double) syllable.timings.get(0);
-            Double timeEnd = (Double) syllable.timings.get(1);
+            OBWord correctAnswer = (OBWord) answers.get(currNo);
+            OBLabel label = action_getCorrectLabel();
             //
-            Double currTime = XPRZ_Generic.currentTime() - startTime;
-            Double waitTime = timeStart - currTime;
-            if (waitTime > 0.0) waitForSecs(waitTime);
+            List<OBSyllable> breakdown = correctAnswer.syllables();
             //
-            Integer endRange = startRange + syllable.text.length();
-            action_highlightWord(correctAnswer, label, startRange, endRange, true);
+            String filename = new String(correctAnswer.audio()).replace("fc_", "fc_syl_");
+            playAudio(filename);
             //
-            avatarShowMouthFrameForText(syllable.text, false);
-            waitForSecs(0.15);
-            avatarShowMouthFrameForText(syllable.text, true);
-            waitForSecs(0.15);
+            Double startTime = XPRZ_Generic.currentTime();
+            Integer startRange = 0;
+            int i = 0;
             //
-            currTime = XPRZ_Generic.currentTime();
-            waitTime = timeEnd - currTime;
-            if (waitTime > 0) waitForSecs(waitTime);
+            for (OBSyllable syllable : breakdown)
+            {
+                Double timeStart = (Double) syllable.timings.get(0);
+                Double timeEnd = (Double) syllable.timings.get(1);
+                //
+                Double currTime = XPRZ_Generic.currentTime() - startTime;
+                Double waitTime = timeStart - currTime;
+                if (waitTime > 0.0) waitForSecs(waitTime);
+                //
+                Integer endRange = startRange + syllable.text.length();
+                action_highlightWord(correctAnswer, label, startRange, endRange, true);
+                //
+                avatarShowMouthFrameForText(syllable.text, false);
+                waitForSecs(0.15);
+                avatarShowMouthFrameForText(syllable.text, true);
+                waitForSecs(0.15);
+                //
+                currTime = XPRZ_Generic.currentTime();
+                waitTime = timeEnd - currTime;
+                if (waitTime > 0) waitForSecs(waitTime);
+                //
+                avatarShowMouthFrame("mouth_2");
+                //
+                startRange += syllable.text.length();
+                i++;
+            }
+            waitAudio();
+            action_highlightWord(correctAnswer, label, 0, correctAnswer.text.length(), false);
+            avatarShowMouthFrame("mouth_0");
             //
-            avatarShowMouthFrame("mouth_2");
-            //
-            startRange += syllable.text.length();
-            i++;
+            waitForSecs(0.3);
+            avatarSay_word(true);
+            waitForSecs(0.3);
         }
-        waitAudio();
-        action_highlightWord(correctAnswer, label, 0, correctAnswer.text.length(), false);
-        avatarShowMouthFrame("mouth_0");
-        //
-        waitForSecs(0.3);
-        avatarSay_word(true);
-        waitForSecs(0.3);
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
 
