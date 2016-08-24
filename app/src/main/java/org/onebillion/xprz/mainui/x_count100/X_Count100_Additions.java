@@ -24,8 +24,12 @@ import java.util.Objects;
 public class X_Count100_Additions
 {
 
-
     public static void drawGrid(int count, OBControl rect, int borderColour, int textColour, boolean single, OBSectionController controller)
+    {
+        drawGrid(count,rect,borderColour,textColour,single,true,controller);
+    }
+
+    public static void drawGrid(int count, OBControl rect, int borderColour, int textColour, boolean single, boolean groupOnlyBoxes, OBSectionController controller)
     {
 
         OBMainViewController mainViewController = OBMainViewController.MainViewController();
@@ -152,9 +156,16 @@ public class X_Count100_Additions
             controller.attachControl(frame);
         }
 
+        List<OBControl> allControls = boxes;
+        if(!groupOnlyBoxes)
+            boxes.addAll(numbers);
+
         OBGroup groupBoxes = new OBGroup(boxes);
         controller.attachControl(groupBoxes);
         controller.objectDict.put("grid_box", groupBoxes);
+        groupBoxes.setZPosition(1);
+
+
 
      /*   for (int i = 0;i < count;i++)
         {
