@@ -8,6 +8,7 @@ import android.util.ArrayMap;
 import android.view.View;
 
 import org.onebillion.xprz.controls.*;
+import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 import org.onebillion.xprz.utils.OBAnim;
@@ -238,9 +239,7 @@ public class X_MakeSylWord extends XPRZ_SectionController
             box.closeLid("lid_open");
             waitForSecs(0.3f);
             playAudioQueued(OBUtils.insertAudioInterval(audioForScene("finale", "DEMO"), 300), true);
-            //(XPRZ_FatController)FatController().completeEvent(;
-            displayAward();
-            exitEvent();
+            MainActivity.mainActivity.fatController.completeEvent(this);
 
     }
 

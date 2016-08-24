@@ -223,9 +223,8 @@ public class X_Mgp extends XPRZ_SectionController
             waitForSecs(0.3f);
             playTargetLetter();
             waitForSecs(0.3f);
-           // (XPRZ_FatController*)FatController().completeEvent(;
-            displayAward();
-            exitEvent();
+
+            MainActivity.mainActivity.fatController.completeEvent(this);
 
     }
 

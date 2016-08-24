@@ -281,9 +281,7 @@ public class X_WordAudioRec extends XPRZ_SectionController
 
             waitForSecs(0.3f);
             playAudioQueued(OBUtils.insertAudioInterval(getAudioForScene(String.format("finale%s", modeDict.get(currentMode)),"DEMO"),300),true);
-           // (XPRZ_FatController*)FatController().completeEvent(;
-            displayAward();
-            exitEvent();
+            MainActivity.mainActivity.fatController.completeEvent(this);
         }
         catch (Exception exception)
         {

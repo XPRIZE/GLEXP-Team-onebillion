@@ -5,6 +5,7 @@ import android.graphics.Color;
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBPath;
+import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimBlock;
 import org.onebillion.xprz.utils.OBAnimationGroup;
@@ -82,10 +83,7 @@ public class X_Hw1 extends X_Hw
                 waitForSecs(0.3f);
             }
 
-
-            //FatController().completeEvent();
-            displayAward();
-            exitEvent();
+            MainActivity.mainActivity.fatController.completeEvent(this);
         }
         catch (Exception exception)
         {
