@@ -1,8 +1,6 @@
 package org.onebillion.xprz.utils;
 
-import android.content.ContentValues;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.util.ArrayMap;
 
 import org.onebillion.xprz.mainui.MainActivity;
@@ -45,42 +43,50 @@ public class XPRZ_FatController extends OBFatController
     public void loadMasterListIntoDB()
     {
         DBSQL db = new DBSQL(true);
-        Cursor cursor = db.prepareSelectOnTable("units", Collections.singletonList("COUNT(*) as count"),null);
-        if(cursor.moveToFirst() && cursor.getInt(cursor.getColumnIndex("count")) == 0)
+        String token = OBPreferenceManager.getStringPreference(OBPreferenceManager.PREFERENCE_ML_TOKEN, db);
+        try
         {
-                cursor.close();
+            String mlname = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_MASTER_LIST);
+            OBXMLManager xmlManager = new OBXMLManager();
+            InputStream is = OBUtils.getInputStreamForPath(String.format("config/%s", mlname));
+            List<OBXMLNode> xml = xmlManager.parseFile(is);
+            OBXMLNode rootNode = xml.get(0);
+            List<OBXMLNode> masterList = new ArrayList<>();
+            String masterListToken = rootNode.attributeStringValue("token");
+            if(token == null || !token.equals(masterListToken))
+            {
+                db.beginTransaction();
                 try
                 {
-                   // db.beginTransaction();
-                    String mlname = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_MASTER_LIST);
-                    OBXMLManager xmlManager = new OBXMLManager();
-                    InputStream is = OBUtils.getInputStreamForPath(String.format("config/%s", mlname));
-                    List<OBXMLNode> xml = xmlManager.parseFile(is);
-                    MainActivity.mainActivity.getApplicationContext().deleteDatabase("db");
-                    OBXMLNode rootNode = xml.get(0);
-                    List<OBXMLNode> masterList = new ArrayList<>();
+                    db.doDeleteOnTable(DBSQL.TABLE_UNITS, null);
                     int unitid = 0;
                     for (OBXMLNode levelNode : rootNode.childrenOfType("level"))
                     {
                         masterList.addAll(levelNode.childrenOfType("unit"));
                         for (OBXMLNode node : levelNode.childrenOfType("unit"))
                         {
-                            MlUnit.insertUnitFromXMLNodeintoDB(db,node,unitid, levelNode.attributeIntValue("id"));
+                            MlUnit.insertUnitFromXMLNodeintoDB(db, node, unitid, levelNode.attributeIntValue("id"));
+
+
                             unitid++;
                         }
                     }
-                    db.commitTransaction();
-
-                } catch (Exception e)
+                    OBPreferenceManager.setPreference(OBPreferenceManager.PREFERENCE_ML_TOKEN,masterListToken, db);
+                    db.setTransactionSuccessful();
+                } finally
                 {
-
+                    db.commitTransaction();
                 }
-        }
-        else
+
+
+            }
+
+        } catch (Exception e)
         {
-            cursor.close();
+
         }
         db.close();
+
     }
 
 
@@ -103,7 +109,6 @@ public class XPRZ_FatController extends OBFatController
     @Override
     public void startUp()
     {
-
         initDB();
 
         String menuClassName = (String)MainActivity.mainActivity.config.get("menuclass");
@@ -295,7 +300,7 @@ public class XPRZ_FatController extends OBFatController
     public void refreshUnitsList()
     {
         DBSQL db = new DBSQL(true);
-        db.doDeleteOnTable("units",null);
+        db.doDeleteOnTable(DBSQL.TABLE_UNITS,null);
         db.close();
         loadMasterListIntoDB();
     }

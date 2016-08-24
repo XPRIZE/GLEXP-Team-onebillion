@@ -20,6 +20,7 @@
         android:layout_width="139dp"
         android:layout_height="wrap_content"
         android:text="refresh"
-        android:id="@+id/refreshButton"/>
+        android:id="@+id/refreshButton"
+        android:enabled="false"/>
 
 </LinearLayout>

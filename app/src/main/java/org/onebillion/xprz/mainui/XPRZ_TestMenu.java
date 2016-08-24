@@ -2,7 +2,6 @@ package org.onebillion.xprz.mainui;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,11 +13,9 @@ import android.widget.TextView;
 
 import org.onebillion.xprz.R;
 import org.onebillion.xprz.utils.DBSQL;
-import org.onebillion.xprz.utils.MlUnit;
 import org.onebillion.xprz.utils.XPRZ_FatController;
 
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 
@@ -83,7 +80,7 @@ public class XPRZ_TestMenu extends OBSectionController
                 //cursorAdapter.swapCursor(null);
                 controller.refreshUnitsList();
                 db = new DBSQL(false);
-                Cursor cursor = db.prepareSelectOnTable("units", Arrays.asList("key", "unitid as _id"),null,"unitid ASC");
+                Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("key", "unitid as _id"),null,"unitid ASC");
                 if(cursor.moveToFirst())
                 {
                     cursorAdapter.swapCursor(cursor);
@@ -92,7 +89,7 @@ public class XPRZ_TestMenu extends OBSectionController
             }
         });
 
-        Cursor cursor = db.prepareSelectOnTable("units", Arrays.asList("key", "unitid as _id"),null,"unitid ASC");
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("key", "unitid as _id"),null,"unitid ASC");
         if(cursor.moveToFirst())
         {
             cursorAdapter = new OBCursorAdapter(MainActivity.mainActivity, cursor);

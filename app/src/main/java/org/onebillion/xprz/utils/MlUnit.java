@@ -39,7 +39,7 @@ public class MlUnit extends MlObject
         ContentValues contentValues = contentValuesForNode(node,stringFields,intFields,null,floatFields,dbToXmlConvert);
         contentValues.put("unitid", unitid);
         contentValues.put("level", level);
-        boolean result = db.doInsertOnTable("units",contentValues) > -1;
+        boolean result = db.doInsertOnTable(DBSQL.TABLE_UNITS,contentValues) > -1;
         return result;
     }
 
@@ -56,7 +56,7 @@ public class MlUnit extends MlObject
         Map<String,String> whereMap = new ArrayMap<>();
         whereMap.put("unitid",String.valueOf(unitid));
         DBSQL db = new DBSQL(false);
-        Cursor cursor = db.prepareSelectOnTable("units",allFieldNames(stringFields,intFields,null,floatFields),whereMap);
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNITS,allFieldNames(stringFields,intFields,null,floatFields),whereMap);
         if(cursor.moveToFirst())
         {
             MlUnit unit = mlUnitFromCursor(cursor);

@@ -2,7 +2,6 @@ package org.onebillion.xprz.utils;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.database.CursorIndexOutOfBoundsException;
 import android.util.ArrayMap;
 
 import java.util.*;
@@ -28,7 +27,7 @@ public class OBUser extends MlObject
         data.put("file",fileName);
         data.put("level",level);
         DBSQL db = new DBSQL(true);
-        boolean result =  db.doInsertOnTable("certificates",data) > 0;
+        boolean result =  db.doInsertOnTable(DBSQL.TABLE_CERTIFICATES,data) > 0;
         db.close();
         return result;
     }
@@ -39,7 +38,7 @@ public class OBUser extends MlObject
         whereMap.put("userid",String.valueOf(userid));
         whereMap.put("level",String.valueOf(level));
         DBSQL db = new DBSQL(false);
-        Cursor cursor = db.prepareSelectOnTable("certificates", Collections.singletonList("file"),whereMap);
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_CERTIFICATES, Collections.singletonList("file"),whereMap);
         String file = null;
         if(cursor.moveToFirst())
         {
@@ -55,7 +54,7 @@ public class OBUser extends MlObject
         Map<String,String> whereMap  = new ArrayMap<>();
         whereMap.put("userid",String.valueOf(userid));
         DBSQL db = new DBSQL(false);
-        Cursor cursor = db.prepareSelectOnTable("certificates", Collections.singletonList("MAX(level) as level"),whereMap);
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_CERTIFICATES, Collections.singletonList("MAX(level) as level"),whereMap);
         int level = -1;
         if(cursor.moveToFirst())
         {
@@ -71,7 +70,7 @@ public class OBUser extends MlObject
         Map<String,String> whereMap  = new ArrayMap<>();
         whereMap.put("userid",String.valueOf(userid));
         DBSQL db = new DBSQL(false);
-        Cursor cursor = db.prepareSelectOnTable("users", allFieldNames(stringFields,intFields,null,null),whereMap);
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_USERS, allFieldNames(stringFields,intFields,null,null),whereMap);
         OBUser user = null;
         if(cursor.moveToFirst())
         {
@@ -88,7 +87,7 @@ public class OBUser extends MlObject
         ContentValues contentValues = new ContentValues();
         contentValues.put("name", name);
         DBSQL db = new DBSQL(true);
-        long rowId = db.doInsertOnTable("users",contentValues);
+        long rowId = db.doInsertOnTable(DBSQL.TABLE_USERS,contentValues);
         db.close();
         if(rowId > -1)
         {
@@ -106,7 +105,7 @@ public class OBUser extends MlObject
     public static OBUser lastUserFromDB()
     {
         DBSQL db = new DBSQL(false);
-        Cursor cursor = db.prepareSelectOnTable("users",allFieldNames(stringFields,intFields,null,null),null);
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_USERS,allFieldNames(stringFields,intFields,null,null),null);
         OBUser user = null;
         if(cursor.moveToFirst())
         {
@@ -127,7 +126,7 @@ public class OBUser extends MlObject
         int sessionid = 1;
 
         DBSQL db = new DBSQL(true);
-        Cursor cursor = db.prepareSelectOnTable("sessions", Collections.singletonList("MAX(sessionid) as sessionid"), whereMap);
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_SESSIONS, Collections.singletonList("MAX(sessionid) as sessionid"), whereMap);
         if (cursor.moveToFirst())
             sessionid = cursor.getInt(cursor.getColumnIndex("sessionid")) + 1;
         cursor.close();
@@ -136,7 +135,7 @@ public class OBUser extends MlObject
         contentValues.put("userid", userid);
         contentValues.put("sessionid", sessionid);
         contentValues.put("starttime", System.currentTimeMillis()/1000);
-        db.doInsertOnTable("sessions",contentValues);
+        db.doInsertOnTable(DBSQL.TABLE_SESSIONS,contentValues);
         db.close();
         currentsessionid = sessionid;
     }

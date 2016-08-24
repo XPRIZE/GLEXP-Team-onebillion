@@ -50,3 +50,9 @@ create table certificates
     file text not null,
     constraint pkey primary key (userid,level) on conflict fail
 );
+
+create table preferences
+(
+    name text primary key not null,
+    val text
+);

@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.util.ArrayMap;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -42,7 +41,7 @@ public class MlUnitInstance extends MlObject
         whereMap.put("userid",String.valueOf(userid));
         whereMap.put("unitid",String.valueOf(unitid));
         DBSQL db = new DBSQL(true);
-        Cursor cursor = db.prepareSelectOnTable("unitinstances", Collections.singletonList("MAX(seqno) as seqno"),whereMap);
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES, Collections.singletonList("MAX(seqno) as seqno"),whereMap);
         if(cursor.moveToFirst())
         {
             mlui.seqno = cursor.getInt(cursor.getColumnIndex("seqno")) + 1;
@@ -74,7 +73,7 @@ public class MlUnitInstance extends MlObject
         whereMap.put("unitid",String.valueOf(unitid));
         whereMap.put("seqno",String.valueOf(seqno));
         DBSQL db = new DBSQL(false);
-        Cursor cursor = db.prepareSelectOnTable("unitinstances",allFieldNames(null,intFields,longFields,floatFields),whereMap);
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES,allFieldNames(null,intFields,longFields,floatFields),whereMap);
 
         MlUnitInstance mlui = null;
         if(cursor.moveToFirst())
@@ -99,7 +98,7 @@ public class MlUnitInstance extends MlObject
         contentValues.put("score",score);
         contentValues.put("elapsedtime",elapsedtime);
         DBSQL db = new DBSQL(true);
-        boolean result = db.doUpdateOnTable("unitinstances",whereMap,contentValues) > -1;
+        boolean result = db.doUpdateOnTable(DBSQL.TABLE_UNIT_INSTANCES,whereMap,contentValues) > -1;
         db.close();
         return result;
     }
@@ -107,7 +106,7 @@ public class MlUnitInstance extends MlObject
     public Boolean saveToDB(DBSQL db)
     {
         ContentValues contentValues = getContentValues(null,intFields,longFields,floatFields);
-        boolean result = db.doInsertOnTable("unitinstances",contentValues) > -1;
+        boolean result = db.doInsertOnTable(DBSQL.TABLE_UNIT_INSTANCES,contentValues) > -1;
         return result;
     }
 

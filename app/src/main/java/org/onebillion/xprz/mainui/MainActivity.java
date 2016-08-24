@@ -183,10 +183,11 @@ public class MainActivity extends Activity
         //        setContentView(glSurfaceView);
         try
         {
+            new OBAudioManager();
             setUpConfig();
             checkForUpdatesAndLoadMainViewController();
             //glSurfaceView.controller = mainViewController;
-            new OBAudioManager();
+
             ((ThreadPoolExecutor) AsyncTask.THREAD_POOL_EXECUTOR).setCorePoolSize(12);
         }
         catch (Exception e)

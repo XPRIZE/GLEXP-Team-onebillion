@@ -21,6 +21,13 @@ import java.util.Set;
  */
 public class DBSQL
 {
+    public final static String TABLE_UNITS = "units";
+    public final static String TABLE_PREFERENCES = "preferences";
+    public final static String TABLE_UNIT_INSTANCES = "unitinstances";
+    public final static String TABLE_SESSIONS = "sessions";
+    public final static String TABLE_USERS = "users";
+    public final static String TABLE_CERTIFICATES = "certificates";
+
     private SQLiteDatabase database;
 
     public DBSQL(boolean writable)
@@ -64,6 +71,11 @@ public class DBSQL
         return rowId;
     }
 
+    public long doReplaceOnTable(String table, ContentValues insertValues)
+    {
+        long rowId = database.replace(table,null,insertValues);
+        return rowId;
+    }
 
     public long doUpdateOnTable(String table, Map<String,String> whereMap, ContentValues updateValues)
     {
@@ -71,12 +83,12 @@ public class DBSQL
         return result;
     }
 
-    public Cursor prepareSelectOnTable(String table, List<String> columns, Map<String,String> whereMap)
+    public Cursor doSelectOnTable(String table, List<String> columns, Map<String,String> whereMap)
     {
         return database.query(table,columns.toArray(new String[columns.size()]),mapToWhereStatement(whereMap),mapToWhereValues(whereMap),null,null,null);
     }
 
-    public Cursor prepareSelectOnTable(String table, List<String> columns, Map<String,String> whereMap, String orderBy)
+    public Cursor doSelectOnTable(String table, List<String> columns, Map<String,String> whereMap, String orderBy)
     {
         return database.query(table,columns.toArray(new String[columns.size()]),mapToWhereStatement(whereMap),mapToWhereValues(whereMap),null,null,orderBy);
     }
@@ -100,6 +112,11 @@ public class DBSQL
     public void beginTransaction()
     {
         database.beginTransaction();
+    }
+
+    public void setTransactionSuccessful()
+    {
+        database.setTransactionSuccessful();
     }
 
     public void commitTransaction()
