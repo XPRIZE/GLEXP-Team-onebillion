@@ -1399,15 +1399,15 @@ public class OBSectionController extends OBViewController
                 targetPoint = new PointF(0, 0);
                 break;
             case POINTER_MIDDLE:
-                startPoint = new PointF(0.5f, 1);
+                startPoint = new PointF(0.5f, 1.1f);
                 targetPoint = new PointF(0.5f, 0);
                 break;
             case POINTER_RIGHT:
-                startPoint = new PointF(0.25f, 1);
+                startPoint = new PointF(0.25f, 1.1f);
                 targetPoint = new PointF(1, 0);
                 break;
             default:
-                startPoint = new PointF(0.5f, 1);
+                startPoint = new PointF(0.5f, 1.1f);
                 targetPoint = new PointF(0.5f, 0);
         }
         startPoint = OB_Maths.locationForRect(startPoint, bounds());
