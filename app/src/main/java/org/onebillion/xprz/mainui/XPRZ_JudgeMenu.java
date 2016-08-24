@@ -109,7 +109,7 @@ public class XPRZ_JudgeMenu extends OBSectionController
             MainActivity.mainActivity.updateConfigPaths(config, false);
             String breakdown[] = config.split("\\/");
             String className = breakdown[0].replace("-", "_") + "." + target;
-            MainActivity.mainActivity.updateConfigPaths(config, false, lang);
+            MainActivity.mainActivity.updateConfigPaths(config, true, lang);
             MainViewController().pushViewControllerWithName(className, true, false, parameters);
         }
     }

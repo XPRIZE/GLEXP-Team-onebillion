@@ -34,6 +34,7 @@ import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.onebillion.xprz.BuildConfig;
 import org.onebillion.xprz.R;
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
@@ -427,9 +428,10 @@ public class MainActivity extends Activity
     public void setUpConfig () throws Exception
     {
         InputStream pis;
-        pis = getAssets().open("config/settings.plist");
+//        pis = getAssets().open("config/settings.plist");
 //        pis = getAssets().open("config/settings_pedro.plist");
 //        pis = getAssets().open("config/settings_judge_menu.plist");
+        pis = getAssets().open(BuildConfig.SETTINGS_FILE);
         OBXMLManager xmlManager = new OBXMLManager();
         config = (Map<String, Object>) xmlManager.parsePlist(pis);
         //

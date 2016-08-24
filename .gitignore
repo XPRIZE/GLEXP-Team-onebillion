@@ -7,6 +7,6 @@
 /captures
 /app/src/main/assets
 *.iml
-/app/build.gradle
-/app/src/build.gradle
+#/app/build.gradle
+#/app/src/build.gradle
 .idea/modules.xml

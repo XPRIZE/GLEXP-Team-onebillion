@@ -34,21 +34,32 @@ android {
     }
     sourceSets { main { assets.srcDirs = ['src/main/assets', 'src/main/assets_obb'] } }
     productFlavors {
-        alanConfig {
+        alan {
             minSdkVersion 23
             applicationId 'org.onebillion.xprz0.alan'
             targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Literacy Project - Alan"
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings.plist"'
         }
-        pedroConfig {
+        pedro {
             minSdkVersion 23
             applicationId 'org.onebillion.xprz0.pedro'
             targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Literacy Project - Pedro"
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_pedro.plist"'
+        }
+        judgeMenu {
+            minSdkVersion 23
+            applicationId 'org.onebillion.xprz0.pedro'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "onebillion - Judges"
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_judge_menu.plist"'
         }
     }
 }

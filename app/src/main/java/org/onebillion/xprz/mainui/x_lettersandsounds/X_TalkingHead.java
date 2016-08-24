@@ -155,10 +155,13 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
         for (int i = 1; i <= wordsPerSet; i++)
         {
             OBPhoneme word = set.get(i - 1);
-            OBLabel label = action_setupLabel(word.text);
-            labels.add(label);
-            OBControl marker = objectDict.get(String.format("pos_%d_%d", wordsPerSet, i));
-            label.setPosition(new PointF(midWayX, marker.position().y));
+            if (word != null)
+            {
+                OBLabel label = action_setupLabel(word.text);
+                labels.add(label);
+                OBControl marker = objectDict.get(String.format("pos_%d_%d", wordsPerSet, i));
+                label.setPosition(new PointF(midWayX, marker.position().y));
+            }
         }
     }
 
