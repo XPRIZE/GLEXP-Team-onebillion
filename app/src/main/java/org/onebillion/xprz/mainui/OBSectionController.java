@@ -688,7 +688,7 @@ public class OBSectionController extends OBViewController
                 //pt.y -= (tbounds.size.height + tbounds.origin.y);
                 RectF lf = lab.bounds();
                 pt.x += lf.width() / 2;
-                pt.y += lf.height() / 2;
+                pt.y -= fontSize / 2;
                 lab.setPosition(pt);
                 lab.setZPosition(1f);
                 //lab.setBorderColor(Color.BLACK);

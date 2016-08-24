@@ -569,10 +569,10 @@ public class OBControl
             boolean needsRestore = false;
             if ((flags & APPLY_EFFECTS) != 0)
             {
-                if (highlightColour != 0)
-                {
+                if (highlightColour == 0 || highlightColour == Color.WHITE)
+                    layer.setColourFilter(null);
+                else
                     layer.setColourFilter(new PorterDuffColorFilter(highlightColour, PorterDuff.Mode.SRC_ATOP));
-                }
                 if (needsRestore = (opacity() != 1.0f))
                     canvas.saveLayerAlpha(bounds(), (int) (opacity() * 255));
             }

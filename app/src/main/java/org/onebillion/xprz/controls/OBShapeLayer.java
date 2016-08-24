@@ -81,6 +81,7 @@ public class OBShapeLayer extends OBLayer
     {
         if (stroke != null)
         {
+            strokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             strokePaint.setStrokeWidth(stroke.lineWidth);
             //int col = OBUtils.applyColourOpacity(stroke.colour,opacity);
             strokePaint.setColor(stroke.colour);
@@ -92,13 +93,23 @@ public class OBShapeLayer extends OBLayer
             else
                 strokePaint.setPathEffect(dpe);
             strokePaint.setStyle(Paint.Style.STROKE);
+            if (colourFilter == null)
+                strokePaint.setColorFilter(null);
+            else
+                strokePaint.setColorFilter(colourFilter);
+
         }
         if (fillColour != 0)
         {
+            fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             //int col = OBUtils.applyColourOpacity(fillColour,opacity);
             fillPaint.setColor(fillColour);
             //fillPaint.setMaskFilter(new BlurMaskFilter(7, BlurMaskFilter.Blur.NORMAL));
             fillPaint.setStyle(Paint.Style.FILL);
+            if (colourFilter == null)
+                fillPaint.setColorFilter(null);
+            else
+                fillPaint.setColorFilter(colourFilter);
         }
     }
 

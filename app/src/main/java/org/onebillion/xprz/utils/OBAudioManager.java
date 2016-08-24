@@ -18,6 +18,8 @@ public class OBAudioManager {
             AM_SFX_CHANNEL = "2";
     public static OBAudioManager audioManager;
     public Map<String,OBAudioPlayer> players;
+    Map<String,String> pathCacheDict = new HashMap<>();
+    List<String>pathCacheList = new ArrayList<>();
     public OBAudioManager()
     {
         players = new HashMap<String, OBAudioPlayer>();
@@ -255,6 +257,18 @@ public class OBAudioManager {
         OBAudioPlayer player = playerForChannel(channel);
         AssetFileDescriptor fd = getAudioPathFD(fileName);
         player.prepare(fd);
+    }
+
+    public void clearCaches()
+    {
+        pathCacheDict.clear();
+        pathCacheList.clear();
+        synchronized(players)
+        {
+            for(String s : players.keySet() )
+                if(!s.equals(AM_MAIN_CHANNEL))
+                    players.remove(s);
+        }
     }
 
 }

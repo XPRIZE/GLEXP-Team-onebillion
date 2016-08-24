@@ -233,4 +233,10 @@ public class OBImageManager
         return groupForSVGName(name);
     }
 
+    public void clearCaches()
+    {
+        svgCacheDict.clear();
+        svgCacheList.clear();
+    }
+
 }

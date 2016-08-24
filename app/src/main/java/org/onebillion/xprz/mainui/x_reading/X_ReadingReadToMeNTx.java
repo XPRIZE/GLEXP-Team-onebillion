@@ -520,9 +520,11 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         lockScreen();
         doVisual("cqmain");
         presenter = XPRZ_Presenter.characterWithGroup((OBGroup)objectDict.get("annahead"));
-        OBControl cameo = objectDict.get("cameo");
+        OBGroup cameo = (OBGroup) objectDict.get("cameo");
         cameo.setShouldTexturise(false);
         //anna = (OBGroup) objectDict.get("annahead");
+        OBPath circleStroke = (OBPath) cameo.objectDict.get("circlestroke");
+        circleStroke.sizeToBoundingBoxIncludingStroke();
         faceForward();
         if (cqType == 1 || cqType == 3)
         {

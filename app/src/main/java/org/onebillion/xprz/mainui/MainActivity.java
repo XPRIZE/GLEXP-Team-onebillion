@@ -423,6 +423,8 @@ public class MainActivity extends Activity
         config.put(CONFIG_IMAGE_SEARCH_PATH, imageSearchPath(appDir, genDir));
         config.put(CONFIG_VECTOR_SEARCH_PATH, vectorSearchPath(appDir, genDir));
         config.put(CONFIG_CONFIG_SEARCH_PATH, configSearchPath(appDir, genDir));
+        OBImageManager.sharedImageManager().clearCaches();
+        OBAudioManager.audioManager.clearCaches();
     }
 
     public void setUpConfig () throws Exception
