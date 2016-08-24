@@ -21,6 +21,10 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.text.Layout;
+import android.text.SpannableString;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 
 import org.onebillion.xprz.controls.*;
 import org.onebillion.xprz.glstuff.*;
@@ -236,6 +240,17 @@ public class OBSectionController extends OBViewController
 //                return fullPath;
         }
         return null;
+    }
+
+    public static float baselineOffsetForText(String tx, Typeface ty, float textsize)
+    {
+        TextPaint tp = new TextPaint();
+        tp.setTextSize(textsize);
+        tp.setTypeface(ty);
+        tp.setColor(Color.BLACK);
+        SpannableString ss = new SpannableString(tx);
+        StaticLayout sl = new StaticLayout(ss,tp,4000, Layout.Alignment.ALIGN_NORMAL,1,0,false);
+        return sl.getLineBaseline(0);
     }
 
     public Map<String, Object> loadXML (String xmlPath)
@@ -643,6 +658,11 @@ public class OBSectionController extends OBViewController
             scalable = false;
             OBPath path = (OBPath) loadShape(attrs, "rectangle", graphicScale, r, defs);
             path.sizeToBoundingBox();
+            if (attrs.get("stroke") != null)
+            {
+                OBStroke str = new OBStroke(attrs, true);
+                path.setStroke(str);
+            }
             RectF b = path.bounds();
             List<OBControl> mems = Arrays.asList((OBControl) path);
             OBGroup grp = new OBGroup(mems);
@@ -688,7 +708,8 @@ public class OBSectionController extends OBViewController
                 //pt.y -= (tbounds.size.height + tbounds.origin.y);
                 RectF lf = lab.bounds();
                 pt.x += lf.width() / 2;
-                pt.y -= fontSize / 2;
+                //pt.y -= fontSize / 2;
+                pt.y = pt.y - lab.baselineOffset() + lf.height() / 2f;
                 lab.setPosition(pt);
                 lab.setZPosition(1f);
                 //lab.setBorderColor(Color.BLACK);
@@ -1341,6 +1362,32 @@ public class OBSectionController extends OBViewController
         anims.add(OBAnim.moveAnim(pt, thePointer));
         anims.add(OBAnim.rotationAnim((float) Math.toRadians((double) angle), thePointer));
         OBAnimationGroup.runAnims(anims, secs, wait, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+    }
+
+    List AnimsForMoveToPoint(List<OBControl> objs,PointF pos)
+    {
+        OBControl obj = objs.get(0);
+        PointF currPos = obj.position();
+        PointF delta = OB_Maths.DiffPoints(pos, currPos);
+        List<OBAnim> anims = new ArrayList<>();
+        for(OBControl ob : objs)
+        {
+            PointF objpos = ob.position();
+            OBAnim anim = OBAnim.moveAnim(OB_Maths.AddPoints(objpos, delta),ob);
+            anims.add(anim);
+        }
+        return anims;
+    }
+
+
+    public void movePointerToPointWithObject(OBControl control,PointF pt,float angle,float secs,boolean wait)
+    {
+        List<OBAnim> anims = AnimsForMoveToPoint(Arrays.asList(thePointer),pt);
+        OBAnim moveObject = OBAnim.moveAnim(pt,control);
+        anims.add(moveObject);
+        OBAnim turnAnim = OBAnim.rotationAnim((float) Math.toRadians(angle),thePointer);
+        anims.add(turnAnim);
+        OBAnimationGroup.runAnims(anims,secs,wait,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
     }
 
     public void movePointerForwards (float distance, float secs)

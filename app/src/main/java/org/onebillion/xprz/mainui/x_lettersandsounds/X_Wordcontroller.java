@@ -279,17 +279,6 @@ public class X_Wordcontroller extends XPRZ_SectionController
         return finger(-1,2,targets,pt);
     }
 
-    public static float baselineOffsetForText(String tx, Typeface ty, float textsize)
-    {
-        TextPaint tp = new TextPaint();
-        tp.setTextSize(textsize);
-        tp.setTypeface(ty);
-        tp.setColor(Color.BLACK);
-        SpannableString ss = new SpannableString(tx);
-        StaticLayout sl = new StaticLayout(ss,tp,4000, Layout.Alignment.ALIGN_NORMAL,1,0,false);
-        return sl.getLineBaseline(0);
-    }
-
     public static RectF boundingBoxForText(String tx, Typeface ty, float textsize)
     {
         TextPaint tp = new TextPaint();

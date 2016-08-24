@@ -497,4 +497,11 @@ public class OB_Maths
         }
         return false;
     }
+    public static PointF RoundPoint(PointF pt)
+    {
+        pt.x = (Math.round(pt.x));
+        pt.y = (Math.round(pt.y));
+        return pt;
+    }
+
 }

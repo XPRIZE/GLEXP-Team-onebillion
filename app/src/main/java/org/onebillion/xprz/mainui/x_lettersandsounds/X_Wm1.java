@@ -4,10 +4,6 @@ import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
-import android.text.Layout;
-import android.text.SpannableString;
-import android.text.StaticLayout;
-import android.text.TextPaint;
 import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
