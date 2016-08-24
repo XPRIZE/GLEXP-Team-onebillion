@@ -175,14 +175,6 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
             startBox = lastBox + 1;
         }
         OBPath rope = (OBPath) objectDict.get("ropestart");
-        if (rope.propertyValue("originalPosition") != null)
-        {
-            rope.setPosition((PointF)rope.propertyValue("originalPosition"));
-        }
-        else
-        {
-            rope.setProperty("originalPosition", rope.getWorldPosition());
-        }
         //
         if (ropePath != null)
         {
@@ -198,12 +190,21 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
         attachControl(ropePath);
         objectDict.put("path", ropePath);
         //
-        UPath deconPath = deconstructedPath("mastera", "ropestart");
-        PointF firstPoint = deconPath.subPaths.get(0).elements.get(0).pt0;
-        position = XPRZ_Generic.copyPoint(boxes.get(0).position());
-        PointF diff = OB_Maths.DiffPoints(position, firstPoint);
-        PointF newRopePosition = OB_Maths.AddPoints(rope.position(), diff);
-        rope.setPosition(newRopePosition);
+        if (rope.propertyValue("originalPosition") != null)
+        {
+            rope.setPosition((PointF)rope.propertyValue("originalPosition"));
+        }
+        else
+        {
+            UPath deconPath = deconstructedPath("mastera", "ropestart");
+            PointF firstPoint = deconPath.subPaths.get(0).elements.get(0).pt0;
+            position = XPRZ_Generic.copyPoint(boxes.get(0).position());
+            PointF diff = OB_Maths.DiffPoints(position, firstPoint);
+            PointF newRopePosition = OB_Maths.AddPoints(rope.position(), diff);
+            rope.setPosition(newRopePosition);
+            //
+            rope.setProperty("originalPosition", rope.getWorldPosition());
+        }
         //
         rope = (OBPath) objectDict.get("ropeend");
         if (rope.propertyValue("originalPosition") != null)
@@ -212,15 +213,15 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
         }
         else
         {
+            UPath deconPath = deconstructedPath("mastera", "ropeend");
+            PointF firstPoint = deconPath.subPaths.get(0).elements.get(0).pt0;
+            position = XPRZ_Generic.copyPoint(boxes.get(boxes.size() - 1).position());
+            PointF diff = OB_Maths.DiffPoints(position, firstPoint);
+            PointF newRopePosition = OB_Maths.AddPoints(rope.position(), diff);
+            rope.setPosition(newRopePosition);
+            //
             rope.setProperty("originalPosition", rope.getWorldPosition());
         }
-        //
-        deconPath = deconstructedPath("mastera", "ropeend");
-        firstPoint = deconPath.subPaths.get(0).elements.get(0).pt0;
-        position = XPRZ_Generic.copyPoint(boxes.get(boxes.size() - 1).position());
-        diff = OB_Maths.DiffPoints(position, firstPoint);
-        newRopePosition = OB_Maths.AddPoints(rope.position(), diff);
-        rope.setPosition(newRopePosition);
     }
 
 

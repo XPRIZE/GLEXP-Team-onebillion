@@ -1,9 +1,14 @@
 package org.onebillion.xprz.mainui;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
+import android.os.RemoteException;
+import android.service.carrier.CarrierMessagingService;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.JavascriptInterface;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -20,9 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by pedroloureiro on 07/07/16.
- */
 public class XPRZ_JudgeMenu extends OBSectionController
 {
     String saveConfig;
@@ -110,6 +112,7 @@ public class XPRZ_JudgeMenu extends OBSectionController
             String breakdown[] = config.split("\\/");
             String className = breakdown[0].replace("-", "_") + "." + target;
             MainActivity.mainActivity.updateConfigPaths(config, true, lang);
+            this.onPause();
             MainViewController().pushViewControllerWithName(className, true, false, parameters);
         }
     }
@@ -131,6 +134,7 @@ public class XPRZ_JudgeMenu extends OBSectionController
                 webView = new WebView(MainActivity.mainActivity);
                 webView.setWebChromeClient(new WebChromeClient());
                 webView.getSettings().setJavaScriptEnabled(true);
+                webView.getSettings().setDomStorageEnabled(true);
                 //
                 webView.setWebViewClient(new WebViewClient()
                 {
@@ -149,40 +153,9 @@ public class XPRZ_JudgeMenu extends OBSectionController
                     public boolean shouldOverrideUrlLoading (WebView view, String url)
                     {
                         view.loadUrl(url);
-//                        MainActivity.mainActivity.log("Updating current URL: " + url);
                         return false;
                     }
                 });
-                //
-//                webView.setOnTouchListener(new View.OnTouchListener()
-//                {
-//                    @Override
-//                    public boolean onTouch (View v, MotionEvent event)
-//                    {
-//                        if (event.getAction() == MotionEvent.ACTION_UP)
-//                        {
-//                            WebView.HitTestResult hr = ((WebView) v).getHitTestResult();
-//                            if (hr == null) return false;
-//                            //
-//                            MainActivity.mainActivity.log("" + hr.getType() + " " + event.toString());
-//                            //
-//                            String iconFile = hr.getExtra();
-//                            if (iconFile != null)
-//                            {
-//                                lastResult = hr.getExtra();
-//                                v.cancelPendingInputEvents();
-//                                //
-//                                String breakdown[] = iconFile.split("/");
-//                                String icon = breakdown[breakdown.length - 1];
-//                                icon = icon.replace(".png", "").replace("_big", "");
-//                                MainActivity.mainActivity.log("Loading UNIT: " + icon);
-//                                loadUnit(icon);
-//                                return false;
-//                            }
-//                        }
-//                        return false;
-//                    }
-//                });
             }
         }
         catch (Exception e)
@@ -200,11 +173,9 @@ public class XPRZ_JudgeMenu extends OBSectionController
             webView.loadUrl(mainPage);
             firstRun = false;
         }
-        else
-        {
-
-        }
         MainActivity.mainActivity.setContentView(webView);
+        //
+        if (!firstRun) webView.onResume();
     }
 
 
@@ -218,6 +189,12 @@ public class XPRZ_JudgeMenu extends OBSectionController
         return null;
     }
 
+    @Override
+    public void onPause ()
+    {
+        super.onPause();
+        webView.onPause();
+    }
 
     @Override
     public int buttonFlags ()

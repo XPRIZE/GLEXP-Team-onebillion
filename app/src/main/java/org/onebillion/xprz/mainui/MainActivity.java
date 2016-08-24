@@ -424,16 +424,18 @@ public class MainActivity extends Activity
         config.put(CONFIG_IMAGE_SEARCH_PATH, imageSearchPath(appDir, genDir));
         config.put(CONFIG_VECTOR_SEARCH_PATH, vectorSearchPath(appDir, genDir));
         config.put(CONFIG_CONFIG_SEARCH_PATH, configSearchPath(appDir, genDir));
+        //
         OBImageManager.sharedImageManager().clearCaches();
-        OBAudioManager.audioManager.clearCaches();
+        if (OBAudioManager.audioManager != null)
+        {
+            OBAudioManager.audioManager.clearCaches();
+        }
     }
 
     public void setUpConfig () throws Exception
     {
         InputStream pis;
 //        pis = getAssets().open("config/settings.plist");
-//        pis = getAssets().open("config/settings_pedro.plist");
-//        pis = getAssets().open("config/settings_judge_menu.plist");
         pis = getAssets().open(BuildConfig.SETTINGS_FILE);
         OBXMLManager xmlManager = new OBXMLManager();
         config = (Map<String, Object>) xmlManager.parsePlist(pis);
