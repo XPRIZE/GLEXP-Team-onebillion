@@ -52,9 +52,9 @@ public class X_Count100_S1i extends XPRZ_SectionController
         Typeface font = OBUtils.standardTypeFace();
         for(int i=0; i<maxrow; i++)
         {
-            float fontSize =label.fontSize()+(i+2)*10;
+            float fontSize =label.fontSize()+applyGraphicScale((i+2)*10);
             if(i == 9)
-                fontSize = fontSize + 50;
+                fontSize = fontSize + applyGraphicScale(50);
 
             int lastnum = 10*(i+1);
 
@@ -83,7 +83,7 @@ public class X_Count100_S1i extends XPRZ_SectionController
                 largenum.setBottom(rect.bottom);
             }
 
-
+            largenum.setZPosition(20);
             largenums.add(largenum);
 
             attachControl(largenum);
