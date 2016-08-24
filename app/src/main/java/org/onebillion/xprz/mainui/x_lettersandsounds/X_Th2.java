@@ -287,7 +287,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
 
     public void action_popup() throws Exception
     {
-        if (currentEvent().equals("b"))
+        if (currentEvent().equals("b") || (!events.contains("b") && currentEvent().equals("c")))
         {
             waitForSecs(0.3);
             playSfxAudio("popon", false);

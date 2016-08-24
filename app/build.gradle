@@ -61,6 +61,15 @@ android {
             resValue "string", "app_name", "onebillion - Judges"
             buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_judge_menu.plist"'
         }
+        harold {
+            minSdkVersion 23
+            applicationId 'org.onebillion.xprz0.pedro'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "onebillion - Harold testing"
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings.plist"'
+        }
     }
 }
 

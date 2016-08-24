@@ -199,9 +199,9 @@ public class OBImageManager
             }
             catch (Exception e)
             {
+                e.printStackTrace();
                 return null;
             }
-
         }
         svgCacheList.remove(svgnode);
         svgCacheList.add(svgnode);
