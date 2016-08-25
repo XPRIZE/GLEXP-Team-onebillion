@@ -72,6 +72,7 @@ public class OBSectionController extends OBViewController
     public Map<String, Object> audioScenes, eventsDict;
     public Map<String, OBControl> miscObjects, objectDict;
     public Map<String, String> eventAttributes, parameters;
+    Map<String,Float> sectionSfxVolumes = null;
     public int targetNo, currNo;
     public Object params;
     public OBControl target;
@@ -1534,7 +1535,7 @@ public class OBSectionController extends OBViewController
         {
             public void ex ()
             {
-                OBAudioManager.audioManager.startPlayingSFX(fileName);
+                OBAudioManager.audioManager.startPlayingSFX(fileName,volumeForSfx(fileName));
             }
         }.run();
     }
@@ -1587,6 +1588,23 @@ public class OBSectionController extends OBViewController
                 OBAudioManager.audioManager.stopAllAudio();
             }
         });
+    }
+
+    public float volumeForSfx(String sfxName)
+    {
+        if(sectionSfxVolumes == null)
+        {
+            Map<String, Float> sfxVolumes = MainActivity.mainActivity.sfxVolumes;
+            sectionSfxVolumes = new HashMap<>(sfxVolumes);
+            Map<String, Float> d = (Map<String, Float>) audioScenes.get("__sfxvols");
+            if (d != null)
+                sectionSfxVolumes.putAll(d);
+        }
+        float vol = 1.0f;
+        Float f = null;
+        if ((f = sectionSfxVolumes.get(sfxName)) != null)
+            vol = f;
+        return MainActivity.mainActivity.sfxMasterVolume * vol;
     }
 
     public void playAudio (String fileName)

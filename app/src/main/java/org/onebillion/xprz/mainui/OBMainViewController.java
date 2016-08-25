@@ -63,6 +63,12 @@ public class OBMainViewController extends OBViewController
         bottomRightButton = OBUtils.buttonFromSVGName("next");
         bottomRightButton.setRight(bounds.width());
         bottomRightButton.setBottom(bounds.height());
+
+        float amt = applyGraphicScale(2f);
+        for (OBControl c : Arrays.asList(topLeftButton,topRightButton,bottomLeftButton,bottomRightButton))
+        {
+            c.setShadow(0,0.3f,amt,amt,Color.BLACK);
+        }
     }
 
     public void buttonHit (PointF pt)

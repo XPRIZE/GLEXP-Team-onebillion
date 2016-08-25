@@ -16,9 +16,10 @@ public class OBAudioManager {
     public static final String AM_MAIN_CHANNEL = "0",
             AM_BACKGROUND_CHANNEL = "1",
             AM_SFX_CHANNEL = "2";
+    final static int MAX_AUDIOPATH_CACHE_COUNT = 40;
     public static OBAudioManager audioManager;
     public Map<String,OBAudioPlayer> players;
-    Map<String,String> pathCacheDict = new HashMap<>();
+    Map<String,AssetFileDescriptor> pathCacheDict = new HashMap<>();
     List<String>pathCacheList = new ArrayList<>();
     public OBAudioManager()
     {
@@ -110,17 +111,35 @@ public class OBAudioManager {
 
     public AssetFileDescriptor getAudioPathFD(String fileName)
     {
-        Map<String,Object>config = MainActivity.mainActivity.config;
-        String suffix = (String)config.get(MainActivity.CONFIG_AUDIO_SUFFIX);
-        @SuppressWarnings("unchecked")
-        List<String> searchPaths = (List<String>) config.get(MainActivity.CONFIG_AUDIO_SEARCH_PATH);
-        for (String path : searchPaths)
+        AssetFileDescriptor fd = pathCacheDict.get(fileName);
+        if (fd == null)
         {
-            String fullPath = path + "/" + fileName + "." + suffix;
-            AssetFileDescriptor fd = OBUtils.getAssetFileDescriptorForPath(fullPath);
-            if (fd != null) return fd;
+            Map<String, Object> config = MainActivity.mainActivity.config;
+            String suffix = (String) config.get(MainActivity.CONFIG_AUDIO_SUFFIX);
+            List<String> searchPaths = (List<String>) config.get(MainActivity.CONFIG_AUDIO_SEARCH_PATH);
+            for (String path : searchPaths)
+            {
+                String fullPath = path + "/" + fileName + "." + suffix;
+                fd = OBUtils.getAssetFileDescriptorForPath(fullPath);
+                if (fd != null)
+                    break;
+                else
+                    fd = null;
+            }
+            if (fd == null)
+                return null;
         }
-        return null;
+        pathCacheList.remove(fileName);
+        pathCacheList.add(fileName);
+        pathCacheDict.put(fileName,fd);
+        if(pathCacheList.size() >= MAX_AUDIOPATH_CACHE_COUNT)
+        {
+            String firstobj = pathCacheList.get(0);
+            pathCacheList.remove(0);
+            pathCacheDict.remove(firstobj);
+        }
+        return fd;
+
 //        AssetManager am = MainActivity.mainActivity.getAssets();
 //        for (String path : searchPaths)
 //        {
@@ -151,16 +170,20 @@ public class OBAudioManager {
 
     public void startPlaying(String fileName,String channel,double atTime)
     {
+        startPlaying(fileName,channel,atTime,1.0f);
+    }
+
+    public void startPlaying(String fileName,String channel,double atTime,float atVolume)
+    {
         OBAudioPlayer player = playerForChannel(channel);
         if (fileName == null)
             player.stopPlaying();
         else
         {
             AssetFileDescriptor fd = getAudioPathFD(fileName);
-            player.startPlayingAtTime(fd,(int)(atTime*1000));
+            player.startPlayingAtTimeVolume(fd,(int)(atTime*1000),atVolume);
         }
     }
-
     public void startPlaying(String fileName,double atTime)
     {
         startPlaying(fileName,AM_MAIN_CHANNEL,atTime);
@@ -171,9 +194,9 @@ public class OBAudioManager {
         startPlaying(fileName,AM_MAIN_CHANNEL);
     }
 
-    public void startPlayingSFX(String fileName)
+    public void startPlayingSFX(String fileName,float vol)
     {
-        startPlaying(fileName,AM_SFX_CHANNEL);
+        startPlaying(fileName,AM_SFX_CHANNEL,0,vol);
     }
 
     public void waitAudioChannel(String ch)

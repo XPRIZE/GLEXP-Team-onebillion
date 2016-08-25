@@ -87,6 +87,7 @@ public class MainActivity extends Activity
     public static MainActivity mainActivity;
     public static OBMainViewController mainViewController;
     public static Typeface standardTypeFace;
+
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -110,6 +111,8 @@ public class MainActivity extends Activity
     public OBGLView glSurfaceView;
     public OBRenderer renderer;
     public ReentrantLock suspendLock = new ReentrantLock();
+    float sfxMasterVolume = 1.0f;
+    Map<String,Float> sfxVolumes = new HashMap<>();
     private int b;
 
     public static OBGroup armPointer ()
@@ -432,6 +435,20 @@ public class MainActivity extends Activity
         }
     }
 
+    void getSfxVolumes()
+    {
+        InputStream pis;
+        try
+        {
+            pis = getAssets().open("config/sfxvols.plist");
+            OBXMLManager xmlManager = new OBXMLManager();
+            sfxVolumes = (Map<String, Float>) xmlManager.parsePlist(pis);
+        }
+        catch (Exception e)
+        {
+
+        }
+    }
     public void setUpConfig () throws Exception
     {
         InputStream pis;
@@ -439,6 +456,7 @@ public class MainActivity extends Activity
         pis = getAssets().open(BuildConfig.SETTINGS_FILE);
         OBXMLManager xmlManager = new OBXMLManager();
         config = (Map<String, Object>) xmlManager.parsePlist(pis);
+        getSfxVolumes();
         //
         float h = getResources().getDisplayMetrics().heightPixels;
         float w = getResources().getDisplayMetrics().widthPixels;

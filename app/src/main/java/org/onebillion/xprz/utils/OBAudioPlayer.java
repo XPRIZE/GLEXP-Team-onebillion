@@ -22,6 +22,7 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
     public Lock playerLock;
     Condition condition;
     int state;
+    float volume = 1.0f;
     long fromTime;
 
     public OBAudioPlayer ()
@@ -85,13 +86,18 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
             setState(OBAP_IDLE);
             return;
         }
-
     }
 
     public void startPlayingAtTime (AssetFileDescriptor afd, long fr)
     {
+        startPlayingAtTimeVolume(afd,fr,1.0f);
+    }
+
+    public void startPlayingAtTimeVolume(AssetFileDescriptor afd, long fr,float vol)
+    {
         if (isPlaying())
             stopPlaying();
+        volume = vol;
         fromTime = fr;
         player = new MediaPlayer();
         player.setOnPreparedListener(this);
@@ -231,6 +237,7 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
     @Override
     public void onPrepared (MediaPlayer mp)
     {
+        player.setVolume(volume,volume);
         if (fromTime > 0)
         {
             setState(OBAP_SEEKING);
