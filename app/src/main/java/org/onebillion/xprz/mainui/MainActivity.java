@@ -442,7 +442,9 @@ public class MainActivity extends Activity
         {
             pis = getAssets().open("config/sfxvols.plist");
             OBXMLManager xmlManager = new OBXMLManager();
-            sfxVolumes = (Map<String, Float>) xmlManager.parsePlist(pis);
+            Map<String,String>smap = (Map<String, String>) xmlManager.parsePlist(pis);
+            for (String k : smap.keySet())
+                sfxVolumes.put(k,Float.parseFloat(smap.get(k)));
         }
         catch (Exception e)
         {
