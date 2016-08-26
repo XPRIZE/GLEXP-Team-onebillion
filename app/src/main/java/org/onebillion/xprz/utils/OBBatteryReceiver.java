@@ -11,7 +11,7 @@ import org.onebillion.xprz.mainui.MainActivity;
 /**
  * Created by pedroloureiro on 25/08/16.
  */
-public class PowerConnectionReceiver extends BroadcastReceiver
+public class OBBatteryReceiver extends BroadcastReceiver
 {
     @Override
     public void onReceive (Context context, Intent intent)
@@ -24,8 +24,20 @@ public class PowerConnectionReceiver extends BroadcastReceiver
 
         boolean acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
         //
-        float battery = MainActivity.mainActivity.getBatteryLevel();
+        float battery = OBBatteryReceiver.getBatteryLevel();
         //
-        MainActivity.mainActivity.log("Battery Info: " + ((isCharging) ? "is charging" : "not charging") + " " + ((usbCharge) ? "USB" : "" + " ") + ((acCharge) ? "AC" : "") + " " + battery * 100 + "%");
+        MainActivity.mainActivity.log("Battery Info: " + ((isCharging) ? "is charging" : "not charging") + " " + ((usbCharge) ? "USB" : "" + " ") + ((acCharge) ? "AC" : "") + " " + battery + "%");
+    }
+
+    public static float getBatteryLevel()
+    {
+        Intent batteryIntent = MainActivity.mainActivity.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+        if (level == -1 || scale == -1)
+        {
+            return 50.0f;
+        }
+        return ((float) level / (float) scale) * 100.0f;
     }
 }

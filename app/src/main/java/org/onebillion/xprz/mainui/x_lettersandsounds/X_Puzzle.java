@@ -212,12 +212,12 @@ public class X_Puzzle extends X_Wordcontroller
         currWord = words.get(currNo) ;
         positions = (List<OBPath>)(Object)sortedFilteredControls("pos_.*");
         positions = OBUtils.randomlySortedArray(positions);
-        setUpImage(currWord);
+        OBWord rw = (OBWord) componentDict.get(currWord);
+        setUpImage(rw.imageName);
         targets = new ArrayList<>();
         targets.addAll(pieces);
         if(showText > 0)
         {
-            OBWord rw = (OBWord) componentDict.get(currWord);
             String word;
             if(showText == SHOW_TEXT_INITIAL)
                 //word = rw.firstSound() ;

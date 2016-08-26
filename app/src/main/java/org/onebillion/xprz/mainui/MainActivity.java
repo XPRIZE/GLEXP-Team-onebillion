@@ -42,6 +42,7 @@ import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.glstuff.OBGLView;
 import org.onebillion.xprz.glstuff.OBRenderer;
 import org.onebillion.xprz.utils.OBAudioManager;
+import org.onebillion.xprz.utils.OBBatteryReceiver;
 import org.onebillion.xprz.utils.OBFatController;
 import org.onebillion.xprz.utils.OBImageManager;
 import org.onebillion.xprz.utils.OBUser;
@@ -112,6 +113,7 @@ public class MainActivity extends Activity
     public OBGLView glSurfaceView;
     public OBRenderer renderer;
     public ReentrantLock suspendLock = new ReentrantLock();
+    public OBBatteryReceiver batteryReceiver;
     float sfxMasterVolume = 1.0f;
     Map<String,Float> sfxVolumes = new HashMap<>();
     private int b;
@@ -500,6 +502,9 @@ public class MainActivity extends Activity
         Class aClass = Class.forName("org.onebillion.xprz.utils." + fcname);
         Constructor<?> cons = aClass.getConstructor();
         fatController = (OBFatController) cons.newInstance();
+        //
+        batteryReceiver = new OBBatteryReceiver();
+        log("Battery Level: " + OBBatteryReceiver.getBatteryLevel());
     }
 
     public void updateGraphicScale(float newWidth, float newHeight)
@@ -540,6 +545,10 @@ public class MainActivity extends Activity
         {
             unregisterReceiver(OBExpansionManager.sharedManager.downloadCompleteReceiver);
         }
+        if (batteryReceiver != null)
+        {
+            unregisterReceiver(batteryReceiver);
+        }
         suspendLock.lock();
     }
 
@@ -555,6 +564,9 @@ public class MainActivity extends Activity
             glSurfaceView.onResume();
         }
         registerReceiver(OBExpansionManager.sharedManager.downloadCompleteReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+        //
+        registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        //
         try
         {
             suspendLock.unlock();
@@ -655,21 +667,6 @@ public class MainActivity extends Activity
     public void log (String message)
     {
         Log.v(TAG, message);
-    }
-
-    public float getBatteryLevel ()
-    {
-        Intent batteryIntent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-        int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-        int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-
-        // Error checking that probably isn't needed but I added just in case.
-        if (level == -1 || scale == -1)
-        {
-            return 50.0f;
-        }
-
-        return ((float) level / (float) scale) * 100.0f;
     }
 }
 

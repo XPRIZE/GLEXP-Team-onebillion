@@ -34,15 +34,10 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
 
-            <receiver android:name=".BatteryLevelReceiver">
+            <receiver android:name=".OBBatteryReceiver">
                 <intent-filter>
                     <action android:name="android.intent.action.ACTION_BATTERY_LOW"/>
                     <action android:name="android.intent.action.ACTION_BATTERY_OKAY"/>
-                </intent-filter>
-            </receiver>
-
-            <receiver android:name=".PowerConnectionReceiver">
-                <intent-filter>
                     <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
                     <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
                 </intent-filter>

@@ -199,7 +199,11 @@ public class X_Sm1 extends X_Wordcontroller
         setReplayAudio((List<Object>)(Object)currentAudio("PROMPT.REPEAT"));
         List audio = currentAudio("PROMPT");
         if(audio != null)
-            playAudioQueued(OBUtils.insertAudioInterval(audio,300));
+        {
+            playAudioQueued(OBUtils.insertAudioInterval(audio, 300));
+            waitForSecs(0.1);
+            waitAudio();
+        }
         waitForSecs(0.3f);
         playFirstSoundOfWordId(currWordID,(OBWord)wordDict.get(currWordID));
     }
