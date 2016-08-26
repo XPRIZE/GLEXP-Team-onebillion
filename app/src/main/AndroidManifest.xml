@@ -22,7 +22,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        android:debuggable="true"
+        <!--android:debuggable="true"-->
         <activity
             android:name="org.onebillion.xprz.mainui.MainActivity"
             android:screenOrientation="landscape">
@@ -31,9 +31,23 @@
             <!--android:theme="@android:style/Theme.NoTitleBar">-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
+            <receiver android:name=".BatteryLevelReceiver">
+                <intent-filter>
+                    <action android:name="android.intent.action.ACTION_BATTERY_LOW"/>
+                    <action android:name="android.intent.action.ACTION_BATTERY_OKAY"/>
+                </intent-filter>
+            </receiver>
+
+            <receiver android:name=".PowerConnectionReceiver">
+                <intent-filter>
+                    <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
+                    <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
+                </intent-filter>
+            </receiver>
+
         </activity>
     </application>
 

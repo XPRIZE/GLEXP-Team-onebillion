@@ -279,7 +279,17 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
                     }
                     catch (Exception e)
                     {
-                        e.printStackTrace();
+                        try
+                        {
+                            String audio = String.format("is_%s", label.text());
+                            playAudio(audio);
+                            waitAudio();
+                        }
+                        catch (Exception e2)
+                        {
+                            e.printStackTrace();
+                            e2.printStackTrace();
+                        }
                     }
                     return;
                 }

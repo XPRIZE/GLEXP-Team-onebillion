@@ -3,10 +3,21 @@ package org.onebillion.xprz.mainui;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
+import android.graphics.Bitmap;
+import android.location.LocationManager;
+import android.net.Uri;
+import android.opengl.GLSurfaceView;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
 import android.os.RemoteException;
+import android.os.SystemClock;
+import android.provider.Settings;
 import android.service.carrier.CarrierMessagingService;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -14,13 +25,18 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import org.onebillion.xprz.controls.OBControl;
+import org.onebillion.xprz.glstuff.OBRenderer;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OBXMLManager;
 import org.onebillion.xprz.utils.OBXMLNode;
+import org.onebillion.xprz.utils.OB_Maths;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -105,18 +121,72 @@ public class XPRZ_JudgeMenu extends OBSectionController
         else
         {
             String target = xmlNode.attributeStringValue("target");
-            String parameters = xmlNode.attributeStringValue("params");
+            final String parameters = xmlNode.attributeStringValue("params");
             String config = xmlNode.attributeStringValue("config");
             String lang = xmlNode.attributeStringValue("lang");
             MainActivity.mainActivity.updateConfigPaths(config, false);
             String breakdown[] = config.split("\\/");
-            String className = breakdown[0].replace("-", "_") + "." + target;
+            final String className = breakdown[0].replace("-", "_") + "." + target;
             MainActivity.mainActivity.updateConfigPaths(config, true, lang);
             this.onPause();
-            MainViewController().pushViewControllerWithName(className, true, false, parameters);
+            //
+            swapViews(className, parameters);
         }
     }
 
+
+    private void swapViews (String nm, Object _params)
+    {
+        try
+        {
+            Bitmap image = takeScreenshot();
+            XPRZ_SwapperMenu controller = new XPRZ_SwapperMenu(image, nm, _params);
+            //
+            OBRenderer renderer = MainActivity.mainActivity.renderer;
+            if (renderer != null)
+            {
+                controller.setViewPort(0, 0, renderer.w, renderer.h);
+            }
+            controller.viewWillAppear(false);
+            controller.prepare();
+            //
+            //
+            MainViewController().viewControllers.add(controller);
+            //
+            final OBSectionController vc = controller;
+            new Handler().post(new Runnable()
+            {
+                @Override
+                public void run ()
+                {
+                    vc.start();
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    private Bitmap takeScreenshot ()
+    {
+        try
+        {
+            View v1 = MainActivity.mainActivity.getWindow().getDecorView().getRootView();
+            v1.setDrawingCacheEnabled(true);
+            Bitmap bitmap = Bitmap.createBitmap(v1.getDrawingCache());
+            v1.setDrawingCacheEnabled(false);
+
+            return bitmap;
+        }
+        catch (Throwable e)
+        {
+            // Several error may come out with file handling or OOM
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     @Override
     public void prepare ()
@@ -135,7 +205,6 @@ public class XPRZ_JudgeMenu extends OBSectionController
                 webView.setWebChromeClient(new WebChromeClient());
                 webView.getSettings().setJavaScriptEnabled(true);
                 webView.getSettings().setDomStorageEnabled(true);
-                //
                 webView.setWebViewClient(new WebViewClient()
                 {
                     public void onPageFinished (WebView view, String url)
@@ -172,6 +241,10 @@ public class XPRZ_JudgeMenu extends OBSectionController
             String mainPage = getURL("beta.html", true);
             webView.loadUrl(mainPage);
             firstRun = false;
+            //
+//             Intent intent = new Intent(android.provider.Settings.ACTION_DATE_SETTINGS);
+//            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+//            MainActivity.mainActivity.startActivity(intent);
         }
         MainActivity.mainActivity.setContentView(webView);
         //
@@ -187,6 +260,13 @@ public class XPRZ_JudgeMenu extends OBSectionController
             return (forWeb ? "file:///" : "") + path;
         }
         return null;
+    }
+
+    @Override
+    public void onResume ()
+    {
+        super.onResume();
+        start();
     }
 
     @Override

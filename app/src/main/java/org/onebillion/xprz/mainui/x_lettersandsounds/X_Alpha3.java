@@ -155,7 +155,7 @@ public class X_Alpha3 extends X_Alpha
         //
         currPos = XPRZ_Generic.copyPoint(presenter.control.getWorldPosition());
         OBControl side = presenter.control.objectDict.get("faceright");
-        destPos = new PointF(-side.width() * 1.2f, currPos.y);
+        destPos = new PointF(-side.width() * 1.3f, currPos.y);
         presenter.walk(destPos);
         //
         nextScene();

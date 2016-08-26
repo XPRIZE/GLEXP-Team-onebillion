@@ -190,9 +190,9 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
         attachControl(ropePath);
         objectDict.put("path", ropePath);
         //
-        if (rope.propertyValue("originalPosition") != null)
+        if (rope.propertyValue("finalPosition") != null)
         {
-            rope.setPosition((PointF)rope.propertyValue("originalPosition"));
+            rope.setPosition((PointF)rope.propertyValue("finalPosition"));
         }
         else
         {
@@ -204,12 +204,13 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
             rope.setPosition(newRopePosition);
             //
             rope.setProperty("originalPosition", rope.getWorldPosition());
+            rope.setProperty("finalPosition", rope.getWorldPosition());
         }
         //
         rope = (OBPath) objectDict.get("ropeend");
-        if (rope.propertyValue("originalPosition") != null)
+        if (rope.propertyValue("finalPosition") != null)
         {
-            rope.setPosition((PointF)rope.propertyValue("originalPosition"));
+            rope.setPosition((PointF)rope.propertyValue("finalPosition"));
         }
         else
         {
@@ -221,6 +222,7 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
             rope.setPosition(newRopePosition);
             //
             rope.setProperty("originalPosition", rope.getWorldPosition());
+            rope.setProperty("finalPosition", rope.getWorldPosition());
         }
     }
 

@@ -141,7 +141,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
             @Override
             public void run () throws Exception
             {
-                action_popup();
+//                action_popup();
                 //
                 if (!performSel("demo",currentEvent()))
                 {
@@ -329,7 +329,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
     @Override
     public void setSceneXX (String scene)
     {
-        if ((scene.equals("b") && !events.contains("a")) || scene.equals("a"))
+        if ((scene.equals("b") && !events.contains("a")) || scene.equals("a") || (!events.contains("b") && currentEvent().equals("c")))
         {
             hideControls("obj.*");
         }
@@ -461,7 +461,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
         //
         playSfxAudio("touch", false);
         lockScreen();
-        if (mode.equals("word") || parameters.get("answers") != null)
+        if (mode.equals("word") && parameters.get("answers") != null)
         {
             action_showState(correctHead, "matched");
         }

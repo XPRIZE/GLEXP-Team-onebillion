@@ -268,7 +268,7 @@ public class X_Wordcontroller extends XPRZ_SectionController
             }
             catch(Exception e)
             {
-
+                e.printStackTrace();
             }
         }
         return dict;

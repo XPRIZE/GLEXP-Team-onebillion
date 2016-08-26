@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
@@ -288,9 +290,14 @@ public class OBAudioManager {
         pathCacheList.clear();
         synchronized(players)
         {
-            for(String s : players.keySet() )
-                if(!s.equals(AM_MAIN_CHANNEL))
+            Set<String> tempPlayers = new HashSet(players.keySet());
+            for(String s : tempPlayers)
+            {
+                if (!s.equals(AM_MAIN_CHANNEL))
+                {
                     players.remove(s);
+                }
+            }
         }
     }
 
