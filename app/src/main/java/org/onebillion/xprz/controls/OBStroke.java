@@ -31,9 +31,11 @@ public class OBStroke
     public OBStroke(Map<String, String> attrs)
     {
         this();
-        if ((attrs.get("stroke")==null) && (attrs.get("stroke-opacity")==null) && (attrs.get("stroke-linecap")==null) && (attrs.get("stroke-linejoin")==null) && (attrs.get("stroke-width")==null) && (attrs.get("stroke-miterlimit")==null) && (attrs.get("stroke-dasharray")==null) && (attrs.get("stroke-dashoffset")==null))
-            return;
         String str = attrs.get("stroke");
+        if ((str==null) && (attrs.get("stroke-opacity")==null) && (attrs.get("stroke-linecap")==null) && (attrs.get("stroke-linejoin")==null) && (attrs.get("stroke-width")==null) && (attrs.get("stroke-miterlimit")==null) && (attrs.get("stroke-dasharray")==null) && (attrs.get("stroke-dashoffset")==null))
+            return;
+        if (str != null && str.equals("none"))
+            return;
         if (str != null)
             colour = OBUtils.svgColorFromRGBString(str);
         else

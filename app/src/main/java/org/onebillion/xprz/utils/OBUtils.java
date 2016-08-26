@@ -474,6 +474,7 @@ public class OBUtils
         float imageScale = MainActivity.mainActivity.configFloatForKey(MainActivity.CONFIG_GRAPHIC_SCALE);
         im.setScale(imageScale);
         im.setRasterScale(imageScale);
+        im.textureKey = imageName;
         return im;
     }
 

@@ -64,12 +64,12 @@ public class X_Reading extends XPRZ_SectionController
     int highlightColour,backgroundColour;
 
     static String CrunchedString(String s)
-{
-    String t = s;
-    String[] l = t.toLowerCase().split("[^[a-z][A-Z]]*");
-    t = TextUtils.join("",l);
-    return t;
-}
+    {
+        String t = s;
+        String[] l = t.toLowerCase().split("[^[a-z][A-Z]]*");
+        t = TextUtils.join("",l);
+        return t;
+    }
 
     static boolean IsLeftHanger(String ch)
     {
@@ -303,9 +303,10 @@ public class X_Reading extends XPRZ_SectionController
         lockScreen();
         if (show)
         {
-            //if (pageNo == maxPageNo)
-                //MainActivity.mainViewController.doButton(MainActivity.mainViewController.bottomRightButton,"next_green_star",false,false);
-
+            if (pageNo == maxPageNo)
+                MainActivity.mainViewController.setBottomRightButton("star");
+            else
+                MainActivity.mainViewController.setBottomRightButton("std");
             MainViewController().bottomRightButton.setOpacity(1.0f);
             MainViewController().bottomRightButton.setHidden(false);
         }

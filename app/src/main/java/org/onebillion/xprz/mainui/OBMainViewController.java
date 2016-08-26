@@ -60,9 +60,7 @@ public class OBMainViewController extends OBViewController
         topRightButton = OBUtils.buttonFromSVGName("repeataudio");
         topRightButton.setRight(bounds.width());
         topRightButton.setTop(0);
-        bottomRightButton = OBUtils.buttonFromSVGName("next");
-        bottomRightButton.setRight(bounds.width());
-        bottomRightButton.setBottom(bounds.height());
+        setBottomRightButton("std");
 
         float amt = applyGraphicScale(2f);
         for (OBControl c : Arrays.asList(topLeftButton,topRightButton,bottomLeftButton,bottomRightButton))
@@ -71,6 +69,17 @@ public class OBMainViewController extends OBViewController
         }
     }
 
+    public void setBottomRightButton(String itype)
+    {
+        String k = (itype.equals("std"))?"next":"next_star";
+        if (bottomRightButton != null && k == bottomRightButton.textureKey)
+            return;
+        bottomRightButton = OBUtils.buttonFromSVGName(k);
+        bottomRightButton.setRight(bounds().width());
+        bottomRightButton.setBottom(bounds().height());
+        float amt = applyGraphicScale(2f);
+        bottomRightButton.setShadow(0,0.3f,amt,amt,Color.BLACK);
+    }
     public void buttonHit (PointF pt)
     {
         OBSectionController cont = viewControllers.get(viewControllers.size() - 1);
