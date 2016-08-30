@@ -1,11 +1,10 @@
-package org.onebillion.xprz.mainui;
+package org.onebillion.xprz.utils;
 
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.res.ObbInfo;
 import android.content.res.ObbScanner;
 import android.database.Cursor;
@@ -17,9 +16,8 @@ import android.os.storage.StorageManager;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.onebillion.xprz.utils.OBUtils;
-import org.onebillion.xprz.utils.OBXMLManager;
-import org.onebillion.xprz.utils.OBXMLNode;
+import org.onebillion.xprz.mainui.MainActivity;
+import org.onebillion.xprz.mainui.OBExpansionFile;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,7 +27,6 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 

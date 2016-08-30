@@ -4,27 +4,23 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.DownloadManager;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ConfigurationInfo;
 import android.content.pm.PackageManager;
-import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Typeface;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
-import android.os.BatteryManager;
 import android.os.Build;
-import android.os.Handler;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.view.Display;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -43,6 +39,8 @@ import org.onebillion.xprz.glstuff.OBGLView;
 import org.onebillion.xprz.glstuff.OBRenderer;
 import org.onebillion.xprz.utils.OBAudioManager;
 import org.onebillion.xprz.utils.OBBatteryReceiver;
+import org.onebillion.xprz.utils.OBConnectionManager;
+import org.onebillion.xprz.utils.OBExpansionManager;
 import org.onebillion.xprz.utils.OBFatController;
 import org.onebillion.xprz.utils.OBImageManager;
 import org.onebillion.xprz.utils.OBUser;
@@ -55,7 +53,9 @@ public class MainActivity extends Activity
     private static final int REQUEST_EXTERNAL_STORAGE = 1,
                     REQUEST_MICROPHONE = 2,
                     REQUEST_CAMERA = 3,
-                    REQUEST_ALL = 4;
+                    REQUEST_ALL = 4,
+                    REQUEST_FIRST_SETUP_DATE_TIME = 5,
+                    REQUEST_FIRST_SETUP_PERMISSIONS = 6;
     public static String CONFIG_IMAGE_SUFFIX = "image_suffix",
             CONFIG_AUDIO_SUFFIX = "audio_suffix",
             CONFIG_AUDIO_SEARCH_PATH = "audioSearchPath",
@@ -85,9 +85,13 @@ public class MainActivity extends Activity
             CONFIG_MASTER_LIST = "masterlist",
             CONFIG_DEBUG = "debug",
             CONFIG_DEFAULT_AUDIO_VOLUME = "defaultAudioVolume",
+            CONFIG_WIFI_SSID = "wifiSSID",
+            CONFIG_WIFI_PASSWORD = "wifiPassword",
+            CONFIG_SCREEN_BRIGHTNESS = "defaultBrightness",
             CONFIG_MENU_CLASS = "menuclass";
     public static String TAG = "livecode";
     public static OBExpansionManager expansionManager = new OBExpansionManager();
+    public static OBConnectionManager connectionManager = new OBConnectionManager();
     public static MainActivity mainActivity;
     public static OBMainViewController mainViewController;
     public static Typeface standardTypeFace;
@@ -155,10 +159,73 @@ public class MainActivity extends Activity
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         //
         mainActivity = this;
         doGLStuff();
         //
+        setupWindowVisibilityFlags();
+        //
+        users = new ArrayList<OBUser>();
+        setContentView(R.layout.activity_main);
+        //ViewGroup rootView = (ViewGroup) findViewById(android.R.id.content);
+        //rootView.addView(glSurfaceView,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+        //        setContentView(glSurfaceView);
+        try
+        {
+            new OBAudioManager();
+            setUpConfig();
+            checkForFirstSetupAndRun();
+            //glSurfaceView.controller = mainViewController;
+
+            ((ThreadPoolExecutor) AsyncTask.THREAD_POOL_EXECUTOR).setCorePoolSize(12);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+
+    protected void setupBrightness()
+    {
+        try
+        {
+            String brightness = configStringForKey(CONFIG_SCREEN_BRIGHTNESS);
+            if (brightness != null)
+            {
+                int valueFromSettings = Integer.parseInt(brightness);
+                Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, valueFromSettings);
+                Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC);
+                WindowManager.LayoutParams layoutpars = getWindow().getAttributes();
+                layoutpars.screenBrightness = valueFromSettings / (float) 255;
+                getWindow().setAttributes(layoutpars);
+                log ("Brightness has been set to: " + valueFromSettings);
+            }
+        }
+        catch (Exception e)
+        {
+            // ignore exceptions, permissions may have not been set yet
+        }
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        if (requestCode == REQUEST_FIRST_SETUP_DATE_TIME)
+        {
+            addToPreferences("dateTimeSetupComplete", "true");
+            checkForFirstSetupAndRun();
+        }
+        else if (requestCode == REQUEST_FIRST_SETUP_PERMISSIONS)
+        {
+            checkForFirstSetupAndRun();
+        }
+    }
+
+
+    public void setupWindowVisibilityFlags()
+    {
         final int flags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
@@ -182,31 +249,53 @@ public class MainActivity extends Activity
         });
         //
         decorView.setSystemUiVisibility(flags);
+    }
 
-        users = new ArrayList<OBUser>();
-        setContentView(R.layout.activity_main);
-        //ViewGroup rootView = (ViewGroup) findViewById(android.R.id.content);
-        //rootView.addView(glSurfaceView,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-        //        setContentView(glSurfaceView);
-        try
+    public void checkForFirstSetupAndRun()
+    {
+        if (getPreferences("firstSetupComplete") == null)
         {
-            new OBAudioManager();
-            setUpConfig();
-            checkForUpdatesAndLoadMainViewController();
-            //glSurfaceView.controller = mainViewController;
-
-            ((ThreadPoolExecutor) AsyncTask.THREAD_POOL_EXECUTOR).setCorePoolSize(12);
+            // ask permissions
+            if (isAllPermissionGranted())
+            {
+                // set date and time
+                if (getPreferences("dateTimeSetupComplete") == null)
+                {
+                    Intent intent = new Intent(android.provider.Settings.ACTION_DATE_SETTINGS);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+//                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    startActivityForResult(intent, REQUEST_FIRST_SETUP_DATE_TIME);
+                }
+                else
+                {
+                    // set write settings permissions
+                    if (!Settings.System.canWrite(this))
+                    {
+                        Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                        intent.setData(Uri.parse("package:" + getPackageName()));
+                        startActivityForResult(intent, REQUEST_FIRST_SETUP_PERMISSIONS);
+                    }
+                    else
+                    {
+                        addToPreferences("firstSetupComplete", "true");
+                        checkForFirstSetupAndRun();
+                    }
+                }
+            }
         }
-        catch (Exception e)
+        else
         {
-            e.printStackTrace();
+            log("First Setup complete. Loading Main View Controller");
+            checkForUpdatesAndLoadMainViewController();
         }
     }
 
 
     public void checkForUpdatesAndLoadMainViewController()
     {
+
         OBExpansionManager.sharedManager.checkForUpdates(new OBUtils.RunLambda()
         {
             @Override
@@ -523,6 +612,10 @@ public class MainActivity extends Activity
             AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
             am.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(am.getStreamMaxVolume(AudioManager.STREAM_MUSIC) * volumePercentage), 0);
         }
+
+        connectionManager.sharedManager.checkForConnection();
+        //
+        setupBrightness();
     }
 
     public void updateGraphicScale(float newWidth, float newHeight)
@@ -585,6 +678,8 @@ public class MainActivity extends Activity
         //
         registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         //
+        setupWindowVisibilityFlags();
+        //
         try
         {
             suspendLock.unlock();
@@ -644,20 +739,23 @@ public class MainActivity extends Activity
             log("received permission to access external storage. attempting to download again");
             checkForUpdatesAndLoadMainViewController();
         }
+        else if (requestCode == REQUEST_ALL)
+        {
+            checkForFirstSetupAndRun();
+        }
     }
 
     public boolean isAllPermissionGranted ()
     {
-        Boolean writePermission = checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-        Boolean readPermission = checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-        Boolean micPermission = checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
-        Boolean cameraPersmission = checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
-        //
-        Boolean result = writePermission && readPermission && micPermission && cameraPersmission;
-        if (!result)
+        Boolean allPermissionsOK = true;
+        for (String permission : PERMISSION_ALL)
+        {
+            allPermissionsOK = allPermissionsOK && checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED;
+        }
+        if (!allPermissionsOK)
             ActivityCompat.requestPermissions(this, PERMISSION_ALL, REQUEST_ALL);
         //
-        return result;
+        return allPermissionsOK;
     }
 
 

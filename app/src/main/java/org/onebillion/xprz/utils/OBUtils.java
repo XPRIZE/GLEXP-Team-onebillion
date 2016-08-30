@@ -2,7 +2,6 @@ package org.onebillion.xprz.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,7 +15,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,14 +23,9 @@ import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.*;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.text.TextPaint;
-import android.text.TextUtils;
-import android.util.Log;
-import android.widget.ImageButton;
-import android.widget.ImageView;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
@@ -41,9 +34,7 @@ import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.controls.OBTextLayer;
 import org.onebillion.xprz.mainui.MainActivity;
-import org.onebillion.xprz.mainui.OBExpansionManager;
 import org.onebillion.xprz.mainui.OBSectionController;
-import org.onebillion.xprz.mainui.XPRZ_SectionController;
 
 public class OBUtils
 {

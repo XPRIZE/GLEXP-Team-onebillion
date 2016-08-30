@@ -74,10 +74,8 @@ public class OBMainViewController extends OBViewController
         Typeface tf = OBUtils.standardTypeFace();
         topLabel = new OBLabel(MainActivity.mainActivity.batteryReceiver.printStatus(), tf, applyGraphicScale(15));
         topLabel.setColour(Color.BLACK);
-        topLabel.setWidth(bounds().width() * 0.15f);
-        topLabel.setHeight(bounds().height() * 0.05f);
-        topLabel.setPosition(bounds().centerX(), bounds.centerY());
-        topLabel.setHidden(!MainActivity.mainActivity.isDebugMode());
+        topLabel.controller = this;
+        topLabel.setPosition(bounds().centerX(), bounds().centerY());
         topLabel.setTop(0);
         MainActivity.mainActivity.batteryReceiver.statusLabel = topLabel;
     }
@@ -126,6 +124,12 @@ public class OBMainViewController extends OBViewController
             bottomRightButton.setOpacity(0.0f);
         else
             bottomRightButton.setOpacity(1.0f);
+
+        if (MainActivity.mainActivity.isDebugMode())
+            topLabel.setOpacity(1.0f);
+        else
+            topLabel.setOpacity(0.0f);
+
     }
 
     public void showHideButtons (int flags)
