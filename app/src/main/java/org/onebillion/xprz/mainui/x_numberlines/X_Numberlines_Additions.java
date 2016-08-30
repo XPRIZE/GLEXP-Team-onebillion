@@ -80,17 +80,16 @@ public class X_Numberlines_Additions
         drawCurveLine(num,clockwise,label, colour, controller);
 
         final OBPath curveLine = (OBPath)controller.objectDict.get(String.format("curveline_%d", num));
-        controller.objectDict.get("arrowhead").setPosition(curveLine.firstPoint());
+        final OBControl arrowHead = controller.objectDict.get("arrowhead");
+        arrowHead.setPosition(curveLine.convertPointToControl(curveLine.firstPoint(), null));
+        arrowHead.setRotation(0);
+        arrowHead.show();
+
         curveLine.setStrokeEnd(0);
-
-        controller.objectDict.get("arrowhead").setRotation(0);
-        controller.objectDict.get("arrowhead").show();
-
         curveLine.show();
         shortenDiv(num, controller);
 
         List<OBAnim> anims = new ArrayList<>();
-        final OBControl arrowHead = controller.objectDict.get("arrowhead");
         anims.add(OBAnim.propertyAnim("strokeEnd",1,curveLine));
         anims.add(new OBAnimBlock()
         {
