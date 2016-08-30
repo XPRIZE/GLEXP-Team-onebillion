@@ -84,6 +84,7 @@ public class MainActivity extends Activity
             CONFIG_FAT_CONTROLLER = "fatcontrollerclass",
             CONFIG_MASTER_LIST = "masterlist",
             CONFIG_DEBUG = "debug",
+            CONFIG_DEFAULT_AUDIO_VOLUME = "defaultAudioVolume",
             CONFIG_MENU_CLASS = "menuclass";
     public static String TAG = "livecode";
     public static OBExpansionManager expansionManager = new OBExpansionManager();
@@ -285,7 +286,8 @@ public class MainActivity extends Activity
 
     public boolean isDebugMode()
     {
-        return configStringForKey(CONFIG_DEBUG).equalsIgnoreCase("true");
+        String debugMode = configStringForKey(CONFIG_DEBUG);
+        return debugMode != null && debugMode.equalsIgnoreCase("true");
     }
 
     OBSectionController topController ()
@@ -512,6 +514,15 @@ public class MainActivity extends Activity
         //
         batteryReceiver = new OBBatteryReceiver();
         log("Battery Level: " + OBBatteryReceiver.getBatteryLevel());
+        //
+        // Setting the default value for volume
+        String volume = configStringForKey(CONFIG_DEFAULT_AUDIO_VOLUME);
+        if (volume != null)
+        {
+            float volumePercentage = Float.parseFloat(volume) / (float) 100;
+            AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            am.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(am.getStreamMaxVolume(AudioManager.STREAM_MUSIC) * volumePercentage), 0);
+        }
     }
 
     public void updateGraphicScale(float newWidth, float newHeight)
