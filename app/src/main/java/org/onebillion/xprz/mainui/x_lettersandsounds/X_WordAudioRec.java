@@ -291,6 +291,7 @@ public class X_WordAudioRec extends XPRZ_SectionController
 
     public void exitEvent()
     {
+        onPause();
         OBUtils.cleanUpTempFiles(this);
         super.exitEvent();
     }
@@ -695,7 +696,25 @@ public class X_WordAudioRec extends XPRZ_SectionController
         });
     }
 
+    @Override
+    public void onResume()
+    {
+        audioRecorder.onResume();
+    }
 
+    @Override
+    public void onPause()
+    {
+        try
+        {
+            audioRecorder.onPause();
+
+        } catch(Exception e)
+        {
+
+        }
+
+    }
 
 
 }
