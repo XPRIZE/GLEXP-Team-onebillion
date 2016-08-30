@@ -48,7 +48,7 @@ public class OBControl
     public long animationKey;
     public Matrix drawMatrix, convertMatrix;
     public Bitmap cache, shadowCache;
-    public float scaleX, scaleY, rotation, yRotation, borderWidth;
+    public float scaleX, scaleY, rotation, xRotation,yRotation, borderWidth;
     public float invalOutdent;
     public OBGroup parent;
     public int backgroundColor, highlightColour, borderColour;
@@ -1178,9 +1178,9 @@ public class OBControl
         if (rotation != 0)
             android.opengl.Matrix.rotateM(modelMatrix, 0, (float) Math.toDegrees(rotation), 0, 0, 1);
         if (yRotation != 0)
-        {
             android.opengl.Matrix.rotateM(modelMatrix, 0, (float) Math.toDegrees(yRotation), 0, 1, 0);
-        }
+        if (xRotation != 0)
+            android.opengl.Matrix.rotateM(modelMatrix, 0, (float) Math.toDegrees(yRotation), 1, 0, 0);
         if (scaleX != 1 || scaleY != 1)
             android.opengl.Matrix.scaleM(modelMatrix, 0, scaleX, scaleY, 1);
         android.opengl.Matrix.translateM(modelMatrix, 0, -ax, -ay, 0);
@@ -1618,6 +1618,12 @@ public class OBControl
     public void setYRotation (final float rt)
     {
         yRotation = rt;
+        frameValid = false;
+        invalidate();
+    }
+    public void setXRotation (final float rt)
+    {
+        xRotation = rt;
         frameValid = false;
         invalidate();
     }

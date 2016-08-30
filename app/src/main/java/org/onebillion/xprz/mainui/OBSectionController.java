@@ -1926,6 +1926,15 @@ public class OBSectionController extends OBViewController
     }
 
 
+    public void checkSuspendLock()
+    {
+        if (MainActivity.mainActivity.suspendLock.isLocked())
+        {
+            MainActivity.mainActivity.suspendLock.lock();
+            MainActivity.mainActivity.suspendLock.unlock();
+        }
+    }
+
     public void waitAudioChannel (String ch) throws Exception
     {
         if (_aborting)
@@ -1939,6 +1948,7 @@ public class OBSectionController extends OBViewController
             throw new OBUserPressedBackException();
 //            throw new Exception("BackException");
         }
+        checkSuspendLock();
     }
 
     public void waitAudioAndCheck (long stTime) throws Exception
@@ -1964,6 +1974,7 @@ public class OBSectionController extends OBViewController
         catch (InterruptedException e)
         {
         }
+        checkSuspendLock();
     }
 
     public void waitForSecsNoThrow (double secs)
