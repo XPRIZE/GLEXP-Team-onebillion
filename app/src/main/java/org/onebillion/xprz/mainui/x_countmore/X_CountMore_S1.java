@@ -5,6 +5,7 @@ import android.graphics.Point;
 import android.graphics.PointF;
 import android.util.ArrayMap;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
 
 import org.onebillion.xprz.controls.*;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
@@ -220,8 +221,8 @@ public class X_CountMore_S1 extends XPRZ_SectionController
                 @Override
                 public void runAnimBlock(float frac)
                 {
-                    frac = OB_Maths.clamp(0,1,frac*maxRunningDuration/fullDuration);
-                    float x = start + dif*frac;
+                    float frac2 = OB_Maths.clamp(0,1,frac*maxRunningDuration/fullDuration);
+                    float x = start + dif*frac2;
                     child.setPosition ( OB_Maths.locationForRect(new PointF(x, loc.y),track.frame));
                     if((boolean)child.propertyValue("running") &&
                             child.objectDict.get("front").getWorldPosition().x > OB_Maths.locationForRect(relCross.x,relCross.y,track.frame()).x)
@@ -236,7 +237,7 @@ public class X_CountMore_S1 extends XPRZ_SectionController
                         child.setProperty("running",false);
                     }
 
-                    if(frac == 1)
+                    if(frac2 == 1)
                     {
                         hideSublayers(child,"run");
                         child.objectDict.get("stand").show();
@@ -249,9 +250,19 @@ public class X_CountMore_S1 extends XPRZ_SectionController
         }
         maxRunningDuration = maxDuration;
         unlockScreen();
-        OBAnimationGroup.runAnims(Collections.singletonList(OBAnim.propertyAnim("right",bounds().width()*1.08f,objectDict.get("race_track"))),4,false,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
+        final OBControl raceTrack = objectDict.get("race_track");
+        final float raceTrackRightStart = raceTrack.right();
+        final float raceTrackRightEnd = bounds().width()*1.08f;
+        final AccelerateDecelerateInterpolator interpolator = new AccelerateDecelerateInterpolator();
+        anims.add(new OBAnimBlock()
+        {
+            @Override
+            public void runAnimBlock(float frac)
+            {
+                raceTrack.setRight(raceTrackRightStart +  OB_Maths.clamp(0,1,interpolator.getInterpolation(OB_Maths.clamp(0,1,2 * frac)))*(raceTrackRightEnd-raceTrackRightStart));
+            }
+        });
         OBAnimationGroup.runAnims(anims,maxRunningDuration,true,OBAnim.ANIM_LINEAR,this);
-       // waitForSecs(maxDuration-4f);
         playSFX(null);
         waitForSecs(0.3f);
         animateChildrenStand();
