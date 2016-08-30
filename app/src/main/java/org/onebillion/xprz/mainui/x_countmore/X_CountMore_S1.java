@@ -11,6 +11,7 @@ import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimBlock;
+import org.onebillion.xprz.utils.OBAnimSequence;
 import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBAudioManager;
 import org.onebillion.xprz.utils.OBAudioPlayer;
@@ -32,6 +33,8 @@ public class X_CountMore_S1 extends XPRZ_SectionController
 {
     Map<String,Integer> eventColours;
 
+    float maxRunningDuration;
+
     @Override
     public void prepare()
     {
@@ -45,7 +48,6 @@ public class X_CountMore_S1 extends XPRZ_SectionController
         OBGroup track = (OBGroup)objectDict.get("race_track");
         track.setLeft(bounds().width()*0.2f);
         track.setProperty("left",track.left());
-       // OBAudioManager.audioManager.prepareForChannel(getAudioForScene("sfx","finish").get(0), "special");
         setSceneXX(currentEvent());
 
     }
@@ -184,83 +186,75 @@ public class X_CountMore_S1 extends XPRZ_SectionController
     {
         playSfxAudio("run",false);
         float maxDuration = 0;
+        lockScreen();
+        List<OBAnim> anims = new ArrayList<>();
         for(int i = 1; i<=filterControls("child_.*").size(); i++)
         {
-            OBGroup child = (OBGroup)objectDict.get(String.format("child_%d", i));
-            float duration = animateRunning(child, Float.valueOf((String)child.attributes().get("duration")),0.72f + 0.06f*(i-1));
-            if(maxDuration < duration)
-                maxDuration = duration;
+            final OBGroup child = (OBGroup)objectDict.get(String.format("child_%d", i));
+            float duration =  Float.valueOf((String)child.attributes().get("duration"));
+            float end = 0.72f + 0.06f*(i-1);
+
+            final OBGroup track = (OBGroup)objectDict.get("race_track");
+            OBPath finish = (OBPath)track.objectDict.get("finish");
+            final PointF loc = OB_Maths.relativePointInRectForLocation(child.position(), track.frame);
+            final float start = loc.x;
+            final float dif = end - loc.x;
+            PointF cross = new PointF();
+            OB_Maths.lineSegmentsIntersect(new PointF(child.position().x, child.bottom()),
+                    new PointF(OB_Maths.locationForRect(end,0f,track.frame()).x,child.bottom()),
+                    convertPointFromControl(finish.firstPoint(), finish),
+                    convertPointFromControl(finish.lastPoint(),finish), cross);
+            final PointF relCross = OB_Maths.relativePointInRectForLocation(cross, track.frame);
+
+            float runDist = OB_Maths.PointDistance(child.position(), cross);
+            final float fullDist = OB_Maths.PointDistance(child.position(), OB_Maths.locationForRect(new PointF(end, loc.y),track.frame));
+
+            final float fullDuration = duration*fullDist/runDist;
+            if(maxDuration < fullDuration)
+                maxDuration = fullDuration;
+            child.setProperty("running",true);
+            animateFrames(Arrays.asList("run0", "run1"),0,child);
+            anims.add(OBAnim.sequenceAnim(child,OBUtils.getFramesList("run",1,10),duration/100.0f,true));
+            anims.add(new OBAnimBlock()
+            {
+                @Override
+                public void runAnimBlock(float frac)
+                {
+                    frac = OB_Maths.clamp(0,1,frac*maxRunningDuration/fullDuration);
+                    float x = start + dif*frac;
+                    child.setPosition ( OB_Maths.locationForRect(new PointF(x, loc.y),track.frame));
+                    if((boolean)child.propertyValue("running") &&
+                            child.objectDict.get("front").getWorldPosition().x > OB_Maths.locationForRect(relCross.x,relCross.y,track.frame()).x)
+                    {
+                        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                        {
+                            public void run() throws Exception
+                            {
+                                playSfxAudio("finish",false);
+                            }
+                        });
+                        child.setProperty("running",false);
+                    }
+
+                    if(frac == 1)
+                    {
+                        hideSublayers(child,"run");
+                        child.objectDict.get("stand").show();
+                        child.objectDict.get("wave0").show();
+                    }
+
+                }
+            });
+
         }
-        OBAnimationGroup.runAnims(Collections.singletonList(OBAnim.propertyAnim("right",bounds().width()*1.08f,objectDict.get("race_track"))),4,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
-        waitForSecs(maxDuration-4f);
+        maxRunningDuration = maxDuration;
+        unlockScreen();
+        OBAnimationGroup.runAnims(Collections.singletonList(OBAnim.propertyAnim("right",bounds().width()*1.08f,objectDict.get("race_track"))),4,false,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
+        OBAnimationGroup.runAnims(anims,maxRunningDuration,true,OBAnim.ANIM_LINEAR,this);
+       // waitForSecs(maxDuration-4f);
         playSFX(null);
         waitForSecs(0.3f);
         animateChildrenStand();
-
-    }
-
-    public float animateRunning(final OBGroup child, float duration, float end) throws Exception
-    {
-        child.setProperty("running",true);
-        final OBGroup track = (OBGroup)objectDict.get("race_track");
-        OBPath finish = (OBPath)track.objectDict.get("finish");
-        final PointF loc = OB_Maths.relativePointInRectForLocation(child.position(), track.frame);
-        final float start = loc.x;
-        final float dif = end - loc.x;
-        PointF cross = new PointF();
-        OB_Maths.lineSegmentsIntersect(new PointF(child.position().x, child.bottom()),
-                new PointF(OB_Maths.locationForRect(end,0f,track.frame()).x,child.bottom()),
-                convertPointFromControl(finish.firstPoint(), finish),
-        convertPointFromControl(finish.lastPoint(),finish), cross);
-        final PointF relCross = OB_Maths.relativePointInRectForLocation(cross, track.frame);
-
-        float runDist = OB_Maths.PointDistance(child.position(), cross);
-        float fullDist = OB_Maths.PointDistance(child.position(), OB_Maths.locationForRect(new PointF(end, loc.y),track.frame));
-
-        float fullDuration = duration*fullDist/runDist;
-
-        animateFrames(Arrays.asList("run0", "run1"),0,child);
-        List<OBAnim> anims = new ArrayList<>();
-        anims.add(OBAnim.sequenceAnim(child,OBUtils.getFramesList("run",1,10),duration/100.0f,true));
-        anims.add(new OBAnimBlock()
-        {
-            @Override
-            public void runAnimBlock(float frac)
-            {
-                float x = start + dif*frac;
-                child.setPosition ( OB_Maths.locationForRect(new PointF(x, loc.y),track.frame));
-                if((boolean)child.propertyValue("running") &&
-                        child.objectDict.get("front").getWorldPosition().x > OB_Maths.locationForRect(relCross.x,relCross.y,track.frame()).x)
-                {
-                    OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-                    {
-                        public void run() throws Exception
-                        {
-                            /*OBAudioPlayer player = OBAudioManager.audioManager.playerForChannel("special");
-                            if(player != null)
-                                player.play();*/
-                            playSfxAudio("finish",false);
-                        }
-                    });
-                    child.setProperty("running",false);
-                }
-
-            }
-        });
-        OBAnimationGroup.runAnims(anims, fullDuration, false, OBAnim.ANIM_LINEAR, new OBUtils.RunLambda()
-        {
-            @Override
-            public void run() throws Exception
-            {
-                lockScreen();
-                hideSublayers(child,"run");
-                child.objectDict.get("stand").show();
-                child.objectDict.get("wave0").show();
-                unlockScreen();
-            }
-        }, this);
-
-        return fullDuration;
 
     }
 

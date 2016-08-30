@@ -367,9 +367,9 @@ public class X_WordAudioRec extends XPRZ_SectionController
         wordRecordStart(curLabel,true);
         setStatus(STATUS_AWAITING_CLICK);
         startRecording();
-
         audioRecorder.waitForRecord();
         audioRecorder.stopRecording();
+        checkSuspendLock();
         if(count < 2 && !audioRecorder.audioRecorded())
         {
             setStatus(STATUS_BUSY);

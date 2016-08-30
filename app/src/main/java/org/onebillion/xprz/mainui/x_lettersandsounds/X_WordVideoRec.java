@@ -239,6 +239,7 @@ public class X_WordVideoRec extends XPRZ_SectionController
         wordRecordStart(true);
         startVideoRecorder(expectedAudioLength);
         waitForVideoRecorder();
+        checkSuspendLock();
         if(!videoRecorder.audioRecorded() && count < 2)
         {
             showVideoPreview();
