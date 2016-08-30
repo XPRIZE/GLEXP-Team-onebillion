@@ -14,9 +14,11 @@ import android.view.*;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBImage;
+import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.glstuff.OBGLView;
 import org.onebillion.xprz.glstuff.OBRenderer;
 import org.onebillion.xprz.glstuff.TextureShaderProgram;
+import org.onebillion.xprz.utils.OBBatteryReceiver;
 import org.onebillion.xprz.utils.OBImageManager;
 import org.onebillion.xprz.utils.OB_Maths;
 import org.onebillion.xprz.utils.OBUtils;
@@ -29,6 +31,7 @@ public class OBMainViewController extends OBViewController
             SHOW_BOTTOM_RIGHT_BUTTON = 8;
     public List<OBSectionController> viewControllers;
     public OBControl topLeftButton, topRightButton, bottomLeftButton, bottomRightButton;
+    public OBLabel topLabel;
     public boolean navigating;
     protected Rect _buttonBoxRect = null;
     OBControl downButton;
@@ -67,6 +70,16 @@ public class OBMainViewController extends OBViewController
         {
             c.setShadow(0,0.3f,amt,amt,Color.BLACK);
         }
+
+        Typeface tf = OBUtils.standardTypeFace();
+        topLabel = new OBLabel(MainActivity.mainActivity.batteryReceiver.printStatus(), tf, applyGraphicScale(15));
+        topLabel.setColour(Color.BLACK);
+        topLabel.setWidth(bounds().width() * 0.15f);
+        topLabel.setHeight(bounds().height() * 0.05f);
+        topLabel.setPosition(bounds().centerX(), bounds.centerY());
+        topLabel.setHidden(!MainActivity.mainActivity.isDebugMode());
+        topLabel.setTop(0);
+        MainActivity.mainActivity.batteryReceiver.statusLabel = topLabel;
     }
 
     public void setBottomRightButton(String itype)
@@ -445,6 +458,7 @@ public class OBMainViewController extends OBViewController
         topRightButton.render(renderer, this, renderer.projectionMatrix);
         bottomRightButton.render(renderer, this, renderer.projectionMatrix);
         bottomLeftButton.render(renderer, this, renderer.projectionMatrix);
+        topLabel.render(renderer, this, renderer.projectionMatrix);
     }
 
     public void onResume()

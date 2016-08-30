@@ -83,6 +83,7 @@ public class MainActivity extends Activity
             CONFIG_OBB_PASSWORD = "obbPassword",
             CONFIG_FAT_CONTROLLER = "fatcontrollerclass",
             CONFIG_MASTER_LIST = "masterlist",
+            CONFIG_DEBUG = "debug",
             CONFIG_MENU_CLASS = "menuclass";
     public static String TAG = "livecode";
     public static OBExpansionManager expansionManager = new OBExpansionManager();
@@ -279,6 +280,12 @@ public class MainActivity extends Activity
     {
         return configStringForKey(CONFIG_LANGUAGE);
 //        return "en_gb";
+    }
+
+
+    public boolean isDebugMode()
+    {
+        return configStringForKey(CONFIG_DEBUG).equalsIgnoreCase("true");
     }
 
     OBSectionController topController ()

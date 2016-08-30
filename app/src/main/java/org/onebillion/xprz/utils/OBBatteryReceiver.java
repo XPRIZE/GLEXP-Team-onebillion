@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
 
+import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.mainui.MainActivity;
 
 /**
@@ -13,20 +14,34 @@ import org.onebillion.xprz.mainui.MainActivity;
  */
 public class OBBatteryReceiver extends BroadcastReceiver
 {
+    public boolean usbCharge, acCharge, isCharging;
+    public OBLabel statusLabel;
+
     @Override
     public void onReceive (Context context, Intent intent)
     {
         int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-        boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
+//        isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
+        isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING;
 
         int chargePlug = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
-        boolean usbCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_USB;
+        usbCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_USB;
 
-        boolean acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
+        acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
         //
         float battery = OBBatteryReceiver.getBatteryLevel();
         //
         MainActivity.mainActivity.log("Battery Info: " + ((isCharging) ? "is charging" : "not charging") + " " + ((usbCharge) ? "USB" : "" + " ") + ((acCharge) ? "AC" : "") + " " + battery + "%");
+        //
+        if(statusLabel != null)
+        {
+            statusLabel.setString(printStatus());
+        }
+    }
+
+    public String printStatus()
+    {
+        return OBBatteryReceiver.getBatteryLevel() + "% " + ((isCharging) ? "charging" : "") + " " + ((usbCharge) ? "USB" : "") + ((acCharge) ? "AC" : "");
     }
 
     public static float getBatteryLevel()

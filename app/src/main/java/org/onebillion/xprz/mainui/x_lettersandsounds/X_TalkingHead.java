@@ -1,5 +1,6 @@
 package org.onebillion.xprz.mainui.x_lettersandsounds;
 
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.Typeface;
@@ -428,40 +429,67 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
         List<OBPhoneme> breakdown = correctAnswer.phonemes();
         //
         String filename = new String(correctAnswer.audio()).replace("fc_", "fc_let_");
-        playAudio(filename);
-        //
-        Double startTime = XPRZ_Generic.currentTime();
-        Integer startRange = 0;
-        int i = 0;
-        //
-        for (OBPhoneme sound : breakdown)
+        AssetFileDescriptor fd = OBAudioManager.audioManager.getAudioPathFD(filename);
+        if (fd == null)
         {
-            Double timeStart = (Double) sound.timings.get(0);
-            Double timeEnd = (Double) sound.timings.get(1);
+            Integer startRange = 0;
             //
-            Double currTime = XPRZ_Generic.currentTime() - startTime;
-            Double waitTime = timeStart - currTime;
-            if (waitTime > 0.0) waitForSecs(waitTime);
+            for (OBPhoneme sound : breakdown)
+            {
+                playAudio(sound.audio());
+                //
+                Integer endRange = startRange + sound.text.length();
+                action_highlightWord(correctAnswer, label, startRange, endRange, true);
+                //
+                avatarShowMouthFrameForText(sound.text, false);
+                waitForSecs(0.15);
+                avatarShowMouthFrameForText(sound.text, true);
+                waitAudio();
+                //
+                waitForSecs(0.15);
+                //
+                avatarShowMouthFrame("mouth_2");
+                //
+                startRange += sound.text.length();
+            }
+        }
+        else
+        {
+            playAudio(filename);
             //
-            Integer endRange = startRange + sound.text.length();
-            action_highlightWord(correctAnswer, label, startRange, endRange, true);
+            Double startTime = XPRZ_Generic.currentTime();
+            Integer startRange = 0;
+            int i = 0;
             //
-            avatarShowMouthFrameForText(sound.text, false);
-            waitForSecs(0.15);
-            avatarShowMouthFrameForText(sound.text, true);
-            waitForSecs(0.15);
-            //
-            currTime = XPRZ_Generic.currentTime();
-            waitTime = timeEnd - currTime;
-            if (waitTime > 0) waitForSecs(waitTime);
-            //
-            avatarShowMouthFrame("mouth_2");
-            //
-            startRange += sound.text.length();
-            i++;
+            for (OBPhoneme sound : breakdown)
+            {
+                Double timeStart = (Double) sound.timings.get(0);
+                Double timeEnd = (Double) sound.timings.get(1);
+                //
+                Double currTime = XPRZ_Generic.currentTime() - startTime;
+                Double waitTime = timeStart - currTime;
+                if (waitTime > 0.0) waitForSecs(waitTime);
+                //
+                Integer endRange = startRange + sound.text.length();
+                action_highlightWord(correctAnswer, label, startRange, endRange, true);
+                //
+                avatarShowMouthFrameForText(sound.text, false);
+                waitForSecs(0.15);
+                avatarShowMouthFrameForText(sound.text, true);
+                waitForSecs(0.15);
+                //
+                currTime = XPRZ_Generic.currentTime();
+                waitTime = timeEnd - currTime;
+                if (waitTime > 0) waitForSecs(waitTime);
+                //
+                avatarShowMouthFrame("mouth_2");
+                //
+                startRange += sound.text.length();
+                i++;
+            }
+            waitAudio();
         }
         //
-        waitAudio();
         action_highlightWord(correctAnswer, label, 0, correctAnswer.text.length(), false);
         avatarShowMouthFrame("mouth_0");
         //
