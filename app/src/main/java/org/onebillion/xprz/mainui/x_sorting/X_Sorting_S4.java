@@ -250,6 +250,7 @@ public class X_Sorting_S4 extends XPRZ_SectionController
             if (paintPot != currentPaintPot)
             {
                 selectPaintPot(paintPot);
+                playSfxAudio("click",false);
                 correctPaintPot = paintPot;
                 Map<String,Object>targetAttrs = correctPaintPot.attributes();
                 correctColour = OBUtils.colorFromRGBString((String)targetAttrs.get("fillcolour"));
