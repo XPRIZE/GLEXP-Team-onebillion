@@ -218,6 +218,7 @@ public class OBExpansionManager
             }
             if (completionBlock != null)
             {
+                OBBrightnessManager.sharedManager.onContinue();
                 OBUtils.runOnMainThread(completionBlock);
             }
         }
@@ -252,6 +253,7 @@ public class OBExpansionManager
 
     public void checkForUpdates (OBUtils.RunLambda whenComplete)
     {
+        OBBrightnessManager.sharedManager.onSuspend();
         completionBlock = whenComplete;
         //
         final String expansionURL = (String) MainActivity.mainActivity.Config().get(MainActivity.CONFIG_EXPANSION_URL);

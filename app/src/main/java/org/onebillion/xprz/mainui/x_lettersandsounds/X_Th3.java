@@ -6,6 +6,7 @@ import android.graphics.RectF;
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
+import org.onebillion.xprz.utils.OBRunnableSyncUI;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OB_Maths;
 
@@ -71,6 +72,8 @@ public class X_Th3 extends X_Th2
     public void demob () throws Exception
     {
         setStatus(STATUS_DOING_DEMO);
+        //
+        action_popup();
         //
         loadPointer(POINTER_MIDDLE);
         XPRZ_Generic.pointer_moveToRelativePointOnScreen(0.9f, 1.3f, 0f, 0.1f, true, this);

@@ -94,9 +94,10 @@ public class MainActivity extends Activity
             CONFIG_SCREEN_BRIGHTNESS = "defaultBrightness",
             CONFIG_MENU_CLASS = "menuclass";
     public static String TAG = "livecode";
-    public static OBExpansionManager expansionManager = new OBExpansionManager();
-    public static OBConnectionManager connectionManager = new OBConnectionManager();
-    public static OBBrightnessManager brightnessManager = new OBBrightnessManager();
+    //
+    private static OBExpansionManager expansionManager = new OBExpansionManager();
+    private static OBConnectionManager connectionManager = new OBConnectionManager();
+    private static OBBrightnessManager brightnessManager = new OBBrightnessManager();
     //
     public OBSettingsContentObserver settingsContentObserver;
     public static MainActivity mainActivity;
@@ -287,7 +288,6 @@ public class MainActivity extends Activity
 
     public void checkForUpdatesAndLoadMainViewController()
     {
-
         OBExpansionManager.sharedManager.checkForUpdates(new OBUtils.RunLambda()
         {
             @Override
@@ -689,6 +689,7 @@ public class MainActivity extends Activity
     @Override
     protected void onStop ()
     {
+        OBBrightnessManager.sharedManager.onStop();
         super.onStop();
     }
 

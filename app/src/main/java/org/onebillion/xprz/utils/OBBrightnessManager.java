@@ -1,5 +1,6 @@
 package org.onebillion.xprz.utils;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.PowerManager;
 import android.provider.Settings;
@@ -19,16 +20,15 @@ public class OBBrightnessManager
     public static OBBrightnessManager sharedManager;
     private long lastTouchTimeStamp, lastTimeStamp;
     private float lastBrightness;
-    private boolean paused;
+    private boolean paused, suspended;
 
     public OBBrightnessManager ()
     {
         sharedManager = this;
         lastTimeStamp = lastTouchTimeStamp = System.currentTimeMillis();
         lastBrightness = 0f;
-        paused = false;
-        //
-        sharedManager.run();
+        paused = suspended = false;
+        runBrightnessCheck();
     }
 
 
@@ -47,7 +47,7 @@ public class OBBrightnessManager
                     WindowManager.LayoutParams layoutpars = MainActivity.mainActivity.getWindow().getAttributes();
                     layoutpars.screenBrightness = value;
                     MainActivity.mainActivity.getWindow().setAttributes(layoutpars);
-                    MainActivity.mainActivity.log("Brightness has been set to: " + valueForSettings);
+//                    MainActivity.mainActivity.log("Brightness has been set to: " + valueForSettings);
                 }
                 catch (Exception e)
                 {
@@ -59,7 +59,7 @@ public class OBBrightnessManager
     }
 
 
-    public void run()
+    public void runBrightnessCheck()
     {
         OBUtils.runOnOtherThreadDelayed(5.0f, new OBUtils.RunLambda()
         {
@@ -81,40 +81,64 @@ public class OBBrightnessManager
 
     public void updateBrightness (boolean loop)
     {
+        if (suspended) return;
+        //
         long currentTimeStamp = System.currentTimeMillis();
         long elapsed = currentTimeStamp - lastTouchTimeStamp;
         float percentage = (elapsed < 5000) ? 1.0f : (elapsed < 10000) ? 0.5f : (elapsed < 15000) ? 0.25f : 0.0f;
         //
-        MainActivity.mainActivity.log("updateBrightness : " + elapsed + " " + percentage);
+//        MainActivity.mainActivity.log("updateBrightness : " + elapsed + " " + percentage);
         //
         if (lastBrightness != percentage)
         {
             lastBrightness = percentage;
-            this.setBrightness(percentage);
+            setBrightness(percentage);
             //
-            if (percentage == 1.0f)
+            if (percentage == 0.0f)
             {
-                MainActivity.mainActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            }
-            else if (percentage == 0.0f)
-            {
+//                MainActivity.mainActivity.log("Brightness manager killing screen");
                 MainActivity.mainActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 //
                 Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, 1);
             }
         }
-        if (loop && !paused) run();
+        if (loop && !paused) runBrightnessCheck();
+    }
+
+    public void onSuspend()
+    {
+//        MainActivity.mainActivity.log("OBBrightnessManager.onSuspend called");
+        suspended = true;
+        setBrightness(1.0f);
+        MainActivity.mainActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+
+    public void onContinue()
+    {
+//        MainActivity.mainActivity.log("OBBrightnessManager.onContinue called");
+        lastTimeStamp = lastTouchTimeStamp = System.currentTimeMillis();
+        suspended = false;
+        updateBrightness(true);
     }
 
     public void onResume()
     {
+//        MainActivity.mainActivity.log("OBBrightnessManager.onResume called");
+        lastTimeStamp = lastTouchTimeStamp = System.currentTimeMillis();
         paused = false;
-        run();
+        updateBrightness(true);
     }
 
     public void onPause()
     {
         paused = true;
+    }
+
+    public void onStop()
+    {
+        int maxTime = 60000; // 1 minute
+        if (MainActivity.mainActivity.isDebugMode()) maxTime = Integer.MAX_VALUE;
+        Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, maxTime);
     }
 
 }

@@ -2,7 +2,9 @@ package org.onebillion.xprz.mainui;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.PointF;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -12,7 +14,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import org.onebillion.xprz.R;
+import org.onebillion.xprz.glstuff.OBGLView;
 import org.onebillion.xprz.utils.DBSQL;
+import org.onebillion.xprz.utils.OBBrightnessManager;
 import org.onebillion.xprz.utils.XPRZ_FatController;
 
 
@@ -37,6 +41,7 @@ public class XPRZ_TestMenu extends OBSectionController
 
     public void initScreen()
     {
+        OBBrightnessManager.sharedManager.onSuspend();
         db = new DBSQL(false);
         controller = (XPRZ_FatController)MainActivity.mainActivity.fatController;
         currentUnitId = controller.lastPlayedUnitIndex(db);
@@ -103,6 +108,7 @@ public class XPRZ_TestMenu extends OBSectionController
 
     public void loadUnit (long unitId)
     {
+        OBBrightnessManager.sharedManager.onContinue();
         cursorAdapter.swapCursor(null);
         db.close();
         controller.startSectionByIndex(unitId);
