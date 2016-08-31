@@ -190,7 +190,7 @@ public class X_Alpha2 extends X_Alpha1
         for(int i = startidx;i < startidx + 3;i++)
         {
             highlightBox(boxes.get(i),true);
-            playAudioQueued(Arrays.asList((Object)String.format("alph_%s",letters.get(i)),true));
+            playAudioQueued(Arrays.asList((Object)String.format("alph_%s",letters.get(i))),true);
             waitForSecs(0.1f);
             highlightBox(boxes.get(i),false);
             waitForSecs(0.3f);
