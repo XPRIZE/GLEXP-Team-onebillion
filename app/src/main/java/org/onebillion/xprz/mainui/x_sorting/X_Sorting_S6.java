@@ -300,20 +300,20 @@ public class X_Sorting_S6 extends XPRZ_SectionController
                     if (!objectsLeftWithTag(targetTag))
                         playCorrectAudio(targetTag);
                     nextObj();
+                }
+                else
+                {
+                    gotItWrongWithSfx();
+                    moveToOriginalPosition();
+                    switchStatus(currentEvent());
+                }
             }
             else
             {
-                gotItWrongWithSfx();
                 moveToOriginalPosition();
+                switchStatus(currentEvent());
             }
-            switchStatus(currentEvent());
         }
-        else
-        {
-            moveToOriginalPosition();
-            switchStatus(currentEvent());
-        }
-    }
         catch (Exception exception)
         {
         }
