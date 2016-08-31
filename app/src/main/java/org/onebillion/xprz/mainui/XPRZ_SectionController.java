@@ -121,8 +121,12 @@ public class XPRZ_SectionController extends OBSectionController {
     public void playAudioQueuedSceneIndex(String scene,String event,int idx,boolean wait) throws Exception
     {
         Map<String,List<String>> sc = (Map<String,List<String>>)audioScenes.get(scene);
-        List<String> arr = sc.get(event); //yuk!
-        playAudioQueued(Arrays.asList((Object)arr.get(idx)), wait);
+        if (sc != null)
+        {
+            List<String> arr = sc.get(event); //yuk!
+            if (arr != null)
+                playAudioQueued(Arrays.asList((Object)arr.get(idx)), wait);
+        }
     }
 
     public OBPath StarWithScale(float scale,boolean shadow)

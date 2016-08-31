@@ -566,6 +566,8 @@ public class X_LetterTrace extends X_Wordcontroller
         waitForSecs(0.3f);
 
         float rt = hotPath.right() + paths.get(0).lineWidth();
+        if (rt > 0.96 * bounds().right)
+            rt = 0.96f * bounds().right;
         PointF destpt = OB_Maths.locationForRect(0, 0.6f, bounds());
         destpt.set(rt, destpt.y);
 
@@ -716,12 +718,15 @@ public class X_LetterTrace extends X_Wordcontroller
         waitForSecs(0.4f);
         movePointerToPoint(dot.position(),-1,true);
         String demoN = String.format("DEMO%d",i+2);
-        playAudioQueuedSceneIndex(currentEvent(),demoN,0,true);
-        waitForSecs(0.3f);
-        if(currentAudio(demoN).size() > 1)
+        if (currentAudio(demoN) != null)
         {
-            playAudioQueuedScene(currentEvent(),demoN,false);
-            waitForSecs(0.1f);
+            playAudioQueuedSceneIndex(currentEvent(),demoN,0,true);
+            waitForSecs(0.3f);
+            if(currentAudio(demoN).size() > 1)
+            {
+                playAudioQueuedScene(currentEvent(),demoN,false);
+                waitForSecs(0.1f);
+            }
         }
         final OBPath p = paths.get(i);
         OBAnim anim = new OBAnimBlock()
