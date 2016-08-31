@@ -14,6 +14,7 @@ import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimBlock;
 import org.onebillion.xprz.utils.OBAnimationGroup;
+import org.onebillion.xprz.utils.OBAudioManager;
 import org.onebillion.xprz.utils.OBImageManager;
 import org.onebillion.xprz.utils.OBPhoneme;
 import org.onebillion.xprz.utils.OBSyllable;
@@ -31,7 +32,8 @@ import java.util.Map;
  */
 public class X_Segblend extends X_Wordcontroller
 {
-    List<String>words,sounds;
+    List<String>words;
+    List<OBPhoneme>sounds;
     String currWord,firstSound;
     float textSize;
     List<OBLabel>labels;
@@ -125,7 +127,7 @@ public class X_Segblend extends X_Wordcontroller
         im.setZPosition(5);
     }
 
-    public List layOutComponents(List<String> syllables, OBLabel mLabel)
+    public List layOutComponents(List<OBPhoneme> syllables, OBLabel mLabel)
     {
         List<Float> rights = new ArrayList<>();
         String text = mLabel.text();
@@ -134,7 +136,7 @@ public class X_Segblend extends X_Wordcontroller
         int cumlength = 0;
         for(int i = 0;i < syllables.size();i++)
         {
-            cumlength += syllables.get(i).length();
+            cumlength += syllables.get(i).text.length();
             String subtx = text.substring(0,cumlength);
             RectF r = boundingBoxForText(subtx,tf,size);
             float f = r.width();
@@ -143,9 +145,9 @@ public class X_Segblend extends X_Wordcontroller
         List labs = new ArrayList<>();
         int i = 0;
         List syllableLefts = new ArrayList<>();
-        for(String syllable : syllables)
+        for(OBPhoneme phoneme : syllables)
         {
-            OBLabel l = new OBLabel(syllable,tf,size);
+            OBLabel l = new OBLabel(phoneme.text,tf,size);
             l.setColour(Color.BLACK);
             l.setPosition(mLabel.position());
             if (i == 0)
@@ -191,13 +193,11 @@ public class X_Segblend extends X_Wordcontroller
         sounds = new ArrayList<>();
         if(syllableMode)
         {
-            for (OBSyllable obs : currReadingWord.syllables())
-                sounds.add(obs.text);
+            sounds = (List<OBPhoneme>)(Object)currReadingWord.syllables();
         }
         else
         {
-            for (OBPhoneme obp : currReadingWord.phonemes())
-                sounds.add(obp.text);
+            sounds = currReadingWord.phonemes();
         }
         setUpImage(currReadingWord.imageName);
         setUpMainLabel(currWord);
@@ -299,6 +299,19 @@ public class X_Segblend extends X_Wordcontroller
         waitForSecs(0.4f);
         String infix = syllableMode?"_syl_":"_let_";
         String fileName = words.get(i).replaceFirst("_",infix);
+        if(!syllableMode && OBAudioManager.audioManager.getAudioPathFD(fileName) == null)
+        {
+            List<String>phs = new ArrayList<>();
+            for(OBSyllable syl : currReadingWord.syllables)
+                for(OBPhoneme obp : syl.phonemes)
+                    phs.add(obp.soundid);
+
+            highlightAndSpeakIndividualPhonemes(wordLabels, phs);
+        }
+        else
+            highlightAndSpeakComponents(wordLabels,words.get(i),currReadingWord.text,fileName);
+
+
         highlightAndSpeakComponents(wordLabels,words.get(i),currReadingWord.text,fileName);
         waitForSecs(0.5f);
         playAudio("blend");

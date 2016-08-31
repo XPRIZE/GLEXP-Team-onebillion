@@ -175,6 +175,38 @@ public class X_Wordcontroller extends XPRZ_SectionController
         });
     }
 
+    public void highlightAndSpeakIndividualPhonemes(List<OBLabel> labs,List<String>phonemes)
+    {
+        long token = -1;
+        try
+        {
+            token = takeSequenceLockInterrupt(true);
+            if(token == sequenceToken)
+            {
+                int ct = Math.min(labs.size() , phonemes.size() );
+                for(int i = 0;i < ct;i++)
+                {
+                    String fileName = phonemes.get(i);
+                    playAudio(fileName);
+                    highlightLabel(labs.get(i),true);
+                    waitAudio();
+                    highlightLabel(labs.get(i),false);
+                    checkSequenceToken(token);
+                    waitForSecs(0.3f);
+                }
+            }
+        }
+        catch(Exception exception)
+        {
+        }
+
+        lockScreen();
+        for(OBLabel l : labs)
+            highlightLabel(l,false);
+        unlockScreen();
+        sequenceLock.unlock();
+    }
+
     public void highlightAndSpeakComponents(List<OBLabel> labs,String wordID,String s,String fileName)
     {
         long token = -1;
