@@ -102,6 +102,11 @@ public class OBBrightnessManager
 
     public void updateBrightness (boolean loop)
     {
+        if (MainActivity.mainActivity.isDebugMode())
+        {
+            setBrightness(1.0f);
+            return;
+        }
         if (suspended) return;
         //
         long currentTimeStamp = System.currentTimeMillis();
