@@ -18,6 +18,7 @@ import org.onebillion.xprz.glstuff.OBGLView;
 import org.onebillion.xprz.glstuff.OBRenderer;
 import org.onebillion.xprz.glstuff.TextureShaderProgram;
 import org.onebillion.xprz.utils.OBBrightnessManager;
+import org.onebillion.xprz.utils.OBSystemsManager;
 import org.onebillion.xprz.utils.OB_Maths;
 import org.onebillion.xprz.utils.OBUtils;
 
@@ -70,12 +71,13 @@ public class OBMainViewController extends OBViewController
         }
 
         Typeface tf = OBUtils.standardTypeFace();
-        topLabel = new OBLabel(MainActivity.mainActivity.batteryReceiver.printStatus(), tf, applyGraphicScale(15));
+        topLabel = new OBLabel(OBSystemsManager.sharedManager.printBatteryStatus(), tf, applyGraphicScale(15));
         topLabel.setColour(Color.BLACK);
         topLabel.controller = this;
+        topLabel.setBounds(this.bounds().left, this.bounds().top, this.bounds().right, this.bounds().bottom);
         topLabel.setPosition(bounds().centerX(), bounds().centerY());
         topLabel.setTop(0);
-        MainActivity.mainActivity.batteryReceiver.statusLabel = topLabel;
+        OBSystemsManager.sharedManager.setBatteryStatusLabel(topLabel);
     }
 
     public void setBottomRightButton(String itype)

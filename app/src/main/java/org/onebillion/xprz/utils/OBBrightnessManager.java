@@ -21,6 +21,7 @@ public class OBBrightnessManager
     private long lastTouchTimeStamp, lastTimeStamp;
     private float lastBrightness;
     private boolean paused, suspended;
+    private AsyncTask checkTask;
 
     public OBBrightnessManager ()
     {
@@ -52,25 +53,45 @@ public class OBBrightnessManager
                 catch (Exception e)
                 {
                     // ignore exceptions, permissions may have not been set yet
-                    e.printStackTrace();
+//                    e.printStackTrace();
                 }
             }
         });
     }
 
 
-    public void runBrightnessCheck()
+    public void runBrightnessCheck ()
     {
-        OBUtils.runOnOtherThreadDelayed(5.0f, new OBUtils.RunLambda()
+        final float delay = 5.0f;
+        try
         {
-            @Override
-            public void run () throws Exception
+            if (checkTask != null)
             {
-                updateBrightness(true);
+                checkTask.cancel(true);
             }
-        });
+            checkTask = new AsyncTask<Void, Void, Void>()
+            {
+                protected Void doInBackground (Void... params)
+                {
+                    try
+                    {
+                        Thread.sleep(Math.round(delay * 1000));
+                        updateBrightness(true);
+                    }
+                    catch (Exception exception)
+                    {
+                        Logger logger = Logger.getAnonymousLogger();
+                        logger.log(Level.SEVERE, "Error in runOnOtherThreadDelayed", exception);
+                    }
+                    return null;
+                }
+            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
-
 
 
     public void registeredTouchOnScreen ()
@@ -99,13 +120,21 @@ public class OBBrightnessManager
 //                MainActivity.mainActivity.log("Brightness manager killing screen");
                 MainActivity.mainActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 //
-                Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, 1);
+                try
+                {
+                    Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, 1);
+                }
+                catch (Exception e)
+                {
+                    // do nothing, permissions may have not been set yet
+                }
+
             }
         }
-        if (loop && !paused) runBrightnessCheck();
+        if (loop && !paused && percentage > 0.0f) runBrightnessCheck();
     }
 
-    public void onSuspend()
+    public void onSuspend ()
     {
 //        MainActivity.mainActivity.log("OBBrightnessManager.onSuspend called");
         suspended = true;
@@ -113,7 +142,7 @@ public class OBBrightnessManager
         MainActivity.mainActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
-    public void onContinue()
+    public void onContinue ()
     {
 //        MainActivity.mainActivity.log("OBBrightnessManager.onContinue called");
         lastTimeStamp = lastTouchTimeStamp = System.currentTimeMillis();
@@ -121,7 +150,7 @@ public class OBBrightnessManager
         updateBrightness(true);
     }
 
-    public void onResume()
+    public void onResume ()
     {
 //        MainActivity.mainActivity.log("OBBrightnessManager.onResume called");
         lastTimeStamp = lastTouchTimeStamp = System.currentTimeMillis();
@@ -129,16 +158,25 @@ public class OBBrightnessManager
         updateBrightness(true);
     }
 
-    public void onPause()
+    public void onPause ()
     {
+//        MainActivity.mainActivity.log("OBBrightnessManager.onPause called");
         paused = true;
     }
 
-    public void onStop()
+    public void onStop ()
     {
+//        MainActivity.mainActivity.log("OBBrightnessManager.onStop called");
         int maxTime = 60000; // 1 minute
         if (MainActivity.mainActivity.isDebugMode()) maxTime = Integer.MAX_VALUE;
-        Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, maxTime);
+        try
+        {
+            Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, maxTime);
+        }
+        catch (Exception e)
+        {
+            // do nothing, permissions may have not been set yet
+        }
     }
 
 }

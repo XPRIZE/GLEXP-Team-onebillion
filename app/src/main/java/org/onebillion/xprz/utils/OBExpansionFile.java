@@ -1,4 +1,4 @@
-package org.onebillion.xprz.mainui;
+package org.onebillion.xprz.utils;
 
 import java.io.File;
 

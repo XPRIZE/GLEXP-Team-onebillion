@@ -17,6 +17,7 @@ import org.onebillion.xprz.R;
 import org.onebillion.xprz.glstuff.OBGLView;
 import org.onebillion.xprz.utils.DBSQL;
 import org.onebillion.xprz.utils.OBBrightnessManager;
+import org.onebillion.xprz.utils.OBSystemsManager;
 import org.onebillion.xprz.utils.XPRZ_FatController;
 
 
@@ -69,6 +70,7 @@ public class XPRZ_TestMenu extends OBSectionController
                 String appCode = (String)Config().get(MainActivity.CONFIG_APP_CODE);
                 if (menuClassName != null && appCode != null)
                 {
+                    OBBrightnessManager.sharedManager.onContinue();
                     db.close();
                     MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
                 }
@@ -108,7 +110,6 @@ public class XPRZ_TestMenu extends OBSectionController
 
     public void loadUnit (long unitId)
     {
-        OBBrightnessManager.sharedManager.onContinue();
         cursorAdapter.swapCursor(null);
         db.close();
         controller.startSectionByIndex(unitId);

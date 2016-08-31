@@ -9,6 +9,7 @@ import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.controls.XPRZ_Presenter;
+import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
@@ -19,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by pedroloureiro on 30/06/16.
@@ -240,8 +243,14 @@ public class X_Alpha3 extends X_Alpha
         //
         int counter = 1;
         double startTime = XPRZ_Generic.currentTime();
+        double currentTime, elapsed, waitForNextLoop;
+        //
         for (int i = firstBox; i < lastBox; i++)
         {
+            checkSuspendLock();
+            //
+            currentTime = XPRZ_Generic.currentTime();
+            //
             playSfxAudio(sfx, false);
             //
             lockScreen();
@@ -262,9 +271,11 @@ public class X_Alpha3 extends X_Alpha
             //
             playAudioQueued(new ArrayList(Arrays.asList(String.format("alph_%s", letters.get(i).toLowerCase()))), false);
             //
-            double elapsed = XPRZ_Generic.currentTime() - startTime;
-            double nextTimeFrame = waitTime * counter++;
-            double waitForNextLoop = nextTimeFrame - elapsed;
+            elapsed = XPRZ_Generic.currentTime() - currentTime;
+//            elapsed = XPRZ_Generic.currentTime() - startTime;
+//            nextTimeFrame = waitTime * counter++;
+//            waitForNextLoop = nextTimeFrame - elapsed;
+            waitForNextLoop = waitTime - elapsed;
             waitForSecs(waitForNextLoop);
             //
             lockScreen();
@@ -309,11 +320,14 @@ public class X_Alpha3 extends X_Alpha
             {
                 for (int i = 0; i < loops; i++)
                 {
+                    checkSuspendLock();
+                    //
                     playBackgroundAudio(rhythm, true);
                 }
             }
         });
         //
+        double currentTime;
         double elapsed = XPRZ_Generic.currentTime() - startTime;
         double nextTimeFrame = waitTime * counter++;
         double waitForNextLoop = nextTimeFrame - elapsed;
@@ -321,6 +335,10 @@ public class X_Alpha3 extends X_Alpha
         //
         for (int i = firstBox; i < lastBox; i++)
         {
+            checkSuspendLock();
+            //
+            currentTime = XPRZ_Generic.currentTime();
+            //
             if (i > 1 && i % boxesPerRow == 0 && currentEvent().equals(events.get(0)))
             {
                 lockScreen();
@@ -339,9 +357,11 @@ public class X_Alpha3 extends X_Alpha
             //
             playAudioQueued(new ArrayList(Arrays.asList(String.format("alph_%s", letters.get(i).toLowerCase()))), false);
             //
-            elapsed = XPRZ_Generic.currentTime() - startTime;
-            nextTimeFrame = waitTime * counter++;
-            waitForNextLoop = nextTimeFrame - elapsed;
+            elapsed = XPRZ_Generic.currentTime() - currentTime;
+//            elapsed = XPRZ_Generic.currentTime() - startTime;
+//            nextTimeFrame = waitTime * counter++;
+//            waitForNextLoop = nextTimeFrame - elapsed;
+            waitForNextLoop = waitTime - elapsed;
             waitForSecs(waitForNextLoop);
             //
             if (i == lastBox - 1)

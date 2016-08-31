@@ -38,14 +38,13 @@ import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.glstuff.OBGLView;
 import org.onebillion.xprz.glstuff.OBRenderer;
-import org.onebillion.xprz.receivers.OBSettingsContentObserver;
 import org.onebillion.xprz.utils.OBAudioManager;
-import org.onebillion.xprz.receivers.OBBatteryReceiver;
 import org.onebillion.xprz.utils.OBBrightnessManager;
 import org.onebillion.xprz.utils.OBConnectionManager;
 import org.onebillion.xprz.utils.OBExpansionManager;
 import org.onebillion.xprz.utils.OBFatController;
 import org.onebillion.xprz.utils.OBImageManager;
+import org.onebillion.xprz.utils.OBSystemsManager;
 import org.onebillion.xprz.utils.OBUser;
 import org.onebillion.xprz.utils.OBXMLManager;
 import org.onebillion.xprz.utils.OB_Maths;
@@ -95,11 +94,7 @@ public class MainActivity extends Activity
             CONFIG_MENU_CLASS = "menuclass";
     public static String TAG = "livecode";
     //
-    private static OBExpansionManager expansionManager = new OBExpansionManager();
-    private static OBConnectionManager connectionManager = new OBConnectionManager();
-    private static OBBrightnessManager brightnessManager = new OBBrightnessManager();
-    //
-    public OBSettingsContentObserver settingsContentObserver;
+    public static OBSystemsManager systemsManager = new OBSystemsManager();
     public static MainActivity mainActivity;
     public static OBMainViewController mainViewController;
     public static Typeface standardTypeFace;
@@ -127,7 +122,6 @@ public class MainActivity extends Activity
     public OBGLView glSurfaceView;
     public OBRenderer renderer;
     public ReentrantLock suspendLock = new ReentrantLock();
-    public OBBatteryReceiver batteryReceiver;
     float sfxMasterVolume = 1.0f;
     Map<String,Float> sfxVolumes = new HashMap<>();
     private int b;
@@ -182,7 +176,6 @@ public class MainActivity extends Activity
         try
         {
             new OBAudioManager();
-            settingsContentObserver = new OBSettingsContentObserver(mainActivity, new Handler());
             setUpConfig();
             checkForFirstSetupAndRun();
             //glSurfaceView.controller = mainViewController;
@@ -593,9 +586,6 @@ public class MainActivity extends Activity
         Constructor<?> cons = aClass.getConstructor();
         fatController = (OBFatController) cons.newInstance();
         //
-        batteryReceiver = new OBBatteryReceiver();
-        log("Battery Level: " + OBBatteryReceiver.getBatteryLevel());
-        //
         // Setting the default value for volume
         String volume = configStringForKey(CONFIG_DEFAULT_AUDIO_VOLUME);
         if (volume != null)
@@ -604,8 +594,7 @@ public class MainActivity extends Activity
             AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
             am.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(am.getStreamMaxVolume(AudioManager.STREAM_MUSIC) * volumePercentage), 0);
         }
-
-        connectionManager.sharedManager.checkForConnection();
+        systemsManager.sharedManager.runChecks();
     }
 
     public void updateGraphicScale(float newWidth, float newHeight)
@@ -642,18 +631,9 @@ public class MainActivity extends Activity
         {
             glSurfaceView.onPause();
         }
-        if (OBExpansionManager.sharedManager.downloadCompleteReceiver != null)
-        {
-            unregisterReceiver(OBExpansionManager.sharedManager.downloadCompleteReceiver);
-        }
-        if (batteryReceiver != null)
-        {
-            unregisterReceiver(batteryReceiver);
-        }
-        OBBrightnessManager.sharedManager.onPause();
         //
-        if (settingsContentObserver != null) settingsContentObserver.onPause();
         suspendLock.lock();
+        OBSystemsManager.sharedManager.onPause();
     }
 
     @Override
@@ -667,13 +647,8 @@ public class MainActivity extends Activity
         {
             glSurfaceView.onResume();
         }
-        registerReceiver(OBExpansionManager.sharedManager.downloadCompleteReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
-        //
-        registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         //
         setupWindowVisibilityFlags();
-        if (settingsContentObserver != null) settingsContentObserver.onResume();
-        OBBrightnessManager.sharedManager.onResume();
         //
         try
         {
@@ -683,13 +658,14 @@ public class MainActivity extends Activity
         {
 
         }
+        OBSystemsManager.sharedManager.onResume();
     }
 
 
     @Override
     protected void onStop ()
     {
-        OBBrightnessManager.sharedManager.onStop();
+        systemsManager.sharedManager.onStop();
         super.onStop();
     }
 

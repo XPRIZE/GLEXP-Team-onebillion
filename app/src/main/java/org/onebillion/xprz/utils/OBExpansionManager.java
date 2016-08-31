@@ -17,7 +17,6 @@ import android.os.storage.StorageManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.onebillion.xprz.mainui.MainActivity;
-import org.onebillion.xprz.mainui.OBExpansionFile;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -322,7 +321,7 @@ public class OBExpansionManager
 
     private void compareExpansionFilesAndInstallMissingOrOutdated ()
     {
-        MainActivity.mainActivity.log("compareExpansionFilesAndInstallMissingOrOutdated");
+//        MainActivity.mainActivity.log("compareExpansionFilesAndInstallMissingOrOutdated");
         //
         if (internalExpansionFiles == null) return;
         //

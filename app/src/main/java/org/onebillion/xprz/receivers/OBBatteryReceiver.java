@@ -31,7 +31,7 @@ public class OBBatteryReceiver extends BroadcastReceiver
         //
         float battery = OBBatteryReceiver.getBatteryLevel();
         //
-        MainActivity.mainActivity.log("Battery Info: " + ((isCharging) ? "is charging" : "not charging") + " " + ((usbCharge) ? "USB" : "" + " ") + ((acCharge) ? "AC" : "") + " " + battery + "%");
+//        MainActivity.mainActivity.log("Battery Info: " + ((isCharging) ? "is charging" : "not charging") + " " + ((usbCharge) ? "USB" : "" + " ") + ((acCharge) ? "AC" : "") + " " + battery + "%");
         //
         if(statusLabel != null)
         {
