@@ -13,13 +13,11 @@ import android.os.SystemClock;
 import android.view.*;
 
 import org.onebillion.xprz.controls.OBControl;
-import org.onebillion.xprz.controls.OBImage;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.glstuff.OBGLView;
 import org.onebillion.xprz.glstuff.OBRenderer;
 import org.onebillion.xprz.glstuff.TextureShaderProgram;
-import org.onebillion.xprz.utils.OBBatteryReceiver;
-import org.onebillion.xprz.utils.OBImageManager;
+import org.onebillion.xprz.utils.OBBrightnessManager;
 import org.onebillion.xprz.utils.OB_Maths;
 import org.onebillion.xprz.utils.OBUtils;
 
@@ -238,18 +236,21 @@ public class OBMainViewController extends OBViewController
                 {
                     currentTouchID = pointerID;
                     touchDownAtPoint(event.getX(), event.getY(), (OBGLView) v);
+                    OBBrightnessManager.sharedManager.registeredTouchOnScreen();
 //                    MainActivity.mainActivity.log("DOWN --> " + event.getPointerId(pointerIndex));
                 }
                 else if (action == MotionEvent.ACTION_MOVE && currentTouchID != null && currentTouchID == pointerID)
                 {
                     OBGLView ov = (OBGLView) v;
                     topController().touchMovedToPoint(new PointF(event.getX(), event.getY()), ov);
+                    OBBrightnessManager.sharedManager.registeredTouchOnScreen();
 //                    MainActivity.mainActivity.log("MOVE --> " + event.getPointerId(pointerIndex));
                 }
                 else if (currentTouchID != null && currentTouchID == pointerID && (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_POINTER_UP))
                 {
                     currentTouchID = null;
                     touchUpAtPoint(event.getX(), event.getY(), (OBGLView) v);
+                    OBBrightnessManager.sharedManager.registeredTouchOnScreen();
 //                    MainActivity.mainActivity.log("UP   --> " + event.getPointerId(pointerIndex));
                 }
                 return true;

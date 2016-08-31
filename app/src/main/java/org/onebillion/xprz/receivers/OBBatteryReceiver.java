@@ -1,4 +1,4 @@
-package org.onebillion.xprz.utils;
+package org.onebillion.xprz.receivers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

@@ -17,6 +17,7 @@ import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Handler;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
@@ -37,8 +38,10 @@ import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.glstuff.OBGLView;
 import org.onebillion.xprz.glstuff.OBRenderer;
+import org.onebillion.xprz.receivers.OBSettingsContentObserver;
 import org.onebillion.xprz.utils.OBAudioManager;
-import org.onebillion.xprz.utils.OBBatteryReceiver;
+import org.onebillion.xprz.receivers.OBBatteryReceiver;
+import org.onebillion.xprz.utils.OBBrightnessManager;
 import org.onebillion.xprz.utils.OBConnectionManager;
 import org.onebillion.xprz.utils.OBExpansionManager;
 import org.onebillion.xprz.utils.OBFatController;
@@ -85,6 +88,7 @@ public class MainActivity extends Activity
             CONFIG_MASTER_LIST = "masterlist",
             CONFIG_DEBUG = "debug",
             CONFIG_DEFAULT_AUDIO_VOLUME = "defaultAudioVolume",
+            CONFIG_MIN_AUDIO_VOLUME = "minimumAudioVolume",
             CONFIG_WIFI_SSID = "wifiSSID",
             CONFIG_WIFI_PASSWORD = "wifiPassword",
             CONFIG_SCREEN_BRIGHTNESS = "defaultBrightness",
@@ -92,6 +96,9 @@ public class MainActivity extends Activity
     public static String TAG = "livecode";
     public static OBExpansionManager expansionManager = new OBExpansionManager();
     public static OBConnectionManager connectionManager = new OBConnectionManager();
+    public static OBBrightnessManager brightnessManager = new OBBrightnessManager();
+    //
+    public OBSettingsContentObserver settingsContentObserver;
     public static MainActivity mainActivity;
     public static OBMainViewController mainViewController;
     public static Typeface standardTypeFace;
@@ -159,7 +166,6 @@ public class MainActivity extends Activity
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         //
         mainActivity = this;
         doGLStuff();
@@ -175,6 +181,7 @@ public class MainActivity extends Activity
         try
         {
             new OBAudioManager();
+            settingsContentObserver = new OBSettingsContentObserver(mainActivity, new Handler());
             setUpConfig();
             checkForFirstSetupAndRun();
             //glSurfaceView.controller = mainViewController;
@@ -188,27 +195,7 @@ public class MainActivity extends Activity
     }
 
 
-    protected void setupBrightness()
-    {
-        try
-        {
-            String brightness = configStringForKey(CONFIG_SCREEN_BRIGHTNESS);
-            if (brightness != null)
-            {
-                int valueFromSettings = Integer.parseInt(brightness);
-                Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, valueFromSettings);
-                Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC);
-                WindowManager.LayoutParams layoutpars = getWindow().getAttributes();
-                layoutpars.screenBrightness = valueFromSettings / (float) 255;
-                getWindow().setAttributes(layoutpars);
-                log ("Brightness has been set to: " + valueFromSettings);
-            }
-        }
-        catch (Exception e)
-        {
-            // ignore exceptions, permissions may have not been set yet
-        }
-    }
+
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
@@ -249,6 +236,11 @@ public class MainActivity extends Activity
         });
         //
         decorView.setSystemUiVisibility(flags);
+        //
+        // disable the lock screen when the app is running
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
     }
 
 
@@ -614,8 +606,6 @@ public class MainActivity extends Activity
         }
 
         connectionManager.sharedManager.checkForConnection();
-        //
-        setupBrightness();
     }
 
     public void updateGraphicScale(float newWidth, float newHeight)
@@ -660,6 +650,9 @@ public class MainActivity extends Activity
         {
             unregisterReceiver(batteryReceiver);
         }
+        OBBrightnessManager.sharedManager.onPause();
+        //
+        if (settingsContentObserver != null) settingsContentObserver.onPause();
         suspendLock.lock();
     }
 
@@ -679,6 +672,8 @@ public class MainActivity extends Activity
         registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         //
         setupWindowVisibilityFlags();
+        if (settingsContentObserver != null) settingsContentObserver.onResume();
+        OBBrightnessManager.sharedManager.onResume();
         //
         try
         {
