@@ -166,13 +166,17 @@ public class X_Sorting_S4 extends XPRZ_SectionController
         OBGroup sockOne = (OBGroup)objectDict.get("objja1");
         PointF secondPt = OB_Maths.locationForRect(0.8f, 0.8f, sockOne.frame());
         movePointerToPoint(secondPt, -1, true);
-        waitForSecs(0.4f);
+        waitForSecs(0.1f);
         int col = 0xfffff344;
+        playSfxAudio("click",false);
         sockOne.substituteFillForAllMembers("col.*",col);
+        waitForSecs(0.4f);
 
         OBGroup sockTwo = (OBGroup)objectDict.get("objja2");
         PointF thirdPt = OB_Maths.locationForRect(0.5f, 0.6f, sockTwo.frame());
-        movePointerToPoint(thirdPt, -1, true);
+        movePointerToPoint(thirdPt, -0.5f, true);
+        waitForSecs(0.1f);
+        playSfxAudio("click",false);
         sockTwo.substituteFillForAllMembers("col.*",col);
         waitForSecs(1.5f);
         thePointer.hide();
