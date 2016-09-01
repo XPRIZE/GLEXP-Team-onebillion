@@ -1,6 +1,8 @@
 package org.onebillion.xprz.utils;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
@@ -199,7 +201,32 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
 
     public void emergencyRestore()
     {
-        restoreDatabase();
+        if (MainActivity.mainActivity.isDebugMode())
+        {
+            final AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.mainActivity).create();
+            alertDialog.setTitle("Database Restore");
+            alertDialog.setMessage("Debug Mode is ON." + System.getProperty("line.separator") + "Do you wish to restore the database to its last known good state?");
+            alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "NO", new DialogInterface.OnClickListener()
+            {
+                public void onClick (DialogInterface dialog, int which)
+                {
+                    alertDialog.cancel();
+                }
+            });
+            alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "YES", new DialogInterface.OnClickListener()
+            {
+                public void onClick (DialogInterface dialog, int which)
+                {
+                    alertDialog.cancel();
+                    restoreDatabase();
+                }
+            });
+            alertDialog.show();
+        }
+        else
+        {
+            restoreDatabase();
+        }
     }
 
     private void backupDatabase() {

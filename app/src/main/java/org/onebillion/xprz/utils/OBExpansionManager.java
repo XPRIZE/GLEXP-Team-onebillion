@@ -225,16 +225,23 @@ public class OBExpansionManager
 
     public void waitForDownload ()
     {
-        if (waitDialog == null)
+        try
         {
-            waitDialog = new ProgressDialog(MainActivity.mainActivity);
-        }
-        waitDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            if (waitDialog == null)
+            {
+                waitDialog = new ProgressDialog(MainActivity.mainActivity);
+            }
+            waitDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 //        waitDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        updateProgressDialog("Downloading assets. Please wait...", false);
-        waitDialog.setIndeterminate(true);
-        waitDialog.setCanceledOnTouchOutside(false);
-        waitDialog.show();
+            updateProgressDialog("Downloading assets. Please wait...", false);
+            waitDialog.setIndeterminate(true);
+            waitDialog.setCanceledOnTouchOutside(false);
+            waitDialog.show();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public List<File> getExternalExpansionFolders ()
@@ -248,6 +255,39 @@ public class OBExpansionManager
             }
         }
         return result;
+    }
+
+    public List<File> getChecksumFiles()
+    {
+        List<File> result = new ArrayList();
+        //
+        checkForInternalExpansionFiles();
+        //
+        if (internalExpansionFiles != null)
+        {
+            for (OBExpansionFile file : internalExpansionFiles.values())
+            {
+                if (file.folder != null)
+                {
+                    File checksum = new File(file.folder, "checksum.xml");
+                    if (checksum.exists())
+                    {
+                        result.add(checksum);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+
+    private void checkForInternalExpansionFiles()
+    {
+        if (internalExpansionFiles == null)
+        {
+            internalExpansionFiles = new HashMap<String, OBExpansionFile>();
+            mountAvailableExpansionFolders();
+        }
     }
 
     public void checkForUpdates (OBUtils.RunLambda whenComplete)
@@ -270,11 +310,7 @@ public class OBExpansionManager
             return;
         }
         //
-        if (internalExpansionFiles == null)
-        {
-            internalExpansionFiles = new HashMap<String, OBExpansionFile>();
-            mountAvailableExpansionFolders();
-        }
+        checkForInternalExpansionFiles();
         //
         waitForDownload();
         //

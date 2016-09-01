@@ -12,6 +12,8 @@ import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
 import android.os.Handler;
 
+import org.onebillion.xprz.mainui.MainActivity;
+
 public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnSeekCompleteListener
 {
     public final int OBAP_IDLE = 0,
@@ -237,22 +239,35 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
     @Override
     public void onPrepared (MediaPlayer mp)
     {
-        player.setVolume(volume,volume);
-        if (fromTime > 0)
+        if (player == null)
         {
-            setState(OBAP_SEEKING);
-            player.seekTo((int) fromTime);
-        }
-        else
-        {
-            setState(OBAP_PLAYING);
-
+            MainActivity.mainActivity.log("OBAudioPlayer.onPrepared.player is null");
+            //
+            setState(OBAP_IDLE);
+            //
             playerLock.lock();
             condition.signalAll();
             playerLock.unlock();
+        }
+        else
+        {
+            player.setVolume(volume, volume);
+            if (fromTime > 0)
+            {
+                setState(OBAP_SEEKING);
+                player.seekTo((int) fromTime);
+            }
+            else
+            {
+                setState(OBAP_PLAYING);
+
+                playerLock.lock();
+                condition.signalAll();
+                playerLock.unlock();
 
 
-            player.start();
+                player.start();
+            }
         }
     }
 

@@ -288,7 +288,6 @@ public class X_Counting5and10_S4g extends XPRZ_Generic_SelectCorrectObject
                         newPosition.set(midWay);
                         //
                         OBAudioManager.audioManager.startPlaying(sfx, String.format("bounce_%d", i));
-                        playSfxAudio("bounce", false);
                     }
                 }
                 else
