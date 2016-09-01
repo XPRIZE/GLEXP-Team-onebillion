@@ -4,6 +4,7 @@ import android.content.res.AssetFileDescriptor;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.util.Range;
 import android.view.View;
 
@@ -11,6 +12,7 @@ import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBTextLayer;
+import org.onebillion.xprz.mainui.OBSectionController;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic_DragObjectsToCorrectPlace;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic_WordsEvent;
@@ -44,7 +46,7 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
     Boolean breakdown_phoneme, breakdown_syllable;
     Boolean phase2, showTick;
     OBGroup button, avatar, window;
-
+    Boolean isReplayAudioPlaying;
     public X_TalkingHead ()
     {
         super();
@@ -100,6 +102,8 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
         button = (OBGroup) objectDict.get("button");
         avatar = (OBGroup) objectDict.get("avatar");
         window = (OBGroup) objectDict.get("window");
+        //
+        isReplayAudioPlaying = false;
     }
 
 
@@ -193,7 +197,7 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
             @Override
             public void run () throws Exception
             {
-                doReminder(true);
+                doReminder(true, statusTime);
             }
         });
     }
@@ -320,8 +324,10 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
     }
 
 
-    public void doReminder (Boolean playReminder) throws Exception
+    public void doReminder (Boolean playReminder, long timestamp) throws Exception
     {
+        if (statusTime != timestamp) return;
+        //
         long stTime = System.nanoTime();
         if (playReminder)
         {
@@ -375,13 +381,10 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
             @Override
             public void run () throws Exception
             {
-                doReminder(false);
+                doReminder(false , statusTime);
             }
         });
     }
-
-
-
 
 
     public void buttonShowState (String state)
@@ -641,12 +644,12 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
         lockScreen();
         if (high)
         {
-            ((OBTextLayer)label.layer).setHighRange(startRange, endRange, Color.RED);
+            ((OBTextLayer) label.layer).setHighRange(startRange, endRange, Color.RED);
             label.setNeedsRetexture();
         }
         else
         {
-            ((OBTextLayer)label.layer).setHighRange(-1, -1, Color.BLACK);
+            ((OBTextLayer) label.layer).setHighRange(-1, -1, Color.BLACK);
             label.setColour(Color.BLACK);
             label.setNeedsRetexture();
         }
@@ -823,20 +826,74 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
     }
 
     @Override
-    protected void _replayAudio ()
+    public void replayAudio ()
     {
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        final X_TalkingHead sc = this;
+        if (!isReplayAudioPlaying)
         {
-            @Override
-            public void run () throws Exception
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
-                playAudioQueued(_replayAudio, true);
-                //
-                doReminder(true);
-            }
-        });
+                @Override
+                public void run () throws Exception
+                {
+                    isReplayAudioPlaying = true;
+                    //
+                    if (_replayAudio != null)
+                    {
+                        setStatus(status());
+                        new AsyncTask<Void, Void, Void>()
+                        {
+                            protected Void doInBackground (Void... params)
+                            {
+                                _replayAudio();
+                                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                                {
+                                    @Override
+                                    public void run () throws Exception
+                                    {
+                                        try
+                                        {
+                                            sc.doReminder(true, statusTime);
+                                        }
+                                        catch (Exception e)
+                                        {
+
+                                        }
+                                    }
+                                });
+                                isReplayAudioPlaying = false;
+                                return null;
+                            }
+                        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
+                    }
+                }
+            });
+        }
     }
 
+//    @Override
+//    protected void _replayAudio ()
+//    {
+//        try
+//        {
+//            playAudioQueued(_replayAudio, true);
+//            //
+//            doReminder(true);
+//        }
+//        catch (Exception exception)
+//        {
+//        }
+//        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+//        {
+//            @Override
+//            public void run () throws Exception
+//            {
+//                playAudioQueued(_replayAudio, true);
+//                //
+//                doReminder(true);
+//            }
+//        });
+//    }
 
 
 }

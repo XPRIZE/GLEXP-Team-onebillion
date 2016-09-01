@@ -75,7 +75,9 @@ public class OBSystemsManager
         {
             MainActivity.mainActivity.unregisterReceiver(OBExpansionManager.sharedManager.downloadCompleteReceiver);
         }
-        OBBrightnessManager.sharedManager.onResume();
+        OBBrightnessManager.sharedManager.onPause();
+        //
+        OBSQLiteHelper.getSqlHelper().emergencyRestore();
     }
 
 

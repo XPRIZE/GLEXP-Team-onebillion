@@ -90,7 +90,7 @@ public class MainActivity extends Activity
             CONFIG_MIN_AUDIO_VOLUME = "minimumAudioVolume",
             CONFIG_WIFI_SSID = "wifiSSID",
             CONFIG_WIFI_PASSWORD = "wifiPassword",
-            CONFIG_SCREEN_BRIGHTNESS = "defaultBrightness",
+            CONFIG_USES_BRIGHTNESS_ADJUSTMENT = "usesBrightnessAdjustment",
             CONFIG_MENU_CLASS = "menuclass";
     public static String TAG = "livecode";
     //

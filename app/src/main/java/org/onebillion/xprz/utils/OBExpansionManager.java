@@ -337,7 +337,7 @@ public class OBExpansionManager
             //
             Boolean needsUpdate = true;
             OBExpansionFile internalFile = internalExpansionFiles.get(remoteFile.id);
-            if (internalFile != null && internalFile.id.equals(remoteFile.id) && internalFile.version == remoteFile.version)
+            if (internalFile != null && internalFile.id.equals(remoteFile.id) && internalFile.version >= remoteFile.version)
             {
                 needsUpdate = false;
             }

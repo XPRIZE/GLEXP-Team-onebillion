@@ -102,8 +102,17 @@ public class OBBrightnessManager
 
     public void updateBrightness (boolean loop)
     {
-        if (MainActivity.mainActivity.isDebugMode())
+        String usesBrightnessAdjustment = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_USES_BRIGHTNESS_ADJUSTMENT);
+        if (usesBrightnessAdjustment == null || usesBrightnessAdjustment.equals("false"))
         {
+            try
+            {
+                Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, Integer.MAX_VALUE);
+            }
+            catch (Exception e)
+            {
+                // do nothing, permissions may have not been set yet
+            }
             setBrightness(1.0f);
             return;
         }
@@ -111,7 +120,7 @@ public class OBBrightnessManager
         //
         long currentTimeStamp = System.currentTimeMillis();
         long elapsed = currentTimeStamp - lastTouchTimeStamp;
-        float percentage = (elapsed < 5000) ? 1.0f : (elapsed < 10000) ? 0.5f : (elapsed < 15000) ? 0.25f : 0.0f;
+        float percentage = (elapsed < 5000) ? 0.75f : (elapsed < 10000) ? 0.5f : (elapsed < 15000) ? 0.25f : 0.0f;
         //
 //        MainActivity.mainActivity.log("updateBrightness : " + elapsed + " " + percentage);
         //
