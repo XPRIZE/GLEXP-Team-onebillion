@@ -13,6 +13,8 @@ import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
+import org.onebillion.xprz.utils.OBPhoneme;
+import org.onebillion.xprz.utils.OBSyllable;
 import org.onebillion.xprz.utils.OBUserPressedBackException;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OBWord;
@@ -391,7 +393,17 @@ public class X_Grid33Sp extends X_Grid33S
         waitForSecs(0.5f);
         String infix = "_let_";
         String fileName = words.get(currNo).replaceFirst("_",infix);
-        highlightAndSpeakComponents(wordLabels,words.get(currNo),currWord,fileName);
+
+        if(!itemsInSameDirectory(words.get(currNo),fileName))
+        {
+            List<String>phs = new ArrayList<>();
+            for(OBSyllable syl : currReadingWord.syllables)
+                for(OBPhoneme obp : syl.phonemes)
+                    phs.add(obp.soundid);
+            highlightAndSpeakIndividualPhonemes(wordLabels,phs);
+        }
+        else
+            highlightAndSpeakComponents(wordLabels,words.get(currNo),currWord,fileName);
 
         blendLabels(wordLabels);
 

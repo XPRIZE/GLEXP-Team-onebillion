@@ -329,7 +329,7 @@ public class X_Alpha1 extends X_Wordcontroller
                 playSfxAudio("click",true);
                 waitForSecs(0.4f);
                 List ls = Arrays.asList(String.format("alph_%s",letters.get(idx).toLowerCase()));
-                playAudioQueued(ls,false);
+                playAudioQueued(ls,true);
 
                 waitForSecs(0.4f);
                 gotItRightBigTick(true);
