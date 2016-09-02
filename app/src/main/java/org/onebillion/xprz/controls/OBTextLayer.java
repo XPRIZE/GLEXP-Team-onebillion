@@ -36,6 +36,7 @@ public class OBTextLayer extends OBLayer
     Rect tempRect;
     SpannableString spanner;
     boolean displayObjectsValid = false;
+    public float maxWidth = 4000;
 
     public OBTextLayer()
     {
@@ -70,6 +71,7 @@ public class OBTextLayer extends OBLayer
         obj.hiEndIdx = hiEndIdx;
         obj.hiRangeColour = hiRangeColour;
         obj.justification = justification;
+        obj.maxWidth = maxWidth;
         return obj;
     }
 
@@ -97,7 +99,7 @@ public class OBTextLayer extends OBLayer
         spanner = new SpannableString(text);
         if (hiStartIdx >= 0)
             spanner.setSpan(new ForegroundColorSpan(hiRangeColour),hiStartIdx,hiEndIdx, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        stLayout = new StaticLayout(spanner,textPaint,4000, Layout.Alignment.ALIGN_NORMAL,1,0,false);
+        stLayout = new StaticLayout(spanner,textPaint,(int)maxWidth, Layout.Alignment.ALIGN_NORMAL,1,0,false);
         displayObjectsValid = true;
     }
     @Override
@@ -158,10 +160,15 @@ public class OBTextLayer extends OBLayer
     {
         if (!displayObjectsValid)
             makeDisplayObjects();
+        int linect = stLayout.getLineCount();
         bb.left = 0;
         bb.top = 0;
-        bb.right = stLayout.getLineWidth(0);
-        bb.bottom = stLayout.getLineBottom(0);
+        float maxw = 0;
+        for (int i = 0;i < linect;i++)
+            if (stLayout.getLineWidth(0) > maxw)
+                maxw = stLayout.getLineWidth(0);
+        bb.right = maxw;
+        bb.bottom = stLayout.getLineBottom(linect - 1);
     }
     public void sizeToBoundingBox()
     {

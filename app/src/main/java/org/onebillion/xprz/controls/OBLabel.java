@@ -137,4 +137,22 @@ public class OBLabel extends OBControl
         OBTextLayer tl = (OBTextLayer)layer;
         return tl.textOffset(idx);
     }
+
+    public void setMaxWidth(float f)
+    {
+        OBTextLayer tl = (OBTextLayer)layer;
+        tl.maxWidth = f;
+        setNeedsLayout();
+    }
+    public void setJustification(int j)
+    {
+        OBTextLayer tl = (OBTextLayer)layer;
+        tl.justification = j;
+    }
+
+    public void setNeedsLayout()
+    {
+        OBTextLayer tl = (OBTextLayer)layer;
+        tl.displayObjectsValid = false;
+    }
 }
