@@ -71,7 +71,7 @@ public class X_Th3 extends X_Th2
 
     public void demob () throws Exception
     {
-        setStatus(STATUS_DOING_DEMO);
+        long timestamp = setStatus(STATUS_DOING_DEMO);
         //
         action_popup();
         //
@@ -82,7 +82,7 @@ public class X_Th3 extends X_Th2
         action_playNextDemoSentence(true); // Listen!
         waitForSecs(0.3);
         //
-        action_intro(showText, false);
+        action_intro(showText, false, timestamp);
         waitForSecs(0.3);
         //
         action_playNextDemoSentence(false); // Which two said the same?
@@ -129,7 +129,7 @@ public class X_Th3 extends X_Th2
         movePointerToPoint(position, 0, 0.9f, true);
         waitForSecs(0.3);
         //
-        action_intro(showText, true);
+        action_intro(showText, true, timestamp);
         waitForSecs(0.3);
         //
         action_playNextDemoSentence(false); // Remember, this lets you listen again.
@@ -151,7 +151,7 @@ public class X_Th3 extends X_Th2
 
     public void checkObject(OBGroup object)
     {
-        setStatus(STATUS_CHECKING);
+        long timestamp = setStatus(STATUS_CHECKING);
         //
         try
         {
@@ -185,7 +185,7 @@ public class X_Th3 extends X_Th2
                 //
                 waitForSecs(0.3);
                 //
-                action_intro(showText, true);
+                action_intro(showText, true, timestamp);
                 waitForSecs(0.3);
                 //
                 lockScreen();
@@ -222,7 +222,7 @@ public class X_Th3 extends X_Th2
                 unlockScreen();
                 //
                 pairedObjects.clear();
-                setStatus(STATUS_AWAITING_CLICK);
+                final long final_timestamp = setStatus(STATUS_AWAITING_CLICK);
                 //
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
@@ -234,7 +234,7 @@ public class X_Th3 extends X_Th2
                         if (statusChanged(st)) return;
                         waitForSecs(0.3);
                         //
-                        action_intro(showText, false);
+                        action_intro(showText, false, final_timestamp);
                         //
                         playSceneAudioIndex("INCORRECT", 1, true);
                         if (statusChanged(st)) return;

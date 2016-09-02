@@ -12,11 +12,15 @@ import org.onebillion.xprz.mainui.MainActivity;
 public class OBAppStartupReceiver extends BroadcastReceiver
 {
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public void onReceive (Context context, Intent intent)
+    {
+        MainActivity.mainActivity.log("Received OnAppStartupReceiver");
+        //
         if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction()) || Intent.ACTION_USER_PRESENT.equals(intent.getAction()))
         {
             Intent serviceIntent = new Intent(context, MainActivity.class);
-            context.startService(serviceIntent);
+            serviceIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(serviceIntent);
         }
     }
 }

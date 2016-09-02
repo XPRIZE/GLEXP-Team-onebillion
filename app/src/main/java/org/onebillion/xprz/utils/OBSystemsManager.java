@@ -1,8 +1,10 @@
 package org.onebillion.xprz.utils;
 
+import android.app.ActivityManager;
 import android.app.DownloadManager;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Debug;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
@@ -20,7 +22,13 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Created by pedroloureiro on 31/08/16.
@@ -34,6 +42,7 @@ public class OBSystemsManager
     private OBBrightnessManager brightnessManager;
     private OBExpansionManager expansionManager;
     private OBConnectionManager connectionManager;
+    private Map<String, List<String>> memoryUsageMap;
 
 
     public OBSystemsManager ()
@@ -44,8 +53,12 @@ public class OBSystemsManager
         expansionManager = new OBExpansionManager();
         connectionManager = new OBConnectionManager();
         //
+        memoryUsageMap = new HashMap<String, List<String>>();
+        //
         sharedManager = this;
     }
+
+
 
 
     public void runChecks ()
@@ -62,6 +75,86 @@ public class OBSystemsManager
                 runChecksumComparisonTest();
             }
         });
+    }
+
+
+
+
+    public void printMemoryStatus (String message)
+    {
+        ActivityManager activityManager = (ActivityManager) MainActivity.mainActivity.getSystemService(MainActivity.ACTIVITY_SERVICE);
+        int id = android.os.Process.myPid();
+        int[] list = {id};
+        Debug.MemoryInfo result[] = activityManager.getProcessMemoryInfo(list);
+
+        if (message != null) MainActivity.mainActivity.log(message);
+
+        for (Debug.MemoryInfo info : result)
+        {
+            Map<String, String> map = info.getMemoryStats();
+            for (String key : map.keySet())
+            {
+                List<String> memoryEntry = memoryUsageMap.get(key);
+                if (memoryEntry == null) memoryEntry = new ArrayList<String>();
+                memoryEntry.add(map.get(key));
+                memoryUsageMap.put(key, memoryEntry);
+            }
+        }
+        //
+        for (String key : memoryUsageMap.keySet())
+        {
+            List<String> values = memoryUsageMap.get(key);
+            if (values == null) continue;
+            if (values.isEmpty()) continue;
+            //
+            long firstValue = Long.parseLong(values.get(0));
+            long lastValue = Long.parseLong(values.get(values.size()-1));
+            if (values.size() > 2)
+            {
+                long secondLastValue = Long.parseLong(values.get(values.size() - 2));
+                long diff = lastValue - secondLastValue;
+                long fullDiff = lastValue - firstValue;
+                MainActivity.mainActivity.log("Memory status: " + key + " --> " + lastValue + " (" + ((diff > 0) ? "+" : "") + diff + ")  --> since beginning (" + ((fullDiff > 0) ? "+" : "") + fullDiff + ")" );
+            }
+            else
+            {
+                long diff = lastValue - firstValue;
+                MainActivity.mainActivity.log("Memory status: " + key + " --> " + lastValue + " (" + ((diff > 0) ? "+" : "") + diff + ")");
+            }
+        }
+    }
+
+
+
+
+
+    public void runBatterySavingMode ()
+    {
+        OBConnectionManager.sharedManager.disconnectWifiIfAllowed();
+        OBConnectionManager.sharedManager.setBluetooth(false);
+        //
+        killBackgroundProcesses();
+        //
+    }
+
+
+
+
+
+    public void killBackgroundProcesses ()
+    {
+        ActivityManager activityManager = (ActivityManager) MainActivity.mainActivity.getSystemService(MainActivity.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningAppProcessInfo> procInfo = activityManager.getRunningAppProcesses();
+        for (ActivityManager.RunningAppProcessInfo process : procInfo)
+        {
+            int importance = process.importance;
+            int pid = process.pid;
+            String name = process.processName;
+            //
+            if (name.equals("manager.main")) continue;
+            if (importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_SERVICE) continue;
+            activityManager.killBackgroundProcesses(name);
+        }
     }
 
 
@@ -106,6 +199,13 @@ public class OBSystemsManager
     public void onStop ()
     {
         OBBrightnessManager.sharedManager.onStop();
+    }
+
+    public void onContinue ()
+    {
+        OBBrightnessManager.sharedManager.onContinue();
+        //
+        runBatterySavingMode();
     }
 
 
@@ -174,8 +274,6 @@ public class OBSystemsManager
         //
         return calculatedDigest.equalsIgnoreCase(md5);
     }
-
-
 
 
     public static String calculateMD5 (InputStream is)

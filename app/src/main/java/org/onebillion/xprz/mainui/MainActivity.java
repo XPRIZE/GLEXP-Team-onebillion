@@ -91,6 +91,8 @@ public class MainActivity extends Activity
             CONFIG_WIFI_SSID = "wifiSSID",
             CONFIG_WIFI_PASSWORD = "wifiPassword",
             CONFIG_USES_BRIGHTNESS_ADJUSTMENT = "usesBrightnessAdjustment",
+            CONFIG_MAX_BRIGHTNESS = "maxBrightness",
+            CONFIG_KEEP_WIFI_ON = "keepWifiOn",
             CONFIG_MENU_CLASS = "menuclass";
     public static String TAG = "livecode";
     //
@@ -288,6 +290,7 @@ public class MainActivity extends Activity
             {
                 try
                 {
+                    OBSystemsManager.sharedManager.printMemoryStatus("Before mainViewController");
                     mainViewController = new OBMainViewController(MainActivity.mainActivity);
                 }
                 catch (Exception e)
@@ -539,6 +542,8 @@ public class MainActivity extends Activity
     }
     public void setUpConfig () throws Exception
     {
+        OBSystemsManager.sharedManager.printMemoryStatus("setupconfig");
+        //
         InputStream pis;
 //        pis = getAssets().open("config/settings.plist");
         pis = getAssets().open(BuildConfig.SETTINGS_FILE);

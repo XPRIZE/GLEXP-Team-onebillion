@@ -16,6 +16,7 @@ import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimBlock;
 import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBImageManager;
+import org.onebillion.xprz.utils.OBSystemsManager;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OB_Maths;
 import org.onebillion.xprz.utils.ULine;
@@ -240,6 +241,8 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
 
     public void startSectionForIndex(long sectionIndex)
     {
+        OBSystemsManager.sharedManager.printMemoryStatus("Starting Unit " + sectionIndex);
+        //
         fatController.startSectionByIndex(sectionIndex);
     }
 

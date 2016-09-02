@@ -1,5 +1,6 @@
 package org.onebillion.xprz.utils;
 
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -57,6 +58,42 @@ public class OBConnectionManager
                 }
             });
         }
+    }
+
+
+    public Boolean keepWifiOn ()
+    {
+        String keepWifiOn = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_KEEP_WIFI_ON);
+        if (keepWifiOn != null && keepWifiOn.equals("false"))
+        {
+            return false;
+        }
+        return true;
+    }
+
+
+    public void disconnectWifiIfAllowed ()
+    {
+        if (!keepWifiOn())
+        {
+            WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getSystemService(MainActivity.WIFI_SERVICE);
+            wifiManager.setWifiEnabled(false);
+        }
+    }
+
+    public boolean setBluetooth (boolean enable)
+    {
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        boolean isEnabled = bluetoothAdapter.isEnabled();
+        if (enable && !isEnabled)
+        {
+            return bluetoothAdapter.enable();
+        }
+        else if (!enable && isEnabled)
+        {
+            return bluetoothAdapter.disable();
+        }
+        return true;
     }
 
     public void connectToWifi ()

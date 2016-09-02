@@ -181,8 +181,8 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
                 @Override
                 public void run () throws Exception
                 {
-                    setStatus(STATUS_CHECKING);
-                    action_intro(showText, false);
+                    long timestamp = setStatus(STATUS_CHECKING);
+                    action_intro(showText, false, timestamp);
                     setStatus(STATUS_AWAITING_CLICK);
                     //
                     _replayAudio();
@@ -206,12 +206,13 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
     @Override
     public void doAudio (String scene) throws Exception
     {
+        long timestamp = setStatus(STATUS_AWAITING_CLICK);
         setReplayAudioScene(currentEvent(), "REPEAT");
         waitForSecs(0.3);
         //
         if (scene.equals("c"))
         {
-            action_intro(showText, false);
+            action_intro(showText, false, timestamp);
             playSceneAudio("PROMPT", false);
         }
         else
@@ -219,7 +220,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
             playSceneAudio("PROMPT", true);
             waitForSecs(0.3);
             //
-            action_intro(showText, false);
+            action_intro(showText, false, timestamp);
         }
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
@@ -314,7 +315,6 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
         //
         if (!performSel("demo", currentEvent()))
         {
-            setStatus(STATUS_AWAITING_CLICK);
             doAudio(currentEvent());
         }
     }
@@ -417,7 +417,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
 
     public void demob () throws Exception
     {
-        setStatus(STATUS_DOING_DEMO);
+        long timestamp = setStatus(STATUS_DOING_DEMO);
         //
         loadPointer(POINTER_MIDDLE);
         XPRZ_Generic.pointer_moveToRelativePointOnScreen(0.9f, 1.3f, 0f, 0.1f, true, this);
@@ -426,7 +426,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
         action_playNextDemoSentence(true); // Listen!
         waitForSecs(0.3);
         //
-        action_intro(showText, false);
+        action_intro(showText, false, timestamp);
         waitForSecs(0.3);
         //
         action_playNextDemoSentence(false); // Which one said something different?
@@ -477,7 +477,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
         movePointerToPoint(position, 0, 0.9f, true);
         waitForSecs(0.3);
         //
-        action_intro(showText, true);
+        action_intro(showText, true, timestamp);
         waitForSecs(0.3);
         //
         action_playNextDemoSentence(false); // Remember, this lets you listen again.
@@ -547,7 +547,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
     }
 
 
-    public void action_intro (Boolean showLabel, Boolean highlight) throws Exception
+    public void action_intro (Boolean showLabel, Boolean highlight, long timestamp) throws Exception
     {
         if (mode.equals("word"))
         {
@@ -558,7 +558,6 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
                 //
                 if (highlight)
                 {
-                    long st = statusTime;
                     String correctAnswer = answers.get(currNo);
                     //
                     for (int i = 1; i <= touchables.size(); i++)
@@ -567,26 +566,25 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
                         String value = (String) head.propertyValue("value");
                         //
                         if (!value.equals(correctAnswer)) continue;
-                        if (statusChanged(st)) break;
+                        if (statusChanged(timestamp)) break;
                         //
-                        action_playSound(head, st, highlight);
+                        action_playSound(head, timestamp, highlight);
                         //
-                        if (statusChanged(st)) break;
+                        if (statusChanged(timestamp)) break;
                         waitForSecs(0.3);
                     }
                     return;
                 }
             }
         }
-        long st = statusTime;
         for (int i = 1; i <= touchables.size(); i++)
         {
             OBGroup head = (OBGroup) objectDict.get(String.format("obj_%d", i));
             //
-            if (statusChanged(st)) break;
-            action_playSound(head, st, highlight);
+            if (statusChanged(timestamp)) break;
+            action_playSound(head, timestamp, highlight);
             //
-            if (statusChanged(st)) break;
+            if (statusChanged(timestamp)) break;
             waitForSecs(0.3);
         }
     }
@@ -731,7 +729,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
 
     public void checkObject (OBGroup control)
     {
-        setStatus(STATUS_CHECKING);
+        long timestamp = setStatus(STATUS_CHECKING);
         //
         try
         {
@@ -755,7 +753,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
                 unlockScreen();
                 waitForSecs(0.3);
                 //
-                action_intro(showText, true);
+                action_intro(showText, true, timestamp);
                 waitForSecs(0.3);
                 //
                 lockScreen();
@@ -795,7 +793,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
                 waitForSecs(0.3);
                 //
                 control.lowlight();
-                setStatus(STATUS_AWAITING_CLICK);
+                final long final_timestamp = setStatus(STATUS_AWAITING_CLICK);
                 //
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
@@ -807,7 +805,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
                         if (statusChanged(st)) return;
                         waitForSecs(0.3);
                         //
-                        action_intro(showText, false);
+                        action_intro(showText, false, final_timestamp);
                         //
                         playSceneAudioIndex("INCORRECT", 1, true);
                         if (statusChanged(st)) return;

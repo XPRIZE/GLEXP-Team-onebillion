@@ -217,7 +217,8 @@ public class OBExpansionManager
             }
             if (completionBlock != null)
             {
-                OBBrightnessManager.sharedManager.onContinue();
+                OBSystemsManager.sharedManager.onContinue();
+                //
                 OBUtils.runOnMainThread(completionBlock);
             }
         }
@@ -358,6 +359,8 @@ public class OBExpansionManager
     private void compareExpansionFilesAndInstallMissingOrOutdated ()
     {
 //        MainActivity.mainActivity.log("compareExpansionFilesAndInstallMissingOrOutdated");
+        //
+        checkForInternalExpansionFiles();
         //
         if (internalExpansionFiles == null) return;
         //
