@@ -22,12 +22,50 @@ import java.util.Map;
  */
 public class XPRZ_JMenu extends XPRZ_Menu
 {
-    public static final String titles[] = {"video","numeracy","reading","writing","design","technology"};
+    public static final String titles[] = {"video","reading","stories","numeracy","writing","design","tech"};
     String currentTab = null;
     List<OBControl> tabs;
     Map<String,OBXMLNode>tabXmlDict;
-    public float tabTextSize,subheadtextSize,itemHeadTextSize,itemBodyTextSize;
+    public float tabTextSize,subheadtextSize,subsubheadtextSize,itemHeadTextSize,itemBodyTextSize;
+    static Typeface plain,bold,italic,boldItalic;
 
+    static Typeface plainFont()
+    {
+        if (plain == null)
+            plain = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(),"fonts/F37Ginger-Regular.otf");
+        return plain;
+    }
+    static Typeface boldFont()
+    {
+        if (bold == null)
+            bold = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(),"fonts/F37Ginger-Bold.otf");
+        return bold;
+    }
+    static Typeface italicFont()
+    {
+        if (italic == null)
+            italic = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(),"fonts/F37Ginger-Italic.otf");
+        return italic;
+    }
+    static Typeface boldItalicFont()
+    {
+        if (boldItalic == null)
+            boldItalic = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(),"fonts/F37Ginger-BoldItalic.otf");
+        return boldItalic;
+    }
+    Typeface jFont(boolean isBold,boolean isItalic)
+    {
+        if (isBold)
+            if (isItalic)
+                return boldItalicFont();
+            else
+                return italicFont();
+        else
+            if (isItalic)
+                return italicFont();
+        return plainFont();
+
+    }
     public void prepare()
     {
         super.prepare();
@@ -35,10 +73,13 @@ public class XPRZ_JMenu extends XPRZ_Menu
         loadEvent("mastera");
         tabTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("tabtextsize")));
         subheadtextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("subheadtextsize")));
+        subsubheadtextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("subsubheadtextsize")));
         itemHeadTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("itemheadtextsize")));
         itemBodyTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("itembodytextsize")));
         tabs = sortedFilteredControls("tab.*");
-        switchTo("video");
+        setUpTabTitles();
+
+        //switchTo("video");
 
     }
 
@@ -64,6 +105,20 @@ public class XPRZ_JMenu extends XPRZ_Menu
         }
     }
 
+    void setUpTabTitles()
+    {
+        for (int i = 1;i < tabs.size();i++)
+        {
+            OBLabel label = new OBLabel(titles[i],plainFont(),tabTextSize);
+            label.setColour(Color.WHITE);
+            OBControl placeHolder = tabs.get(i);
+            label.setPosition(placeHolder.position());
+            label.setZPosition(placeHolder.zPosition()+10);
+            attachControl(label);
+            objectDict.put("tabtitle_"+titles[i],label);
+        }
+    }
+
     public void populateSubHead(String tabstring)
     {
         OBXMLNode tab = tabXmlDict.get(tabstring);
@@ -80,11 +135,39 @@ public class XPRZ_JMenu extends XPRZ_Menu
         OBLabel label = new OBLabel(s,tf,subheadtextSize);
         label.setColour(Color.WHITE);
         OBControl placeHolder = objectDict.get(tabstring +"_subhead");
-        label.setLeft(placeHolder.left());
-        label.setTop(placeHolder.top());
-        label.setZPosition(objectDict.get(tabstring+"_background").zPosition()+10);
-        attachControl(label);
-        objectDict.put(tabstring+"sh",label);
+        if (placeHolder != null)
+        {
+            label.setLeft(placeHolder.left());
+            label.setTop(placeHolder.top());
+            label.setZPosition(objectDict.get(tabstring+"_background").zPosition()+10);
+            attachControl(label);
+            objectDict.put(tabstring+"sh",label);
+        }
+    }
+
+    public void populateSubSubHeads(String tabstring)
+    {
+        OBXMLNode tab = tabXmlDict.get(tabstring);
+        List<OBXMLNode> subsubheadnodes = tab.childrenOfType("subsubhead");
+        Typeface tf = boldFont();
+        int i = 1;
+        for (OBXMLNode subsubheadnode : subsubheadnodes)
+        {
+            String s = "";
+            for (OBXMLNode tspan : subsubheadnode.childrenOfType("tspan"))
+            {
+                s += tspan.contents;
+            }
+            OBLabel label = new OBLabel(s,tf,subsubheadtextSize);
+            label.setColour(Color.WHITE);
+            OBControl placeHolder = objectDict.get(tabstring + String.format("_subsubhead%d",i));
+            label.setLeft(placeHolder.left());
+            label.setTop(placeHolder.top());
+            label.setZPosition(objectDict.get(tabstring+"_background").zPosition()+10);
+            attachControl(label);
+            objectDict.put(tabstring+String.format("_subsubhead%d",i),label);
+            i++;
+        }
     }
 
     public void populateReading()
@@ -92,10 +175,11 @@ public class XPRZ_JMenu extends XPRZ_Menu
         String tabstring = "reading";
         populateSubHead(tabstring);
         OBXMLNode tab = tabXmlDict.get(tabstring);
+        Typeface tf = plainFont();
+        Typeface tfb = boldFont();
         List<OBXMLNode> targs = tab.childrenOfType("targets");
         if (targs.size() > 0)
         {
-            Typeface tf = OBUtils.standardTypeFace();
             List<OBXMLNode> nodeTargs = targs.get(0).childrenOfType("target");
             int idx = 0;
             PointF pt = new PointF();
@@ -116,22 +200,30 @@ public class XPRZ_JMenu extends XPRZ_Menu
                 boxname = String.format(tabstring+"_textbox_%d",idx+1);
                 OBControl textbox = objectDict.get(boxname);
                 OBXMLNode textnode = n.childrenOfType("text").get(0);
+                String s = textnode.attributeStringValue("align");
+                Boolean centred = (s != null && s.equals("centre"));
                 OBXMLNode headnode = textnode.childrenOfType("head").get(0);
 
-                OBLabel label = new OBLabel(headnode.contents,tf,itemHeadTextSize);
+                OBLabel label = new OBLabel(headnode.contents,tfb,itemHeadTextSize);
                 label.setMaxWidth(textbox.width());
+                label.setJustification(centred?OBTextLayer.JUST_CENTER:OBTextLayer.JUST_LEFT);
                 label.sizeToBoundingBox();
                 label.setTop(textbox.top());
-                label.setLeft(textbox.left());
+//                if (centred)
+//                    label.setLeft(textbox.left() + (textbox.width() - label.width())/2);
+//                else
+                    label.setLeft(textbox.left());
                 label.setZPosition(zpos);
                 label.setColour(Color.WHITE);
-                label.setJustification(OBTextLayer.JUST_LEFT);
+                //label.setBorderColor(Color.BLACK);
+                //label.setBorderWidth(2f);
                 objectDict.put(tabstring+String.format("_head%d",idx+1),label);
                 attachControl(label);
 
-                OBXMLNode bodynode = textnode.childrenOfType("body").get(0);
-                if (bodynode != null)
+                List<OBXMLNode>nodes = textnode.childrenOfType("body");
+                if (nodes.size() > 0)
                 {
+                    OBXMLNode bodynode = nodes.get(0);
                     OBLabel label2 = new OBLabel(bodynode.contents,tf,itemBodyTextSize);
                     label2.setMaxWidth(textbox.width());
                     label2.sizeToBoundingBox();
@@ -139,7 +231,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
                     label2.setLeft(textbox.left());
                     label2.setZPosition(zpos);
                     label2.setColour(Color.WHITE);
-                    label2.setJustification(OBTextLayer.JUST_LEFT);
+                    label2.setJustification(centred?OBTextLayer.JUST_CENTER:OBTextLayer.JUST_LEFT);
 
                     objectDict.put(tabstring+String.format("_bod%d",idx+1),label2);
                     attachControl(label2);
@@ -147,8 +239,23 @@ public class XPRZ_JMenu extends XPRZ_Menu
                 idx++;
             }
         }
-
+        List<OBControl> nums = sortedFilteredControls("reading_num.*");
+        int i = 1;
+        for (OBControl c : nums)
+        {
+            OBLabel label = new OBLabel(String.format("%d",i),tf,subheadtextSize);
+            label.sizeToBoundingBox();
+            label.setPosition(c.position());
+            label.setZPosition(c.zPosition());
+            label.setColour(Color.WHITE);
+            //label.setJustification(OBTextLayer.JUST_CENTER);
+            objectDict.put("reading_num_"+String.format("_%d",i),label);
+            attachControl(label);
+            i++;
+        }
+    populateSubSubHeads(tabstring);
     }
+
     public void populateNumeracy()
     {
         String tabstring = "numeracy";

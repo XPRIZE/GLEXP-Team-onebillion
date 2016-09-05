@@ -32,7 +32,7 @@ public class OBTextLayer extends OBLayer
     int hiStartIdx=-1,hiEndIdx=-1;
     int hiRangeColour;
     float letterSpacing;
-    int justification = JUST_CENTER;
+    int justification = JUST_LEFT;
     Rect tempRect;
     SpannableString spanner;
     boolean displayObjectsValid = false;
@@ -81,7 +81,9 @@ public class OBTextLayer extends OBLayer
         ss.setSpan(new ForegroundColorSpan(hiRangeColour),hiStartIdx,hiEndIdx, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         TextPaint txpaint = new TextPaint(textPaint);
         txpaint.setColor(Color.RED);
-        StaticLayout ly = new StaticLayout(ss,txpaint,tempRect.width(), Layout.Alignment.ALIGN_NORMAL,1,0,false);
+        StaticLayout ly = new StaticLayout(ss,txpaint,tempRect.width(),
+                (justification==JUST_CENTER)?Layout.Alignment.ALIGN_CENTER:Layout.Alignment.ALIGN_NORMAL,
+                1,0,false);
         float l = 0;
         if (justification == JUST_CENTER)
             l = (bounds().right - ly.getLineWidth(0)) / 2f;
@@ -99,7 +101,9 @@ public class OBTextLayer extends OBLayer
         spanner = new SpannableString(text);
         if (hiStartIdx >= 0)
             spanner.setSpan(new ForegroundColorSpan(hiRangeColour),hiStartIdx,hiEndIdx, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        stLayout = new StaticLayout(spanner,textPaint,(int)maxWidth, Layout.Alignment.ALIGN_NORMAL,1,0,false);
+        stLayout = new StaticLayout(spanner,textPaint,(int)maxWidth,
+                (justification==JUST_CENTER)?Layout.Alignment.ALIGN_CENTER:Layout.Alignment.ALIGN_NORMAL,
+                1,0,false);
         displayObjectsValid = true;
     }
     @Override
@@ -111,8 +115,8 @@ public class OBTextLayer extends OBLayer
             makeDisplayObjects();
         }
         float l = 0;
-        if (justification == JUST_CENTER)
-            l = (bounds().right - stLayout.getLineWidth(0)) / 2f;
+        //if (justification == JUST_CENTER)
+          //  l = (bounds().right - stLayout.getLineWidth(0)) / 2f;
         canvas.save();
         canvas.translate(l,0);
         stLayout.draw(canvas);
@@ -164,9 +168,19 @@ public class OBTextLayer extends OBLayer
         bb.left = 0;
         bb.top = 0;
         float maxw = 0;
-        for (int i = 0;i < linect;i++)
-            if (stLayout.getLineWidth(0) > maxw)
-                maxw = stLayout.getLineWidth(0);
+        if (justification == JUST_CENTER)
+            maxw = maxWidth;
+        else
+        {
+            for (int i = 0;i < linect;i++)
+            {
+                float w = stLayout.getLineWidth(i);
+                float x = stLayout.getLineRight(i);
+                Rect r = new Rect();
+                if (w > maxw)
+                    maxw = w;
+            }
+        }
         bb.right = maxw;
         bb.bottom = stLayout.getLineBottom(linect - 1);
     }
