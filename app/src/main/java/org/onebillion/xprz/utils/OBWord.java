@@ -51,7 +51,7 @@ public class OBWord extends OBSyllable
     {
         if (this.imageName == null)
         {
-            MainActivity.mainActivity.log("OBWord.MISSING IMAGE FOR WORD " + this.soundid);
+            MainActivity.log("OBWord.MISSING IMAGE FOR WORD " + this.soundid);
         }
         return this.imageName;
     }

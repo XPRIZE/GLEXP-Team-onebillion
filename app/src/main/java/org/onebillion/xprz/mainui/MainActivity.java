@@ -22,6 +22,7 @@ import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -92,6 +93,7 @@ public class MainActivity extends Activity
             CONFIG_WIFI_PASSWORD = "wifiPassword",
             CONFIG_USES_BRIGHTNESS_ADJUSTMENT = "usesBrightnessAdjustment",
             CONFIG_MAX_BRIGHTNESS = "maxBrightness",
+            CONFIG_BRIGHTNESS_CHECK_INTERVAL = "brightnessCheckInterval",
             CONFIG_KEEP_WIFI_ON = "keepWifiOn",
             CONFIG_MENU_CLASS = "menuclass";
     public static String TAG = "livecode";
@@ -158,10 +160,21 @@ public class MainActivity extends Activity
     @Override
     protected void onCreate (Bundle savedInstanceState)
     {
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
+
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler()
+        {
+            @Override
+            public void uncaughtException(Thread paramThread, Throwable paramThrowable)
+            {
+                MainActivity.log("Caught unhandled exception. Restarting App");
+                paramThrowable.printStackTrace();
+                System.exit(0);
+            }
+        });
         //
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         //
         mainActivity = this;
@@ -190,9 +203,6 @@ public class MainActivity extends Activity
         }
     }
 
-
-
-
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
         if (requestCode == REQUEST_FIRST_SETUP_DATE_TIME)
@@ -215,7 +225,6 @@ public class MainActivity extends Activity
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-
         //
         final View decorView = getWindow().getDecorView();
         decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener()
@@ -236,6 +245,7 @@ public class MainActivity extends Activity
         // disable the lock screen when the app is running
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
     }
 
@@ -290,6 +300,7 @@ public class MainActivity extends Activity
             {
                 try
                 {
+                    OBSystemsManager.sharedManager.runChecks();
                     OBSystemsManager.sharedManager.printMemoryStatus("Before mainViewController");
                     mainViewController = new OBMainViewController(MainActivity.mainActivity);
                 }
@@ -300,6 +311,23 @@ public class MainActivity extends Activity
             }
         });
     }
+
+
+    // This bypasses the power button (long press), preventing shutdown
+    public void onWindowFocusChanged(boolean hasFocus)
+    {
+        if (!hasFocus)
+        {
+            // Close every kind of system dialog
+            Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+            sendBroadcast(closeDialog);
+        }
+        else
+        {
+            super.onWindowFocusChanged(hasFocus);
+        }
+    }
+
 
 
     public void onBackPressed()
@@ -599,7 +627,6 @@ public class MainActivity extends Activity
             AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
             am.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(am.getStreamMaxVolume(AudioManager.STREAM_MUSIC) * volumePercentage), 0);
         }
-        systemsManager.sharedManager.runChecks();
     }
 
     public void updateGraphicScale(float newWidth, float newHeight)
@@ -639,6 +666,13 @@ public class MainActivity extends Activity
         //
         suspendLock.lock();
         OBSystemsManager.sharedManager.onPause();
+    }
+
+    @Override
+    protected void onDestroy ()
+    {
+        super.onDestroy();
+        OBSystemsManager.sharedManager.onDestroy();
     }
 
     @Override
@@ -757,7 +791,7 @@ public class MainActivity extends Activity
         return result;
     }
 
-    public void log (String message)
+    public static void log (String message)
     {
         Log.v(TAG, message);
     }

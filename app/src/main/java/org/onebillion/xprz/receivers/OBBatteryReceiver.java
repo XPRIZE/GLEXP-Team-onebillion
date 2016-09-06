@@ -8,6 +8,7 @@ import android.os.BatteryManager;
 
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.mainui.MainActivity;
+import org.onebillion.xprz.utils.OBSystemsManager;
 
 /**
  * Created by pedroloureiro on 25/08/16.
@@ -15,7 +16,6 @@ import org.onebillion.xprz.mainui.MainActivity;
 public class OBBatteryReceiver extends BroadcastReceiver
 {
     public boolean usbCharge, acCharge, isCharging;
-    public OBLabel statusLabel;
 
     @Override
     public void onReceive (Context context, Intent intent)
@@ -31,12 +31,9 @@ public class OBBatteryReceiver extends BroadcastReceiver
         //
         float battery = OBBatteryReceiver.getBatteryLevel();
         //
-//        MainActivity.mainActivity.log("Battery Info: " + ((isCharging) ? "is charging" : "not charging") + " " + ((usbCharge) ? "USB" : "" + " ") + ((acCharge) ? "AC" : "") + " " + battery + "%");
+//        MainActivity.log("Battery Info: " + ((isCharging) ? "is charging" : "not charging") + " " + ((usbCharge) ? "USB" : "" + " ") + ((acCharge) ? "AC" : "") + " " + battery + "%");
         //
-        if(statusLabel != null)
-        {
-            statusLabel.setString(printStatus());
-        }
+        OBSystemsManager.sharedManager.refreshStatus();
     }
 
     public String printStatus()

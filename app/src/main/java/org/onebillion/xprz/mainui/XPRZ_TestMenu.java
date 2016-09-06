@@ -12,12 +12,14 @@ import android.widget.Button;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.onebillion.xprz.R;
 import org.onebillion.xprz.glstuff.OBGLView;
 import org.onebillion.xprz.utils.DBSQL;
 import org.onebillion.xprz.utils.OBBrightnessManager;
 import org.onebillion.xprz.utils.OBSystemsManager;
+import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.XPRZ_FatController;
 
 
@@ -93,6 +95,40 @@ public class XPRZ_TestMenu extends OBSectionController
                     cursorAdapter.swapCursor(cursor);
                 }
                 cursorAdapter.notifyDataSetChanged();
+            }
+        });
+
+
+        Button causeCrashButton = (Button)MainActivity.mainActivity.findViewById(R.id.crashButton);
+        causeCrashButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                int timeToCrash = 1000 / (1 - 1);
+            }
+        });
+
+
+
+
+        Button killButton = (Button)MainActivity.mainActivity.findViewById(R.id.killButton);
+        killButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                OBSystemsManager.sharedManager.killAllServices();
+                Toast.makeText(MainActivity.mainActivity, "Services killed", Toast.LENGTH_LONG).show();
+//                OBUtils.runOnOtherThreadDelayed(2.0f, new OBUtils.RunLambda()
+//                {
+//                    @Override
+//                    public void run () throws Exception
+//                    {
+//                        MainActivity.mainActivity.finish();
+//                    }
+//                });
+
             }
         });
 

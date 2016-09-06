@@ -53,15 +53,15 @@ public class OBExpansionManager
             if (state == OnObbStateChangeListener.ERROR_COULD_NOT_MOUNT)
             {
                 updateProgressDialog("Error: could not mount OBB file", true);
-                MainActivity.mainActivity.log("Could not mount OBB file " + path);
+                MainActivity.log("Could not mount OBB file " + path);
             }
             else if (state == OnObbStateChangeListener.ERROR_ALREADY_MOUNTED)
             {
-                MainActivity.mainActivity.log("Already mounted OBB file " + path);
+                MainActivity.log("Already mounted OBB file " + path);
             }
             else if (state == OnObbStateChangeListener.MOUNTED)
             {
-                MainActivity.mainActivity.log("Mounted OBB file " + path);
+                MainActivity.log("Mounted OBB file " + path);
                 //
                 File source = new File(storageManager.getMountedObbPath(obbFilePath.getAbsolutePath()));
                 String folderName = FilenameUtils.removeExtension(obbFilePath.getName());
@@ -104,14 +104,14 @@ public class OBExpansionManager
             }
             else if (state == OnObbStateChangeListener.UNMOUNTED)
             {
-                MainActivity.mainActivity.log("Unmounted OBB file " + path);
+                MainActivity.log("Unmounted OBB file " + path);
                 //
                 try
                 {
                     boolean deleted = obbFilePath.delete();
                     if (!deleted)
                     {
-                        MainActivity.mainActivity.log("unable to delete downloaded file");
+                        MainActivity.log("unable to delete downloaded file");
                     }
                 }
                 catch (Exception e)
@@ -122,21 +122,21 @@ public class OBExpansionManager
             else if (state == OnObbStateChangeListener.ERROR_PERMISSION_DENIED)
             {
                 updateProgressDialog("Error: could not mount OBB file. Permission Denied.", true);
-                MainActivity.mainActivity.log("Permission Denied " + path);
+                MainActivity.log("Permission Denied " + path);
             }
             else if (state == OnObbStateChangeListener.ERROR_COULD_NOT_UNMOUNT)
             {
-                MainActivity.mainActivity.log("Could not unmount OBB file " + path);
+                MainActivity.log("Could not unmount OBB file " + path);
             }
             else if (state == OnObbStateChangeListener.ERROR_INTERNAL)
             {
                 updateProgressDialog("Error: could not mount OBB file. Internal Error.", true);
-                MainActivity.mainActivity.log("Internal Error " + path);
+                MainActivity.log("Internal Error " + path);
             }
             else
             {
                 updateProgressDialog("Error: could not mount OBB file. Unkown Error.", true);
-                MainActivity.mainActivity.log("Unknown Error " + path);
+                MainActivity.log("Unknown Error " + path);
             }
         }
     };
@@ -150,7 +150,7 @@ public class OBExpansionManager
             long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0L);
             if (!downloadQueue.containsKey(id))
             {
-                MainActivity.mainActivity.log("Ignoring unrelated download " + id);
+                MainActivity.log("Ignoring unrelated download " + id);
                 return;
             }
             downloadQueue.remove(id);
@@ -160,13 +160,13 @@ public class OBExpansionManager
             Cursor cursor = downloadManager.query(query);
             if (!cursor.moveToFirst())
             {
-                MainActivity.mainActivity.log("Empty row");
+                MainActivity.log("Empty row");
                 return;
             }
             int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
             if (DownloadManager.STATUS_SUCCESSFUL != cursor.getInt(statusIndex))
             {
-                MainActivity.mainActivity.log("Download Failed");
+                MainActivity.log("Download Failed");
                 return;
             }
 
@@ -208,7 +208,7 @@ public class OBExpansionManager
         if (downloadQueue.size() == 0)
         {
             setupComplete = true;
-            MainActivity.mainActivity.log("ExpansionManager has downloaded all the files it requires to continue.");
+            MainActivity.log("ExpansionManager has downloaded all the files it requires to continue.");
             //
             if (waitDialog != null)
             {
@@ -293,20 +293,20 @@ public class OBExpansionManager
 
     public void checkForUpdates (OBUtils.RunLambda whenComplete)
     {
-        OBBrightnessManager.sharedManager.onSuspend();
+        OBSystemsManager.sharedManager.onSuspend();
         completionBlock = whenComplete;
         //
         final String expansionURL = (String) MainActivity.mainActivity.Config().get(MainActivity.CONFIG_EXPANSION_URL);
         if (expansionURL == null)
         {
-            MainActivity.mainActivity.log("Expansion URL is null. nothing to do here");
+            MainActivity.log("Expansion URL is null. nothing to do here");
             checkIfSetupIsComplete();
             return;
         }
         //
         if (!MainActivity.mainActivity.isStoragePermissionGranted())
         {
-            MainActivity.mainActivity.log("User hasn't given permissions. Suspending operations until resolve");
+            MainActivity.log("User hasn't given permissions. Suspending operations until resolve");
             // Setup is not complete here
             return;
         }
@@ -358,7 +358,7 @@ public class OBExpansionManager
 
     private void compareExpansionFilesAndInstallMissingOrOutdated ()
     {
-//        MainActivity.mainActivity.log("compareExpansionFilesAndInstallMissingOrOutdated");
+//        MainActivity.log("compareExpansionFilesAndInstallMissingOrOutdated");
         //
         checkForInternalExpansionFiles();
         //
@@ -372,7 +372,7 @@ public class OBExpansionManager
         for (OBExpansionFile remoteFile : remoteExpansionFiles.values())
         {
             if (remoteFile == null) continue;
-            MainActivity.mainActivity.log("checking: " + remoteFile.id + " " + remoteFile.version);
+            MainActivity.log("checking: " + remoteFile.id + " " + remoteFile.version);
             //
             Boolean needsUpdate = true;
             OBExpansionFile internalFile = internalExpansionFiles.get(remoteFile.id);
@@ -383,12 +383,12 @@ public class OBExpansionManager
             //
             if (needsUpdate)
             {
-                MainActivity.mainActivity.log("Download required --> " + remoteFile.id + " local:" + (internalFile != null ? internalFile.version : "missing") + "   remote:" + remoteFile.version);
+                MainActivity.log("Download required --> " + remoteFile.id + " local:" + (internalFile != null ? internalFile.version : "missing") + "   remote:" + remoteFile.version);
                 downloadOBB(remoteFile.id);
             }
             else
             {
-                MainActivity.mainActivity.log("Download NOT required --> " + remoteFile.id + " local:" + (internalFile != null ? internalFile.version : "missing") + "   remote:" + remoteFile.version);
+                MainActivity.log("Download NOT required --> " + remoteFile.id + " local:" + (internalFile != null ? internalFile.version : "missing") + "   remote:" + remoteFile.version);
             }
         }
         checkIfSetupIsComplete();
@@ -411,7 +411,7 @@ public class OBExpansionManager
                 ObbInfo info = ObbScanner.getObbInfo(obbFilePath.getAbsolutePath());
                 String packageName = info.packageName;
                 String file = info.filename;
-                MainActivity.mainActivity.log("Info from downloaded OBB: " + packageName + " " + file);
+                MainActivity.log("Info from downloaded OBB: " + packageName + " " + file);
                 storageManager.mountObb(obbFilePath.getPath(), null, eventListener);
             }
             catch (Exception e)
@@ -421,7 +421,7 @@ public class OBExpansionManager
         }
         else
         {
-            MainActivity.mainActivity.log("Permission required. re-attempting after user gives permission");
+            MainActivity.log("Permission required. re-attempting after user gives permission");
         }
     }
 
@@ -432,13 +432,13 @@ public class OBExpansionManager
         //
         if (expansionURL == null)
         {
-            MainActivity.mainActivity.log("Expansion URL is null. nothing to do here");
+            MainActivity.log("Expansion URL is null. nothing to do here");
         }
         //
-        MainActivity.mainActivity.log("Attempting to download OBB " + fileName + ".obb");
+        MainActivity.log("Attempting to download OBB " + fileName + ".obb");
         if (MainActivity.mainActivity.isStoragePermissionGranted())
         {
-            MainActivity.mainActivity.log("downloading OBB");
+            MainActivity.log("downloading OBB");
             //
             String url = expansionURL + fileName + ".obb";
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
@@ -457,7 +457,7 @@ public class OBExpansionManager
         }
         else
         {
-            MainActivity.mainActivity.log("User didn't give permission to access storage");
+            MainActivity.log("User didn't give permission to access storage");
         }
     }
 
@@ -482,7 +482,7 @@ public class OBExpansionManager
             OBExpansionFile expansionFile = new OBExpansionFile(id, bundle, destination, version, folder);
             internalExpansionFiles.put(expansionFile.id, expansionFile);
             //
-            MainActivity.mainActivity.log("Expansion Folder Installed: " + id + " --> " + folder.getPath());
+            MainActivity.log("Expansion Folder Installed: " + id + " --> " + folder.getPath());
         }
         catch (Exception e)
         {
