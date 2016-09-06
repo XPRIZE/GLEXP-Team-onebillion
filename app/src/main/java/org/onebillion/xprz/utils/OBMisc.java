@@ -50,7 +50,7 @@ public class OBMisc
 
         controller.playAudioQueuedScene(event,prompt,0.3f,true);
 
-        List<String> remindAudio = controller.getAudioForScene(event,repeat);
+        List<String> remindAudio = controller.getAudioForScene(event,remind);
         if(remindDelay > 0 && remindAudio != null && remindAudio.size() > 0)
             controller.reprompt(statusTime,OBUtils.insertAudioInterval(remindAudio,300),remindDelay);
 
@@ -66,8 +66,6 @@ public class OBMisc
     {
         doSceneAudio(remindDelay,controller.currentEvent(),statusTime,controller);
     }
-
-
 
     public static void prepareForDragging(OBControl cont, PointF pt, XPRZ_SectionController controller)
     {
@@ -149,7 +147,7 @@ public class OBMisc
         label.setColour(colour);
         label.setScale(1.0f/group.scale());
         OBGroup numGroup = new OBGroup(Collections.singletonList((OBControl)label));
-       // numGroup.sizeToTightBoundingBox();
+        numGroup.sizeToTightBoundingBox();
         controller.attachControl(numGroup);
         numGroup.setPosition(position);
 

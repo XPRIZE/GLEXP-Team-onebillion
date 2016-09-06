@@ -61,7 +61,7 @@ public class X_Numberlines_Additions
             numLabel.setProperty("num_value",start+i);
             numLabel.setProperty("num_colour",numColour);
             numLabel.setZPosition(5);
-            controller.attachControl(numLabel);
+                controller.attachControl(numLabel);
             controller.objectDict.put(String.format("num_%d", start+i),numLabel);
         }
 
