@@ -165,16 +165,42 @@ public class XPRZ_JMenu extends XPRZ_Menu
             label.setTop(placeHolder.top());
             label.setZPosition(objectDict.get(tabstring+"_background").zPosition()+10);
             attachControl(label);
-            objectDict.put(tabstring+String.format("_subsubhead%d",i),label);
+            objectDict.put(tabstring+String.format("_ssh%d",i),label);
             i++;
         }
     }
 
-    public void populateReading()
+    public void populateMiscTexts(String tabstring)
     {
-        String tabstring = "reading";
-        populateSubHead(tabstring);
         OBXMLNode tab = tabXmlDict.get(tabstring);
+        List<OBXMLNode> textnodes = tab.childrenOfType("misctext");
+        Typeface tf = boldFont();
+        int i = 1;
+        for (OBXMLNode textnode : textnodes)
+        {
+            String s = "";
+            for (OBXMLNode tspan : textnode.childrenOfType("tspan"))
+            {
+                s += tspan.contents;
+            }
+            float textsize = 12f;
+            String attr = textnode.attributeStringValue("textsize");
+            if (attr != null)
+                textsize = applyGraphicScale(Float.parseFloat(attr));
+            OBLabel label = new OBLabel(s,tf,textsize);
+            label.setColour(Color.WHITE);
+            OBControl placeHolder = objectDict.get(tabstring + String.format("_misctext%d",i));
+            label.setLeft(placeHolder.left());
+            label.setTop(placeHolder.top());
+            label.setZPosition(objectDict.get(tabstring+"_background").zPosition()+10);
+            attachControl(label);
+            objectDict.put(tabstring+String.format("__misctext%d",i),label);
+            i++;
+        }
+    }
+
+    void populateTargets(String tabstring,OBXMLNode tab,List<String> iconBoxStrings)
+    {
         Typeface tf = plainFont();
         Typeface tfb = boldFont();
         List<OBXMLNode> targs = tab.childrenOfType("targets");
@@ -191,54 +217,72 @@ public class XPRZ_JMenu extends XPRZ_Menu
                 OBControl im = loadImageWithName(src,pt,boundsf(),true);
                 im.setZPosition(zpos);
                 objectDict.put(tabstring+String.format("_i%d",idx+1),im);
-                String boxname = String.format(tabstring+"_iconbox_%d",idx+1);
+                //String boxname = String.format(tabstring+"_iconbox_%d",idx+1);
+                String boxname = iconBoxStrings.get(idx);
                 OBControl iconbox = objectDict.get(boxname);
                 float ratio = iconbox.height() / im.height();
                 im.setScale(ratio);
                 im.setPosition(iconbox.position());
 
-                boxname = String.format(tabstring+"_textbox_%d",idx+1);
+                //boxname = String.format(tabstring+"_textbox_%d",idx+1);
+                boxname = boxname.replaceFirst("icon","text");
                 OBControl textbox = objectDict.get(boxname);
-                OBXMLNode textnode = n.childrenOfType("text").get(0);
-                String s = textnode.attributeStringValue("align");
-                Boolean centred = (s != null && s.equals("centre"));
-                OBXMLNode headnode = textnode.childrenOfType("head").get(0);
-
-                OBLabel label = new OBLabel(headnode.contents,tfb,itemHeadTextSize);
-                label.setMaxWidth(textbox.width());
-                label.setJustification(centred?OBTextLayer.JUST_CENTER:OBTextLayer.JUST_LEFT);
-                label.sizeToBoundingBox();
-                label.setTop(textbox.top());
-//                if (centred)
-//                    label.setLeft(textbox.left() + (textbox.width() - label.width())/2);
-//                else
-                    label.setLeft(textbox.left());
-                label.setZPosition(zpos);
-                label.setColour(Color.WHITE);
-                //label.setBorderColor(Color.BLACK);
-                //label.setBorderWidth(2f);
-                objectDict.put(tabstring+String.format("_head%d",idx+1),label);
-                attachControl(label);
-
-                List<OBXMLNode>nodes = textnode.childrenOfType("body");
-                if (nodes.size() > 0)
+                if (textbox != null)
                 {
-                    OBXMLNode bodynode = nodes.get(0);
-                    OBLabel label2 = new OBLabel(bodynode.contents,tf,itemBodyTextSize);
-                    label2.setMaxWidth(textbox.width());
-                    label2.sizeToBoundingBox();
-                    label2.setTop(label.bottom());
-                    label2.setLeft(textbox.left());
-                    label2.setZPosition(zpos);
-                    label2.setColour(Color.WHITE);
-                    label2.setJustification(centred?OBTextLayer.JUST_CENTER:OBTextLayer.JUST_LEFT);
+                    OBXMLNode textnode = n.childrenOfType("text").get(0);
+                    String s = textnode.attributeStringValue("align");
+                    Boolean centred = (s != null && s.equals("centre"));
+                    OBXMLNode headnode = textnode.childrenOfType("head").get(0);
+                    float top = textbox.top();
+                    if (headnode != null)
+                    {
+                        OBLabel label = new OBLabel(headnode.contents,tfb,itemHeadTextSize);
+                        label.setMaxWidth(textbox.width());
+                        label.setJustification(centred?OBTextLayer.JUST_CENTER:OBTextLayer.JUST_LEFT);
+                        label.sizeToBoundingBox();
+                        label.setTop(top);
+                        label.setLeft(textbox.left());
+                        label.setZPosition(zpos);
+                        label.setColour(Color.WHITE);
+                        top = label.bottom() + applyGraphicScale(8);
+                        //label.setBorderColor(Color.BLACK);
+                        //label.setBorderWidth(2f);
+                        objectDict.put(tabstring+String.format("_head%d",idx+1),label);
+                        attachControl(label);
 
-                    objectDict.put(tabstring+String.format("_bod%d",idx+1),label2);
-                    attachControl(label2);
+                    }
+
+                    List<OBXMLNode>nodes = textnode.childrenOfType("body");
+                    if (nodes.size() > 0)
+                    {
+                        OBXMLNode bodynode = nodes.get(0);
+                        OBLabel label2 = new OBLabel(bodynode.contents,tf,itemBodyTextSize);
+                        label2.setMaxWidth(textbox.width());
+                        label2.sizeToBoundingBox();
+                        label2.setTop(top);
+                        label2.setLeft(textbox.left());
+                        label2.setZPosition(zpos);
+                        label2.setColour(Color.WHITE);
+                        label2.setJustification(centred?OBTextLayer.JUST_CENTER:OBTextLayer.JUST_LEFT);
+
+                        objectDict.put(tabstring+String.format("_bod%d",idx+1),label2);
+                        attachControl(label2);
+                    }
                 }
                 idx++;
             }
         }
+
+    }
+    public void populateReading()
+    {
+        String tabstring = "reading";
+        //populateSubHead(tabstring);
+        OBXMLNode tab = tabXmlDict.get(tabstring);
+        Typeface tf = plainFont();
+        Typeface tfb = boldFont();
+        List<String> targetNames = sortedFilteredControlIDs("reading_iconbox.*");
+        populateTargets(tabstring,tab,targetNames);
         List<OBControl> nums = sortedFilteredControls("reading_num.*");
         int i = 1;
         for (OBControl c : nums)
@@ -256,63 +300,86 @@ public class XPRZ_JMenu extends XPRZ_Menu
     populateSubSubHeads(tabstring);
     }
 
+    public void populateStories()
+    {
+        String tabstring = "stories";
+        OBXMLNode tab = tabXmlDict.get(tabstring);
+
+        Typeface tf = plainFont();
+        Typeface tfb = boldFont();
+
+        List<String> targetNames = sortedFilteredControlIDs(tabstring+"_iconbox.*");
+        targetNames.addAll(sortedFilteredControlIDs(tabstring+"_smicon.*"));
+        populateTargets(tabstring,tab,targetNames);
+
+        List<OBControl> nums = sortedFilteredControls(tabstring+"_num.*");
+        int i = 1;
+        for (OBControl c : nums)
+        {
+            OBLabel label = new OBLabel(String.format("Level %d",i),tf,subheadtextSize);
+            label.sizeToBoundingBox();
+            label.setPosition(c.position());
+            label.setZPosition(c.zPosition());
+            label.setColour(Color.WHITE);
+            //label.setJustification(OBTextLayer.JUST_CENTER);
+            objectDict.put(tabstring+"_num_"+String.format("_%d",i),label);
+            attachControl(label);
+            i++;
+        }
+        populateSubSubHeads(tabstring);
+    }
     public void populateNumeracy()
     {
         String tabstring = "numeracy";
-        populateSubHead(tabstring);
         OBXMLNode tab = tabXmlDict.get(tabstring);
-        List<OBXMLNode> targs = tab.childrenOfType("targets");
-        if (targs.size() > 0)
-        {
-            Typeface tf = OBUtils.standardTypeFace();
-            List<OBXMLNode> nodeTargs = targs.get(0).childrenOfType("target");
-            int idx = 0;
-            PointF pt = new PointF();
-            float zpos = objectDict.get(tabstring+"_background").zPosition()+10;
-            for (OBXMLNode n : nodeTargs)
-            {
-                OBXMLNode iconnode = n.childrenOfType("icon").get(0);
-                String src = iconnode.attributeStringValue("src");
-                OBControl im = loadImageWithName(src,pt,boundsf(),true);
-                im.setZPosition(zpos);
-                objectDict.put(tabstring+String.format("_i%d",idx+1),im);
-                String boxname = String.format(tabstring+"_iconbox_%d",idx+1);
-                OBControl iconbox = objectDict.get(boxname);
-                float ratio = iconbox.height() / im.height();
-                im.setScale(ratio);
-                im.setPosition(iconbox.position());
 
-                boxname = String.format(tabstring+"_textbox_%d",idx+1);
-                OBControl textbox = objectDict.get(boxname);
-                OBXMLNode textnode = n.childrenOfType("text").get(0);
-                OBXMLNode headnode = textnode.childrenOfType("head").get(0);
+        Typeface tf = plainFont();
+        Typeface tfb = boldFont();
 
-                OBLabel label = new OBLabel(headnode.contents,tf,itemHeadTextSize);
-                label.setMaxWidth(textbox.width());
-                label.sizeToBoundingBox();
-                label.setTop(textbox.top());
-                label.setLeft(textbox.left());
-                label.setZPosition(zpos);
-                label.setColour(Color.WHITE);
-                label.setJustification(OBTextLayer.JUST_LEFT);
-                objectDict.put(tabstring+String.format("_head%d",idx+1),label);
-                attachControl(label);
+        List<String> targetNames = sortedFilteredControlIDs(tabstring+"_iconbox.*");
+        targetNames.addAll(sortedFilteredControlIDs(tabstring+"_smicon.*"));
+        populateTargets(tabstring,tab,targetNames);
+        populateSubSubHeads(tabstring);
+    }
 
-                OBXMLNode bodynode = textnode.childrenOfType("body").get(0);
-                OBLabel label2 = new OBLabel(bodynode.contents,tf,itemBodyTextSize);
-                label2.setMaxWidth(textbox.width());
-                label2.sizeToBoundingBox();
-                label2.setTop(label.bottom());
-                label2.setLeft(textbox.left());
-                label2.setZPosition(zpos);
-                label2.setColour(Color.WHITE);
-                label2.setJustification(OBTextLayer.JUST_LEFT);
+    public void populateWriting()
+    {
+        String tabstring = "writing";
+        OBXMLNode tab = tabXmlDict.get(tabstring);
 
-                objectDict.put(tabstring+String.format("_bod%d",idx+1),label2);
-                attachControl(label2);
-                idx++;
-            }
-        }
+        Typeface tf = plainFont();
+        Typeface tfb = boldFont();
+
+        List<String> targetNames = sortedFilteredControlIDs(tabstring+"_iconbox.*");
+        targetNames.addAll(sortedFilteredControlIDs(tabstring+"_smicon.*"));
+        populateTargets(tabstring,tab,targetNames);
+        populateSubSubHeads(tabstring);
+    }
+
+    public void populateDesign()
+    {
+        String tabstring = "design";
+        OBXMLNode tab = tabXmlDict.get(tabstring);
+
+        Typeface tf = plainFont();
+        Typeface tfb = boldFont();
+
+        List<String> targetNames = sortedFilteredControlIDs(tabstring+"_iconbox.*");
+        populateTargets(tabstring,tab,targetNames);
+        populateSubSubHeads(tabstring);
+    }
+    public void populateTech()
+    {
+        String tabstring = "tech";
+        OBXMLNode tab = tabXmlDict.get(tabstring);
+
+        Typeface tf = plainFont();
+        Typeface tfb = boldFont();
+
+        List<String> targetNames = sortedFilteredControlIDs(tabstring+"_iconbox.*");
+        populateTargets(tabstring,tab,targetNames);
+        populateMiscTexts(tabstring);
+        populateSubSubHeads(tabstring);
     }
 
     public void switchTo(String s)
@@ -329,6 +396,14 @@ public class XPRZ_JMenu extends XPRZ_Menu
             populateNumeracy();
         else if (s.equals("reading"))
             populateReading();
+        else if (s.equals("stories"))
+            populateStories();
+        else if (s.equals("writing"))
+            populateWriting();
+        else if (s.equals("design"))
+            populateDesign();
+        else if (s.equals("tech"))
+            populateTech();
         unlockScreen();
         currentTab = s;
     }
