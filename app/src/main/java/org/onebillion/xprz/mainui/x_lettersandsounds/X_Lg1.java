@@ -137,6 +137,7 @@ public class X_Lg1 extends XPRZ_SectionController
                 shutter.setWidth(frame.width());
                 shutter.setHeight(frame.height());
                 shutter.setPosition(frame.centerX(),frame.centerY());
+
                 if(strokes != null)
                 {
                     strokes.recalculateFrameForPath(strokes.members);
@@ -147,13 +148,14 @@ public class X_Lg1 extends XPRZ_SectionController
                 OBPath shutterPath = (OBPath)shutter.objectDict.get("colour");
                 shutter.setProperty("colour", shutterPath.fillColor());
                 OBControl mask = new OBControl();
-                mask.setFrame(shutter.frame());
+                mask.setFrame(frame);
                 mask.setZPosition(30);
                 mask.setBackgroundColor(Color.BLUE);
                 mask.setProperty("startWidth",mask.width());
                 mask.setAnchorPoint(0, 0.5f);
                 shutter.setScreenMaskControl(mask);
-
+                shutter.setHeight(shutter.height()+applyGraphicScale(2));
+                shutter.setWidth(shutter.width()+applyGraphicScale(2));
                 controlsGrid.get(i).add(shutter);
 
                 OBControl bg = new OBControl();
@@ -162,7 +164,7 @@ public class X_Lg1 extends XPRZ_SectionController
                 bg.setBackgroundColor(bgColour);
                 bg.setZPosition(1);
                 attachControl(bg);
-                bg.setScreenMaskControl(mask.copy());
+                //bg.setScreenMaskControl(mask.copy());
                 bg.hide();
 
                 shutter.setProperty("bg",bg);

@@ -137,13 +137,18 @@ public class XPRZ_Presenter extends OBCharacter
 
     public void speak(List<Object> audioFiles, OBSectionController controller)
     {
+        speak(audioFiles,0.3f,controller);
+    }
+
+    public void speak(List<Object> audioFiles, float interval, OBSectionController controller)
+    {
         OBAudioManager audioMan = OBAudioManager.audioManager;
         OBGroup mouth = (OBGroup) control.objectDict.get("mouth");
 
         long token = controller.takeSequenceLockInterrupt(true);
         try
         {
-            for (Object af : OBUtils.insertAudioInterval(audioFiles, 300))
+            for (Object af : OBUtils.insertAudioInterval(audioFiles, (int)(interval*1000)))
             {
                 if (af instanceof String)
                 {
@@ -168,8 +173,8 @@ public class XPRZ_Presenter extends OBCharacter
                 } else
                 {
                     showOnly("mouth_0", mouth);
-                    float f = (Float) af;
-                    controller.waitForSecs(f / 1000);
+                    int f = (Integer) af;
+                    controller.waitForSecs(f / 1000.0f);
                 }
                 control.needsRetexture = true;
                 control.invalidate();

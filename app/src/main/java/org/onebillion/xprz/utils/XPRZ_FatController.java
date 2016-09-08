@@ -1,6 +1,5 @@
 package org.onebillion.xprz.utils;
 
-import android.database.Cursor;
 import android.util.ArrayMap;
 
 import org.onebillion.xprz.mainui.MainActivity;
@@ -9,7 +8,6 @@ import org.onebillion.xprz.mainui.OBSectionController;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -40,6 +38,12 @@ public class XPRZ_FatController extends OBFatController
 
     MlUnitInstance currentUnitInstance;
 
+
+    public long getCurrentTime()
+    {
+        return  System.currentTimeMillis()/1000;
+    }
+
     public void loadMasterListIntoDB()
     {
         DBSQL db = new DBSQL(true);
@@ -66,8 +70,6 @@ public class XPRZ_FatController extends OBFatController
                         for (OBXMLNode node : levelNode.childrenOfType("unit"))
                         {
                             MlUnit.insertUnitFromXMLNodeintoDB(db, node, unitid, levelNode.attributeIntValue("id"));
-
-
                             unitid++;
                         }
                     }
@@ -96,7 +98,7 @@ public class XPRZ_FatController extends OBFatController
         if (u == null)
         {
             u = OBUser.initAndSaveUserInDB("test");
-            u.startNewSession();
+            u.startNewSessionInDB(getCurrentTime());
         }
         currentUser = u;
     }
@@ -129,7 +131,7 @@ public class XPRZ_FatController extends OBFatController
     public void initScores()
     {
         scoreCorrect = scoreWrong = 0;
-        currentUnitInstance = MlUnitInstance.initMlUnitDBWith(currentUser.userid,currentIndex,currentUser.currentsessionid);
+        currentUnitInstance = MlUnitInstance.initMlUnitDBWith(currentUser.userid,currentIndex,currentUser.currentsessionid,getCurrentTime());
     }
 
     @Override
@@ -181,7 +183,7 @@ public class XPRZ_FatController extends OBFatController
         if (tot > 0)
             finalScore = scoreCorrect * 1.0f / tot;
 
-        currentUnitInstance.endtime = System.currentTimeMillis()/1000;
+        currentUnitInstance.endtime = getCurrentTime();
         currentUnitInstance.score = finalScore;
         currentUnitInstance.elapsedtime = (int)(currentUnitInstance.endtime - currentUnitInstance.starttime);
         currentUnitInstance.updateDataInDB();
@@ -286,9 +288,8 @@ public class XPRZ_FatController extends OBFatController
 
     public long lastPlayedUnitIndex(DBSQL db)
     {
-        return MlUnitInstance.lastPlayedUnitIndex(db, currentUser.userid);
+        return MlUnitInstance.lastPlayedUnitIndexForUserIDInDB(db, currentUser.userid);
     }
-
 
     public void resetDatabase()
     {
@@ -304,5 +305,39 @@ public class XPRZ_FatController extends OBFatController
         db.close();
         loadMasterListIntoDB();
     }
+
+    public boolean newDayStarted()
+    {
+        return !currentUser.currentSessionHasProgress();
+
+    }
+    public void startNewDay()
+    {
+        currentUser.startNewSessionInDB(getCurrentTime());
+
+    }
+    public void saveStarForUnit(MlUnit unit,String colour)
+    {
+        if(unit == null)
+            return;
+        currentUser.saveStarInDBForLevel(unit.level,unit.awardStar,colour);
+
+    }
+    public Map<Integer,String> starsForLevel(int level)
+    {
+        return currentUser.starsFromDBForLevel(level);
+
+    }
+    public String lastStarColourForLevel(int level)
+    {
+        return currentUser.lastStarColourFromDBForLevel(level);
+
+    }
+    public String starForLevel(int level,int starnum)
+{
+    return currentUser.starFromDBForLevel(level,starnum);
+
+}
+
 
 }

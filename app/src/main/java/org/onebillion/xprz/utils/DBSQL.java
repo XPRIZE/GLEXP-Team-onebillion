@@ -27,6 +27,7 @@ public class DBSQL
     public final static String TABLE_SESSIONS = "sessions";
     public final static String TABLE_USERS = "users";
     public final static String TABLE_CERTIFICATES = "certificates";
+    public final static String TABLE_STARS = "stars";
 
     private SQLiteDatabase database;
 

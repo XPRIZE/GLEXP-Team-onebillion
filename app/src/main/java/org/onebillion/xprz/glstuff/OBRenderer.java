@@ -122,6 +122,7 @@ public class OBRenderer implements GLSurfaceView.Renderer
         if (controller != null)
             controller.render(this);
         MainActivity.mainViewController.render(this);
+
     }
 
     public void renderTwoScreens(OBSectionController screenl,OBSectionController screenr,float frac)

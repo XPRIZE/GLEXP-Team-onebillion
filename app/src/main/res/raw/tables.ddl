@@ -1,7 +1,8 @@
 create table units
 (
 	unitid int primary key not null,
-    level int,
+    level int not null default 1,
+    awardStar int not null default -1,
 	key text not null,
 	icon text,
 	params text,
@@ -55,4 +56,13 @@ create table preferences
 (
     name text primary key not null,
     val text
+);
+
+create table stars
+(
+    userid int not null references users(userid) on delete restrict,
+    level int not null,
+    starnum int not null,
+    colour text not null,
+    constraint pkey primary key (userid,level,starnum) on conflict fail
 );

@@ -132,14 +132,14 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
             {
                 MainActivity.mainActivity.log("OBSQLiteHelper Quick check PASSED");
             }
-            //
-//            checkResult = foreignKeyCheck();
-//            if (checkResult != null)
-//            {
-//                MainActivity.mainActivity.log("OBSQLiteHelper Foreign key check FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
-//                return false;
-//            }
-            //
+
+           checkResult = foreignKeyCheck();
+           if (checkResult != null)
+           {
+               MainActivity.mainActivity.log("OBSQLiteHelper Foreign key check FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
+               return false;
+           }
+
             return true;
         }
         catch (Exception e)

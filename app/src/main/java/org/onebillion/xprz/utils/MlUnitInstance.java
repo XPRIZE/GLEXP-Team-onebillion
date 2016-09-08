@@ -30,7 +30,7 @@ public class MlUnitInstance extends MlObject
     }
 
 
-    public static MlUnitInstance initMlUnitDBWith(int userid, long unitid, int sessionid)
+    public static MlUnitInstance initMlUnitDBWith(int userid, long unitid, int sessionid, long starttime)
     {
         MlUnitInstance mlui = new MlUnitInstance();
         mlui.userid = userid;
@@ -50,7 +50,7 @@ public class MlUnitInstance extends MlObject
         {
             mlui.seqno = 0;
         }
-        mlui.starttime = System.currentTimeMillis()/1000;
+        mlui.starttime = starttime;
         if(mlui.saveToDB(db))
         {
             cursor.close();
@@ -110,7 +110,7 @@ public class MlUnitInstance extends MlObject
         return result;
     }
 
-    public static long lastPlayedUnitIndex(DBSQL db, int userid)
+    public static long lastPlayedUnitIndexForUserIDInDB(DBSQL db, int userid)
     {
         Cursor cursor = db.prepareRawQuery("SELECT unitid, MAX(starttime) FROM unitinstances WHERE userid = ? GROUP BY userid", Collections.singletonList(String.valueOf(userid)));
         int maxId = 0;

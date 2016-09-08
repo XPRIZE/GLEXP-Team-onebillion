@@ -14,11 +14,10 @@ public class MlUnit extends MlObject
 {
     public String key, icon, params, config, target, lang;
     public float targetDuration, passThreshold;
-    public int catAudio, level, unitid;
-
+    public int catAudio, level, unitid, awardStar;
 
     private static final String[] stringFields = {"key","icon","target","params","config","lang"};
-    private static final String[] intFields = {"unitid","level","catAudio","targetDuration"};
+    private static final String[] intFields = {"unitid","level","catAudio","targetDuration","awardStar"};
     private static final String[] floatFields = {"passThreshold"};
     private static final Map<String,String> dbToXmlConvert;
     static

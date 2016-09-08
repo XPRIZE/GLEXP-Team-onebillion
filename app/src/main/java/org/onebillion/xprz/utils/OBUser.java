@@ -2,6 +2,8 @@ package org.onebillion.xprz.utils;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.gesture.GestureUtils;
 import android.util.ArrayMap;
 
 import java.util.*;
@@ -112,32 +114,46 @@ public class OBUser extends MlObject
             user =new OBUser();
             user.cursorToObject(cursor,stringFields,intFields,null,null);
         }
-
         cursor.close();
+
+        if(user != null)
+             user.currentsessionid = user.lastSessionIDFromDB(db);
+
         db.close();
         return user;
 
     }
 
-    public void startNewSession()
+    public void startNewSessionInDB(long starttime)
     {
-        Map<String,String> whereMap  = new ArrayMap<>();
-        whereMap.put("userid",String.valueOf(userid));
-        int sessionid = 1;
-
         DBSQL db = new DBSQL(true);
-        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_SESSIONS, Collections.singletonList("MAX(sessionid) as sessionid"), whereMap);
-        if (cursor.moveToFirst())
-            sessionid = cursor.getInt(cursor.getColumnIndex("sessionid")) + 1;
-        cursor.close();
+
+        int sessionid = lastSessionIDFromDB(db);
+        if(sessionid<0)
+            sessionid = 1;
+        else
+            sessionid++;
 
         ContentValues contentValues = new ContentValues();
         contentValues.put("userid", userid);
         contentValues.put("sessionid", sessionid);
-        contentValues.put("starttime", System.currentTimeMillis()/1000);
+        contentValues.put("starttime",starttime);
         db.doInsertOnTable(DBSQL.TABLE_SESSIONS,contentValues);
         db.close();
         currentsessionid = sessionid;
+    }
+
+    private int lastSessionIDFromDB(DBSQL db)
+    {
+        Map<String,String> whereMap  = new ArrayMap<>();
+        whereMap.put("userid",String.valueOf(userid));
+        int sessionid = -1;
+
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_SESSIONS, Collections.singletonList("MAX(sessionid) as sessionid"), whereMap);
+        if (cursor.moveToFirst())
+            sessionid = cursor.getInt(cursor.getColumnIndex("sessionid"));
+        cursor.close();
+        return sessionid;
     }
 
     public int highestIncompleteUnitIDfromDB()
@@ -153,4 +169,96 @@ public class OBUser extends MlObject
         return returnId;
     }
 
+    public boolean currentSessionHasProgress()
+    {
+        Map<String,String> whereMap  = new ArrayMap<>();
+        whereMap.put("userid",String.valueOf(userid));
+        whereMap.put("sessionid",String.valueOf(currentsessionid));
+        DBSQL db = new DBSQL(false);
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES,Collections.singletonList("COUNT(*) as count"),whereMap);
+        boolean result = false;
+        if(cursor.moveToFirst())
+            result = cursor.getInt(cursor.getColumnIndex("count")) > 0;
+
+        cursor.close();
+        db.close();
+        return result;
+    }
+
+    public String starFromDBForLevel(int level,int starnum)
+    {
+        DBSQL db = new DBSQL(false);
+        Map<String,String> whereMap = new ArrayMap<>();
+        whereMap.put("userid",String.valueOf(userid));
+        whereMap.put("level",String.valueOf(level));
+        whereMap.put("starnum",String.valueOf(starnum));
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_STARS,Collections.singletonList("colour"),whereMap);
+        String result = null;
+        if(cursor.moveToFirst())
+            result = cursor.getString(cursor.getColumnIndex("colour"));
+
+        cursor.close();
+        db.close();
+        return result;
+
+    }
+
+    public Map<Integer,String> starsFromDBForLevel(int level)
+    {
+        DBSQL db = new DBSQL(false);
+        Map<String,String> whereMap = new ArrayMap<>();
+        whereMap.put("userid",String.valueOf(userid));
+        whereMap.put("level",String.valueOf(level));
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_STARS,Arrays.asList("starnum","colour"),whereMap);
+
+        Map<Integer,String> result = new ArrayMap<>();
+        if(cursor.moveToFirst())
+        {
+            while (cursor.isAfterLast() == false)
+            {
+                result.put(cursor.getInt(cursor.getColumnIndex("starnum")), cursor.getString(cursor.getColumnIndex("colour")));
+                cursor.moveToNext();
+            }
+
+        }
+
+        cursor.close();
+        db.close();
+        return result;
+
+    }
+
+    public String lastStarColourFromDBForLevel(int level)
+    {
+        DBSQL db = new DBSQL(false);
+        Map<String,String> whereMap = new ArrayMap<>();
+        whereMap.put("userid",String.valueOf(userid));
+        whereMap.put("level",String.valueOf(level));
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_STARS,Arrays.asList("MAX(starnum) as starnum","colour"),whereMap);
+
+        String result = null;
+        if(cursor.moveToFirst())
+            result = cursor.getString(cursor.getColumnIndex("colour"));
+
+        cursor.close();
+        db.close();
+        return result;
+
+    }
+
+    public boolean saveStarInDBForLevel(int level,int starnum,String colour)
+    {
+        DBSQL db = new DBSQL(true);
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("userid",userid);
+        contentValues.put("level",level);
+        contentValues.put("starnum",starnum);
+        contentValues.put("colour",colour);
+
+        boolean result = db.doReplaceOnTable(DBSQL.TABLE_STARS,contentValues) > 0;
+
+        db.close();
+        return result;
+
+    }
 }
