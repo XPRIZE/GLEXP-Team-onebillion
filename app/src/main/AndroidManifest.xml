@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="org.onebillion.xprz"
-          android:installLocation="preferExternal">
+          android:installLocation="internalOnly">
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
@@ -22,11 +22,17 @@
     <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    <uses-permission android:name="android.permission.ACCESS_SUPERUSER" />
+    <uses-permission android:name="android.permission.ACCESS_SUPERUSER"/>
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.MANAGE_DEVICE_ADMINS"/>
 
     <uses-feature android:name="android.hardware.camera"/>
     <uses-feature android:name="android.hardware.camera.autofocus"/>
+    <uses-feature
+        android:name="android.software.device_admin"
+        android:required="true"/>
+
 
     <!--<uses-library android:name="com.google.android.vending.expansion.downloader" />-->
     <!--<uses-library android:name="com.google.android.vending.licensing" />-->
@@ -40,9 +46,22 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+        <receiver
+            android:name="org.onebillion.xprz.receivers.OBStartUpBootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.HOME"/>
+            </intent-filter>
+        </receiver>
+
         <service
-            android:name=".utils.OBAutoStartActivityService"
-            android:enabled="true"/>
+            android:name="org.onebillion.xprz.utils.OBAutoStartActivityService"
+            android:enabled="true"
+            android:exported="true"></service>
 
         <!--android:debuggable="true"-->
 
@@ -52,10 +71,26 @@
 
         <!--android:excludeFromRecents="true"-->
 
+        <receiver
+            android:name="org.onebillion.xprz.receivers.OBDeviceAdminReceiver"
+            android:description="@string/device_admin_description"
+            android:label="@string/device_admin_label"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin_policies"/>
+
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED"/>
+                <action android:name="android.app.action.DEVICE_ADMIN_DISABLED"/>
+            </intent-filter>
+        </receiver>
+
         <activity
             android:name="org.onebillion.xprz.mainui.MainActivity"
-            android:screenOrientation="landscape"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:screenOrientation="landscape">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -71,14 +106,6 @@
                 </intent-filter>
             </receiver>
 
-            <!--<receiver android:name="org.onebillion.xprz.receivers.OBScreenReceiver">-->
-                <!--<intent-filter>-->
-                    <!--<action android:name="android.intent.action.USER_PRESENT"/>-->
-                    <!--<action android:name="android.intent.action.ACTION_SCREEN_ON"/>-->
-                    <!--<action android:name="android.intent.action.ACTION_SCREEN_OFF"/>-->
-                    <!--<category android:name="android.intent.category.LAUNCHER"/>-->
-                <!--</intent-filter>-->
-            <!--</receiver>-->
 
         </activity>
     </application>

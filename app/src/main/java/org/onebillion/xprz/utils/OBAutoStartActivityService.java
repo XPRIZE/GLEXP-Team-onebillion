@@ -2,9 +2,12 @@ package org.onebillion.xprz.utils;
 
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
 import android.widget.Toast;
 
 import org.onebillion.xprz.mainui.MainActivity;
@@ -15,45 +18,41 @@ import org.onebillion.xprz.mainui.MainActivity;
  */
 public class OBAutoStartActivityService extends Service
 {
+    private final String TAG = "livecode";
 
     @Override
     public IBinder onBind (Intent intent)
     {
         return null;
-//        return mBinder;
     }
-
 
     @Override
     public void onCreate ()
     {
         super.onCreate();
         //
-        MainActivity.log("OBAutoStartActivityService.created");
+        log("OBAutoStartActivityService.created", this);
     }
-
-
 
     public void onDestroy ()
     {
         super.onDestroy();
         //
-        MainActivity.log("OBAutoStartActivityService.killed");
-//        Toast.makeText(this, "My Service Stopped", Toast.LENGTH_LONG).show();
+        log("OBAutoStartActivityService.killed", this);
     }
 
 
     public int onStartCommand (Intent intent, int flags, int startId)
     {
-        MainActivity.log("OBAutoStartActivityService.started");
+        log("OBAutoStartActivityService.onStartCommand " + intent, this);
         //
         if (intent == null)
         {
-            Toast.makeText(this, "Recovering from crash", Toast.LENGTH_LONG).show();
+//            Toast.makeText(this, "Recovering from crash", Toast.LENGTH_LONG).show();
         }
         else
         {
-            Toast.makeText(this, "My Service Started", Toast.LENGTH_LONG).show();
+//            Toast.makeText(this, "My Service Started", Toast.LENGTH_LONG).show();
         }
         //
         PackageManager pm = getPackageManager();
@@ -61,6 +60,7 @@ public class OBAutoStartActivityService extends Service
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, launchIntent, 0);
         try
         {
+            log("OBAutoStartActivityService.launching:" + launchIntent.toString(), this);
             contentIntent.send();
         }
         catch (PendingIntent.CanceledException e)
@@ -68,12 +68,15 @@ public class OBAutoStartActivityService extends Service
             e.printStackTrace();
         }
         //
-//        Intent i = getBaseContext().getPackageManager().getLaunchIntentForPackage(getBaseContext().getPackageName());
-//        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-//        i.setAction(Intent.ACTION_MAIN);
-//        i.addCategory(Intent.CATEGORY_LAUNCHER);
-//        startActivity(i);
-        //
         return START_STICKY;
     }
+
+
+    private void log(String message, Context context)
+    {
+        Log.v(TAG, message);
+        //
+//        Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+    }
+
 }

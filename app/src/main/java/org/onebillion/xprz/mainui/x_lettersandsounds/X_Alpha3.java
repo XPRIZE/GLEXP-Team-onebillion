@@ -419,11 +419,13 @@ public class X_Alpha3 extends X_Alpha
             if (i >= firstBox && i < lastBox)
             {
                 OBGroup back = backs.get(i);
-                OBGroup group = new OBGroup(new ArrayList(Arrays.asList(back)));
-                attachControl(group);
-                group.setZPosition(back.zPosition() + 0.1f);
-                group.show();
-                group.setMasksToBounds(true);
+                OBControl clone = back.copy();
+                back.setScreenMaskControl(clone);
+//                OBGroup group = new OBGroup(new ArrayList(Arrays.asList(back)));
+//                attachControl(group);
+//                group.setZPosition(back.zPosition() + 0.1f);
+//                group.show();
+//                group.setMasksToBounds(true);
                 //
                 PointF destination = XPRZ_Generic.copyPoint(back.position());
                 destination.x -= 1.1 * back.width();

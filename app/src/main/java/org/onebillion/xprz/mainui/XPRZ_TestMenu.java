@@ -1,6 +1,8 @@
 package org.onebillion.xprz.mainui;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.graphics.PointF;
 import android.view.LayoutInflater;
@@ -110,25 +112,24 @@ public class XPRZ_TestMenu extends OBSectionController
         });
 
 
-
-
         Button killButton = (Button)MainActivity.mainActivity.findViewById(R.id.killButton);
         killButton.setOnClickListener(new View.OnClickListener()
         {
             @Override
-            public void onClick(View v)
+            public void onClick (View v)
             {
                 OBSystemsManager.sharedManager.killAllServices();
                 Toast.makeText(MainActivity.mainActivity, "Services killed", Toast.LENGTH_LONG).show();
-//                OBUtils.runOnOtherThreadDelayed(2.0f, new OBUtils.RunLambda()
-//                {
-//                    @Override
-//                    public void run () throws Exception
-//                    {
-//                        MainActivity.mainActivity.finish();
-//                    }
-//                });
+            }
+        });
 
+        Button disableAdministratorButton = (Button) MainActivity.mainActivity.findViewById(R.id.disableAdministratorButton);
+        disableAdministratorButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick (View v)
+            {
+                OBSystemsManager.sharedManager.disableAdministratorPrivileges();
             }
         });
 
