@@ -211,7 +211,7 @@ public class OBSystemsManager
             @Override
             public void run () throws Exception
             {
-                toggleStatusBar();
+                pinApplication();
                 //
                 startServices();
                 //
@@ -375,7 +375,7 @@ public class OBSystemsManager
     {
         MainActivity.log("OBSystemsManager.onStop detected");
         //
-        toggleKeyguard(true);
+        toggleKeyguardAndStatusBar(true);
         //
         OBBrightnessManager.sharedManager.onStop();
     }
@@ -599,7 +599,6 @@ public class OBSystemsManager
     }
 
 
-
     public void disableAdministratorPrivileges ()
     {
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
@@ -631,8 +630,7 @@ public class OBSystemsManager
     }
 
 
-
-    public void toggleStatusBar ()
+    public void pinApplication ()
     {
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
         ComponentName adminReceiver = OBDeviceAdminReceiver.getComponentName(MainActivity.mainActivity);
@@ -658,21 +656,11 @@ public class OBSystemsManager
                 MainActivity.log("OBSystemsManager.unable to disable status bar. not a device owner");
             }
         }
-        toggleKeyguard(false);
-        //
-        if (devicePolicyManager.isDeviceOwnerApp(MainActivity.mainActivity.getPackageName()))
-        {
-            devicePolicyManager.setStatusBarDisabled(adminReceiver, true);
-            MainActivity.log("OBSystemsManager.status bar has been disabled");
-        }
-        else
-        {
-            MainActivity.log("OBSystemsManager.unable to disable keyguard or status bar");
-        }
+        toggleKeyguardAndStatusBar(false);
     }
 
 
-    public void toggleKeyguard(boolean status)
+    public void toggleKeyguardAndStatusBar (boolean status)
     {
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
         ComponentName adminReceiver = OBDeviceAdminReceiver.getComponentName(MainActivity.mainActivity);
@@ -681,6 +669,9 @@ public class OBSystemsManager
         {
             devicePolicyManager.setKeyguardDisabled(adminReceiver, !status);
             MainActivity.log("OBSystemsManager.keyguard has been " + (status ? "enabled" : "disabled"));
+            //
+            devicePolicyManager.setStatusBarDisabled(adminReceiver, !status);
+            MainActivity.log("OBSystemsManager.status bar has been " + (status ? "enabled" : "disabled"));
         }
     }
 
