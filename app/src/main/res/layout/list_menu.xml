@@ -23,4 +23,11 @@
         android:id="@+id/refreshButton"
         android:enabled="false"/>
 
+    <Button
+        android:layout_width="139dp"
+        android:layout_height="wrap_content"
+        android:text="Cause Crash"
+        android:id="@+id/crashButton"
+        android:enabled="true"/>
+
 </LinearLayout>

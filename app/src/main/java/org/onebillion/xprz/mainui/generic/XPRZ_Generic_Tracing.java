@@ -337,7 +337,7 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
 
     public void tracing_setup (final Integer number)
     {
-//        MainActivity.mainActivity.log("tracing_setup: " + number);
+//        MainActivity.log("tracing_setup: " + number);
         new OBRunnableSyncUI()
         {
             public void ex ()

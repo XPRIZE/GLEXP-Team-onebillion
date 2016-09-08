@@ -1,6 +1,8 @@
 package org.onebillion.xprz.mainui;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.graphics.PointF;
 import android.view.LayoutInflater;
@@ -12,12 +14,14 @@ import android.widget.Button;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.onebillion.xprz.R;
 import org.onebillion.xprz.glstuff.OBGLView;
 import org.onebillion.xprz.utils.DBSQL;
 import org.onebillion.xprz.utils.OBBrightnessManager;
 import org.onebillion.xprz.utils.OBSystemsManager;
+import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.XPRZ_FatController;
 
 
@@ -93,6 +97,39 @@ public class XPRZ_TestMenu extends OBSectionController
                     cursorAdapter.swapCursor(cursor);
                 }
                 cursorAdapter.notifyDataSetChanged();
+            }
+        });
+
+
+        Button causeCrashButton = (Button)MainActivity.mainActivity.findViewById(R.id.crashButton);
+        causeCrashButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                int timeToCrash = 1000 / (1 - 1);
+            }
+        });
+
+
+        Button killButton = (Button)MainActivity.mainActivity.findViewById(R.id.killButton);
+        killButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick (View v)
+            {
+                OBSystemsManager.sharedManager.killAllServices();
+                Toast.makeText(MainActivity.mainActivity, "Services killed", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        Button disableAdministratorButton = (Button) MainActivity.mainActivity.findViewById(R.id.disableAdministratorButton);
+        disableAdministratorButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick (View v)
+            {
+                OBSystemsManager.sharedManager.disableAdministratorPrivileges();
             }
         });
 

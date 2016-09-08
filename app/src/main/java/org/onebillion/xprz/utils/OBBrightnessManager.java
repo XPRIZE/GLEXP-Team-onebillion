@@ -2,6 +2,7 @@ package org.onebillion.xprz.utils;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.view.WindowManager;
@@ -16,20 +17,22 @@ import java.util.logging.Logger;
  */
 public class OBBrightnessManager
 {
-
+    private float maxBrightness;
+    private long checkInterval;
+    private boolean usesBrightnessAdjustment;
+    //
     public static OBBrightnessManager sharedManager;
-    private long lastTouchTimeStamp, lastTimeStamp;
+    private long lastTouchTimeStamp;
     private float lastBrightness;
     private boolean paused, suspended;
-    private AsyncTask checkTask;
+    private Runnable brightnessCheckRunnable;
 
     public OBBrightnessManager ()
     {
         sharedManager = this;
-        lastTimeStamp = lastTouchTimeStamp = System.currentTimeMillis();
+        lastTouchTimeStamp = System.currentTimeMillis();
         lastBrightness = 0f;
         paused = suspended = false;
-        runBrightnessCheck();
     }
 
 
@@ -48,7 +51,8 @@ public class OBBrightnessManager
                     WindowManager.LayoutParams layoutpars = MainActivity.mainActivity.getWindow().getAttributes();
                     layoutpars.screenBrightness = value;
                     MainActivity.mainActivity.getWindow().setAttributes(layoutpars);
-//                    MainActivity.mainActivity.log("Brightness has been set to: " + valueForSettings);
+                    OBSystemsManager.sharedManager.refreshStatus();
+//                    MainActivity.log("Brightness has been set to: " + valueForSettings);
                 }
                 catch (Exception e)
                 {
@@ -59,38 +63,53 @@ public class OBBrightnessManager
         });
     }
 
-
     public void runBrightnessCheck ()
     {
-        final float delay = 5.0f;
-        try
+        if (suspended) return;
+        //
+        String maxBrightnessString = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MAX_BRIGHTNESS);
+        maxBrightness = 1.0f;
+        if (maxBrightnessString != null) maxBrightness = Float.parseFloat(maxBrightnessString);
+        //
+        String brightnessInterval = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BRIGHTNESS_CHECK_INTERVAL);
+        checkInterval = 5000;
+        if (brightnessInterval != null) checkInterval = Long.parseLong(brightnessInterval);
+        //
+        String usesBrightnessAdjustmentString = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_USES_BRIGHTNESS_ADJUSTMENT);
+        usesBrightnessAdjustment = (usesBrightnessAdjustmentString != null && usesBrightnessAdjustmentString.equals("true"));
+        //
+        //
+        if (brightnessCheckRunnable == null)
         {
-            if (checkTask != null)
+            final long interval = checkInterval;
+            brightnessCheckRunnable = new Runnable()
             {
-                checkTask.cancel(true);
-            }
-            checkTask = new AsyncTask<Void, Void, Void>()
-            {
-                protected Void doInBackground (Void... params)
+                public void run ()
                 {
-                    try
+                    if (updateBrightness(true))
                     {
-                        Thread.sleep(Math.round(delay * 1000));
-                        updateBrightness(true);
+                        OBSystemsManager.sharedManager.mainHandler.postDelayed(this, interval);
                     }
-                    catch (Exception exception)
+                    else
                     {
-                        Logger logger = Logger.getAnonymousLogger();
-                        logger.log(Level.SEVERE, "Error in runOnOtherThreadDelayed", exception);
+//                        MainActivity.log("Brightness checker was paused");
                     }
-                    return null;
                 }
-            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
+            };
         }
-        catch (Exception e)
+        //
+        if (OBSystemsManager.sharedManager.mainHandler != null && brightnessCheckRunnable != null)
         {
-            e.printStackTrace();
+            OBSystemsManager.sharedManager.mainHandler.post(brightnessCheckRunnable);
         }
+    }
+
+
+    public String printStatus ()
+    {
+        WindowManager.LayoutParams layoutpars = MainActivity.mainActivity.getWindow().getAttributes();
+        float brightness = layoutpars.screenBrightness;
+        return brightness * 100 + "%";
     }
 
 
@@ -100,97 +119,111 @@ public class OBBrightnessManager
         updateBrightness(false);
     }
 
-    public void updateBrightness (boolean loop)
+
+    public boolean updateBrightness (boolean loop)
     {
-        String usesBrightnessAdjustment = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_USES_BRIGHTNESS_ADJUSTMENT);
-        String maxBrightnessString = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MAX_BRIGHTNESS);
-        float maxBrightness = 1.0f;
-        //
-        if (maxBrightnessString != null) maxBrightness = Float.parseFloat(maxBrightnessString);
-        //
-        if (usesBrightnessAdjustment == null || usesBrightnessAdjustment.equals("false"))
+        if (!usesBrightnessAdjustment)
         {
-            try
-            {
-                Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, Integer.MAX_VALUE);
-            }
-            catch (Exception e)
-            {
-                // do nothing, permissions may have not been set yet
-            }
+            setScreenSleepTimeToMax();
             setBrightness(maxBrightness);
-            return;
+            return false;
         }
-        if (suspended) return;
+        if (suspended) return false;
         //
         long currentTimeStamp = System.currentTimeMillis();
         long elapsed = currentTimeStamp - lastTouchTimeStamp;
         float percentage = (elapsed < 5000) ? maxBrightness : (elapsed < 10000) ? maxBrightness / 2.0f : (elapsed < 15000) ? maxBrightness / 4.0f : 0.0f;
         //
-//        MainActivity.mainActivity.log("updateBrightness : " + elapsed + " " + percentage);
+//        MainActivity.log("updateBrightness : " + elapsed + " " + percentage);
         //
         if (lastBrightness != percentage)
         {
             lastBrightness = percentage;
             setBrightness(percentage);
             //
-            if (percentage == 0.0f)
+            if (percentage == maxBrightness)
             {
-//                MainActivity.mainActivity.log("Brightness manager killing screen");
-                MainActivity.mainActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                //
-                try
-                {
-                    Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, 1);
-                }
-                catch (Exception e)
-                {
-                    // do nothing, permissions may have not been set yet
-                }
-
+                setScreenSleepTimeToMax();
+            }
+            else if (percentage == 0.0f)
+            {
+                setScreenSleepTimeToMin();
             }
         }
-        if (loop && !paused && percentage > 0.0f) runBrightnessCheck();
+        return loop && !paused && percentage > 0.0f;
     }
+
 
     public void onSuspend ()
     {
-//        MainActivity.mainActivity.log("OBBrightnessManager.onSuspend called");
+//        MainActivity.log("OBBrightnessManager.onSuspend detected");
         suspended = true;
-        setBrightness(1.0f);
-        MainActivity.mainActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        setBrightness(maxBrightness);
     }
+
 
     public void onContinue ()
     {
-//        MainActivity.mainActivity.log("OBBrightnessManager.onContinue called");
-        lastTimeStamp = lastTouchTimeStamp = System.currentTimeMillis();
+//        MainActivity.log("OBBrightnessManager.onContinue detected");
+        lastTouchTimeStamp = System.currentTimeMillis();
         suspended = false;
-        updateBrightness(true);
+        runBrightnessCheck();
     }
+
 
     public void onResume ()
     {
-//        MainActivity.mainActivity.log("OBBrightnessManager.onResume called");
-        lastTimeStamp = lastTouchTimeStamp = System.currentTimeMillis();
+//        MainActivity.log("OBBrightnessManager.onResume detected");
+        lastTouchTimeStamp = System.currentTimeMillis();
         paused = false;
-        updateBrightness(true);
+        runBrightnessCheck();
     }
+
 
     public void onPause ()
     {
-//        MainActivity.mainActivity.log("OBBrightnessManager.onPause called");
+//        MainActivity.log("OBBrightnessManager.onPause detected");
         paused = true;
     }
 
+
     public void onStop ()
     {
-//        MainActivity.mainActivity.log("OBBrightnessManager.onStop called");
+//        MainActivity.log("OBBrightnessManager.onStop detected");
+        if (OBSystemsManager.sharedManager.mainHandler != null && brightnessCheckRunnable != null)
+        {
+            OBSystemsManager.sharedManager.mainHandler.removeCallbacks(brightnessCheckRunnable);
+        }
+        setScreenSleepTimeToMax();
+    }
+
+
+    private void setScreenSleepTimeToMax ()
+    {
+        MainActivity.mainActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        MainActivity.mainActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        //
         int maxTime = 60000; // 1 minute
         if (MainActivity.mainActivity.isDebugMode()) maxTime = Integer.MAX_VALUE;
         try
         {
             Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, maxTime);
+        }
+        catch (Exception e)
+        {
+            // do nothing, permissions may have not been set yet
+        }
+    }
+
+
+    private void setScreenSleepTimeToMin ()
+    {
+        MainActivity.mainActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        MainActivity.mainActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        //
+        try
+        {
+            Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, 1);
         }
         catch (Exception e)
         {

@@ -71,13 +71,13 @@ public class OBMainViewController extends OBViewController
         }
 
         Typeface tf = OBUtils.standardTypeFace();
-        topLabel = new OBLabel(OBSystemsManager.sharedManager.printBatteryStatus(), tf, applyGraphicScale(15));
+        topLabel = new OBLabel("", tf, applyGraphicScale(15));
         topLabel.setColour(Color.BLACK);
         topLabel.controller = this;
         topLabel.setBounds(this.bounds().left, this.bounds().top, this.bounds().right, this.bounds().bottom);
         topLabel.setPosition(bounds().centerX(), bounds().centerY());
         topLabel.setTop(0);
-        OBSystemsManager.sharedManager.setBatteryStatusLabel(topLabel);
+        OBSystemsManager.sharedManager.setStatusLabel(topLabel);
     }
 
     public void setBottomRightButton(String itype)
@@ -239,21 +239,21 @@ public class OBMainViewController extends OBViewController
                     currentTouchID = pointerID;
                     touchDownAtPoint(event.getX(), event.getY(), (OBGLView) v);
                     OBBrightnessManager.sharedManager.registeredTouchOnScreen();
-//                    MainActivity.mainActivity.log("DOWN --> " + event.getPointerId(pointerIndex));
+//                    MainActivity.log("DOWN --> " + event.getPointerId(pointerIndex));
                 }
                 else if (action == MotionEvent.ACTION_MOVE && currentTouchID != null && currentTouchID == pointerID)
                 {
                     OBGLView ov = (OBGLView) v;
                     topController().touchMovedToPoint(new PointF(event.getX(), event.getY()), ov);
                     OBBrightnessManager.sharedManager.registeredTouchOnScreen();
-//                    MainActivity.mainActivity.log("MOVE --> " + event.getPointerId(pointerIndex));
+//                    MainActivity.log("MOVE --> " + event.getPointerId(pointerIndex));
                 }
                 else if (currentTouchID != null && currentTouchID == pointerID && (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_POINTER_UP))
                 {
                     currentTouchID = null;
                     touchUpAtPoint(event.getX(), event.getY(), (OBGLView) v);
                     OBBrightnessManager.sharedManager.registeredTouchOnScreen();
-//                    MainActivity.mainActivity.log("UP   --> " + event.getPointerId(pointerIndex));
+//                    MainActivity.log("UP   --> " + event.getPointerId(pointerIndex));
                 }
                 return true;
             }

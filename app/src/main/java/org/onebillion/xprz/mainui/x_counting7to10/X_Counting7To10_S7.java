@@ -194,7 +194,7 @@ public class X_Counting7To10_S7 extends XPRZ_Generic_Tracing
 
     public void tracing_setup (final Integer number)
     {
-//        MainActivity.mainActivity.log("tracing_setup: " + number);
+//        MainActivity.log("tracing_setup: " + number);
         new OBRunnableSyncUI()
         {
             public void ex ()

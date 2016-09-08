@@ -1,2 +1,4 @@
 <resources>
+    <string name="device_admin_label">onebillion</string>
+    <string name="device_admin_description">Admin Device Policies Description</string>
 </resources>

@@ -96,41 +96,41 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
 
     public boolean runConsistencyChecks()
     {
-        MainActivity.mainActivity.log("OBSQLiteHelper running consistency checks");
+        MainActivity.log("OBSQLiteHelper running consistency checks");
         //
         try
         {
             Cursor checkResult = runVacuum();
             if (checkResult != null)
             {
-                MainActivity.mainActivity.log("OBSQLiteHelper Vacuum FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
+                MainActivity.log("OBSQLiteHelper Vacuum FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
                 return false;
             }
             else
             {
-                MainActivity.mainActivity.log("OBSQLiteHelper Vacuum PASSED");
+                MainActivity.log("OBSQLiteHelper Vacuum PASSED");
             }
             //
             checkResult = integrityCheck();
             if (checkResult != null)
             {
-                MainActivity.mainActivity.log("OBSQLiteHelper Integrity check FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
+                MainActivity.log("OBSQLiteHelper Integrity check FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
                 return false;
             }
             else
             {
-                MainActivity.mainActivity.log("OBSQLiteHelper Integrity check PASSED");
+                MainActivity.log("OBSQLiteHelper Integrity check PASSED");
             }
             //
             checkResult = quickCheck();
             if (checkResult != null)
             {
-                MainActivity.mainActivity.log("OBSQLiteHelper Quick check FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
+                MainActivity.log("OBSQLiteHelper Quick check FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
                 return false;
             }
             else
             {
-                MainActivity.mainActivity.log("OBSQLiteHelper Quick check PASSED");
+                MainActivity.log("OBSQLiteHelper Quick check PASSED");
             }
 
            checkResult = foreignKeyCheck();
@@ -252,7 +252,7 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
                 src.close();
                 dst.close();
                 //
-                MainActivity.mainActivity.log("Database backup successful!. New database backup " + backupDB.getName());
+                MainActivity.log("Database backup successful!. New database backup " + backupDB.getName());
 //                Toast toast = Toast.makeText(MainActivity.mainActivity.getApplicationContext(), "Database backup successful!", Toast.LENGTH_SHORT);
 //                toast.setDuration(Toast.LENGTH_SHORT);
 //                toast.show();
@@ -261,7 +261,7 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
         catch (Exception e)
         {
             e.printStackTrace();
-            MainActivity.mainActivity.log("Database backup failed!");
+            MainActivity.log("Database backup failed!");
 //            Toast toast = Toast.makeText(MainActivity.mainActivity.getApplicationContext(), "Database backup failed!", Toast.LENGTH_SHORT);
 //            toast.setDuration(Toast.LENGTH_SHORT);
 //            toast.show();
@@ -298,7 +298,7 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
                     //
                     if (runConsistencyChecks())
                     {
-                        MainActivity.mainActivity.log("Database restored successfully using backup " + backupDB.getName());
+                        MainActivity.log("Database restored successfully using backup " + backupDB.getName());
                         //
 //                        Toast toast = Toast.makeText(MainActivity.mainActivity.getApplicationContext(), "Database restored successfully!", Toast.LENGTH_SHORT);
 //                        toast.setDuration(Toast.LENGTH_SHORT);
@@ -307,14 +307,14 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
                     }
                     else
                     {
-                        MainActivity.mainActivity.log("Backup " + backupDB.getName() + " failed consistency checks, grabbing older version of database");
+                        MainActivity.log("Backup " + backupDB.getName() + " failed consistency checks, grabbing older version of database");
                     }
                 }
             }
         }
         catch (Exception e)
         {
-            MainActivity.mainActivity.log("Database restoration failed!");
+            MainActivity.log("Database restoration failed!");
 //            Toast toast = Toast.makeText(MainActivity.mainActivity.getApplicationContext(), "Database restoration failed!", Toast.LENGTH_SHORT);
 //            toast.setDuration(Toast.LENGTH_SHORT);
 //            toast.show();

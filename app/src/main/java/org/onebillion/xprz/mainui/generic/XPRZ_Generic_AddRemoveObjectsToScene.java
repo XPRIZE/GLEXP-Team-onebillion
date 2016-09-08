@@ -156,7 +156,7 @@ public class XPRZ_Generic_AddRemoveObjectsToScene extends XPRZ_Generic_Event
         {
             if (control.hidden()) count++;
         }
-        MainActivity.mainActivity.log("hidden objects " + count);
+        MainActivity.log("hidden objects " + count);
         return count;
     }
 
@@ -169,7 +169,7 @@ public class XPRZ_Generic_AddRemoveObjectsToScene extends XPRZ_Generic_Event
         {
             if (!control.hidden()) count++;
         }
-        MainActivity.mainActivity.log("shown objects " + count);
+        MainActivity.log("shown objects " + count);
         return count;
     }
 

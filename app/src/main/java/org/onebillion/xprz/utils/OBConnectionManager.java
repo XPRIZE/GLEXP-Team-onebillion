@@ -52,7 +52,7 @@ public class OBConnectionManager
                 @Override
                 public void run () throws Exception
                 {
-                    MainActivity.mainActivity.log("Wifi not connected. Attempting to activate and connect");
+                    MainActivity.log("Wifi not connected. Attempting to activate and connect");
                     // attempt to connect to wifi
                     connectToWifi();
                 }
@@ -106,11 +106,11 @@ public class OBConnectionManager
         boolean wifiEnabled = wifiManager.isWifiEnabled();
         if (!wifiEnabled)
         {
-            MainActivity.mainActivity.log("Wifi was disabled. Enabling now.");
+            MainActivity.log("Wifi was disabled. Enabling now.");
             wifiManager.setWifiEnabled(true);
         }
         //remember id
-        MainActivity.mainActivity.log("Wifi attempting to connect to " + wifiConfig.SSID);
+        MainActivity.log("Wifi attempting to connect to " + wifiConfig.SSID);
         int netId = wifiManager.addNetwork(wifiConfig);
         wifiManager.disconnect();
         wifiManager.enableNetwork(netId, true);

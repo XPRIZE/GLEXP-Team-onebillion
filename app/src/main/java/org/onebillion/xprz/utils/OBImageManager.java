@@ -199,7 +199,7 @@ public class OBImageManager
             }
             catch (Exception e)
             {
-                MainActivity.mainActivity.log("unable to retrieve SVG:" + name);
+                MainActivity.log("unable to retrieve SVG:" + name);
                 e.printStackTrace();
                 return null;
             }

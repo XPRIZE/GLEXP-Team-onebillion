@@ -4,6 +4,8 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.DownloadManager;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -22,6 +24,7 @@ import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -39,8 +42,6 @@ import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.glstuff.OBGLView;
 import org.onebillion.xprz.glstuff.OBRenderer;
 import org.onebillion.xprz.utils.OBAudioManager;
-import org.onebillion.xprz.utils.OBBrightnessManager;
-import org.onebillion.xprz.utils.OBConnectionManager;
 import org.onebillion.xprz.utils.OBExpansionManager;
 import org.onebillion.xprz.utils.OBFatController;
 import org.onebillion.xprz.utils.OBImageManager;
@@ -52,12 +53,14 @@ import org.onebillion.xprz.utils.OBUtils;
 
 public class MainActivity extends Activity
 {
-    private static final int REQUEST_EXTERNAL_STORAGE = 1,
+    public static final int REQUEST_EXTERNAL_STORAGE = 1,
                     REQUEST_MICROPHONE = 2,
                     REQUEST_CAMERA = 3,
                     REQUEST_ALL = 4,
                     REQUEST_FIRST_SETUP_DATE_TIME = 5,
-                    REQUEST_FIRST_SETUP_PERMISSIONS = 6;
+                    REQUEST_FIRST_SETUP_PERMISSIONS = 6,
+                    REQUEST_FIRST_SETUP_ADMINISTRATOR_PRIVILEGES = 7,
+                    REQUEST_FIRST_SETUP_PROVISION_MANAGED_PROFILE = 8;
     public static String CONFIG_IMAGE_SUFFIX = "image_suffix",
             CONFIG_AUDIO_SUFFIX = "audio_suffix",
             CONFIG_AUDIO_SEARCH_PATH = "audioSearchPath",
@@ -92,7 +95,10 @@ public class MainActivity extends Activity
             CONFIG_WIFI_PASSWORD = "wifiPassword",
             CONFIG_USES_BRIGHTNESS_ADJUSTMENT = "usesBrightnessAdjustment",
             CONFIG_MAX_BRIGHTNESS = "maxBrightness",
+            CONFIG_BRIGHTNESS_CHECK_INTERVAL = "brightnessCheckInterval",
             CONFIG_KEEP_WIFI_ON = "keepWifiOn",
+            CONFIG_RESTART_AFTER_CRASH = "restartAfterCrash",
+            CONFIG_HIDE_STATUS_BAR = "hideStatusBar",
             CONFIG_MENU_CLASS = "menuclass";
     public static String TAG = "livecode";
     //
@@ -158,10 +164,35 @@ public class MainActivity extends Activity
     @Override
     protected void onCreate (Bundle savedInstanceState)
     {
+        MainActivity.log("MainActivity.onCreate");
+        //
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
+
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler()
+        {
+            @Override
+            public void uncaughtException(Thread paramThread, Throwable paramThrowable)
+            {
+                String restartAfterCrash = mainActivity.configStringForKey(CONFIG_RESTART_AFTER_CRASH);
+                //
+                paramThrowable.printStackTrace();
+                //
+                if (restartAfterCrash != null && restartAfterCrash.equals("true"))
+                {
+                    MainActivity.log("Caught unhandled exception. Restarting App");
+                }
+                else
+                {
+//                    OBSystemsManager.sharedManager.killAllServices();
+                    Toast.makeText(MainActivity.mainActivity, "Application has crashed due to uncaught exception", Toast.LENGTH_LONG).show();
+                }
+                MainActivity.mainActivity.onStop();
+                System.exit(0);
+            }
+        });
         //
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         //
         mainActivity = this;
@@ -190,9 +221,6 @@ public class MainActivity extends Activity
         }
     }
 
-
-
-
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
         if (requestCode == REQUEST_FIRST_SETUP_DATE_TIME)
@@ -203,6 +231,30 @@ public class MainActivity extends Activity
         else if (requestCode == REQUEST_FIRST_SETUP_PERMISSIONS)
         {
             checkForFirstSetupAndRun();
+        }
+        else if (requestCode == REQUEST_FIRST_SETUP_ADMINISTRATOR_PRIVILEGES)
+        {
+            if (resultCode == Activity.RESULT_OK)
+            {
+                checkForFirstSetupAndRun();
+            }
+            else
+            {
+                MainActivity.log("Requesting Administrator privileges cancelled or failed");
+                finish();
+            }
+        }
+        else if (requestCode == REQUEST_FIRST_SETUP_PROVISION_MANAGED_PROFILE)
+        {
+            if (resultCode == Activity.RESULT_OK)
+            {
+                checkForFirstSetupAndRun();
+            }
+            else
+            {
+                MainActivity.log("Requesting Provision Manager profile cancelled or failed");
+                finish();
+            }
         }
     }
 
@@ -215,7 +267,6 @@ public class MainActivity extends Activity
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-
         //
         final View decorView = getWindow().getDecorView();
         decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener()
@@ -236,47 +287,45 @@ public class MainActivity extends Activity
         // disable the lock screen when the app is running
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
     }
 
 
     public void checkForFirstSetupAndRun()
     {
-        if (getPreferences("firstSetupComplete") == null)
+        // ask permissions
+        if (isAllPermissionGranted())
         {
-            // ask permissions
-            if (isAllPermissionGranted())
+            // set date and time
+            if (getPreferences("dateTimeSetupComplete") == null)
             {
-                // set date and time
-                if (getPreferences("dateTimeSetupComplete") == null)
-                {
-                    Intent intent = new Intent(android.provider.Settings.ACTION_DATE_SETTINGS);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                Intent intent = new Intent(android.provider.Settings.ACTION_DATE_SETTINGS);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
 //                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    startActivityForResult(intent, REQUEST_FIRST_SETUP_DATE_TIME);
+                startActivityForResult(intent, REQUEST_FIRST_SETUP_DATE_TIME);
+            }
+            else
+            {
+                // set write settings permissions
+                if (!Settings.System.canWrite(this))
+                {
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    intent.setData(Uri.parse("package:" + getPackageName()));
+                    startActivityForResult(intent, REQUEST_FIRST_SETUP_PERMISSIONS);
                 }
                 else
                 {
-                    // set write settings permissions
-                    if (!Settings.System.canWrite(this))
+                    if (OBSystemsManager.sharedManager.enableAdminstratorPrivileges())
                     {
-                        Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                        intent.setData(Uri.parse("package:" + getPackageName()));
-                        startActivityForResult(intent, REQUEST_FIRST_SETUP_PERMISSIONS);
-                    }
-                    else
-                    {
-                        addToPreferences("firstSetupComplete", "true");
-                        checkForFirstSetupAndRun();
+                        addToPreferences("firstSetupComplete", "true"); // to be removed
+                        //
+                        log("First Setup complete. Loading Main View Controller");
+                        checkForUpdatesAndLoadMainViewController();
                     }
                 }
             }
-        }
-        else
-        {
-            log("First Setup complete. Loading Main View Controller");
-            checkForUpdatesAndLoadMainViewController();
         }
     }
 
@@ -290,6 +339,7 @@ public class MainActivity extends Activity
             {
                 try
                 {
+                    OBSystemsManager.sharedManager.runChecks();
                     OBSystemsManager.sharedManager.printMemoryStatus("Before mainViewController");
                     mainViewController = new OBMainViewController(MainActivity.mainActivity);
                 }
@@ -300,6 +350,23 @@ public class MainActivity extends Activity
             }
         });
     }
+
+
+    // This bypasses the power button (long press), preventing shutdown
+    public void onWindowFocusChanged(boolean hasFocus)
+    {
+//        if (!hasFocus)
+//        {
+//            // Close every kind of system dialog
+//            Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+//            sendBroadcast(closeDialog);
+//        }
+//        else
+//        {
+            super.onWindowFocusChanged(hasFocus);
+//        }
+    }
+
 
 
     public void onBackPressed()
@@ -599,7 +666,6 @@ public class MainActivity extends Activity
             AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
             am.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(am.getStreamMaxVolume(AudioManager.STREAM_MUSIC) * volumePercentage), 0);
         }
-        systemsManager.sharedManager.runChecks();
     }
 
     public void updateGraphicScale(float newWidth, float newHeight)
@@ -639,6 +705,13 @@ public class MainActivity extends Activity
         //
         suspendLock.lock();
         OBSystemsManager.sharedManager.onPause();
+    }
+
+    @Override
+    protected void onDestroy ()
+    {
+        super.onDestroy();
+        OBSystemsManager.sharedManager.onDestroy();
     }
 
     @Override
@@ -757,9 +830,10 @@ public class MainActivity extends Activity
         return result;
     }
 
-    public void log (String message)
+    public static void log (String message)
     {
         Log.v(TAG, message);
     }
+
 }
 

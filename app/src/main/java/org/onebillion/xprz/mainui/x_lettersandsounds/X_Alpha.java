@@ -108,6 +108,7 @@ public class X_Alpha extends XPRZ_Generic_WordsEvent
             back.setPosition(box.position());
             //
             box.setFrame(back.frame());
+            box.sizeToBoundingBoxIncludingStroke();
             //
             OBPath fill = (OBPath) back.objectDict.get("colour");
             fill.setFillColor(OBUtils.colorFromRGBString(templateColours_fill.get(colourIdx)));

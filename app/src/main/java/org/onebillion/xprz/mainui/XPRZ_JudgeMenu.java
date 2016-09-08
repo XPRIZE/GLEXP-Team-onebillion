@@ -116,7 +116,7 @@ public class XPRZ_JudgeMenu extends OBSectionController
         OBXMLNode xmlNode = masterList.get(id);
         if (xmlNode == null)
         {
-            MainActivity.mainActivity.log("Unknown Unit: " + id);
+            MainActivity.log("Unknown Unit: " + id);
         }
         else
         {
@@ -211,7 +211,7 @@ public class XPRZ_JudgeMenu extends OBSectionController
                     {
                         if (url.contains("#"))
                         {
-                            MainActivity.mainActivity.log(url);
+                            MainActivity.log(url);
                             String breakdown[] = url.split("#");
                             String unit = breakdown[breakdown.length - 1];
                             loadUnit(unit);

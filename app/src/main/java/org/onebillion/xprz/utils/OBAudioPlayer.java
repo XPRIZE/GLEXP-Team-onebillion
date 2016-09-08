@@ -241,7 +241,7 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
     {
         if (player == null)
         {
-            MainActivity.mainActivity.log("OBAudioPlayer.onPrepared.player is null");
+            MainActivity.log("OBAudioPlayer.onPrepared.player is null");
             //
             setState(OBAP_IDLE);
             //

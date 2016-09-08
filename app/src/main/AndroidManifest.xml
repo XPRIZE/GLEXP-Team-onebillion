@@ -1,24 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="org.onebillion.xprz"
-          android:installLocation="preferExternal">
+          android:installLocation="internalOnly">
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="23"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="23"/>
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="23"/>
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="23"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-feature android:name="android.hardware.camera" />
-    <uses-feature android:name="android.hardware.camera.autofocus" />
+    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES"/>
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.ACCESS_SUPERUSER"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.MANAGE_DEVICE_ADMINS"/>
+
+    <uses-feature android:name="android.hardware.camera"/>
+    <uses-feature android:name="android.hardware.camera.autofocus"/>
+    <uses-feature
+        android:name="android.software.device_admin"
+        android:required="true"/>
+
 
     <!--<uses-library android:name="com.google.android.vending.expansion.downloader" />-->
     <!--<uses-library android:name="com.google.android.vending.licensing" />-->
@@ -27,37 +41,63 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:supportsRtl="true"
         android:largeHeap="true"
+        android:showOnLockScreen="true"
+        android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
         <receiver
+            android:name="org.onebillion.xprz.receivers.OBStartUpBootReceiver"
             android:enabled="true"
-            android:exported="true"
-            android:name=".receivers.OBAppStartupReceiver"
-            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
-
+            android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.USER_PRESENT" />
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-                <category android:name="android.intent.category.DEFAULT" />
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.HOME"/>
             </intent-filter>
         </receiver>
 
+        <service
+            android:name="org.onebillion.xprz.utils.OBAutoStartActivityService"
+            android:enabled="true"
+            android:exported="true"></service>
+
         <!--android:debuggable="true"-->
+
+        <!--android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen"-->
+        <!--android:theme="@style/AppTheme.NoActionBar">-->
+        <!--android:theme="@android:style/Theme.NoTitleBar">-->
+
+        <!--android:excludeFromRecents="true"-->
+
+        <receiver
+            android:name="org.onebillion.xprz.receivers.OBDeviceAdminReceiver"
+            android:description="@string/device_admin_description"
+            android:label="@string/device_admin_label"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin_policies"/>
+
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED"/>
+                <action android:name="android.app.action.DEVICE_ADMIN_DISABLED"/>
+            </intent-filter>
+        </receiver>
+
         <activity
             android:name="org.onebillion.xprz.mainui.MainActivity"
+            android:launchMode="singleTask"
             android:screenOrientation="landscape">
-            <!--    android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen"-->
-            <!--android:theme="@style/AppTheme.NoActionBar">-->
-            <!--android:theme="@android:style/Theme.NoTitleBar">-->
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
 
-            <receiver android:name=".OBBatteryReceiver">
+            <receiver android:name="org.onebillion.xprz.receivers.OBBatteryReceiver">
                 <intent-filter>
                     <action android:name="android.intent.action.ACTION_BATTERY_LOW"/>
                     <action android:name="android.intent.action.ACTION_BATTERY_OKAY"/>
@@ -65,6 +105,7 @@
                     <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
                 </intent-filter>
             </receiver>
+
 
         </activity>
     </application>
