@@ -111,7 +111,8 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
 
         loadChoiceStars();
         loadTrophies(lastUnit == null ? 0 : lastUnit.level - 1);
-        loadTopBar((lastUnit == null ? 1 : lastUnit.level), (lastUnit != null && lastUnit.unitid > 0));
+        int lastUnitID = lastUnit == null ? 0: lastUnit.unitid;
+        loadTopBar((lastUnit == null ? 1 : lastUnit.level),lastUnitID, (lastUnit != null && lastUnit.unitid > 0));
         starSelect = false;
         List<OBControl> stars = new ArrayList<>();
         stars.addAll(filterControls("top_bar_star_.*"));
@@ -416,7 +417,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         return bigTrophy;
     }
 
-    public void loadTopBar(int level,boolean show)
+    public void loadTopBar(int level, int lastUnitID, boolean show)
     {
         Map<Integer,String> starsDict = fatController.starsForLevel(level);
         OBControl topBar = objectDict.get("top_bar");
@@ -424,12 +425,14 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         topBar.setProperty("dest_colour",barColour);
         if(show)
             topBar.setFillColor ( barColour);
+
+        int maxStars = MlUnit.awardNumForLevel(level,lastUnitID-1);
         for(int i=1; i<=10; i++)
         {
             OBGroup star = (OBGroup)objectDict.get(String.format("top_bar_star_%d",i));
             OBPath path = (OBPath)star.objectDict.get("star");
             String colour = starsDict.get(i);
-            if(colour != null)
+            if(colour != null && i<=maxStars)
             {
                 colourStar(star,colour);
             }
@@ -828,7 +831,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
                 waitForSecs(0.5f);
                 animateTrophiesSlide(false);
                 waitForSecs(0.5f);
-                loadTopBar(lastUnit.level+1,false);
+                loadTopBar(lastUnit.level+1,0,false);
                 presenter.moveHandfromIndex(1,5,0.3f);
                 presenter.speak((List<Object>) (Object) getAudioForScene("trophy","FINAL") , this);
                 animateTopBar();

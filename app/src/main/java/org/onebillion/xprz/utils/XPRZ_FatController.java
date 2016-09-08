@@ -333,11 +333,10 @@ public class XPRZ_FatController extends OBFatController
         return currentUser.lastStarColourFromDBForLevel(level);
 
     }
+
     public String starForLevel(int level,int starnum)
-{
-    return currentUser.starFromDBForLevel(level,starnum);
-
-}
-
+    {
+        return currentUser.starFromDBForLevel(level,starnum);
+    }
 
 }

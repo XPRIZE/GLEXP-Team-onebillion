@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.util.ArrayMap;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -69,6 +70,19 @@ public class MlUnit extends MlObject
             db.close();
             return null;
         }
+    }
+
+    public static int awardNumForLevel(int level, int unitid)
+    {
+        DBSQL db = new DBSQL(false);
+        Cursor cursor = db.prepareRawQuery("SELECT MAX(awardStar) as awardStar FROM "+DBSQL.TABLE_UNITS+" WHERE level = ? AND unitid <= ?", Arrays.asList(String.valueOf(level),String.valueOf(unitid)));
+        int lastStar = 0;
+        if(cursor.moveToFirst())
+            lastStar = cursor.getInt(cursor.getColumnIndex("awardStar"));
+
+        cursor.close();
+        db.close();
+        return lastStar;
     }
 
 }
