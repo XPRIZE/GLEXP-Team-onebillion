@@ -28,6 +28,16 @@ public class XPRZ_Generic_AddRemoveObjectsToScene extends XPRZ_Generic_Event
         return "obj";
     }
 
+    public String getSFX_hideObject()
+    {
+        return "hideObject";
+    }
+
+    public String getSFX_placeObject()
+    {
+        return "placeObject";
+    }
+
 
     @Override
     public void action_prepareScene (String scene, Boolean redraw)
@@ -113,7 +123,7 @@ public class XPRZ_Generic_AddRemoveObjectsToScene extends XPRZ_Generic_Event
         {
             if(control != null)
             {
-                playSfxAudio("hideObject", false);
+                playSfxAudio(getSFX_hideObject(), false);
                 control.hide();
                 //
                 action_moveObjectToOriginalPosition(control, false);
@@ -156,7 +166,7 @@ public class XPRZ_Generic_AddRemoveObjectsToScene extends XPRZ_Generic_Event
         {
             if (control.hidden()) count++;
         }
-        MainActivity.log("hidden objects " + count);
+//        MainActivity.log("hidden objects " + count);
         return count;
     }
 
@@ -169,7 +179,7 @@ public class XPRZ_Generic_AddRemoveObjectsToScene extends XPRZ_Generic_Event
         {
             if (!control.hidden()) count++;
         }
-        MainActivity.log("shown objects " + count);
+//        MainActivity.log("shown objects " + count);
         return count;
     }
 
@@ -177,7 +187,7 @@ public class XPRZ_Generic_AddRemoveObjectsToScene extends XPRZ_Generic_Event
     public void action_revealObject(OBControl control, PointF pt) throws Exception
     {
         control.setPosition(pt);
-        playSfxAudio("placeObject", false);
+        playSfxAudio(getSFX_placeObject(), false);
         control.show();
         //
         action_moveObjectToOriginalPosition(control, false);

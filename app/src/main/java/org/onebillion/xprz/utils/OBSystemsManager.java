@@ -377,6 +377,13 @@ public class OBSystemsManager
         //
         toggleKeyguardAndStatusBar(true);
         //
+        String restartAfterCrash = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_RESTART_AFTER_CRASH);
+        if (MainActivity.mainActivity.isDebugMode() && (restartAfterCrash == null || restartAfterCrash.equals("true")))
+        {
+            MainActivity.log("OBSystemsManager.removing administrator privileges");
+            disableAdministratorPrivileges();
+        }
+        //
         OBBrightnessManager.sharedManager.onStop();
     }
 
@@ -534,6 +541,7 @@ public class OBSystemsManager
     public boolean enableAdminstratorPrivileges ()
     {
         MainActivity.log("OBSystemsManager.enableAdminstratorPrivileges");
+        //
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
         ComponentName adminReceiver = OBDeviceAdminReceiver.getComponentName(MainActivity.mainActivity);
         //
@@ -552,7 +560,7 @@ public class OBSystemsManager
             String packageName = MainActivity.mainActivity.getPackageName();
             try
             {
-                String resetCommand = "su -c rm /data/system/device_owner.xml; su -c rm /data/system/device_policies.xml;";
+//                String resetCommand = "su -c rm /data/system/device_owner.xml; su -c rm /data/system/device_policies.xml;";
                 String command = "su -c dpm set-device-owner " + packageName + "/" + adminReceiver.getClassName();
                 MainActivity.log("OBSystemsManager.not a device owner. running " + command);
                 //
@@ -586,13 +594,18 @@ public class OBSystemsManager
                     Toast.makeText(MainActivity.mainActivity, "Please remove all accounts before going back", Toast.LENGTH_LONG).show();
                     Intent intent = new Intent(Settings.ACTION_SYNC_SETTINGS);
                     MainActivity.mainActivity.startActivityForResult(intent, MainActivity.REQUEST_FIRST_SETUP_ADMINISTRATOR_PRIVILEGES);
+                    //
+                    return false;
                 }
             }
             catch (Exception e)
             {
+                MainActivity.log("OBSystemsManager.device is not rooted. No point in continuing enableAdminstratorPrivileges");
+                //
                 e.printStackTrace();
+                //
+                return true;
             }
-            return false;
         }
         MainActivity.log("OBSy  stemsManager.enableAdminstratorPrivileges. all good");
         return true;
