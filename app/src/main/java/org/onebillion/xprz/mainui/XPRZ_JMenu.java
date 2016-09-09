@@ -2,17 +2,25 @@ package org.onebillion.xprz.mainui;
 
 import android.graphics.Color;
 import android.graphics.PointF;
+import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
+import org.onebillion.xprz.controls.OBImage;
 import org.onebillion.xprz.controls.OBLabel;
+import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.controls.OBTextLayer;
+import org.onebillion.xprz.utils.OBAnim;
+import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OBXMLManager;
 import org.onebillion.xprz.utils.OBXMLNode;
+import org.onebillion.xprz.utils.OB_Maths;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,8 +34,20 @@ public class XPRZ_JMenu extends XPRZ_Menu
     String currentTab = null;
     List<OBControl> tabs;
     Map<String,OBXMLNode>tabXmlDict;
-    public float tabTextSize,subheadtextSize,subsubheadtextSize,itemHeadTextSize,itemBodyTextSize;
+    public float tabTextSize,subheadtextSize,subsubheadtextSize,itemHeadTextSize,itemBodyTextSize,videoHeadTextSize,videoBodyTextSize;
     static Typeface plain,bold,italic,boldItalic;
+    boolean scrollable;
+    float originalY,maximumY,minimumY;
+    OBControl scrollGroup;
+    PointF lastPoint = new PointF();
+    int videoPreviewIdx = 0;
+    List<OBControl> videoPreviewImages;
+    OBGroup videoPreviewGroup;
+    int  videoScrollState;
+    final static int VIDEO_SCROLL_NONE=0,
+        VIDEO_SCROLL_TOUCH_DOWNED = 1,
+        VIDEO_SCROLL_MOVED = 2;
+    PointF videoTouchDownPoint = new PointF();
 
     static Typeface plainFont()
     {
@@ -66,6 +86,12 @@ public class XPRZ_JMenu extends XPRZ_Menu
         return plainFont();
 
     }
+
+    public int buttonFlags ()
+    {
+        return 0;
+    }
+
     public void prepare()
     {
         super.prepare();
@@ -76,10 +102,16 @@ public class XPRZ_JMenu extends XPRZ_Menu
         subsubheadtextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("subsubheadtextsize")));
         itemHeadTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("itemheadtextsize")));
         itemBodyTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("itembodytextsize")));
+        videoHeadTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("videoheadtextsize")));
+        videoBodyTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("videobodytextsize")));
         tabs = sortedFilteredControls("tab.*");
+        for (OBControl t : tabs)
+            t.setZPosition(t.zPosition()+60);
+        OBControl obl = objectDict.get("obl");
+        obl.setZPosition(obl.zPosition()+60);
         setUpTabTitles();
 
-        //switchTo("video");
+        switchTo("video");
 
     }
 
@@ -204,6 +236,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
         Typeface tf = plainFont();
         Typeface tfb = boldFont();
         List<OBXMLNode> targs = tab.childrenOfType("targets");
+        float screenBottom = boundsf().bottom;
         if (targs.size() > 0)
         {
             List<OBXMLNode> nodeTargs = targs.get(0).childrenOfType("target");
@@ -217,14 +250,13 @@ public class XPRZ_JMenu extends XPRZ_Menu
                 OBControl im = loadImageWithName(src,pt,boundsf(),true);
                 im.setZPosition(zpos);
                 objectDict.put(tabstring+String.format("_i%d",idx+1),im);
-                //String boxname = String.format(tabstring+"_iconbox_%d",idx+1);
                 String boxname = iconBoxStrings.get(idx);
                 OBControl iconbox = objectDict.get(boxname);
                 float ratio = iconbox.height() / im.height();
                 im.setScale(ratio);
                 im.setPosition(iconbox.position());
-
-                //boxname = String.format(tabstring+"_textbox_%d",idx+1);
+                if (im.bottom() > screenBottom)
+                    scrollable = true;
                 boxname = boxname.replaceFirst("icon","text");
                 OBControl textbox = objectDict.get(boxname);
                 if (textbox != null)
@@ -297,7 +329,8 @@ public class XPRZ_JMenu extends XPRZ_Menu
             attachControl(label);
             i++;
         }
-    populateSubSubHeads(tabstring);
+        populateSubSubHeads(tabstring);
+        setUpGroup();
     }
 
     public void populateStories()
@@ -327,6 +360,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
             i++;
         }
         populateSubSubHeads(tabstring);
+        setUpGroup();
     }
     public void populateNumeracy()
     {
@@ -340,6 +374,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
         targetNames.addAll(sortedFilteredControlIDs(tabstring+"_smicon.*"));
         populateTargets(tabstring,tab,targetNames);
         populateSubSubHeads(tabstring);
+        setUpGroup();
     }
 
     public void populateWriting()
@@ -354,6 +389,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
         targetNames.addAll(sortedFilteredControlIDs(tabstring+"_smicon.*"));
         populateTargets(tabstring,tab,targetNames);
         populateSubSubHeads(tabstring);
+        setUpGroup();
     }
 
     public void populateDesign()
@@ -367,7 +403,9 @@ public class XPRZ_JMenu extends XPRZ_Menu
         List<String> targetNames = sortedFilteredControlIDs(tabstring+"_iconbox.*");
         populateTargets(tabstring,tab,targetNames);
         populateSubSubHeads(tabstring);
+        setUpGroup();
     }
+
     public void populateTech()
     {
         String tabstring = "tech";
@@ -380,15 +418,151 @@ public class XPRZ_JMenu extends XPRZ_Menu
         populateTargets(tabstring,tab,targetNames);
         populateMiscTexts(tabstring);
         populateSubSubHeads(tabstring);
+        setUpGroup();
+    }
+
+    void selectPreview(int i)
+    {
+        OBXMLNode tab = tabXmlDict.get("video");
+        OBXMLNode vnode = tab.childrenOfType("video").get(i);
+        videoPreviewIdx = i;
+        Typeface tf = plainFont();
+        Typeface tfb = boldFont();
+        OBControl selector = objectDict.get("numeracy_selector");
+        OBControl pim = videoPreviewImages.get(videoPreviewIdx);
+        RectF f = new RectF();
+        f.set(pim.frame());
+        float amt = applyGraphicScale(-4);
+        f.inset(amt,amt);
+        selector.setFrame(f);
+
+        OBControl textbox = objectDict.get("video_textbox");
+        if (textbox != null)
+        {
+            List<OBXMLNode> textnodes = vnode.childrenOfType("head");
+            float top = textbox.top();
+            if (textnodes.size() > 0)
+            {
+                OBXMLNode headnode = textnodes.get(0);
+                String key = "video_head";
+                deleteControls(key);
+                OBLabel label = new OBLabel(headnode.contents,tfb,videoHeadTextSize);
+                label.setMaxWidth(textbox.width());
+                label.setJustification(OBTextLayer.JUST_LEFT);
+                label.sizeToBoundingBox();
+                label.setTop(top);
+                label.setLeft(textbox.left());
+                label.setZPosition(videoPreviewGroup.zPosition());
+                label.setColour(Color.BLACK);
+                top = label.bottom() + applyGraphicScale(8);
+                //label.setBorderColor(Color.BLACK);
+                //label.setBorderWidth(2f);
+                objectDict.put(key,label);
+                attachControl(label);
+
+            }
+
+            List<OBXMLNode>nodes = vnode.childrenOfType("body");
+            if (nodes.size() > 0)
+            {
+                String key = "video_body";
+                deleteControls(key);
+                OBXMLNode bodynode = nodes.get(0);
+                OBLabel label2 = new OBLabel(bodynode.contents,tf,videoBodyTextSize);
+                label2.setMaxWidth(textbox.width());
+                label2.sizeToBoundingBox();
+                label2.setTop(top);
+                label2.setLeft(textbox.left());
+                label2.setZPosition(videoPreviewGroup.zPosition());
+                label2.setColour(Color.BLACK);
+                label2.setJustification(OBTextLayer.JUST_LEFT);
+
+                objectDict.put(key,label2);
+                attachControl(label2);
+            }
+        }
+    }
+
+
+    void populateVideoPreviews(String tabstring,OBXMLNode tab)
+    {
+        List<OBXMLNode> targs = tab.childrenOfType("video");
+        if (targs.size() > 0)
+        {
+            OBPath vs = (OBPath) objectDict.get("video_selector");
+            int col = vs.fillColor();
+            deleteControls("video_selector");
+            OBControl p1 = objectDict.get("video_preview1");
+            OBControl p2 = objectDict.get("video_preview2");
+            float videoPreviewX = p1.position().x;
+            float videoPreviewTopY = p1.position().y;
+            float videoPreviewYOffset = p2.position().y - videoPreviewTopY;
+            float videoPreviewHeight = p1.height();
+            int idx = 0;
+            float zpos = objectDict.get(tabstring + "_background").zPosition() + 10;
+            videoPreviewImages = new ArrayList<>();
+            for (OBXMLNode v : targs)
+            {
+                OBXMLNode imgnode = v.childrenOfType("preview").get(0);
+                String src = imgnode.contents;
+                OBImage im = loadImageWithName(src,new PointF(),new RectF(),false);
+                videoPreviewImages.add(im);
+                im.setPosition(videoPreviewX,videoPreviewTopY + idx * videoPreviewYOffset);
+                im.setScale(videoPreviewHeight / im.height());
+                im.setZPosition(5);
+                idx++;
+            }
+            OBControl selector = new OBControl();
+            selector.setBackgroundColor(col);
+            selector.setFrame(videoPreviewImages.get(0).frame());
+            selector.setZPosition(1);
+            objectDict.put("numeracy_selector",selector);
+            List<OBControl> lstgp = new ArrayList<>(videoPreviewImages);
+            lstgp.add(selector);
+
+            OBControl mask = objectDict.get("video_mask");
+            OBControl mc = mask.copy();
+            lstgp.add(mc);
+            videoPreviewGroup = new OBGroup(lstgp);
+            videoPreviewGroup.removeMember(mc);
+            attachControl(videoPreviewGroup);
+            videoPreviewGroup.setZPosition(zpos);
+            objectDict.put("videoPreviewGroup",videoPreviewGroup);
+            detachControl(mask);
+            videoPreviewGroup.setScreenMaskControl(mask);
+            maximumY = videoPreviewGroup.position().y;
+            minimumY = maximumY - (videoPreviewGroup.bottom() - mask.bottom());
+
+            selectPreview(videoPreviewIdx);
+        }
+    }
+    public void populateVideo()
+    {
+        String tabstring = "video";
+        OBXMLNode tab = tabXmlDict.get(tabstring);
+        populateVideoPreviews(tabstring,tab);
+    }
+
+    public void setUpGroup()
+    {
+        scrollGroup = new OBGroup(filterControls(currentTab+".*"));
+        scrollGroup.setShouldTexturise(false);
+        attachControl(scrollGroup);
     }
 
     public void switchTo(String s)
     {
         if (s == currentTab)
             return;
+        scrollable = false;
         lockScreen();
         if (currentTab != null)
-            deleteControls(currentTab+".*");
+        {
+            if (scrollGroup != null)
+                detachControl(scrollGroup);
+            deleteControls(currentTab + ".*");
+        }
+        currentTab = s;
         loadEvent(s);
         if (tabXmlDict == null)
             loadTabContents();
@@ -404,8 +578,14 @@ public class XPRZ_JMenu extends XPRZ_Menu
             populateDesign();
         else if (s.equals("tech"))
             populateTech();
+        else if (s.equals("video"))
+            populateVideo();
+        if (scrollable)
+        {
+            maximumY = scrollGroup.position().y;
+            minimumY = maximumY - (scrollGroup.bottom() - boundsf().bottom);
+        }
         unlockScreen();
-        currentTab = s;
     }
 
     public OBControl findTab(PointF pt)
@@ -416,6 +596,103 @@ public class XPRZ_JMenu extends XPRZ_Menu
         return null;
     }
 
+    public OBControl findIcon(PointF pt)
+    {
+        for (OBControl ic : filterControls(".*icon.*"))
+            if (!ic.hidden())
+            {
+                RectF r = convertRectFromControl(ic.bounds(),ic);
+                if (r.contains(pt.x, pt.y))
+                    return ic;
+            }
+        return null;
+    }
+
+    public OBControl findBackground(PointF pt)
+    {
+        OBControl background = objectDict.get(currentTab+"_background");
+        if (background != null)
+        {
+            RectF r = convertRectFromControl(background.bounds(),background);
+            if (r.contains(pt.x, pt.y))
+                return background;
+        }
+        return null;
+    }
+
+    public void touchUpAtPoint(PointF pto,View v)
+    {
+        if (currentTab.equals("video"))
+        {
+            if (videoScrollState > 0)
+            {
+                boolean mustSelect = videoScrollState != VIDEO_SCROLL_MOVED;
+                videoScrollState = VIDEO_SCROLL_NONE;
+                if (mustSelect)
+                {
+                    for (int i = 0;i < videoPreviewImages.size();i++)
+                    {
+                        OBControl im = videoPreviewImages.get(i);
+                        RectF f = convertRectFromControl(im.bounds(),im);
+                        if (f.contains(pto.x,pto.y))
+                        {
+                            selectPreview(i);
+                            setStatus(STATUS_IDLE);
+                            return;
+                        }
+                    }
+                }
+            }
+            setStatus(STATUS_IDLE);
+            return;
+        }
+        if(status()  == STATUS_DRAGGING)
+        {
+            setStatus(STATUS_IDLE);
+        }
+    }
+
+    public void touchMovedToPoint(PointF pt,View v)
+    {
+        if (currentTab.equals("video"))
+        {
+            if (videoScrollState == VIDEO_SCROLL_TOUCH_DOWNED)
+                if (videoScrollState != VIDEO_SCROLL_MOVED && OB_Maths.PointDistance(videoTouchDownPoint,pt)>applyGraphicScale(8))
+                    videoScrollState = VIDEO_SCROLL_MOVED;
+            if (videoScrollState > 0)
+            {
+                float dy = pt.y - lastPoint.y;
+                float newY = videoPreviewGroup.position().y + dy;
+                if (newY <= maximumY && newY >= minimumY)
+                {
+                    videoPreviewGroup.setPosition(videoPreviewGroup.position().x,newY);
+                }
+                lastPoint.y = pt.y;
+            }
+        }
+        else if(status()  == STATUS_DRAGGING)
+        {
+            float dy = pt.y - lastPoint.y;
+            float newY = scrollGroup.position().y + dy;
+            if (newY <= maximumY && newY >= minimumY)
+            {
+                scrollGroup.setPosition(scrollGroup.position().x,newY);
+            }
+            lastPoint.y = pt.y;
+        }
+    }
+
+    void processVideoTouch(PointF pt)
+    {
+        videoScrollState = VIDEO_SCROLL_NONE;
+        RectF f = videoPreviewGroup.frame();
+        if (f.contains(pt.x,pt.y))
+        {
+            videoScrollState = VIDEO_SCROLL_TOUCH_DOWNED;
+            videoTouchDownPoint.set(pt);
+        }
+    }
+
     public void touchDownAtPoint(PointF pt, View v)
     {
         if (status() != STATUS_IDLE)
@@ -424,7 +701,31 @@ public class XPRZ_JMenu extends XPRZ_Menu
         if (c != null)
         {
             int idx = tabs.indexOf(c);
+            setStatus(STATUS_BUSY);
             switchTo(titles[idx]);
+            setStatus(STATUS_IDLE);
+            return;
+        }
+        if (currentTab.equals("video"))
+        {
+            lastPoint.set(pt);
+            processVideoTouch(pt);
+            return;
+        }
+        c = findIcon(pt);
+        if (c != null)
+        {
+            return;
+        }
+        if (scrollable)
+        {
+            c = findBackground(pt);
+            if (c != null)
+            {
+                lastPoint.set(pt);
+                setStatus(STATUS_DRAGGING);
+                return;
+            }
         }
     }
 

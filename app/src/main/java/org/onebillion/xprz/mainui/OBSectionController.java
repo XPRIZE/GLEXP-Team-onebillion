@@ -1083,8 +1083,8 @@ public class OBSectionController extends OBViewController
         control.controller = null;
 //        if(control.texture != null)
 //            control.texture.cleanUp();
-        invalidateView((int) f.left, (int) f.top, (int) f.right, (int) f.bottom);
         sortedAttachedControlsValid = false;
+        invalidateView((int) f.left, (int) f.top, (int) f.right, (int) f.bottom);
     }
 
     public List<String> filterControlsIDs (String pattern)
