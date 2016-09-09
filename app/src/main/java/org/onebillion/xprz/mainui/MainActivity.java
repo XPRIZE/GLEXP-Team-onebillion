@@ -99,6 +99,7 @@ public class MainActivity extends Activity
             CONFIG_KEEP_WIFI_ON = "keepWifiOn",
             CONFIG_RESTART_AFTER_CRASH = "restartAfterCrash",
             CONFIG_HIDE_STATUS_BAR = "hideStatusBar",
+            CONFIG_HIDE_NAVIGATION_BAR = "hideNavigationBar",
             CONFIG_MENU_CLASS = "menuclass";
     public static String TAG = "livecode";
     //
@@ -184,10 +185,9 @@ public class MainActivity extends Activity
                 }
                 else
                 {
-//                    OBSystemsManager.sharedManager.killAllServices();
                     Toast.makeText(MainActivity.mainActivity, "Application has crashed due to uncaught exception", Toast.LENGTH_LONG).show();
                 }
-                MainActivity.mainActivity.onStop();
+                OBSystemsManager.sharedManager.shutdownProcedures();
                 System.exit(0);
             }
         });

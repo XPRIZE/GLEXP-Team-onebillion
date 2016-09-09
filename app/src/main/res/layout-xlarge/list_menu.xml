@@ -6,7 +6,7 @@
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                   android:layout_width="match_parent"
-                  android:layout_height="700dp"
+                  android:layout_height="800dp"
                   android:orientation="horizontal"
                   android:weightSum="1">
 
@@ -25,17 +25,66 @@
 
             <RelativeLayout
                 android:layout_width="250dp"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true">
 
-                <Button
-                    android:id="@+id/nextButton"
-                    android:layout_width="143dp"
-                    android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:text="Next"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="350dp">
+
+                        <Button
+                            android:id="@+id/nextButton"
+                            android:layout_width="143dp"
+                            android:layout_height="wrap_content"
+                            android:layout_centerInParent="true"
+                            android:text="Next"/>
+                    </RelativeLayout>
+
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="100dp">
+
+                        <Button
+                            android:id="@+id/disableAdministratorButton"
+                            android:layout_width="200dp"
+                            android:layout_height="wrap_content"
+                            android:layout_centerInParent="true"
+                            android:text="Disable Administrator Privileges"/>
+                    </RelativeLayout>
+
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="100dp">
+
+                        <Button
+                            android:id="@+id/killButton"
+                            android:layout_width="200dp"
+                            android:layout_height="wrap_content"
+                            android:layout_centerInParent="true"
+                            android:text="Kill Services"/>
+                    </RelativeLayout>
+
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="100dp">
+
+                        <Button
+                            android:id="@+id/shutdownButton"
+                            android:layout_width="200dp"
+                            android:layout_height="wrap_content"
+                            android:layout_centerInParent="true"
+                            android:text="Shutdown"/>
+                    </RelativeLayout>
+                </LinearLayout>
             </RelativeLayout>
-
-
         </LinearLayout>
     </LinearLayout>
 
@@ -85,35 +134,6 @@
                     android:enabled="true"
                     android:text="Force crash"/>
             </RelativeLayout>
-
-
-            <RelativeLayout
-                android:layout_width="300dp"
-                android:layout_height="match_parent">
-
-                <Button
-                    android:id="@+id/killButton"
-                    android:layout_width="200dp"
-                    android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:enabled="true"
-                    android:text="Kill Services"/>
-            </RelativeLayout>
-
-
-            <RelativeLayout
-                android:layout_width="300dp"
-                android:layout_height="match_parent">
-
-                <Button
-                    android:id="@+id/disableAdministratorButton"
-                    android:layout_width="200dp"
-                    android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:enabled="true"
-                    android:text="Disable Administrator Privileges"/>
-            </RelativeLayout>
-
         </LinearLayout>
     </RelativeLayout>
 </LinearLayout>

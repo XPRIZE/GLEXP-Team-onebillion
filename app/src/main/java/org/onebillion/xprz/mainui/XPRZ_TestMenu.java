@@ -154,6 +154,17 @@ public class XPRZ_TestMenu extends OBSectionController
 
 
 
+        Button shutdownButton = (Button)MainActivity.mainActivity.findViewById(R.id.shutdownButton);
+        shutdownButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                MainActivity.mainActivity.finish();
+            }
+        });
+
+
         Button causeCrashButton = (Button)MainActivity.mainActivity.findViewById(R.id.crashButton);
         causeCrashButton.setOnClickListener(new View.OnClickListener()
         {

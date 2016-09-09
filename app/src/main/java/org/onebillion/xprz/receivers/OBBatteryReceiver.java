@@ -38,7 +38,8 @@ public class OBBatteryReceiver extends BroadcastReceiver
 
     public String printStatus()
     {
-        return OBBatteryReceiver.getBatteryLevel() + "% " + ((isCharging) ? "charging" : "") + " " + ((usbCharge) ? "USB" : "") + ((acCharge) ? "AC" : "");
+        String batteryLevel = String.format("%.1f%%", OBBatteryReceiver.getBatteryLevel());
+        return batteryLevel + " " + ((isCharging) ? "charging" : "") + " " + ((usbCharge) ? "USB" : "") + ((acCharge) ? "AC" : "");
     }
 
     public static float getBatteryLevel()
