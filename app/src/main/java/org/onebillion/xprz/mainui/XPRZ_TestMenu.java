@@ -19,6 +19,7 @@ import android.widget.Toast;
 import org.onebillion.xprz.R;
 import org.onebillion.xprz.glstuff.OBGLView;
 import org.onebillion.xprz.utils.DBSQL;
+import org.onebillion.xprz.utils.MlUnit;
 import org.onebillion.xprz.utils.OBBrightnessManager;
 import org.onebillion.xprz.utils.OBSystemsManager;
 import org.onebillion.xprz.utils.OBUtils;
@@ -88,17 +89,69 @@ public class XPRZ_TestMenu extends OBSectionController
             @Override
             public void onClick(View v)
             {
-                //cursorAdapter.swapCursor(null);
-                controller.refreshUnitsList();
-                db = new DBSQL(false);
-                Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("key", "unitid as _id"),null,"unitid ASC");
-                if(cursor.moveToFirst())
+                final AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.mainActivity).create();
+                alertDialog.setTitle("Delete DB");
+                alertDialog.setMessage("Do you want to delete all data in DB?");
+                alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "NO", new DialogInterface.OnClickListener()
                 {
-                    cursorAdapter.swapCursor(cursor);
-                }
-                cursorAdapter.notifyDataSetChanged();
+                    public void onClick (DialogInterface dialog, int which)
+                    {
+                        alertDialog.cancel();
+                    }
+                });
+                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "YES", new DialogInterface.OnClickListener()
+                {
+                    public void onClick (DialogInterface dialog, int which)
+                    {
+                        alertDialog.cancel();
+                        db.close();
+                        DBSQL.deleteDB();
+
+                        controller.initDB();
+                        db = new DBSQL(false);
+                        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("key", "unitid as _id"),null,"unitid ASC");
+                        if(cursor.moveToFirst())
+                        {
+                            cursorAdapter.swapCursor(cursor);
+                        }
+                        cursorAdapter.notifyDataSetChanged();
+                    }
+                });
+                alertDialog.show();
+
             }
         });
+
+        Button newDayButton = (Button)MainActivity.mainActivity.findViewById(R.id.newdDayButton);
+        newDayButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                final AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.mainActivity).create();
+                alertDialog.setTitle("Start new day");
+                alertDialog.setMessage("Do you want to start a new day?");
+                alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "NO", new DialogInterface.OnClickListener()
+                {
+                    public void onClick (DialogInterface dialog, int which)
+                    {
+                        alertDialog.cancel();
+                    }
+                });
+                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "YES", new DialogInterface.OnClickListener()
+                {
+                    public void onClick (DialogInterface dialog, int which)
+                    {
+                        alertDialog.cancel();
+                        controller.startNewDay();
+                    }
+                });
+                alertDialog.show();
+
+
+            }
+        });
+
 
 
         Button causeCrashButton = (Button)MainActivity.mainActivity.findViewById(R.id.crashButton);
@@ -145,11 +198,11 @@ public class XPRZ_TestMenu extends OBSectionController
     }
 
 
-    public void loadUnit (long unitId)
+    public void loadUnit (MlUnit unit)
     {
         cursorAdapter.swapCursor(null);
         db.close();
-        controller.startSectionByIndex(unitId);
+        controller.startSectionByUnit(unit);
     }
 
 

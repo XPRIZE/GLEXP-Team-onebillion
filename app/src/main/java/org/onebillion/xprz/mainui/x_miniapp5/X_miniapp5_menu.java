@@ -227,7 +227,7 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
                         setEmitter(false);
                         bigIcon.highlight();
                         MlUnit unit = (MlUnit)bigIcon.settings.get("unit");
-                        startSectionForIndex(unit.unitid);
+                        startSectionForUnit(unit);
                         playAudio(null);
                         waitForSecs(0.5f);
                         bigIcon.lowlight();
@@ -239,11 +239,11 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
     }
 
 
-    public void startSectionForIndex(long sectionIndex)
+    public void startSectionForUnit(MlUnit unit)
     {
-        OBSystemsManager.sharedManager.printMemoryStatus("Starting Unit " + sectionIndex);
+        OBSystemsManager.sharedManager.printMemoryStatus("Starting Unit " + unit.unitid);
         //
-        fatController.startSectionByIndex(sectionIndex);
+        fatController.startSectionByUnit(unit);
     }
 
     public List<String> getSceneAudio(String audio)

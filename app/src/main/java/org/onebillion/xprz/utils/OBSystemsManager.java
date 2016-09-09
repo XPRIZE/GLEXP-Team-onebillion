@@ -689,4 +689,9 @@ public class OBSystemsManager
     }
 
 
+    public void screenLock()
+    {
+        DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
+        devicePolicyManager.lockNow();
+    }
 }

@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 public class XPRZ_FatController extends OBFatController
 {
 
-    public long currentIndex, firstUnstartedIndex;
+    public long firstUnstartedIndex;
     public int scoreCorrect,scoreWrong;
     public float finalScore;
     public XPRZ_FatReceiver menu;
@@ -36,7 +36,8 @@ public class XPRZ_FatController extends OBFatController
             OFC_NEW_SESSION =7;
 
 
-    MlUnitInstance currentUnitInstance;
+    private MlUnit currentUnit;
+    private MlUnitInstance currentUnitInstance;
 
 
     public long getCurrentTime()
@@ -124,14 +125,16 @@ public class XPRZ_FatController extends OBFatController
     {
         loadMasterListIntoDB();
         loadUser();
-        currentIndex = firstUnstartedIndex =  currentUser.highestIncompleteUnitIDfromDB();
+        firstUnstartedIndex =  currentUser.highestIncompleteUnitIDfromDB();
     }
 
     @Override
     public void initScores()
     {
+        if(currentUnit == null)
+            return;
         scoreCorrect = scoreWrong = 0;
-        currentUnitInstance = MlUnitInstance.initMlUnitDBWith(currentUser.userid,currentIndex,currentUser.currentsessionid,getCurrentTime());
+        currentUnitInstance = MlUnitInstance.initMlUnitDBWith(currentUser.userid,currentUnit.unitid,currentUser.currentsessionid,getCurrentTime());
     }
 
     @Override
@@ -150,10 +153,12 @@ public class XPRZ_FatController extends OBFatController
     public void completeEvent(OBSectionController cont)
     {
         updateScores();
-        if (finalScore >= currentUnit().passThreshold)
+        if (finalScore >= currentUnit.passThreshold)
             signalSectionSucceeded();
         else
             signalSectionFailed();
+
+        currentUnit = null;
 
         try
         {
@@ -163,6 +168,7 @@ public class XPRZ_FatController extends OBFatController
 
         }
         cont.exitEvent();
+
     }
 
     public boolean showTestMenu()
@@ -170,10 +176,6 @@ public class XPRZ_FatController extends OBFatController
         return true;
     }
 
-    public MlUnit currentUnit()
-    {
-        return MlUnit.mlUnitFromDBforUnitID(currentIndex);
-    }
 
     @Override
     public void updateScores()
@@ -199,22 +201,22 @@ public class XPRZ_FatController extends OBFatController
 
     public void signalSectionFailed()
     {
-        menu.receiveCommand(commandWith(OFC_FINISHED_LOW_SCORE,currentUnit()));
+        menu.receiveCommand(commandWith(OFC_FINISHED_LOW_SCORE,currentUnit));
     }
 
     public void signalSectionSucceeded()
     {
-        menu.receiveCommand(commandWith(OFC_SUCCEEDED,currentUnit()));
+        menu.receiveCommand(commandWith(OFC_SUCCEEDED,currentUnit));
     }
 
     public void signalUnitTimedOut()
     {
-        menu.receiveCommand(commandWith(OFC_TIMED_OUT,currentUnit()));
+        menu.receiveCommand(commandWith(OFC_TIMED_OUT,currentUnit));
     }
 
     public void signalSessionTimedOut()
     {
-        menu.receiveCommand(commandWith(OFC_SESSION_TIMED_OUT,currentUnit()));
+        menu.receiveCommand(commandWith(OFC_SESSION_TIMED_OUT,currentUnit));
     }
 
     public List<MlUnit> requestNextUnits(int count)
@@ -222,7 +224,7 @@ public class XPRZ_FatController extends OBFatController
         List<MlUnit> arr = new ArrayList<>();
         for (int i = 0;i < count;i++)
         {
-            arr.add(MlUnit.mlUnitFromDBforUnitID(currentIndex + 1 + i));
+            arr.add(MlUnit.mlUnitFromDBforUnitID(currentUnit.unitid + 1 + i));
         }
         return arr;
     }
@@ -234,22 +236,21 @@ public class XPRZ_FatController extends OBFatController
     }
 
 
-    public void sectionStartedWithIndex(long index)
+    public void sectionStartedWithUnit(MlUnit unit)
     {
-        currentIndex = index;
-        if(currentIndex >= firstUnstartedIndex)
+        currentUnit = unit;
+        if(currentUnit.unitid >= firstUnstartedIndex)
         {
-            firstUnstartedIndex = currentIndex+1;
+            firstUnstartedIndex = currentUnit.unitid+1;
         }
         initScores();
     }
 
-    public void startSectionByIndex(long unitId)
+    public void startSectionByUnit(final MlUnit unit)
     {
-        sectionStartedWithIndex(unitId);
-        final MlUnit currunit = MlUnit.mlUnitFromDBforUnitID(unitId);
-        final String lastAppCode = (String)MainActivity.mainActivity.config.get(MainActivity.CONFIG_APP_CODE);
 
+        sectionStartedWithUnit(unit);
+        final String lastAppCode = (String)MainActivity.mainActivity.config.get(MainActivity.CONFIG_APP_CODE);
 
         new OBRunnableSyncUI()
         {
@@ -258,8 +259,8 @@ public class XPRZ_FatController extends OBFatController
             {
                 try
                 {
-                    MainActivity.mainActivity.updateConfigPaths(currunit.config, false, currunit.lang);
-                    OBMainViewController.MainViewController().pushViewControllerWithNameConfig(currunit.target,currunit.config,true,true,currunit.params);
+                    MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
+                    OBMainViewController.MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params);
                 }
                 catch (Exception exception)
                 {
