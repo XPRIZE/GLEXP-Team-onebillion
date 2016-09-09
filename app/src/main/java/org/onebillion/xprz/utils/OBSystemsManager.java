@@ -3,23 +3,28 @@ package org.onebillion.xprz.utils;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.PendingIntent;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.hardware.display.DisplayManager;
 import android.os.Build;
+import android.os.DeadObjectException;
 import android.os.Debug;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.text.format.DateFormat;
 import android.view.Display;
 import android.widget.Toast;
 
@@ -33,10 +38,12 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
+import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -44,6 +51,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by pedroloureiro on 31/08/16.
@@ -211,6 +220,8 @@ public class OBSystemsManager
             @Override
             public void run () throws Exception
             {
+                disableNavigationBar(); // may cause restart
+                //
                 pinApplication();
                 //
                 startServices();
@@ -310,8 +321,6 @@ public class OBSystemsManager
     {
         MainActivity.log("OBSystemsManager.onResume detected");
         //
-        startServices();
-        //
         AppIsInForeground = true;
         //
         if (mainHandler != null && keepInForegroundRunnable != null)
@@ -338,7 +347,7 @@ public class OBSystemsManager
 
     public void onPause ()
     {
-        MainActivity.log("OBSystemsManager.onPause detected");
+        MainActivity.log("OBSystemsManager.onPause detected" + (MainActivity.mainActivity.isFinishing() ? " and is finishing!" : ""));
         //
         AppIsInForeground = false;
         //
@@ -373,18 +382,14 @@ public class OBSystemsManager
 
     public void onStop ()
     {
-        MainActivity.log("OBSystemsManager.onStop detected");
-        //
-        toggleKeyguardAndStatusBar(true);
-        //
-        String restartAfterCrash = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_RESTART_AFTER_CRASH);
-        if (MainActivity.mainActivity.isDebugMode() && (restartAfterCrash == null || restartAfterCrash.equals("true")))
+        if (MainActivity.mainActivity.isFinishing())
         {
-            MainActivity.log("OBSystemsManager.removing administrator privileges");
-            disableAdministratorPrivileges();
+            MainActivity.log("OBSystemsManager.onStop detected");
+            //
+            shutdownProcedures();
+            //
+            OBBrightnessManager.sharedManager.onStop();
         }
-        //
-        OBBrightnessManager.sharedManager.onStop();
     }
 
 
@@ -607,13 +612,14 @@ public class OBSystemsManager
                 return true;
             }
         }
-        MainActivity.log("OBSy  stemsManager.enableAdminstratorPrivileges. all good");
+        MainActivity.log("OBSystemsManager.enableAdminstratorPrivileges. all good");
         return true;
     }
 
 
     public void disableAdministratorPrivileges ()
     {
+        MainActivity.log("OBSystemsManager.disableAdministratorPrivileges");
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
         ComponentName adminReceiver = OBDeviceAdminReceiver.getComponentName(MainActivity.mainActivity);
         //
@@ -685,6 +691,126 @@ public class OBSystemsManager
             //
             devicePolicyManager.setStatusBarDisabled(adminReceiver, !status);
             MainActivity.log("OBSystemsManager.status bar has been " + (status ? "enabled" : "disabled"));
+        }
+    }
+
+
+    public void shutdownProcedures ()
+    {
+        MainActivity.log("OBSystemManager.shutdownProcedures");
+        // the shutdown procedure should only be triggered for debug mode, as we want the app to restart automatically and not lose any setting
+        if (MainActivity.mainActivity.isDebugMode())
+        {
+            // enable keyguard and status bar
+            toggleKeyguardAndStatusBar(true);
+            //
+            // removing administrator privileges (so we can uninstall the app)
+            String restartAfterCrash = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_RESTART_AFTER_CRASH);
+            if (restartAfterCrash == null || restartAfterCrash.equals("false"))
+            {
+                disableAdministratorPrivileges();
+            }
+            //
+            // reset the screen timeout to 10mins
+            OBBrightnessManager.sharedManager.setScreenTimeout(10 * 60 * 1000);
+            //
+            // kill services to prevent restart
+            killAllServices();
+            //
+            // enable navigation bar
+            enableNavigationBar();
+        }
+        //
+        saveLogToFile();
+    }
+
+
+    public void toggleNavigationBar (final int value)
+    {
+        MainActivity.log("OBSystemsManager." + (value == 0 ? "enabling" : "disabling") + " navigation bar");
+        try
+        {
+            String command = "getprop qemu.hw.mainkeys";
+            Process process = Runtime.getRuntime().exec(command);
+            process.waitFor();
+            //
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            StringBuilder log = new StringBuilder();
+            String line;
+            while ((line = bufferedReader.readLine()) != null)
+            {
+                log.append(line + "\n");
+            }
+            bufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+            while ((line = bufferedReader.readLine()) != null)
+            {
+                log.append(line + "\n");
+            }
+            String output = log.toString();
+            MainActivity.log("OBSystemsManager.output from toggleNavigationBar: " + output);
+            //
+            if (output.contains(String.format("%d", value)))
+            {
+                MainActivity.log("OBSystemsManager.toggleNavigationBar. the system value is the same. nothing to do here");
+                return;
+            }
+            command = "su -c setprop qemu.hw.mainkeys " + value + "; su -c stop; su -c start";
+            MainActivity.log("OBSystemsManager.running:" + command);
+            //
+            try
+            {
+                Runtime.getRuntime().exec(command);
+            }
+            catch (Exception e)
+            {
+                MainActivity.log("OBSystemsManager.toggleNavigationBar. unable to execute command. Device is probably not rooted");
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
+    }
+
+
+    public void disableNavigationBar ()
+    {
+        String hideNavigationBar = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_HIDE_NAVIGATION_BAR);
+        //
+        if (hideNavigationBar != null && hideNavigationBar.equals("true"))
+        {
+            toggleNavigationBar(1);
+        }
+    }
+
+
+    public void enableNavigationBar ()
+    {
+        toggleNavigationBar(0);
+    }
+
+
+    public void saveLogToFile ()
+    {
+        File sd = new File(Environment.getExternalStorageDirectory(), "//onebillion//logs//");
+        sd.mkdirs();
+        //
+        if (sd.canWrite())
+        {
+            DateFormat df = new android.text.format.DateFormat();
+            String date = df.format("yyyy.MM.dd.hh.mm.ss", new java.util.Date()).toString();
+            File file = new File(sd, String.format("%s.txt", date));
+            try
+            {
+                MainActivity.log("Log exported to " + file.getAbsolutePath());
+                @SuppressWarnings("unused")
+                Process process = Runtime.getRuntime().exec("logcat -df " + file.getAbsolutePath());
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
         }
     }
 

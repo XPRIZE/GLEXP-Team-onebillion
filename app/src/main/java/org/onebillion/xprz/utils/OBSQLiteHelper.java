@@ -33,7 +33,8 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
     public final static int DATABASE_VERSION = 1;
     public final static String DATABASE_NAME = "unitDB";
     private Context cont;
-    public OBSQLiteHelper(Context context)
+
+    public OBSQLiteHelper (Context context)
     {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         cont = context;
@@ -41,16 +42,16 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
 
     private static OBSQLiteHelper sqlHelper;
 
-    public static OBSQLiteHelper getSqlHelper()
+    public static OBSQLiteHelper getSqlHelper ()
     {
-        if(sqlHelper == null)
+        if (sqlHelper == null)
             sqlHelper = new OBSQLiteHelper(MainActivity.mainActivity);
 
         return sqlHelper;
     }
 
     @Override
-    public void onCreate(SQLiteDatabase database)
+    public void onCreate (SQLiteDatabase database)
     {
         InputStream inputStream = cont.getResources().openRawResource(R.raw.tables);
 
@@ -72,21 +73,22 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
                 if (!sql.isEmpty())
                     database.execSQL(sql);
 
-        } catch (IOException e)
+        }
+        catch (IOException e)
         {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
+    public void onUpgrade (SQLiteDatabase db, int oldVersion, int newVersion)
     {
 
         // db.execSQL("DROP TABLE IF EXISTS " + TABLE_COMMENTS);
         // onCreate(db);
     }
 
-    public void runMaintenance()
+    public void runMaintenance ()
     {
         if (runConsistencyChecks())
         {
@@ -94,7 +96,7 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
         }
     }
 
-    public boolean runConsistencyChecks()
+    public boolean runConsistencyChecks ()
     {
         MainActivity.log("OBSQLiteHelper running consistency checks");
         //
@@ -132,14 +134,18 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
             {
                 MainActivity.log("OBSQLiteHelper Quick check PASSED");
             }
-
-           checkResult = foreignKeyCheck();
-           if (checkResult != null)
-           {
-               MainActivity.mainActivity.log("OBSQLiteHelper Foreign key check FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
-               return false;
-           }
-
+            //
+            checkResult = foreignKeyCheck();
+            if (checkResult != null)
+            {
+                MainActivity.mainActivity.log("OBSQLiteHelper Foreign key check FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
+                return false;
+            }
+            else
+            {
+                MainActivity.log("OBSQLiteHelper Foreign key check PASSED");
+            }
+            //
             return true;
         }
         catch (Exception e)
@@ -149,7 +155,7 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
         }
     }
 
-    public Cursor runVacuum()
+    public Cursor runVacuum ()
     {
         Cursor cursor = integrityCheck(getWritableDatabase().rawQuery("VACUUM", null));
         if (!cursor.moveToNext())
@@ -160,7 +166,7 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
         return cursor;
     }
 
-    public Cursor foreignKeyCheck()
+    public Cursor foreignKeyCheck ()
     {
         Cursor cursor = getWritableDatabase().rawQuery("PRAGMA foreign_key_check", null);
         if (!cursor.moveToNext())
@@ -172,19 +178,19 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
     }
 
 
-    public Cursor integrityCheck()
+    public Cursor integrityCheck ()
     {
         return integrityCheck(getWritableDatabase().rawQuery("PRAGMA integrity_check", null));
     }
 
 
-    public Cursor quickCheck()
+    public Cursor quickCheck ()
     {
         return integrityCheck(getWritableDatabase().rawQuery("PRAGMA quick_check", null));
     }
 
 
-    private Cursor integrityCheck(Cursor cursor)
+    private Cursor integrityCheck (Cursor cursor)
     {
         if (cursor.moveToNext())
         {
@@ -199,7 +205,7 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
     }
 
 
-    public void emergencyRestore()
+    public void emergencyRestore ()
     {
         if (MainActivity.mainActivity.isDebugMode())
         {
@@ -229,7 +235,8 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
         }
     }
 
-    private void backupDatabase() {
+    private void backupDatabase ()
+    {
         try
         {
             File sd = new File(Environment.getExternalStorageDirectory(), "//onebillion//databases//");
@@ -269,12 +276,11 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
     }
 
 
-
-    private void restoreDatabase()
+    private void restoreDatabase ()
     {
         try
         {
-            File sd = new File (Environment.getExternalStorageDirectory(), "//onebillion//databases//");
+            File sd = new File(Environment.getExternalStorageDirectory(), "//onebillion//databases//");
             sd.mkdirs();
             //
             File[] backupFiles = sd.listFiles();
