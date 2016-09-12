@@ -33,6 +33,7 @@ create table sessions
     userid int not null references users(userid) on delete restrict,
     sessionid int not null,
     starttime big unsigned int not null,
+    endtime big unsigned int default 0,
     currentunitid int no null default -1,
     currentseqno int no null default -1,
     constraint pkey primary key (userid,sessionid) on conflict fail

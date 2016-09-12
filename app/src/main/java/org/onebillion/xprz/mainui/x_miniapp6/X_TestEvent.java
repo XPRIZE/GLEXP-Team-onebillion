@@ -7,6 +7,7 @@ import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.OBMainViewController;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
+import org.onebillion.xprz.utils.DBSQL;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.XPRZ_FatController;
 
@@ -69,10 +70,14 @@ public class X_TestEvent extends XPRZ_SectionController
 
                         } else if (targ == objectDict.get("button_wrong"))
                         {
+
                             fatController.signalUnitTimedOut();
 
                         } else
                         {
+                            DBSQL db = new DBSQL(true);
+                            fatController.finishCurrentDayInDB(db);
+                            db.close();
                             fatController.signalSessionTimedOut();
 
                         }

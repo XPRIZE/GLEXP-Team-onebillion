@@ -1057,7 +1057,24 @@ public class OBUtils
                                 }
                                 else
                                 {
-                                    syllables.add(new OBSyllable(syllString));
+                                    OBSyllable obSyllable = new OBSyllable(syllString);
+                                    List<OBPhoneme> sylPhos = new ArrayList<>();
+                                    for(int i=0; i<obSyllable.text.length(); i++)
+                                    {
+                                        String letter = obSyllable.text.substring(i,i);
+                                        String letterId = String.format("is_%s",letter);
+
+                                        if(dictionary.get(letterId) != null)
+                                        {
+                                            sylPhos.add((OBPhoneme)dictionary.get(letterId));
+                                        }
+                                        else
+                                        {
+                                            sylPhos.add(new OBPhoneme(letter));
+                                        }
+                                    }
+                                    obSyllable.phonemes = sylPhos;
+                                    syllables.add(obSyllable);
                                 }
                             }
                         }

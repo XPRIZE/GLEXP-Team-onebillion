@@ -86,7 +86,7 @@ public class MlUnitInstance extends MlObject
         return mlui;
     }
 
-    public boolean updateDataInDB()
+    public boolean updateDataInDB(DBSQL db)
     {
         Map<String,String> whereMap = new ArrayMap<>();
         whereMap.put("userid",String.valueOf(userid));
@@ -97,9 +97,8 @@ public class MlUnitInstance extends MlObject
         contentValues.put("endtime",endtime);
         contentValues.put("score",score);
         contentValues.put("elapsedtime",elapsedtime);
-        DBSQL db = new DBSQL(true);
+
         boolean result = db.doUpdateOnTable(DBSQL.TABLE_UNIT_INSTANCES,whereMap,contentValues) > -1;
-        db.close();
         return result;
     }
 

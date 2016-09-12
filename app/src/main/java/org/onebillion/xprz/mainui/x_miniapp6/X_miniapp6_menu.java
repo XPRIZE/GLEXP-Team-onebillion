@@ -100,7 +100,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         coloursDict = OBMisc.loadEventColours(this);
         fatController = (XPRZ_FatController) MainActivity.mainActivity.fatController;
         fatController.menu = this;
-        lastCommand = fatController.newDayStarted() ? XPRZ_FatController.OFC_NEW_SESSION : XPRZ_FatController.OFC_SUCCEEDED;
+        lastCommand = fatController.getLastCommand();
         lastUnit = MlUnit.mlUnitFromDBforUnitID(fatController.firstUnstartedIndex - 1);
         presenter = XPRZ_Presenter.characterWithGroup((OBGroup) objectDict.get("presenter"));
         presenter.control.setZPosition(200);
@@ -120,6 +120,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         stars.addAll(filterControls("choice_star_.*"));
         for (OBControl star : stars)
             star.setProperty("start_loc", XPRZ_Generic.copyPoint(star.position()));
+
 
         prepareSectionForLastUnit(lastUnit, lastCommand);
 
@@ -152,7 +153,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         });
     }
 
-
+    @Override
     public void touchDownAtPoint(PointF pt, View v)
     {
 
@@ -193,6 +194,12 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
             }
 
         }
+
+    }
+
+    @Override
+    public void onResume()
+    {
 
     }
 
@@ -254,15 +261,15 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
             }
 
         }
-        else if(command == XPRZ_FatController.OFC_SESSION_TIMED_OUT)
-        {
-            currentSection = "timeout";
-
-        }
         else if((command == XPRZ_FatController.OFC_SUCCEEDED ||command == XPRZ_FatController.OFC_FINISHED_LOW_SCORE) && unit.awardStar > 0 )//&& [fatController.currentUser starFromDBForLevel:unit.level starnum:unit.awardStar] == null)
         {
             starSelect = true;
             currentSection= "star";
+
+        }
+        else if(command == XPRZ_FatController.OFC_SESSION_TIMED_OUT || !fatController.sessionAvailable())
+        {
+            currentSection = "timeout";
 
         }
         else if(unit.unitid == 0)
@@ -856,21 +863,29 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
             }
 
         }
-        if(lastUnit.level != 10 || lastUnit.awardStar != 10)
-        {
-            waitForSecs(1.5f);
-            presenter.speak((List<Object>) (Object) getAudioForScene("unit","DEMO") , this);
-            waitForSecs(0.3f);
-            walkPresenterOut();
-            animateBigIconShow();
-            playUnitButtonAudio(null);
 
+        if(!fatController.sessionAvailable())
+        {
+            prepareSectionForLastUnit(lastUnit,XPRZ_FatController.OFC_SESSION_TIMED_OUT);
+            demotimeout();
         }
         else
         {
-            waitForSecs(0.3f);
-            walkPresenterOut();
+            if (lastUnit.level != 10 || lastUnit.awardStar != 10)
+            {
+                waitForSecs(1.5f);
+                presenter.speak((List<Object>) (Object) getAudioForScene("unit", "DEMO"), this);
+                waitForSecs(0.3f);
+                walkPresenterOut();
+                animateBigIconShow();
+                playUnitButtonAudio(null);
 
+            } else
+            {
+                waitForSecs(0.3f);
+                walkPresenterOut();
+
+            }
         }
 
     }
@@ -885,8 +900,5 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         walkPresenterOut();
         prepareScreenLock();
     }
-
-
-
 
 }
