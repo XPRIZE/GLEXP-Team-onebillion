@@ -6,6 +6,7 @@ import android.graphics.SurfaceTexture;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 
+import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 
@@ -28,28 +29,34 @@ import java.util.concurrent.locks.ReentrantLock;
  * Created by michal on 11/07/16.
  */
 public class OBVideoPlayer extends OBControl
-        implements SurfaceTexture.OnFrameAvailableListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnSeekCompleteListener
+        implements SurfaceTexture.OnFrameAvailableListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener,
+        MediaPlayer.OnSeekCompleteListener,MediaPlayer.OnErrorListener
 {
     public Surface surface;
     public SurfaceTexture surfaceTexture;
     public Lock playerLock;
-    public boolean activityPaused;
+    public boolean activityPaused,playAfterPrepare=true,stopOnCompletion=true;
     Condition condition;
     long fromTime;
     private int textureId;
     private Size previewSize;
     private MediaPlayer player;
 
-    public OBVideoPlayer(RectF frame, XPRZ_SectionController sectionController)
+    public OBVideoPlayer(RectF frame, XPRZ_SectionController sectionController,boolean mirrored,boolean _playAfterPrepare)
     {
         setFrame(frame.left, frame.top, frame.right, frame.bottom);
-        setScaleX(-1);
+        if (mirrored)
+            setScaleX(-1);
         textureId = MainActivity.mainActivity.renderer.textureObjectIds[2];
         rebuildTexture();
         playerLock = new ReentrantLock();
-
+        playAfterPrepare = _playAfterPrepare;
         activityPaused = false;
 
+    }
+    public OBVideoPlayer(RectF frame, XPRZ_SectionController sectionController)
+    {
+        this(frame,sectionController,false,true);
     }
 
     private void rebuildTexture()
@@ -133,7 +140,6 @@ public class OBVideoPlayer extends OBControl
         {
             MediaPlayer cpplayer = player;
             player = null;
-            finishVideoWait();
             try
             {
                 cpplayer.reset();
@@ -159,6 +165,7 @@ public class OBVideoPlayer extends OBControl
         player.setOnPreparedListener(this);
         player.setOnCompletionListener(this);
         player.setOnSeekCompleteListener(this);
+        player.setOnErrorListener(this);
 
         try
         {
@@ -176,27 +183,72 @@ public class OBVideoPlayer extends OBControl
     @Override
     public void onCompletion(MediaPlayer mp)
     {
-        stop();
+        if (stopOnCompletion)
+            stop();
     }
 
+    public void pause()
+    {
+        try
+        {
+            player.pause();
+        }
+        catch (Exception e)
+        {
+        }
+    }
+
+    public void start()
+    {
+        try
+        {
+            player.start();
+        }
+        catch (Exception e)
+        {
+        }
+    }
+
+    public void seekTo(int fromTime)
+    {
+        try
+        {
+            player.seekTo(fromTime);
+        }
+        catch(Exception e)
+        {
+
+        }
+    }
     @Override
     public void onPrepared(MediaPlayer mp)
     {
+        if (!playAfterPrepare)
+        {
+            player.seekTo(0);
+            return;
+        }
         if (fromTime > 0)
         {
-            player.seekTo((int) fromTime);
+            seekTo((int) fromTime);
         }
         else
         {
-
-            player.start();
+            start();
         }
     }
 
     @Override
     public void onSeekComplete(MediaPlayer mp)
     {
-        player.start();
+        if (playAfterPrepare)
+            start();
+        else
+        {
+            //start();
+            //pause();
+        }
+
     }
 
     public void waitForVideo()
@@ -249,5 +301,16 @@ public class OBVideoPlayer extends OBControl
         activityPaused = false;
     }
 
+    public MediaPlayer mediaPlayer()
+    {
+        return player;
+    }
+
+    @Override
+    public boolean onError(MediaPlayer mp, int what, int extra)
+    {
+        Log.i("mediaplayer",String.format("%d %d",what,extra));
+        return false;
+    }
 }
 

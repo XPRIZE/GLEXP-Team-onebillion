@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.util.Size;
 import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
@@ -12,8 +13,10 @@ import org.onebillion.xprz.controls.OBImage;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.controls.OBTextLayer;
+import org.onebillion.xprz.controls.OBVideoPlayer;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
+import org.onebillion.xprz.utils.OBImageManager;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OBXMLManager;
 import org.onebillion.xprz.utils.OBXMLNode;
@@ -48,6 +51,8 @@ public class XPRZ_JMenu extends XPRZ_Menu
         VIDEO_SCROLL_TOUCH_DOWNED = 1,
         VIDEO_SCROLL_MOVED = 2;
     PointF videoTouchDownPoint = new PointF();
+    OBVideoPlayer videoPlayer;
+    String movieFolder;
 
     static Typeface plainFont()
     {
@@ -506,6 +511,13 @@ public class XPRZ_JMenu extends XPRZ_Menu
                 OBXMLNode imgnode = v.childrenOfType("preview").get(0);
                 String src = imgnode.contents;
                 OBImage im = loadImageWithName(src,new PointF(),new RectF(),false);
+                if (movieFolder == null)
+                {
+                    String f = OBImageManager.sharedImageManager().getImgPath(src);
+                    f = OBUtils.stringByDeletingLastPathComponent(f);
+                    f = OBUtils.stringByDeletingLastPathComponent(f);
+                    movieFolder = OBUtils.stringByAppendingPathComponent(f,"movies");
+                }
                 videoPreviewImages.add(im);
                 im.setPosition(videoPreviewX,videoPreviewTopY + idx * videoPreviewYOffset);
                 im.setScale(videoPreviewHeight / im.height());
@@ -536,11 +548,37 @@ public class XPRZ_JMenu extends XPRZ_Menu
             selectPreview(videoPreviewIdx);
         }
     }
+
+    public void setUpVideoPlayerForIndex(int idx,OBXMLNode tab,boolean play)
+    {
+        List<OBXMLNode> targs = tab.childrenOfType("video");
+        OBXMLNode movienode = targs.get(idx).childrenOfType("movie").get(0);
+        String movieName = OBUtils.stringByAppendingPathComponent(movieFolder,movienode.contents);
+        OBControl placeHolder = objectDict.get("video_video");
+        if (videoPlayer == null)
+        {
+            videoPlayer = new OBVideoPlayer(placeHolder.frame(),this,false,false);
+            videoPlayer.stopOnCompletion = false;
+            videoPlayer.setZPosition(placeHolder.zPosition()+1);
+            attachControl(videoPlayer);
+        }
+        else
+        {
+            if (!attachedControls.contains(videoPlayer))
+                attachControl(videoPlayer);
+            videoPlayer.stop();
+        }
+        videoPlayer.setPreviewSize(new Size((int)placeHolder.width(),(int)placeHolder.height()));
+        videoPlayer.playAfterPrepare = play;
+        videoPlayer.startPlayingAtTime(OBUtils.getAssetFileDescriptorForPath(movieName),0);
+    }
+
     public void populateVideo()
     {
         String tabstring = "video";
         OBXMLNode tab = tabXmlDict.get(tabstring);
         populateVideoPreviews(tabstring,tab);
+        setUpVideoPlayerForIndex(videoPreviewIdx,tab,false);
     }
 
     public void setUpGroup()
@@ -560,6 +598,8 @@ public class XPRZ_JMenu extends XPRZ_Menu
         {
             if (scrollGroup != null)
                 detachControl(scrollGroup);
+            if (videoPlayer != null)
+                detachControl(videoPlayer);
             deleteControls(currentTab + ".*");
         }
         currentTab = s;
@@ -638,6 +678,9 @@ public class XPRZ_JMenu extends XPRZ_Menu
                         {
                             selectPreview(i);
                             setStatus(STATUS_IDLE);
+                            String tabstring = "video";
+                            OBXMLNode tab = tabXmlDict.get(tabstring);
+                            setUpVideoPlayerForIndex(i,tab,true);
                             return;
                         }
                     }
@@ -682,6 +725,13 @@ public class XPRZ_JMenu extends XPRZ_Menu
         }
     }
 
+    void handleVideoPress(PointF pt)
+    {
+        if (videoPlayer.mediaPlayer().isPlaying())
+            videoPlayer.pause();
+        else
+            videoPlayer.start();
+    }
     void processVideoTouch(PointF pt)
     {
         videoScrollState = VIDEO_SCROLL_NONE;
@@ -690,6 +740,13 @@ public class XPRZ_JMenu extends XPRZ_Menu
         {
             videoScrollState = VIDEO_SCROLL_TOUCH_DOWNED;
             videoTouchDownPoint.set(pt);
+        }
+        else
+        {
+            if (videoPlayer != null && videoPlayer.frame().contains(pt.x,pt.y))
+            {
+                handleVideoPress(pt);
+            }
         }
     }
 
