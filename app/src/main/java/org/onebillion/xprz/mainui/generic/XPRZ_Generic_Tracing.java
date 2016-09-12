@@ -1,7 +1,9 @@
 package org.onebillion.xprz.mainui.generic;
 
 import android.graphics.Color;
+import android.graphics.PathMeasure;
 import android.graphics.PointF;
+import android.os.AsyncTask;
 import android.os.SystemClock;
 import android.view.View;
 
@@ -10,11 +12,13 @@ import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBImage;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBPath;
+import org.onebillion.xprz.controls.OBStroke;
 import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.XPRZ_Tracer;
 import org.onebillion.xprz.utils.OBRunnableSyncUI;
 import org.onebillion.xprz.utils.OBUserPressedBackException;
 import org.onebillion.xprz.utils.OBUtils;
+import org.onebillion.xprz.utils.OB_Maths;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -36,9 +40,11 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
     protected OBGroup path1, path2;
     protected OBImage dash1, dash2;
     protected OBControl trace_arrow;
+
     int savedStatus;
     List<Object> savedReplayAudio;
     private Boolean autoClean;
+    private PointF lastPointAdded;
 
 
     public XPRZ_Generic_Tracing (Boolean autoClean)
@@ -285,13 +291,14 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
 
     // TRACING
 
-    public void tracing_reset()
+    public void tracing_reset ()
     {
         tracing_reset(null);
     }
 
     public void tracing_reset (final Integer number)
     {
+        lastPointAdded = null;
         uPaths = null;
         if (subPaths != null)
         {
@@ -397,6 +404,29 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
 */
 
 
+    public OBGroup splitPath(OBPath obp)
+    {
+        int lengthPerSplit = 80; //100
+        PathMeasure pm = new PathMeasure(obp.path(),false);
+        float splen = pm.getLength();
+        int noSplits = (int)(splen / lengthPerSplit);
+        List<OBPath> newOBPaths = splitInto(obp, pm, noSplits, 1.0f / (noSplits * 4));
+        for (OBPath newOBPath : newOBPaths)
+        {
+            //newOBPath.setBounds(obp.bounds);
+            //newOBPath.setPosition(obp.position());
+            //newOBPath.sizeToBox(obp.bounds());
+            newOBPath.setStrokeColor(Color.argb((int)(255 * 0.4f),255,0,0));
+            newOBPath.setLineJoin(OBStroke.kCALineJoinRound);
+            newOBPath.setFillColor(0);
+            newOBPath.setLineWidth(swollenLineWidth);
+        }
+        MainActivity.log("Now serving " + newOBPaths.size());
+        OBGroup grp = new OBGroup((List<OBControl>)(Object)newOBPaths);
+        return grp;
+    }
+
+
     public List<OBGroup> tracing_subpathControlsFromPath (String str)
     {
         List<OBGroup> arr = new ArrayList<>();
@@ -440,6 +470,7 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
             {
                 if (currentTrace != null)
                 {
+                    lastPointAdded = null;
                     doneTraces.add(currentTrace);
                     currentTrace = null;
                     finished = false;
@@ -553,23 +584,50 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
                 startNewSubpath();
                 PointF cpt = convertPointToControl(pt, currentTrace);
                 currentTrace.moveToPoint(cpt.x, cpt.y);
+                currentTrace.addLineToPoint(cpt.x + 1, cpt.y + 1);
             }
             else
             {
-                PointF cpt = convertPointToControl(pt, currentTrace);
-                currentTrace.addLineToPoint(cpt.x, cpt.y);
+                addPointToTrace(pt, false);
             }
             revertStatusAndReplayAudio();
             setStatus(STATUS_TRACING);
         }
         else
         {
+            addPointToTrace(pt, true);
             revertStatusAndReplayAudio();
         }
     }
 
 
-    public Boolean condition_isPointInSegment(PointF pt)
+    public void addPointToTrace (PointF pt, boolean searchForSegmentIndex)
+    {
+        if (currentTrace != null)
+        {
+            if (searchForSegmentIndex)
+            {
+                for (int i = segmentIndex; i < subPaths.get(subPathIndex).members.size(); i++)
+                {
+                    if (pointInSegment(lastTracedPoint(), i))
+                    {
+                        PointF cpt = convertPointToControl(pt, currentTrace);
+                        currentTrace.addLineToPoint(cpt.x, cpt.y);
+                        segmentIndex = i;
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                PointF cpt = convertPointToControl(pt, currentTrace);
+                currentTrace.addLineToPoint(cpt.x, cpt.y);
+            }
+        }
+    }
+
+
+    public Boolean condition_isPointInSegment (PointF pt)
     {
         if (uPaths == null || uPaths.size() == 0) return false;
         //
@@ -606,6 +664,50 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
     }
 
 
+    public void effectMoveToPoint (PointF pt)
+    {
+        if (!pointHitRelativeSeg(pt, 0))
+        {
+            if (segmentIndex + 1 < subPaths.get(subPathIndex).members.size())
+            {
+                if (pointHitRelativeSeg(pt, +1))
+                {
+                    segmentIndex++;
+                }
+                else
+                {
+                    new AsyncTask<Void, Void, Void>()
+                    {
+                        protected Void doInBackground (Void... params)
+                        {
+                            try
+                            {
+                                gotItWrongWithSfx();
+                                setStatus(STATUS_WAITING_FOR_TRACE);
+                            }
+                            catch (Exception exception)
+                            {
+                            }
+                            return null;
+                        }
+                    }.execute();
+
+                    return;
+                }
+            }
+            else
+            {
+                finished = true;
+                return;
+            }
+        }
+        if (segmentIndex + 1 == subPaths.get(subPathIndex).members.size())
+            finished = true;
+        //
+        addPointToTrace(pt, false);
+    }
+
+
     public void touchMovedToPoint (PointF pt, View v)
     {
         if (status() == STATUS_TRACING)
@@ -615,7 +717,7 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
     }
 
 
-    public Boolean performTouchDown(PointF pt)
+    public Boolean performTouchDown (PointF pt)
     {
         try
         {
@@ -625,11 +727,10 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            // ignore the exception
         }
         return false;
     }
-
 
 
     public void touchDownAtPoint (PointF pt, View v)
@@ -704,7 +805,7 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
 
     // CHECKING functions
 
-    public void saveStatusClearReplayAudioSetChecking()
+    public void saveStatusClearReplayAudioSetChecking ()
     {
         savedStatus = status();
         setStatus(STATUS_CHECKING);
@@ -713,7 +814,7 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
         setReplayAudio(null);
     }
 
-    public void revertStatusAndReplayAudio()
+    public void revertStatusAndReplayAudio ()
     {
         setStatus(savedStatus);
         setReplayAudio(savedReplayAudio);

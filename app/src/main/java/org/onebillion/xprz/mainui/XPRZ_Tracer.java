@@ -52,7 +52,7 @@ public class XPRZ_Tracer extends XPRZ_SectionController
         return pathColour;
     }
 
-    List<OBPath> splitInto(OBPath obp,PathMeasure pm,int n,float overlap)
+    public List<OBPath> splitInto(OBPath obp,PathMeasure pm,int n,float overlap)
     {
         float len = pm.getLength();
         List<OBPath> arr = new ArrayList<>();
