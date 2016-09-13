@@ -47,6 +47,10 @@ public class XPRZ_JMenu extends XPRZ_Menu
     List<OBControl> videoPreviewImages;
     OBGroup videoPreviewGroup;
     int  videoScrollState;
+    int intro_video_state = 0;
+    final static int ivs_act_normal = 0,
+    ivs_before_play = 1,
+    ivs_playing_full_screen = 2;
     final static int VIDEO_SCROLL_NONE=0,
         VIDEO_SCROLL_TOUCH_DOWNED = 1,
         VIDEO_SCROLL_MOVED = 2;
@@ -275,13 +279,14 @@ public class XPRZ_JMenu extends XPRZ_Menu
                     {
                         OBLabel label = new OBLabel(headnode.contents,tfb,itemHeadTextSize);
                         label.setMaxWidth(textbox.width());
+                        label.setLineSpaceMultiplier(1.2f);
                         label.setJustification(centred?OBTextLayer.JUST_CENTER:OBTextLayer.JUST_LEFT);
                         label.sizeToBoundingBox();
                         label.setTop(top);
                         label.setLeft(textbox.left());
                         label.setZPosition(zpos);
                         label.setColour(Color.WHITE);
-                        top = label.bottom() + applyGraphicScale(8);
+                        top = label.bottom() + applyGraphicScale(9);
                         //label.setBorderColor(Color.BLACK);
                         //label.setBorderWidth(2f);
                         objectDict.put(tabstring+String.format("_head%d",idx+1),label);
@@ -294,6 +299,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
                     {
                         OBXMLNode bodynode = nodes.get(0);
                         OBLabel label2 = new OBLabel(bodynode.contents,tf,itemBodyTextSize);
+                        label2.setLineSpaceMultiplier(1.4f);
                         label2.setMaxWidth(textbox.width());
                         label2.sizeToBoundingBox();
                         label2.setTop(top);
@@ -354,7 +360,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
         int i = 1;
         for (OBControl c : nums)
         {
-            OBLabel label = new OBLabel(String.format("Level %d",i),tf,subheadtextSize);
+            OBLabel label = new OBLabel(String.format("Level %d",i),tf,subsubheadtextSize);
             label.sizeToBoundingBox();
             label.setPosition(c.position());
             label.setZPosition(c.zPosition());

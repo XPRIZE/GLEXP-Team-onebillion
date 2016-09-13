@@ -31,7 +31,7 @@ public class OBTextLayer extends OBLayer
     float lineOffset;
     int hiStartIdx=-1,hiEndIdx=-1;
     int hiRangeColour;
-    float letterSpacing;
+    float letterSpacing,lineSpaceMultiplier=1.0f;
     int justification = JUST_LEFT;
     Rect tempRect;
     SpannableString spanner;
@@ -67,6 +67,7 @@ public class OBTextLayer extends OBLayer
         obj.textPaint = new TextPaint(textPaint);
         obj.lineOffset = lineOffset;
         obj.letterSpacing = letterSpacing;
+        obj.lineSpaceMultiplier = lineSpaceMultiplier;
         obj.hiStartIdx = hiStartIdx;
         obj.hiEndIdx = hiEndIdx;
         obj.hiRangeColour = hiRangeColour;
@@ -103,7 +104,7 @@ public class OBTextLayer extends OBLayer
             spanner.setSpan(new ForegroundColorSpan(hiRangeColour),hiStartIdx,hiEndIdx, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         stLayout = new StaticLayout(spanner,textPaint,(int)maxWidth,
                 (justification==JUST_CENTER)?Layout.Alignment.ALIGN_CENTER:Layout.Alignment.ALIGN_NORMAL,
-                1,0,false);
+                lineSpaceMultiplier,0,false);
         displayObjectsValid = true;
     }
     @Override

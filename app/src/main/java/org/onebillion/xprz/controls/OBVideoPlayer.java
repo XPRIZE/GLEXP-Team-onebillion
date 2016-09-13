@@ -30,7 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class OBVideoPlayer extends OBControl
         implements SurfaceTexture.OnFrameAvailableListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener,
-        MediaPlayer.OnSeekCompleteListener,MediaPlayer.OnErrorListener
+        MediaPlayer.OnSeekCompleteListener,MediaPlayer.OnErrorListener,MediaPlayer.OnVideoSizeChangedListener
 {
     public Surface surface;
     public SurfaceTexture surfaceTexture;
@@ -166,6 +166,7 @@ public class OBVideoPlayer extends OBControl
         player.setOnCompletionListener(this);
         player.setOnSeekCompleteListener(this);
         player.setOnErrorListener(this);
+        player.setOnVideoSizeChangedListener(this);
 
         try
         {
@@ -311,6 +312,12 @@ public class OBVideoPlayer extends OBControl
     {
         Log.i("mediaplayer",String.format("%d %d",what,extra));
         return false;
+    }
+
+    @Override
+    public void onVideoSizeChanged(MediaPlayer mp, int width, int height)
+    {
+        setPreviewSize(new Size(width, height));
     }
 }
 
