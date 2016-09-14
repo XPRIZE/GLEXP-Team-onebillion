@@ -388,7 +388,7 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     public void playSceneAudioIndex (String scene, int index, Boolean wait) throws Exception
     {
         playAudioQueuedSceneIndex(currentEvent(), scene, index, wait);
-        if (!wait) waitForSecs(0.01);
+        if (!wait) waitForSecs(0.1);
     }
 
 
