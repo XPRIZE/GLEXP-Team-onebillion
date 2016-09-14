@@ -258,7 +258,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
                 String src = iconnode.attributeStringValue("src");
                 OBControl im = loadImageWithName(src,pt,boundsf(),true);
                 im.setZPosition(zpos);
-                objectDict.put(tabstring+String.format("_i%d",idx+1),im);
+                objectDict.put(tabstring+String.format("_iconi%d",idx+1),im);
                 String boxname = iconBoxStrings.get(idx);
                 OBControl iconbox = objectDict.get(boxname);
                 float ratio = iconbox.height() / im.height();
@@ -778,6 +778,16 @@ public class XPRZ_JMenu extends XPRZ_Menu
         c = findIcon(pt);
         if (c != null)
         {
+            c.highlight();
+            final OBControl cf = c;
+            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    cf.lowlight();
+                }
+            });
             return;
         }
         if (scrollable)
