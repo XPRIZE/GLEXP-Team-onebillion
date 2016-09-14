@@ -72,16 +72,15 @@ public class OBUser extends MlObject
 
     }
 
-    public int highestIncompleteUnitIDfromDB()
+    public int lastUnitIDFromDB(DBSQL db)
     {
-        DBSQL db = new DBSQL(false);
         Cursor cursor = db.prepareRawQuery("SELECT MAX(unitid) as unitid FROM unitinstances WHERE userid = ? AND endtime > 0",Collections.singletonList(String.valueOf(userid)));
         int returnId = 0;
         if(cursor.moveToFirst())
-            returnId = cursor.getInt(cursor.getColumnIndex("unitid")) +1;
+            returnId = cursor.getInt(cursor.getColumnIndex("unitid"));
 
         cursor.close();
-        db.close();
+
         return returnId;
     }
 

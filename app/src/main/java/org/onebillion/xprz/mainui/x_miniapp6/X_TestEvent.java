@@ -71,7 +71,7 @@ public class X_TestEvent extends XPRZ_SectionController
                         } else if (targ == objectDict.get("button_wrong"))
                         {
 
-                            fatController.signalUnitTimedOut();
+                            fatController.signalSectionTimedOut();
 
                         } else
                         {

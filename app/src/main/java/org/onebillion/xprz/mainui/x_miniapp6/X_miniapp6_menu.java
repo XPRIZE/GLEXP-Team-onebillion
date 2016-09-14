@@ -15,6 +15,7 @@ import org.onebillion.xprz.utils.MlUnit;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimBlock;
 import org.onebillion.xprz.utils.OBAnimationGroup;
+import org.onebillion.xprz.utils.OBBrightnessManager;
 import org.onebillion.xprz.utils.OBImageManager;
 import org.onebillion.xprz.utils.OBMisc;
 import org.onebillion.xprz.utils.OBSystemsManager;
@@ -34,6 +35,11 @@ import java.util.Map;
  */
 public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
 {
+    private enum TouchTargets{
+        TARGET_BUTTON,
+        TARGET_STAR,
+        TARGET_UNIT
+    };
     private int lastCommand;
     private OBImage bigIcon;
     private XPRZ_FatController fatController;
@@ -41,9 +47,9 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
     private String currentSection;
     private OBLabel currentLevelLabel;
     private XPRZ_Presenter presenter;
-    private boolean starSelect;
+    private TouchTargets currentTarget;
     private Map<String, Integer> coloursDict;
-
+    private OBControl screenOverlay;
 
     @Override
     public String sectionName()
@@ -64,8 +70,8 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         {
             lastCommand = (int) params.get("code");
             lastUnit = (MlUnit) params.get("unit");
-
-        } else
+        }
+        else
         {
             lastCommand = -1;
 
@@ -78,7 +84,6 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
                 detachControl(bigIcon);
                 bigIcon = null;
             }
-
         }
     }
 
@@ -88,6 +93,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         setStatus(STATUS_BUSY);
         super.prepare();
         loadFingers();
+
         Typeface font = OBUtils.standardTypeFace();
         float fontSize = applyGraphicScale(40);
         currentLevelLabel = new OBLabel("8888888", font, fontSize);
@@ -97,11 +103,14 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         currentLevelLabel.setRight(this.bounds().width() - applyGraphicScale(10));
         currentLevelLabel.setColour(Color.BLACK);
         attachControl(currentLevelLabel);
+
         coloursDict = OBMisc.loadEventColours(this);
+
         fatController = (XPRZ_FatController) MainActivity.mainActivity.fatController;
         fatController.menu = this;
         lastCommand = fatController.getLastCommand();
         lastUnit = MlUnit.mlUnitFromDBforUnitID(fatController.firstUnstartedIndex - 1);
+
         presenter = XPRZ_Presenter.characterWithGroup((OBGroup) objectDict.get("presenter"));
         presenter.control.setZPosition(200);
         presenter.control.setProperty("start_loc", XPRZ_Generic.copyPoint(presenter.control.position()));
@@ -114,23 +123,19 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         loadTrophies(lastUnit == null ? 0 : lastUnit.level - 1);
         int lastUnitID = lastUnit == null ? 0: lastUnit.unitid;
         loadTopBar((lastUnit == null ? 1 : lastUnit.level),lastUnitID, (lastUnit != null && lastUnit.unitid > 0));
-        starSelect = false;
         List<OBControl> stars = new ArrayList<>();
         stars.addAll(filterControls("top_bar_star_.*"));
         stars.addAll(filterControls("choice_star_.*"));
         for (OBControl star : stars)
             star.setProperty("start_loc", XPRZ_Generic.copyPoint(star.position()));
 
-
         prepareSectionForLastUnit(lastUnit, lastCommand);
-
     }
 
     @Override
     public int buttonFlags()
     {
         return OBMainViewController.SHOW_TOP_LEFT_BUTTON;
-
     }
 
     @Override
@@ -140,6 +145,9 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         {
             public void run() throws Exception
             {
+                if(screenOverlay != null)
+                    detachControl(screenOverlay);
+
                 if (bigIcon == null && (prepareNextEvent() || (lastUnit.level == 10 && lastUnit.awardStar == 10)))
                 {
                     lastCommand = -1;
@@ -156,10 +164,9 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
     @Override
     public void touchDownAtPoint(PointF pt, View v)
     {
-
         if(status() == STATUS_AWAITING_CLICK)
         {
-            if(starSelect)
+            if(currentTarget == TouchTargets.TARGET_STAR)
             {
                 final OBControl star = finger(0,1,filterControls("choice_star_.*"),pt);
                 if(star != null)
@@ -176,7 +183,28 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
                         }
                     });
                 }
-
+            }
+            else if(currentTarget == TouchTargets.TARGET_BUTTON)
+            {
+                final OBControl button = finger(0,1,Collections.singletonList(objectDict.get("button_start")),pt);
+                if(button != null)
+                {
+                    setStatus(STATUS_BUSY);
+                    playAudio(null);
+                    OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run() throws Exception
+                        {
+                            button.highlight();
+                            waitForSecs(0.5);
+                            hideNewDayScreen();
+                            button.lowlight();
+                            currentTarget = TouchTargets.TARGET_UNIT;
+                            performSel("demostart", currentSection);
+                        }
+                    });
+                }
             }
             else if(bigIcon != null && bigIcon.frame.contains( pt.x, pt.y))
             {
@@ -190,17 +218,61 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
                         checkBigButton();
                     }
                 });
-
             }
-
         }
-
     }
 
     @Override
     public void onResume()
     {
+        if(screenOverlay != null)
+            detachControl(screenOverlay);
 
+        if(newDayCheck())
+            return;
+
+        if(status() == STATUS_AWAITING_CLICK)
+        {
+            setStatus(STATUS_AWAITING_CLICK);
+
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    replayReminders();
+                }
+            });
+        }
+        else if(status() == STATUS_IDLE && currentSection.equalsIgnoreCase("timeout"))
+        {
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    demotimeout2();
+                }
+            });
+
+        }
+    }
+
+    private void replayReminders() throws Exception
+    {
+        waitForSecs(1);
+        if(currentTarget == TouchTargets.TARGET_BUTTON)
+        {
+            playAudioQueued((List<Object>) (Object) getAudioForScene("button", "REMINDER"), true);
+        }
+        else if(currentTarget == TouchTargets.TARGET_STAR)
+        {
+            presenter.speak((List<Object>) (Object) getAudioForScene((lastUnit.level == 1 && lastUnit.awardStar == 1) ? "1" : "default", "REMINDER"), this);
+        }
+        else
+        {
+            playAudioQueued((List<Object>) (Object) getAudioForScene("unit", "REMINDER"), true);
+        }
     }
 
     private void checkChoiceStar(OBControl star) throws Exception
@@ -209,7 +281,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         star.lowlight();
         fatController.saveStarForUnit(lastUnit,(String)star.propertyValue("star_colour"));
         animateStarFlyToBar(star,lastUnit.awardStar);
-        starSelect = false;
+        currentTarget = TouchTargets.TARGET_UNIT;
         demostar2();
     }
 
@@ -231,10 +303,29 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         }
     }
 
-    public void showTopBar()
+    public boolean newDayCheck()
     {
-        showControls("top_bar.*");
+        if(!fatController.currentSessionFinished())
+            return false;
+
+        if(fatController.checkAndStartNewSession())
+        {
+            prepareSectionForLastUnit(lastUnit,XPRZ_FatController.OFC_NEW_SESSION);
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    demoDayStartButton();
+                }
+            });
+            return true;
+
+        }
+        return false;
+
     }
+
 
     public void setCurrentLevelLabel(MlUnit unit)
     {
@@ -244,38 +335,47 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         currentLevelLabel.setString(unit.key);
     }
 
+    public void showNewDayScreen()
+    {
+        objectDict.get("overlay").show();
+        objectDict.get("button_start").show();
+    }
+
+    public void hideNewDayScreen()
+    {
+        objectDict.get("overlay").hide();
+        objectDict.get("button_start").hide();
+    }
+
     public void prepareSectionForLastUnit(MlUnit unit, int command)
     {
+        currentTarget = TouchTargets.TARGET_UNIT;
         if(command == XPRZ_FatController.OFC_NEW_SESSION)
         {
-            objectDict.get("overlay").hide();
+            currentTarget = TouchTargets.TARGET_BUTTON;
+            showNewDayScreen();
             if(unit != null)
             {
                 currentSection = "day";
-
             }
             else
             {
                 currentSection = "unit1";
-
             }
-
         }
-        else if((command == XPRZ_FatController.OFC_SUCCEEDED ||command == XPRZ_FatController.OFC_FINISHED_LOW_SCORE) && unit.awardStar > 0 )//&& [fatController.currentUser starFromDBForLevel:unit.level starnum:unit.awardStar] == null)
+        else if((command == XPRZ_FatController.OFC_SUCCEEDED ||command == XPRZ_FatController.OFC_FINISHED_LOW_SCORE) && fatController.shouldAwardStar(unit))
         {
-            starSelect = true;
+            currentTarget = TouchTargets.TARGET_STAR;
             currentSection= "star";
 
         }
-        else if(command == XPRZ_FatController.OFC_SESSION_TIMED_OUT || !fatController.sessionAvailable())
+        else if(command == XPRZ_FatController.OFC_SESSION_TIMED_OUT || fatController.currentSessionFinished())
         {
             currentSection = "timeout";
-
         }
         else if(unit.unitid == 0)
         {
             currentSection = "unit2";
-
         }
         else
         {
@@ -288,7 +388,6 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
     public void startSectionForUnit(MlUnit unit)
     {
         fatController.startSectionByUnit(unit);
-
     }
 
     public void playUnitButtonAudio(String extraAudio) throws Exception
@@ -307,7 +406,6 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
 
         if(remindAudio != null)
             reprompt(time,OBUtils.insertAudioInterval(remindAudio,300),4);
-
     }
 
     public void loadBigIconForUnit(MlUnit unit)
@@ -326,7 +424,6 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         // bigIcon.objectDict.put("icon",bigic);
         bigIcon.setProperty("unit",unit);
 
-
         bigIcon.setOpacity(0);
         bigIcon.setPosition(OB_Maths.locationForRect(0.5f,0.5f,this.bounds()));
         bigIcon.show();
@@ -344,10 +441,8 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         {
             loadBigIconForUnit(unit);
             return true;
-
         }
         return false;
-
     }
 
     public void setObjectShadow(OBControl obj,float scale)
@@ -376,7 +471,6 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         {
             OBGroup trophy = (OBGroup)objectDict.get(String.format("trophy_%d",i));
             trophy.setRight(trophy.right() + moveDist);
-
         }
     }
 
@@ -386,16 +480,13 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         {
             OBControl con = objectDict.get("trophy_1");
             return new PointF(bounds().width() + 0.5f * con.width(), con.position().y);
-
         }
         else
         {
             OBControl con = objectDict.get(String.format("trophy_%d",11-level));
             PointF loc = (PointF)con.propertyValue("start_loc");
             return loc;
-
         }
-
     }
 
     public void lowlightTrophy(OBGroup trophy, boolean on)
@@ -440,13 +531,13 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         if(show)
             topBar.setFillColor ( barColour);
 
-        int maxStars = MlUnit.awardNumForLevel(level,lastUnitID-1);
+        //int maxStars = MlUnit.awardNumForLevel(level,lastUnitID-1);
         for(int i=1; i<=10; i++)
         {
             OBGroup star = (OBGroup)objectDict.get(String.format("top_bar_star_%d",i));
             OBPath path = (OBPath)star.objectDict.get("star");
             String colour = starsDict.get(i);
-            if(colour != null && i<=maxStars)
+            if(colour != null)
             {
                 colourStar(star,colour);
             }
@@ -454,13 +545,10 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
             {
                 path.setFillColor(Color.WHITE);
                 path.setStrokeColor(OBUtils.highlightedColour(barColour));
-
             }
             if(show)
                 star.show();
-
         }
-
     }
 
     public void colourStar(OBGroup star,String colourName)
@@ -470,7 +558,6 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         path.setFillColor(starColour);
         path.setStrokeColor(OBUtils.highlightedColour(starColour));
         star.setProperty("star_colour",colourName);
-
     }
 
     public void loadChoiceStars()
@@ -482,8 +569,17 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         }
     }
 
-    public void prepareScreenLock()
+    public void prepareScreenLock() throws Exception
     {
+        if(screenOverlay != null)
+            detachControl(screenOverlay);
+        screenOverlay = new OBControl();
+        screenOverlay.setFrame(new RectF(bounds()));
+        screenOverlay.setFillColor(Color.BLACK);
+        screenOverlay.setZPosition(100);
+        screenOverlay.setOpacity(0);
+        attachControl(screenOverlay);
+        OBAnimationGroup.runAnims(Collections.singletonList(OBAnim.opacityAnim(1,screenOverlay)),2,true,OBAnim.ANIM_LINEAR,this);
         objectDict.get("overlay").show();
         OBSystemsManager.sharedManager.screenLock();
 
@@ -548,7 +644,6 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
                         float radiusFrac = OB_Maths.clamp(0,1,(angleDif-snapAngle)/150.0f);
                         float currentRadius = startRadius + radiusFrac*(destRadius - startRadius);
                         star.setPosition(center.x + currentRadius * (float)Math.cos(Math.toRadians(currentAngle)), center.y + currentRadius * (float)Math.sin(Math.toRadians(currentAngle)));
-
                     }
                 }
             });
@@ -594,7 +689,6 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         }
         OBAnimationGroup.runAnims(anims,1,true,OBAnim.ANIM_EASE_IN,this);
         resetBarStars();
-
     }
 
     public void animateChoiceStars(final boolean enter,OBControl skipStar) throws Exception
@@ -604,6 +698,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         final PointF center = XPRZ_Generic.copyPoint(icon.position());
         final float startRadius = icon.height() * (enter ? 0.8f : 0.4f);
         final float targetRadius = icon.height() * (enter ? 0.4f: 0.8f);
+        lockScreen();
         for(int i=1; i<=5; i++)
         {
             final OBControl star = objectDict.get(String.format("choice_star_%d",i));
@@ -623,8 +718,8 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
                     star.setOpacity(enter ? frac : 1.0f-frac);
                 }
             });
-
         }
+        unlockScreen();
         if(enter)
             playSfxAudio("starson",false);
         OBAnimationGroup.runAnims(anims,0.5,true,OBAnim.ANIM_EASE_OUT,this);
@@ -642,7 +737,6 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         detachControl(trophy);
         unlockScreen();
         waitSFX();
-
     }
 
     public void animateTrophiesSlide(boolean slideIn) throws Exception
@@ -656,7 +750,6 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         playSfxAudio("trophiesslide",false);
         OBMisc.moveControlWithAttached(con,trophies,loc,0.7f,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
         waitSFX();
-
     }
 
     public void animateStarFlyToBar(final OBControl star, int starNum) throws Exception
@@ -687,6 +780,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         lockScreen();
         star.setScale(startScale);
         star.hide();
+        star.setRotation(0);
         String colourName = (String)star.propertyValue("star_colour");
         colourStar(target,colourName);
         unlockScreen();
@@ -713,17 +807,42 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         }
         presenter.walk(pt);
         presenter.faceFront();
-
     }
 
     public void walkPresenterOut()
     {
         presenter.walk((PointF)presenter.control.propertyValue("end_loc"));
         presenter.control.hide();
-
     }
 
+    public void demoDayStartButton() throws Exception
+    {
+        waitForSecs(0.5f);
+        loadPointer(POINTER_LEFT);
+        movePointerToPoint(OB_Maths.locationForRect(0.7f,1.1f,objectDict.get("button_start").frame()),0.3f,true);
+        playAudioQueued((List<Object>)(Object)getAudioForScene("button","DEMO"), true);
+        waitForSecs(0.5f);
+        thePointer.hide();
+        long time = setStatus(STATUS_AWAITING_CLICK);
+        waitForSecs(4);
+        if(time == statusTime)
+        {
+            playAudioQueued((List<Object>)(Object)getAudioForScene("button","REMINDER"), true);
+        }
+    }
+
+
     public void demounit1() throws Exception
+    {
+        demoDayStartButton();
+    }
+
+    public void demoday() throws Exception
+    {
+        demoDayStartButton();
+    }
+
+    public void demostartunit1() throws Exception
     {
         PointF loc = new PointF(0.5f*bounds().width(), presenter.control.position().y);
         playSfxAudio("musicalsting",false);
@@ -744,7 +863,6 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         waitForSecs(0.5f);
         thePointer.hide();
         playUnitButtonAudio(null);
-
     }
 
     public void demounit2() throws Exception
@@ -775,14 +893,12 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
             presenter.speak((List<Object>)(Object)Arrays.asList(OBUtils.randomlySortedArray(getAudioForScene("unit","DEMO")).get(lastUnit.catAudio)),this);
             waitForSecs(0.3f);
             walkPresenterOut();
-
         }
         animateBigIconShow();
         playUnitButtonAudio(OBUtils.randomlySortedArray(getAudioForScene("unit","DEMO2")).get(0));
-
     }
 
-    public void demoday() throws Exception
+    public void demostartday() throws Exception
     {
         playSfxAudio("musicalsting",false);
         walkPresenterIn((PointF)presenter.control.propertyValue("start_loc"));
@@ -795,7 +911,6 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         walkPresenterOut();
         animateBigIconShow();
         playUnitButtonAudio(null);
-
     }
 
     public void demostar() throws Exception
@@ -809,10 +924,12 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         final long time = setStatus(STATUS_AWAITING_CLICK);
         if (time == statusTime)
             presenter.speak((List<Object>) (Object) getAudioForScene(currentAudio, "PROMPT"), this);
+
         if (time == statusTime)
             waitForSecs(4f);
+
         if (time == statusTime)
-            presenter.speak((List<Object>) (Object) getAudioForScene(currentAudio, "REMIND"), this);
+            presenter.speak((List<Object>) (Object) getAudioForScene(currentAudio, "REMINDER"), this);
     }
 
     public void demostar2() throws Exception
@@ -840,14 +957,12 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
                     presenter.moveHandfromIndex(0 ,1,0.3);
                     presenter.speak((List<Object>) (Object) Collections.singletonList(getAudioForScene("trophy","DEMO3").get(index)), this);
                     waitForSecs(1f);
-
                 }
 
             }
             if(lastUnit.level == 10)
             {
                 presenter.speak((List<Object>) (Object) getAudioForScene("trophy","FINAL2"), this);
-
             }
             else
             {
@@ -859,12 +974,10 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
                 presenter.speak((List<Object>) (Object) getAudioForScene("trophy","FINAL") , this);
                 animateTopBar();
                 presenter.moveHandfromIndex(4,0,0.3);
-
             }
-
         }
 
-        if(!fatController.sessionAvailable())
+        if(fatController.currentSessionFinished())
         {
             prepareSectionForLastUnit(lastUnit,XPRZ_FatController.OFC_SESSION_TIMED_OUT);
             demotimeout();
@@ -879,26 +992,43 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
                 walkPresenterOut();
                 animateBigIconShow();
                 playUnitButtonAudio(null);
-
-            } else
+            }
+            else
             {
                 waitForSecs(0.3f);
                 walkPresenterOut();
-
             }
         }
-
     }
 
     public void demotimeout() throws Exception
     {
+        setStatus(STATUS_BUSY);
         walkPresenterIn((PointF)presenter.control.propertyValue("start_loc"));
         waitForSecs(0.3f);
         presenter.speak((List<Object>) (Object) getAudioForScene("audio","DEMO"), this);
         waitForSecs(0.3f);
         playSfxAudio("musicalsting",false);
         walkPresenterOut();
-        prepareScreenLock();
+        if(!newDayCheck())
+        {
+            prepareScreenLock();
+            setStatus(STATUS_IDLE);
+        }
     }
 
+    public void demotimeout2() throws Exception
+    {
+        setStatus(STATUS_BUSY);
+        walkPresenterIn((PointF)presenter.control.propertyValue("start_loc"));
+        waitForSecs(0.3f);
+        presenter.speak((List<Object>) (Object) getAudioForScene("audio","DEMO2"), this);
+        waitForSecs(0.3f);
+        walkPresenterOut();
+        if(!newDayCheck())
+        {
+            prepareScreenLock();
+            setStatus(STATUS_IDLE);
+        }
+    }
 }

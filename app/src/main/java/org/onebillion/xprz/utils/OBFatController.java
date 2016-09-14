@@ -51,4 +51,19 @@ public class OBFatController
             MainActivity.mainViewController.pushViewControllerWithName(menuClassName,false,true,"menu");
     }
 
+    public void onPause(OBSectionController cont)
+    {
+
+    }
+
+    public void onResume(OBSectionController cont)
+    {
+
+    }
+
+    public void onExitSection(OBSectionController cont)
+    {
+
+    }
+
 }

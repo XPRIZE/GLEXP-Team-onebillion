@@ -4,6 +4,8 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.util.ArrayMap;
 
+import org.onebillion.xprz.mainui.OBSectionController;
+
 import java.util.Collections;
 import java.util.Map;
 
@@ -16,6 +18,9 @@ public class MlUnitInstance extends MlObject
     public int userid, sessionid, seqno, elapsedtime;
     public float score;
     public long starttime, endtime;
+
+    public OBSectionController sectionController;
+    public MlUnit mlUnit;
 
     private static final String[] intFields = {"userid","sessionid","seqno","elapsedtime"};
     private static final String[] floatFields = {"score"};
@@ -30,16 +35,18 @@ public class MlUnitInstance extends MlObject
     }
 
 
-    public static MlUnitInstance initMlUnitDBWith(int userid, long unitid, int sessionid, long starttime)
+    public static MlUnitInstance initMlUnitDBWith(MlUnit unit, int userid, int sessionid, long starttime)
     {
+
         MlUnitInstance mlui = new MlUnitInstance();
         mlui.userid = userid;
-        mlui.unitid = unitid;
+        mlui.unitid = unit.unitid;
         mlui.sessionid = sessionid;
+        mlui.mlUnit = unit;
 
         Map<String,String> whereMap = new ArrayMap<>();
         whereMap.put("userid",String.valueOf(userid));
-        whereMap.put("unitid",String.valueOf(unitid));
+        whereMap.put("unitid",String.valueOf(unit.unitid));
         DBSQL db = new DBSQL(true);
         Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES, Collections.singletonList("MAX(seqno) as seqno"),whereMap);
         if(cursor.moveToFirst())
@@ -66,11 +73,11 @@ public class MlUnitInstance extends MlObject
         }
     }
 
-    public static MlUnitInstance mlUnitInstanceFromDBFor(int userid, long unitid, int seqno)
+    public static MlUnitInstance mlUnitInstanceFromDBFor(int userid, MlUnit unit, int seqno)
     {
         Map<String,String> whereMap = new ArrayMap<>();
         whereMap.put("userid",String.valueOf(userid));
-        whereMap.put("unitid",String.valueOf(unitid));
+        whereMap.put("unitid",String.valueOf(unit.unitid));
         whereMap.put("seqno",String.valueOf(seqno));
         DBSQL db = new DBSQL(false);
         Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES,allFieldNames(null,intFields,longFields,floatFields),whereMap);
@@ -80,6 +87,7 @@ public class MlUnitInstance extends MlObject
         {
             mlui = new MlUnitInstance();
             mlui.cursorToObject(cursor,null,floatFields,intFields,longFields);
+            mlui.mlUnit = unit;
         }
         cursor.close();
         db.close();
@@ -112,7 +120,7 @@ public class MlUnitInstance extends MlObject
     public static long lastPlayedUnitIndexForUserIDInDB(DBSQL db, int userid)
     {
         Cursor cursor = db.prepareRawQuery("SELECT unitid, MAX(starttime) FROM unitinstances WHERE userid = ? GROUP BY userid", Collections.singletonList(String.valueOf(userid)));
-        int maxId = 0;
+        int maxId = -1;
         if(cursor.moveToFirst())
         {
             maxId = cursor.getInt(cursor.getColumnIndex("unitid"));

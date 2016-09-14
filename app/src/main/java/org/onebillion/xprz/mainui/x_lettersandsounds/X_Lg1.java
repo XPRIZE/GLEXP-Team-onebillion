@@ -347,18 +347,22 @@ public class X_Lg1 extends XPRZ_SectionController
         List<OBPhoneme> eventPhonemes = new ArrayList<>();
         eventPhonemes.add(targetPhoneme);
 
-        List<OBPhoneme> eventDistractors =null;
-        List<OBPhoneme> possibleDistractors = new ArrayList<>();
+        if(size > 1)
+        {
+            List<OBPhoneme> eventDistractors = null;
+            List<OBPhoneme> possibleDistractors = new ArrayList<>();
 
-        for(OBPhoneme pho : distractors)
-            if(!pho.text.equalsIgnoreCase(targetPhoneme.text) && pho.getClass() == targetPhoneme.getClass())
-                possibleDistractors.add(pho);
+            for (OBPhoneme pho : distractors)
+                if (!pho.text.equalsIgnoreCase(targetPhoneme.text) && pho.getClass() == targetPhoneme.getClass())
 
-        eventDistractors = OBUtils.randomlySortedArray(possibleDistractors);
-        eventDistractors = eventDistractors.subList(0,size);
+                    possibleDistractors.add(pho);
 
-        eventPhonemes.addAll(eventDistractors);
-        eventPhonemes = OBUtils.randomlySortedArray(eventPhonemes);
+            eventDistractors = OBUtils.randomlySortedArray(possibleDistractors);
+            eventDistractors = eventDistractors.subList(0, size - 1);
+
+            eventPhonemes.addAll(eventDistractors);
+            eventPhonemes = OBUtils.randomlySortedArray(eventPhonemes);
+        }
 
         int r = OB_Maths.randomInt(0,rows-1), c = OB_Maths.randomInt(0, columns-1);
         float minScale = 2;

@@ -480,11 +480,13 @@ public class X_WordVideoRec extends XPRZ_SectionController
         videoRecorder.onResume();
         videoPlayer.onResume();
         cameraManager.onResume();
+        super.onResume();
     }
 
     @Override
     public void onPause()
     {
+        super.onPause();
         try
         {
             videoRecorder.onPause();

@@ -700,11 +700,13 @@ public class X_WordAudioRec extends XPRZ_SectionController
     public void onResume()
     {
         audioRecorder.onResume();
+        super.onResume();
     }
 
     @Override
     public void onPause()
     {
+        super.onPause();
         try
         {
             audioRecorder.onPause();

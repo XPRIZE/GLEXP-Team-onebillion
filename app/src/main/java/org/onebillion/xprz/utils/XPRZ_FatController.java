@@ -3,6 +3,7 @@ package org.onebillion.xprz.utils;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.util.ArrayMap;
+import android.os.Handler;
 
 import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.OBMainViewController;
@@ -11,9 +12,12 @@ import org.onebillion.xprz.mainui.OBSectionController;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,11 +42,15 @@ public class XPRZ_FatController extends OBFatController
             OFC_NEW_SESSION =7;
 
     private static final long SESSION_TIMEOUT_MIN = 60;
+    private static final int MAX_UNIT_ATTEMPTS_COUNT = 3;
 
-    private MlUnit currentUnit;
     private MlUnitInstance currentUnitInstance;
     private OBUser currentUser;
     private int currentSessionId;
+    private long currentSessionStartTime, currentSessionEndTime;
+
+    private Handler timeoutHandler;
+    private Runnable timeoutRunnable;
 
     public long getCurrentTime()
     {
@@ -84,8 +92,6 @@ public class XPRZ_FatController extends OBFatController
                 {
                     db.commitTransaction();
                 }
-
-
             }
 
         } catch (Exception e)
@@ -104,14 +110,22 @@ public class XPRZ_FatController extends OBFatController
         if (u == null)
         {
             u = OBUser.initAndSaveUserInDB(db,"Student");
+            currentSessionId = -1;
             startNewDayInDB(db);
         }
         else
         {
-            currentSessionId = lastSessionIDFromDB(db,u.userid,true);
+            loadLastSessionFromDB(db,u.userid);
         }
-        db.close();
+
         currentUser = u;
+        int lastUnitID = currentUser.lastUnitIDFromDB(db);
+        if(unitAttemtpsCountInDB(db,lastUnitID) >= MAX_UNIT_ATTEMPTS_COUNT)
+            lastUnitID++;
+
+        firstUnstartedIndex = lastUnitID;
+        db.close();
+        checkAndStartNewSession();
     }
 
     public void deleteDBFile()
@@ -123,7 +137,7 @@ public class XPRZ_FatController extends OBFatController
     public void startUp()
     {
         initDB();
-
+        timeoutHandler = new Handler();
         String menuClassName = (String)MainActivity.mainActivity.config.get("menuclass");
         if (showTestMenu())
             menuClassName = "XPRZ_TestMenu";
@@ -135,16 +149,22 @@ public class XPRZ_FatController extends OBFatController
     {
         loadMasterListIntoDB();
         loadUser();
-        firstUnstartedIndex =  currentUser.highestIncompleteUnitIDfromDB();
+
+    }
+
+    public void continueFromLastUnit()
+    {
+        DBSQL db = new DBSQL(false);
+        firstUnstartedIndex = lastPlayedUnitIndex(db) + 1;
+        db.close();
     }
 
     @Override
     public void initScores()
     {
-        if(currentUnit == null)
+        if(currentUnitInstance == null)
             return;
         scoreCorrect = scoreWrong = 0;
-        currentUnitInstance = MlUnitInstance.initMlUnitDBWith(currentUser.userid,currentUnit.unitid,currentSessionId,getCurrentTime());
     }
 
     @Override
@@ -162,13 +182,14 @@ public class XPRZ_FatController extends OBFatController
     @Override
     public void completeEvent(OBSectionController cont)
     {
+        cancelTimeout();
         updateScores();
-        if (finalScore >= currentUnit.passThreshold)
+        if (finalScore >= currentUnit().passThreshold)
             signalSectionSucceeded();
         else
             signalSectionFailed();
 
-        currentUnit = null;
+        currentUnitInstance = null;
 
         try
         {
@@ -177,6 +198,22 @@ public class XPRZ_FatController extends OBFatController
         {
 
         }
+        cont.exitEvent();
+
+    }
+
+    public void timeOutEvent(OBSectionController cont)
+    {
+        DBSQL db = new DBSQL(true);
+        int count = unitAttemtpsCountInDB(db,currentUnitInstance.mlUnit.unitid);
+        if(count >= MAX_UNIT_ATTEMPTS_COUNT)
+            signalSectionFailed();
+        else
+            signalSectionTimedOut();
+
+        db.close();
+        currentUnitInstance = null;
+
         cont.exitEvent();
 
     }
@@ -200,7 +237,7 @@ public class XPRZ_FatController extends OBFatController
         currentUnitInstance.score = finalScore;
         currentUnitInstance.elapsedtime = (int)(currentUnitInstance.endtime - currentUnitInstance.starttime);
         currentUnitInstance.updateDataInDB(db);
-        checkSessionTimeout(db);
+        checkCurrentSessionTimeout(db);
         db.close();
     }
 
@@ -214,22 +251,22 @@ public class XPRZ_FatController extends OBFatController
 
     public void signalSectionFailed()
     {
-        menu.receiveCommand(commandWith(OFC_FINISHED_LOW_SCORE,currentUnit));
+        menu.receiveCommand(commandWith(OFC_FINISHED_LOW_SCORE,currentUnit()));
     }
 
     public void signalSectionSucceeded()
     {
-        menu.receiveCommand(commandWith(OFC_SUCCEEDED,currentUnit));
+        menu.receiveCommand(commandWith(OFC_SUCCEEDED,currentUnit()));
     }
 
-    public void signalUnitTimedOut()
+    public void signalSectionTimedOut()
     {
-        menu.receiveCommand(commandWith(OFC_TIMED_OUT,currentUnit));
+        menu.receiveCommand(commandWith(OFC_TIMED_OUT,currentUnit()));
     }
 
     public void signalSessionTimedOut()
     {
-        menu.receiveCommand(commandWith(OFC_SESSION_TIMED_OUT,currentUnit));
+        menu.receiveCommand(commandWith(OFC_SESSION_TIMED_OUT,currentUnit()));
     }
 
     public List<MlUnit> requestNextUnits(int count)
@@ -237,7 +274,7 @@ public class XPRZ_FatController extends OBFatController
         List<MlUnit> arr = new ArrayList<>();
         for (int i = 0;i < count;i++)
         {
-            arr.add(MlUnit.mlUnitFromDBforUnitID(currentUnit.unitid + 1 + i));
+            arr.add(MlUnit.mlUnitFromDBforUnitID(currentUnit().unitid + 1 + i));
         }
         return arr;
     }
@@ -249,13 +286,20 @@ public class XPRZ_FatController extends OBFatController
     }
 
 
+    public MlUnit currentUnit()
+    {
+        if(currentUnitInstance == null)
+            return null;
+        else
+            return currentUnitInstance.mlUnit;
+    }
     public void sectionStartedWithUnit(MlUnit unit)
     {
-        currentUnit = unit;
-        if(currentUnit.unitid >= firstUnstartedIndex)
+        if(unit.unitid >= firstUnstartedIndex)
         {
-            firstUnstartedIndex = currentUnit.unitid+1;
+            firstUnstartedIndex = unit.unitid+1;
         }
+        currentUnitInstance = MlUnitInstance.initMlUnitDBWith(unit,currentUser.userid,currentSessionId,getCurrentTime());
         initScores();
     }
 
@@ -273,7 +317,11 @@ public class XPRZ_FatController extends OBFatController
                 try
                 {
                     MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
-                    OBMainViewController.MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params);
+                    if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
+                    {
+                        currentUnitInstance.sectionController = OBMainViewController.MainViewController().topController();
+                        startCurrentUnitInstanceTimeout();
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -284,14 +332,6 @@ public class XPRZ_FatController extends OBFatController
                 }
             }
         }.run();
-       /* OBUtils.runOnMainThread(new OBUtils.RunLambda()
-        {
-            @Override
-            public void run() throws Exception
-            {
-               OBMainViewController.MainViewController().pushViewControllerWithNameConfig(currunit.target,currunit.config,true,true,currunit.params);
-            }
-        });*/
 
     }
 
@@ -323,7 +363,7 @@ public class XPRZ_FatController extends OBFatController
 
     public int getLastCommand()
     {
-        if(!sessionAvailable())
+        if(currentSessionFinished())
             return OFC_SESSION_TIMED_OUT;
         else if(!currentSessionHasProgress())
             return OFC_NEW_SESSION;
@@ -332,7 +372,7 @@ public class XPRZ_FatController extends OBFatController
 
     }
 
-    public void checkSessionTimeout(DBSQL db)
+    public void checkCurrentSessionTimeout(DBSQL db)
     {
         Map<String,String> whereMap  = new ArrayMap<>();
         whereMap.put("userid",String.valueOf(currentUser.userid));
@@ -341,37 +381,68 @@ public class XPRZ_FatController extends OBFatController
         long elapsedTime = 0;
         if(cursor.moveToFirst())
             elapsedTime = cursor.getLong(cursor.getColumnIndex("elapsedtime"));
+
         cursor.close();
 
-        if(elapsedTime/60 > SESSION_TIMEOUT_MIN)
+        if(elapsedTime/60.0 > 0.2)
             finishCurrentDayInDB(db);
 
         db.close();
     }
 
-    public boolean sessionAvailable()
+    public int unitAttemtpsCountInDB(DBSQL db, int unitid)
     {
-        return currentSessionId  > 0;
+        Map<String,String> whereMap  = new ArrayMap<>();
+        whereMap.put("userid",String.valueOf(currentUser.userid));
+        whereMap.put("unitid",String.valueOf(unitid));
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES, Collections.singletonList("COUNT(*) as count"), whereMap);
+        int count = 0;
+        if(cursor.moveToFirst())
+            count = cursor.getInt(cursor.getColumnIndex("count"));
+
+        cursor.close();
+
+        return count;
     }
 
+    public boolean currentSessionFinished()
+    {
+        if(currentSessionId < 0)
+            return true;
 
-    private int lastSessionIDFromDB(DBSQL db, int userid, boolean checkSessionEnd)
+        return currentSessionEndTime > 0;
+    }
+
+    public boolean checkAndStartNewSession()
+    {
+        Calendar currentCalendar = Calendar.getInstance();
+        Calendar calendarLastSession = Calendar.getInstance();
+        calendarLastSession.setTimeInMillis(currentSessionStartTime*1000);
+
+        if(currentCalendar.get(Calendar.DAY_OF_YEAR) != calendarLastSession.get(Calendar.DAY_OF_YEAR) ||
+                currentCalendar.get(Calendar.YEAR) != calendarLastSession.get(Calendar.YEAR))
+        {
+            startNewDay();
+            return true;
+        }
+        return false;
+    }
+
+    private void loadLastSessionFromDB(DBSQL db, int userid)
     {
         Map<String,String> whereMap  = new ArrayMap<>();
         whereMap.put("userid",String.valueOf(userid));
-        int sessionid = -1;
-
-        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_SESSIONS, Arrays.asList("MAX(sessionid) as sessionid", "endtime"), whereMap);
+        currentSessionId = -1;
+        currentSessionEndTime = currentSessionStartTime = 0;
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_SESSIONS, Arrays.asList("MAX(sessionid) as sessionid", "starttime", "endtime"), whereMap);
         if (cursor.moveToFirst())
         {
-            long endtime = cursor.getLong(cursor.getColumnIndex("endtime"));
-            if(endtime == 0 || !checkSessionEnd)
-                sessionid = cursor.getInt(cursor.getColumnIndex("sessionid"));
+            currentSessionStartTime = cursor.getLong(cursor.getColumnIndex("starttime"));
+            currentSessionEndTime = cursor.getLong(cursor.getColumnIndex("endtime"));
+            currentSessionId = cursor.getInt(cursor.getColumnIndex("sessionid"));
         }
         cursor.close();
-        return sessionid;
     }
-
 
     private boolean currentSessionHasProgress()
     {
@@ -402,7 +473,13 @@ public class XPRZ_FatController extends OBFatController
 
     public void startNewDayInDB(DBSQL db)
     {
-        int sessionid = lastSessionIDFromDB(db, currentUser.userid, false);
+        if(!currentSessionFinished())
+            finishCurrentDayInDB(db);
+
+        currentSessionStartTime = getCurrentTime();
+        currentSessionEndTime = 0;
+
+        int sessionid = currentSessionId;
         if(sessionid<0)
             sessionid = 1;
         else
@@ -411,7 +488,7 @@ public class XPRZ_FatController extends OBFatController
         ContentValues contentValues = new ContentValues();
         contentValues.put("userid", currentUser.userid);
         contentValues.put("sessionid", sessionid);
-        contentValues.put("starttime",getCurrentTime());
+        contentValues.put("starttime",currentSessionStartTime);
         db.doInsertOnTable(DBSQL.TABLE_SESSIONS,contentValues);
         currentSessionId = sessionid;
 
@@ -423,13 +500,14 @@ public class XPRZ_FatController extends OBFatController
             return;
 
 
+        currentSessionEndTime =  getCurrentTime();
         Map<String,String> whereMap  = new ArrayMap<>();
+
         whereMap.put("userid",String.valueOf(currentUser.userid));
         whereMap.put("sessionid",String.valueOf(currentSessionId));
         ContentValues contentValues = new ContentValues();
-        contentValues.put("endtime",getCurrentTime());
+        contentValues.put("endtime",currentSessionEndTime);
         db.doUpdateOnTable(DBSQL.TABLE_SESSIONS,whereMap, contentValues);
-        currentSessionId = -1;
     }
 
     public void saveStarForUnit(MlUnit unit,String colour)
@@ -467,11 +545,9 @@ public class XPRZ_FatController extends OBFatController
             }
 
         }
-
         cursor.close();
         db.close();
         return result;
-
     }
 
     public String lastStarColourForLevel(int level)
@@ -508,6 +584,16 @@ public class XPRZ_FatController extends OBFatController
         return result;
     }
 
+    public boolean shouldAwardStar(MlUnit unit)
+    {
+        if(unit == null)
+            return false;
+
+        if(unit.awardStar < 0)
+            return false;
+
+        return starForLevel(unit.level,unit.awardStar) == null;
+    }
 
     public boolean saveCertificateInDBwithFile(String fileName, int level)
     {
@@ -553,4 +639,66 @@ public class XPRZ_FatController extends OBFatController
         db.close();
         return level;
     }
+
+    @Override
+    public void onPause(OBSectionController cont)
+    {
+
+    }
+
+    @Override
+    public void onResume(OBSectionController cont)
+    {
+        checkTimeout(currentUnitInstance);
+    }
+
+    @Override
+    public void onExitSection(OBSectionController cont)
+    {
+        cancelTimeout();
+    }
+
+
+    public void startCurrentUnitInstanceTimeout()
+    {
+        cancelTimeout();
+
+        final MlUnitInstance currentInstance = currentUnitInstance;
+        timeoutRunnable = new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                if(checkTimeout(currentInstance))
+                    timeoutHandler.postDelayed(this,1*1000);
+            }
+        };
+
+        timeoutHandler.postDelayed(timeoutRunnable,10000); //currentInstance.mlUnit.targetDurationstance.)
+
+    }
+
+    public void cancelTimeout()
+    {
+        if(timeoutRunnable != null)
+            timeoutHandler.removeCallbacks(timeoutRunnable);
+
+        timeoutRunnable = null;
+    }
+
+    public boolean checkTimeout(MlUnitInstance unitInstance)
+    {
+        if(unitInstance != currentUnitInstance)
+            return false;
+
+        if(unitInstance.sectionController == null || unitInstance.sectionController._aborting)
+            return false;
+
+        if((unitInstance.starttime + 10) < getCurrentTime())
+        {
+            timeOutEvent(unitInstance.sectionController);
+        }
+        return true;
+    }
+
 }

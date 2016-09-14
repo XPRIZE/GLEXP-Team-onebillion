@@ -115,6 +115,8 @@ public class XPRZ_TestMenu extends OBSectionController
                             cursorAdapter.swapCursor(cursor);
                         }
                         cursorAdapter.notifyDataSetChanged();
+                        currentUnitId = 0;
+                        selectCurrentUnit();
                     }
                 });
                 alertDialog.show();
@@ -197,13 +199,36 @@ public class XPRZ_TestMenu extends OBSectionController
             }
         });
 
+        Button skipButton = (Button) MainActivity.mainActivity.findViewById(R.id.skipButton);
+        skipButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick (View v)
+            {
+                String menuClassName = (String)Config().get(MainActivity.CONFIG_MENU_CLASS);
+                String appCode = (String)Config().get(MainActivity.CONFIG_APP_CODE);
+                if (menuClassName != null && appCode != null)
+                {
+                    OBBrightnessManager.sharedManager.onContinue();
+                    db.close();
+                    controller.continueFromLastUnit();
+                    MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
+                }
+            }
+        });
+
         Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("key", "unitid as _id"),null,"unitid ASC");
         if(cursor.moveToFirst())
         {
             cursorAdapter = new OBCursorAdapter(MainActivity.mainActivity, cursor);
             listView.setAdapter(cursorAdapter);
         }
+        selectCurrentUnit();
+    }
 
+
+    public void selectCurrentUnit()
+    {
         listView.setSelection((int)currentUnitId);
         listView.setItemChecked((int)currentUnitId,true);
     }

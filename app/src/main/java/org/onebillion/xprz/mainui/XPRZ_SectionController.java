@@ -398,6 +398,7 @@ public class XPRZ_SectionController extends OBSectionController {
 
     public void gotItRight()
     {
+        MainActivity.mainActivity.fatController.gotAnswerRight(1);
     }
 
     public void gotItRightBigTick(boolean bigTick) throws Exception
@@ -412,6 +413,7 @@ public class XPRZ_SectionController extends OBSectionController {
 
     public void gotItWrong()
     {
+        MainActivity.mainActivity.fatController.gotAnswerWrong(1);
     }
 
     public void gotItWrongWithSfx()
@@ -530,6 +532,7 @@ public class XPRZ_SectionController extends OBSectionController {
     public void exitEvent()
     {
         super.exitEvent();
+        MainActivity.mainActivity.fatController.onExitSection(this);
         killAnimations();
     }
 
@@ -555,6 +558,19 @@ public class XPRZ_SectionController extends OBSectionController {
         return aud2;
     }
 
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+        MainActivity.mainActivity.fatController.onPause(this);
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+        MainActivity.mainActivity.fatController.onResume(this);
+    }
 
 
 }
