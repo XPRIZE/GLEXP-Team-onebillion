@@ -434,14 +434,21 @@ public class XPRZ_FatController extends OBFatController
         whereMap.put("userid",String.valueOf(userid));
         currentSessionId = -1;
         currentSessionEndTime = currentSessionStartTime = 0;
-        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_SESSIONS, Arrays.asList("MAX(sessionid) as sessionid", "starttime", "endtime"), whereMap);
-        if (cursor.moveToFirst())
+        try
         {
-            currentSessionStartTime = cursor.getLong(cursor.getColumnIndex("starttime"));
-            currentSessionEndTime = cursor.getLong(cursor.getColumnIndex("endtime"));
-            currentSessionId = cursor.getInt(cursor.getColumnIndex("sessionid"));
+            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_SESSIONS, Arrays.asList("MAX(sessionid) as sessionid", "starttime", "endtime"), whereMap);
+            if (cursor.moveToFirst())
+            {
+                currentSessionStartTime = cursor.getLong(cursor.getColumnIndex("starttime"));
+                currentSessionEndTime = cursor.getLong(cursor.getColumnIndex("endtime"));
+                currentSessionId = cursor.getInt(cursor.getColumnIndex("sessionid"));
+            }
+            cursor.close();
         }
-        cursor.close();
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     private boolean currentSessionHasProgress()
@@ -688,6 +695,9 @@ public class XPRZ_FatController extends OBFatController
 
     public boolean checkTimeout(MlUnitInstance unitInstance)
     {
+        if (!allowsTimeOut())
+            return false;
+
         if(unitInstance != currentUnitInstance)
             return false;
 
@@ -696,9 +706,17 @@ public class XPRZ_FatController extends OBFatController
 
         if((unitInstance.starttime + 10) < getCurrentTime())
         {
+            MainActivity.log("Time out!!");
             timeOutEvent(unitInstance.sectionController);
         }
         return true;
+    }
+
+
+    public boolean allowsTimeOut()
+    {
+        String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_ALLOWS_TIMEOUT);
+        return (value != null && value.equals("true"));
     }
 
 }

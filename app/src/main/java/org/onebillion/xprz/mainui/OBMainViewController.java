@@ -14,6 +14,7 @@ import android.view.*;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBLabel;
+import org.onebillion.xprz.controls.OBTextLayer;
 import org.onebillion.xprz.glstuff.OBGLView;
 import org.onebillion.xprz.glstuff.OBRenderer;
 import org.onebillion.xprz.glstuff.TextureShaderProgram;
@@ -71,11 +72,13 @@ public class OBMainViewController extends OBViewController
         }
 
         Typeface tf = OBUtils.standardTypeFace();
-        topLabel = new OBLabel("", tf, applyGraphicScale(15));
+        topLabel = new OBLabel("ALL WORK AND NO PLAY MAKES JACK A DULL BOY. ALL WORK AND NO PLAY MAKES JACK A DULL BOY. ", tf, applyGraphicScale(15));
         topLabel.setColour(Color.BLACK);
         topLabel.controller = this;
-        topLabel.setBounds(this.bounds().left, this.bounds().top, this.bounds().right, this.bounds().bottom);
+        topLabel.sizeToBoundingBox();
         topLabel.setPosition(bounds().centerX(), bounds().centerY());
+        topLabel.setJustification(OBTextLayer.JUST_RIGHT);
+        topLabel.setMaxWidth(bounds().width());
         topLabel.setTop(0);
         OBSystemsManager.sharedManager.setStatusLabel(topLabel);
     }
