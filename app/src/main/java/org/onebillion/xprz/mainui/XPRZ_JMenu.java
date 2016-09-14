@@ -280,7 +280,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
                         OBLabel label = new OBLabel(headnode.contents,tfb,itemHeadTextSize);
                         label.setMaxWidth(textbox.width());
                         label.setLineSpaceMultiplier(1.2f);
-                        label.setJustification(centred?OBTextLayer.JUST_CENTER:OBTextLayer.JUST_LEFT);
+                        label.setJustification(centred?OBTextLayer.JUST_CENTRE:OBTextLayer.JUST_LEFT);
                         label.sizeToBoundingBox();
                         label.setTop(top);
                         label.setLeft(textbox.left());
@@ -306,7 +306,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
                         label2.setLeft(textbox.left());
                         label2.setZPosition(zpos);
                         label2.setColour(Color.WHITE);
-                        label2.setJustification(centred?OBTextLayer.JUST_CENTER:OBTextLayer.JUST_LEFT);
+                        label2.setJustification(centred?OBTextLayer.JUST_CENTRE:OBTextLayer.JUST_LEFT);
 
                         objectDict.put(tabstring+String.format("_bod%d",idx+1),label2);
                         attachControl(label2);
@@ -460,6 +460,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
                 OBLabel label = new OBLabel(headnode.contents,tfb,videoHeadTextSize);
                 label.setMaxWidth(textbox.width());
                 label.setJustification(OBTextLayer.JUST_LEFT);
+                label.setLineSpaceMultiplier(1.2f);
                 label.sizeToBoundingBox();
                 label.setTop(top);
                 label.setLeft(textbox.left());
@@ -481,6 +482,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
                 OBXMLNode bodynode = nodes.get(0);
                 OBLabel label2 = new OBLabel(bodynode.contents,tf,videoBodyTextSize);
                 label2.setMaxWidth(textbox.width());
+                label2.setLineSpaceMultiplier(1.4f);
                 label2.sizeToBoundingBox();
                 label2.setTop(top);
                 label2.setLeft(textbox.left());
