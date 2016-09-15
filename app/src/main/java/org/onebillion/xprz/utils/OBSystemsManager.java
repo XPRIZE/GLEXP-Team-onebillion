@@ -820,4 +820,11 @@ public class OBSystemsManager
         }
     }
 
+
+    public boolean usesAdministratorServices()
+    {
+        String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_USE_ADMINISTRATOR_SERVICES);
+        return (value != null && value.equals("true"));
+    }
+
 }

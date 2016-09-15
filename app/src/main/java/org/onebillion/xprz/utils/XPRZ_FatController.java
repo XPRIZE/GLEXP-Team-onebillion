@@ -110,15 +110,15 @@ public class XPRZ_FatController extends OBFatController
         if (u == null)
         {
             u = OBUser.initAndSaveUserInDB(db,"Student");
+            currentUser = u;
             currentSessionId = -1;
             startNewDayInDB(db);
         }
         else
         {
+            currentUser = u;
             loadLastSessionFromDB(db,u.userid);
         }
-
-        currentUser = u;
         int lastUnitID = currentUser.lastUnitIDFromDB(db);
         if(unitAttemtpsCountInDB(db,lastUnitID) >= MAX_UNIT_ATTEMPTS_COUNT)
             lastUnitID++;
