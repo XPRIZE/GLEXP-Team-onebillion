@@ -22,6 +22,7 @@ import org.onebillion.xprz.utils.OBXMLManager;
 import org.onebillion.xprz.utils.OBXMLNode;
 import org.onebillion.xprz.utils.OB_Maths;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -57,6 +58,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
     PointF videoTouchDownPoint = new PointF();
     OBVideoPlayer videoPlayer;
     String movieFolder;
+    List<OBXMLNode>masterList;
 
     static Typeface plainFont()
     {
@@ -101,9 +103,28 @@ public class XPRZ_JMenu extends XPRZ_Menu
         return 0;
     }
 
+    public void loadMasterList()
+    {
+        InputStream pis;
+        try
+        {
+            pis = MainActivity.mainActivity.getAssets().open("x-jmenu/config/junits.xml");
+            OBXMLManager xmlManager = new OBXMLManager();
+            List<OBXMLNode> xmlNodes = xmlManager.parseFile(pis);
+            OBXMLNode xmlNode = xmlNodes.get(0);
+            List<OBXMLNode>levellist = xmlNode.childrenOfType("level");
+            masterList = levellist.get(0).childrenOfType("unit");
+        }
+        catch (Exception e)
+        {
+
+        }
+    }
+
     public void prepare()
     {
         super.prepare();
+        loadMasterList();
         saveConfig = (String)Config().get(MainActivity.CONFIG_APP_CODE);
         loadEvent("mastera");
         tabTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("tabtextsize")));
@@ -240,7 +261,14 @@ public class XPRZ_JMenu extends XPRZ_Menu
         }
     }
 
-    void populateTargets(String tabstring,OBXMLNode tab,List<String> iconBoxStrings)
+    static void setPropNotNull(OBXMLNode node,OBControl cnt,String name)
+    {
+        String s = node.attributeStringValue(name);
+        if (s != null)
+            cnt.setProperty(name,s);
+    }
+
+    void populateTargets(String tabstring,OBXMLNode tab,List<String> iconBoxStrings,int startidx)
     {
         Typeface tf = plainFont();
         Typeface tfb = boldFont();
@@ -254,8 +282,10 @@ public class XPRZ_JMenu extends XPRZ_Menu
             float zpos = objectDict.get(tabstring+"_background").zPosition()+10;
             for (OBXMLNode n : nodeTargs)
             {
-                OBXMLNode iconnode = n.childrenOfType("icon").get(0);
-                String src = iconnode.attributeStringValue("src");
+                OBXMLNode levelnode = masterList.get(startidx++);
+
+                String src = levelnode.attributeStringValue("icon");
+                src = src + "_big";
                 OBControl im = loadImageWithName(src,pt,boundsf(),true);
                 im.setZPosition(zpos);
                 objectDict.put(tabstring+String.format("_iconi%d",idx+1),im);
@@ -264,6 +294,10 @@ public class XPRZ_JMenu extends XPRZ_Menu
                 float ratio = iconbox.height() / im.height();
                 im.setScale(ratio);
                 im.setPosition(iconbox.position());
+                setPropNotNull(levelnode,im,"target");
+                setPropNotNull(levelnode,im,"params");
+                setPropNotNull(levelnode,im,"config");
+                setPropNotNull(levelnode,im,"lang");
                 if (im.bottom() > screenBottom)
                     scrollable = true;
                 boxname = boxname.replaceFirst("icon","text");
@@ -325,7 +359,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
         Typeface tf = plainFont();
         Typeface tfb = boldFont();
         List<String> targetNames = sortedFilteredControlIDs("reading_iconbox.*");
-        populateTargets(tabstring,tab,targetNames);
+        populateTargets(tabstring,tab,targetNames,0);
         List<OBControl> nums = sortedFilteredControls("reading_num.*");
         int i = 1;
         for (OBControl c : nums)
@@ -354,7 +388,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
 
         List<String> targetNames = sortedFilteredControlIDs(tabstring+"_iconbox.*");
         targetNames.addAll(sortedFilteredControlIDs(tabstring+"_smicon.*"));
-        populateTargets(tabstring,tab,targetNames);
+        populateTargets(tabstring,tab,targetNames,12);
 
         List<OBControl> nums = sortedFilteredControls(tabstring+"_num.*");
         int i = 1;
@@ -383,7 +417,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
 
         List<String> targetNames = sortedFilteredControlIDs(tabstring+"_iconbox.*");
         targetNames.addAll(sortedFilteredControlIDs(tabstring+"_smicon.*"));
-        populateTargets(tabstring,tab,targetNames);
+        populateTargets(tabstring,tab,targetNames,31);
         populateSubSubHeads(tabstring);
         setUpGroup();
     }
@@ -397,8 +431,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
         Typeface tfb = boldFont();
 
         List<String> targetNames = sortedFilteredControlIDs(tabstring+"_iconbox.*");
-        targetNames.addAll(sortedFilteredControlIDs(tabstring+"_smicon.*"));
-        populateTargets(tabstring,tab,targetNames);
+        populateTargets(tabstring,tab,targetNames,43);
         populateSubSubHeads(tabstring);
         setUpGroup();
     }
@@ -412,7 +445,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
         Typeface tfb = boldFont();
 
         List<String> targetNames = sortedFilteredControlIDs(tabstring+"_iconbox.*");
-        populateTargets(tabstring,tab,targetNames);
+        populateTargets(tabstring,tab,targetNames,47);
         populateSubSubHeads(tabstring);
         setUpGroup();
     }
@@ -426,7 +459,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
         Typeface tfb = boldFont();
 
         List<String> targetNames = sortedFilteredControlIDs(tabstring+"_iconbox.*");
-        populateTargets(tabstring,tab,targetNames);
+        populateTargets(tabstring,tab,targetNames,53);
         populateMiscTexts(tabstring);
         populateSubSubHeads(tabstring);
         setUpGroup();
@@ -758,6 +791,29 @@ public class XPRZ_JMenu extends XPRZ_Menu
         }
     }
 
+    void goToTarget(OBControl c)
+    {
+        final String target = (String) c.propertyValue("target");
+        if (target != null)
+        {
+            final String parm = (String) c.propertyValue("params");
+            setStatus(STATUS_BUSY);
+            c.highlight();
+            String languageName = (String) c.propertyValue("lang");
+            String configName = (String) c.propertyValue("config");
+            if (configName == null)
+            {
+                String appDir = (String) Config().get("app_code");
+                String[] comps = appDir.split("/");
+                configName = comps[0];
+            }
+            else
+                MainActivity.mainActivity.updateConfigPaths(configName, false,languageName);
+            if (!MainActivity.mainViewController.pushViewControllerWithNameConfig(target, configName, true, true, parm))
+                setStatus(STATUS_IDLE);
+
+        }
+    }
     public void touchDownAtPoint(PointF pt, View v)
     {
         if (status() != STATUS_IDLE)
@@ -782,6 +838,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
         {
             c.highlight();
             final OBControl cf = c;
+            goToTarget(c);
             OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
             {
                 @Override
