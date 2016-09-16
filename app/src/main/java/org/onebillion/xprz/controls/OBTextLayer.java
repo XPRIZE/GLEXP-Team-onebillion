@@ -19,7 +19,7 @@ import android.text.style.ForegroundColorSpan;
  */
 public class OBTextLayer extends OBLayer
 {
-    public static int JUST_CENTER = 0,
+    public static int JUST_CENTRE = 0,
     JUST_LEFT = 1,
     JUST_RIGHT = 2;
     public StaticLayout stLayout;
@@ -31,8 +31,8 @@ public class OBTextLayer extends OBLayer
     float lineOffset;
     int hiStartIdx=-1,hiEndIdx=-1;
     int hiRangeColour;
-    float letterSpacing;
-    int justification = JUST_CENTER;
+    float letterSpacing,lineSpaceMultiplier=1.0f;
+    int justification = JUST_CENTRE;
     Rect tempRect;
     SpannableString spanner;
     boolean displayObjectsValid = false;
@@ -67,28 +67,13 @@ public class OBTextLayer extends OBLayer
         obj.textPaint = new TextPaint(textPaint);
         obj.lineOffset = lineOffset;
         obj.letterSpacing = letterSpacing;
+        obj.lineSpaceMultiplier = lineSpaceMultiplier;
         obj.hiStartIdx = hiStartIdx;
         obj.hiEndIdx = hiEndIdx;
         obj.hiRangeColour = hiRangeColour;
         obj.justification = justification;
         obj.maxWidth = maxWidth;
         return obj;
-    }
-
-    public void drawHighText(Canvas canvas)
-    {
-        SpannableString ss = new SpannableString(text);
-        ss.setSpan(new ForegroundColorSpan(hiRangeColour),hiStartIdx,hiEndIdx, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        TextPaint txpaint = new TextPaint(textPaint);
-        txpaint.setColor(Color.RED);
-        StaticLayout ly = new StaticLayout(ss,txpaint,tempRect.width(), Layout.Alignment.ALIGN_NORMAL,1,0,false);
-        float l = 0;
-        if (justification == JUST_CENTER)
-            l = (bounds().right - ly.getLineWidth(0)) / 2f;
-        canvas.save();
-        canvas.translate(l,0);
-        ly.draw(canvas);
-        canvas.restore();
     }
 
     public void makeDisplayObjects()
@@ -99,7 +84,10 @@ public class OBTextLayer extends OBLayer
         spanner = new SpannableString(text);
         if (hiStartIdx >= 0)
             spanner.setSpan(new ForegroundColorSpan(hiRangeColour),hiStartIdx,hiEndIdx, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        stLayout = new StaticLayout(spanner,textPaint,(int)maxWidth, Layout.Alignment.ALIGN_NORMAL,1,0,false);
+        float mw = maxWidth;
+        stLayout = new StaticLayout(spanner,textPaint,(int)mw,
+                (justification==JUST_CENTRE)?Layout.Alignment.ALIGN_CENTER:Layout.Alignment.ALIGN_NORMAL,
+                lineSpaceMultiplier,0,false);
         displayObjectsValid = true;
     }
     @Override
@@ -111,8 +99,8 @@ public class OBTextLayer extends OBLayer
             makeDisplayObjects();
         }
         float l = 0;
-        if (justification == JUST_CENTER)
-            l = (bounds().right - stLayout.getLineWidth(0)) / 2f;
+        //if (justification == JUST_CENTER)
+          //  l = (bounds().right - stLayout.getLineWidth(0)) / 2f;
         canvas.save();
         canvas.translate(l,0);
         stLayout.draw(canvas);
@@ -164,9 +152,19 @@ public class OBTextLayer extends OBLayer
         bb.left = 0;
         bb.top = 0;
         float maxw = 0;
-        for (int i = 0;i < linect;i++)
-            if (stLayout.getLineWidth(0) > maxw)
-                maxw = stLayout.getLineWidth(0);
+      /*  if (justification == JUST_CENTRE)
+            maxw = maxWidth;
+        else*/
+        {
+            for (int i = 0;i < linect;i++)
+            {
+                float w = stLayout.getLineWidth(i);
+                float x = stLayout.getLineRight(i);
+                Rect r = new Rect();
+                if (w > maxw)
+                    maxw = w;
+            }
+        }
         bb.right = maxw;
         bb.bottom = stLayout.getLineBottom(linect - 1);
     }
@@ -175,8 +173,14 @@ public class OBTextLayer extends OBLayer
         RectF b = new RectF();
         calcBounds(b);
         setBounds(b);
+        displayObjectsValid = false;
     }
 
+    public void setBounds(RectF bounds)
+    {
+        maxWidth = bounds.width();
+        super.setBounds(bounds);
+    }
     public float letterSpacing()
     {
         return letterSpacing;

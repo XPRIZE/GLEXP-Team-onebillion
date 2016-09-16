@@ -1083,8 +1083,8 @@ public class OBSectionController extends OBViewController
         control.controller = null;
 //        if(control.texture != null)
 //            control.texture.cleanUp();
-        invalidateView((int) f.left, (int) f.top, (int) f.right, (int) f.bottom);
         sortedAttachedControlsValid = false;
+        invalidateView((int) f.left, (int) f.top, (int) f.right, (int) f.bottom);
     }
 
     public List<String> filterControlsIDs (String pattern)
@@ -1119,6 +1119,20 @@ public class OBSectionController extends OBViewController
         return arr3;
     }
 
+    public List<String> sortedFilteredControlIDs (String pattern)
+    {
+        List<String>ids = filterControlsIDs(pattern);
+        Collections.sort(ids, new Comparator<String>()
+        {
+            @Override
+            public int compare (String lhs, String rhs)
+            {
+                return OBUtils.caseInsensitiveCompareWithNumbers(lhs, rhs);
+            }
+        });
+
+        return ids;
+    }
     public List<OBControl> zPositionSortedFilteredControls (String pattern)
     {
         List<String> arr = filterControlsIDs(pattern);

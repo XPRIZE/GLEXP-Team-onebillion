@@ -73,7 +73,6 @@ public class OBSystemsManager
 
     private boolean AppIsInForeground;
     private final int keepInForegroundInterval = 1000;
-    private Runnable keepInForegroundRunnable;
     private boolean suspended;
     private boolean kioskModeActive = false;
 
@@ -89,48 +88,8 @@ public class OBSystemsManager
         //
         memoryUsageMap = new HashMap<String, List<String>>();
         //
-        keepInForegroundRunnable = new Runnable()
-        {
-            @Override
-            public void run ()
-            {
-                if (OBSystemsManager.sharedManager.isScreenOn(MainActivity.mainActivity))
-                {
-                    if (!OBSystemsManager.sharedManager.isAppIsInForeground())
-                    {
-                        MainActivity.log("App is not in the foreground. Move it!");
-                        //
-                        Intent i = MainActivity.mainActivity.getPackageManager().getLaunchIntentForPackage(MainActivity.mainActivity.getPackageName());
-                        i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NO_ANIMATION | Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
-                        PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.mainActivity, 0, i, 0);
-                        try
-                        {
-                            pendingIntent.send();
-                        }
-                        catch (PendingIntent.CanceledException e)
-                        {
-                            e.printStackTrace();
-                        }
-                    }
-                    mainHandler.postDelayed(this, keepInForegroundInterval);
-                }
-            }
-        };
-        //
         sharedManager = this;
     }
-
-
-    public void startForegroundCheck ()
-    {
-        if (mainHandler != null && keepInForegroundRunnable != null && !suspended)
-        {
-            MainActivity.log("keep in foreground runnable: starting check");
-            mainHandler.removeCallbacks(keepInForegroundRunnable);
-            mainHandler.postDelayed(keepInForegroundRunnable, keepInForegroundInterval);
-        }
-    }
-
 
     public boolean isAppIsInForeground ()
     {
@@ -323,11 +282,6 @@ public class OBSystemsManager
         //
         AppIsInForeground = true;
         //
-        if (mainHandler != null && keepInForegroundRunnable != null)
-        {
-            mainHandler.removeCallbacks(keepInForegroundRunnable);
-        }
-        //
         if (batteryReceiver != null)
         {
             MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
@@ -375,8 +329,6 @@ public class OBSystemsManager
     public void onDestroy ()
     {
         MainActivity.log("OBSystemsManager.onDestroy detected");
-        //
-        mainHandler.removeCallbacks(keepInForegroundRunnable);
     }
 
 
@@ -402,11 +354,6 @@ public class OBSystemsManager
         killAllServices();
         //
         OBBrightnessManager.sharedManager.onSuspend();
-        //
-        if (mainHandler != null && keepInForegroundRunnable != null)
-        {
-            mainHandler.removeCallbacks(keepInForegroundRunnable);
-        }
     }
 
 
@@ -818,6 +765,13 @@ public class OBSystemsManager
                 e.printStackTrace();
             }
         }
+    }
+
+
+    public boolean usesAdministratorServices()
+    {
+        String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_USE_ADMINISTRATOR_SERVICES);
+        return (value != null && value.equals("true"));
     }
 
 }

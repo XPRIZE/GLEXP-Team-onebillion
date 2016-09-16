@@ -685,7 +685,6 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
 
     public void checkAnswer1(OBControl targ,PointF pt)
     {
-        int saveStatus = status();
         setStatus(STATUS_CHECKING);
         try
         {
@@ -711,7 +710,7 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
                 gotItWrongWithSfx();
                 waitSFX();
                 waitForSecs(0.1f);
-                setStatus(saveStatus);
+                setStatus(STATUS_WAITING_FOR_ANSWER);
                 List<Object>audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("INCORRECT");
                 presenter.speak(audl,this);
             }
@@ -724,7 +723,6 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
 
     public void checkAnswer2(OBControl targ,PointF pt)
     {
-        int saveStatus = status();
         setStatus(STATUS_CHECKING);
         try
         {
@@ -754,7 +752,7 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
                 waitAudio();
                 waitForSecs(0.1f);
                 demoCqType2b(false);
-                setStatus(saveStatus);
+                setStatus(STATUS_WAITING_FOR_ANSWER);
             }
         }
         catch (Exception exception)
@@ -773,7 +771,9 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         if (status() == STATUS_WAITING_FOR_ANSWER)
         {
             target = (OBControl) findTarget(pt);
+            if (cqType == 1 || target != null)
             {
+                setStatus(STATUS_CHECKING);
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
                     @Override
                     public void run() throws Exception {

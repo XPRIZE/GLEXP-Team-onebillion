@@ -143,7 +143,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
             {
 //                action_popup();
                 //
-                if (!performSel("demo",currentEvent()))
+                if (!performSel("demo", currentEvent()))
                 {
                     doBody(currentEvent());
                 }
@@ -155,10 +155,13 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
     @Override
     public void setScene (final String scene)
     {
-        new OBRunnableSyncUI(){public void ex()
+        new OBRunnableSyncUI()
         {
-            doVisual(scene);
-        }}.run();
+            public void ex ()
+            {
+                doVisual(scene);
+            }
+        }.run();
 
         try
         {
@@ -286,7 +289,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
     }
 
 
-    public void action_popup() throws Exception
+    public void action_popup () throws Exception
     {
         if (currentEvent().equals("b") || (!events.contains("b") && currentEvent().equals("c")))
         {
@@ -297,7 +300,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
             unlockScreen();
             waitForSecs(0.5);
         }
-        if (showText)
+        if (showText && eventIndex < events.size() - 1)
         {
             waitForSecs(0.4);
             playSfxAudio("wordon", false);
@@ -322,7 +325,10 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
 
     public void setScenefinale ()
     {
-        // do nothing
+        if (mode.equals("word"))
+        {
+            label.show();
+        }
     }
 
 
@@ -773,7 +779,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
                     waitForSecs(0.3);
                 }
                 //
-                if (showText)
+                if (showText && eventIndex < events.size() - 2)
                 {
                     playSfxAudio("wordoff", false);
                     lockScreen();

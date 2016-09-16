@@ -764,6 +764,15 @@ public class X_Reading extends XPRZ_SectionController
         if (!_aborting && !MainViewController().navigating && status()!= STATUS_FINISHING)
         {
             setStatus(STATUS_FINISHING);
+            try
+            {
+                takeSequenceLockInterrupt(true);
+            }
+            catch (Exception e)
+            {
+
+            }
+            sequenceLock.unlock();
             if (pageNo == maxPageNo)
             {
                 finishBook();

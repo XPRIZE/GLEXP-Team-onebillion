@@ -228,6 +228,9 @@ public class X_Sorting_S2 extends XPRZ_SectionController
             else
             {
                 gotItWrongWithSfx();
+                waitForSecs(0.02f);
+                waitSFX();
+                _replayAudio();
                 setStatus(saveStatus);
             }
         }

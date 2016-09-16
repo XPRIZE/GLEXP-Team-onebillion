@@ -52,7 +52,7 @@ public class OBBrightnessManager
                     layoutpars.screenBrightness = value;
                     MainActivity.mainActivity.getWindow().setAttributes(layoutpars);
                     OBSystemsManager.sharedManager.refreshStatus();
-//                    MainActivity.log("Brightness has been set to: " + valueForSettings);
+                    MainActivity.log("Brightness has been set to: " + value + " --> " + valueForSettings);
                 }
                 catch (Exception e)
                 {
@@ -179,6 +179,7 @@ public class OBBrightnessManager
 //        MainActivity.log("OBBrightnessManager.onResume detected");
         lastTouchTimeStamp = System.currentTimeMillis();
         paused = false;
+        MainActivity.log("OBBrightnessManager.onResume --> restoring brightnessCheckRunnable to Handler");
         runBrightnessCheck();
     }
 
@@ -187,16 +188,17 @@ public class OBBrightnessManager
     {
 //        MainActivity.log("OBBrightnessManager.onPause detected");
         paused = true;
+        if (OBSystemsManager.sharedManager.mainHandler != null && brightnessCheckRunnable != null)
+        {
+            MainActivity.log("OBBrightnessManager.onPause --> removing brightnessCheckRunnable from Handler");
+            OBSystemsManager.sharedManager.mainHandler.removeCallbacks(brightnessCheckRunnable);
+        }
     }
 
 
     public void onStop ()
     {
 //        MainActivity.log("OBBrightnessManager.onStop detected");
-        if (OBSystemsManager.sharedManager.mainHandler != null && brightnessCheckRunnable != null)
-        {
-            OBSystemsManager.sharedManager.mainHandler.removeCallbacks(brightnessCheckRunnable);
-        }
     }
 
 

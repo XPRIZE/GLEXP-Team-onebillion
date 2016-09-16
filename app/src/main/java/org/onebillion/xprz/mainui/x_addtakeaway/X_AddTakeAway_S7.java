@@ -506,8 +506,11 @@ public class X_AddTakeAway_S7 extends XPRZ_Generic_Event
                         String audio = isSnake ? "snake" : "ladder";
                         playSfxAudio(audio, false);
                         //
+                        OBAnim animToPath = OBAnim.moveAnim(path.firstPoint(), counter);
                         OBAnim anim = OBAnim.pathMoveAnim(counter, path.path(), false, 0.0f);
-                        OBAnimationGroup.runAnims(Arrays.asList(anim), 1.5, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+                        OBAnim animFromPath = OBAnim.moveAnim(destination.getWorldPosition(), counter);
+                        OBAnimationGroup.chainAnimations(Arrays.asList(Arrays.asList(animToPath),Arrays.asList(anim),Arrays.asList(animFromPath)), Arrays.asList(0.2f,1.5f,0.2f), true, Arrays.asList(OBAnim.ANIM_EASE_IN, OBAnim.ANIM_LINEAR, OBAnim.ANIM_EASE_OUT), 1, this);
+//                        OBAnimationGroup.runAnims(Arrays.asList(animToPath, anim, animFromPath), 1.5, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
                         //
                         currentPosition = (Integer) destination.propertyValue("number");
                         counter.setProperty("originalPosition", counter.getWorldPosition());
@@ -604,7 +607,6 @@ public class X_AddTakeAway_S7 extends XPRZ_Generic_Event
         {
             nextPlay();
             tumbler_locked = true;
-            setReplayAudioScene(currentEvent(), "REPEAT2"); // Count the spots. Then move the counter that number of places.
             if (number_plays == 1)
             {
                 playSceneAudio("REPEAT2", false);
@@ -617,6 +619,7 @@ public class X_AddTakeAway_S7 extends XPRZ_Generic_Event
         }
         //
         revertStatusAndReplayAudio();
+        setReplayAudioScene(currentEvent(), "REPEAT2"); // Count the spots. Then move the counter that number of places.
     }
 
 

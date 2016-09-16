@@ -166,7 +166,14 @@ public class OBAudioManager {
         else
         {
             AssetFileDescriptor fd = getAudioPathFD(fileName);
-            player.startPlaying(fd);
+            if (fd != null)
+            {
+                player.startPlaying(fd);
+            }
+            else
+            {
+                MainActivity.log("Error caught in OBAudioManager.startPlaying [" + fileName + "] returned a null file descriptor");
+            }
         }
     }
 

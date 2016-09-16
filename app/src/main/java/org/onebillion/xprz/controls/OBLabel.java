@@ -155,4 +155,16 @@ public class OBLabel extends OBControl
         OBTextLayer tl = (OBTextLayer)layer;
         tl.displayObjectsValid = false;
     }
+
+    public float lineSpaceMultiplier()
+    {
+        OBTextLayer tl = (OBTextLayer)layer;
+        return tl.lineSpaceMultiplier;
+    }
+
+    public void setLineSpaceMultiplier(float f)
+    {
+        OBTextLayer tl = (OBTextLayer)layer;
+        tl.lineSpaceMultiplier = f;
+    }
 }

@@ -100,6 +100,8 @@ public class MainActivity extends Activity
             CONFIG_RESTART_AFTER_CRASH = "restartAfterCrash",
             CONFIG_HIDE_STATUS_BAR = "hideStatusBar",
             CONFIG_HIDE_NAVIGATION_BAR = "hideNavigationBar",
+            CONFIG_ALLOWS_TIMEOUT = "allowsTimeout",
+            CONFIG_USE_ADMINISTRATOR_SERVICES = "enableAdiministratorServices",
             CONFIG_MENU_CLASS = "menuclass";
     public static String TAG = "livecode";
     //
@@ -297,34 +299,44 @@ public class MainActivity extends Activity
         // ask permissions
         if (isAllPermissionGranted())
         {
-            // set date and time
-            if (getPreferences("dateTimeSetupComplete") == null)
+            if (OBSystemsManager.sharedManager.usesAdministratorServices())
             {
-                Intent intent = new Intent(android.provider.Settings.ACTION_DATE_SETTINGS);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-//                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                startActivityForResult(intent, REQUEST_FIRST_SETUP_DATE_TIME);
-            }
-            else
-            {
-                // set write settings permissions
-                if (!Settings.System.canWrite(this))
+                // set date and time
+                if (getPreferences("dateTimeSetupComplete") == null)
                 {
-                    Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                    Intent intent = new Intent(android.provider.Settings.ACTION_DATE_SETTINGS);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    intent.setData(Uri.parse("package:" + getPackageName()));
-                    startActivityForResult(intent, REQUEST_FIRST_SETUP_PERMISSIONS);
+//                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    startActivityForResult(intent, REQUEST_FIRST_SETUP_DATE_TIME);
                 }
                 else
                 {
-                    if (OBSystemsManager.sharedManager.enableAdminstratorPrivileges())
+                    // set write settings permissions
+                    if (!Settings.System.canWrite(this))
                     {
-                        addToPreferences("firstSetupComplete", "true"); // to be removed
-                        //
-                        log("First Setup complete. Loading Main View Controller");
-                        checkForUpdatesAndLoadMainViewController();
+                        Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                        intent.setData(Uri.parse("package:" + getPackageName()));
+                        startActivityForResult(intent, REQUEST_FIRST_SETUP_PERMISSIONS);
+                    }
+                    else
+                    {
+                        if (OBSystemsManager.sharedManager.enableAdminstratorPrivileges())
+                        {
+                            addToPreferences("firstSetupComplete", "true"); // to be removed
+                            //
+                            log("First Setup complete. Loading Main View Controller");
+                            checkForUpdatesAndLoadMainViewController();
+                        }
                     }
                 }
+            }
+            else
+            {
+                addToPreferences("firstSetupComplete", "true"); // to be removed
+                //
+                log("First Setup complete. Administrator Services disabled. Loading Main View Controller");
+                checkForUpdatesAndLoadMainViewController();
             }
         }
     }

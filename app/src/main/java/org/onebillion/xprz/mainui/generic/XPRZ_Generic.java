@@ -95,7 +95,11 @@ public class XPRZ_Generic
         float maxZPosition = 0.0f;
         for (OBControl control : sc.objectDict.values())
         {
-            maxZPosition = Math.max(maxZPosition, control.zPosition());
+            float zPosition = control.zPosition();
+            if (zPosition < 50)
+            {
+                maxZPosition = Math.max(maxZPosition, zPosition);
+            }
         }
         return maxZPosition + 0.001f;
     }
