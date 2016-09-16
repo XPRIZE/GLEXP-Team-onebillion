@@ -101,7 +101,7 @@ public class MainActivity extends Activity
             CONFIG_HIDE_STATUS_BAR = "hideStatusBar",
             CONFIG_HIDE_NAVIGATION_BAR = "hideNavigationBar",
             CONFIG_ALLOWS_TIMEOUT = "allowsTimeout",
-            CONFIG_USE_ADMINISTRATOR_SERVICES = "enableAdiministratorServices",
+            CONFIG_USE_ADMINISTRATOR_SERVICES = "enableAdministratorServices",
             CONFIG_MENU_CLASS = "menuclass";
     public static String TAG = "livecode";
     //
