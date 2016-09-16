@@ -704,10 +704,11 @@ public class XPRZ_FatController extends OBFatController
         if(unitInstance.sectionController == null || unitInstance.sectionController._aborting)
             return false;
 
-        if((unitInstance.starttime + 10) < getCurrentTime())
+        if((unitInstance.starttime + 20) < getCurrentTime())
         {
             MainActivity.log("Time out!!");
             timeOutEvent(unitInstance.sectionController);
+            return false;
         }
         return true;
     }
