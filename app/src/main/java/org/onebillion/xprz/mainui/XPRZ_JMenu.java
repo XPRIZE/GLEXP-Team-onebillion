@@ -44,6 +44,9 @@ public class XPRZ_JMenu extends XPRZ_Menu
     float originalY,maximumY,minimumY;
     OBControl scrollGroup;
     PointF lastPoint = new PointF();
+    PointF lastLastPoint = new PointF();
+    long lastMoveEvent,lastlastMoveEvent;
+    float scrollSpeed;
     int videoPreviewIdx = 0;
     List<OBControl> videoPreviewImages;
     OBGroup videoPreviewGroup;
@@ -58,6 +61,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
     PointF videoTouchDownPoint = new PointF();
     OBVideoPlayer videoPlayer;
     String movieFolder;
+    boolean slowingDown;
     List<OBXMLNode>masterList;
 
     static Typeface plainFont()
@@ -732,10 +736,59 @@ public class XPRZ_JMenu extends XPRZ_Menu
         }
         if(status()  == STATUS_DRAGGING)
         {
+            float dist = lastPoint.y - lastLastPoint.y;
+            float time = (lastMoveEvent - lastlastMoveEvent)/ 1000.0f;
+            final float speed = dist / time;
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    slowDown(speed);
+                }
+            });
             setStatus(STATUS_IDLE);
         }
     }
 
+    void slowDown(float ySpeed)
+    {
+        slowingDown = true;
+        try
+        {
+            while (slowingDown)
+            {
+                if (Math.abs(ySpeed) < 1)
+                {
+                    slowingDown = false;
+                    return;
+                }
+                ySpeed *= 0.99f;
+                float dist = ySpeed * 0.02f;
+                float y = scrollGroup.position().y;
+                y += dist;
+                boolean fin = false;
+                if (y > maximumY)
+                {
+                    y = maximumY;
+                    fin = true;
+                }
+                else if (y < minimumY)
+                {
+                    y = minimumY;
+                    fin = true;
+                }
+                scrollGroup.setPosition(scrollGroup.position().x,y);
+                if (fin)
+                    slowingDown = false;
+                waitForSecs(0.02);
+            }
+        }
+        catch (Exception e)
+        {
+            slowingDown = false;
+        }
+    }
     public void touchMovedToPoint(PointF pt,View v)
     {
         if (currentTab.equals("video"))
@@ -762,7 +815,10 @@ public class XPRZ_JMenu extends XPRZ_Menu
             {
                 scrollGroup.setPosition(scrollGroup.position().x,newY);
             }
+            lastLastPoint.y = lastPoint.y;
+            lastlastMoveEvent = lastMoveEvent;
             lastPoint.y = pt.y;
+            lastMoveEvent = System.currentTimeMillis();
         }
     }
 
@@ -816,6 +872,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
     }
     public void touchDownAtPoint(PointF pt, View v)
     {
+        slowingDown = false;
         if (status() != STATUS_IDLE)
             return;
         OBControl c = findTab(pt);
