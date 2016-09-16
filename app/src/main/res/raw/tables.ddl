@@ -11,7 +11,8 @@ create table units
 	targetDuration real,
 	passThreshold real,
     lang text,
-    catAudio int default -1
+    catAudio int default -1,
+    startAudio int default -1
 );
 
 create table unitinstances
@@ -43,14 +44,6 @@ create table users
 (
     userid integer primary key,
     name text not null
-);
-
-create table certificates
-(
-    userid int not null references users(userid) on delete restrict,
-    level int not null,
-    file text not null,
-    constraint pkey primary key (userid,level) on conflict fail
 );
 
 create table preferences

@@ -47,30 +47,35 @@ public class MlUnitInstance extends MlObject
         Map<String,String> whereMap = new ArrayMap<>();
         whereMap.put("userid",String.valueOf(userid));
         whereMap.put("unitid",String.valueOf(unit.unitid));
-        DBSQL db = new DBSQL(true);
-        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES, Collections.singletonList("MAX(seqno) as seqno"),whereMap);
-        if(cursor.moveToFirst())
+
+        DBSQL db = null;
+        try
         {
-            mlui.seqno = cursor.getInt(cursor.getColumnIndex("seqno")) + 1;
-        }
-        else
-        {
-            mlui.seqno = 0;
-        }
-        mlui.starttime = starttime;
-        if(mlui.saveToDB(db))
-        {
+            db = new DBSQL(true);
+            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES, Collections.singletonList("MAX(seqno) as seqno"),whereMap);
+            if(cursor.moveToFirst())
+            {
+                mlui.seqno = cursor.getInt(cursor.getColumnIndex("seqno")) + 1;
+            }
+            else
+            {
+                mlui.seqno = 0;
+            }
+            mlui.starttime = starttime;
+            if(!mlui.saveToDB(db))
+                mlui = null;
             cursor.close();
-            db.close();
-            return mlui;
         }
-        else
+        catch(Exception e)
         {
 
-            cursor.close();
-            db.close();
-            return null;
         }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+        return mlui;
     }
 
     public static MlUnitInstance mlUnitInstanceFromDBFor(int userid, MlUnit unit, int seqno)
@@ -79,18 +84,31 @@ public class MlUnitInstance extends MlObject
         whereMap.put("userid",String.valueOf(userid));
         whereMap.put("unitid",String.valueOf(unit.unitid));
         whereMap.put("seqno",String.valueOf(seqno));
-        DBSQL db = new DBSQL(false);
-        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES,allFieldNames(null,intFields,longFields,floatFields),whereMap);
 
         MlUnitInstance mlui = null;
-        if(cursor.moveToFirst())
+
+        DBSQL db = null;
+        try
         {
-            mlui = new MlUnitInstance();
-            mlui.cursorToObject(cursor,null,floatFields,intFields,longFields);
-            mlui.mlUnit = unit;
+            db = new DBSQL(false);
+            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES,allFieldNames(null,intFields,longFields,floatFields),whereMap);
+            if(cursor.moveToFirst())
+            {
+                mlui = new MlUnitInstance();
+                mlui.cursorToObject(cursor,null,floatFields,intFields,longFields);
+                mlui.mlUnit = unit;
+            }
+            cursor.close();
         }
-        cursor.close();
-        db.close();
+        catch(Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
         return mlui;
     }
 

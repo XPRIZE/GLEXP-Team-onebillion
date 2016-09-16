@@ -15,10 +15,10 @@ public class MlUnit extends MlObject
 {
     public String key, icon, params, config, target, lang;
     public float targetDuration, passThreshold;
-    public int catAudio, level, unitid, awardStar;
+    public int catAudio, level, unitid, awardStar, startAudio;
 
     private static final String[] stringFields = {"key","icon","target","params","config","lang"};
-    private static final String[] intFields = {"unitid","level","catAudio","targetDuration","awardStar"};
+    private static final String[] intFields = {"unitid","level","catAudio","targetDuration","awardStar","startAudio"};
     private static final String[] floatFields = {"passThreshold"};
     private static final Map<String,String> dbToXmlConvert;
     static
@@ -34,11 +34,12 @@ public class MlUnit extends MlObject
         return unit;
     }
 
-    public static boolean insertUnitFromXMLNodeintoDB(DBSQL db, OBXMLNode node, long unitid, int level)
+    public static boolean insertUnitFromXMLNodeintoDB(DBSQL db, OBXMLNode node, long unitid, int level, int startAudio)
     {
         ContentValues contentValues = contentValuesForNode(node,stringFields,intFields,null,floatFields,dbToXmlConvert);
         contentValues.put("unitid", unitid);
         contentValues.put("level", level);
+        contentValues.put("startAudio", startAudio);
         boolean result = db.doInsertOnTable(DBSQL.TABLE_UNITS,contentValues) > -1;
         return result;
     }
@@ -51,37 +52,66 @@ public class MlUnit extends MlObject
         return contentValues;
     }
 
-    public static MlUnit mlUnitFromDBforUnitID(long unitid)
+    public static MlUnit mlUnitforUnitID(long unitid)
     {
+
+        MlUnit unit = null;
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(false);
+            unit = mlUnitforUnitIDFromDB(db,unitid);
+        }
+        catch(Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+
+        return unit;
+    }
+
+    public static  MlUnit mlUnitforUnitIDFromDB(DBSQL db, long unitid)
+    {
+        MlUnit unit = null;
         Map<String,String> whereMap = new ArrayMap<>();
         whereMap.put("unitid",String.valueOf(unitid));
-        DBSQL db = new DBSQL(false);
         Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNITS,allFieldNames(stringFields,intFields,null,floatFields),whereMap);
         if(cursor.moveToFirst())
         {
-            MlUnit unit = mlUnitFromCursor(cursor);
-            cursor.close();
-            db.close();
-            return unit;
+            unit = mlUnitFromCursor(cursor);
         }
-        else
-        {
-            cursor.close();
-            db.close();
-            return null;
-        }
+        cursor.close();
+        return unit;
     }
 
     public static int awardNumForLevel(int level, int unitid)
     {
-        DBSQL db = new DBSQL(false);
-        Cursor cursor = db.prepareRawQuery("SELECT MAX(awardStar) as awardStar FROM "+DBSQL.TABLE_UNITS+" WHERE level = ? AND unitid <= ?", Arrays.asList(String.valueOf(level),String.valueOf(unitid)));
         int lastStar = 0;
-        if(cursor.moveToFirst())
-            lastStar = cursor.getInt(cursor.getColumnIndex("awardStar"));
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(false);
+            Cursor cursor = db.prepareRawQuery("SELECT MAX(awardStar) as awardStar FROM "+DBSQL.TABLE_UNITS+" WHERE level = ? AND unitid <= ?", Arrays.asList(String.valueOf(level),String.valueOf(unitid)));
 
-        cursor.close();
-        db.close();
+            if(cursor.moveToFirst())
+                lastStar = cursor.getInt(cursor.getColumnIndex("awardStar"));
+
+            cursor.close();
+        }
+        catch(Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
         return lastStar;
     }
 

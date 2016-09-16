@@ -27,16 +27,31 @@ public class OBUser extends MlObject
     {
         Map<String,String> whereMap  = new ArrayMap<>();
         whereMap.put("userid",String.valueOf(userid));
-        DBSQL db = new DBSQL(false);
-        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_USERS, allFieldNames(stringFields,intFields,null,null),whereMap);
+
         OBUser user = null;
-        if(cursor.moveToFirst())
+        DBSQL db = null;
+        try
         {
-            user = new OBUser();
-            user.cursorToObject(cursor,stringFields,intFields,null,null);
+            db = new DBSQL(false);
+            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_USERS, allFieldNames(stringFields,intFields,null,null),whereMap);
+
+            if(cursor.moveToFirst())
+            {
+                user = new OBUser();
+                user.cursorToObject(cursor,stringFields,intFields,null,null);
+            }
+            cursor.close();
         }
-        cursor.close();
-        db.close();
+        catch(Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+
         return user;
     }
 
@@ -74,7 +89,9 @@ public class OBUser extends MlObject
 
     public int lastUnitIDFromDB(DBSQL db)
     {
-        Cursor cursor = db.prepareRawQuery("SELECT MAX(unitid) as unitid FROM unitinstances WHERE userid = ? AND endtime > 0",Collections.singletonList(String.valueOf(userid)));
+        Map<String,String> whereMap  = new ArrayMap<>();
+        whereMap.put("userid",String.valueOf(userid));
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES,Collections.singletonList("MAX(unitid) as unitid"),whereMap);
         int returnId = 0;
         if(cursor.moveToFirst())
             returnId = cursor.getInt(cursor.getColumnIndex("unitid"));

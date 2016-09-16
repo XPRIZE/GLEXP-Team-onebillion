@@ -14,10 +14,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,7 +25,7 @@ import java.util.logging.Logger;
 public class XPRZ_FatController extends OBFatController
 {
 
-    public long firstUnstartedIndex;
+    private long firstUnstartedIndex;
     public int scoreCorrect,scoreWrong;
     public float finalScore;
     public XPRZ_FatReceiver menu;
@@ -41,8 +39,9 @@ public class XPRZ_FatController extends OBFatController
             OFC_FIRST_TIME_IN = 6,
             OFC_NEW_SESSION =7;
 
-    private static final long SESSION_TIMEOUT_MIN = 60;
+    private static final long SESSION_TIMEOUT = 60*60;
     private static final int MAX_UNIT_ATTEMPTS_COUNT = 3;
+    private static final int UNIT_TIMEOUT = 15*60;
 
     private MlUnitInstance currentUnitInstance;
     private OBUser currentUser;
@@ -59,10 +58,11 @@ public class XPRZ_FatController extends OBFatController
 
     public void loadMasterListIntoDB()
     {
-        DBSQL db = new DBSQL(true);
-        String token = OBPreferenceManager.getStringPreference(OBPreferenceManager.PREFERENCE_ML_TOKEN, db);
+        DBSQL db = null;
         try
         {
+            db = new DBSQL(true);
+            String token = OBPreferenceManager.getStringPreference(OBPreferenceManager.PREFERENCE_ML_TOKEN, db);
             String mlname = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_MASTER_LIST);
             OBXMLManager xmlManager = new OBXMLManager();
             InputStream is = OBUtils.getInputStreamForPath(String.format("config/%s", mlname));
@@ -75,58 +75,107 @@ public class XPRZ_FatController extends OBFatController
                 db.beginTransaction();
                 try
                 {
+                    int startAudio = 0;
+                    int nextAudio = OB_Maths.randomInt(6,8);
                     db.doDeleteOnTable(DBSQL.TABLE_UNITS, null);
                     int unitid = 0;
                     for (OBXMLNode levelNode : rootNode.childrenOfType("level"))
                     {
+                        int level = levelNode.attributeIntValue("id");
                         masterList.addAll(levelNode.childrenOfType("unit"));
-                        for (OBXMLNode node : levelNode.childrenOfType("unit"))
+                        List<OBXMLNode> nodes = levelNode.childrenOfType("unit");
+
+                        for (int i=0; i<nodes.size(); i++)
                         {
-                            MlUnit.insertUnitFromXMLNodeintoDB(db, node, unitid, levelNode.attributeIntValue("id"));
+                            OBXMLNode node = nodes.get(i);
+                            int currentStartAudio = -1;
+                            if(unitid == nextAudio)
+                            {
+                                if((i <= 1) && (i >= nodes.size()-2))
+                                {
+                                    nextAudio++;
+                                }
+                                else
+                                {
+                                    currentStartAudio = startAudio;
+                                    nextAudio += OB_Maths.randomInt(6,8);
+                                    startAudio++;
+                                    if(startAudio > 7)
+                                        startAudio = 0;
+                                }
+                            }
+
+                            MlUnit.insertUnitFromXMLNodeintoDB(db, node, unitid,level,currentStartAudio);
                             unitid++;
                         }
                     }
                     OBPreferenceManager.setPreference(OBPreferenceManager.PREFERENCE_ML_TOKEN,masterListToken, db);
                     db.setTransactionSuccessful();
-                } finally
+                }
+                finally
                 {
                     db.commitTransaction();
                 }
             }
 
-        } catch (Exception e)
-        {
-
         }
-        db.close();
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+
 
     }
 
 
     public void loadUser()
     {
-        DBSQL db = new DBSQL(true);
-        OBUser u = OBUser.lastUserFromDB(db);
-        if (u == null)
+        DBSQL db = null;
+        try
         {
-            u = OBUser.initAndSaveUserInDB(db,"Student");
-            currentSessionId = -1;
-            startNewDayInDB(db);
+            db = new DBSQL(true);
+            OBUser u = OBUser.lastUserFromDB(db);
+            if (u == null)
+            {
+                u = OBUser.initAndSaveUserInDB(db, "Student");
+                currentUser = u;
+                currentSessionId = -1;
+                startNewDayInDB(db, u.userid);
+            } else
+            {
+                currentUser = u;
+                loadLastSessionFromDB(db, u.userid);
+                loadLastUnitIndexFromDB(db);
+            }
+
         }
-        else
+        catch (Exception e)
         {
-            loadLastSessionFromDB(db,u.userid);
+            e.printStackTrace();
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
         }
 
-        currentUser = u;
-        int lastUnitID = currentUser.lastUnitIDFromDB(db);
-        if(unitAttemtpsCountInDB(db,lastUnitID) >= MAX_UNIT_ATTEMPTS_COUNT)
-            lastUnitID++;
-
-        firstUnstartedIndex = lastUnitID;
-        db.close();
         checkAndStartNewSession();
     }
+
+    public void loadLastUnitIndexFromDB(DBSQL db)
+    {
+        int lastUnitID = currentUser.lastUnitIDFromDB(db);
+        if (unitAttemtpsCountInDB(db, lastUnitID) < MAX_UNIT_ATTEMPTS_COUNT)
+            lastUnitID--;
+
+        firstUnstartedIndex = lastUnitID + 1;
+    }
+
 
     public void deleteDBFile()
     {
@@ -149,14 +198,25 @@ public class XPRZ_FatController extends OBFatController
     {
         loadMasterListIntoDB();
         loadUser();
-
     }
 
     public void continueFromLastUnit()
     {
-        DBSQL db = new DBSQL(false);
-        firstUnstartedIndex = lastPlayedUnitIndex(db) + 1;
-        db.close();
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(false);
+            loadLastUnitIndexFromDB(db);
+        }
+        catch(Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
     }
 
     @Override
@@ -199,23 +259,36 @@ public class XPRZ_FatController extends OBFatController
 
         }
         cont.exitEvent();
-
     }
 
     public void timeOutEvent(OBSectionController cont)
     {
-        DBSQL db = new DBSQL(true);
-        int count = unitAttemtpsCountInDB(db,currentUnitInstance.mlUnit.unitid);
-        if(count >= MAX_UNIT_ATTEMPTS_COUNT)
-            signalSectionFailed();
-        else
-            signalSectionTimedOut();
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(true);
+            int count = unitAttemtpsCountInDB(db,currentUnitInstance.mlUnit.unitid);
+            if(count >= MAX_UNIT_ATTEMPTS_COUNT)
+            {
+                signalSectionFailed();
+            }
+            else
+            {
+                signalSectionTimedOut();
+            }
+        }
+        catch(Exception e)
+        {
 
-        db.close();
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
         currentUnitInstance = null;
 
         cont.exitEvent();
-
     }
 
     public boolean showTestMenu()
@@ -227,18 +300,30 @@ public class XPRZ_FatController extends OBFatController
     @Override
     public void updateScores()
     {
-        DBSQL db = new DBSQL(true);
-        int tot = scoreCorrect + scoreWrong;
-        finalScore = 1;
-        if (tot > 0)
-            finalScore = scoreCorrect * 1.0f / tot;
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(true);
+            int tot = scoreCorrect + scoreWrong;
+            finalScore = 1;
+            if (tot > 0)
+                finalScore = scoreCorrect * 1.0f / tot;
 
-        currentUnitInstance.endtime = getCurrentTime();
-        currentUnitInstance.score = finalScore;
-        currentUnitInstance.elapsedtime = (int)(currentUnitInstance.endtime - currentUnitInstance.starttime);
-        currentUnitInstance.updateDataInDB(db);
-        checkCurrentSessionTimeout(db);
-        db.close();
+            currentUnitInstance.endtime = getCurrentTime();
+            currentUnitInstance.score = finalScore;
+            currentUnitInstance.elapsedtime = (int)(currentUnitInstance.endtime - currentUnitInstance.starttime);
+            currentUnitInstance.updateDataInDB(db);
+            checkCurrentSessionTimeout(db);
+        }
+        catch(Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
     }
 
     public Map<String,Object> commandWith(int code, MlUnit unit)
@@ -274,25 +359,64 @@ public class XPRZ_FatController extends OBFatController
         List<MlUnit> arr = new ArrayList<>();
         for (int i = 0;i < count;i++)
         {
-            arr.add(MlUnit.mlUnitFromDBforUnitID(currentUnit().unitid + 1 + i));
+            arr.add(MlUnit.mlUnitforUnitID(currentUnit().unitid + 1 + i));
         }
         return arr;
     }
 
     public MlUnit requestNextUnit()
     {
-        //do all the black magic of finding out what's the next topic here
-        return MlUnit.mlUnitFromDBforUnitID(firstUnstartedIndex);
+        return MlUnit.mlUnitforUnitID(firstUnstartedIndex);
     }
 
-
-    public MlUnit currentUnit()
+    private MlUnit currentUnit()
     {
         if(currentUnitInstance == null)
             return null;
         else
             return currentUnitInstance.mlUnit;
     }
+
+    public long getLastUnitId()
+    {
+        return firstUnstartedIndex -1;
+    }
+
+    public void setCurrentUnitId(long unitid)
+    {
+        firstUnstartedIndex = unitid;
+    }
+
+    public Map<String,Object> getLastCommand()
+    {
+        MlUnit unit = null;
+        int code = -1;
+        DBSQL db = new DBSQL(false);
+        try
+        {
+            unit = MlUnit.mlUnitforUnitIDFromDB(db,getLastUnitId());
+
+            if(currentSessionFinished())
+                code = OFC_SESSION_TIMED_OUT;
+            else if(sessionUnitCountFromDB(db, currentSessionId, currentUser.userid) == 0)
+                code =  OFC_NEW_SESSION;
+            else
+                code = OFC_SUCCEEDED;
+        }
+        catch(Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+
+        return commandWith(code,unit);
+    }
+
+
     public void sectionStartedWithUnit(MlUnit unit)
     {
         if(unit.unitid >= firstUnstartedIndex)
@@ -317,6 +441,7 @@ public class XPRZ_FatController extends OBFatController
                 try
                 {
                     MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
+                   // if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("X_TestEvent","x-miniapp6",true,true,"test"))
                     if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
                         currentUnitInstance.sectionController = OBMainViewController.MainViewController().topController();
@@ -340,7 +465,7 @@ public class XPRZ_FatController extends OBFatController
         sessionSegmentLastActive = systime;
     }
 
-    public long lastPlayedUnitIndex(DBSQL db)
+    public long lastPlayedUnitIndexFromDB(DBSQL db)
     {
         return MlUnitInstance.lastPlayedUnitIndexForUserIDInDB(db, currentUser.userid);
     }
@@ -354,22 +479,22 @@ public class XPRZ_FatController extends OBFatController
 
     public void refreshUnitsList()
     {
-        DBSQL db = new DBSQL(true);
-        db.doDeleteOnTable(DBSQL.TABLE_UNITS,null);
-        db.close();
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(true);
+            db.doDeleteOnTable(DBSQL.TABLE_UNITS,null);
+        }
+        catch(Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
         loadMasterListIntoDB();
-    }
-
-
-    public int getLastCommand()
-    {
-        if(currentSessionFinished())
-            return OFC_SESSION_TIMED_OUT;
-        else if(!currentSessionHasProgress())
-            return OFC_NEW_SESSION;
-        else
-            return OFC_SUCCEEDED;
-
     }
 
     public void checkCurrentSessionTimeout(DBSQL db)
@@ -384,7 +509,7 @@ public class XPRZ_FatController extends OBFatController
 
         cursor.close();
 
-        if(elapsedTime/60.0 > 0.2)
+        if(elapsedTime > SESSION_TIMEOUT)
             finishCurrentDayInDB(db);
 
         db.close();
@@ -417,6 +542,7 @@ public class XPRZ_FatController extends OBFatController
     {
         Calendar currentCalendar = Calendar.getInstance();
         Calendar calendarLastSession = Calendar.getInstance();
+        currentCalendar.setTimeInMillis(getCurrentTime()*1000);
         calendarLastSession.setTimeInMillis(currentSessionStartTime*1000);
 
         if(currentCalendar.get(Calendar.DAY_OF_YEAR) != calendarLastSession.get(Calendar.DAY_OF_YEAR) ||
@@ -444,37 +570,78 @@ public class XPRZ_FatController extends OBFatController
         cursor.close();
     }
 
-    private boolean currentSessionHasProgress()
+    public int currentSessionUnitCount()
     {
         if(currentSessionId < 0)
-            return false;
+            return 0;
+
+        int result = 0;
+
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(false);
+            result =  sessionUnitCountFromDB(db, currentSessionId, currentUser.userid);
+        }
+        catch(Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+        return result;
+    }
+
+    private int sessionUnitCountFromDB(DBSQL db, int sessionid, int userid)
+    {
+        if(sessionid < 0)
+            return 0;
+
+        int result = 0;
 
         Map<String,String> whereMap  = new ArrayMap<>();
-        whereMap.put("userid",String.valueOf(currentUser.userid));
-        whereMap.put("sessionid",String.valueOf(currentSessionId));
-        DBSQL db = new DBSQL(false);
-        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES,Collections.singletonList("COUNT(*) as count"),whereMap);
-        boolean result = false;
+        whereMap.put("userid",String.valueOf(userid));
+        whereMap.put("sessionid",String.valueOf(sessionid));
+
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES,Collections.singletonList("COUNT(DISTINCT(unitid)) as count"),whereMap);
+
         if(cursor.moveToFirst())
-            result = cursor.getInt(cursor.getColumnIndex("count")) > 0;
+            result = cursor.getInt(cursor.getColumnIndex("count"));
 
         cursor.close();
-        db.close();
         return result;
     }
 
     public void startNewDay()
     {
-        DBSQL db = new DBSQL(true);
-        startNewDayInDB(db);
-        db.close();
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(true);
+            startNewDayInDB(db, currentUser.userid);
+            loadLastUnitIndexFromDB(db);
+        }
+        catch(Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
     }
 
 
-    public void startNewDayInDB(DBSQL db)
+    public void startNewDayInDB(DBSQL db, int userid)
     {
         if(!currentSessionFinished())
             finishCurrentDayInDB(db);
+
+        fixMissingStarsInDB(db);
 
         currentSessionStartTime = getCurrentTime();
         currentSessionEndTime = 0;
@@ -486,19 +653,54 @@ public class XPRZ_FatController extends OBFatController
             sessionid++;
 
         ContentValues contentValues = new ContentValues();
-        contentValues.put("userid", currentUser.userid);
+        contentValues.put("userid", userid);
         contentValues.put("sessionid", sessionid);
         contentValues.put("starttime",currentSessionStartTime);
         db.doInsertOnTable(DBSQL.TABLE_SESSIONS,contentValues);
         currentSessionId = sessionid;
 
+        loadLastUnitIndexFromDB(db);
+    }
+
+    public void fixMissingStarsInDB(DBSQL db)
+    {
+        Cursor cursor = db.prepareRawQuery(String.format("SELECT TAB.level as level, TAB.awardStar as awardStar " +
+                "FROM (SELECT DISTINCT(UI.unitid), userid, level, awardStar " +
+                "FROM "+DBSQL.TABLE_UNITS+" AS U JOIN "+DBSQL.TABLE_UNIT_INSTANCES+" AS UI ON UI.unitid = U.unitid  " +
+                "WHERE (endtime>0 OR (SELECT COUNT(*) FROM "+DBSQL.TABLE_UNIT_INSTANCES+" WHERE unitid = UI.unitid AND userid = UI.userid) >= %d) AND userid = %d AND awardStar >0) TAB " +
+                "LEFT JOIN "+DBSQL.TABLE_STARS+" AS S ON  TAB.userid = S.userid AND TAB.level = S.level AND TAB.awardStar = S.starnum WHERE S.userid IS NULL",
+                MAX_UNIT_ATTEMPTS_COUNT , currentUser.userid)
+                ,null);
+        Map<Integer,List<Integer>> result = new ArrayMap<>();
+        if(cursor.moveToFirst())
+        {
+            while (cursor.isAfterLast() == false)
+            {
+                int level = cursor.getInt(cursor.getColumnIndex("level"));
+                int awardStar = cursor.getInt(cursor.getColumnIndex("awardStar"));
+                if(result.get(level) == null)
+                    result.put(level, new ArrayList<Integer>());
+                result.get(level).add(awardStar);
+                cursor.moveToNext();
+            }
+
+        }
+        cursor.close();
+
+        for(int level : result.keySet())
+        {
+            String colour = lastStarColourForLevelFromDB(db, currentUser.userid, level);
+            if (colour == null)
+                colour = String.valueOf(OB_Maths.randomInt(1, 5));
+            for(int awardNum : result.get(level))
+                saveStarForUnitInDB(db,currentUser.userid,level,awardNum,colour);
+        }
     }
 
     public void finishCurrentDayInDB(DBSQL db)
     {
         if(currentSessionId < 0)
             return;
-
 
         currentSessionEndTime =  getCurrentTime();
         Map<String,String> whereMap  = new ArrayMap<>();
@@ -515,21 +717,58 @@ public class XPRZ_FatController extends OBFatController
         if(unit == null)
             return;
 
-        DBSQL db = new DBSQL(true);
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(true);
+            saveStarForUnitInDB(db,currentUser.userid,unit.level,unit.awardStar,colour);
+        }
+        catch(Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+    }
+
+    public void saveStarForUnitInDB(DBSQL db, int userid, int level, int awardStar,String colour)
+    {
         ContentValues contentValues = new ContentValues();
-        contentValues.put("userid",currentUser.userid);
-        contentValues.put("level",unit.level);
-        contentValues.put("starnum",unit.awardStar);
+        contentValues.put("userid",userid);
+        contentValues.put("level",level);
+        contentValues.put("starnum",awardStar);
         contentValues.put("colour",colour);
 
         boolean result = db.doReplaceOnTable(DBSQL.TABLE_STARS,contentValues) > 0;
 
-        db.close();
     }
 
     public Map<Integer,String> starsForLevel(int level)
     {
-        DBSQL db = new DBSQL(false);
+        Map<Integer,String> result = null;
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(false);
+            result = starsForLevelFromDB(db,level);
+        }
+        catch(Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+        return result;
+    }
+
+    private Map<Integer,String> starsForLevelFromDB(DBSQL db, int level)
+    {
         Map<String,String> whereMap = new ArrayMap<>();
         whereMap.put("userid",String.valueOf(currentUser.userid));
         whereMap.put("level",String.valueOf(level));
@@ -546,15 +785,14 @@ public class XPRZ_FatController extends OBFatController
 
         }
         cursor.close();
-        db.close();
+
         return result;
     }
 
-    public String lastStarColourForLevel(int level)
+    public String lastStarColourForLevelFromDB(DBSQL db, int userid, int level)
     {
-        DBSQL db = new DBSQL(false);
         Map<String,String> whereMap = new ArrayMap<>();
-        whereMap.put("userid",String.valueOf(currentUser.userid));
+        whereMap.put("userid",String.valueOf(userid));
         whereMap.put("level",String.valueOf(level));
         Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_STARS, Arrays.asList("MAX(starnum) as starnum","colour"),whereMap);
 
@@ -563,24 +801,36 @@ public class XPRZ_FatController extends OBFatController
             result = cursor.getString(cursor.getColumnIndex("colour"));
 
         cursor.close();
-        db.close();
         return result;
     }
 
     public String starForLevel(int level,int starnum)
     {
-        DBSQL db = new DBSQL(false);
-        Map<String,String> whereMap = new ArrayMap<>();
-        whereMap.put("userid",String.valueOf(currentUser.userid));
-        whereMap.put("level",String.valueOf(level));
-        whereMap.put("starnum",String.valueOf(starnum));
-        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_STARS, Collections.singletonList("colour"),whereMap);
         String result = null;
-        if(cursor.moveToFirst())
-            result = cursor.getString(cursor.getColumnIndex("colour"));
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(false);
+            Map<String,String> whereMap = new ArrayMap<>();
+            whereMap.put("userid",String.valueOf(currentUser.userid));
+            whereMap.put("level",String.valueOf(level));
+            whereMap.put("starnum",String.valueOf(starnum));
+            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_STARS, Collections.singletonList("colour"),whereMap);
 
-        cursor.close();
-        db.close();
+            if(cursor.moveToFirst())
+                result = cursor.getString(cursor.getColumnIndex("colour"));
+
+            cursor.close();
+        }
+        catch(Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
         return result;
     }
 
@@ -593,51 +843,6 @@ public class XPRZ_FatController extends OBFatController
             return false;
 
         return starForLevel(unit.level,unit.awardStar) == null;
-    }
-
-    public boolean saveCertificateInDBwithFile(String fileName, int level)
-    {
-        ContentValues data = new ContentValues();
-        data.put("userid",currentUser.userid);
-        data.put("file",fileName);
-        data.put("level",level);
-        DBSQL db = new DBSQL(true);
-        boolean result =  db.doInsertOnTable(DBSQL.TABLE_CERTIFICATES,data) > 0;
-        db.close();
-        return result;
-    }
-
-    public String certificateFromDBforLevel(int level)
-    {
-        Map<String,String> whereMap  = new ArrayMap<>();
-        whereMap.put("userid",String.valueOf(currentUser.userid));
-        whereMap.put("level",String.valueOf(level));
-        DBSQL db = new DBSQL(false);
-        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_CERTIFICATES, Collections.singletonList("file"),whereMap);
-        String file = null;
-        if(cursor.moveToFirst())
-        {
-            file =  cursor.getString(cursor.getColumnIndex("file"));
-        }
-        cursor.close();
-        db.close();
-        return file;
-    }
-
-    public int lastCertificateLevelFromDB()
-    {
-        Map<String,String> whereMap  = new ArrayMap<>();
-        whereMap.put("userid",String.valueOf(currentUser.userid));
-        DBSQL db = new DBSQL(false);
-        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_CERTIFICATES, Collections.singletonList("MAX(level) as level"),whereMap);
-        int level = -1;
-        if(cursor.moveToFirst())
-        {
-            level = cursor.getInt(cursor.getColumnIndex("level"));
-        }
-        cursor.close();
-        db.close();
-        return level;
     }
 
     @Override
@@ -670,11 +875,11 @@ public class XPRZ_FatController extends OBFatController
             public void run()
             {
                 if(checkTimeout(currentInstance))
-                    timeoutHandler.postDelayed(this,1*1000);
+                    timeoutHandler.postDelayed(this,60*1000);
             }
         };
 
-        timeoutHandler.postDelayed(timeoutRunnable,10000); //currentInstance.mlUnit.targetDurationstance.)
+        timeoutHandler.postDelayed(timeoutRunnable,UNIT_TIMEOUT*1000); //currentInstance.mlUnit.targetDurationstance.)
 
     }
 
@@ -694,9 +899,10 @@ public class XPRZ_FatController extends OBFatController
         if(unitInstance.sectionController == null || unitInstance.sectionController._aborting)
             return false;
 
-        if((unitInstance.starttime + 10) < getCurrentTime())
+        if((unitInstance.starttime + UNIT_TIMEOUT) < getCurrentTime())
         {
             timeOutEvent(unitInstance.sectionController);
+            return false;
         }
         return true;
     }

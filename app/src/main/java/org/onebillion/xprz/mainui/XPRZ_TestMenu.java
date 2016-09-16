@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -50,8 +51,7 @@ public class XPRZ_TestMenu extends OBSectionController
         OBBrightnessManager.sharedManager.onSuspend();
         db = new DBSQL(false);
         controller = (XPRZ_FatController)MainActivity.mainActivity.fatController;
-        currentUnitId = controller.lastPlayedUnitIndex(db);
-        controller.firstUnstartedIndex = currentUnitId;
+        currentUnitId = controller.lastPlayedUnitIndexFromDB(db);
         MainActivity.mainActivity.setContentView(R.layout.list_menu);
         listView = (ListView)MainActivity.mainActivity.findViewById(R.id.listView);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener()
@@ -60,7 +60,7 @@ public class XPRZ_TestMenu extends OBSectionController
             public void onItemClick(AdapterView<?> parent, View view, int position, long id)
             {
                 currentUnitId = id;
-                controller.firstUnstartedIndex = id;
+                controller.setCurrentUnitId(id);
             }
         });
 
@@ -109,7 +109,7 @@ public class XPRZ_TestMenu extends OBSectionController
 
                         controller.initDB();
                         db = new DBSQL(false);
-                        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("key", "unitid as _id"),null,"unitid ASC");
+                        Cursor cursor = getCursorForList(db);
                         if(cursor.moveToFirst())
                         {
                             cursorAdapter.swapCursor(cursor);
@@ -153,7 +153,6 @@ public class XPRZ_TestMenu extends OBSectionController
 
             }
         });
-
 
 
         Button shutdownButton = (Button)MainActivity.mainActivity.findViewById(R.id.shutdownButton);
@@ -211,13 +210,13 @@ public class XPRZ_TestMenu extends OBSectionController
                 {
                     OBBrightnessManager.sharedManager.onContinue();
                     db.close();
-                    controller.continueFromLastUnit();
+                    //controller.continueFromLastUnit();
                     MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
                 }
             }
         });
 
-        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("key", "unitid as _id"),null,"unitid ASC");
+        Cursor cursor = getCursorForList(db);
         if(cursor.moveToFirst())
         {
             cursorAdapter = new OBCursorAdapter(MainActivity.mainActivity, cursor);
@@ -226,6 +225,11 @@ public class XPRZ_TestMenu extends OBSectionController
         selectCurrentUnit();
     }
 
+
+    public Cursor getCursorForList(DBSQL db)
+    {
+        return db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("key", "unitid as _id", "level", "awardStar", "startAudio"),null,"unitid ASC");
+    }
 
     public void selectCurrentUnit()
     {
@@ -294,8 +298,22 @@ public class XPRZ_TestMenu extends OBSectionController
         @Override
         public void bindView(View view, Context context, Cursor cursor) {
             TextView unitName = (TextView) view.findViewById(android.R.id.text1);
+            int level = cursor.getInt(cursor.getColumnIndex("level"));
             String unitKey = cursor.getString(cursor.getColumnIndex("key"));
-            unitName.setText(unitKey);
+
+            int startAudio = cursor.getInt(cursor.getColumnIndex("startAudio"));
+
+            if(false)
+            {
+                unitName.setText(String.format("%d %d - %s", level, startAudio, unitKey));
+            }
+            else
+            {
+                unitName.setText(String.format("%d   - %s", level, unitKey));
+            }
+
+            int awardStar = cursor.getInt(cursor.getColumnIndex("awardStar"));
+            unitName.setTextColor(awardStar > 0 ? Color.MAGENTA: Color.BLACK);
         }
 
     }

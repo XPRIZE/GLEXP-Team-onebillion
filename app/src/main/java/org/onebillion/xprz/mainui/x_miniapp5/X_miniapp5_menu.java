@@ -124,7 +124,7 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         currentLevel = 1;
         fatController = (XPRZ_FatController)MainActivity.mainActivity.fatController;
         fatController.menu = this ;
-        startIndex = fatController.firstUnstartedIndex;
+        startIndex = fatController.getLastUnitId()-1;
         currentAudio="1";
 
         OBGroup star = (OBGroup)objectDict.get("complete_star");
@@ -189,7 +189,7 @@ public class X_miniapp5_menu extends XPRZ_Menu implements XPRZ_FatReceiver
 
     public boolean isFirstEvent()
     {
-        return fatController.firstUnstartedIndex == 0;
+        return fatController.getLastUnitId() == -1;
     }
 
     public void waitAndRemind(long time) throws Exception
