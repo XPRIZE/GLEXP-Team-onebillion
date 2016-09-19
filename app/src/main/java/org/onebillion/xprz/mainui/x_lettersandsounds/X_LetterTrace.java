@@ -5,6 +5,7 @@ import android.graphics.Matrix;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.util.Log;
 import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
@@ -51,6 +52,7 @@ public class X_LetterTrace extends X_Wordcontroller
     OBConditionLock promptAudioLock;
     OBPath hotPath;
     XPRZ_Presenter presenter;
+    boolean dotFadeBegun;
 
     public void createConvexHull()
     {
@@ -688,15 +690,20 @@ public class X_LetterTrace extends X_Wordcontroller
         paths.get(i).setZPosition(greyPaths.get(i).zPosition() + 0.1f);
         PointF pt = paths.get(i).sAlongPath(0,null);
         pt = convertPointFromControl(pt,paths.get(i));
+
         dot.setPosition(pt);
         dot.show();
         dot.setOpacity(1.0f);
+        dotFadeBegun = false;
         unlockScreen();
         playSfxAudio("doton",true);
     }
 
     public void fadeOutDot(final int pathidx)
     {
+        if (dotFadeBegun)
+            return;
+        dotFadeBegun = true;
         final OBSectionController fthis = this;
         OBUtils.runOnOtherThreadDelayed(0.2f,new OBUtils.RunLambda()
         {
@@ -928,7 +935,7 @@ public class X_LetterTrace extends X_Wordcontroller
             if(tryT >= 1)
                 traceComplete = true;
             tSoFar = tryT;
-            if(tSoFar > 0 && !dot.hidden() && dot.opacity() == 1)
+            if(tSoFar > 0 && !dot.hidden() && dot.opacity() == 1 && !dotFadeBegun)
                 fadeOutDot(currPathIdx);
         }
     }
