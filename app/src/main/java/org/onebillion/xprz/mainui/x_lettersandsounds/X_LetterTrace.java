@@ -690,11 +690,12 @@ public class X_LetterTrace extends X_Wordcontroller
         pt = convertPointFromControl(pt,paths.get(i));
         dot.setPosition(pt);
         dot.show();
+        dot.setOpacity(1.0f);
         unlockScreen();
         playSfxAudio("doton",true);
     }
 
-    public void fadeOutDot()
+    public void fadeOutDot(final int pathidx)
     {
         final OBSectionController fthis = this;
         OBUtils.runOnOtherThreadDelayed(0.2f,new OBUtils.RunLambda()
@@ -702,11 +703,17 @@ public class X_LetterTrace extends X_Wordcontroller
             @Override
             public void run () throws Exception
             {
-                OBAnimationGroup.runAnims(Collections.singletonList(OBAnim.opacityAnim(0.0f, dot)), 0.2f, true, OBAnim.ANIM_LINEAR, fthis);
-                lockScreen();
-                dot.setOpacity(1);
-                dot.hide();
-                unlockScreen();
+                if (pathidx == currPathIdx)
+                {
+                    OBAnimationGroup.runAnims(Collections.singletonList(OBAnim.opacityAnim(0.0f, dot)), 0.2f, true, OBAnim.ANIM_LINEAR, fthis);
+                    if (pathidx == currPathIdx)
+                    {
+                        lockScreen();
+                        dot.setOpacity(1);
+                        dot.hide();
+                        unlockScreen();
+                    }
+                }
             }
         });
 ;   }
@@ -738,7 +745,7 @@ public class X_LetterTrace extends X_Wordcontroller
                 thePointer.setPosition(convertPointFromControl(p.sAlongPath(frac, null), p));
             }
         };
-        fadeOutDot();
+        fadeOutDot(currPathIdx);
         float durationMultiplier = 2;
         float duration = p.length()  * 2 * durationMultiplier / theMoveSpeed;
         OBAnimationGroup.runAnims(Collections.singletonList(anim),duration,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
@@ -922,7 +929,7 @@ public class X_LetterTrace extends X_Wordcontroller
                 traceComplete = true;
             tSoFar = tryT;
             if(tSoFar > 0 && !dot.hidden() && dot.opacity() == 1)
-                fadeOutDot();
+                fadeOutDot(currPathIdx);
         }
     }
 

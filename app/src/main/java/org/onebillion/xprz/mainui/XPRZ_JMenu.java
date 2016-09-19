@@ -45,6 +45,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
     OBControl scrollGroup;
     PointF lastPoint = new PointF();
     PointF lastLastPoint = new PointF();
+    PointF firstPoint = new PointF();
     long lastMoveEvent,lastlastMoveEvent;
     float scrollSpeed;
     int videoPreviewIdx = 0;
@@ -52,6 +53,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
     OBGroup videoPreviewGroup;
     int  videoScrollState;
     int intro_video_state = 0;
+    boolean full_screen_enabled = true;
     final static int ivs_act_normal = 0,
     ivs_before_play = 1,
     ivs_playing_full_screen = 2;
@@ -63,6 +65,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
     String movieFolder;
     boolean slowingDown;
     List<OBXMLNode>masterList;
+    OBControl highlightedIcon = null;
 
     static Typeface plainFont()
     {
@@ -240,7 +243,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
     {
         OBXMLNode tab = tabXmlDict.get(tabstring);
         List<OBXMLNode> textnodes = tab.childrenOfType("misctext");
-        Typeface tf = boldFont();
+        Typeface tf = plainFont();
         int i = 1;
         for (OBXMLNode textnode : textnodes)
         {
@@ -261,7 +264,16 @@ public class XPRZ_JMenu extends XPRZ_Menu
             label.setZPosition(objectDict.get(tabstring+"_background").zPosition()+10);
             attachControl(label);
             objectDict.put(tabstring+String.format("__misctext%d",i),label);
+            OBControl flag = objectDict.get(tabstring + String.format("_flag%d",i));
+            float y = flag.position().y;
+            label.setPosition(label.position().x,y);
             i++;
+        }
+        List<OBControl> lst = sortedFilteredControls(tabstring+"_ssh.*");
+        for (int j = 1;j < lst.size();j++)
+        {
+            OBLabel l = (OBLabel) lst.get(j);
+            l.setTypeFace(plainFont());
         }
     }
 
@@ -459,13 +471,10 @@ public class XPRZ_JMenu extends XPRZ_Menu
         String tabstring = "tech";
         OBXMLNode tab = tabXmlDict.get(tabstring);
 
-        Typeface tf = plainFont();
-        Typeface tfb = boldFont();
-
         List<String> targetNames = sortedFilteredControlIDs(tabstring+"_iconbox.*");
         populateTargets(tabstring,tab,targetNames,53);
-        populateMiscTexts(tabstring);
         populateSubSubHeads(tabstring);
+        populateMiscTexts(tabstring);
         setUpGroup();
     }
 
@@ -594,26 +603,68 @@ public class XPRZ_JMenu extends XPRZ_Menu
         }
     }
 
+    public boolean shouldShowVideoFullScreen(int idx)
+    {
+        if (!full_screen_enabled)
+            return false;
+        if (idx > 0)
+            return false;
+        if (intro_video_state == ivs_act_normal)
+            return false;
+        if (intro_video_state == ivs_before_play)
+            return true;
+        if (intro_video_state == ivs_playing_full_screen)
+            return true;
+        return false;
+    }
+
+    public boolean videoIsFullScreen()
+    {
+        if (videoPlayer != null)
+        {
+            return videoPlayer.frame().equals(boundsf());
+        }
+        return false;
+    }
+
+    public void goFullScreen()
+    {
+        videoPlayer.setFrame(boundsf());
+    }
+
+    public void goSmallScreen()
+    {
+        OBControl placeHolder = objectDict.get("video_video");
+        videoPlayer.setFrame(placeHolder.frame());
+    }
     public void setUpVideoPlayerForIndex(int idx,OBXMLNode tab,boolean play)
     {
+        if (idx == 0)
+            intro_video_state = ivs_before_play;
         List<OBXMLNode> targs = tab.childrenOfType("video");
         OBXMLNode movienode = targs.get(idx).childrenOfType("movie").get(0);
         String movieName = OBUtils.stringByAppendingPathComponent(movieFolder,movienode.contents);
         OBControl placeHolder = objectDict.get("video_video");
         if (videoPlayer == null)
         {
-            videoPlayer = new OBVideoPlayer(placeHolder.frame(),this,false,false);
+            RectF r = new RectF();
+            r.set(placeHolder.frame());
+            videoPlayer = new OBVideoPlayer(r,this,false,false);
             videoPlayer.stopOnCompletion = false;
-            videoPlayer.setZPosition(placeHolder.zPosition()+1);
+            videoPlayer.setZPosition(190);
+            videoPlayer.setFillType(OBVideoPlayer.VP_FILL_TYPE_ASPECT_FIT);
+            //videoPlayer.setZPosition(placeHolder.zPosition()+1);
             attachControl(videoPlayer);
         }
         else
         {
             if (!attachedControls.contains(videoPlayer))
                 attachControl(videoPlayer);
+            videoPlayer.setFrame(placeHolder.frame());
+
             videoPlayer.stop();
         }
-        videoPlayer.setPreviewSize(new Size((int)placeHolder.width(),(int)placeHolder.height()));
+        videoPlayer.setPreviewSize(new Size((int)videoPlayer.width(),(int)videoPlayer.height()));
         videoPlayer.playAfterPrepare = play;
         videoPlayer.startPlayingAtTime(OBUtils.getAssetFileDescriptorForPath(movieName),0);
     }
@@ -730,28 +781,63 @@ public class XPRZ_JMenu extends XPRZ_Menu
                         }
                     }
                 }
+                else
+                {
+                    float dist = lastPoint.y - lastLastPoint.y;
+                    float time = (lastMoveEvent - lastlastMoveEvent)/ 1000.0f;
+                    final float speed = dist / time;
+                    OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run() throws Exception
+                        {
+                            slowDown(speed,videoPreviewGroup);
+                        }
+                    });
+                }
             }
             setStatus(STATUS_IDLE);
             return;
         }
-        if(status()  == STATUS_DRAGGING)
+        if(status() == STATUS_DRAGGING)
         {
-            float dist = lastPoint.y - lastLastPoint.y;
-            float time = (lastMoveEvent - lastlastMoveEvent)/ 1000.0f;
-            final float speed = dist / time;
-            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            if (scrollable)
             {
-                @Override
-                public void run() throws Exception
+                float dist = lastPoint.y - lastLastPoint.y;
+                float time = (lastMoveEvent - lastlastMoveEvent) / 1000.0f;
+                final float speed = dist / time;
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
-                    slowDown(speed);
+                    @Override
+                    public void run() throws Exception
+                    {
+                        slowDown(speed, scrollGroup);
+                    }
+                });
+            }
+            if (highlightedIcon != null)
+            {
+                RectF r = convertRectFromControl(highlightedIcon.bounds(),highlightedIcon);
+                if (r.contains(pto.x,pto.y))
+                {
+                    goToTarget(highlightedIcon);
+                    OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run() throws Exception
+                        {
+                            highlightedIcon.lowlight();
+                            highlightedIcon = null;
+                        }
+                    });
                 }
-            });
+
+            }
             setStatus(STATUS_IDLE);
         }
     }
 
-    void slowDown(float ySpeed)
+    void slowDown(float ySpeed,OBControl group)
     {
         slowingDown = true;
         try
@@ -765,7 +851,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
                 }
                 ySpeed *= 0.99f;
                 float dist = ySpeed * 0.02f;
-                float y = scrollGroup.position().y;
+                float y = group.position().y;
                 y += dist;
                 boolean fin = false;
                 if (y > maximumY)
@@ -778,7 +864,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
                     y = minimumY;
                     fin = true;
                 }
-                scrollGroup.setPosition(scrollGroup.position().x,y);
+                group.setPosition(group.position().x,y);
                 if (fin)
                     slowingDown = false;
                 waitForSecs(0.02);
@@ -804,26 +890,63 @@ public class XPRZ_JMenu extends XPRZ_Menu
                 {
                     videoPreviewGroup.setPosition(videoPreviewGroup.position().x,newY);
                 }
+                lastLastPoint.y = lastPoint.y;
+                lastlastMoveEvent = lastMoveEvent;
                 lastPoint.y = pt.y;
+                lastMoveEvent = System.currentTimeMillis();
             }
         }
-        else if(status()  == STATUS_DRAGGING)
+        else if(status() == STATUS_DRAGGING)
         {
-            float dy = pt.y - lastPoint.y;
-            float newY = scrollGroup.position().y + dy;
-            if (newY <= maximumY && newY >= minimumY)
+            if (scrollable)
             {
-                scrollGroup.setPosition(scrollGroup.position().x,newY);
+                float dy = pt.y - lastPoint.y;
+                float newY = scrollGroup.position().y + dy;
+                if (newY <= maximumY && newY >= minimumY)
+                {
+                    scrollGroup.setPosition(scrollGroup.position().x, newY);
+                }
+                lastLastPoint.y = lastPoint.y;
+                lastlastMoveEvent = lastMoveEvent;
+                lastPoint.y = pt.y;
+                lastMoveEvent = System.currentTimeMillis();
+                if (highlightedIcon != null)
+                {
+                    if (OB_Maths.PointDistance(firstPoint,pt) > 6)
+                    {
+                        highlightedIcon.lowlight();
+                        highlightedIcon = null;
+                    }
+                }
             }
-            lastLastPoint.y = lastPoint.y;
-            lastlastMoveEvent = lastMoveEvent;
-            lastPoint.y = pt.y;
-            lastMoveEvent = System.currentTimeMillis();
+            if (highlightedIcon != null)
+            {
+                RectF r = convertRectFromControl(highlightedIcon.bounds(),highlightedIcon);
+                if (r.contains(pt.x,pt.y))
+                    highlightedIcon.highlight();
+                else
+                    highlightedIcon.lowlight();
+                return;
+            }
+
         }
     }
 
     void handleVideoPress(PointF pt)
     {
+        if (intro_video_state == ivs_before_play)
+        {
+            goFullScreen();
+            videoPlayer.start();
+            intro_video_state = ivs_playing_full_screen;
+            return;
+        }
+        if (videoIsFullScreen())
+        {
+            goSmallScreen();
+            intro_video_state = ivs_act_normal;
+            return;
+        }
         if (videoPlayer.mediaPlayer().isPlaying())
             videoPlayer.pause();
         else
@@ -833,7 +956,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
     {
         videoScrollState = VIDEO_SCROLL_NONE;
         RectF f = videoPreviewGroup.frame();
-        if (f.contains(pt.x,pt.y))
+        if (!videoIsFullScreen() && f.contains(pt.x,pt.y))
         {
             videoScrollState = VIDEO_SCROLL_TOUCH_DOWNED;
             videoTouchDownPoint.set(pt);
@@ -872,6 +995,14 @@ public class XPRZ_JMenu extends XPRZ_Menu
     }
     public void touchDownAtPoint(PointF pt, View v)
     {
+        lastPoint.set(pt);
+        lastLastPoint.set(pt);
+        firstPoint.set(pt);
+        if (videoIsFullScreen())
+        {
+            handleVideoPress(pt);
+            return;
+        }
         slowingDown = false;
         if (status() != STATUS_IDLE)
             return;
@@ -894,16 +1025,8 @@ public class XPRZ_JMenu extends XPRZ_Menu
         if (c != null)
         {
             c.highlight();
-            final OBControl cf = c;
-            goToTarget(c);
-            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
-            {
-                @Override
-                public void run() throws Exception
-                {
-                    cf.lowlight();
-                }
-            });
+            highlightedIcon = c;
+            setStatus(STATUS_DRAGGING);
             return;
         }
         if (scrollable)
@@ -911,7 +1034,6 @@ public class XPRZ_JMenu extends XPRZ_Menu
             c = findBackground(pt);
             if (c != null)
             {
-                lastPoint.set(pt);
                 setStatus(STATUS_DRAGGING);
                 return;
             }

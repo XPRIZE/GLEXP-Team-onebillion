@@ -4,6 +4,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
@@ -243,6 +244,13 @@ public class OBTextLayer extends OBLayer
     {
         this.colour = colour;
         displayObjectsValid = false;
+    }
+
+    public void getSelectionPath(int start, int end, Path dest)
+    {
+        if (!displayObjectsValid)
+            makeDisplayObjects();
+        stLayout.getSelectionPath(start,end,dest);
     }
 
 }
