@@ -86,7 +86,7 @@ public class OBTextLayer extends OBLayer
         if (hiStartIdx >= 0)
             spanner.setSpan(new ForegroundColorSpan(hiRangeColour),hiStartIdx,hiEndIdx, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         float mw = maxw > 0?maxw:(just==JUST_CENTRE)?bounds().width():4000;
-        stLayout = new StaticLayout(spanner,textPaint,(int)mw,
+        stLayout = new StaticLayout(spanner,textPaint,(int)Math.ceil(mw),
                 (just==JUST_CENTRE)?Layout.Alignment.ALIGN_CENTER:Layout.Alignment.ALIGN_NORMAL,
                 lineSpaceMultiplier,0,false);
         displayObjectsValid = true;
