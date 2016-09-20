@@ -213,20 +213,20 @@ public class X_ReadingIRead extends X_Reading
     }
 
 
-    public void highlightAndSpeakWord(OBReadingWord w) throws Exception
+    public void highlightAndSpeakWord(OBReadingWord w,long token) throws Exception
     {
         boolean withBackground = jumpOffset > 0;
         highlightWordWithBackground(w,true,withBackground);
         if (w.syllables != null && syllableAudioExistsForWord(w))
-            speakSyllablesForWord(w);
+            speakSyllablesForWord(w,token);
         else
             speakWordAsPartial(w);
         lowlightWordWithBackground(w,true,withBackground);
     }
 
-    public void speakSyllablesForWord(OBReadingWord w) throws Exception
+    public void speakSyllablesForWord(OBReadingWord w,long token) throws Exception
     {
-        long token = sequenceToken;
+        //long token = sequenceToken;
         String fileName = String.format("psyl%d_%s",pageNo,CrunchedString(w.text));
         List<List<Double>> timings = loadSyllableTimingsForWord(w,getLocalPath(fileName+".etpa"));
         playAudio(fileName);
@@ -296,7 +296,7 @@ public class X_ReadingIRead extends X_Reading
                 wordback.show();
                 wordback2.show();
                 unlockScreen();
-                highlightAndSpeakWord(w);
+                highlightAndSpeakWord(w,token);
             }
         }
         catch (Exception exception)
