@@ -448,7 +448,7 @@ public class X_ReadingIRead extends X_Reading
 
     public void touchDownAtPoint(PointF pt,View v)
     {
-        if (status() == STATUS_AWAITING_CLICK && wordHelpAvailable)
+        if (!_aborting  && !MainViewController().navigating && status() == STATUS_AWAITING_CLICK && wordHelpAvailable)
         {
             Object obj = findTarget(pt);
             if (obj instanceof OBReadingWord)
