@@ -61,6 +61,20 @@ public class OB_Maths
 
     }
 
+    public static PointF cubicbez(float t, float c0x, float c0y, float c1x, float c1y)
+    {
+        float p0x = 0f,p0y = 0f;
+        float p1x = 1.0f, p1y = 1.0f;
+        float tprime = 1.0f - t;
+        float tprime2 = tprime * tprime;
+        float t2 = t * t;
+        float f0x = p0x * tprime * tprime2,f0y = p0y * tprime * tprime2;
+        float fc0x = c0x * tprime2 * 3 * t,fc0y = c0y * tprime2 * 3 * t;
+        float fc1x = c1x * tprime * t2 * 3,fc1y = c1y * tprime * t2 * 3;
+        float f1x = t2 * t * p1x,f1y = t2 * t * p1y;
+        return new PointF(f0x+fc0x+fc1x+f1x,f0y+fc0y+fc1y+f1y);
+    }
+
     public static float clamp01(float t)
     {
         if (t < 0.0)

@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.*;
 import android.opengl.GLSurfaceView;
 import android.os.Handler;
@@ -492,4 +493,13 @@ public class OBMainViewController extends OBViewController
         }
     }
 
+    public void onAlarmReceived(Intent intent)
+    {
+        if(viewControllers != null && viewControllers.size() > 0)
+        {
+            OBSectionController controller = viewControllers.get(viewControllers.size()-1);
+            if(controller != null)
+                controller.onAlarmReceived(intent);
+        }
+    }
 }

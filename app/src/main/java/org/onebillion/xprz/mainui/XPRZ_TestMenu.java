@@ -303,7 +303,7 @@ public class XPRZ_TestMenu extends OBSectionController
 
             int startAudio = cursor.getInt(cursor.getColumnIndex("startAudio"));
 
-            if(false)
+            if(startAudio > -1)
             {
                 unitName.setText(String.format("%d %d - %s", level, startAudio, unitKey));
             }

@@ -15,6 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.*;
 import android.os.AsyncTask;
@@ -2204,6 +2205,11 @@ public class OBSectionController extends OBViewController
     }
 
     public void onPause()
+    {
+
+    }
+
+    public void onAlarmReceived(Intent intent)
     {
 
     }

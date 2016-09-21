@@ -109,6 +109,8 @@
 
 
         </activity>
+
+        <receiver android:name=".utils.OBAlarmReceiver"></receiver>
     </application>
 
 </manifest>

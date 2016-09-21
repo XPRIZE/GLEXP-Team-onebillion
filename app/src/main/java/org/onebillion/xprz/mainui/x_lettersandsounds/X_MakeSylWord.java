@@ -179,7 +179,6 @@ public class X_MakeSylWord extends XPRZ_SectionController
             int rangeStart = main.text.indexOf(textPart.text,searchStart);
             if(rangeStart != -1)
             {
-
                 RectF bb = OBUtils.getBoundsForSelectionInLabel(rangeStart,rangeStart+textPart.text.length(),fullWordLabel);
 
                 float left = bb.left;

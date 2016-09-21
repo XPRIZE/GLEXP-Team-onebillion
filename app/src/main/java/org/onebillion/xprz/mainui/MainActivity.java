@@ -102,7 +102,10 @@ public class MainActivity extends Activity
             CONFIG_HIDE_NAVIGATION_BAR = "hideNavigationBar",
             CONFIG_ALLOWS_TIMEOUT = "allowsTimeout",
             CONFIG_USE_ADMINISTRATOR_SERVICES = "enableAdiministratorServices",
-            CONFIG_MENU_CLASS = "menuclass";
+            CONFIG_MENU_CLASS = "menuclass",
+            CONFIG_SESSION_TIMEOUT = "sessionTimeout",
+            CONFIG_UNIT_TIMEOUT_COUNT = "unitAttemptsCount";
+
     public static String TAG = "livecode";
     //
     public static OBSystemsManager systemsManager = new OBSystemsManager();
@@ -757,6 +760,12 @@ public class MainActivity extends Activity
     {
         systemsManager.sharedManager.onStop();
         super.onStop();
+    }
+
+    public void onAlarmReceived(Intent intent)
+    {
+        if (mainViewController != null)
+            mainViewController.onAlarmReceived(intent);
     }
 
 

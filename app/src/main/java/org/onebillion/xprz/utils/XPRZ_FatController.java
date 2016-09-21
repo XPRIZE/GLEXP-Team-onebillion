@@ -1,6 +1,8 @@
 package org.onebillion.xprz.utils;
 
+import android.app.AlarmManager;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.util.ArrayMap;
 import android.os.Handler;
@@ -39,9 +41,11 @@ public class XPRZ_FatController extends OBFatController
             OFC_FIRST_TIME_IN = 6,
             OFC_NEW_SESSION =7;
 
-    private static final long SESSION_TIMEOUT = 60*60;
-    private static final int MAX_UNIT_ATTEMPTS_COUNT = 3;
-    private static final int UNIT_TIMEOUT = 15*60;
+
+
+
+    private long sessionTimeout;
+    private  int unitAttemptsCount;
 
     private MlUnitInstance currentUnitInstance;
     private OBUser currentUser;
@@ -76,9 +80,10 @@ public class XPRZ_FatController extends OBFatController
                 try
                 {
                     int startAudio = 0;
-                    int nextAudio = OB_Maths.randomInt(6,8);
+                    int nextAudio = OB_Maths.randomInt(3,5);
                     db.doDeleteOnTable(DBSQL.TABLE_UNITS, null);
                     int unitid = 0;
+                    int nextStar = 0;
                     for (OBXMLNode levelNode : rootNode.childrenOfType("level"))
                     {
                         int level = levelNode.attributeIntValue("id");
@@ -88,20 +93,30 @@ public class XPRZ_FatController extends OBFatController
                         for (int i=0; i<nodes.size(); i++)
                         {
                             OBXMLNode node = nodes.get(i);
+
+                            if(i+2< nodes.size())
+                            {
+                                OBXMLNode nextNode = nodes.get(i+2);
+                                if(nextNode.attributeIntValue("awardStar") > 0)
+                                    nextStar = unitid+2;
+
+                            }
+
                             int currentStartAudio = -1;
+                            if((unitid >= nextStar-2) && (unitid <= nextStar+2))
+                                currentStartAudio = -2;
+
                             if(unitid == nextAudio)
                             {
-                                if((i <= 1) && (i >= nodes.size()-2))
+                                if(currentStartAudio == -2)
                                 {
                                     nextAudio++;
                                 }
                                 else
                                 {
                                     currentStartAudio = startAudio;
-                                    nextAudio += OB_Maths.randomInt(6,8);
-                                    startAudio++;
-                                    if(startAudio > 7)
-                                        startAudio = 0;
+                                    nextAudio += OB_Maths.randomInt(3,5);
+                                    startAudio = (startAudio+1)%8;
                                 }
                             }
 
@@ -171,7 +186,7 @@ public class XPRZ_FatController extends OBFatController
     public void loadLastUnitIndexFromDB(DBSQL db)
     {
         int lastUnitID = currentUser.lastUnitIDFromDB(db);
-        if (unitAttemtpsCountInDB(db, lastUnitID) < MAX_UNIT_ATTEMPTS_COUNT)
+        if (unitAttemptsCount>0 && unitAttemtpsCountInDB(db, lastUnitID) < unitAttemptsCount)
             lastUnitID--;
 
         firstUnstartedIndex = lastUnitID + 1;
@@ -187,8 +202,27 @@ public class XPRZ_FatController extends OBFatController
     public void startUp()
     {
         initDB();
+        try
+        {
+            sessionTimeout = MainActivity.mainActivity.configIntForKey(MainActivity.CONFIG_SESSION_TIMEOUT) * 60;
+            unitAttemptsCount = MainActivity.mainActivity.configIntForKey(MainActivity.CONFIG_UNIT_TIMEOUT_COUNT);
+        } catch (Exception e)
+        {
+            sessionTimeout =60;
+            unitAttemptsCount = 3;
+        }
+
         timeoutHandler = new Handler();
-        String menuClassName = (String)MainActivity.mainActivity.config.get("menuclass");
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(System.currentTimeMillis());
+        calendar.add(Calendar.DATE,1);
+        calendar.set(Calendar.HOUR_OF_DAY, 2);
+        calendar.set(Calendar.MINUTE, 0);
+
+        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), 60*2*1000);
+
+        String menuClassName =  MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MENU_CLASS);
         if (showTestMenu())
             menuClassName = "XPRZ_TestMenu";
         if (menuClassName != null)
@@ -269,7 +303,7 @@ public class XPRZ_FatController extends OBFatController
         {
             db = new DBSQL(true);
             int count = unitAttemtpsCountInDB(db,currentUnitInstance.mlUnit.unitid);
-            if(count >= MAX_UNIT_ATTEMPTS_COUNT)
+            if(unitAttemptsCount>0 && count >= unitAttemptsCount)
             {
                 signalSectionFailed();
             }
@@ -441,12 +475,12 @@ public class XPRZ_FatController extends OBFatController
             {
                 try
                 {
-                    MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
-                   // if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("X_TestEvent","x-miniapp6",true,true,"test"))
-                    if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
+                    //MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
+                    if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("X_TestEvent","x-miniapp6",true,true,"test"))
+                    //if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
                         currentUnitInstance.sectionController = OBMainViewController.MainViewController().topController();
-                        startCurrentUnitInstanceTimeout();
+                        startUnitInstanceTimeout(currentUnitInstance);
                     }
                 }
                 catch (Exception exception)
@@ -510,7 +544,7 @@ public class XPRZ_FatController extends OBFatController
 
         cursor.close();
 
-        if(elapsedTime > SESSION_TIMEOUT)
+        if(elapsedTime > sessionTimeout)
             finishCurrentDayInDB(db);
 
         db.close();
@@ -543,6 +577,7 @@ public class XPRZ_FatController extends OBFatController
     {
         Calendar currentCalendar = Calendar.getInstance();
         Calendar calendarLastSession = Calendar.getInstance();
+
         currentCalendar.setTimeInMillis(getCurrentTime()*1000);
         calendarLastSession.setTimeInMillis(currentSessionStartTime*1000);
 
@@ -677,7 +712,7 @@ public class XPRZ_FatController extends OBFatController
                 "FROM "+DBSQL.TABLE_UNITS+" AS U JOIN "+DBSQL.TABLE_UNIT_INSTANCES+" AS UI ON UI.unitid = U.unitid  " +
                 "WHERE (endtime>0 OR (SELECT COUNT(*) FROM "+DBSQL.TABLE_UNIT_INSTANCES+" WHERE unitid = UI.unitid AND userid = UI.userid) >= %d) AND userid = %d AND awardStar >0) TAB " +
                 "LEFT JOIN "+DBSQL.TABLE_STARS+" AS S ON  TAB.userid = S.userid AND TAB.level = S.level AND TAB.awardStar = S.starnum WHERE S.userid IS NULL",
-                MAX_UNIT_ATTEMPTS_COUNT , currentUser.userid)
+                unitAttemptsCount , currentUser.userid)
                 ,null);
         Map<Integer,List<Integer>> result = new ArrayMap<>();
         if(cursor.moveToFirst())
@@ -872,22 +907,21 @@ public class XPRZ_FatController extends OBFatController
     }
 
 
-    public void startCurrentUnitInstanceTimeout()
+    public void startUnitInstanceTimeout(final MlUnitInstance unitInstance)
     {
         cancelTimeout();
 
-        final MlUnitInstance currentInstance = currentUnitInstance;
         timeoutRunnable = new Runnable()
         {
             @Override
             public void run()
             {
-                if(checkTimeout(currentInstance))
+                if(checkTimeout(unitInstance))
                     timeoutHandler.postDelayed(this,60*1000);
             }
         };
 
-        timeoutHandler.postDelayed(timeoutRunnable,UNIT_TIMEOUT*1000); //currentInstance.mlUnit.targetDurationstance.)
+        timeoutHandler.postDelayed(timeoutRunnable,(int)unitInstance.mlUnit.targetDuration*1000); //currentInstance.mlUnit.targetDurationstance.)
 
     }
 
@@ -910,7 +944,7 @@ public class XPRZ_FatController extends OBFatController
         if(unitInstance.sectionController == null || unitInstance.sectionController._aborting)
             return false;
 
-        if((unitInstance.starttime + UNIT_TIMEOUT) < getCurrentTime())
+        if((unitInstance.starttime + unitInstance.mlUnit.targetDuration) < getCurrentTime())
         {
             MainActivity.log("Time out!!");
             timeOutEvent(unitInstance.sectionController);
