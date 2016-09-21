@@ -26,6 +26,22 @@ public class OBSettingsContentObserver extends ContentObserver
         return false;
     }
 
+
+    public boolean allowsLowerVolume()
+    {
+        String minVolume = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MIN_AUDIO_VOLUME);
+        if (minVolume != null)
+        {
+            float minVolumePercentage = Float.parseFloat(minVolume) / (float) 100;
+            AudioManager am = (AudioManager) MainActivity.mainActivity.getSystemService(Context.AUDIO_SERVICE);
+            currentVolume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+            int maxVolume = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+            int minVolumeLimit = Math.round(maxVolume * minVolumePercentage);
+            return currentVolume > minVolumeLimit;
+        }
+        return true;
+    }
+
     @Override
     public void onChange(boolean selfChange)
     {

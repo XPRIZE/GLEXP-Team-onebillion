@@ -42,7 +42,6 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
     OBLabel mainLabel;
     OBImage image;
     float mainLabelPositionFactor;
-    int placed;
     List<OBLabel> touchables, destinations;
     List<Float> leftOffsets;
     List<OBPath> lines;
@@ -50,12 +49,13 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
     List<OBWord> words;
     int mode;
     Boolean showPicture;
+    OBAnimationGroup moveBackAnimationGroup;
 
     public static final float MAX_GAP_FACTOR = 1.8f;
     public static float FIRST_REMINDER_DELAY = 6.0f;
     public static float SECOND_REMINDER_DELAY = 6.0f;
 
-    public X_Mwyh1()
+    public X_Mwyh1 ()
     {
         super();
     }
@@ -111,7 +111,6 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
     @Override
     public void doMainXX () throws Exception
     {
-        placed = 0;
         doIntro(false);
         //
         setStatus(STATUS_AWAITING_CLICK);
@@ -411,20 +410,22 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
 
     public Boolean main_isLastPlacement ()
     {
+        int placedControls = action_getPlacedObjects();
+        //
         if (mode == 1)
         {
             OBSyllable syl = syllables.get(currNo);
-            return syl.phonemes.size() <= placed;
+            return syl.phonemes.size() <= placedControls;
         }
         else if (mode == 2)
         {
             OBWord word = words.get(currNo);
-            return word.syllables().size() <= placed;
+            return word.syllables().size() <= placedControls;
         }
         else if (mode == 3)
         {
             OBWord word = words.get(currNo);
-            return word.phonemes().size() <= placed;
+            return word.phonemes().size() <= placedControls;
         }
         return null;
     }
@@ -618,7 +619,7 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
         waitAudio();
         waitForSecs(0.3);
         //
-        placed = 0;
+        int placed = 0;
         //
         lockScreen();
         action_markLine();
@@ -713,8 +714,6 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
         //
         thePointer.hide();
         waitForSecs(0.3);
-        //
-        placed = 0;
         //
         setStatus(STATUS_AWAITING_CLICK);
         doAudio(currentEvent());
@@ -821,9 +820,9 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
             {
                 for (OBLabel label : destinations)
                 {
-                    PointF start = (PointF)label.propertyValue("originalPosition");
-                    PointF end = (PointF)label.propertyValue("finalPosition");
-                    PointF diff = OB_Maths.DiffPoints(end,start);
+                    PointF start = (PointF) label.propertyValue("originalPosition");
+                    PointF end = (PointF) label.propertyValue("finalPosition");
+                    PointF diff = OB_Maths.DiffPoints(end, start);
                     PointF position = new PointF(start.x + diff.x * frac, start.y + diff.y * frac);
                     label.setPosition(position);
                 }
@@ -844,9 +843,9 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
             {
                 for (OBLabel label : destinations)
                 {
-                    PointF start = (PointF)label.propertyValue("finalPosition");
-                    PointF end = (PointF)label.propertyValue("originalPosition");
-                    PointF diff = OB_Maths.DiffPoints(end,start);
+                    PointF start = (PointF) label.propertyValue("finalPosition");
+                    PointF end = (PointF) label.propertyValue("originalPosition");
+                    PointF diff = OB_Maths.DiffPoints(end, start);
                     PointF position = new PointF(start.x + diff.x * frac, start.y + diff.y * frac);
                     label.setPosition(position);
                 }
@@ -900,8 +899,19 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
     {
         if (main_isLastPlacement()) return;
         //
-        OBPath line = lines.get(placed);
+        OBPath line = lines.get(action_getPlacedObjects());
         line.setStrokeColor(Color.RED);
+    }
+
+
+    public int action_getPlacedObjects ()
+    {
+        int placedControls = 0;
+        for (OBControl touchable : touchables)
+        {
+            if (!touchable.isEnabled()) placedControls++;
+        }
+        return placedControls;
     }
 
 
@@ -909,7 +919,7 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
     {
         if (main_isLastPlacement()) return;
         //
-        OBPath line = lines.get(placed);
+        OBPath line = lines.get(action_getPlacedObjects());
         for (int i = 0; i < 3; i++)
         {
             lockScreen();
@@ -982,23 +992,25 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
     public Boolean action_verifyDropPosition (PointF position) throws Exception
     {
         OBLabel label = (OBLabel) target;
-        OBLabel correctLabel = destinations.get(placed);
+        OBLabel correctLabel = destinations.get(action_getPlacedObjects());
         //
         if (correctLabel.text().compareTo(label.text()) == 0)
         {
             if (OBUtils.RectOverlapRatio(correctLabel.frame, label.frame) > 0.1)
             {
-                setStatus(STATUS_CHECKING);
+                target = null;
                 //
                 playSfxAudio("click", false);
-                OBPath line = lines.get(placed);
+                OBPath line = lines.get(action_getPlacedObjects());
                 line.hide();
+                label.disable();
                 //
+                if (moveBackAnimationGroup != null)
+                {
+                    moveBackAnimationGroup.flags = OBAnimationGroup.ANIM_CANCEL;
+                }
                 OBAnim anim = OBAnim.moveAnim(XPRZ_Generic.copyPoint(correctLabel.position()), label);
-                OBAnimationGroup.runAnims(Arrays.asList(anim), 0.3f, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
-                //
-                placed++;
-                target = null;
+                OBAnimationGroup.runAnims(Arrays.asList(anim), 0.3f, true, OBAnim.ANIM_EASE_IN_EASE_OUT,this);
                 //
                 lockScreen();
                 correctLabel.show();
@@ -1052,8 +1064,10 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
     }
 
 
-    public void checkTouchableAtPosition(PointF position)
+    public void checkTouchableAtPosition (PointF position, long timeStamp)
     {
+        if (statusChanged(timeStamp)) return;
+        //
         try
         {
             action_verifyDropPosition(position);
@@ -1065,8 +1079,10 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
     }
 
 
-    public void checkTouchableDropAtPosition(PointF position)
+    public void checkTouchableDropAtPosition (PointF position, long timeStamp)
     {
+        if (statusChanged(timeStamp)) return;
+        //
         setStatus(STATUS_CHECKING);
         //
         try
@@ -1078,8 +1094,8 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
                 //
                 if (!action_verifyDropPosition(position))
                 {
-                    OBAnim anim = OBAnim.moveAnim((PointF)label.propertyValue("originalPosition"), label);
-                    OBAnimationGroup.runAnims(Arrays.asList(anim), 0.3f, false, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+                    OBAnim anim = OBAnim.moveAnim((PointF) label.propertyValue("originalPosition"), label);
+                    moveBackAnimationGroup = OBAnimationGroup.runAnims(Arrays.asList(anim), 0.3f, false, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
                     //
                     gotItWrongWithSfx();
                     waitForSecs(0.3);
@@ -1096,7 +1112,7 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
     }
 
 
-    public void checkDragTarget(OBControl targ, PointF pt)
+    public void checkDragTarget (OBControl targ, PointF pt)
     {
         super.checkDragTarget(targ, pt);
         //
@@ -1107,7 +1123,7 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
         }
     }
 
-    public OBControl findTouchable(PointF pt)
+    public OBControl findTouchable (PointF pt)
     {
         return finger(-1, 2, (List<OBControl>) (Object) touchables, pt, true);
     }
@@ -1142,7 +1158,7 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
                 @Override
                 public void run () throws Exception
                 {
-                    checkTouchableDropAtPosition(pt);
+                    checkTouchableDropAtPosition(pt, statusTime);
                 }
             });
         }
@@ -1160,7 +1176,7 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
                 @Override
                 public void run () throws Exception
                 {
-                    checkTouchableAtPosition(pt);
+                    checkTouchableAtPosition(pt, statusTime);
                 }
             });
         }

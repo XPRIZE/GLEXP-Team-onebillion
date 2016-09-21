@@ -847,5 +847,15 @@ public class MainActivity extends Activity
         Log.v(TAG, message);
     }
 
+
+    public boolean onKeyDown (int keyCode, KeyEvent event)
+    {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
+        {
+            if (!OBSystemsManager.sharedManager.settingsContentObserver.allowsLowerVolume()) return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
 }
 

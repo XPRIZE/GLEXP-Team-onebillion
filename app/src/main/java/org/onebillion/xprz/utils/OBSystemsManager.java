@@ -62,7 +62,6 @@ public class OBSystemsManager
     public static OBSystemsManager sharedManager;
 
     private OBBatteryReceiver batteryReceiver;
-    private OBSettingsContentObserver settingsContentObserver;
     private OBBrightnessManager brightnessManager;
     private OBExpansionManager expansionManager;
     private OBConnectionManager connectionManager;
@@ -70,6 +69,7 @@ public class OBSystemsManager
 
     public Handler mainHandler;
     public OBLabel statusLabel;
+    public OBSettingsContentObserver settingsContentObserver;
 
     private boolean AppIsInForeground;
     private final int keepInForegroundInterval = 1000;
