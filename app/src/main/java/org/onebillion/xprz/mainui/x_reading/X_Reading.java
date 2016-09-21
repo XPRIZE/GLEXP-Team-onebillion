@@ -759,46 +759,25 @@ public class X_Reading extends XPRZ_SectionController
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
     }
-    public void nextPage()
-    {
-        if (!_aborting && !MainViewController().navigating && status()!= STATUS_FINISHING)
-        {
-            setStatus(STATUS_FINISHING);
-            try
-            {
-                takeSequenceLockInterrupt(true);
-            }
-            catch (Exception e)
-            {
 
-            }
-            sequenceLock.unlock();
-            if (pageNo == maxPageNo)
-            {
-                finishBook();
-            }
-            else
-            {
-                int p = pageNo + 1;
-                StringBuilder parmString = new StringBuilder();
-                parmString.append(parameters.get("0"));
-                parmString.append(String.format("/page=%d",p));
-                if (parameters.get("cq") != null)
-                    parmString.append(String.format("/cq=%s",parameters.get("cq")));
-                _aborting = true;
-                playAudio(null);
-                final String fParmString = parmString.toString();
-                MainViewController().pushViewController(this.getClass(),true,true,fParmString,true);
-            }
+    public void doNextStuff(final Class cls)
+    {
+        try
+        {
+            takeSequenceLockInterrupt(true);
         }
-
-    }
-    public void prevPage()
-    {
-        if (!_aborting && !MainViewController().navigating && status()!= STATUS_FINISHING)
+        catch (Exception e)
         {
-            setStatus(STATUS_FINISHING);
-            int p = pageNo - 1;
+
+        }
+        sequenceLock.unlock();
+        if (pageNo == maxPageNo)
+        {
+            finishBook();
+        }
+        else
+        {
+            int p = pageNo + 1;
             StringBuilder parmString = new StringBuilder();
             parmString.append(parameters.get("0"));
             parmString.append(String.format("/page=%d",p));
@@ -807,7 +786,78 @@ public class X_Reading extends XPRZ_SectionController
             _aborting = true;
             playAudio(null);
             final String fParmString = parmString.toString();
-            MainViewController().pushViewController(this.getClass(),true,false,fParmString,true);
+            OBUtils.runOnMainThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    MainViewController().pushViewController(cls,true,true,fParmString,true);
+                }
+            });
+        }
+    }
+    public void nextPage()
+    {
+        if (!_aborting && !MainViewController().navigating && status()!= STATUS_FINISHING)
+        {
+            final Class c = this.getClass();
+            setStatus(STATUS_FINISHING);
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    doNextStuff(c);
+                }
+            });
+        }
+
+    }
+
+    public void doPrevStuff(final Class cls)
+    {
+        try
+        {
+            takeSequenceLockInterrupt(true);
+        }
+        catch (Exception e)
+        {
+
+        }
+        sequenceLock.unlock();
+        int p = pageNo - 1;
+        StringBuilder parmString = new StringBuilder();
+        parmString.append(parameters.get("0"));
+        parmString.append(String.format("/page=%d",p));
+        if (parameters.get("cq") != null)
+            parmString.append(String.format("/cq=%s",parameters.get("cq")));
+        _aborting = true;
+        playAudio(null);
+        final String fParmString = parmString.toString();
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    MainViewController().pushViewController(cls,true,false,fParmString,true);
+                }
+            });
+    }
+
+    public void prevPage()
+    {
+        if (!_aborting && !MainViewController().navigating && status()!= STATUS_FINISHING)
+        {
+            setStatus(STATUS_FINISHING);
+            final Class c = this.getClass();
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    doPrevStuff(c);
+                }
+            });
         }
 
     }
