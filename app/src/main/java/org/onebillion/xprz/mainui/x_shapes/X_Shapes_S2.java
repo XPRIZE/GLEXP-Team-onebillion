@@ -39,13 +39,13 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
     int correctAnswerCount;
 
 
-    public String action_getObjectPrefix()
+    public String action_getObjectPrefix ()
     {
         return "obj";
     }
 
 
-    public void action_prepareScene(String scene, Boolean redraw)
+    public void action_prepareScene (String scene, Boolean redraw)
     {
         demosDone = new ArrayList<OBControl>();
         eventType = eventAttributes.get("type");
@@ -72,7 +72,7 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
         {
             if (shownShapes == null) shownShapes = new ArrayList<OBControl>();
             //
-            for (OBControl control: filterControls("obj.*"))
+            for (OBControl control : filterControls("obj.*"))
             {
                 OBPath path = (OBPath) control;
                 //
@@ -106,7 +106,7 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
     }
 
 
-    public void action_toggleShape(OBPath shape, Boolean value)
+    public void action_toggleShape (OBPath shape, Boolean value)
     {
         if (value)
         {
@@ -142,7 +142,7 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
     }
 
 
-    public void demo2a() throws Exception
+    public void demo2a () throws Exception
     {
         setStatus(STATUS_DOING_DEMO);
         //
@@ -153,7 +153,7 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
     }
 
 
-    public void demo2l() throws Exception
+    public void demo2l () throws Exception
     {
         setStatus(STATUS_DOING_DEMO);
         //
@@ -168,7 +168,7 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
     }
 
 
-    public void demo_circle() throws Exception
+    public void demo_circle () throws Exception
     {
         playSceneAudioIndex("DEMO2", 0, false); // A circle. It is round.
         waitForSecs(0.01);
@@ -197,8 +197,7 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
     }
 
 
-
-    public void demo_oval() throws Exception
+    public void demo_oval () throws Exception
     {
         playSceneAudioIndex("DEMO3", 0, false); // An oval. It is like a stretched circle.
         //
@@ -226,7 +225,7 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
     }
 
 
-    public void demo_triangle() throws Exception
+    public void demo_triangle () throws Exception
     {
         playSceneAudioIndex("DEMO4", 0, true); // A triangle. It has THREE sides.
         waitForSecs(0.3f);
@@ -236,7 +235,7 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
         USubPath subPath = upath.subPaths.get(0);
         for (int i = 0; i < 3; i++)
         {
-            ULine line =subPath.elements.get(i);
+            ULine line = subPath.elements.get(i);
             Path bezier = new Path();
             bezier.moveTo(line.pt0.x, line.pt0.y);
             bezier.lineTo(line.pt1.x, line.pt1.y);
@@ -247,9 +246,10 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
             path.sizeToBox(new RectF(bounds()));
             //
             OBPath clone = (OBPath) triangle.copy();
-            path.setMaskControl(clone);;
+            path.setMaskControl(clone);
+            ;
             //
-            playSceneAudioIndex("DEMO4", i+1, false); // One. Two. Three.
+            playSceneAudioIndex("DEMO4", i + 1, false); // One. Two. Three.
             lockScreen();
             XPRZ_Generic.sendObjectToTop(path, this);
             attachControl(path);
@@ -266,8 +266,7 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
     }
 
 
-
-    public void demo_rectangle() throws Exception
+    public void demo_rectangle () throws Exception
     {
         playSceneAudioIndex("DEMO5", 0, true); // A rectangle. It has FOUR sides.
         waitForSecs(0.3);
@@ -290,9 +289,10 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
             path.sizeToBox(new RectF(bounds()));
             //
             OBPath clone = (OBPath) rectangle.copy();
-            path.setMaskControl(clone);;
+            path.setMaskControl(clone);
+            ;
             //
-            playSceneAudioIndex("DEMO5", i+1, false); // One. Two. Three. Four.
+            playSceneAudioIndex("DEMO5", i + 1, false); // One. Two. Three. Four.
             XPRZ_Generic.sendObjectToTop(path, this);
             attachControl(path);
             sides.add(path);
@@ -336,9 +336,7 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
     }
 
 
-
-
-    public void demo_square() throws Exception
+    public void demo_square () throws Exception
     {
         playSceneAudioIndex("DEMO6", 0, true); // A square. It has four sides.
         waitForSecs(0.3);
@@ -361,9 +359,10 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
             path.sizeToBox(new RectF(bounds()));
             //
             OBPath clone = (OBPath) square.copy();
-            path.setMaskControl(clone);;
+            path.setMaskControl(clone);
+            ;
             //
-            playSceneAudioIndex("DEMO6", i+1, false); // One. Two. Three. Four.
+            playSceneAudioIndex("DEMO6", i + 1, false); // One. Two. Three. Four.
             XPRZ_Generic.sendObjectToTop(path, this);
             attachControl(path);
             sides.add(path);
@@ -394,235 +393,237 @@ public class X_Shapes_S2 extends XPRZ_Generic_SelectCorrectObject
     }
 
 
-
-
-
-
-    public void checkTarget(OBControl targ)
+    public void checkTarget_demo(OBControl target)
     {
-        final OBControl target = targ;
+        if (!demosDone.contains(target))
+        {
+            demosDone.add(target);
+            List<OBAnim> anims = new ArrayList<OBAnim>();
+            for (OBControl control : filterControls("obj.*"))
+            {
+                if (control.equals(target)) continue;
+                anims.add(OBAnim.opacityAnim(0.3f, control));
+            }
+            OBAnimationGroup.runAnims(anims, 0.3, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+            //
+            String demo = ((String) target.attributes().get("id")).replace("obj", "demo");
+            performSel(demo, "");
+            //
+            anims.clear();
+            for (OBControl control : filterControls("obj.*"))
+            {
+                if (demosDone.contains(control))
+                {
+                    anims.add(OBAnim.opacityAnim(0.3f, control));
+                    control.disable();
+                }
+                else
+                {
+                    anims.add(OBAnim.opacityAnim(1.0f, control));
+                    control.enable();
+                }
+            }
+            OBAnimationGroup.runAnims(anims, 0.3, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+            //
+            List<OBControl> shapes = filterControls("obj.*");
+            if (shapes.size() == demosDone.size())
+            {
+                anims.clear();
+                for (OBControl control : filterControls("obj.*"))
+                {
+                    anims.add(OBAnim.opacityAnim(1.0f, control));
+                }
+                //
+                OBAnimationGroup.runAnims(anims, 0.3, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+                //
+                nextScene();
+                return;
+            }
+        }
+        revertStatusAndReplayAudio();
+    }
+
+
+
+    public void checkTarget_choose(OBControl target) throws Exception
+    {
+        action_highlight(target);
         //
+        if (target.equals(action_getCorrectAnswer()))
+        {
+            gotItRightBigTick(true);
+            waitForSecs(0.3);
+            //
+            playAudioQueuedScene(currentEvent(), "CORRECT", true);
+            waitForSecs(0.3);
+            //
+            playAudioQueuedScene(currentEvent(), "FINAL", true);
+            action_lowlight(target);
+            //
+            nextScene();
+            return;
+        }
+        else
+        {
+            gotItWrongWithSfx();
+            waitForSecs(0.3);
+            action_lowlight(target);
+            playAudioQueuedScene(currentEvent(), "INCORRECT", false);
+            revertStatusAndReplayAudio();
+        }
+    }
+
+
+    public void checkTarget_showFill(OBControl target) throws Exception
+    {
+        action_highlight(target);
+        //
+        if (target.equals(action_getCorrectAnswer()))
+        {
+            OBPath path = (OBPath) target;
+            path.setFillColor((Integer) path.propertyValue("colour"));
+            shownShapes.add(path);
+            //
+            gotItRightBigTick(true);
+            waitForSecs(0.3);
+            //
+            playAudioQueuedScene(currentEvent(), "CORRECT", true);
+            waitForSecs(0.3);
+            //
+            playAudioQueuedScene(currentEvent(), "FINAL", true);
+            action_lowlight(target);
+            //
+            nextScene();
+            return;
+        }
+        else
+        {
+            gotItWrongWithSfx();
+            waitForSecs(0.3);
+            action_lowlight(target);
+            playAudioQueuedScene(currentEvent(), "INCORRECT", false);
+            revertStatusAndReplayAudio();
+        }
+    }
+
+
+    public void checkTarget_reveal(OBControl target) throws Exception
+    {
+        String wrongAudio = (currentEvent().equals("2l")) ? "INCORRECT2" : "INCORRECT";
+        OBPath path = (OBPath) target;
+        //
+        if (currentEvent().equals("2l") && target.attributes().get("id").equals("obj_sun"))
+        {
+            gotItWrongWithSfx();
+            waitForSecs(0.3);
+            action_lowlight(target);
+            playAudioQueuedScene(currentEvent(), "INCORRECT", false);
+            revertStatusAndReplayAudio();
+        }
+        else if (target != null && target.attributes().get("type").equals(eventAttributes.get("correctAnswer")))
+        {
+            action_toggleShape(path, true);
+            //
+            correctAnswerCount++;
+            int correctQuantity = Integer.parseInt(eventAttributes.get("correctQuantity"));
+            if (correctQuantity == 1)
+            {
+                gotItRightBigTick(true);
+                waitForSecs(0.3f);
+                //
+                if (currentEvent().equals("2n"))
+                {
+                    String targetID = (String) target.attributes().get("id");
+                    if (targetID.contains("door")) playSceneAudioIndex("CORRECT", 0, true);
+                    else if (targetID.contains("house"))
+                        playSceneAudioIndex("CORRECT", 1, true);
+                    else if (targetID.contains("trunk"))
+                        playSceneAudioIndex("CORRECT", 2, true);
+                }
+                else
+                {
+                    playAudioQueuedScene(currentEvent(), "CORRECT", true);
+                }
+                waitForSecs(0.3f);
+                //
+                playAudioQueuedScene(currentEvent(), "FINAL", true);
+                //
+                nextScene();
+                return;
+            }
+            else
+            {
+                gotItRightBigTick(false);
+                waitSFX();
+                target.disable();
+                //
+                playSceneAudioIndex("CORRECT", correctAnswerCount - 1, false);
+                if (correctAnswerCount == correctQuantity)
+                {
+                    waitAudio();
+                    waitForSecs(0.3f);
+                    //
+                    gotItRightBigTick(true);
+                    waitForSecs(0.3f);
+                    //
+                    playAudioQueuedScene(currentEvent(), "CORRECT2", true);
+                    waitForSecs(0.3f);
+                    //
+                    playAudioQueuedScene(currentEvent(), "FINAL", true);
+                    //
+                    nextScene();
+                    return;
+                }
+                else
+                {
+                    revertStatusAndReplayAudio();
+                }
+            }
+        }
+        else
+        {
+            gotItWrongWithSfx();
+            waitForSecs(0.3);
+            action_lowlight(target);
+            playAudioQueuedScene(currentEvent(), wrongAudio, false);
+            revertStatusAndReplayAudio();
+        }
+    }
+
+
+    public void checkTarget (OBControl targ)
+    {
         saveStatusClearReplayAudioSetChecking();
         //
         try
         {
             if (eventType.equals("demo"))
             {
-                if (!demosDone.contains(target))
-                {
-                    demosDone.add(target);
-                    List<OBAnim> anims = new ArrayList<OBAnim>();
-                    for (OBControl control : filterControls("obj.*"))
-                    {
-                        if (control.equals(target)) continue;
-                        anims.add(OBAnim.opacityAnim(0.3f, control));
-                    }
-                    OBAnimationGroup.runAnims(anims, 0.3, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
-                    //
-                    String demo = ((String) target.attributes().get("id")).replace("obj", "demo");
-                    performSel(demo, "");
-                    //
-                    anims.clear();
-                    for (OBControl control : filterControls("obj.*"))
-                    {
-                        if (demosDone.contains(control))
-                        {
-                            anims.add(OBAnim.opacityAnim(0.3f, control));
-                            control.disable();
-                        }
-                        else
-                        {
-                            anims.add(OBAnim.opacityAnim(1.0f, control));
-                            control.enable();
-                        }
-                    }
-                    OBAnimationGroup.runAnims(anims, 0.3, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
-                    //
-                    List<OBControl> shapes = filterControls("obj.*");
-                    if (shapes.size() == demosDone.size())
-                    {
-                        anims.clear();
-                        for (OBControl control : filterControls("obj.*"))
-                        {
-                            anims.add(OBAnim.opacityAnim(1.0f, control));
-                        }
-                        //
-                        OBAnimationGroup.runAnims(anims, 0.3, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
-                        //
-                        nextScene();
-                        return;
-                    }
-                }
+                checkTarget_demo(targ);
             }
             else if (eventType.equals("choose"))
             {
-                action_highlight(target);
-                //
-                if (target.equals(action_getCorrectAnswer()))
-                {
-                    gotItRightBigTick(true);
-                    waitForSecs(0.3);
-                    //
-                    playAudioQueuedScene(currentEvent(), "CORRECT", true);
-                    waitForSecs(0.3);
-                    //
-                    playAudioQueuedScene(currentEvent(), "FINAL", true);
-                    action_lowlight(targ);
-                    //
-                    nextScene();
-                    return;
-                }
-                else
-                {
-                    gotItWrongWithSfx();
-                    //
-                    OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
-                    {
-                        @Override
-                        public void run() throws Exception
-                        {
-                            action_lowlight(target);
-                            playAudioQueuedScene(currentEvent(), "INCORRECT", false);
-                        }
-                    });
-                }
+                checkTarget_choose(targ);
             }
             else if (eventType.equals("showFill"))
             {
-                action_highlight(target);
-                //
-                if (target.equals(action_getCorrectAnswer()))
-                {
-                    OBPath path = (OBPath) target;
-                    path.setFillColor((Integer) path.propertyValue("colour"));
-                    shownShapes.add(path);
-                    //
-                    gotItRightBigTick(true);
-                    waitForSecs(0.3);
-                    //
-                    playAudioQueuedScene(currentEvent(), "CORRECT", true);
-                    waitForSecs(0.3);
-                    //
-                    playAudioQueuedScene(currentEvent(), "FINAL", true);
-                    action_lowlight(target);
-                    //
-                    nextScene();
-                    return;
-                }
-                else
-                {
-                    gotItWrongWithSfx();
-                    //
-                    OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
-                    {
-                        @Override
-                        public void run() throws Exception
-                        {
-                            action_lowlight(target);
-                            playAudioQueuedScene(currentEvent(), "INCORRECT", false);
-                        }
-                    });
-                }
+                checkTarget_showFill(targ);
             }
             else if (eventType.equals("reveal"))
             {
-                final String wrongAudio = (currentEvent().equals("2l")) ? "INCORRECT2" : "INCORRECT";
-                OBPath path = (OBPath) target;
-                //
-                if (currentEvent().equals("2l") && target.attributes().get("id").equals("obj_sun"))
-                {
-                    gotItWrongWithSfx();
-                    //
-                    OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
-                    {
-                        @Override
-                        public void run() throws Exception
-                        {
-                            playAudioQueuedScene(currentEvent(), "INCORRECT", false);
-                        }
-                    });
-                }
-                else if (target != null && target.attributes().get("type").equals(eventAttributes.get("correctAnswer")))
-                {
-                    action_toggleShape(path, true);
-                    //
-                    correctAnswerCount++;
-                    int correctQuantity = Integer.parseInt(eventAttributes.get("correctQuantity"));
-                    if (correctQuantity == 1)
-                    {
-                        gotItRightBigTick(true);
-                        waitForSecs(0.3f);
-                        //
-                        if (currentEvent().equals("2n"))
-                        {
-                            String targetID = (String) target.attributes().get("id");
-                            if (targetID.contains("door")) playSceneAudioIndex("CORRECT", 0, true);
-                            else if (targetID.contains("house")) playSceneAudioIndex("CORRECT", 1, true);
-                            else if (targetID.contains("trunk")) playSceneAudioIndex("CORRECT", 2, true);
-                        }
-                        else
-                        {
-                            playAudioQueuedScene(currentEvent(), "CORRECT", true);
-                        }
-                        waitForSecs(0.3f);
-                        //
-                        playAudioQueuedScene(currentEvent(), "FINAL", true);
-                        //
-                        nextScene();
-                        return;
-                    }
-                    else
-                    {
-                        gotItRightBigTick(false);
-                        waitSFX();
-                        target.disable();
-                        //
-                        playSceneAudioIndex("CORRECT", correctAnswerCount-1, false);
-                        //
-                        if (correctAnswerCount == correctQuantity)
-                        {
-                            waitAudio();
-                            waitForSecs(0.3f);
-                            //
-                            gotItRightBigTick(true);
-                            waitForSecs(0.3f);
-                            //
-                            playAudioQueuedScene(currentEvent(), "CORRECT2", true);
-                            waitForSecs(0.3f);
-                            //
-                            playAudioQueuedScene(currentEvent(), "FINAL", true);
-                            //
-                            nextScene();
-                            return;
-                        }
-                    }
-                }
-                else
-                {
-                    gotItWrongWithSfx();
-                    //
-                    OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
-                    {
-                        @Override
-                        public void run() throws Exception
-                        {
-                            action_lowlight(target);
-                            playAudioQueuedScene(currentEvent(), wrongAudio, false);
-                        }
-                    });
-                }
+                checkTarget_reveal(targ);
             }
-            revertStatusAndReplayAudio();
         }
         catch (Exception e)
         {
             Log.i("exception caught", e.toString());
             e.printStackTrace();
         }
+
     }
 
 
-    public OBControl findTarget(PointF pt)
+    public OBControl findTarget (PointF pt)
     {
         List invertedControls = zPositionSortedFilteredControls("obj.*");
         Collections.reverse(invertedControls);

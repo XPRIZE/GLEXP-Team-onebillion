@@ -404,10 +404,11 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
         setReplayAudio(null);
     }
 
-    public void revertStatusAndReplayAudio()
+    public long revertStatusAndReplayAudio()
     {
-        setStatus(savedStatus);
+        long time = setStatus(savedStatus);
         setReplayAudio(savedReplayAudio);
+        return time;
     }
 
 
