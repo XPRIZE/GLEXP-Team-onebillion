@@ -149,6 +149,7 @@ public class OBVideoPlayer extends OBControl
         {
             MediaPlayer cpplayer = player;
             player = null;
+            finishVideoWait();
             try
             {
                 cpplayer.reset();

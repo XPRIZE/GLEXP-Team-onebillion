@@ -148,6 +148,9 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
     {
         resetPresenter();
         int currentLevel = (lastUnit == null ? 1 : ((lastUnit.awardStar == 10) ? lastUnit.level+1 : lastUnit.level));
+        if(currentTarget == TouchTargets.TARGET_STAR && lastUnit.awardStar == 10)
+            currentLevel--;
+
         loadTrophies(currentLevel-1);
         loadTopBar(currentLevel, lastUnit != null);
         hideControls("choice_star_.*");

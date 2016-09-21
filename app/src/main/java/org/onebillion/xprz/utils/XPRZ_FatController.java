@@ -208,7 +208,7 @@ public class XPRZ_FatController extends OBFatController
             unitAttemptsCount = MainActivity.mainActivity.configIntForKey(MainActivity.CONFIG_UNIT_TIMEOUT_COUNT);
         } catch (Exception e)
         {
-            sessionTimeout =60;
+            sessionTimeout =60 * 60;
             unitAttemptsCount = 3;
         }
 
@@ -220,7 +220,7 @@ public class XPRZ_FatController extends OBFatController
         calendar.set(Calendar.HOUR_OF_DAY, 2);
         calendar.set(Calendar.MINUTE, 0);
 
-        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), 60*2*1000);
+        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY);
 
         String menuClassName =  MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MENU_CLASS);
         if (showTestMenu())
@@ -296,13 +296,13 @@ public class XPRZ_FatController extends OBFatController
         cont.exitEvent();
     }
 
-    public void timeOutEvent(OBSectionController cont)
+    public void timeOutUnit(MlUnitInstance unitInstance)
     {
         DBSQL db = null;
         try
         {
             db = new DBSQL(true);
-            int count = unitAttemtpsCountInDB(db,currentUnitInstance.mlUnit.unitid);
+            int count = unitAttemtpsCountInDB(db,unitInstance.mlUnit.unitid);
             if(unitAttemptsCount>0 && count >= unitAttemptsCount)
             {
                 signalSectionFailed();
@@ -321,9 +321,10 @@ public class XPRZ_FatController extends OBFatController
             if(db != null)
                 db.close();
         }
+
         currentUnitInstance = null;
 
-        cont.exitEvent();
+        unitInstance.sectionController.exitEvent();
     }
 
     public boolean showTestMenu()
@@ -475,9 +476,9 @@ public class XPRZ_FatController extends OBFatController
             {
                 try
                 {
-                    //MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
-                    if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("X_TestEvent","x-miniapp6",true,true,"test"))
-                    //if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
+                    MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
+                    //if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("X_TestEvent","x-miniapp6",true,true,"test"))
+                    if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
                         currentUnitInstance.sectionController = OBMainViewController.MainViewController().topController();
                         startUnitInstanceTimeout(currentUnitInstance);
@@ -921,7 +922,7 @@ public class XPRZ_FatController extends OBFatController
             }
         };
 
-        timeoutHandler.postDelayed(timeoutRunnable,(int)unitInstance.mlUnit.targetDuration*1000); //currentInstance.mlUnit.targetDurationstance.)
+        timeoutHandler.postDelayed(timeoutRunnable,(int)(unitInstance.mlUnit.targetDuration)*1000); //currentInstance.mlUnit.targetDurationstance.)
 
     }
 
@@ -944,10 +945,10 @@ public class XPRZ_FatController extends OBFatController
         if(unitInstance.sectionController == null || unitInstance.sectionController._aborting)
             return false;
 
-        if((unitInstance.starttime + unitInstance.mlUnit.targetDuration) < getCurrentTime())
+        if((unitInstance.starttime + unitInstance.mlUnit.targetDuration) <= getCurrentTime())
         {
             MainActivity.log("Time out!!");
-            timeOutEvent(unitInstance.sectionController);
+            timeOutUnit(unitInstance);
             return false;
         }
         return true;
