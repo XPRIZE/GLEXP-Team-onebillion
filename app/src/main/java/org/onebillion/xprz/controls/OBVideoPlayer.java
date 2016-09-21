@@ -36,6 +36,12 @@ public class OBVideoPlayer extends OBControl
     public SurfaceTexture surfaceTexture;
     public Lock playerLock;
     public boolean activityPaused,playAfterPrepare=true,stopOnCompletion=true;
+    public static int VP_FILL_TYPE_STRETCH = 0,
+    VP_FILL_TYPE_ASPECT_FIT = 1,
+    VP_FILL_TYPE_ASPECT_FILL = 2;
+
+
+    int fillType = VP_FILL_TYPE_ASPECT_FIT;
     Condition condition;
     long fromTime;
     private int textureId;
@@ -113,12 +119,15 @@ public class OBVideoPlayer extends OBControl
         float widthRatio = 0;
         float heightRatio = 0;
 
-        if (ratio1 > ratio2)
+        if (fillType == VP_FILL_TYPE_ASPECT_FIT)
         {
-            widthRatio = ((cameraWidth - boundsWidth*hratio) / 2.0f) / cameraWidth;
-        } else if (ratio1 < ratio2)
-        {
-            heightRatio = ((cameraHeight - boundsHeight*wratio) / 2.0f) / cameraHeight;
+            if (ratio1 > ratio2)
+            {
+                widthRatio = ((cameraWidth - boundsWidth*hratio) / 2.0f) / cameraWidth;
+            } else if (ratio1 < ratio2)
+            {
+                heightRatio = ((cameraHeight - boundsHeight*wratio) / 2.0f) / cameraHeight;
+            }
         }
 
 
@@ -319,5 +328,16 @@ public class OBVideoPlayer extends OBControl
     {
         setPreviewSize(new Size(width, height));
     }
+
+    public int fillType()
+    {
+        return fillType;
+    }
+
+    public void setFillType(int fillType)
+    {
+        this.fillType = fillType;
+    }
+
 }
 

@@ -4,6 +4,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
@@ -36,7 +37,7 @@ public class OBTextLayer extends OBLayer
     Rect tempRect;
     SpannableString spanner;
     boolean displayObjectsValid = false;
-    public float maxWidth = 4000;
+    public float maxWidth = -1;
 
     public OBTextLayer()
     {
@@ -76,7 +77,7 @@ public class OBTextLayer extends OBLayer
         return obj;
     }
 
-    public void makeDisplayObjects()
+    public void makeDisplayObjects(float maxw,int just)
     {
         textPaint.setTextSize(textSize);
         textPaint.setTypeface(typeFace);
@@ -84,9 +85,9 @@ public class OBTextLayer extends OBLayer
         spanner = new SpannableString(text);
         if (hiStartIdx >= 0)
             spanner.setSpan(new ForegroundColorSpan(hiRangeColour),hiStartIdx,hiEndIdx, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        float mw = maxWidth;
-        stLayout = new StaticLayout(spanner,textPaint,(int)mw,
-                (justification==JUST_CENTRE)?Layout.Alignment.ALIGN_CENTER:Layout.Alignment.ALIGN_NORMAL,
+        float mw = maxw > 0?maxw:(just==JUST_CENTRE)?bounds().width():4000;
+        stLayout = new StaticLayout(spanner,textPaint,(int)Math.ceil(mw),
+                (just==JUST_CENTRE)?Layout.Alignment.ALIGN_CENTER:Layout.Alignment.ALIGN_NORMAL,
                 lineSpaceMultiplier,0,false);
         displayObjectsValid = true;
     }
@@ -96,7 +97,7 @@ public class OBTextLayer extends OBLayer
     {
         if (!displayObjectsValid)
         {
-            makeDisplayObjects();
+            makeDisplayObjects(maxWidth,justification);
         }
         float l = 0;
         //if (justification == JUST_CENTER)
@@ -124,7 +125,7 @@ public class OBTextLayer extends OBLayer
     public float baselineOffset()
     {
         if (!displayObjectsValid)
-            makeDisplayObjects();
+            makeDisplayObjects(maxWidth,justification);
         return stLayout.getLineBaseline(0);
     }
 
@@ -146,8 +147,8 @@ public class OBTextLayer extends OBLayer
     }
     public void calcBounds(RectF bb)
     {
-        if (!displayObjectsValid)
-            makeDisplayObjects();
+        //if (!displayObjectsValid)
+        makeDisplayObjects(maxWidth,JUST_LEFT);
         int linect = stLayout.getLineCount();
         bb.left = 0;
         bb.top = 0;
@@ -178,7 +179,7 @@ public class OBTextLayer extends OBLayer
 
     public void setBounds(RectF bounds)
     {
-        maxWidth = bounds.width();
+        //maxWidth = bounds.width();
         super.setBounds(bounds);
     }
     public float letterSpacing()
@@ -243,6 +244,13 @@ public class OBTextLayer extends OBLayer
     {
         this.colour = colour;
         displayObjectsValid = false;
+    }
+
+    public void getSelectionPath(int start, int end, Path dest)
+    {
+        if (!displayObjectsValid)
+            makeDisplayObjects(maxWidth,justification);
+        stLayout.getSelectionPath(start,end,dest);
     }
 
 }

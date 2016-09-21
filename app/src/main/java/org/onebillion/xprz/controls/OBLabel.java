@@ -104,6 +104,12 @@ public class OBLabel extends OBControl
         return ((OBTextLayer)layer).typeFace;
     }
 
+    public void setTypeFace(Typeface tf)
+    {
+        OBTextLayer tl = (OBTextLayer)layer;
+        tl.typeFace = tf;
+        tl.displayObjectsValid = false;
+    }
     public float fontSize()
     {
         return ((OBTextLayer)layer).textSize;

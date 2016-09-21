@@ -78,8 +78,7 @@ public class OBMainViewController extends OBViewController
         topLabel.controller = this;
         topLabel.sizeToBoundingBox();
         topLabel.setPosition(bounds().centerX(), bounds().centerY());
-        topLabel.setJustification(OBTextLayer.JUST_RIGHT);
-        topLabel.setMaxWidth(bounds().width());
+        topLabel.setJustification(OBTextLayer.JUST_CENTRE);
         topLabel.setTop(0);
         OBSystemsManager.sharedManager.setStatusLabel(topLabel);
     }

@@ -1144,7 +1144,7 @@ public class OBUtils
     {
         OBTextLayer textLayer = (OBTextLayer) label.layer;
         Path path = new Path();
-        textLayer.stLayout.getSelectionPath(start, end, path);
+        textLayer.getSelectionPath(start, end, path);
         RectF pathBounds = new RectF();
         path.computeBounds(pathBounds, true);
         return label.convertRectToControl(pathBounds, null);

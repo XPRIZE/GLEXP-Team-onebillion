@@ -75,9 +75,16 @@ public class X_Wordcontroller extends XPRZ_SectionController
         unlockScreen();
     }
 
-    public void playLetterSound(String s)
+    public void  playLetterSound(final String s)
     {
-        playAudio(String.format("is_%s",s));
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                playAudio(String.format("is_%s",s));
+            }
+        });
     }
 
     public boolean itemsInSameDirectory(String item1,String item2)

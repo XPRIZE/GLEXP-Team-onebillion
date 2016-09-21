@@ -150,7 +150,7 @@ public class X_Grid33S extends X_Wordcontroller
     public void doAudio(String  scene) throws Exception
     {
         setReplayAudioScene(currentEvent(), "PROMPT.REPEAT");
-        playAudioQueuedScene(currentEvent(), "PROMPT", false);
+        playAudioQueuedScene(currentEvent(), "PROMPT", true);
     }
 
     public void doMainXX() throws Exception

@@ -410,4 +410,19 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
         setReplayAudio(savedReplayAudio);
     }
 
+
+    public void setReplayAudioScene (String scene, String event)
+    {
+        Map<String, List<String>> sc = (Map<String, List<String>>) audioScenes.get(scene);
+        if (sc != null)
+        {
+            List<Object> arr = (List<Object>) (Object) sc.get(event); //yuk!
+            if (arr != null)
+            {
+                setReplayAudio(arr);
+                savedReplayAudio = arr;
+            }
+        }
+    }
+
 }

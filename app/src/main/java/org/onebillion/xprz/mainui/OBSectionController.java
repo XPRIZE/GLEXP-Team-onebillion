@@ -1518,6 +1518,8 @@ public class OBSectionController extends OBViewController
     {
         if (Looper.myLooper() == Looper.getMainLooper())
         {
+            updateAudioQueueToken();
+            final long aqtCopy = audioQueueToken;
             _playAudio(fileName, fromTime);
             final long t = (long) ((toTime - fromTime) * 1000);
             Handler h = new Handler();
@@ -1526,7 +1528,8 @@ public class OBSectionController extends OBViewController
                 @Override
                 public void run ()
                 {
-                    OBAudioManager.audioManager.stopPlaying();
+                    if (aqtCopy == audioQueueToken)
+                        OBAudioManager.audioManager.stopPlaying();
                 }
             }, t);
 
