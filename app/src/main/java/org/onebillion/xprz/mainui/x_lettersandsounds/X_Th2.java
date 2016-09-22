@@ -186,7 +186,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
                 {
                     long timestamp = setStatus(STATUS_CHECKING);
                     action_intro(showText, false, timestamp);
-                    setStatus(STATUS_AWAITING_CLICK);
+                    final long st = setStatus(STATUS_AWAITING_CLICK);
                     //
                     _replayAudio();
                     //
@@ -195,7 +195,6 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
                         @Override
                         public void run () throws Exception
                         {
-                            long st = System.nanoTime();
                             waitAudio();
                             waitForSecs(FIRST_REMINDER_DELAY);
                             doReminderWithStatusTime(st);
@@ -300,7 +299,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
             unlockScreen();
             waitForSecs(0.5);
         }
-        if (showText && eventIndex < events.size() - 1)
+        if (mode.equals("word") && showText && eventIndex < events.size() - 1)
         {
             waitForSecs(0.4);
             playSfxAudio("wordon", false);
