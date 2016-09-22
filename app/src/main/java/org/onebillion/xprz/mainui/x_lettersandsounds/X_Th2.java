@@ -324,7 +324,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
 
     public void setScenefinale ()
     {
-        if (mode.equals("word"))
+        if (mode.equals("word") && showText)
         {
             label.show();
         }
@@ -359,6 +359,8 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
             //
             OBControl marker = objectDict.get("pos_1");
             label.setPosition(marker.position());
+            if (showText) label.show();
+            else label.hide();
         }
     }
 
