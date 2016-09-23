@@ -76,7 +76,7 @@ public class X_TestEvent extends XPRZ_SectionController
                         } else
                         {
                             DBSQL db = new DBSQL(true);
-                            fatController.finishCurrentDayInDB(db);
+                            fatController.finishCurrentSessionInDB(db);
                             db.close();
                             fatController.signalSessionTimedOut();
 

@@ -145,7 +145,7 @@ public class XPRZ_TestMenu extends OBSectionController
                     public void onClick (DialogInterface dialog, int which)
                     {
                         alertDialog.cancel();
-                        controller.startNewDay();
+                        controller.prepareNewSession();
                     }
                 });
                 alertDialog.show();
@@ -210,7 +210,7 @@ public class XPRZ_TestMenu extends OBSectionController
                 {
                     OBBrightnessManager.sharedManager.onContinue();
                     db.close();
-                    //controller.continueFromLastUnit();
+                    controller.continueFromLastUnit();
                     MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
                 }
             }

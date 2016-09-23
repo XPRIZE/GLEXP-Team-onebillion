@@ -2,7 +2,6 @@ package org.onebillion.xprz.utils;
 
 import android.app.AlarmManager;
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.util.ArrayMap;
 import android.os.Handler;
@@ -161,7 +160,7 @@ public class XPRZ_FatController extends OBFatController
                 u = OBUser.initAndSaveUserInDB(db, "Student");
                 currentUser = u;
                 currentSessionId = -1;
-                startNewDayInDB(db, u.userid);
+                prepareNewSessionInDB(db, u.userid);
             } else
             {
                 currentUser = u;
@@ -180,7 +179,7 @@ public class XPRZ_FatController extends OBFatController
                 db.close();
         }
 
-        checkAndStartNewSession();
+        checkAndPrepareNewSession();
     }
 
     public void loadLastUnitIndexFromDB(DBSQL db)
@@ -216,11 +215,11 @@ public class XPRZ_FatController extends OBFatController
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.add(Calendar.DATE,1);
-        calendar.set(Calendar.HOUR_OF_DAY, 2);
-        calendar.set(Calendar.MINUTE, 0);
+       // calendar.add(Calendar.DATE,1);
+        //calendar.set(Calendar.HOUR_OF_DAY, 0);
+       // calendar.set(Calendar.MINUTE, 30);
 
-        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY);
+        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_HOUR);// AlarmManager.INTERVAL_DAY
 
         String menuClassName =  MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MENU_CLASS);
         if (showTestMenu())
@@ -324,7 +323,8 @@ public class XPRZ_FatController extends OBFatController
 
         currentUnitInstance = null;
 
-        unitInstance.sectionController.exitEvent();
+        if(unitInstance.sectionController != null && !unitInstance.sectionController._aborting)
+            unitInstance.sectionController.exitEvent();
     }
 
     public boolean showTestMenu()
@@ -368,6 +368,11 @@ public class XPRZ_FatController extends OBFatController
         command.put("code", code);
         command.put("unit", unit);
         return command;
+    }
+
+    public void singalNewSession()
+    {
+        menu.receiveCommand(commandWith(OFC_NEW_SESSION,currentUnit()));
     }
 
     public void signalSectionFailed()
@@ -434,7 +439,7 @@ public class XPRZ_FatController extends OBFatController
 
             if(currentSessionFinished())
                 code = OFC_SESSION_TIMED_OUT;
-            else if(sessionUnitCountFromDB(db, currentSessionId, currentUser.userid) == 0)
+            else if(currentSessionReadyToStart())//sessionUnitCountFromDB(db, currentSessionId, currentUser.userid) == 0)
                 code =  OFC_NEW_SESSION;
             else
                 code = OFC_SUCCEEDED;
@@ -546,7 +551,7 @@ public class XPRZ_FatController extends OBFatController
         cursor.close();
 
         if(elapsedTime > sessionTimeout)
-            finishCurrentDayInDB(db);
+            finishCurrentSessionInDB(db);
 
         db.close();
     }
@@ -574,18 +579,22 @@ public class XPRZ_FatController extends OBFatController
         return currentSessionEndTime > 0;
     }
 
-    public boolean checkAndStartNewSession()
+    public boolean checkAndPrepareNewSession()
     {
+        if(currentSessionStartTime == 0)
+            return true;
+
         Calendar currentCalendar = Calendar.getInstance();
         Calendar calendarLastSession = Calendar.getInstance();
 
         currentCalendar.setTimeInMillis(getCurrentTime()*1000);
         calendarLastSession.setTimeInMillis(currentSessionStartTime*1000);
 
-        if(currentCalendar.get(Calendar.DAY_OF_YEAR) != calendarLastSession.get(Calendar.DAY_OF_YEAR) ||
-                currentCalendar.get(Calendar.YEAR) != calendarLastSession.get(Calendar.YEAR))
+
+        if(currentCalendar.get(Calendar.HOUR_OF_DAY) != calendarLastSession.get(Calendar.HOUR_OF_DAY) || currentCalendar.get(Calendar.YEAR) != calendarLastSession.get(Calendar.YEAR))
+        //if(currentCalendar.get(Calendar.DAY_OF_YEAR) != calendarLastSession.get(Calendar.DAY_OF_YEAR) || currentCalendar.get(Calendar.YEAR) != calendarLastSession.get(Calendar.YEAR))
         {
-            startNewDay();
+            prepareNewSession();
             return true;
         }
         return false;
@@ -659,13 +668,13 @@ public class XPRZ_FatController extends OBFatController
         return result;
     }
 
-    public void startNewDay()
+    public void prepareNewSession()
     {
         DBSQL db = null;
         try
         {
             db = new DBSQL(true);
-            startNewDayInDB(db, currentUser.userid);
+            prepareNewSessionInDB(db, currentUser.userid);
             loadLastUnitIndexFromDB(db);
         }
         catch(Exception e)
@@ -680,14 +689,14 @@ public class XPRZ_FatController extends OBFatController
     }
 
 
-    public void startNewDayInDB(DBSQL db, int userid)
+    public void prepareNewSessionInDB(DBSQL db, int userid)
     {
         if(!currentSessionFinished())
-            finishCurrentDayInDB(db);
+            finishCurrentSessionInDB(db);
 
         fixMissingStarsInDB(db);
 
-        currentSessionStartTime = getCurrentTime();
+        currentSessionStartTime = 0;
         currentSessionEndTime = 0;
 
         int sessionid = currentSessionId;
@@ -741,19 +750,51 @@ public class XPRZ_FatController extends OBFatController
         }
     }
 
-    public void finishCurrentDayInDB(DBSQL db)
+    public boolean currentSessionReadyToStart()
+    {
+        return currentSessionStartTime == 0;
+    }
+
+    public void startCurrentSession()
+    {
+        currentSessionStartTime = getCurrentTime();
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(true);
+            updateCurrentSessionTimeInDB(db,"starttime", currentSessionStartTime);
+        }
+        catch (Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+
+    }
+
+    public void finishCurrentSessionInDB(DBSQL db)
     {
         if(currentSessionId < 0)
             return;
 
         currentSessionEndTime =  getCurrentTime();
+
+        updateCurrentSessionTimeInDB(db,"endtime", currentSessionEndTime);
+    }
+
+    private boolean updateCurrentSessionTimeInDB(DBSQL db, String fieldName, long value)
+    {
         Map<String,String> whereMap  = new ArrayMap<>();
 
         whereMap.put("userid",String.valueOf(currentUser.userid));
         whereMap.put("sessionid",String.valueOf(currentSessionId));
         ContentValues contentValues = new ContentValues();
-        contentValues.put("endtime",currentSessionEndTime);
-        db.doUpdateOnTable(DBSQL.TABLE_SESSIONS,whereMap, contentValues);
+        contentValues.put(fieldName,value);
+        return  db.doUpdateOnTable(DBSQL.TABLE_SESSIONS,whereMap, contentValues) > 0;
     }
 
     public void saveStarForUnit(MlUnit unit,String colour)

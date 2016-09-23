@@ -14,6 +14,7 @@ public class OBAlarmReceiver extends BroadcastReceiver
 {
     @Override
     public void onReceive(Context context, Intent intent) {
+        MainActivity.log("Alarm triggered!");
         MainActivity.mainActivity.onAlarmReceived(intent);
     }
 }

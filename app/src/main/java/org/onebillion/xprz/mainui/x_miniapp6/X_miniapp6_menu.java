@@ -168,6 +168,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
     @Override
     public void start()
     {
+        loadAudioForCurrentSecion();
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             public void run() throws Exception
@@ -225,6 +226,9 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
                         public void run() throws Exception
                         {
                             button.highlight();
+                            if(fatController.currentSessionReadyToStart())
+                                fatController.startCurrentSession();
+
                             waitForSecs(0.5);
                             hideNewDayScreen();
                             button.lowlight();
@@ -337,8 +341,13 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
 
     public boolean newDayCheck()
     {
+        if(status() == STATUS_EXITING)
+            return false;
 
-        if(fatController.checkAndStartNewSession())
+        if(currentTarget == TouchTargets.TARGET_BUTTON && fatController.currentSessionReadyToStart())
+            return false;
+
+        if(fatController.checkAndPrepareNewSession())
         {
             setStatus(STATUS_EXITING);
             killAnimations();
@@ -413,6 +422,10 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
             currentSection = "unitdefault";
 
         }
+    }
+
+    public void loadAudioForCurrentSecion()
+    {
         loadAudioXML(getConfigPath(String.format("event%saudio.xml", currentSection)));
     }
 

@@ -19,7 +19,7 @@ public class OBAlarmManager
         AlarmManager alarmManager = (AlarmManager)MainActivity.mainActivity.getSystemService(Context.ALARM_SERVICE);
         cancelAlarm(pendingIntent);
 
-        alarmManager.setRepeating(AlarmManager.RTC,triggerAtMillis,intervalMillis,pendingIntent);
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,triggerAtMillis,intervalMillis,pendingIntent);
         return pendingIntent;
     }
 
