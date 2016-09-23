@@ -141,7 +141,7 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
             @Override
             public void run () throws Exception
             {
-//                action_popup();
+                action_popup();
                 //
                 if (!performSel("demo", currentEvent()))
                 {
@@ -292,21 +292,32 @@ public class X_Th2 extends XPRZ_Generic_WordsEvent
     {
         if (currentEvent().equals("b") || (!events.contains("b") && currentEvent().equals("c")))
         {
-            waitForSecs(0.3);
-            playSfxAudio("popon", false);
-            lockScreen();
-            showControls("obj.*");
-            unlockScreen();
-            waitForSecs(0.5);
+            boolean stillHidden = true;
+            for (OBControl control : filterControls("obj.*"))
+            {
+                stillHidden = stillHidden && control.hidden();
+            }
+            if (stillHidden)
+            {
+                waitForSecs(0.3);
+                playSfxAudio("popon", false);
+                lockScreen();
+                showControls("obj.*");
+                unlockScreen();
+                waitForSecs(0.5);
+            }
         }
         if (mode.equals("word") && showText && eventIndex < events.size() - 1)
         {
-            waitForSecs(0.4);
-            playSfxAudio("wordon", false);
-            lockScreen();
-            label.show();
-            unlockScreen();
-            waitForSecs(0.3);
+            if (label.hidden())
+            {
+                waitForSecs(0.4);
+                playSfxAudio("wordon", false);
+                lockScreen();
+                label.show();
+                unlockScreen();
+                waitForSecs(0.3);
+            }
         }
     }
 

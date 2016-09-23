@@ -110,7 +110,7 @@ public class OBBrightnessManager
     public String printStatus ()
     {
         WindowManager.LayoutParams layoutpars = MainActivity.mainActivity.getWindow().getAttributes();
-        float brightness = layoutpars.screenBrightness;
+        float brightness = Math.abs(layoutpars.screenBrightness);
         String result = String.format("%.1f%%", brightness * 100);
         return result;
     }

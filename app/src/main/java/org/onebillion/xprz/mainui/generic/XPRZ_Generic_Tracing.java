@@ -406,7 +406,7 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
 
     public OBGroup splitPath(OBPath obp)
     {
-        int lengthPerSplit = 120; //100
+        int lengthPerSplit = 100;
         PathMeasure pm = new PathMeasure(obp.path(),false);
         float splen = pm.getLength();
         int noSplits = (int)(splen / lengthPerSplit);

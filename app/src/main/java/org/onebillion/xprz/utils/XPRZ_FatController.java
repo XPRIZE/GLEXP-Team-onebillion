@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.util.ArrayMap;
 import android.os.Handler;
+import android.widget.Toast;
 
 import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.OBMainViewController;
@@ -487,6 +488,14 @@ public class XPRZ_FatController extends OBFatController
                     {
                         currentUnitInstance.sectionController = OBMainViewController.MainViewController().topController();
                         startUnitInstanceTimeout(currentUnitInstance);
+                    }
+                    else
+                    {
+                        if (MainActivity.mainActivity.isDebugMode())
+                        {
+                            Toast.makeText(MainActivity.mainActivity, unit.target + " hasn't been converted to Android yet.", Toast.LENGTH_LONG).show();
+                            MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                        }
                     }
                 }
                 catch (Exception exception)
