@@ -65,6 +65,20 @@ public class OBVideoPlayer extends OBControl
         this(frame,sectionController,true,true);
     }
 
+    public boolean isPlaying()
+    {
+        if (player == null)
+            return false;
+        try
+        {
+            return player.isPlaying();
+        }
+        catch(Exception e)
+        {
+
+        }
+        return false;
+    }
     private void rebuildTexture()
     {
         surfaceTexture = new SurfaceTexture(textureId);

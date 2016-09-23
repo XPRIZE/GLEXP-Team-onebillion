@@ -637,10 +637,12 @@ public class XPRZ_JMenu extends XPRZ_Menu
         OBControl placeHolder = objectDict.get("video_video");
         videoPlayer.setFrame(placeHolder.frame());
     }
-    public void setUpVideoPlayerForIndex(int idx,OBXMLNode tab,boolean play)
+    public void setUpVideoPlayerForIndex(int idx,boolean play)
     {
-        if (idx == 0)
+        if (idx == 0 && !play)
             intro_video_state = ivs_before_play;
+        String tabstring = "video";
+        OBXMLNode tab = tabXmlDict.get(tabstring);
         List<OBXMLNode> targs = tab.childrenOfType("video");
         OBXMLNode movienode = targs.get(idx).childrenOfType("movie").get(0);
         String movieName = OBUtils.stringByAppendingPathComponent(movieFolder,movienode.contents);
@@ -665,9 +667,13 @@ public class XPRZ_JMenu extends XPRZ_Menu
         {
             if (!attachedControls.contains(videoPlayer))
                 attachControl(videoPlayer);
-            videoPlayer.setFrame(placeHolder.frame());
-
             videoPlayer.stop();
+            if (idx == 0 && play)
+                goFullScreen();
+            else
+                goSmallScreen();
+            //videoPlayer.setFrame(placeHolder.frame());
+
         }
         videoPlayer.setPreviewSize(new Size((int)videoPlayer.width(),(int)videoPlayer.height()));
         videoPlayer.playAfterPrepare = play;
@@ -679,7 +685,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
         String tabstring = "video";
         OBXMLNode tab = tabXmlDict.get(tabstring);
         populateVideoPreviews(tabstring,tab);
-        setUpVideoPlayerForIndex(videoPreviewIdx,tab,false);
+        setUpVideoPlayerForIndex(videoPreviewIdx,false);
     }
 
     public void setUpGroup()
@@ -779,9 +785,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
                         {
                             selectPreview(i);
                             setStatus(STATUS_IDLE);
-                            String tabstring = "video";
-                            OBXMLNode tab = tabXmlDict.get(tabstring);
-                            setUpVideoPlayerForIndex(i,tab,true);
+                            setUpVideoPlayerForIndex(i,true);
                             return;
                         }
                     }
@@ -952,7 +956,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
             intro_video_state = ivs_act_normal;
             return;
         }
-        if (videoPlayer.mediaPlayer().isPlaying())
+        if (videoPlayer.isPlaying())
             videoPlayer.pause();
         else
             videoPlayer.start();
@@ -1043,6 +1047,31 @@ public class XPRZ_JMenu extends XPRZ_Menu
                 return;
             }
         }
+    }
+
+    public void onResume()
+    {
+        videoPlayer.onResume();
+        if (currentTab.equals("video") && videoPreviewIdx >= 0)
+        {
+            setUpVideoPlayerForIndex(videoPreviewIdx,false);
+        }
+        super.onResume();
+    }
+
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+        try
+        {
+            videoPlayer.onPause();
+
+        } catch(Exception e)
+        {
+
+        }
+
     }
 
 }
