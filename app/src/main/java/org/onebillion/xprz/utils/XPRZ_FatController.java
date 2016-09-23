@@ -186,7 +186,7 @@ public class XPRZ_FatController extends OBFatController
     public void loadLastUnitIndexFromDB(DBSQL db)
     {
         int lastUnitID = currentUser.lastUnitIDFromDB(db);
-        if (unitAttemptsCount>0 && unitAttemtpsCountInDB(db, lastUnitID) < unitAttemptsCount)
+        if (unitAttemptsCount>0 && unitAttemtpsCountInDB(db, lastUnitID) >= unitAttemptsCount)
             lastUnitID--;
 
         firstUnstartedIndex = lastUnitID + 1;
