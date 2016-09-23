@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.DownloadManager;
 import android.app.admin.DevicePolicyManager;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.le.ScanSettings;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -14,8 +16,10 @@ import android.content.pm.ConfigurationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.PointF;
 import android.graphics.Typeface;
+import android.location.LocationManager;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -60,7 +64,8 @@ public class MainActivity extends Activity
                     REQUEST_FIRST_SETUP_DATE_TIME = 5,
                     REQUEST_FIRST_SETUP_PERMISSIONS = 6,
                     REQUEST_FIRST_SETUP_ADMINISTRATOR_PRIVILEGES = 7,
-                    REQUEST_FIRST_SETUP_PROVISION_MANAGED_PROFILE = 8;
+                    REQUEST_FIRST_SETUP_PROVISION_MANAGED_PROFILE = 8,
+                    REQUEST_FIRST_SETUP_WIFI_BT_SCANNING = 9;
     public static String CONFIG_IMAGE_SUFFIX = "image_suffix",
             CONFIG_AUDIO_SUFFIX = "audio_suffix",
             CONFIG_AUDIO_SEARCH_PATH = "audioSearchPath",
@@ -101,7 +106,7 @@ public class MainActivity extends Activity
             CONFIG_HIDE_STATUS_BAR = "hideStatusBar",
             CONFIG_HIDE_NAVIGATION_BAR = "hideNavigationBar",
             CONFIG_ALLOWS_TIMEOUT = "allowsTimeout",
-            CONFIG_USE_ADMINISTRATOR_SERVICES = "enableAdiministratorServices",
+            CONFIG_USE_ADMINISTRATOR_SERVICES = "enableAdministratorServices",
             CONFIG_MENU_CLASS = "menuclass",
             CONFIG_SESSION_TIMEOUT = "sessionTimeout",
             CONFIG_UNIT_TIMEOUT_COUNT = "unitAttemptsCount";
@@ -261,6 +266,18 @@ public class MainActivity extends Activity
                 finish();
             }
         }
+        else if (requestCode == REQUEST_FIRST_SETUP_WIFI_BT_SCANNING)
+        {
+            if (resultCode == Activity.RESULT_OK)
+            {
+                checkForFirstSetupAndRun();
+            }
+            else
+            {
+                MainActivity.log("Requesting Wifi and Bluetooth scanning to be disabled cancelled or failed");
+                finish();
+            }
+        }
     }
 
 
@@ -299,49 +316,111 @@ public class MainActivity extends Activity
 
     public void checkForFirstSetupAndRun()
     {
-        // ask permissions
-        if (isAllPermissionGranted())
+        boolean permissionsGranted = isAllPermissionGranted();
+        if (!permissionsGranted)
         {
-            if (OBSystemsManager.sharedManager.usesAdministratorServices())
+            return;
+        }
+        //
+        boolean administratorServices = OBSystemsManager.sharedManager.usesAdministratorServices();
+        if (administratorServices)
+        {
+            boolean dateTimeSetupComplete = getPreferences("dateTimeSetupComplete") != null;
+            if (!dateTimeSetupComplete)
             {
-                // set date and time
-                if (getPreferences("dateTimeSetupComplete") == null)
-                {
-                    Intent intent = new Intent(android.provider.Settings.ACTION_DATE_SETTINGS);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-//                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    startActivityForResult(intent, REQUEST_FIRST_SETUP_DATE_TIME);
-                }
-                else
-                {
-                    // set write settings permissions
-                    if (!Settings.System.canWrite(this))
-                    {
-                        Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                        intent.setData(Uri.parse("package:" + getPackageName()));
-                        startActivityForResult(intent, REQUEST_FIRST_SETUP_PERMISSIONS);
-                    }
-                    else
-                    {
-                        if (OBSystemsManager.sharedManager.enableAdminstratorPrivileges())
-                        {
-                            addToPreferences("firstSetupComplete", "true"); // to be removed
-                            //
-                            log("First Setup complete. Loading Main View Controller");
-                            checkForUpdatesAndLoadMainViewController();
-                        }
-                    }
-                }
+                Toast.makeText(MainActivity.mainActivity, "Please set the date and time before going back.", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(Settings.ACTION_DATE_SETTINGS);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivityForResult(intent, REQUEST_FIRST_SETUP_DATE_TIME);
+                return;
             }
-            else
+            LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+            boolean gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+            boolean network_enabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+            if (gps_enabled || network_enabled)
             {
-                addToPreferences("firstSetupComplete", "true"); // to be removed
-                //
-                log("First Setup complete. Administrator Services disabled. Loading Main View Controller");
-                checkForUpdatesAndLoadMainViewController();
+                Toast.makeText(MainActivity.mainActivity, "Please disable the location services before going back.", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivityForResult(intent, REQUEST_FIRST_SETUP_WIFI_BT_SCANNING);
+                return;
+            }
+            boolean scanningDisabled = OBSystemsManager.sharedManager.connectionManager.isScanningDisabled();
+            if (!scanningDisabled)
+            {
+                Toast.makeText(MainActivity.mainActivity, "Please disable all Wifi and Bluetooth scanning before going back.", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivityForResult(intent, REQUEST_FIRST_SETUP_WIFI_BT_SCANNING);
+                return;
+            }
+            //
+            boolean writeSettingsPermission = Settings.System.canWrite(this);
+            if (!writeSettingsPermission)
+            {
+                Toast.makeText(MainActivity.mainActivity, "Please allow this app to write settings before going back.", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                intent.setData(Uri.parse("package:" + getPackageName()));
+                startActivityForResult(intent, REQUEST_FIRST_SETUP_PERMISSIONS);
+                return;
+            }
+            //
+            boolean hasAdministratorPrivileges = OBSystemsManager.sharedManager.enableAdminstratorPrivileges();
+            if (!hasAdministratorPrivileges)
+            {
+                return;
             }
         }
+        //
+        log("First Setup complete. Loading Main View Controller");
+        checkForUpdatesAndLoadMainViewController();
+        /*
+        isScanningAlwaysAvailable
+         */
+        // ask permissions
+//        if (isAllPermissionGranted())
+//        {
+//            if (OBSystemsManager.sharedManager.usesAdministratorServices())
+//            {
+//                // set date and time
+//                if (getPreferences("dateTimeSetupComplete") == null)
+//                {
+//                    Intent intent = new Intent(android.provider.Settings.ACTION_DATE_SETTINGS);
+//                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+////                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+//                    startActivityForResult(intent, REQUEST_FIRST_SETUP_DATE_TIME);
+//                }
+//                else
+//                {
+//                    // set write settings permissions
+//                    if (!Settings.System.canWrite(this))
+//                    {
+//                        Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+//                        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+//                        intent.setData(Uri.parse("package:" + getPackageName()));
+//                        startActivityForResult(intent, REQUEST_FIRST_SETUP_PERMISSIONS);
+//                    }
+//                    else
+//                    {
+//                        if (OBSystemsManager.sharedManager.enableAdminstratorPrivileges())
+//                        {
+//                            addToPreferences("firstSetupComplete", "true"); // to be removed
+//                            //
+//                            log("First Setup complete. Loading Main View Controller");
+//                            checkForUpdatesAndLoadMainViewController();
+//                        }
+//                    }
+//                }
+//            }
+//            else
+//            {
+//                addToPreferences("firstSetupComplete", "true"); // to be removed
+//                //
+//                log("First Setup complete. Administrator Services disabled. Loading Main View Controller");
+//                checkForUpdatesAndLoadMainViewController();
+//            }
+//        }
     }
 
 

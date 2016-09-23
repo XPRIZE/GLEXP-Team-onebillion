@@ -2,6 +2,7 @@ package org.onebillion.xprz.utils;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkInfo;
@@ -68,6 +69,18 @@ public class OBConnectionManager
         {
             return false;
         }
+        return true;
+    }
+
+
+    public boolean isScanningDisabled()
+    {
+        WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getSystemService(MainActivity.WIFI_SERVICE);
+        if (wifiManager.isScanAlwaysAvailable()) return false;
+        //
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter.isDiscovering()) return false;
+        //
         return true;
     }
 

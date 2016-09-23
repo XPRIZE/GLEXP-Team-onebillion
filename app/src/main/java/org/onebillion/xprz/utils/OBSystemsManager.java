@@ -64,12 +64,13 @@ public class OBSystemsManager
     private OBBatteryReceiver batteryReceiver;
     private OBBrightnessManager brightnessManager;
     private OBExpansionManager expansionManager;
-    private OBConnectionManager connectionManager;
     private Map<String, List<String>> memoryUsageMap;
 
     public Handler mainHandler;
     public OBLabel statusLabel;
+
     public OBSettingsContentObserver settingsContentObserver;
+    public OBConnectionManager connectionManager;
 
     private boolean AppIsInForeground;
     private final int keepInForegroundInterval = 1000;
