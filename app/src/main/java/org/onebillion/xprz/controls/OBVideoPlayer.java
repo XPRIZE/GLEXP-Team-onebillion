@@ -62,7 +62,7 @@ public class OBVideoPlayer extends OBControl
     }
     public OBVideoPlayer(RectF frame, XPRZ_SectionController sectionController)
     {
-        this(frame,sectionController,false,true);
+        this(frame,sectionController,true,true);
     }
 
     private void rebuildTexture()
@@ -328,6 +328,7 @@ public class OBVideoPlayer extends OBControl
     public void onVideoSizeChanged(MediaPlayer mp, int width, int height)
     {
         setPreviewSize(new Size(width, height));
+        invalidate();
     }
 
     public int fillType()

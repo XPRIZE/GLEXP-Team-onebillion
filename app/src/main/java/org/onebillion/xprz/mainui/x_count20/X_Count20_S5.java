@@ -576,6 +576,7 @@ public class X_Count20_S5 extends XPRZ_Tracer
         }
         else
         {
+            gotItWrongWithSfx();
             setStatus(saveStatus);
         }
     }

@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
+import android.opengl.Matrix;
 
 import static android.opengl.GLES20.GL_TEXTURE_2D;
 import static android.opengl.GLES20.GL_TRIANGLE_STRIP;
@@ -128,9 +129,45 @@ public class TextureRect
 
     }
 
+    static boolean isIdentity(float f[])
+    {
+        for (int i = 0;i < 4;i++)
+            for (int j = 0;j < 4;j++)
+            {
+                int k = i * 4 + j;
+                boolean shouldbe1 = i == j;
+                if (shouldbe1)
+                {
+                    if (f[k] != 1)
+                        return false;
+                }
+                else
+                {
+                    if (f[k] != 0)
+                        return false;
+                }
+            }
+        return true;
+    }
     public void drawSurface(OBRenderer renderer, float l, float t, float r, float b, SurfaceTexture surfaceTexture)
     {
         fillOutRectVertexData(vertices,l,t,r,b,POSITION_COMPONENT_COUNT + UV_COMPONENT_COUNT);
+
+        float m[] = new float[16];
+        surfaceTexture.getTransformMatrix(m);
+        if (!isIdentity(m))
+        {
+            float v[] = new float[4];
+            v[0] = uvLeft;v[1] = uvBottom;v[2] = 0;v[3] = 1;
+            float o[] = new float[4];
+            android.opengl.Matrix.multiplyMV(o,0,m,0,v,0);
+            v[0] = uvRight;v[1] = uvTop;v[2] = 0;v[3] = 1;
+            uvLeft = o[0];uvTop = o[1];
+            android.opengl.Matrix.multiplyMV(o,0,m,0,v,0);
+            uvRight = o[0];
+            uvBottom = o[1];
+        }
+
         fillOutRectTextureData(vertices,uvLeft,uvTop,uvRight,uvBottom,POSITION_COMPONENT_COUNT + UV_COMPONENT_COUNT);
         if (vertexArray == null)
             vertexArray = new VertexArray(vertices);
@@ -150,7 +187,6 @@ public class TextureRect
         glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,renderer.textureObjectIds[2]);
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
         GLES20.glEnable(GLES20.GL_BLEND);
-
 
         glDrawArrays(GL_TRIANGLE_STRIP,0,4);
 

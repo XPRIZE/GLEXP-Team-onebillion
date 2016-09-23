@@ -649,6 +649,11 @@ public class XPRZ_JMenu extends XPRZ_Menu
         {
             RectF r = new RectF();
             r.set(placeHolder.frame());
+            r.left = (int)r.left;
+            r.top = (int)r.top;
+            r.right = (float) Math.ceil(r.right);
+            r.bottom = (float) Math.ceil(r.bottom);
+            placeHolder.setFrame(r);
             videoPlayer = new OBVideoPlayer(r,this,false,false);
             videoPlayer.stopOnCompletion = false;
             videoPlayer.setZPosition(190);
