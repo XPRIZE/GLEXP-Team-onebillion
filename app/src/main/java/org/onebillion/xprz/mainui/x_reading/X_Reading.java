@@ -7,6 +7,7 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.text.TextUtils;
+import android.util.Log;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
@@ -704,20 +705,31 @@ public class X_Reading extends XPRZ_SectionController
     {
 
     }
+
     public boolean readPage()
+    {
+        return _readPage();
+    }
+    public boolean _readPage()
     {
         long token = -1;
         try
         {
             reading = true;
+            Log.i("readpage",String.format("%d",((ReentrantLock)sequenceLock).getQueueLength()));
             token = takeSequenceLockInterrupt(true);
             if (token == sequenceToken)
             {
                 while (currPara < paragraphs.size())
                 {
+                    checkSequenceToken(token);
                     readParagraph(currPara,token,true);
                     currPara++;
-                    waitForSecs(0.6);
+                    for (int i = 0;i < 6;i++)
+                    {
+                        checkSequenceToken(token);
+                        waitForSecs(0.1);
+                    }
                 }
             }
             setStatus(STATUS_AWAITING_CLICK);
@@ -740,7 +752,7 @@ public class X_Reading extends XPRZ_SectionController
                 protected Void doInBackground(Void... params)
                 {
                     currPara = 0;
-                    readPage();
+                    _readPage();
                     return null;
                 }
             }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);

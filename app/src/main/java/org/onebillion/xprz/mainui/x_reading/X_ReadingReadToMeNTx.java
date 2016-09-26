@@ -61,7 +61,8 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
                     else
                     {
                         waitForSecs(0.5);
-                        replayAudio();
+                        currPara = 0;
+                        readPage();
                     }
                 }
                 catch (Exception exception)

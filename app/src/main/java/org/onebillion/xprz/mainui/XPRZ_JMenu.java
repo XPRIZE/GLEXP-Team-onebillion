@@ -647,6 +647,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
         OBXMLNode movienode = targs.get(idx).childrenOfType("movie").get(0);
         String movieName = OBUtils.stringByAppendingPathComponent(movieFolder,movienode.contents);
         OBControl placeHolder = objectDict.get("video_video");
+        lockScreen();
         if (videoPlayer == null)
         {
             RectF r = new RectF();
@@ -676,6 +677,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
 
         }
         videoPlayer.setPreviewSize(new Size((int)videoPlayer.width(),(int)videoPlayer.height()));
+        unlockScreen();
         videoPlayer.playAfterPrepare = play;
         videoPlayer.startPlayingAtTime(OBUtils.getAssetFileDescriptorForPath(movieName),0);
     }
@@ -783,6 +785,8 @@ public class XPRZ_JMenu extends XPRZ_Menu
                         RectF f = convertRectFromControl(im.bounds(),im);
                         if (f.contains(pto.x,pto.y))
                         {
+                            if (videoPlayer != null)
+                                videoPlayer.stop();
                             selectPreview(i);
                             setStatus(STATUS_IDLE);
                             setUpVideoPlayerForIndex(i,true);
