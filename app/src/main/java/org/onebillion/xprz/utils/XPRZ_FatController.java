@@ -218,7 +218,7 @@ public class XPRZ_FatController extends OBFatController
         calendar.setTimeInMillis(System.currentTimeMillis());
        // calendar.add(Calendar.DATE,1);
         //calendar.set(Calendar.HOUR_OF_DAY, 0);
-       // calendar.set(Calendar.MINUTE, 30);
+        calendar.set(Calendar.MINUTE, 0);
 
         OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_HOUR);// AlarmManager.INTERVAL_DAY
 
