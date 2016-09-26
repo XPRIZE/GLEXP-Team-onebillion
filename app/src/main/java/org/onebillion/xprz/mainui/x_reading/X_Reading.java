@@ -6,6 +6,7 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
+import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -30,6 +31,8 @@ import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.onebillion.xprz.utils.OBReadingWord.WORD_SPEAKABLE;
 
 /**
  * Created by alan on 02/06/16.
@@ -101,7 +104,7 @@ public class X_Reading extends XPRZ_SectionController
                 int idx = 0;
                 for (OBReadingWord w : para.words)
                 {
-                    if ((w.flags & OBReadingWord.WORD_SPEAKABLE) != 0 && (idx < arr.size()))
+                    if ((w.flags & WORD_SPEAKABLE) != 0 && (idx < arr.size()))
                     {
                         OBXMLNode n = arr.get(idx);
                         if (isSlow)
@@ -575,7 +578,7 @@ public class X_Reading extends XPRZ_SectionController
             w.frame = new RectF(lab.frame());
             w.label = lab;
             w.homePosition = new PointF(lab.position().x,lab.position().y);
-            if ((w.flags & OBReadingWord.WORD_SPEAKABLE) != 0)
+            if ((w.flags & WORD_SPEAKABLE) != 0)
                 lab.setZPosition(LABEL_ZPOS);
             else
                 lab.setZPosition(LABEL_ZPOS - 3);
@@ -634,7 +637,7 @@ public class X_Reading extends XPRZ_SectionController
             for (OBReadingWord w : para.words)
             {
                 float sizew = textPaint.measureText(para.text.substring(lineStartIndex,w.index + w.text.length()));
-                if ((w.flags & OBReadingWord.WORD_SPEAKABLE)!=0 && sizew + lineStart > rightEdge)
+                if ((w.flags & WORD_SPEAKABLE)!=0 && sizew + lineStart > rightEdge)
                 {
                     OBReadingWord lastw = currLine.get(currLine.size()-1);
                     if (IsLeftHanger(lastw.text))
@@ -701,9 +704,30 @@ public class X_Reading extends XPRZ_SectionController
         waitAudio();
     }
 
-    public void readParagraph(int pidx,double token,boolean canInterrupt) throws Exception
+    public void readParagraph(int pidx,long token,boolean canInterrupt) throws Exception
     {
-
+        OBReadingPara para = paragraphs.get(pidx);
+        playAudio(String.format("p%d_%d",pageNo,pidx+1));
+        long startTime = SystemClock.uptimeMillis();
+        for(OBReadingWord w : para.words)
+        {
+            if (w.label != null &&(w.flags & WORD_SPEAKABLE) != 0)
+            {
+                double currTime = (SystemClock.uptimeMillis()  - startTime) / 1000f;
+                double waitTime = w.timeStart - currTime;
+                if(waitTime > 0.0)
+                    waitForSecs(waitTime);
+                checkSequenceToken(token);
+                highlightWord(w,true,false);
+                currTime = (SystemClock.uptimeMillis()  - startTime) / 1000f;
+                waitTime = w.timeEnd - currTime;
+                if(waitTime > 0.0 && token == sequenceToken)
+                    waitForSecs(waitTime);
+                highlightWord(w,false,false);
+                if(canInterrupt)
+                    checkSequenceToken(token);
+            }
+        }
     }
 
     public boolean readPage()
