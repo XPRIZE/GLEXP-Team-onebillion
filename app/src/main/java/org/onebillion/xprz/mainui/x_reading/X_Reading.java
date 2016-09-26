@@ -716,7 +716,6 @@ public class X_Reading extends XPRZ_SectionController
         try
         {
             reading = true;
-            Log.i("readpage",String.format("%d",((ReentrantLock)sequenceLock).getQueueLength()));
             token = takeSequenceLockInterrupt(true);
             if (token == sequenceToken)
             {

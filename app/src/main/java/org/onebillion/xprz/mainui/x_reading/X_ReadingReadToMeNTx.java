@@ -115,7 +115,7 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         lockScreen();
         for (OBReadingWord w : para.words)
         {
-            if (w.label != null && ((w.flags & OBReadingWord.WORD_SPEAKABLE) != 0))
+            if (w.label != null)
             {
                 highlightWord(w,true,false);
             }
@@ -126,7 +126,7 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         lockScreen();
         for (OBReadingWord w : para.words)
         {
-            if (w.label != null && ((w.flags & OBReadingWord.WORD_SPEAKABLE) != 0))
+            if (w.label != null)
             {
                 highlightWord(w,false,false);
             }
