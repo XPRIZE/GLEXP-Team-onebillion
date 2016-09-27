@@ -149,13 +149,13 @@ public class TextureRect
             }
         return true;
     }
-    public void drawSurface(OBRenderer renderer, float l, float t, float r, float b, SurfaceTexture surfaceTexture)
+    public void drawSurface(OBRenderer renderer, float l, float t, float r, float b, SurfaceTexture surfaceTexture,boolean mirrored)
     {
         fillOutRectVertexData(vertices,l,t,r,b,POSITION_COMPONENT_COUNT + UV_COMPONENT_COUNT);
 
         float m[] = new float[16];
         surfaceTexture.getTransformMatrix(m);
-        if (!isIdentity(m))
+        if (!isIdentity(m) && !mirrored)
         {
             float v[] = new float[4];
             v[0] = uvLeft;v[1] = uvBottom;v[2] = 0;v[3] = 1;

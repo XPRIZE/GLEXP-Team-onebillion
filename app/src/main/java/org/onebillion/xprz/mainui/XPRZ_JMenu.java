@@ -708,7 +708,10 @@ public class XPRZ_JMenu extends XPRZ_Menu
             if (scrollGroup != null)
                 detachControl(scrollGroup);
             if (videoPlayer != null)
+            {
+                videoPlayer.stop();
                 detachControl(videoPlayer);
+            }
             deleteControls(currentTab + ".*");
         }
         currentTab = s;

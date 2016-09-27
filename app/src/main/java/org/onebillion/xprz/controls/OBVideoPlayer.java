@@ -47,10 +47,12 @@ public class OBVideoPlayer extends OBControl
     private int textureId;
     private Size previewSize;
     private MediaPlayer player;
+    boolean mirrored;
 
     public OBVideoPlayer(RectF frame, XPRZ_SectionController sectionController,boolean mirrored,boolean _playAfterPrepare)
     {
         setFrame(frame.left, frame.top, frame.right, frame.bottom);
+        this.mirrored = mirrored;
         if (mirrored)
             setScaleX(-1);
         textureId = MainActivity.mainActivity.renderer.textureObjectIds[2];
@@ -146,7 +148,7 @@ public class OBVideoPlayer extends OBControl
 
 
         tr.setUVs(widthRatio, heightRatio, 1 - widthRatio, 1 - heightRatio);
-        tr.drawSurface(renderer, 0, 0, boundsWidth, boundsHeight, surfaceTexture);
+        tr.drawSurface(renderer, 0, 0, boundsWidth, boundsHeight, surfaceTexture,mirrored);
         tr.setUVs(0, 0, 1, 1);
 
     }
