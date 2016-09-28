@@ -931,7 +931,9 @@ public class X_LetterTrace extends X_Wordcontroller
         float tryT = usp.nearestPointOnSubPathForPoint(pt,distance,allowedDistance,tSoFar,endT);
         if(tryT > tSoFar)
         {
+            lockScreen();
             paths.get(currPathIdx).setStrokeEnd(tryT);
+            unlockScreen();
             if(tryT >= 1)
                 traceComplete = true;
             tSoFar = tryT;
@@ -953,7 +955,9 @@ public class X_LetterTrace extends X_Wordcontroller
                     try
                     {
                         if(traceComplete)
+                        {
                             finishPath();
+                        }
                         else if(tSoFar > 1.0 - tLookAhead)
                         {
                             float duration = (currPathLen *(1 - tSoFar)) / theMoveSpeed;

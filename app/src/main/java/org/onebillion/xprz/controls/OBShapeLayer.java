@@ -152,10 +152,10 @@ public class OBShapeLayer extends OBLayer
             lst.add(strokeStart * len);
             lst.add(OB_Maths.clamp01(strokeEnd-strokeStart) * len);
             lst.add(32767f);
-            stroke.dashes = lst;
+            stroke.setDashes(lst);
         }
         else
-            stroke.dashes = null;
+            stroke.setDashes(null);
     }
 
 

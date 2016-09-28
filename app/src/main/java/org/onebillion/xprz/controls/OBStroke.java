@@ -18,7 +18,7 @@ public class OBStroke
             kCALineJoinBevel = 2;
 
     public int colour;
-    public List<Float>dashes;
+    List<Float>dashes;
     public float lineWidth,dashPhase;
     public int lineCap,lineJoin;
 
@@ -175,16 +175,27 @@ public class OBStroke
 
     public DashPathEffect dashPathEffect()
     {
-        if (dashes == null || dashes.size() == 0)
-            return null;
-        float dshes[] = new float[dashes.size()];
-        for (int i = 0;i < dashes.size();i++)
-            dshes[i] = dashes.get(i);
-        return new DashPathEffect(dshes,dashPhase);
+        synchronized (this)
+        {
+            if (dashes == null || dashes.size() == 0)
+                return null;
+            float dshes[] = new float[dashes.size()];
+            for (int i = 0;i < dashes.size();i++)
+                dshes[i] = dashes.get(i);
+            return new DashPathEffect(dshes,dashPhase);
+        }
     }
 
     public void setLineJoin(int lj)
     {
         lineJoin = lj;
+    }
+
+    public void setDashes(List<Float> l)
+    {
+        synchronized (this)
+        {
+            dashes = l;
+        }
     }
 }
