@@ -227,7 +227,7 @@ public class XPRZ_FatController extends OBFatController
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_HOUR, OBAlarmManager.REQUEST_SESSION_CHECK);// AlarmManager.INTERVAL_DAY
-        calendar.set(Calendar.MINUTE, 50);
+        calendar.set(Calendar.MINUTE, 55);
         OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_HOUR, OBAlarmManager.REQUEST_SESSION_CHECK2);
         String menuClassName =  MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MENU_CLASS);
         if (showTestMenu())
