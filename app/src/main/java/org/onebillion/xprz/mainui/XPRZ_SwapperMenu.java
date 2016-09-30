@@ -53,8 +53,8 @@ public class XPRZ_SwapperMenu extends OBSectionController
         //
         MainViewController().enterGLMode();
         //
-        MainViewController().showButtons(buttonFlags());
-        MainViewController().showHideButtons(buttonFlags());
+        MainViewController().showButtons(buttonFlagsWithFatController());
+        MainViewController().showHideButtons(buttonFlagsWithFatController());
         //
         final float delay = 0.175f;
         OBUtils.runOnOtherThreadDelayed(delay, new OBUtils.RunLambda()

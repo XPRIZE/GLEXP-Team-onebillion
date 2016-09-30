@@ -52,6 +52,7 @@ public class X_TestEvent extends XPRZ_SectionController
 
     public void touchDownAtPoint(final PointF pt, View v)
     {
+        final XPRZ_SectionController controller = this;
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             public void run() throws Exception
@@ -63,25 +64,20 @@ public class X_TestEvent extends XPRZ_SectionController
                     {
                         targ.setFillColor(OBUtils.highlightedColour(targ.fillColor()));
                         XPRZ_FatController fatController = (XPRZ_FatController) MainActivity.mainActivity.fatController;
-                        fatController.updateScores();
+
                         if (targ == objectDict.get("button_correct"))
                         {
-                            fatController.signalSectionSucceeded();
+                            gotItRight();
+                            fatController.completeEvent2(controller);
 
-                        } else if (targ == objectDict.get("button_wrong"))
+
+                        } else if (targ == objectDict.get("button_timeout"))
                         {
+                            fatController.triggerTimeout();
 
-                            fatController.signalSectionTimedOut();
-
-                        } else
-                        {
-                            DBSQL db = new DBSQL(true);
-                            fatController.finishCurrentSessionInDB(db);
-                            db.close();
-                            fatController.signalSessionTimedOut();
 
                         }
-                        exitEvent();
+
 
                     }
 

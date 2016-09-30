@@ -1,6 +1,7 @@
 package org.onebillion.xprz.utils;
 
 import org.onebillion.xprz.mainui.MainActivity;
+import org.onebillion.xprz.mainui.OBMainViewController;
 import org.onebillion.xprz.mainui.OBSectionController;
 
 /**
@@ -8,6 +9,11 @@ import org.onebillion.xprz.mainui.OBSectionController;
  */
 public class OBFatController
 {
+    public int buttonFlags()
+    {
+        return OBMainViewController.SHOW_TOP_LEFT_BUTTON | OBMainViewController.SHOW_TOP_RIGHT_BUTTON | OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON | OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON;
+    }
+
     public void gotAnswerRight(int amount)
     {
 

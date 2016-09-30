@@ -14,8 +14,8 @@ import java.util.Map;
 public class MlUnit extends MlObject
 {
     public String key, icon, params, config, target, lang;
-    public float targetDuration, passThreshold;
-    public int catAudio, level, unitid, awardStar, startAudio;
+    public float passThreshold;
+    public int catAudio, level, unitid, awardStar, startAudio, targetDuration;
 
     private static final String[] stringFields = {"key","icon","target","params","config","lang"};
     private static final String[] intFields = {"unitid","level","catAudio","targetDuration","awardStar","startAudio"};

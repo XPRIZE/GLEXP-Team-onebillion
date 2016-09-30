@@ -24,6 +24,8 @@ import java.util.logging.Logger;
 /**
  * Created by michal on 08/08/16.
  */
+
+
 public class XPRZ_FatController extends OBFatController
 {
 
@@ -31,17 +33,14 @@ public class XPRZ_FatController extends OBFatController
     public int scoreCorrect,scoreWrong;
     public float finalScore;
     public XPRZ_FatReceiver menu;
-    public long sessionSegmentStartTime,sessionSegmentLastActive,sessionTotalTime;
+    public long sessionSegmentLastActive;
 
     public static final int OFC_SUCCEEDED = 1,
             OFC_FINISHED_LOW_SCORE = 2,
             OFC_TIMED_OUT = 3,
             OFC_SESSION_TIMED_OUT = 4,
-            OFC_UNIT_LIST = 5,
-            OFC_FIRST_TIME_IN = 6,
-            OFC_NEW_SESSION =7;
-
-
+            OFC_NEW_SESSION = 5,
+            OFC_SESSION_LOCKED = 6;
 
 
     private long sessionTimeout;
@@ -54,6 +53,12 @@ public class XPRZ_FatController extends OBFatController
 
     private Handler timeoutHandler;
     private Runnable timeoutRunnable;
+
+    @Override
+    public int buttonFlags()
+    {
+        return OBMainViewController.SHOW_TOP_LEFT_BUTTON| OBMainViewController.SHOW_TOP_RIGHT_BUTTON | OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON | OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON;
+    }
 
     public long getCurrentTime()
     {
@@ -186,7 +191,7 @@ public class XPRZ_FatController extends OBFatController
     public void loadLastUnitIndexFromDB(DBSQL db)
     {
         int lastUnitID = currentUser.lastUnitIDFromDB(db);
-        if (unitAttemptsCount>0 && unitAttemtpsCountInDB(db, lastUnitID) >= unitAttemptsCount)
+        if (!unitCompletedByUser(db,lastUnitID))
             lastUnitID--;
 
         firstUnstartedIndex = lastUnitID + 1;
@@ -201,7 +206,6 @@ public class XPRZ_FatController extends OBFatController
     @Override
     public void startUp()
     {
-        initDB();
         try
         {
             sessionTimeout = MainActivity.mainActivity.configIntForKey(MainActivity.CONFIG_SESSION_TIMEOUT) * 60;
@@ -212,21 +216,63 @@ public class XPRZ_FatController extends OBFatController
             unitAttemptsCount = 3;
         }
 
+        initDB();
+
         timeoutHandler = new Handler();
 
         Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(System.currentTimeMillis());
+        calendar.setTimeInMillis(getCurrentTime()*1000);
        // calendar.add(Calendar.DATE,1);
         //calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
-
-        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_HOUR);// AlarmManager.INTERVAL_DAY
-
+        calendar.set(Calendar.SECOND, 0);
+        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_HOUR, OBAlarmManager.REQUEST_SESSION_CHECK);// AlarmManager.INTERVAL_DAY
+        calendar.set(Calendar.MINUTE, 50);
+        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_HOUR, OBAlarmManager.REQUEST_SESSION_CHECK2);
         String menuClassName =  MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MENU_CLASS);
         if (showTestMenu())
             menuClassName = "XPRZ_TestMenu";
         if (menuClassName != null)
             OBMainViewController.MainViewController().pushViewControllerWithName(menuClassName,false,false,"menu");
+    }
+
+    public boolean checkAndPrepareNewSession()
+    {
+
+        if(currentSessionLocked())
+            return false;
+
+        if(currentSessionStartTime == 0)
+            return true;
+
+        Calendar currentCalendar = Calendar.getInstance();
+        Calendar calendarLastSession = Calendar.getInstance();
+
+        currentCalendar.setTimeInMillis(getCurrentTime()*1000);
+        calendarLastSession.setTimeInMillis(currentSessionStartTime*1000);
+        int minutesSessionStart = calendarLastSession.get(Calendar.MINUTE);
+        int minutesNow = currentCalendar.get(Calendar.MINUTE);
+        int sessionBegin = (int)Math.floor(minutesSessionStart/10);
+        int nowBegin = (int)Math.floor(minutesNow/10);
+        if(currentCalendar.get(Calendar.HOUR) != calendarLastSession.get(Calendar.HOUR))
+        //if(currentCalendar.get(Calendar.DAY_OF_YEAR) != calendarLastSession.get(Calendar.DAY_OF_YEAR) || currentCalendar.get(Calendar.YEAR) != calendarLastSession.get(Calendar.YEAR))
+        {
+            prepareNewSession();
+            return true;
+        }
+        return false;
+    }
+
+    public boolean currentSessionLocked()
+    {
+        Calendar currentCalendar = Calendar.getInstance();
+        currentCalendar.setTimeInMillis(getCurrentTime()*1000);
+        int minutesNow = currentCalendar.get(Calendar.MINUTE);
+
+        if(55 <= minutesNow)
+            return true;
+
+        return false;
     }
 
     public void initDB()
@@ -279,7 +325,10 @@ public class XPRZ_FatController extends OBFatController
     {
         cancelTimeout();
         updateScores();
-        if (finalScore >= currentUnit().passThreshold)
+
+        if(currentSessionLocked())
+            signalSessionLocked();
+        else if (finalScore >= currentUnit().passThreshold)
             signalSectionSucceeded();
         else
             signalSectionFailed();
@@ -296,14 +345,40 @@ public class XPRZ_FatController extends OBFatController
         cont.exitEvent();
     }
 
+    public void completeEvent2(OBSectionController cont)
+    {
+        cancelTimeout();
+        updateScores2();
+
+        if(currentSessionLocked())
+            signalSessionLocked();
+        else if (finalScore >= currentUnit().passThreshold)
+            signalSectionSucceeded();
+        else
+            signalSectionFailed();
+
+        currentUnitInstance = null;
+
+        cont.exitEvent();
+    }
+
+    public void triggerTimeout()
+    {
+        cancelTimeout();
+        timeOutUnit(currentUnitInstance);
+    }
+
     public void timeOutUnit(MlUnitInstance unitInstance)
     {
         DBSQL db = null;
         try
         {
             db = new DBSQL(true);
-            int count = unitAttemtpsCountInDB(db,unitInstance.mlUnit.unitid);
-            if(unitAttemptsCount>0 && count >= unitAttemptsCount)
+            if(currentSessionLocked())
+            {
+                signalSessionLocked();
+            }
+            else if(unitCompletedByUser(db, unitInstance.mlUnit.unitid))
             {
                 signalSectionFailed();
             }
@@ -363,6 +438,34 @@ public class XPRZ_FatController extends OBFatController
         }
     }
 
+    public void updateScores2()
+    {
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(true);
+            int tot = scoreCorrect + scoreWrong;
+            finalScore = 1;
+            if (tot > 0)
+                finalScore = scoreCorrect * 1.0f / tot;
+
+            currentUnitInstance.endtime = getCurrentTime();
+            currentUnitInstance.score = finalScore;
+            currentUnitInstance.elapsedtime = 30;
+            currentUnitInstance.updateDataInDB(db);
+            checkCurrentSessionTimeout(db);
+        }
+        catch(Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+    }
+
     public Map<String,Object> commandWith(int code, MlUnit unit)
     {
         Map<String,Object> command = new ArrayMap<>();
@@ -395,6 +498,12 @@ public class XPRZ_FatController extends OBFatController
     {
         menu.receiveCommand(commandWith(OFC_SESSION_TIMED_OUT,currentUnit()));
     }
+
+    public void signalSessionLocked()
+    {
+        menu.receiveCommand(commandWith(OFC_SESSION_LOCKED,currentUnit()));
+    }
+
 
     public List<MlUnit> requestNextUnits(int count)
     {
@@ -438,9 +547,11 @@ public class XPRZ_FatController extends OBFatController
         {
             unit = MlUnit.mlUnitforUnitIDFromDB(db,getLastUnitId());
 
-            if(currentSessionFinished())
+            if(currentSessionLocked())
+                code = OFC_SESSION_LOCKED;
+            else if(currentSessionFinished())
                 code = OFC_SESSION_TIMED_OUT;
-            else if(currentSessionReadyToStart())//sessionUnitCountFromDB(db, currentSessionId, currentUser.userid) == 0)
+            else if(currentSessionReadyToStart() || unit == null)
                 code =  OFC_NEW_SESSION;
             else
                 code = OFC_SUCCEEDED;
@@ -457,7 +568,6 @@ public class XPRZ_FatController extends OBFatController
 
         return commandWith(code,unit);
     }
-
 
     public void sectionStartedWithUnit(MlUnit unit)
     {
@@ -559,7 +669,7 @@ public class XPRZ_FatController extends OBFatController
 
         cursor.close();
 
-        if(elapsedTime > sessionTimeout)
+        if(elapsedTime >= sessionTimeout)
             finishCurrentSessionInDB(db);
 
         db.close();
@@ -580,6 +690,21 @@ public class XPRZ_FatController extends OBFatController
         return count;
     }
 
+    public boolean unitCompletedByUser(DBSQL db, int unitid)
+    {
+        Cursor cursor = db.prepareRawQuery(String.format("SELECT unitid FROM %s WHERE userid = ? AND unitid = ? AND endtime > 0", DBSQL.TABLE_UNIT_INSTANCES),
+                Arrays.asList(String.valueOf(currentUser.userid),String.valueOf(unitid)));
+
+        if(cursor.moveToFirst())
+            return true;
+
+        cursor.close();
+        if(unitAttemptsCount>0 && unitAttemptsCount <= unitAttemtpsCountInDB(db, unitid))
+            return true;
+
+        return false;
+    }
+
     public boolean currentSessionFinished()
     {
         if(currentSessionId < 0)
@@ -588,26 +713,8 @@ public class XPRZ_FatController extends OBFatController
         return currentSessionEndTime > 0;
     }
 
-    public boolean checkAndPrepareNewSession()
-    {
-        if(currentSessionStartTime == 0)
-            return true;
-
-        Calendar currentCalendar = Calendar.getInstance();
-        Calendar calendarLastSession = Calendar.getInstance();
-
-        currentCalendar.setTimeInMillis(getCurrentTime()*1000);
-        calendarLastSession.setTimeInMillis(currentSessionStartTime*1000);
 
 
-        if(currentCalendar.get(Calendar.HOUR_OF_DAY) != calendarLastSession.get(Calendar.HOUR_OF_DAY) || currentCalendar.get(Calendar.YEAR) != calendarLastSession.get(Calendar.YEAR))
-        //if(currentCalendar.get(Calendar.DAY_OF_YEAR) != calendarLastSession.get(Calendar.DAY_OF_YEAR) || currentCalendar.get(Calendar.YEAR) != calendarLastSession.get(Calendar.YEAR))
-        {
-            prepareNewSession();
-            return true;
-        }
-        return false;
-    }
 
     private void loadLastSessionFromDB(DBSQL db, int userid)
     {
@@ -761,11 +868,17 @@ public class XPRZ_FatController extends OBFatController
 
     public boolean currentSessionReadyToStart()
     {
+        if(currentSessionLocked())
+            return false;
+
         return currentSessionStartTime == 0;
     }
 
     public void startCurrentSession()
     {
+        if(!currentSessionReadyToStart())
+            return;
+
         currentSessionStartTime = getCurrentTime();
         DBSQL db = null;
         try
@@ -1009,6 +1122,25 @@ public class XPRZ_FatController extends OBFatController
     {
         String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_ALLOWS_TIMEOUT);
         return (value != null && value.equals("true"));
+    }
+
+    //borrowed from http://www.ben-daglish.net/moon.shtml
+    public int getCurrentMoonPhase()
+    {
+        Calendar calendar = Calendar.getInstance();
+        int lp = 2551443; // full moon phase(from full to full) in seconds
+        calendar.setTimeInMillis(getCurrentTime()*1000);
+        calendar.set(Calendar.HOUR,20);
+        calendar.set(Calendar.MINUTE,35);
+        calendar.set(Calendar.SECOND,0);
+        long now = calendar.getTimeInMillis();
+
+        calendar.set(Calendar.YEAR,1970);
+        calendar.set(Calendar.MONTH,Calendar.JANUARY);
+        calendar.set(Calendar.DATE,7);
+        long new_moon = calendar.getTimeInMillis();
+        long phase = ((now - new_moon)/1000) % lp;
+        return (int)(Math.floor(phase /(24*3600)) + 1);
     }
 
 }

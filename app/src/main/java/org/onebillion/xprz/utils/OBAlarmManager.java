@@ -10,16 +10,32 @@ import org.onebillion.xprz.mainui.MainActivity;
 /**
  * Created by michal on 20/09/16.
  */
+
+
+
+
 public class OBAlarmManager
 {
-    public static PendingIntent scheduleRepeatingAlarm(long triggerAtMillis, long intervalMillis)
+    public static final int REQUEST_SESSION_CHECK =1,
+            REQUEST_SESSION_CHECK2=2,
+            REQUEST_OTHER =100;
+
+    public static PendingIntent scheduleRepeatingAlarm(long triggerAtMillis, long intervalMillis, int requestCode)
     {
         Intent alarmIntent = new Intent(MainActivity.mainActivity, OBAlarmReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.mainActivity, 0, alarmIntent, 0);
+
+        alarmIntent.putExtra(OBAlarmReceiver.EXTRA_ALARMTIME,triggerAtMillis);
+        alarmIntent.putExtra(OBAlarmReceiver.EXTRA_INTERVAL,intervalMillis);
+        alarmIntent.putExtra(OBAlarmReceiver.EXTRA_REQUESTCODE,requestCode);
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.mainActivity, requestCode, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         AlarmManager alarmManager = (AlarmManager)MainActivity.mainActivity.getSystemService(Context.ALARM_SERVICE);
         cancelAlarm(pendingIntent);
 
-        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,triggerAtMillis,intervalMillis,pendingIntent);
+
+
+        alarmManager.setExact(AlarmManager.RTC,triggerAtMillis,pendingIntent);
+
         return pendingIntent;
     }
 

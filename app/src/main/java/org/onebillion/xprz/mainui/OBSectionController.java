@@ -2066,6 +2066,11 @@ public class OBSectionController extends OBViewController
         return OBMainViewController.SHOW_TOP_LEFT_BUTTON | OBMainViewController.SHOW_TOP_RIGHT_BUTTON;
     }
 
+    public int buttonFlagsWithFatController()
+    {
+        return this.buttonFlags() & MainActivity.mainActivity.fatController.buttonFlags();
+    }
+
     public Path convertPathFromControl (Path p, OBControl c)
     {
         return c.convertPathToControl(p, null);

@@ -381,8 +381,8 @@ public class OBMainViewController extends OBViewController
         if (controller.requiresOpenGL)
         {
             enterGLMode();
-            showButtons(controller.buttonFlags());
-            showHideButtons(controller.buttonFlags());
+            showButtons(controller.buttonFlagsWithFatController());
+            showHideButtons(controller.buttonFlagsWithFatController());
         }
         else
         {
@@ -447,8 +447,8 @@ public class OBMainViewController extends OBViewController
         nextvc.viewWillAppear(false);
         transition(nextvc, topvc, false, 0.5);
         viewControllers.remove(viewControllers.size() - 1);
-        showButtons(nextvc.buttonFlags());
-        showHideButtons(nextvc.buttonFlags());
+        showButtons(nextvc.buttonFlagsWithFatController());
+        showHideButtons(nextvc.buttonFlagsWithFatController());
         nextvc.start();
     }
 

@@ -2,7 +2,6 @@ package org.onebillion.xprz.mainui.x_miniapp6;
 
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
@@ -14,7 +13,6 @@ import org.onebillion.xprz.mainui.OBMainViewController;
 import org.onebillion.xprz.mainui.OBSectionController;
 import org.onebillion.xprz.mainui.XPRZ_Menu;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
-import org.onebillion.xprz.utils.DBSQL;
 import org.onebillion.xprz.utils.MlUnit;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimBlock;
@@ -27,8 +25,6 @@ import org.onebillion.xprz.utils.OB_Maths;
 import org.onebillion.xprz.utils.XPRZ_FatController;
 import org.onebillion.xprz.utils.XPRZ_FatReceiver;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -56,7 +52,6 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
     private XPRZ_Presenter presenter;
     private TouchTargets currentTarget;
     private Map<String, Integer> coloursDict;
-    private OBControl screenOverlay;
     private int skippedStartAudioIndex;
 
     @Override
@@ -83,7 +78,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
             lastCommand = -1;
 
         }
-        prepareSectionForLastUnit(lastUnit, lastCommand);
+        prepareSectionForLastUnit(lastUnit, lastCommand, false);
         if (bigIcon != null)
         {
             if (lastCommand != -1 && lastCommand != XPRZ_FatController.OFC_TIMED_OUT)
@@ -103,7 +98,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
 
         Typeface font = OBUtils.standardTypeFace();
         float fontSize = applyGraphicScale(20);
-        currentLevelLabel = new OBLabel("8888888", font, fontSize);
+        currentLevelLabel = new OBLabel("888888888888", font, fontSize);
         //currentLevelLabel.hide();
         currentLevelLabel.setString("1");
         currentLevelLabel.setPosition(OB_Maths.locationForRect(0.97f, 0.8f, this.bounds()));
@@ -138,14 +133,17 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
 
         skippedStartAudioIndex = -1;
 
-        OBPath path = (OBPath)objectDict.get("button_start");
-        path.sizeToBoundingBoxIncludingStroke();
        // prepareSectionForLastUnit(lastUnit, lastCommand);
     }
 
 
     public void reloadEntireScreen()
     {
+        objectDict.get("lock_bg").hide();
+
+        if(lastCommand == XPRZ_FatController.OFC_SESSION_LOCKED)
+            return;
+
         resetPresenter();
         int currentLevel = (lastUnit == null ? 1 : ((lastUnit.awardStar == 10) ? lastUnit.level+1 : lastUnit.level));
         if(currentTarget == TouchTargets.TARGET_STAR && lastUnit.awardStar == 10)
@@ -168,15 +166,15 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
     @Override
     public void start()
     {
+        if(checkCurrentCommand())
+            return;
+
         loadAudioForCurrentSecion();
+        objectDict.get("lock_bg").hide();
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             public void run() throws Exception
             {
-
-
-                if (screenOverlay != null)
-                    detachControl(screenOverlay);
 
                 if (bigIcon == null && (prepareNextEvent() || (lastUnit.level == 10 && lastUnit.awardStar == 10)))
                 {
@@ -185,7 +183,8 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
                     performSel("demo", currentSection);
                 } else
                 {
-                    setStatus(STATUS_AWAITING_CLICK);
+                    waitForSecs(0.3);
+                    playUnitButtonAudio(null);
                 }
             }
         });
@@ -226,9 +225,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
                         public void run() throws Exception
                         {
                             button.highlight();
-                            if(fatController.currentSessionReadyToStart())
-                                fatController.startCurrentSession();
-
+                            fatController.startCurrentSession();
                             waitForSecs(0.5);
                             hideNewDayScreen();
                             button.lowlight();
@@ -256,16 +253,13 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
     @Override
     public void onResume()
     {
-        if (screenOverlay != null)
-            detachControl(screenOverlay);
-
-        if (newDayCheck())
+        objectDict.get("lock_bg").hide();
+        if (checkCurrentCommand())
             return;
 
         if (status() == STATUS_AWAITING_CLICK)
         {
             setStatus(STATUS_AWAITING_CLICK);
-
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
                 @Override
@@ -285,14 +279,24 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
                     demotimeout2();
                 }
             });
-
+        } else if(status() == STATUS_IDLE && currentSection.equalsIgnoreCase("locked"))
+        {
+            setStatus(STATUS_BUSY);
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    demolocked();
+                }
+            });
         }
     }
 
     @Override
     public void onAlarmReceived(Intent intent)
     {
-        newDayCheck();
+        checkCurrentCommand();
     }
 
 
@@ -339,15 +343,16 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         }
     }
 
-    public boolean newDayCheck()
+    public boolean checkCurrentCommand()
     {
-        if(status() == STATUS_EXITING)
+        if(status() == STATUS_EXITING || _aborting)
             return false;
 
         if(currentTarget == TouchTargets.TARGET_BUTTON && fatController.currentSessionReadyToStart())
             return false;
 
-        if(fatController.checkAndPrepareNewSession())
+        if((fatController.currentSessionLocked() && !currentSection.equalsIgnoreCase("locked")) ||
+                fatController.checkAndPrepareNewSession())
         {
             setStatus(STATUS_EXITING);
             killAnimations();
@@ -376,7 +381,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
             return;
 
         String[] arr = unit.key.split("\\.");
-        currentLevelLabel.setString(arr.length > 0 ? arr[0] : "");
+        currentLevelLabel.setString(unit.key);
     }
 
     public void showNewDayScreen()
@@ -390,13 +395,17 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
     {
         objectDict.get("overlay").hide();
         objectDict.get("button_start").hide();
-        objectDict.get("onecourse_logo").hide();
     }
 
-    public void prepareSectionForLastUnit(MlUnit unit, int command)
+    public void prepareSectionForLastUnit(MlUnit unit, int command, boolean loadAudio)
     {
         currentTarget = TouchTargets.TARGET_UNIT;
-        if (command == XPRZ_FatController.OFC_NEW_SESSION)
+        if(command == XPRZ_FatController.OFC_SESSION_LOCKED)
+        {
+            currentSection = "locked";
+            loadNightSky();
+        }
+        else if (command == XPRZ_FatController.OFC_NEW_SESSION)
         {
             currentTarget = TouchTargets.TARGET_BUTTON;
             if (unit != null)
@@ -420,13 +429,18 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         } else
         {
             currentSection = "unitdefault";
-
         }
+        if(loadAudio)
+            loadAudioForCurrentSecion();
     }
 
     public void loadAudioForCurrentSecion()
     {
-        loadAudioXML(getConfigPath(String.format("event%saudio.xml", currentSection)));
+        String path = getConfigPath(String.format("event%saudio.xml", currentSection));
+        if(path == null)
+            return;
+
+        loadAudioXML(path);
     }
 
     public void startSectionForUnit(MlUnit unit)
@@ -562,6 +576,98 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         }
     }
 
+
+    public void animateNightSky()
+    {
+        for(int i=0; i<3; i++)
+            animateNightStarsTwinkle();
+    }
+
+    public void loadNightSky()
+    {
+        lockScreen();
+        showControls("night_.*");
+        int moonPhase = fatController.getCurrentMoonPhase();
+        OBGroup moon = (OBGroup)objectDict.get("night_moon");
+        moon.setRotation((float)Math.toRadians(70));
+        OBControl cover3 = moon.objectDict.get("cover_3"); //moon colour
+        OBControl cover2 = moon.objectDict.get("cover_2"); //night sky colour
+        OBControl cover1 = moon.objectDict.get("cover_1"); // half moon
+        OBControl moonDisc = moon.objectDict.get("moon");
+        moon.showMembers("cover_.*");
+        cover3.setScaleX(1);
+        cover2.setScaleX(1);
+
+        if(moonPhase == 0)
+        {
+            moon.hide();
+            unlockScreen();
+            return;
+        }
+        else
+        {
+            moon.show();
+        }
+
+        if(moonPhase == 15)
+        {
+           moon.hideMembers("cover_.*");
+        }
+        else
+        {
+            if(moonPhase < 15)
+            {
+                if(moonPhase < 8)
+                    cover3.hide();
+
+                if(moonPhase > 7)
+                    cover2.hide();
+
+                cover1.setRight(moonDisc.position().x);
+
+                if(moonPhase < 8)
+                    cover2.setScaleX(1.0f-(moonPhase/8.0f));
+                else if(moonPhase > 7)
+                    cover3.setScaleX((7.0f-moonPhase)/8.0f);
+            }
+            else
+            {
+                if(moonPhase > 22)
+                    cover3.hide();
+
+                if(moonPhase < 23)
+                    cover2.hide();
+
+                cover1.setLeft(moonDisc.position().x);
+
+                if(moonPhase > 22)
+                    cover2.setScaleX((22.0f-moonPhase)/8.0f);
+                else if(moonPhase < 23)
+                    cover3.setScaleX(1.0f-((moonPhase-15.0f)/8.0f));
+            }
+        }
+
+        for(OBControl star : filterControls("night_star_.*"))
+        star.setOpacity(0.2f + 0.8f*(OB_Maths.randomInt(1,10)/10.0f));
+        unlockScreen();
+    }
+
+    public void animateNightStarsTwinkle()
+    {
+        List<OBAnim> anims = new ArrayList<>();
+        for(OBControl star : filterControls("night_star_.*"))
+        {
+            float targetOpacity = 1;
+            if(star.opacity() <= 0.5)
+                targetOpacity = 0.55f + 0.45f*(OB_Maths.randomInt(1,10)/10.0f);
+            else
+                targetOpacity = 0.5f - 0.4f*(OB_Maths.randomInt(1,10)/10.0f);
+
+            anims.add(OBAnim.opacityAnim(targetOpacity,star));
+        }
+        OBAnimationGroup.runAnims(anims,1,true,OBAnim.ANIM_LINEAR,this);
+    }
+
     public OBGroup loadBigTrophy(int level)
     {
         OBGroup trophy = (OBGroup) objectDict.get(String.format("trophy_%d", level));
@@ -634,16 +740,16 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
 
     public void prepareScreenLock() throws Exception
     {
-        if (screenOverlay != null)
-            detachControl(screenOverlay);
-        screenOverlay = new OBControl();
-        screenOverlay.setFrame(new RectF(bounds()));
-        screenOverlay.setFillColor(Color.BLACK);
-        screenOverlay.setZPosition(100);
+        OBControl screenOverlay = objectDict.get("lock_bg");
         screenOverlay.setOpacity(0);
+        screenOverlay.show();
         attachControl(screenOverlay);
+        if(_aborting)
+            return;
         OBAnimationGroup.runAnims(Collections.singletonList(OBAnim.opacityAnim(1, screenOverlay)), 2, true, OBAnim.ANIM_LINEAR, this);
         objectDict.get("overlay").show();
+        if(_aborting)
+            return;
         OBSystemsManager.sharedManager.screenLock();
 
     }
@@ -859,29 +965,15 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
 
     public void animateLogoOn() throws Exception
     {
-        List<OBAnim> logoWriteAnims = new ArrayList<>();
 
-        OBGroup logo = (OBGroup)this.objectDict.get("onecourse_logo");
-        lockScreen();
-        logo.show();
-        for(OBControl letter : logo.filterMembers("letter_.*",true))
-        {
-            OBGroup group = (OBGroup)letter;
-            for(OBControl letterPart : group.filterMembers("path_.*",true))
-            {
-                OBPath path = (OBPath)letterPart;
-                path.setStrokeEnd(0.5f);
-                path.setStrokeStart(0.5f);
-                logoWriteAnims.add(OBAnim.propertyAnim("strokeEnd",1,path));
-                logoWriteAnims.add(OBAnim.propertyAnim("strokeStart",0,path));
-            }
-        }
-        unlockScreen();
-
-        OBAnimationGroup.runAnims(logoWriteAnims, 1, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
-        OBAnimationGroup.runAnims(Collections.singletonList(OBAnim.opacityAnim(1,objectDict.get("button_start"))),0.5,true,OBAnim.ANIM_LINEAR,this);
-
+        playSFX("ting");
+        OBControl button = objectDict.get("button_start");
+        float startScale = button.scale();
+        button.setScale(startScale * 1.2f);
+        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.scaleAnim(startScale, button), OBAnim.opacityAnim(1, button)), 0.5, true, OBAnim.ANIM_EASE_OUT, this);
     }
+
+
 
 /*
     public void animateLogoOn() throws Exception
@@ -979,7 +1071,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
 */
     public void walkPresenterIn(PointF pt)
     {
-        if (pt.x == presenter.control.position().x && pt.y == presenter.control.position().y)
+        if (Math.abs(pt.x - presenter.control.position().x) < applyGraphicScale(10))
             return;
 
         if (presenter.control.hidden)
@@ -1101,6 +1193,10 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
             waitForSecs(0.3f);
             walkPresenterOut();
         }
+        else
+        {
+            waitForSecs(0.3f);
+        }
         animateBigIconShow();
 
         playUnitButtonAudio(OBUtils.randomlySortedArray(getAudioForScene("unit", "DEMO2")).get(0));
@@ -1196,7 +1292,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
 
         if (fatController.currentSessionFinished())
         {
-            prepareSectionForLastUnit(lastUnit, XPRZ_FatController.OFC_SESSION_TIMED_OUT);
+            prepareSectionForLastUnit(lastUnit, XPRZ_FatController.OFC_SESSION_TIMED_OUT, true);
             demopresentertimeout();
         } else
         {
@@ -1249,4 +1345,13 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         prepareScreenLock();
         setStatus(STATUS_IDLE);
     }
+
+    public void demolocked() throws Exception
+    {
+        setStatus(STATUS_BUSY);
+        animateNightSky();
+        prepareScreenLock();
+        setStatus(STATUS_IDLE);
+    }
+
 }

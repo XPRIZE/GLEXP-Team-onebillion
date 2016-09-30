@@ -100,9 +100,10 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
     {
         MainActivity.log("OBSQLiteHelper running consistency checks");
         //
+        DBSQL db = new DBSQL(true);
         try
         {
-            Cursor checkResult = runVacuum();
+            Cursor checkResult = runVacuum(db);
             if (checkResult != null)
             {
                 MainActivity.log("OBSQLiteHelper Vacuum FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
@@ -113,7 +114,7 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
                 MainActivity.log("OBSQLiteHelper Vacuum PASSED");
             }
             //
-            checkResult = integrityCheck();
+            checkResult = integrityCheck(db);
             if (checkResult != null)
             {
                 MainActivity.log("OBSQLiteHelper Integrity check FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
@@ -124,7 +125,7 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
                 MainActivity.log("OBSQLiteHelper Integrity check PASSED");
             }
             //
-            checkResult = quickCheck();
+            checkResult = quickCheck(db);
             if (checkResult != null)
             {
                 MainActivity.log("OBSQLiteHelper Quick check FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
@@ -135,7 +136,7 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
                 MainActivity.log("OBSQLiteHelper Quick check PASSED");
             }
             //
-            checkResult = foreignKeyCheck();
+            checkResult = foreignKeyCheck(db);
             if (checkResult != null)
             {
                 MainActivity.mainActivity.log("OBSQLiteHelper Foreign key check FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
@@ -153,11 +154,15 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
             e.printStackTrace();
             return false;
         }
+        finally
+        {
+            db.close();
+        }
     }
 
-    public Cursor runVacuum ()
+    public Cursor runVacuum (DBSQL db)
     {
-        Cursor cursor = integrityCheck(getWritableDatabase().rawQuery("VACUUM", null));
+        Cursor cursor = integrityCheck(db.prepareRawQuery("VACUUM", null));
         if (!cursor.moveToNext())
         {
             cursor.close();
@@ -166,9 +171,9 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
         return cursor;
     }
 
-    public Cursor foreignKeyCheck ()
+    public Cursor foreignKeyCheck (DBSQL db)
     {
-        Cursor cursor = getWritableDatabase().rawQuery("PRAGMA foreign_key_check", null);
+        Cursor cursor = db.prepareRawQuery("PRAGMA foreign_key_check", null);
         if (!cursor.moveToNext())
         {
             cursor.close();
@@ -178,15 +183,15 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
     }
 
 
-    public Cursor integrityCheck ()
+    public Cursor integrityCheck (DBSQL db)
     {
-        return integrityCheck(getWritableDatabase().rawQuery("PRAGMA integrity_check", null));
+        return integrityCheck(db.prepareRawQuery("PRAGMA integrity_check", null));
     }
 
 
-    public Cursor quickCheck ()
+    public Cursor quickCheck (DBSQL db)
     {
-        return integrityCheck(getWritableDatabase().rawQuery("PRAGMA quick_check", null));
+        return integrityCheck(db.prepareRawQuery("PRAGMA quick_check", null));
     }
 
 
