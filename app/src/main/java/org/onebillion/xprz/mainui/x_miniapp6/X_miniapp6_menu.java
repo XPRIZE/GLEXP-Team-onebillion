@@ -619,31 +619,29 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
             {
                 if(moonPhase < 8)
                     cover3.hide();
-
-                if(moonPhase > 7)
+                else
                     cover2.hide();
 
                 cover1.setRight(moonDisc.position().x);
 
                 if(moonPhase < 8)
-                    cover2.setScaleX(1.0f-(moonPhase/8.0f));
-                else if(moonPhase > 7)
-                    cover3.setScaleX((7.0f-moonPhase)/8.0f);
+                    cover2.setScaleX(OB_Maths.easeout(1.0f-(moonPhase/8.0f)));
+                else
+                    cover3.setScaleX(OB_Maths.easeout((moonPhase-7.0f)/8.0f));
             }
             else
             {
                 if(moonPhase > 22)
                     cover3.hide();
-
-                if(moonPhase < 23)
+                else
                     cover2.hide();
 
                 cover1.setLeft(moonDisc.position().x);
 
                 if(moonPhase > 22)
-                    cover2.setScaleX((22.0f-moonPhase)/8.0f);
-                else if(moonPhase < 23)
-                    cover3.setScaleX(1.0f-((moonPhase-15.0f)/8.0f));
+                    cover2.setScaleX(OB_Maths.easeout((moonPhase-22.0f)/8.0f));
+                else
+                    cover3.setScaleX(OB_Maths.easeout(1.0f-((moonPhase-15.0f)/8.0f)));
             }
         }
 
