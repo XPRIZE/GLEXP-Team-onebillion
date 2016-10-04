@@ -97,7 +97,7 @@ public class X_Sorting_S4 extends XPRZ_SectionController
             for (OBControl obj : targets)
             {
                 obj.setDoubleSided(true);
-                obj.texturise(true,this);
+                obj.texturise(false,this);
             }
         }
         pots = filterControls("objpot.*");
