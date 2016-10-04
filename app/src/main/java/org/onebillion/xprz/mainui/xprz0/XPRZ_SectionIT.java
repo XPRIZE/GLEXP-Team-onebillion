@@ -289,9 +289,9 @@ public class XPRZ_SectionIT extends XPRZ_SectionController
         emptyReplayAudio();
         try
         {
-            playSfxAudio("tap",false );
             targ.highlight();
-            waitSFX();
+            playSfxAudio("tap",true );
+            waitForSecs(0.2);
             gotItRightBigTick(true);
             waitForSecs(0.5f);
             nextScene();

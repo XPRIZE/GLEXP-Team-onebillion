@@ -103,7 +103,7 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
         return 0;
     }
 
-    public void readParagraph(int pidx,double token,boolean canInterrupt) throws Exception
+    public void readParagraph(int pidx,long token,boolean canInterrupt) throws Exception
     {
         List<Object> l = (List<Object>)(Object)Collections.singletonList(String.format("p%d_%d",pageNo,pidx+1,true));
         playAudioQueued(l,true);
