@@ -63,14 +63,13 @@ public class OBAudioRecorder
         if(activityPaused)
             return;
 
-        prepareForRecording(audioLength);
-        startMediaRecorderAndTimer();
+        prepareForRecording();
+        startMediaRecorderAndTimer(audioLength);
     }
 
-    public void prepareForRecording(double audioLength)
+    public void prepareForRecording()
     {
         condition = recorderLock.newCondition();
-        expectedAudioLength = Math.round(audioLength * 1000);
         recordCount = 0;
         recording = true;
         initRecorder();
@@ -83,13 +82,15 @@ public class OBAudioRecorder
         }
     }
 
-    public void startMediaRecorderAndTimer()
+    public void startMediaRecorderAndTimer(double audioLength)
     {
         if(mediaRecorder != null && !activityPaused)
         {
+            expectedAudioLength = Math.round(audioLength * 1000);
             timeRecordingStart = timeLastSound = timeFirstSound = System.currentTimeMillis();
             recordingTimer = new Timer();
             mediaRecorder.start();
+            recordingTimerFire();
             recordingTimer.scheduleAtFixedRate(new TimerTask()
             {
 
@@ -156,7 +157,7 @@ public class OBAudioRecorder
                 recordCount++;
                 timeLastSound = currentTime;
                 if(recordCount == 3)
-                    timeFirstSound = timeLastSound;
+                    timeFirstSound = timeLastSound-150;
             }
 
             if(timeRecordingStart + 5000 < currentTime && !audioRecorded())

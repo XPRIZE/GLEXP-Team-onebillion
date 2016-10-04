@@ -27,10 +27,10 @@ public class OBVideoRecorder extends OBAudioRecorder
 
     }
 
-    public void prepareForVideoRecording(double audioLength, Size size)
+    public void prepareForVideoRecording(Size size)
     {
         videoSize = size;
-        super.prepareForRecording(audioLength);
+        super.prepareForRecording();
     }
 
 

@@ -210,13 +210,13 @@ public class X_WordVideoRec extends XPRZ_SectionController
 
     public void showVideoPreview()
     {
-        cameraManager.startPreview(videoPlayer);
+        cameraManager.startPreviewForRecording(videoPlayer,videoRecorder);
     }
 
 
     public void startVideoRecorder(double audioLength)
     {
-        cameraManager.startRecording(videoPlayer, videoRecorder, audioLength);
+        videoRecorder.startMediaRecorderAndTimer(audioLength);
     }
 
     public void waitForVideoRecorder() throws Exception
@@ -440,7 +440,7 @@ public class X_WordVideoRec extends XPRZ_SectionController
         }
         else
         {
-            return getAudioForScene(String.format("default"),audio);
+            return getAudioForScene( String.format("default%s", currentMode == MODE_WORD ? "w" : "c"),audio);
         }
     }
 

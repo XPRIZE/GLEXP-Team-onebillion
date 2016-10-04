@@ -217,7 +217,7 @@ public class OBCameraManager
     }
 
 
-    private void startPreviewForControls(final OBVideoPlayer videoPlayer, final OBVideoRecorder videoRecorder, double audioLength)
+    private void startPreviewForControls(final OBVideoPlayer videoPlayer, final OBVideoRecorder videoRecorder)
     {
         if (videoPlayer == null || activityPaused || controller.get()._aborting || videoPlayer.activityPaused)
             return;
@@ -244,7 +244,7 @@ public class OBCameraManager
             surfaces.add(videoPlayer.surface);
             if (videoRecorder != null)
             {
-                videoRecorder.prepareForVideoRecording(audioLength, recordingSize);
+                videoRecorder.prepareForVideoRecording(recordingSize);
                 surfaces.add(videoRecorder.getSurface());
             }
 
@@ -259,9 +259,6 @@ public class OBCameraManager
                     captureSession = cameraCaptureSession;
 
                     updatePreview(videoPlayer);
-
-                    if (videoRecorder != null)
-                        videoRecorder.startMediaRecorderAndTimer();
 
 
                     finishCameraWait();
@@ -297,13 +294,13 @@ public class OBCameraManager
 
     public void startPreview(OBVideoPlayer videoPlayer)
     {
-        startPreviewForControls(videoPlayer, null, 0);
+        startPreviewForControls(videoPlayer, null);
     }
 
 
-    public void startRecording(final OBVideoPlayer videoPlayer, final OBVideoRecorder videoRecorder, double audioLength)
+    public void startPreviewForRecording(final OBVideoPlayer videoPlayer, final OBVideoRecorder videoRecorder)
     {
-        startPreviewForControls(videoPlayer, videoRecorder, audioLength);
+        startPreviewForControls(videoPlayer, videoRecorder);
     }
 
 
