@@ -228,7 +228,6 @@ public class X_WordVideoRec extends XPRZ_SectionController
 
     public void replayRecordedVideo()
     {
-
         videoRecorder.playVideoRecording(videoPlayer);
         videoPlayer.waitForVideo();
     }
@@ -537,9 +536,11 @@ public class X_WordVideoRec extends XPRZ_SectionController
             waitForSecs(0.8f);
             movePointerToPoint(OB_Maths.locationForRect(0.9f,0.9f,this.bounds()),-40,0.5f,true);
             waitForSecs(0.3f);
+
             wordShow();
             waitForSecs(0.3f);
             movePointerToPoint(OB_Maths.locationForRect(0.6f,1.1f,wordLabel.frame()),-40,0.5f,true);
+
             playAudio(aud.get(1));
             waitAudio();
             waitForSecs(0.3f);

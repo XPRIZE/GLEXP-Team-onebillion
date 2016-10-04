@@ -90,7 +90,6 @@ public class OBAudioRecorder
             timeRecordingStart = timeLastSound = timeFirstSound = System.currentTimeMillis();
             recordingTimer = new Timer();
             mediaRecorder.start();
-            recordingTimerFire();
             recordingTimer.scheduleAtFixedRate(new TimerTask()
             {
 
