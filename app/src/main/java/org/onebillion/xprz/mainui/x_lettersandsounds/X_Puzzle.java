@@ -45,7 +45,8 @@ public class X_Puzzle extends X_Wordcontroller
     List<String> words;
     String currWord;
     List<OBGroup> pieces;
-    List<OBPath> positions,puzzlePieces,swatches;
+    List<OBControl> positions;
+    List<OBPath> puzzlePieces,swatches;
     List<RectF> homeRects;
     OBGroup puzzle;
     boolean gotoStage2;
@@ -126,10 +127,10 @@ public class X_Puzzle extends X_Wordcontroller
         for (int i = 0;i < pcs.size();i++)
             if (i != idx)
                 pcs.get(i).hide();
-        OBPath np = (OBPath)pcs.get(idx).copy();
+        OBControl np = pcs.get(idx).copy();
         np.setFillColor(Color.WHITE);
-        np.setStrokeColor(0);
-        OBPath background = (OBPath) g.objectDict.get("background");
+        //np.setStrokeColor(0);
+        OBControl background = g.objectDict.get("background");
         //background.fillColor = currentSwatch().fillColor;
         background.parent.setMaskControl(np);
         PointF pt = convertPointFromControl(pcs.get(idx).position(),pcs.get(idx).parent);
@@ -189,7 +190,7 @@ public class X_Puzzle extends X_Wordcontroller
         if(firstTimeIn)
         {
             OBPath swatch = currentSwatch();
-            OBPath picBack = (OBPath) objectDict.get("backrect");
+            OBControl picBack = objectDict.get("backrect");
             picBack.setFillColor(swatch.strokeColor());
             firstTimeIn = false;
         }
@@ -210,7 +211,7 @@ public class X_Puzzle extends X_Wordcontroller
         else
             super.setSceneXX("puzzle9");
         currWord = words.get(currNo) ;
-        positions = (List<OBPath>)(Object)sortedFilteredControls("pos_.*");
+        positions = (List<OBControl>)(Object)sortedFilteredControls("pos_.*");
         positions = OBUtils.randomlySortedArray(positions);
         OBWord rw = (OBWord) componentDict.get(currWord);
         setUpImage(rw.imageName);
