@@ -460,6 +460,9 @@ public class OBSectionController extends OBViewController
         String fillstr = (String) attrs.get("fill");
         if (fillstr != null && fillstr.startsWith("url("))
             return false;
+        String strokestr = (String) attrs.get("stroke");
+        if (strokestr != null)
+            return false;
         return true;
     }
     public OBControl loadShape (Map<String, Object> attrs, String nodeType, float graphicScale, RectF r, Map<String, Object> defs)
@@ -691,8 +694,9 @@ public class OBSectionController extends OBViewController
         else if (nodeType.equals("text"))
         {
             scalable = false;
-            OBPath path = (OBPath) loadShape(attrs, "rectangle", graphicScale, r, defs);
-            path.sizeToBoundingBox();
+            OBControl path = loadShape(attrs, "rectangle", graphicScale, r, defs);
+            if (path instanceof OBPath)
+                ((OBPath)path).sizeToBoundingBox();
             if (attrs.get("stroke") != null)
             {
                 OBStroke str = new OBStroke(attrs, true);
