@@ -113,7 +113,7 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
         player = new MediaPlayer();
         player.setOnPreparedListener(this);
         player.setOnSeekCompleteListener(this);
-        //player.setOnCompletionListener(this);
+        player.setOnCompletionListener(this);
         try
         {
             state = OBAP_PREPARING;
