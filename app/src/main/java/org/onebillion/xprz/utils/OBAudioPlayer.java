@@ -53,6 +53,15 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
         {
             MediaPlayer cpplayer = player;
             player = null;
+            try
+            {
+                cpplayer.setOnPreparedListener(null);
+                cpplayer.setOnCompletionListener(null);
+                cpplayer.setOnSeekCompleteListener(null);
+            }
+            catch (Exception e)
+            {
+            }
             setState(OBAP_IDLE);
             playerLock.lock();
             condition.signalAll();
@@ -104,7 +113,7 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
         player = new MediaPlayer();
         player.setOnPreparedListener(this);
         player.setOnSeekCompleteListener(this);
-        player.setOnCompletionListener(this);
+        //player.setOnCompletionListener(this);
         try
         {
             state = OBAP_PREPARING;
@@ -126,7 +135,6 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
             stopPlaying();
         fromTime = -1;
         player = new MediaPlayer();
-        //player.setOnPreparedListener(this);
         player.setOnCompletionListener(this);
         try
         {

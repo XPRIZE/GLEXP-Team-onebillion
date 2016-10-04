@@ -1002,6 +1002,7 @@ public class X_LetterTrace extends X_Wordcontroller
         {
             highlightLetter(true);
             playLetterSound(letter);
+            waitForSecs(0.1);
             waitAudio();
             waitForSecs(0.7f);
             highlightLetter(false);
