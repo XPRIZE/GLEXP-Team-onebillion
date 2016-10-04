@@ -68,7 +68,7 @@ public class X_Grid33Sp extends X_Grid33S
         centrePos.set(dashes.get(0).position());
         centrePos.x = ((dashes.get(0).left() + dashes.get(dashes.size() - 1) .right()) / 2);
         centrePos.y -= applyGraphicScale(8);
-        OBPath vs = (OBPath) objectDict.get("vowelswatch");
+        OBControl vs = objectDict.get("vowelswatch");
         vowelColour = vs.fillColor();
         List<OBControl>ls = ((OBGroup)objectDict.get("grid")).filterMembers("squ.*",true);
         squares = (List<OBPath>)(Object)ls;
