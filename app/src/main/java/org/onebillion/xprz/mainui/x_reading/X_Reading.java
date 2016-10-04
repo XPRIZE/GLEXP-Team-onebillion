@@ -492,7 +492,7 @@ public class X_Reading extends XPRZ_SectionController
         mainPic.setZPosition(60);
         scalePicToBox();
 
-        OBPath picbox = (OBPath) objectDict.get("imagebox");
+        OBControl picbox =  objectDict.get("imagebox");
         picbox.setFillColor(0);
         textBox.setZPosition(70);
 

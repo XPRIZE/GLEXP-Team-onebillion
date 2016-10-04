@@ -462,6 +462,14 @@ public class OBControl
         return backgroundColor;
     }
 
+    public float lineWidth()
+    {
+        return borderWidth;
+    }
+    public int strokeColor()
+    {
+        return borderColour;
+    }
     public int fillColor()
     {
         return backgroundColor();
@@ -1349,18 +1357,27 @@ public class OBControl
 
     public Bitmap drawn ()
     {
+        return drawn(null);
+    }
+
+    public Bitmap drawn (Bitmap oldBitmap)
+    {
         Bitmap bitmap = null;
         float fw = (bounds().right - bounds().left) * Math.abs(rasterScale);
         float fh = (bounds().bottom - bounds().top) * Math.abs(rasterScale);
         int width = (int) Math.ceil(fw);
         int height = (int) Math.ceil(fh);
-        //uvRight = fw / width;
-        //uvBottom = fh / height;
         if (width == 0 || height == 0)
             Log.i("error", "drawn");
         try
         {
-            bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            if (oldBitmap != null && oldBitmap.getWidth() == width && oldBitmap.getHeight() == height)
+            {
+                bitmap = oldBitmap;
+                bitmap.eraseColor(0);
+            }
+            else
+                bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         }
         catch (Exception exception)
         {
@@ -1394,8 +1411,8 @@ public class OBControl
     {
         if (texture != null)
         {
-            texture.cleanUp();
-            texture = null;
+            //texture.cleanUp();
+            //texture = null;
         }
         texture = vc.createTexture(this, textureKey, shared);
     }

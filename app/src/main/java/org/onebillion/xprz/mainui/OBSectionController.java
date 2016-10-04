@@ -364,6 +364,26 @@ public class OBSectionController extends OBViewController
         return path;
     }
 
+
+    public OBControl makeRect(Map<String, Object> attrs, Map<String, Object> defs,RectF bnds)
+    {
+        String fillstr = (String) attrs.get("fill");
+        OBControl im = new OBControl();
+        im.setBounds(bnds);
+        int fill = 0;
+        if (fillstr != null)
+        {
+            fill = OBUtils.colorFromRGBString(fillstr);
+            if (attrs.get("fillopacity") != null)
+            {
+                float fo = Float.parseFloat((String) attrs.get("fillopacity"));
+                fill = Color.argb((int) (fo * 255), Color.red(fill), Color.green(fill), Color.blue(fill));
+            }
+        }
+        im.setBackgroundColor(fill);
+        return im;
+    }
+
     public OBPath makeShape (Map<String, Object> attrs, Path p, float graphicScale, Map<String, Object> defs)
     {
         OBPath im = null;
@@ -432,6 +452,16 @@ public class OBSectionController extends OBViewController
         return im;
     }
 
+    public static boolean rectCanBeOBControl(Map<String, Object> attrs)
+    {
+        float cr = floatOrZero(attrs, "cornerradius");
+        if (cr != 0f)
+            return false;
+        String fillstr = (String) attrs.get("fill");
+        if (fillstr != null && fillstr.startsWith("url("))
+            return false;
+        return true;
+    }
     public OBControl loadShape (Map<String, Object> attrs, String nodeType, float graphicScale, RectF r, Map<String, Object> defs)
     {
         OBControl im = null;
@@ -515,13 +545,16 @@ public class OBSectionController extends OBViewController
                 p = new Path();
                 p.addRoundRect(b, cr, cr, Path.Direction.CCW);
             }
-            else
+            else if (!rectCanBeOBControl(attrs))
             {
                 p = new Path();
                 p.addRect(b, Path.Direction.CCW);
             }
         }
-        im = makeShape(attrs, p, graphicScale, defs);
+        if (p == null)
+            im = makeRect(attrs,defs,b);
+        else
+            im = makeShape(attrs, p, graphicScale, defs);
         im.setPosition(f.centerX(), f.centerY());
         return im;
     }

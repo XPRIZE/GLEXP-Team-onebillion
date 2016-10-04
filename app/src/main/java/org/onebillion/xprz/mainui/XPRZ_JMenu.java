@@ -548,7 +548,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
         List<OBXMLNode> targs = tab.childrenOfType("video");
         if (targs.size() > 0)
         {
-            OBPath vs = (OBPath) objectDict.get("video_selector");
+            OBControl vs = objectDict.get("video_selector");
             int col = vs.fillColor();
             deleteControls("video_selector");
             OBControl p1 = objectDict.get("video_preview1");

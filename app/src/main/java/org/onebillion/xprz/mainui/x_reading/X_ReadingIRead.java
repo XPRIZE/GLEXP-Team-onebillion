@@ -104,7 +104,7 @@ public class X_ReadingIRead extends X_Reading
 
         //textBox.setBackgroundColor(Color.YELLOW);
 
-        OBPath wb = (OBPath) objectDict.get("wordback");
+        OBControl wb = objectDict.get("wordback");
         wordback = new OBControl();
         wordback.setFrame(wb.frame);
         wordback.backgroundColor = boxColour = wb.fillColor();

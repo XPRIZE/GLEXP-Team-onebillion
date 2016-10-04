@@ -37,7 +37,7 @@ public class X_Count20_S5 extends XPRZ_Tracer
     OBGroup p1,p2;
 
     OBGroup box;
-    OBPath screenMask;
+    OBControl screenMask;
     List<OBControl> counters,numbers,randomCounters;
     double lastTime;
     long animToken = 0;
@@ -113,9 +113,9 @@ public class X_Count20_S5 extends XPRZ_Tracer
         box = (OBGroup)objectDict.get("box_group");
         OBControl mask = objectDict.get("box_mask");
         OBControl shape = objectDict.get("box_shape");
-        OBPath boxstroke = (OBPath) objectDict.get("box_stroke");
+        OBControl boxstroke = objectDict.get("box_stroke");
         mask.parent.removeMember(mask);
-        screenMask = (OBPath) mask.copy();
+        screenMask = mask.copy();
         screenMask.setFillColor(Color.BLUE);
         boxstroke.parent.removeMember(boxstroke);
         attachControl(boxstroke);

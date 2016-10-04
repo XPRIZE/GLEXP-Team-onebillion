@@ -184,7 +184,10 @@ public class OBViewController
             if (t != null)
                 return t;
         }
-        Bitmap b = c.drawn();
+        Bitmap b = null;
+        if (c.texture != null)
+            b = c.texture.bitmap();
+        b = c.drawn(b);
         Texture t = new Texture(b,c.scale());
         if (shared)
         {
