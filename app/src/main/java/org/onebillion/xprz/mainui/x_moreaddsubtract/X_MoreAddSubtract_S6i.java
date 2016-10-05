@@ -101,7 +101,8 @@ public class X_MoreAddSubtract_S6i extends XPRZ_SectionController
             label.setPosition(box.position());
             OBGroup group = new OBGroup(Arrays.asList(label,box));
             group.setPosition ( OB_Maths.locationForRect(0.2f + index*(0.6f/4),0.6f,objectDict.get("topbar").frame()));
-
+            group.setShadow(box.getShadowRadius(),box.getShadowOpacity(),box.getShadowOffsetX(),box.getShadowOffsetY(),box.getShadowColour());
+            box.setShadow(0,0,0,0,0);
             attachControl(group);
             group.setProperty("num_value",num);
             group.setProperty("start_loc",XPRZ_Generic.copyPoint(group.position()));
