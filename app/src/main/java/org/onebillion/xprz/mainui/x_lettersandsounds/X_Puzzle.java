@@ -312,7 +312,7 @@ public class X_Puzzle extends X_Wordcontroller
             lockScreen();
             objectDict.get("oldpuzzle").hide() ;
             OBPath swatch = currentSwatch();
-            OBPath picBack = (OBPath) objectDict.get("backrect");
+            OBControl picBack = objectDict.get("backrect");
             picBack.setFillColor(swatch.strokeColor());
             unlockScreen();
             playSfxAudio("imageon",true);

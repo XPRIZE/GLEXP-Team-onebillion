@@ -767,7 +767,7 @@ public class X_Reading extends XPRZ_SectionController
 
     public void replayAudio()
     {
-        if (status() != STATUS_DOING_DEMO)
+        if (!_aborting && !MainViewController().navigating && status()!= STATUS_FINISHING && status() != STATUS_DOING_DEMO)
         {
             new AsyncTask<Void, Void, Void>()
             {
