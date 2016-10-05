@@ -27,7 +27,7 @@ public class XPRZ_Menu extends XPRZ_SectionController
             if (but instanceof OBGroup)
                 ((OBGroup) but).outdent(applyGraphicScale(8));
         for (OBControl c : attachedControls)
-            c.texturise(true,this);
+            c.texturise(false,this);
 
         boolean permission1 = MainActivity.mainActivity.isAllPermissionGranted();
     }

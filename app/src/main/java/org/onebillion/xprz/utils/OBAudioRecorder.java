@@ -71,7 +71,7 @@ public class OBAudioRecorder
     {
         condition = recorderLock.newCondition();
         recordCount = 0;
-        recording = true;
+
         initRecorder();
         try
         {
@@ -86,6 +86,7 @@ public class OBAudioRecorder
     {
         if(mediaRecorder != null && !activityPaused)
         {
+            recording = true;
             expectedAudioLength = Math.round(audioLength * 1000);
             timeRecordingStart = timeLastSound = timeFirstSound = System.currentTimeMillis();
             recordingTimer = new Timer();
