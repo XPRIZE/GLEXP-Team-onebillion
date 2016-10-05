@@ -510,6 +510,10 @@ public class X_Counting5and10_S6 extends XPRZ_Generic_Event
                         OBPath path = (OBPath) selectedObject;
                         path.setFillColor(selectedColour);
                     }
+                    else
+                    {
+                        selectedObject.setFillColor(selectedColour);
+                    }
                     //
                     colourableObjects.remove(selectedObject);
                     selectedObject.disable();
