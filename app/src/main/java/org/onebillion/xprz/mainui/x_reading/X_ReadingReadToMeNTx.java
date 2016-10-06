@@ -167,6 +167,8 @@ public class X_ReadingReadToMeNTx extends X_ReadingReadToMe
 
     public void replayAudio()
     {
+        if (_aborting || MainViewController().navigating || status() == STATUS_FINISHING)
+            return;
         if (pageNo == 0)
         {
             setStatus(status());
