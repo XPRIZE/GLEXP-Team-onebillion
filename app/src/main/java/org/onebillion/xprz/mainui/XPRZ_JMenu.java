@@ -38,7 +38,8 @@ public class XPRZ_JMenu extends XPRZ_Menu
     String currentTab = null;
     List<OBControl> tabs;
     Map<String,OBXMLNode>tabXmlDict;
-    public float tabTextSize,subheadtextSize,subsubheadtextSize,itemHeadTextSize,itemBodyTextSize,videoHeadTextSize,videoBodyTextSize;
+    public float tabTextSize,subheadtextSize,subsubheadtextSize,itemHeadTextSize,itemBodyTextSize,videoHeadTextSize,videoBodyTextSize,
+    toggleTextSize;
     static Typeface plain,bold,italic,boldItalic;
     boolean scrollable;
     float originalY,maximumY,minimumY;
@@ -66,6 +67,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
     boolean slowingDown;
     List<OBXMLNode>masterList;
     OBControl highlightedIcon = null;
+    int chosenLanguage;
 
     static Typeface plainFont()
     {
@@ -128,6 +130,23 @@ public class XPRZ_JMenu extends XPRZ_Menu
         }
     }
 
+    void createToggleLabels()
+    {
+        OBLabel label = new OBLabel("swahili",plainFont(),toggleTextSize);
+        label.setColour(Color.argb((int)(0.8f * 255),255,255,255));
+        OBControl placeHolder = objectDict.get("toggleleft");
+        label.setPosition(placeHolder.position());
+        label.setZPosition(placeHolder.zPosition()+10);
+        attachControl(label);
+        objectDict.put("toggletextl",label);
+        label = new OBLabel("english",plainFont(),toggleTextSize);
+        label.setColour(Color.argb((int)(0.8f * 255),255,255,255));
+        placeHolder = objectDict.get("toggleright");
+        label.setPosition(placeHolder.position());
+        label.setZPosition(placeHolder.zPosition()+10);
+        attachControl(label);
+        objectDict.put("toggletextr",label);
+    }
     public void prepare()
     {
         super.prepare();
@@ -141,15 +160,42 @@ public class XPRZ_JMenu extends XPRZ_Menu
         itemBodyTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("itembodytextsize")));
         videoHeadTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("videoheadtextsize")));
         videoBodyTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("videobodytextsize")));
+        toggleTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("toggletextsize")));
         tabs = sortedFilteredControls("tab.*");
         for (OBControl t : tabs)
             t.setZPosition(t.zPosition()+60);
-        OBControl obl = objectDict.get("obl");
+        OBControl obl = objectDict.get("onecourse");
         obl.setZPosition(obl.zPosition()+60);
         setUpTabTitles();
+        createToggleLabels();
+        setToggleTo(0);
+    }
 
+    public void start()
+    {
+        super.start();
+        setStatus(STATUS_IDLE);
         switchTo("video");
+    }
 
+    void setToggleTo(int i)
+    {
+        OBControl onc = objectDict.get("toggleleft");
+        OBControl offc = objectDict.get("toggleright");
+        if (i == 1)
+        {
+            OBControl swap = offc;
+            offc = onc;
+            onc = swap;
+        }
+        onc.setOpacity(0.3f);
+        offc.setOpacity(0);
+    }
+
+    void chooseToggle(int i)
+    {
+        setToggleTo(i);
+        chosenLanguage = i;
     }
 
     void loadTabContents()
@@ -369,6 +415,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
     }
     public void populateReading()
     {
+        showControls("toggle");
         String tabstring = "reading";
         //populateSubHead(tabstring);
         OBXMLNode tab = tabXmlDict.get(tabstring);
@@ -396,6 +443,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
 
     public void populateStories()
     {
+        showControls("toggle");
         String tabstring = "stories";
         OBXMLNode tab = tabXmlDict.get(tabstring);
 
@@ -425,6 +473,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
     }
     public void populateNumeracy()
     {
+        showControls("toggle");
         String tabstring = "numeracy";
         OBXMLNode tab = tabXmlDict.get(tabstring);
 
@@ -440,6 +489,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
 
     public void populateWriting()
     {
+        showControls("toggle");
         String tabstring = "writing";
         OBXMLNode tab = tabXmlDict.get(tabstring);
 
@@ -454,6 +504,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
 
     public void populateDesign()
     {
+        showControls("toggle");
         String tabstring = "design";
         OBXMLNode tab = tabXmlDict.get(tabstring);
 
@@ -468,6 +519,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
 
     public void populateTech()
     {
+        showControls("toggle");
         String tabstring = "tech";
         OBXMLNode tab = tabXmlDict.get(tabstring);
 
@@ -684,6 +736,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
 
     public void populateVideo()
     {
+        hideControls("toggle");
         String tabstring = "video";
         OBXMLNode tab = tabXmlDict.get(tabstring);
         populateVideoPreviews(tabstring,tab);
@@ -737,6 +790,8 @@ public class XPRZ_JMenu extends XPRZ_Menu
             maximumY = scrollGroup.position().y;
             minimumY = maximumY - (scrollGroup.bottom() - boundsf().bottom);
         }
+        OBControl back = objectDict.get(currentTab+"_background");
+        objectDict.get("toggleref").setFillColor(back.fillColor());
         unlockScreen();
     }
 
@@ -1035,6 +1090,16 @@ public class XPRZ_JMenu extends XPRZ_Menu
         {
             lastPoint.set(pt);
             processVideoTouch(pt);
+            return;
+        }
+        OBControl rct = objectDict.get("toggleref");
+        if (rct.frame().contains(pt.x,pt.y))
+        {
+            int chosen = 0;
+            if (objectDict.get("toggleright").frame().contains(pt.x,pt.y))
+                chosen = 1;
+            if (chosen != chosenLanguage)
+                chooseToggle(chosen);
             return;
         }
         c = findIcon(pt);
