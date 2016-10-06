@@ -68,6 +68,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
     List<OBXMLNode>masterList;
     OBControl highlightedIcon = null;
     int chosenLanguage;
+    boolean inited = false;
 
     static Typeface plainFont()
     {
@@ -112,12 +113,12 @@ public class XPRZ_JMenu extends XPRZ_Menu
         return 0;
     }
 
-    public void loadMasterList()
+    public void loadMasterList(String lang)
     {
         InputStream pis;
         try
         {
-            pis = MainActivity.mainActivity.getAssets().open("x-jmenu/config/junits.xml");
+            pis = MainActivity.mainActivity.getAssets().open("x-jmenu/config/junits_"+lang+".xml");
             OBXMLManager xmlManager = new OBXMLManager();
             List<OBXMLNode> xmlNodes = xmlManager.parseFile(pis);
             OBXMLNode xmlNode = xmlNodes.get(0);
@@ -150,7 +151,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
     public void prepare()
     {
         super.prepare();
-        loadMasterList();
+        loadMasterList("sw");
         saveConfig = (String)Config().get(MainActivity.CONFIG_APP_CODE);
         loadEvent("mastera");
         tabTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("tabtextsize")));
@@ -175,7 +176,11 @@ public class XPRZ_JMenu extends XPRZ_Menu
     {
         super.start();
         setStatus(STATUS_IDLE);
-        switchTo("video");
+        if (!inited)
+        {
+            switchTo("video",false);
+            inited = true;
+        }
     }
 
     void setToggleTo(int i)
@@ -190,12 +195,18 @@ public class XPRZ_JMenu extends XPRZ_Menu
         }
         onc.setOpacity(0.3f);
         offc.setOpacity(0);
+        if (currentTab != null)
+            switchTo(currentTab,true);
     }
 
     void chooseToggle(int i)
     {
-        setToggleTo(i);
         chosenLanguage = i;
+        if (chosenLanguage == 1)
+            loadMasterList("en");
+        else
+            loadMasterList("sw");
+        setToggleTo(i);
     }
 
     void loadTabContents()
@@ -458,7 +469,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
         int i = 1;
         for (OBControl c : nums)
         {
-            OBLabel label = new OBLabel(String.format("Level %d",i),tf,subsubheadtextSize);
+            OBLabel label = new OBLabel(String.format("Reading %d",i),tf,subsubheadtextSize);
             label.sizeToBoundingBox();
             label.setPosition(c.position());
             label.setZPosition(c.zPosition());
@@ -750,9 +761,9 @@ public class XPRZ_JMenu extends XPRZ_Menu
         attachControl(scrollGroup);
     }
 
-    public void switchTo(String s)
+    public void switchTo(String s,boolean force)
     {
-        if (s == currentTab)
+        if (s == currentTab && !force)
             return;
         scrollable = false;
         lockScreen();
@@ -1082,7 +1093,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
         {
             int idx = tabs.indexOf(c);
             setStatus(STATUS_BUSY);
-            switchTo(titles[idx]);
+            switchTo(titles[idx],false);
             setStatus(STATUS_IDLE);
             return;
         }
