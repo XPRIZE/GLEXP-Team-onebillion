@@ -156,7 +156,8 @@ public class OBVideoPlayer extends OBControl
 
     synchronized public void onFrameAvailable(SurfaceTexture surface)
     {
-        invalidate();
+        if(!activityPaused)
+            invalidate();
     }
 
     public void stop()
@@ -355,6 +356,18 @@ public class OBVideoPlayer extends OBControl
     public void setFillType(int fillType)
     {
         this.fillType = fillType;
+    }
+
+    public void cleanUp(OBRenderer renderer)
+    {
+        activityPaused = true;
+        stop();
+
+        surfaceTexture.setOnFrameAvailableListener(null);
+        surfaceTexture.release();
+        TextureRect tr = renderer.textureRect;
+        tr.unbindSurface(renderer);
+
     }
 
 }

@@ -12,6 +12,7 @@ import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBVideoPlayer;
 import org.onebillion.xprz.controls.XPRZ_Presenter;
+import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.OBMainViewController;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
@@ -121,7 +122,16 @@ public class X_WordVideoRec extends XPRZ_SectionController
     @Override
     public void exitEvent()
     {
-        onPause();
+        try
+        {
+            cameraManager.onPause();
+            videoRecorder.onPause();
+            videoPlayer.cleanUp(MainActivity.mainActivity.renderer);
+
+        } catch(Exception e)
+        {
+        }
+
         OBUtils.cleanUpTempFiles(this);
         super.exitEvent();
     }
@@ -488,9 +498,10 @@ public class X_WordVideoRec extends XPRZ_SectionController
         super.onPause();
         try
         {
+            cameraManager.onPause();
             videoRecorder.onPause();
             videoPlayer.onPause();
-            cameraManager.onPause();
+
 
         } catch(Exception e)
         {

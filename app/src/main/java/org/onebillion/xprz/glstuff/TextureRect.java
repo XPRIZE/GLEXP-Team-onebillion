@@ -2,6 +2,8 @@ package org.onebillion.xprz.glstuff;
 
 import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
+import android.opengl.GLES10;
+import android.opengl.GLES11;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
@@ -9,7 +11,9 @@ import android.opengl.Matrix;
 import static android.opengl.GLES20.GL_TEXTURE_2D;
 import static android.opengl.GLES20.GL_TRIANGLE_STRIP;
 import static android.opengl.GLES20.glBindTexture;
+import static android.opengl.GLES20.glDeleteTextures;
 import static android.opengl.GLES20.glDrawArrays;
+import static android.opengl.GLES20.glFlush;
 import static android.opengl.GLUtils.texImage2D;
 
 /**
@@ -191,6 +195,11 @@ public class TextureRect
         glDrawArrays(GL_TRIANGLE_STRIP,0,4);
 
         GLES20.glFinish();
+    }
+
+    public void unbindSurface(OBRenderer renderer)
+    {
+        glDeleteTextures(1,new int[] {renderer.textureObjectIds[2]},0);
     }
 
     public void drawShadow(OBRenderer renderer, float l, float t, float r, float b, Bitmap bitmap)
