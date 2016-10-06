@@ -372,7 +372,13 @@ public class OBExpansionManager
         for (OBExpansionFile remoteFile : remoteExpansionFiles.values())
         {
             if (remoteFile == null) continue;
-            MainActivity.log("checking: " + remoteFile.id + " " + remoteFile.version);
+            MainActivity.log("checking: " + remoteFile.id + " " + remoteFile.version + " " + remoteFile.bundle);
+            //
+            if (!MainActivity.mainActivity.getPackageName().equals(remoteFile.bundle))
+            {
+                MainActivity.log("Mismatched bundleID, continuing");
+                continue;
+            }
             //
             Boolean needsUpdate = true;
             OBExpansionFile internalFile = internalExpansionFiles.get(remoteFile.id);
