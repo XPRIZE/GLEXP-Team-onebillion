@@ -193,7 +193,7 @@ public class OBVideoPlayer extends OBControl
     {
         if(afd == null || activityPaused )
             return;
-        
+
         condition = playerLock.newCondition();
         fromTime = fr;
 

@@ -1061,7 +1061,7 @@ public class OBUtils
                                     List<OBPhoneme> sylPhos = new ArrayList<>();
                                     for(int i=0; i<obSyllable.text.length(); i++)
                                     {
-                                        String letter = obSyllable.text.substring(i,i);
+                                        String letter = obSyllable.text.substring(i,i+1);
                                         String letterId = String.format("is_%s",letter);
 
                                         if(dictionary.get(letterId) != null)
