@@ -693,12 +693,14 @@ public class XPRZ_JMenu extends XPRZ_Menu
     public void goFullScreen()
     {
         videoPlayer.setFrame(boundsf());
+        videoPlayer.setFillType(OBVideoPlayer.VP_FILL_TYPE_ASPECT_FIT);
     }
 
     public void goSmallScreen()
     {
         OBControl placeHolder = objectDict.get("video_video");
         videoPlayer.setFrame(placeHolder.frame());
+        videoPlayer.setFillType(OBVideoPlayer.VP_FILL_TYPE_ASPECT_FILL);
     }
     public void setUpVideoPlayerForIndex(int idx,boolean play)
     {
@@ -723,7 +725,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
             videoPlayer = new OBVideoPlayer(r,this,false,false);
             videoPlayer.stopOnCompletion = false;
             videoPlayer.setZPosition(190);
-            videoPlayer.setFillType(OBVideoPlayer.VP_FILL_TYPE_ASPECT_FIT);
+            videoPlayer.setFillType(OBVideoPlayer.VP_FILL_TYPE_ASPECT_FILL);
             //videoPlayer.setZPosition(placeHolder.zPosition()+1);
             attachControl(videoPlayer);
         }

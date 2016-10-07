@@ -48,7 +48,7 @@ public class OBVideoPlayer extends OBControl
     VP_FILL_TYPE_ASPECT_FILL = 2;
 
 
-    int fillType = VP_FILL_TYPE_ASPECT_FIT;
+    int fillType = VP_FILL_TYPE_ASPECT_FILL;
     Condition condition;
     long fromTime;
     private int textureId;
@@ -148,16 +148,20 @@ public class OBVideoPlayer extends OBControl
 
         if (fillType == VP_FILL_TYPE_ASPECT_FIT)
         {
-            if (ratio1 > ratio2)
-            {
-                widthRatio = ((cameraWidth - boundsWidth*hratio) / 2.0f) / cameraWidth;
-            } else if (ratio1 < ratio2)
-            {
-                heightRatio = ((cameraHeight - boundsHeight*wratio) / 2.0f) / cameraHeight;
-            }
+            float oldratio1 = ratio1;
+            ratio1 = ratio2;
+            ratio2 = oldratio1;
         }
 
+        if (ratio1 > ratio2)
+        {
+            widthRatio = ((cameraWidth - boundsWidth*hratio) / 2.0f) / cameraWidth;
+        } else if (ratio1 < ratio2)
+        {
+            heightRatio = ((cameraHeight - boundsHeight*wratio) / 2.0f) / cameraHeight;
+        }
 
+        clearSurface(surfaceTexture);
         tr.setUVs(widthRatio, heightRatio, 1 - widthRatio, 1 - heightRatio);
         tr.drawSurface(renderer, 0, 0, boundsWidth, boundsHeight, surfaceTexture,mirrored);
         tr.setUVs(0, 0, 1, 1);
