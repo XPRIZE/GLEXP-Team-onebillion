@@ -69,7 +69,7 @@ public class OBExpansionManager
                 destination.mkdirs();
                 try
                 {
-                    FileUtils.copyDirectory(source, destination);
+                    FileUtils.copyDirectory(source, destination, false);
                     //
                     String currentExternalAssets = MainActivity.mainActivity.getPreferences("externalAssets");
                     if (currentExternalAssets == null)
@@ -161,17 +161,19 @@ public class OBExpansionManager
             if (!cursor.moveToFirst())
             {
                 MainActivity.log("Empty row");
+                cursor.close();
                 return;
             }
             int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
             if (DownloadManager.STATUS_SUCCESSFUL != cursor.getInt(statusIndex))
             {
                 MainActivity.log("Download Failed");
+                cursor.close();
                 return;
             }
-
             int uriIndex = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
             String downloadedPackageUriString = cursor.getString(uriIndex);
+            cursor.close();
             //
             unpackOBB(downloadedPackageUriString);
         }
@@ -333,7 +335,7 @@ public class OBExpansionManager
                         String id = xmlNode.attributeStringValue("id");
                         String bundle = xmlNode.attributeStringValue("bundle");
                         String destination = xmlNode.attributeStringValue("destination");
-                        int version = xmlNode.attributeIntValue("version");
+                        long version = xmlNode.attributeLongValue("version");
                         remoteExpansionFiles.put(id, new OBExpansionFile(id, bundle, destination, version, null));
                     }
                     //
@@ -483,7 +485,7 @@ public class OBExpansionManager
             String id = rootNode.attributeStringValue("id");
             String bundle = rootNode.attributeStringValue("bundle");
             String destination = rootNode.attributeStringValue("destination");
-            int version = rootNode.attributeIntValue("version");
+            long version = rootNode.attributeLongValue("version");
             //
             OBExpansionFile expansionFile = new OBExpansionFile(id, bundle, destination, version, folder);
             internalExpansionFiles.put(expansionFile.id, expansionFile);

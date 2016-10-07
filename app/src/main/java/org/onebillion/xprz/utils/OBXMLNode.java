@@ -92,6 +92,24 @@ public class OBXMLNode
         return ival;
     }
 
+
+    public long attributeLongValue(String attrName)
+    {
+        String val = attributeStringValue(attrName);
+        long ival = 0;
+        if (val != null)
+        {
+            try
+            {
+                ival = Long.parseLong(val);
+            }
+            catch(NumberFormatException e)
+            {
+            }
+        }
+        return ival;
+    }
+
     public boolean attributeBoolValue(String attrName)
     {
         String val = attributeStringValue(attrName);
