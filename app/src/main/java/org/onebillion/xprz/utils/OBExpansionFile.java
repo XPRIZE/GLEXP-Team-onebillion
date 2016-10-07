@@ -9,10 +9,10 @@ public class OBExpansionFile
 {
 
     public String id, bundle, destination;
-    public int version;
+    public long version;
     public File folder;
 
-    public OBExpansionFile(String id, String bundle, String destination, int version, File folder)
+    public OBExpansionFile(String id, String bundle, String destination, long version, File folder)
     {
         super();
         this.id = id;
