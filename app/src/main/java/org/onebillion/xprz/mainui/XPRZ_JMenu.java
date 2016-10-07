@@ -199,20 +199,26 @@ public class XPRZ_JMenu extends XPRZ_Menu
             switchTo(currentTab,true);
     }
 
+    String currentLang()
+    {
+        if (chosenLanguage == 1)
+            return "en";
+        else
+            return "sw";
+    }
     void chooseToggle(int i)
     {
         chosenLanguage = i;
-        if (chosenLanguage == 1)
-            loadMasterList("en");
-        else
-            loadMasterList("sw");
+        String l = currentLang();
+        loadMasterList(l);
+        loadTabContents(l);
         setToggleTo(i);
     }
 
-    void loadTabContents()
+    void loadTabContents(String lang)
     {
         tabXmlDict = new HashMap<>();
-        String xmlPath = getConfigPath("tabcontent.xml");
+        String xmlPath = getConfigPath("tabcontent_"+lang+".xml");
         try
         {
             OBXMLManager xmlManager = new OBXMLManager();
@@ -426,7 +432,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
     }
     public void populateReading()
     {
-        showControls("toggle");
+        showControls("toggle.*");
         String tabstring = "reading";
         //populateSubHead(tabstring);
         OBXMLNode tab = tabXmlDict.get(tabstring);
@@ -454,7 +460,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
 
     public void populateStories()
     {
-        showControls("toggle");
+        showControls("toggle.*");
         String tabstring = "stories";
         OBXMLNode tab = tabXmlDict.get(tabstring);
 
@@ -484,7 +490,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
     }
     public void populateNumeracy()
     {
-        showControls("toggle");
+        showControls("toggle.*");
         String tabstring = "numeracy";
         OBXMLNode tab = tabXmlDict.get(tabstring);
 
@@ -500,7 +506,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
 
     public void populateWriting()
     {
-        showControls("toggle");
+        showControls("toggle.*");
         String tabstring = "writing";
         OBXMLNode tab = tabXmlDict.get(tabstring);
 
@@ -515,7 +521,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
 
     public void populateDesign()
     {
-        showControls("toggle");
+        showControls("toggle.*");
         String tabstring = "design";
         OBXMLNode tab = tabXmlDict.get(tabstring);
 
@@ -530,7 +536,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
 
     public void populateTech()
     {
-        showControls("toggle");
+        hideControls("toggle.*");
         String tabstring = "tech";
         OBXMLNode tab = tabXmlDict.get(tabstring);
 
@@ -783,7 +789,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
         currentTab = s;
         loadEvent(s);
         if (tabXmlDict == null)
-            loadTabContents();
+            loadTabContents(currentLang());
         if (s.equals("numeracy"))
             populateNumeracy();
         else if (s.equals("reading"))

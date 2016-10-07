@@ -162,6 +162,7 @@ public class OBExpansionManager
             {
                 MainActivity.log("Empty row");
                 cursor.close();
+                checkIfSetupIsComplete(); // needs to be checked if this is the correct solution
                 return;
             }
             int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
@@ -169,6 +170,7 @@ public class OBExpansionManager
             {
                 MainActivity.log("Download Failed");
                 cursor.close();
+                checkIfSetupIsComplete(); // needs to be checked if this is the correct solution
                 return;
             }
             int uriIndex = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
