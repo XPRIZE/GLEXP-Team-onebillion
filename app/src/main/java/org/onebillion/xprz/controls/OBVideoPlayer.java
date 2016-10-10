@@ -1,6 +1,7 @@
 package org.onebillion.xprz.controls;
 
 import android.content.res.AssetFileDescriptor;
+import android.graphics.Color;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.media.MediaMetadataRetriever;
@@ -12,6 +13,8 @@ import android.util.Size;
 import android.view.Surface;
 
 
+import org.onebillion.xprz.glstuff.ColorShaderProgram;
+import org.onebillion.xprz.glstuff.GradientRect;
 import org.onebillion.xprz.glstuff.OBRenderer;
 import org.onebillion.xprz.glstuff.SurfaceShaderProgram;
 
@@ -20,6 +23,7 @@ import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.OBViewController;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.utils.OBUtils;
+import org.onebillion.xprz.utils.OB_Maths;
 
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -54,6 +58,7 @@ public class OBVideoPlayer extends OBControl
     private int textureId;
     private Size previewSize;
     private MediaPlayer player;
+    private int backgroundFillColour;
     boolean mirrored;
 
     public OBVideoPlayer(RectF frame, XPRZ_SectionController sectionController,boolean mirrored,boolean _playAfterPrepare)
@@ -68,7 +73,7 @@ public class OBVideoPlayer extends OBControl
         playerLock = new ReentrantLock();
         playAfterPrepare = _playAfterPrepare;
         activityPaused = false;
-
+        setBackgroundFillColour(Color.BLACK);
 
     }
     public OBVideoPlayer(RectF frame, XPRZ_SectionController sectionController)
@@ -89,6 +94,11 @@ public class OBVideoPlayer extends OBControl
 
         }
         return false;
+    }
+
+    public void setBackgroundFillColour(int colour)
+    {
+        backgroundFillColour = colour;
     }
 
     private void rebuildTexture()
@@ -113,6 +123,17 @@ public class OBVideoPlayer extends OBControl
         {
             matrix3dForDraw();
             android.opengl.Matrix.multiplyMM(tempMatrix, 0, modelViewMatrix, 0, modelMatrix, 0);
+
+            //draw background
+            ColorShaderProgram colourShader = (ColorShaderProgram) renderer.colourProgram;
+            float col[] = new float[4];
+            OBUtils.setFloatColour( Color.red(backgroundFillColour) / 255.0f, Color.green(backgroundFillColour) / 255.0f, Color.blue(backgroundFillColour) / 255.0f, 1, col);
+            colourShader.useProgram();
+            colourShader.setUniforms(tempMatrix);
+            GradientRect gr = renderer.gradientRect;
+            gr.draw(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, col, col);
+
+            //draw video
             float op = opacity();
             float[] finalCol = new float[4];
             for (int i = 0; i < 3; i++)
@@ -120,6 +141,7 @@ public class OBVideoPlayer extends OBControl
                 finalCol[i] = blendColour[i];
             }
             finalCol[3] = blendColour[3] * op;
+
             SurfaceShaderProgram surfaceShader = (SurfaceShaderProgram) renderer.surfaceProgram;
             surfaceShader.useProgram();
             surfaceShader.setUniforms(tempMatrix, textureId, finalCol);
@@ -136,7 +158,7 @@ public class OBVideoPlayer extends OBControl
 
         int cameraWidth = previewSize.getWidth();
         int cameraHeight = previewSize.getHeight();
-
+        MainActivity.log(String.format("video size %d %d",cameraWidth,cameraHeight));
         float wratio = cameraWidth/boundsWidth;
         float hratio = cameraHeight/boundsHeight;
 
@@ -155,17 +177,29 @@ public class OBVideoPlayer extends OBControl
 
         if (ratio1 > ratio2)
         {
-            widthRatio = ((cameraWidth - boundsWidth*hratio) / 2.0f) / cameraWidth;
+            widthRatio = -1*((cameraWidth - boundsWidth*hratio) / 2.0f) / cameraWidth;
         } else if (ratio1 < ratio2)
         {
-            heightRatio = ((cameraHeight - boundsHeight*wratio) / 2.0f) / cameraHeight;
+            heightRatio = -1*((cameraHeight - boundsHeight*wratio) / 2.0f) / cameraHeight;
         }
 
-        clearSurface(surfaceTexture);
-        tr.setUVs(widthRatio, heightRatio, 1 - widthRatio, 1 - heightRatio);
-        tr.drawSurface(renderer, 0, 0, boundsWidth, boundsHeight, surfaceTexture,mirrored);
-        tr.setUVs(0, 0, 1, 1);
+        float targetUVW = 0, targetUVH = 0;
 
+        if(widthRatio < 0)
+        {
+            targetUVW = -1*widthRatio;
+            widthRatio = 0;
+        }
+
+        if(heightRatio < 0)
+        {
+            targetUVH = -1*heightRatio;
+            heightRatio = 0;
+        }
+
+        tr.setUVs(targetUVW, targetUVH, 1 - targetUVW, 1 - targetUVH);
+        tr.drawSurface(renderer, widthRatio*boundsWidth, heightRatio*boundsHeight, (1 - widthRatio)*boundsWidth, (1 - heightRatio)*boundsHeight, surfaceTexture, mirrored);
+        tr.setUVs(0, 0, 1, 1);
     }
 
 
@@ -371,6 +405,7 @@ public class OBVideoPlayer extends OBControl
     public void setFillType(int fillType)
     {
         this.fillType = fillType;
+        invalidate();
     }
 
     public void cleanUp(OBRenderer renderer)

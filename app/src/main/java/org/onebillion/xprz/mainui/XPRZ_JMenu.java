@@ -614,7 +614,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
 
     void populateVideoPreviews(String tabstring,OBXMLNode tab)
     {
-        List<OBXMLNode> targs = tab.childrenOfType("video");
+         List<OBXMLNode> targs = tab.childrenOfType("video");
         if (targs.size() > 0)
         {
             OBControl vs = objectDict.get("video_selector");
@@ -698,15 +698,19 @@ public class XPRZ_JMenu extends XPRZ_Menu
 
     public void goFullScreen()
     {
-        videoPlayer.setFrame(boundsf());
+        lockScreen();
         videoPlayer.setFillType(OBVideoPlayer.VP_FILL_TYPE_ASPECT_FIT);
+        videoPlayer.setFrame(boundsf());
+        unlockScreen();
     }
 
     public void goSmallScreen()
     {
+        lockScreen();
         OBControl placeHolder = objectDict.get("video_video");
-        videoPlayer.setFrame(placeHolder.frame());
         videoPlayer.setFillType(OBVideoPlayer.VP_FILL_TYPE_ASPECT_FILL);
+        videoPlayer.setFrame(placeHolder.frame());
+        unlockScreen();
     }
     public void setUpVideoPlayerForIndex(int idx,boolean play)
     {
@@ -747,7 +751,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
             //videoPlayer.setFrame(placeHolder.frame());
 
         }
-        videoPlayer.setPreviewSize(new Size((int)videoPlayer.width(),(int)videoPlayer.height()));
+       // videoPlayer.setPreviewSize(new Size((int)videoPlayer.width(),(int)videoPlayer.height()));
         unlockScreen();
         videoPlayer.playAfterPrepare = play;
         videoPlayer.startPlayingAtTime(OBUtils.getAssetFileDescriptorForPath(movieName),0);
