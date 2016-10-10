@@ -176,6 +176,9 @@ public class XPRZ_JMenu extends XPRZ_Menu
     {
         super.start();
         setStatus(STATUS_IDLE);
+        blankTextureID(2);
+        if (videoPlayer != null)
+            videoPlayer.frameIsAvailable = false;
         if (!inited)
         {
             switchTo("video",false);
@@ -723,6 +726,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
         String movieName = OBUtils.stringByAppendingPathComponent(movieFolder,movienode.contents);
         OBControl placeHolder = objectDict.get("video_video");
         lockScreen();
+        blankTextureID(2);
         if (videoPlayer == null)
         {
             RectF r = new RectF();

@@ -60,6 +60,7 @@ public class OBVideoPlayer extends OBControl
     private MediaPlayer player;
     private int backgroundFillColour;
     boolean mirrored;
+    public boolean frameIsAvailable = false;
 
     public OBVideoPlayer(RectF frame, XPRZ_SectionController sectionController,boolean mirrored,boolean _playAfterPrepare)
     {
@@ -151,6 +152,8 @@ public class OBVideoPlayer extends OBControl
 
     public void renderLayer(OBRenderer renderer, OBViewController vc)
     {
+        if (!frameIsAvailable)
+            return;
         TextureRect tr = renderer.textureRect;
 
         float boundsWidth = bounds.right - bounds.left;
@@ -205,6 +208,7 @@ public class OBVideoPlayer extends OBControl
 
     synchronized public void onFrameAvailable(SurfaceTexture surface)
     {
+        frameIsAvailable = true;
         invalidate();
     }
 

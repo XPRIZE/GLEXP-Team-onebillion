@@ -116,27 +116,9 @@ public class OBViewController
                 lockedInvalidRect.union(left,top,right,bottom);
             return;
         }
-        if(Looper.myLooper() == Looper.getMainLooper())
-        {
-            GLSurfaceView glv = MainActivity.mainViewController.glView();
-            if (glv != null)
-                glv.requestRender();
-        }
-        else
-        {
-            final int l=left,t=top,r=right,b=bottom;
-			/*new OBRunnableSyncUI(){public void ex()
-			{
-				invalidateView(l,t,r,b);
-			}
-			}.run();*/
-            new Handler(Looper.getMainLooper()).post(
-                    new Runnable() {public void run()
-                    {
-                        invalidateView(l,t,r,b);
-                    }
-                    });
-        }
+        GLSurfaceView glv = MainActivity.mainViewController.glView();
+        if (glv != null)
+            glv.requestRender();
     }
 
     public void touchUpAtPoint(PointF pt,View v)

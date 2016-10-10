@@ -40,7 +40,7 @@ android {
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Literacy Project - Alan"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings.plist"'
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settingsj.plist"'
         }
         pedro {
             minSdkVersion 23

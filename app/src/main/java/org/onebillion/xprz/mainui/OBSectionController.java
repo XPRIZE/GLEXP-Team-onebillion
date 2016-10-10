@@ -18,6 +18,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.*;
+import android.opengl.GLES20;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
@@ -32,10 +33,13 @@ import org.onebillion.xprz.glstuff.*;
 import org.onebillion.xprz.utils.*;
 
 import static android.opengl.GLES20.GL_FLOAT;
+import static android.opengl.GLES20.GL_TEXTURE_2D;
 import static android.opengl.GLES20.GL_TRIANGLE_STRIP;
+import static android.opengl.GLES20.glBindTexture;
 import static android.opengl.GLES20.glDrawArrays;
 import static android.opengl.GLES20.glEnableVertexAttribArray;
 import static android.opengl.GLES20.glVertexAttribPointer;
+import static android.opengl.GLUtils.texImage2D;
 
 public class OBSectionController extends OBViewController
 {
@@ -2243,6 +2247,14 @@ public class OBSectionController extends OBViewController
         }
     }
 
+    public void blankTextureID(int id)
+    {
+        OBControl c = new OBControl();
+        c.setBounds(0,0,8,8);
+        c.setFillColor(Color.BLACK);
+        glBindTexture(GL_TEXTURE_2D, MainActivity.mainActivity.renderer.textureObjectIds[id]);
+        texImage2D(GL_TEXTURE_2D,0,c.drawn(),0);
+    }
 
     public void onResume()
     {
