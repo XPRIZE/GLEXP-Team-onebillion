@@ -45,18 +45,21 @@ public class OBBrightnessManager
             {
                 try
                 {
+//                    MainActivity.log("setBrightness (has write settings permission --> " + OBSystemsManager.sharedManager.hasWriteSettingsPermission() + ")");
                     int valueForSettings = Math.round(value * 255);
-                    Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, valueForSettings);
-                    Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC);
-                    WindowManager.LayoutParams layoutpars = MainActivity.mainActivity.getWindow().getAttributes();
-                    layoutpars.screenBrightness = value;
-                    MainActivity.mainActivity.getWindow().setAttributes(layoutpars);
-                    OBSystemsManager.sharedManager.refreshStatus();
-                    MainActivity.log("Brightness has been set to: " + value + " --> " + valueForSettings);
+                    if (OBSystemsManager.sharedManager.hasWriteSettingsPermission())
+                    {
+                        Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, valueForSettings);
+                        Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC);
+                        WindowManager.LayoutParams layoutpars = MainActivity.mainActivity.getWindow().getAttributes();
+                        layoutpars.screenBrightness = value;
+                        MainActivity.mainActivity.getWindow().setAttributes(layoutpars);
+                        OBSystemsManager.sharedManager.refreshStatus();
+                        MainActivity.log("Brightness has been set to: " + value + " --> " + valueForSettings);
+                    }
                 }
                 catch (Exception e)
                 {
-                    // ignore exceptions, permissions may have not been set yet
 //                    e.printStackTrace();
                 }
             }
@@ -118,8 +121,15 @@ public class OBBrightnessManager
 
     public void registeredTouchOnScreen ()
     {
-        lastTouchTimeStamp = System.currentTimeMillis();
-        runBrightnessCheck();
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run () throws Exception
+            {
+                lastTouchTimeStamp = System.currentTimeMillis();
+                runBrightnessCheck();
+            }
+        });
     }
 
 
@@ -209,7 +219,10 @@ public class OBBrightnessManager
         //
         try
         {
-            Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, millisecs);
+            if (OBSystemsManager.sharedManager.hasWriteSettingsPermission())
+            {
+                Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, millisecs);
+            }
         }
         catch (Exception e)
         {

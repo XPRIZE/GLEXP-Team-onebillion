@@ -2,6 +2,7 @@ package org.onebillion.xprz.mainui.x_counting5and10;
 
 import android.graphics.Color;
 import android.graphics.PointF;
+import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
@@ -47,12 +48,15 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
 
     public void setScene4a()
     {
+        lockScreen();
+        //
         setSceneXX(currentEvent());
         //
         OBGroup child = (OBGroup) objectDict.get("child");
         child.hideMembers("hand.*");
         child.showMembers("hand_0");
         child.substituteFillForAllMembers("colour.*", OBUtils.SkinColour(0));
+        unlockScreen();
     }
 
 
@@ -392,6 +396,17 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
         }
     }
 
+    @Override
+    public void touchDownAtPoint (PointF pt, View v)
+    {
+        // do nothing
+    }
+
+    @Override
+    public void touchUpAtPoint (PointF pt, View v)
+    {
+        // do nothing
+    }
 
     public void fin()
     {

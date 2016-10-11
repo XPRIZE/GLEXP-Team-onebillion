@@ -355,7 +355,7 @@ public class MainActivity extends Activity
                 return;
             }
             //
-            boolean writeSettingsPermission = Settings.System.canWrite(this);
+            boolean writeSettingsPermission = OBSystemsManager.sharedManager.hasWriteSettingsPermission();
             if (!writeSettingsPermission)
             {
                 Toast.makeText(MainActivity.mainActivity, "Please allow this app to write settings before going back.", Toast.LENGTH_LONG).show();
