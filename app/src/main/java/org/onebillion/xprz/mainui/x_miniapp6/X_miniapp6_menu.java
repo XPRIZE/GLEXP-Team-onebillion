@@ -376,12 +376,15 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
 
     public void refreshCurrentLabel()
     {
-        MlUnit unit = (MlUnit)bigIcon.propertyValue("unit");
-        if (unit == null)
-            return;
+        if(bigIcon != null)
+        {
+            MlUnit unit = (MlUnit) bigIcon.propertyValue("unit");
+            if (unit == null)
+                return;
 
-        String[] arr = unit.key.split("\\.");
-        currentLevelLabel.setString(unit.key);
+            String[] arr = unit.key.split("\\.");
+            currentLevelLabel.setString(unit.key);
+        }
     }
 
     public void showNewDayScreen()
