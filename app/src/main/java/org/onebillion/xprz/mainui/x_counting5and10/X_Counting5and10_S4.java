@@ -125,7 +125,7 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
         setStatus(STATUS_DOING_DEMO);
         //
         OBGroup child = (OBGroup) objectDict.get("child");
-        child.texturise(true, this);
+//        child.texturise(true, this);
         action_playNextDemoSentence(true); // Look. A hand has five fingers.
         waitForSecs(0.3);
         //
