@@ -172,14 +172,15 @@ public class OBCameraManager
 
     public void stop() throws Exception
     {
+        /*
         try
         {
-            cameraSemaphore.acquire();
+            cameraSemaphore.tryAcquire(3, TimeUnit.SECONDS);
         } catch (Exception e)
         {
 
         }
-
+        */
         stopPreview(false);
 
         try
@@ -430,6 +431,8 @@ public class OBCameraManager
     {
         if (condition == null)
             return;
+
+        controller.get().checkAbort();
 
         cameraLock.lock();
         try

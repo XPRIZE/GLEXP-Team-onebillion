@@ -127,12 +127,12 @@ public class X_WordVideoRec extends XPRZ_SectionController
             cameraManager.onPause();
             videoRecorder.onPause();
             videoPlayer.cleanUp(MainActivity.mainActivity.renderer);
-
         } catch(Exception e)
         {
+            e.printStackTrace();
         }
-
         OBUtils.cleanUpTempFiles(this);
+
         super.exitEvent();
     }
 
@@ -220,13 +220,15 @@ public class X_WordVideoRec extends XPRZ_SectionController
 
     public void showVideoPreview()
     {
-        cameraManager.startPreviewForRecording(videoPlayer,videoRecorder);
+        if(!_aborting)
+            cameraManager.startPreviewForRecording(videoPlayer,videoRecorder);
     }
 
 
     public void startVideoRecorder(double audioLength)
     {
-        videoRecorder.startMediaRecorderAndTimer(audioLength);
+        if(!_aborting)
+            videoRecorder.startMediaRecorderAndTimer(audioLength);
     }
 
     public void waitForVideoRecorder() throws Exception
