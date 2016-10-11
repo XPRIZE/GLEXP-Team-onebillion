@@ -338,7 +338,10 @@ public class OBExpansionManager
                         String bundle = xmlNode.attributeStringValue("bundle");
                         String destination = xmlNode.attributeStringValue("destination");
                         long version = xmlNode.attributeLongValue("version");
-                        remoteExpansionFiles.put(id, new OBExpansionFile(id, bundle, destination, version, null));
+                        if (id.length() > 0)
+                        {
+                            remoteExpansionFiles.put(id, new OBExpansionFile(id, bundle, destination, version, null));
+                        }
                     }
                     //
                     compareExpansionFilesAndInstallMissingOrOutdated();
