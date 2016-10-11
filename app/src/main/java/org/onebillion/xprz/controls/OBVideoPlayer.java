@@ -161,7 +161,7 @@ public class OBVideoPlayer extends OBControl
 
         int cameraWidth = previewSize.getWidth();
         int cameraHeight = previewSize.getHeight();
-        MainActivity.log(String.format("video size %d %d",cameraWidth,cameraHeight));
+        //MainActivity.log(String.format("video size %d %d",cameraWidth,cameraHeight));
         float wratio = cameraWidth/boundsWidth;
         float hratio = cameraHeight/boundsHeight;
 

@@ -431,7 +431,7 @@ public class X_Fc1 extends X_Wordcontroller
     public void checkTarget2(Object targ)
     {
         setStatus(STATUS_CHECKING);
-        emptyReplayAudio();
+        List saveReplay = emptyReplayAudio();
         try
         {
             cancelAllAnimations();
@@ -442,6 +442,7 @@ public class X_Fc1 extends X_Wordcontroller
             String wordID = words.get(currNo);
             highlightAndSpeakSyllablesForWord(currWord);
             setStatus(STATUS_AWAITING_CLICK3);
+            setReplayAudio(saveReplay);
             deployPulseAnim();
         }
         catch(Exception exception)
