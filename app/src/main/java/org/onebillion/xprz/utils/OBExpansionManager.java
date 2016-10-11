@@ -1,6 +1,7 @@
 package org.onebillion.xprz.utils;
 
 import android.app.DownloadManager;
+import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -142,8 +143,6 @@ public class OBExpansionManager
     };
     public BroadcastReceiver downloadCompleteReceiver = new BroadcastReceiver()
     {
-
-
         @Override
         public void onReceive (Context context, Intent intent)
         {
@@ -173,6 +172,9 @@ public class OBExpansionManager
                 checkIfSetupIsComplete(); // needs to be checked if this is the correct solution
                 return;
             }
+            NotificationManager notifManager= (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            notifManager.cancelAll();
+            //
             int uriIndex = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
             String downloadedPackageUriString = cursor.getString(uriIndex);
             cursor.close();

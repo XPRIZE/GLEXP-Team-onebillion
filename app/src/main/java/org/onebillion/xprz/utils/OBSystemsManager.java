@@ -519,7 +519,7 @@ public class OBSystemsManager
             try
             {
 //                String resetCommand = "su -c rm /data/system/device_owner.xml; su -c rm /data/system/device_policies.xml;";
-                String command = "su -c dpm set-device-owner " + packageName + "/" + adminReceiver.getClassName();
+                String command = "su -c 'dpm set-device-owner " + packageName + "/" + adminReceiver.getClassName() + "'";
                 MainActivity.log("OBSystemsManager.not a device owner. running " + command);
                 //
                 Process process = Runtime.getRuntime().exec(command);
@@ -719,7 +719,7 @@ public class OBSystemsManager
                 MainActivity.log("OBSystemsManager.toggleNavigationBar. the system value is the same. nothing to do here");
                 return;
             }
-            command = "su -c setprop qemu.hw.mainkeys " + value + "; su -c stop; su -c start";
+            command = "su -c 'setprop qemu.hw.mainkeys " + value + "; stop; start'";
             MainActivity.log("OBSystemsManager.running:" + command);
             //
             try
