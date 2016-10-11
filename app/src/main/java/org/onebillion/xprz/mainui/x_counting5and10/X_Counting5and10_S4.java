@@ -2,6 +2,7 @@ package org.onebillion.xprz.mainui.x_counting5and10;
 
 import android.graphics.Color;
 import android.graphics.PointF;
+import android.view.View;
 
 import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
@@ -47,12 +48,15 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
 
     public void setScene4a()
     {
+        lockScreen();
+        //
         setSceneXX(currentEvent());
         //
         OBGroup child = (OBGroup) objectDict.get("child");
         child.hideMembers("hand.*");
         child.showMembers("hand_0");
         child.substituteFillForAllMembers("colour.*", OBUtils.SkinColour(0));
+        unlockScreen();
     }
 
 
@@ -121,19 +125,19 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
         setStatus(STATUS_DOING_DEMO);
         //
         OBGroup child = (OBGroup) objectDict.get("child");
-        child.texturise(true, this);
+//        child.texturise(true, this);
         action_playNextDemoSentence(true); // Look. A hand has five fingers.
         waitForSecs(0.3);
         //
         for (int i = 1; i <= 5; i++)
         {
-            action_playNextDemoSentence(false); // One. Two. Three. Four. Five.
             lockScreen();
             child.hideMembers("hand.*");
             child.showMembers(String.format("hand_%d", i));
             child.setNeedsRetexture();
             unlockScreen();
-            waitAudio();
+            //
+            action_playNextDemoSentence(true); // One. Two. Three. Four. Five.
             waitForSecs(0.15);
         }
         waitForSecs(0.3);
@@ -392,6 +396,17 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
         }
     }
 
+    @Override
+    public void touchDownAtPoint (PointF pt, View v)
+    {
+        // do nothing
+    }
+
+    @Override
+    public void touchUpAtPoint (PointF pt, View v)
+    {
+        // do nothing
+    }
 
     public void fin()
     {

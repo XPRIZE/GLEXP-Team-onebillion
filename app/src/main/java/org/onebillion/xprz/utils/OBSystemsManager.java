@@ -92,6 +92,11 @@ public class OBSystemsManager
         sharedManager = this;
     }
 
+    public boolean hasWriteSettingsPermission()
+    {
+        return Settings.System.canWrite(MainActivity.mainActivity);
+    }
+
     public boolean isAppIsInForeground ()
     {
         return AppIsInForeground;

@@ -238,7 +238,7 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     {
         playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentDemoAudioIndex, waitAudio);
         currentDemoAudioIndex++;
-        waitForSecs(0.01);
+        waitForSecs(0.05);
     }
 
 

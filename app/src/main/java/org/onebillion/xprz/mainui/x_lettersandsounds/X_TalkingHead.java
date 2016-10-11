@@ -12,6 +12,7 @@ import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.controls.OBTextLayer;
+import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.mainui.OBSectionController;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic_DragObjectsToCorrectPlace;
@@ -836,10 +837,10 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
                 @Override
                 public void run () throws Exception
                 {
-                    isReplayAudioPlaying = true;
-                    //
                     if (_replayAudio != null)
                     {
+                        isReplayAudioPlaying = true;
+                        //
                         setStatus(status());
                         new AsyncTask<Void, Void, Void>()
                         {
@@ -866,8 +867,16 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
                             }
                         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
                     }
+                    else
+                    {
+                        MainActivity.log("X_TalkingHead: Replay Audio is empty");
+                    }
                 }
             });
+        }
+        else
+        {
+            MainActivity.log("X_TalkingHead: Replay Audio is still playing");
         }
     }
 

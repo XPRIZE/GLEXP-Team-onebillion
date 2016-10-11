@@ -29,6 +29,7 @@ android {
         compile 'com.android.support:appcompat-v7:23.0.0'
     }
     dexOptions {
+//        javaMaxHeapSize "8192M"
         javaMaxHeapSize "4096M"
     }
     sourceSets { main { assets.srcDirs = ['src/main/assets', 'src/main/assets_obb'] } }
@@ -62,20 +63,11 @@ android {
         }
         judgeMenu {
             minSdkVersion 23
-            applicationId 'org.onebillion.xprz0.pedro'
+            applicationId 'org.onebillion.xprz0.alan'
             targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onebillion - Judges"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_judge_menu.plist"'
-        }
-        judgeMenu2 {
-            minSdkVersion 23
-            applicationId 'org.onebillion.xprz0.pedro'
-            targetSdkVersion 23
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "onebillion - Judges2"
             buildConfigField 'String', 'SETTINGS_FILE', '"config/settingsj.plist"'
         }
         harold {
