@@ -63,7 +63,7 @@ android {
         }
         judgeMenu {
             minSdkVersion 23
-            applicationId 'org.onebillion.xprz0.pedro'
+            applicationId 'org.onebillion.xprz0.alan'
             targetSdkVersion 23
             versionCode 1
             versionName '1.0'

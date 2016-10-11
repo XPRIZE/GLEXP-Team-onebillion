@@ -131,13 +131,13 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
         //
         for (int i = 1; i <= 5; i++)
         {
-            action_playNextDemoSentence(false); // One. Two. Three. Four. Five.
             lockScreen();
             child.hideMembers("hand.*");
             child.showMembers(String.format("hand_%d", i));
             child.setNeedsRetexture();
             unlockScreen();
-            waitAudio();
+            //
+            action_playNextDemoSentence(true); // One. Two. Three. Four. Five.
             waitForSecs(0.15);
         }
         waitForSecs(0.3);
