@@ -604,12 +604,14 @@ public class OBSystemsManager
 
     public void pinApplication ()
     {
+        MainActivity.log("OBSystemsManager.pinApplication");
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
         ComponentName adminReceiver = OBDeviceAdminReceiver.getComponentName(MainActivity.mainActivity);
         //
         String hideStatusBar = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_HIDE_STATUS_BAR);
         if (hideStatusBar != null && hideStatusBar.equals("true"))
         {
+            MainActivity.log("OBSystemsManager.pinning application");
             if (devicePolicyManager.isDeviceOwnerApp(MainActivity.mainActivity.getPackageName()))
             {
                 MainActivity.log("OBSystemsManager.pinning app");
@@ -627,6 +629,10 @@ public class OBSystemsManager
             {
                 MainActivity.log("OBSystemsManager.unable to disable status bar. not a device owner");
             }
+        }
+        else
+        {
+            MainActivity.log("OBSystemsManager.pinning application is disabled in Settings.plist");
         }
         toggleKeyguardAndStatusBar(false);
     }
