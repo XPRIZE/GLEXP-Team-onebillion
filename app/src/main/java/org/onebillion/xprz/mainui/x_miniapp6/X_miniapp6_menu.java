@@ -99,7 +99,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
         Typeface font = OBUtils.standardTypeFace();
         float fontSize = applyGraphicScale(20);
         currentLevelLabel = new OBLabel("888888888888", font, fontSize);
-        //currentLevelLabel.hide();
+        currentLevelLabel.hide();
         currentLevelLabel.setString("1");
         currentLevelLabel.setPosition(OB_Maths.locationForRect(0.97f, 0.8f, this.bounds()));
         currentLevelLabel.setRight(this.bounds().width() - applyGraphicScale(10));
