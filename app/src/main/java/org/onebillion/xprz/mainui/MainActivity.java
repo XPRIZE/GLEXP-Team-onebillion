@@ -111,7 +111,8 @@ public class MainActivity extends Activity
             CONFIG_REQUEST_DEVICE_OWNER = "requestDeviceOwner",
             CONFIG_MENU_CLASS = "menuclass",
             CONFIG_SESSION_TIMEOUT = "sessionTimeout",
-            CONFIG_UNIT_TIMEOUT_COUNT = "unitAttemptsCount";
+            CONFIG_UNIT_TIMEOUT_COUNT = "unitAttemptsCount",
+            CONFIG_DISALLOW_HOURS = "disallowHours";
 
     public static String TAG = "livecode";
     //

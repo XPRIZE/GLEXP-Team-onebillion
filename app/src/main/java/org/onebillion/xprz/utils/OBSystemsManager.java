@@ -195,6 +195,7 @@ public class OBSystemsManager
         pinApplication();
         //
         MainActivity.log("OBSystemsManager.runChecks --> startServices");
+        //
         startServices();
         //
         if (mainHandler == null)

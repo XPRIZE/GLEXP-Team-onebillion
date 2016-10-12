@@ -42,6 +42,9 @@ android {
             versionName '1.0'
             resValue "string", "app_name", "Literacy Project - Alan"
             buildConfigField 'String', 'SETTINGS_FILE', '"config/settingsj.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/icon_judges"
+            ]
         }
         pedro {
             minSdkVersion 23
@@ -51,6 +54,9 @@ android {
             versionName '1.0'
             resValue "string", "app_name", "Literacy Project - Pedro"
             buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_pedro.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/icon_judges"
+            ]
         }
         michal {
             minSdkVersion 23
@@ -60,6 +66,9 @@ android {
             versionName '1.0'
             resValue "string", "app_name", "Literacy Project - Michal"
             buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_michal.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/icon_judges"
+            ]
         }
         judgeMenu {
             minSdkVersion 23

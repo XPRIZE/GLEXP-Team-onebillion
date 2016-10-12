@@ -18,21 +18,35 @@ public class OBPreferenceManager
     private final static String COLUMN_VAL = "val";
 
 
-    public static boolean setPreference(String name, String val, DBSQL database)
+    public static boolean setPreference(String name, String val, DBSQL db)
     {
         ContentValues contentValues = new ContentValues();
         contentValues.put(COLUMN_NAME, name);
         contentValues.put(COLUMN_VAL, val);
-        boolean result = database.doReplaceOnTable(DBSQL.TABLE_PREFERENCES,contentValues) > -1;
+        boolean result = db.doReplaceOnTable(DBSQL.TABLE_PREFERENCES,contentValues) > -1;
         return result;
     }
 
 
     public static boolean setPreference(String name, String val)
     {
-        DBSQL database = new DBSQL(true);
-        boolean result = setPreference(name,val,database);
-        database.close();
+        DBSQL db = null;
+        boolean result = false;
+        try
+        {
+            db = new DBSQL(true);
+            result = setPreference(name,val,db);
+        }
+        catch (Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+
         return result;
     }
 
@@ -51,11 +65,11 @@ public class OBPreferenceManager
         return setPreference(name, String.valueOf(val));
     }
 
-    public static String getStringPreference(String name, DBSQL database)
+    public static String getStringPreference(String name, DBSQL db)
     {
         Map<String,String> map = new ArrayMap<>();
         map.put(COLUMN_NAME,name);
-        Cursor cursor = database.doSelectOnTable(DBSQL.TABLE_PREFERENCES, Arrays.asList(COLUMN_NAME, COLUMN_VAL),map);
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_PREFERENCES, Arrays.asList(COLUMN_NAME, COLUMN_VAL),map);
         String result = null;
         if(cursor.moveToFirst())
         {
@@ -67,9 +81,22 @@ public class OBPreferenceManager
 
     public static String getStringPreference(String name)
     {
-        DBSQL database = new DBSQL(false);
-        String result = getStringPreference(name, database);
-        database.close();
+        String result = null;
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(false);
+            result = getStringPreference(name, db);
+        }
+        catch(Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
         return result;
     }
 
