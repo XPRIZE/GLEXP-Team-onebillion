@@ -172,8 +172,9 @@ public class OBExpansionManager
                 checkIfSetupIsComplete(); // needs to be checked if this is the correct solution
                 return;
             }
-            NotificationManager notifManager= (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            notifManager.cancelAll();
+            //
+            NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.cancelAll();
             //
             int uriIndex = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
             String downloadedPackageUriString = cursor.getString(uriIndex);
