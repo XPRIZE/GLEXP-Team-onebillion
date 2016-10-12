@@ -57,7 +57,7 @@ public class XPRZ_FatController extends OBFatController
     @Override
     public int buttonFlags()
     {
-        return OBMainViewController.SHOW_TOP_LEFT_BUTTON| OBMainViewController.SHOW_TOP_RIGHT_BUTTON | OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON | OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON;
+        return OBMainViewController.SHOW_TOP_RIGHT_BUTTON | OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON | OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON;
     }
 
     public long getCurrentTime()
@@ -273,7 +273,7 @@ public class XPRZ_FatController extends OBFatController
 
         boolean hourIsBetween = (disallowEndHour > disallowStartHour && hourNow >= disallowStartHour && hourNow < disallowEndHour)
                 || (disallowEndHour < disallowStartHour && (hourNow >= disallowStartHour || hourNow < disallowEndHour));
-        return !hourIsBetween;
+        return hourIsBetween;
     }
 
     public void initDB()

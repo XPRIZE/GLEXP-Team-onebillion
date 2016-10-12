@@ -180,25 +180,26 @@ public class OBSystemsManager
 
     public void runChecks ()
     {
+        disableNavigationBar(); // may cause restart
+        //
+        pinApplication();
+        //
+        startServices();
+        //
+        if (mainHandler == null)
+        {
+            mainHandler = new Handler(MainActivity.mainActivity.getMainLooper());
+        }
+        //
+        connectionManager.sharedManager.checkForConnection();
+        //
+        OBSQLiteHelper.getSqlHelper().runMaintenance();
+
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             @Override
             public void run () throws Exception
             {
-                disableNavigationBar(); // may cause restart
-                //
-                pinApplication();
-                //
-                startServices();
-                //
-                if (mainHandler == null)
-                {
-                    mainHandler = new Handler(MainActivity.mainActivity.getMainLooper());
-                }
-                //
-                connectionManager.sharedManager.checkForConnection();
-                //
-                OBSQLiteHelper.getSqlHelper().runMaintenance();
                 runChecksumComparisonTest();
             }
         });
