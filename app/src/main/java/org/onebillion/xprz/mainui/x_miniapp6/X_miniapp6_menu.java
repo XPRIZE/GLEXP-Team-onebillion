@@ -150,7 +150,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
             currentLevel--;
 
         loadTrophies(currentLevel-1);
-        loadTopBar(currentLevel, lastUnit != null);
+        loadTopBar(currentLevel, lastUnit != null && lastUnit.unitid != 0);
         hideControls("choice_star_.*");
 
         if(lastCommand == XPRZ_FatController.OFC_NEW_SESSION)

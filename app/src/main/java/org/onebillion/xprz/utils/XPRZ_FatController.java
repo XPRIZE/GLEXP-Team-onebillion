@@ -21,6 +21,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.onebillion.xprz.mainui.MainActivity.Config;
+import static org.onebillion.xprz.mainui.OBViewController.MainViewController;
+
 /**
  * Created by michal on 08/08/16.
  */
@@ -228,18 +231,31 @@ public class XPRZ_FatController extends OBFatController
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(getCurrentTime()*1000);
-        calendar.add(Calendar.DATE,1);
+        //calendar.add(Calendar.DATE,1);
         calendar.set(Calendar.HOUR_OF_DAY, disallowStartHour);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, OBAlarmManager.REQUEST_SESSION_CHECK);
         calendar.set(Calendar.HOUR_OF_DAY, disallowEndHour);
         OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, OBAlarmManager.REQUEST_SESSION_CHECK2);
-        String menuClassName =  MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MENU_CLASS);
+
+        continueFromLastUnit();
+
         if (showTestMenu())
-            menuClassName = "XPRZ_TestMenu";
-        if (menuClassName != null)
-            OBMainViewController.MainViewController().pushViewControllerWithName(menuClassName,false,false,"menu");
+        {
+            MainViewController().pushViewControllerWithName("XPRZ_TestMenu", false, false, "menu");
+        }
+        else
+        {
+            String menuClassName = (String) Config().get(MainActivity.CONFIG_MENU_CLASS);
+            String appCode = (String) Config().get(MainActivity.CONFIG_APP_CODE);
+            if (menuClassName != null && appCode != null)
+            {
+                OBBrightnessManager.sharedManager.onContinue();
+                MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
+
+            }
+        }
     }
 
     public boolean checkAndPrepareNewSession()
@@ -406,7 +422,7 @@ public class XPRZ_FatController extends OBFatController
 
     public boolean showTestMenu()
     {
-        return true;
+        return false;
     }
 
 
@@ -595,9 +611,9 @@ public class XPRZ_FatController extends OBFatController
                 {
                     MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
                     //if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("X_TestEvent","x-miniapp6",true,true,"test"))
-                    if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
+                    if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
-                        currentUnitInstance.sectionController = OBMainViewController.MainViewController().topController();
+                        currentUnitInstance.sectionController = MainViewController().topController();
                         startUnitInstanceTimeout(currentUnitInstance);
                     }
                     else
