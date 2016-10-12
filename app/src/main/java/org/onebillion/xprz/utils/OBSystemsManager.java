@@ -301,6 +301,7 @@ public class OBSystemsManager
         {
             MainActivity.mainActivity.registerReceiver(OBExpansionManager.sharedManager.downloadCompleteReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
         }
+        //
         OBBrightnessManager.sharedManager.onResume();
     }
 
@@ -370,6 +371,8 @@ public class OBSystemsManager
         suspended = false;
         //
         OBBrightnessManager.sharedManager.onContinue();
+        //
+        startServices();
         //
         runBatterySavingMode();
     }
@@ -496,6 +499,43 @@ public class OBSystemsManager
     }
 
 
+    public void requestRootAccess ()
+    {
+        MainActivity.log("OBSystemsManager.requestRootAccess");
+        Process p;
+        try
+        {
+            p = Runtime.getRuntime().exec("su");
+            //
+            DataOutputStream os = new DataOutputStream(p.getOutputStream());
+            os.writeBytes("echo \"Do I have root?\" >/system/sd/temporary.txt\n");
+            os.writeBytes("exit\n");
+            os.flush();
+            //
+            try
+            {
+                p.waitFor();
+                if (p.exitValue() != 255)
+                {
+                    MainActivity.log("OBSystemsManager.requestRootAccess --> App has been granted Root Access");
+                }
+                else
+                {
+                    MainActivity.log("OBSystemsManager.requestRootAccess --> App has NOT been granted Root Access");
+                }
+            }
+            catch (InterruptedException e)
+            {
+                MainActivity.log("OBSystemsManager.requestRootAccess --> App has NOT been granted Root Access");
+            }
+        }
+        catch (IOException e)
+        {
+            MainActivity.log("OBSystemsManager.requestRootAccess --> App has NOT been granted Root Access");
+        }
+    }
+
+
     public boolean enableAdminstratorPrivileges ()
     {
         MainActivity.log("OBSystemsManager.enableAdminstratorPrivileges");
@@ -518,9 +558,11 @@ public class OBSystemsManager
             String packageName = MainActivity.mainActivity.getPackageName();
             try
             {
-//                String resetCommand = "su -c rm /data/system/device_owner.xml; su -c rm /data/system/device_policies.xml;";
-                String command = "su -c 'dpm set-device-owner " + packageName + "/" + adminReceiver.getClassName() + "'";
-                MainActivity.log("OBSystemsManager.not a device owner. running " + command);
+                // String resetCommand = "su -c rm /data/system/device_owner.xml; su -c rm /data/system/device_policies.xml;";
+                //
+                String[] command = new String[]{"su", "-c", "dpm set-device-owner " + packageName + "/" + adminReceiver.getClassName()};
+                //
+                MainActivity.log("OBSystemsManager.enableAdministratorPrivileges.running [" + command.toString() + "]");
                 //
                 Process process = Runtime.getRuntime().exec(command);
                 process.waitFor();
@@ -662,29 +704,11 @@ public class OBSystemsManager
 
     public void shutdownProcedures ()
     {
-        MainActivity.log("OBSystemManager.shutdownProcedures");
         // the shutdown procedure should only be triggered for debug mode, as we want the app to restart automatically and not lose any setting
-        if (MainActivity.mainActivity.isDebugMode())
-        {
-            // enable keyguard and status bar
-            toggleKeyguardAndStatusBar(true);
-            //
-            // removing administrator privileges (so we can uninstall the app)
-            String restartAfterCrash = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_RESTART_AFTER_CRASH);
-            if (restartAfterCrash == null || restartAfterCrash.equals("false"))
-            {
-                disableAdministratorPrivileges();
-            }
-            //
-            // reset the screen timeout to 10mins
-            OBBrightnessManager.sharedManager.setScreenTimeout(10 * 60 * 1000);
-            //
-            // kill services to prevent restart
-            killAllServices();
-            //
-            // enable navigation bar
-            enableNavigationBar();
-        }
+        //
+        MainActivity.log("OBSystemManager.shutdownProcedures");
+        //
+        OBBrightnessManager.sharedManager.disableBrightnessAdjustment();
         //
         saveLogToFile();
     }

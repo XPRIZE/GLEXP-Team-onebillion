@@ -374,6 +374,9 @@ public class MainActivity extends Activity
         }
         //
         log("First Setup complete. Loading Main View Controller");
+        //
+        addToPreferences("firstSetupComplete", "true");
+        //
         checkForUpdatesAndLoadMainViewController();
         /*
         isScanningAlwaysAvailable
