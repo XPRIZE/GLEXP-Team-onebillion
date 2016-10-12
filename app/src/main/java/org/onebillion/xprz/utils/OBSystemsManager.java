@@ -26,6 +26,7 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.view.Display;
+import android.view.DragEvent;
 import android.widget.Toast;
 
 import org.onebillion.xprz.controls.OBLabel;
@@ -143,6 +144,9 @@ public class OBSystemsManager
 
     public void killAllServices ()
     {
+        if (suspended) return;
+        if (!OBSystemsManager.isFirstSetupComplete()) return;
+        //
         MainActivity.log("OBSystemsManager.killing all services");
         //
         MainActivity.mainActivity.stopService(new Intent(MainActivity.mainActivity, OBAutoStartActivityService.class));
@@ -154,7 +158,7 @@ public class OBSystemsManager
         if (suspended) return;
         if (!OBSystemsManager.isFirstSetupComplete()) return;
         //
-        MainActivity.log("OBSystemsManager.starting all services");
+        MainActivity.log("OBSystemsManager.startServices");
         //
         String restartAfterCrash = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_RESTART_AFTER_CRASH);
         boolean shouldRestartAfterCrash = restartAfterCrash != null && restartAfterCrash.equals("true");
@@ -166,8 +170,7 @@ public class OBSystemsManager
             Intent serviceIntent = new Intent(MainActivity.mainActivity, OBAutoStartActivityService.class);
             MainActivity.mainActivity.startService(serviceIntent);
         }
-        //
-        IntentFilter intentFilter = new IntentFilter(Intent.ACTION_USER_PRESENT);
+        MainActivity.log("OBSystemsManager.startServices complete");
     }
 
 
@@ -180,25 +183,37 @@ public class OBSystemsManager
 
     public void runChecks ()
     {
+        if (suspended) return;
+        if (!OBSystemsManager.isFirstSetupComplete()) return;
+        //
+        MainActivity.log("OBSystemsManager.runChecks");
+        //
+        MainActivity.log("OBSystemsManager.runChecks --> disableNavigationBar");
+        disableNavigationBar(); // may cause restart
+        //
+        MainActivity.log("OBSystemsManager.runChecks --> pinApplication");
+        pinApplication();
+        //
+        MainActivity.log("OBSystemsManager.runChecks --> startServices");
+        startServices();
+        //
+        if (mainHandler == null)
+        {
+            mainHandler = new Handler(MainActivity.mainActivity.getMainLooper());
+        }
+        //
+        MainActivity.log("OBSystemsManager.runChecks --> checkForConnection");
+        connectionManager.sharedManager.checkForConnection();
+        //
+        MainActivity.log("OBSystemsManager.runChecks --> SQL maintenance");
+        OBSQLiteHelper.getSqlHelper().runMaintenance();
+        //
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             @Override
             public void run () throws Exception
             {
-                disableNavigationBar(); // may cause restart
-                //
-                pinApplication();
-                //
-                startServices();
-                //
-                if (mainHandler == null)
-                {
-                    mainHandler = new Handler(MainActivity.mainActivity.getMainLooper());
-                }
-                //
-                connectionManager.sharedManager.checkForConnection();
-                //
-                OBSQLiteHelper.getSqlHelper().runMaintenance();
+                MainActivity.log("OBSystemsManager.runChecks --> checksum comparison");
                 runChecksumComparisonTest();
             }
         });
@@ -252,15 +267,18 @@ public class OBSystemsManager
 
     public void runBatterySavingMode ()
     {
+        MainActivity.log("OBSystemsManager.runBatterySavingMode");
         OBConnectionManager.sharedManager.disconnectWifiIfAllowed();
         OBConnectionManager.sharedManager.setBluetooth(false);
         //
-        killBackgroundProcesses();
+        //killBackgroundProcesses(); it's killing the keep alive services
+        MainActivity.log("OBSystemsManager.runBatterySavingMode complete");
     }
 
 
     public void killBackgroundProcesses ()
     {
+        MainActivity.log("OBSystemsManager.killBackgroundProcesses");
         ActivityManager activityManager = (ActivityManager) MainActivity.mainActivity.getSystemService(MainActivity.ACTIVITY_SERVICE);
         List<ActivityManager.RunningAppProcessInfo> procInfo = activityManager.getRunningAppProcesses();
         if (procInfo != null)
@@ -276,6 +294,7 @@ public class OBSystemsManager
                 {
                     continue;
                 }
+                MainActivity.log("OBSystemsManager.killBackgroundProcesses: " + name);
                 activityManager.killBackgroundProcesses(name);
             }
         }
@@ -366,7 +385,7 @@ public class OBSystemsManager
 
     public void onContinue ()
     {
-        MainActivity.log("OBSystemsManager.onContinue detected");
+        MainActivity.log("OBSystemsManager.onContinue");
         //
         suspended = false;
         //
@@ -375,6 +394,8 @@ public class OBSystemsManager
         startServices();
         //
         runBatterySavingMode();
+        //
+        MainActivity.log("OBSystemsManager.onContinue complete");
     }
 
 
@@ -536,6 +557,77 @@ public class OBSystemsManager
     }
 
 
+    public boolean hasAdministratorPrivileges()
+    {
+        DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
+        return devicePolicyManager.isAdminActive(AdministratorReceiver());
+    }
+
+
+    public ComponentName AdministratorReceiver()
+    {
+        return OBDeviceAdminReceiver.getComponentName(MainActivity.mainActivity);
+    }
+
+
+    public boolean isDeviceOwner()
+    {
+        DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
+        return devicePolicyManager.isDeviceOwnerApp(MainActivity.mainActivity.getPackageName());
+    }
+
+
+    public void requestToRemoveAccounts()
+    {
+        Toast.makeText(MainActivity.mainActivity, "Please remove all accounts before going back", Toast.LENGTH_LONG).show();
+        Intent intent = new Intent(Settings.ACTION_SYNC_SETTINGS);
+        MainActivity.mainActivity.startActivityForResult(intent, MainActivity.REQUEST_FIRST_SETUP_ADMINISTRATOR_PRIVILEGES);
+    }
+
+
+    public void requestDeviceOwner()
+    {
+        MainActivity.log("OBSystemsManager.requestDeviceOwner");
+        //
+        String packageName = MainActivity.mainActivity.getPackageName();
+        try
+        {
+            String[] command = new String[]{"su", "-c", "dpm set-device-owner " + packageName + "/" + AdministratorReceiver().getClassName()};
+            //
+            MainActivity.log("OBSystemsManager.requestDeviceOwner.running [" + command.toString() + "]");
+            //
+            Process process = Runtime.getRuntime().exec(command);
+            process.waitFor();
+            //
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            StringBuilder log = new StringBuilder();
+            String line;
+            while ((line = bufferedReader.readLine()) != null)
+            {
+                log.append(line + "\n");
+            }
+            bufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+            while ((line = bufferedReader.readLine()) != null)
+            {
+                log.append(line + "\n");
+            }
+            String output = log.toString();
+            MainActivity.log("OBSystemsManager.requestDeviceOwner.output from process: " + output);
+            //
+            if (!output.contains("Active admin set to component"))
+            {
+                Toast.makeText(MainActivity.mainActivity, "Device Owner was not set. Another App is the device owner.", Toast.LENGTH_LONG).show();
+            }
+        }
+        catch (Exception e)
+        {
+            MainActivity.log("OBSystemsManager.requestDeviceOwner: device is not rooted. No point in continuing.");
+            //
+            e.printStackTrace();
+        }
+    }
+
+
     public boolean enableAdminstratorPrivileges ()
     {
         MainActivity.log("OBSystemsManager.enableAdminstratorPrivileges");
@@ -625,16 +717,21 @@ public class OBSystemsManager
             //
             devicePolicyManager.setStatusBarDisabled(adminReceiver, false);
             MainActivity.log("OBSystemsManager.status bar restored");
-        }
-        //
-        try
-        {
-            devicePolicyManager.removeActiveAdmin(adminReceiver);
-            devicePolicyManager.clearDeviceOwnerApp(MainActivity.mainActivity.getPackageName());
-        }
-        catch (Exception e)
-        {
-            // App might not be the device owner at this point
+            //
+            try
+            {
+                MainActivity.log("OBSystemsManager.disableAdministratorPrivileges: removing active admin");
+                devicePolicyManager.removeActiveAdmin(adminReceiver);
+                MainActivity.log("OBSystemsManager.disableAdministratorPrivileges: clearing device owner");
+                devicePolicyManager.clearDeviceOwnerApp(MainActivity.mainActivity.getPackageName());
+                MainActivity.log("OBSystemsManager.disableAdministratorPrivileges: done");
+            }
+            catch (Exception e)
+            {
+                MainActivity.log("OBSystemsManager.disableAdministratorPrivileges: exception caught");
+                e.printStackTrace();
+                // App might not be the device owner at this point
+            }
         }
         if (kioskModeActive)
         {
@@ -647,16 +744,15 @@ public class OBSystemsManager
     public void pinApplication ()
     {
         MainActivity.log("OBSystemsManager.pinApplication");
-        DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
-        ComponentName adminReceiver = OBDeviceAdminReceiver.getComponentName(MainActivity.mainActivity);
         //
-        String hideStatusBar = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_HIDE_STATUS_BAR);
-        if (hideStatusBar != null && hideStatusBar.equals("true"))
+        if (shouldPinApplication())
         {
-            MainActivity.log("OBSystemsManager.pinning application");
+            DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
+            ComponentName adminReceiver = OBDeviceAdminReceiver.getComponentName(MainActivity.mainActivity);
+            //
             if (devicePolicyManager.isDeviceOwnerApp(MainActivity.mainActivity.getPackageName()))
             {
-                MainActivity.log("OBSystemsManager.pinning app");
+                MainActivity.log("OBSystemsManager.pinApplication: attempting to pin app");
                 String[] packages = {MainActivity.mainActivity.getPackageName()};
                 devicePolicyManager.setLockTaskPackages(adminReceiver, packages);
                 //
@@ -669,14 +765,14 @@ public class OBSystemsManager
             }
             else
             {
-                MainActivity.log("OBSystemsManager.unable to disable status bar. not a device owner");
+                MainActivity.log("OBSystemsManager.pinApplication: unable to pin application, not a device owner");
             }
+            toggleKeyguardAndStatusBar(false);
         }
         else
         {
-            MainActivity.log("OBSystemsManager.pinning application is disabled in Settings.plist");
+            MainActivity.log("OBSystemsManager.pinApplication: disabled in settings");
         }
-        toggleKeyguardAndStatusBar(false);
     }
 
 
@@ -809,5 +905,19 @@ public class OBSystemsManager
         String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_USE_ADMINISTRATOR_SERVICES);
         return (value != null && value.equals("true"));
     }
+
+    public boolean shouldRequestDeviceOwner()
+    {
+        String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_REQUEST_DEVICE_OWNER);
+        return (value != null && value.equals("true"));
+    }
+
+
+    public boolean shouldPinApplication()
+    {
+        String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_PIN_APPLICATION);
+        return (value != null && value.equals("true"));
+    }
+
 
 }

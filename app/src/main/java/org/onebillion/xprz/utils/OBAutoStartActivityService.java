@@ -57,6 +57,7 @@ public class OBAutoStartActivityService extends Service
         //
         PackageManager pm = getPackageManager();
         Intent launchIntent = pm.getLaunchIntentForPackage(getBaseContext().getPackageName());
+        launchIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, launchIntent, 0);
         try
         {

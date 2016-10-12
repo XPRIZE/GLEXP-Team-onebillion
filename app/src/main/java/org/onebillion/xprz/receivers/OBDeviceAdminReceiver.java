@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.widget.Toast;
 
+import org.onebillion.xprz.mainui.MainActivity;
+
 /**
  * Created by pedroloureiro on 06/09/16.
  */
@@ -26,6 +28,23 @@ public class OBDeviceAdminReceiver extends DeviceAdminReceiver
     {
 //        Toast.makeText(context, "Lock task mode exited", Toast.LENGTH_LONG).show();
         // ...
+    }
+
+    @Override
+    public void onEnabled (Context context, Intent intent)
+    {
+        MainActivity.log("OBDeviceAdminReceiver.onEnabled");
+        // admin rights
+//        App.getPreferences().edit().putBoolean(App.ADMIN_ENABLED, true).commit(); //App.getPreferences() returns the sharedPreferences
+
+    }
+
+    @Override
+    public void onDisabled (Context context, Intent intent)
+    {
+        MainActivity.log("OBDeviceAdminReceiver.onDisabled");
+        // admin rights removed
+//        App.getPreferences().edit().putBoolean(App.ADMIN_ENABLED, false).commit(); //App.getPreferences() returns the sharedPreferences
     }
 
 
