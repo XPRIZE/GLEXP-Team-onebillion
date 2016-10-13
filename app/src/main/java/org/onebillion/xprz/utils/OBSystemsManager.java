@@ -759,9 +759,25 @@ public class OBSystemsManager
                 //
                 if (devicePolicyManager.isLockTaskPermitted(MainActivity.mainActivity.getPackageName()))
                 {
-                    MainActivity.log("OBSystemsManager.starting locked task");
-                    MainActivity.mainActivity.startLockTask();
-                    kioskModeActive = true;
+                    if (isAppIsInForeground())
+                    {
+                        try
+                        {
+                            MainActivity.log("OBSystemsManager.pinApplication: starting locked task");
+                            MainActivity.mainActivity.startLockTask();
+                            kioskModeActive = true;
+                        }
+                        catch (Exception e)
+                        {
+                            MainActivity.log("OBSystemsManager.pinApplication: exception caught");
+                            e.printStackTrace();
+                            kioskModeActive = false;
+                        }
+                    }
+                    else
+                    {
+                        MainActivity.log("OBSystemsManager.pinApplication:application is not in foreground, cancelling");
+                    }
                 }
             }
             else
@@ -845,7 +861,22 @@ public class OBSystemsManager
             //
             try
             {
-                Runtime.getRuntime().exec(command);
+                process = Runtime.getRuntime().exec(command);
+                process.waitFor();
+                //
+                bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                log = new StringBuilder();
+                while ((line = bufferedReader.readLine()) != null)
+                {
+                    log.append(line + "\n");
+                }
+                bufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                while ((line = bufferedReader.readLine()) != null)
+                {
+                    log.append(line + "\n");
+                }
+                output = log.toString();
+                MainActivity.log("OBSystemsManager.toggleNavigationBar.output from process: " + output);
             }
             catch (Exception e)
             {
@@ -921,4 +952,9 @@ public class OBSystemsManager
     }
 
 
+    public boolean shouldShowDateTimeSettings()
+    {
+        String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SHOW_DATE_TIME_SETTINGS);
+        return (value != null && value.equals("true"));
+    }
 }

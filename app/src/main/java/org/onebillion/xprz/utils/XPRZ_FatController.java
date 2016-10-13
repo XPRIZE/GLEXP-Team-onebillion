@@ -422,7 +422,8 @@ public class XPRZ_FatController extends OBFatController
 
     public boolean showTestMenu()
     {
-        return false;
+        String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SHOW_TEST_MENU);
+        return (value != null && value.equals("true"));
     }
 
 
