@@ -116,7 +116,6 @@ public class MainActivity extends Activity
             CONFIG_SHOW_DATE_TIME_SETTINGS = "showDateTimeSettings",
             CONFIG_SCREEN_MAX_TIMEOUT = "screenMaxTimeout",
             CONFIG_DISALLOW_HOURS = "disallowHours";
-
     public static String TAG = "livecode";
     //
     public static OBSystemsManager systemsManager = new OBSystemsManager();
