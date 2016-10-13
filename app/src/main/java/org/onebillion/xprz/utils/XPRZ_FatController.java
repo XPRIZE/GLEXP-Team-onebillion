@@ -423,13 +423,6 @@ public class XPRZ_FatController extends OBFatController
             unitInstance.sectionController.exitEvent();
     }
 
-
-    public boolean showTestMenu()
-    {
-        String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SHOW_TEST_MENU);
-        return (value != null && value.equals("true"));
-    }
-
     @Override
     public void updateScores()
     {
