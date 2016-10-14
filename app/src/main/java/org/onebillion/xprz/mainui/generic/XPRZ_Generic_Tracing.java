@@ -810,7 +810,10 @@ public class XPRZ_Generic_Tracing extends XPRZ_Tracer
         savedStatus = status();
         setStatus(STATUS_CHECKING);
         //
-        savedReplayAudio = _replayAudio;
+        if (_replayAudio != null && _replayAudio.size() > 0)
+        {
+            savedReplayAudio = _replayAudio;
+        }
         setReplayAudio(null);
     }
 
