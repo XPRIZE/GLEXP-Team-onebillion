@@ -53,7 +53,6 @@ public class XPRZ_FatController extends OBFatController
     private OBUser currentUser;
     private int currentSessionId;
     private long currentSessionStartTime, currentSessionEndTime;
-    private boolean showTestMenu;
 
     private Handler timeoutHandler;
     private Runnable timeoutRunnable;
@@ -61,7 +60,16 @@ public class XPRZ_FatController extends OBFatController
     @Override
     public int buttonFlags()
     {
-        return OBMainViewController.SHOW_TOP_RIGHT_BUTTON | OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON | OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON;
+        int result = OBMainViewController.SHOW_TOP_RIGHT_BUTTON | OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON | OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON;
+        if (showTestMenu()) result = result | OBMainViewController.SHOW_TOP_LEFT_BUTTON;
+        return result;
+    }
+
+
+    private boolean showTestMenu()
+    {
+        String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SHOW_TEST_MENU);
+        return (value != null && value.equalsIgnoreCase("true"));
     }
 
     public long getCurrentTime()
@@ -218,14 +226,12 @@ public class XPRZ_FatController extends OBFatController
             String[] disallowArray = disallowHours.split(",");
             disallowStartHour = Integer.valueOf(disallowArray[0]);
             disallowEndHour = Integer.valueOf(disallowArray[1]);
-            showTestMenu = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SHOW_TEST_MENU).equalsIgnoreCase("true");
         } catch (Exception e)
         {
             sessionTimeout = 2 * 60 * 60;
             unitAttemptsCount = 3;
             disallowStartHour = 23;
             disallowEndHour = 4;
-            showTestMenu = false;
         }
 
         initDB();
@@ -244,7 +250,7 @@ public class XPRZ_FatController extends OBFatController
 
         continueFromLastUnit();
 
-        if (showTestMenu)
+        if (showTestMenu())
         {
             MainViewController().pushViewControllerWithName("XPRZ_TestMenu", false, false, "menu");
         }

@@ -118,7 +118,8 @@ public class XPRZ_JMenu extends XPRZ_Menu
         InputStream pis;
         try
         {
-            pis = MainActivity.mainActivity.getAssets().open("x-jmenu/config/junits_"+lang+".xml");
+            pis = OBUtils.getInputStreamForPath("x-jmenu/config/junits_"+lang+".xml");
+//            pis = MainActivity.mainActivity.getAssets().open("x-jmenu/config/junits_"+lang+".xml");
             OBXMLManager xmlManager = new OBXMLManager();
             List<OBXMLNode> xmlNodes = xmlManager.parseFile(pis);
             OBXMLNode xmlNode = xmlNodes.get(0);

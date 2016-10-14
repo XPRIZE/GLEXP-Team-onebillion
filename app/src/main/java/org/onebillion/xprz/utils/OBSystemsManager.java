@@ -13,6 +13,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.hardware.display.DisplayManager;
 import android.os.Build;
@@ -29,6 +30,7 @@ import android.view.Display;
 import android.view.DragEvent;
 import android.widget.Toast;
 
+import org.onebillion.xprz.R;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.receivers.OBBatteryReceiver;
@@ -932,29 +934,30 @@ public class OBSystemsManager
     }
 
 
+
     public boolean usesAdministratorServices()
     {
         String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_USE_ADMINISTRATOR_SERVICES);
-        return (value != null && value.equals("true"));
+        return (value != null && value.equalsIgnoreCase("true"));
     }
 
     public boolean shouldRequestDeviceOwner()
     {
         String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_REQUEST_DEVICE_OWNER);
-        return (value != null && value.equals("true"));
+        return (value != null && value.equalsIgnoreCase("true"));
     }
 
 
     public boolean shouldPinApplication()
     {
         String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_PIN_APPLICATION);
-        return (value != null && value.equals("true"));
+        return (value != null && value.equalsIgnoreCase("true"));
     }
 
 
     public boolean shouldShowDateTimeSettings()
     {
         String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SHOW_DATE_TIME_SETTINGS);
-        return (value != null && value.equals("true"));
+        return (value != null && value.equalsIgnoreCase("true"));
     }
 }
