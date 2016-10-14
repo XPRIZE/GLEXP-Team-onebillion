@@ -9,6 +9,7 @@ import org.onebillion.xprz.controls.OBControl;
 import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.mainui.XPRZ_SectionController;
 import org.onebillion.xprz.utils.OBAnim;
+import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OB_Maths;
 
 import java.util.Arrays;
@@ -415,6 +416,28 @@ public class X_Sorting_S3 extends XPRZ_SectionController
         return null;
     }
 
+    public void touchUpAtPoint(final PointF pt,View v)
+    {
+        if (status() == STATUS_DRAGGING)
+        {
+            if (target != null)
+            {
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run () throws Exception
+                    {
+                        checkDragAtPoint(pt);
+                    }
+                });
+            }
+            else
+            {
+                setStatus(STATUS_AWAITING_CLICK);
+            }
+        }
+    }
+
     public void checkDragAtPoint(PointF pt)
     {
         try
@@ -425,6 +448,7 @@ public class X_Sorting_S3 extends XPRZ_SectionController
             if (dropPoint == null)
             {
                 flyHome();
+                target.setZPosition(target.zPosition() - 30);
                 switchStatus(currentEvent());
                 return;
             }
@@ -443,6 +467,7 @@ public class X_Sorting_S3 extends XPRZ_SectionController
             {
                 gotItWrongWithSfx();
                 flyHome();
+                target.setZPosition(target.zPosition() - 30);
                 switchStatus(currentEvent());
             }
             return;
@@ -454,7 +479,14 @@ public class X_Sorting_S3 extends XPRZ_SectionController
 
     OBControl findTarget(PointF pt)
     {
-        return finger(-1,2,targets,pt);
+        OBControl c = finger(-1,2,targets,pt);
+        if (c != null)
+            return c;
+        if (currentEvent().equals("3h"))
+            for (OBControl t : targets)
+                if (t.frame().contains(pt.x,pt.y))
+                    return t;
+        return null;
     }
 
     public void touchDownAtPoint(final PointF pt,View v)
