@@ -172,14 +172,15 @@ public class OBCameraManager
 
     public void stop() throws Exception
     {
+        /*
         try
         {
-            cameraSemaphore.acquire();
+            cameraSemaphore.tryAcquire(3, TimeUnit.SECONDS);
         } catch (Exception e)
         {
 
         }
-
+        */
         stopPreview(false);
 
         try
@@ -221,7 +222,7 @@ public class OBCameraManager
     {
         if (videoPlayer == null || activityPaused || controller.get()._aborting || videoPlayer.activityPaused)
             return;
-
+        controller.get().lockScreen();
         try
         {
             if(cameraDevice == null)
@@ -231,7 +232,7 @@ public class OBCameraManager
                 if(cameraDevice == null)
                     throw new Exception("Error connecting to the camera!");
             }
-            controller.get().lockScreen();
+
             stopPreview(true);
             startCameraLock();
             calculatePreviewAndRecordingSizes(videoPlayer.width(), videoPlayer.height());
@@ -280,7 +281,7 @@ public class OBCameraManager
                 }
             }, backgroundHandler);
             waitForCameraReady();
-            controller.get().unlockScreen();
+
         } catch (CameraAccessException e)
         {
             e.printStackTrace();
@@ -289,6 +290,9 @@ public class OBCameraManager
         {
             e.printStackTrace();
             finishCameraWait();
+        } finally
+        {
+            controller.get().unlockScreen();
         }
     }
 
@@ -430,6 +434,8 @@ public class OBCameraManager
     {
         if (condition == null)
             return;
+
+        controller.get().checkAbort();
 
         cameraLock.lock();
         try

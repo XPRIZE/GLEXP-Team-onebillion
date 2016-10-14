@@ -100,64 +100,78 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
     {
         MainActivity.log("OBSQLiteHelper running consistency checks");
         //
-        DBSQL db = new DBSQL(true);
+        DBSQL db = null;
+        boolean isConsistent = true;
         try
         {
+            db = new DBSQL(true);
             Cursor checkResult = runVacuum(db);
             if (checkResult != null)
             {
                 MainActivity.log("OBSQLiteHelper Vacuum FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
-                return false;
+                checkResult.close();
+                isConsistent =  false;
             }
             else
             {
                 MainActivity.log("OBSQLiteHelper Vacuum PASSED");
             }
             //
-            checkResult = integrityCheck(db);
-            if (checkResult != null)
+            if(isConsistent)
             {
-                MainActivity.log("OBSQLiteHelper Integrity check FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
-                return false;
-            }
-            else
-            {
-                MainActivity.log("OBSQLiteHelper Integrity check PASSED");
-            }
-            //
-            checkResult = quickCheck(db);
-            if (checkResult != null)
-            {
-                MainActivity.log("OBSQLiteHelper Quick check FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
-                return false;
-            }
-            else
-            {
-                MainActivity.log("OBSQLiteHelper Quick check PASSED");
+                checkResult = integrityCheck(db);
+                if (checkResult != null)
+                {
+                    MainActivity.log("OBSQLiteHelper Integrity check FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
+                    checkResult.close();
+                    isConsistent = false;
+                } else
+                {
+                    MainActivity.log("OBSQLiteHelper Integrity check PASSED");
+                }
             }
             //
-            checkResult = foreignKeyCheck(db);
-            if (checkResult != null)
+            if(isConsistent)
             {
-                MainActivity.mainActivity.log("OBSQLiteHelper Foreign key check FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
-                return false;
-            }
-            else
-            {
-                MainActivity.log("OBSQLiteHelper Foreign key check PASSED");
+                checkResult = quickCheck(db);
+                if (checkResult != null)
+                {
+                    MainActivity.log("OBSQLiteHelper Quick check FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
+                    checkResult.close();
+                    isConsistent = false;
+                } else
+                {
+                    MainActivity.log("OBSQLiteHelper Quick check PASSED");
+                }
             }
             //
-            return true;
+            if(isConsistent)
+            {
+                checkResult = foreignKeyCheck(db);
+                if (checkResult != null)
+                {
+                    MainActivity.mainActivity.log("OBSQLiteHelper Foreign key check FAILED: " + DatabaseUtils.dumpCursorToString(checkResult));
+                    checkResult.close();
+                    isConsistent = false;
+                } else
+                {
+                    MainActivity.log("OBSQLiteHelper Foreign key check PASSED");
+                }
+            }
+            //
+
         }
         catch (Exception e)
         {
             e.printStackTrace();
-            return false;
+            isConsistent =  false;
         }
         finally
         {
-            db.close();
+            if(db != null)
+                db.close();
         }
+        return  isConsistent;
     }
 
     public Cursor runVacuum (DBSQL db)

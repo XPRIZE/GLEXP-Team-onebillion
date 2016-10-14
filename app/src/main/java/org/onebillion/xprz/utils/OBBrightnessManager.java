@@ -17,7 +17,6 @@ import java.util.logging.Logger;
  */
 public class OBBrightnessManager
 {
-    private float maxBrightness;
     private long checkInterval;
     private boolean usesBrightnessAdjustment;
     //
@@ -66,46 +65,58 @@ public class OBBrightnessManager
         });
     }
 
+    public float maxBrightness()
+    {
+        String maxBrightnessString = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MAX_BRIGHTNESS);
+        float value = 1.0f;
+        if (maxBrightnessString != null) value = Float.parseFloat(maxBrightnessString);
+        return value;
+    }
+
+
+
     public void runBrightnessCheck ()
     {
         if (suspended) return;
         //
-        String maxBrightnessString = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MAX_BRIGHTNESS);
-        maxBrightness = 1.0f;
-        if (maxBrightnessString != null) maxBrightness = Float.parseFloat(maxBrightnessString);
-        //
         String brightnessInterval = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BRIGHTNESS_CHECK_INTERVAL);
-        checkInterval = 5000;
+        checkInterval = 5;
         if (brightnessInterval != null) checkInterval = Long.parseLong(brightnessInterval);
         //
         String usesBrightnessAdjustmentString = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_USES_BRIGHTNESS_ADJUSTMENT);
         usesBrightnessAdjustment = (usesBrightnessAdjustmentString != null && usesBrightnessAdjustmentString.equals("true"));
         //
-        //
-        if (brightnessCheckRunnable == null)
+        if (!usesBrightnessAdjustment)
         {
-            final long interval = checkInterval;
-            brightnessCheckRunnable = new Runnable()
-            {
-                public void run ()
-                {
-                    if (updateBrightness(true))
-                    {
-                        OBSystemsManager.sharedManager.mainHandler.removeCallbacks(brightnessCheckRunnable);
-                        OBSystemsManager.sharedManager.mainHandler.postDelayed(this, interval);
-                    }
-                    else
-                    {
-//                        MainActivity.log("Brightness checker was paused");
-                    }
-                }
-            };
+            disableBrightnessAdjustment();
         }
-        //
-        if (OBSystemsManager.sharedManager.mainHandler != null && brightnessCheckRunnable != null)
+        else
         {
-            OBSystemsManager.sharedManager.mainHandler.removeCallbacks(brightnessCheckRunnable);
-            OBSystemsManager.sharedManager.mainHandler.post(brightnessCheckRunnable);
+            if (brightnessCheckRunnable == null)
+            {
+                final long interval = checkInterval * 1000;
+                brightnessCheckRunnable = new Runnable()
+                {
+                    public void run ()
+                    {
+                        if (updateBrightness(true))
+                        {
+                            OBSystemsManager.sharedManager.mainHandler.removeCallbacks(brightnessCheckRunnable);
+                            OBSystemsManager.sharedManager.mainHandler.postDelayed(this, interval);
+                        }
+                        else
+                        {
+//                        MainActivity.log("Brightness checker was paused");
+                        }
+                    }
+                };
+            }
+            //
+            if (OBSystemsManager.sharedManager.mainHandler != null && brightnessCheckRunnable != null)
+            {
+                OBSystemsManager.sharedManager.mainHandler.removeCallbacks(brightnessCheckRunnable);
+                OBSystemsManager.sharedManager.mainHandler.post(brightnessCheckRunnable);
+            }
         }
     }
 
@@ -121,15 +132,18 @@ public class OBBrightnessManager
 
     public void registeredTouchOnScreen ()
     {
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        if (usesBrightnessAdjustment)
         {
-            @Override
-            public void run () throws Exception
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
-                lastTouchTimeStamp = System.currentTimeMillis();
-                runBrightnessCheck();
-            }
-        });
+                @Override
+                public void run () throws Exception
+                {
+                    lastTouchTimeStamp = System.currentTimeMillis();
+                    runBrightnessCheck();
+                }
+            });
+        }
     }
 
 
@@ -138,14 +152,14 @@ public class OBBrightnessManager
         if (!usesBrightnessAdjustment)
         {
             setScreenSleepTimeToMax();
-            setBrightness(maxBrightness);
+            setBrightness(maxBrightness());
             return false;
         }
         if (suspended) return false;
         //
         long currentTimeStamp = System.currentTimeMillis();
         long elapsed = currentTimeStamp - lastTouchTimeStamp;
-        float percentage = (elapsed < checkInterval) ? maxBrightness : (elapsed < checkInterval * 2) ? maxBrightness / 2.0f : (elapsed < checkInterval * 3) ? maxBrightness / 4.0f : 0.0f;
+        float percentage = (elapsed < checkInterval) ? maxBrightness() : (elapsed < checkInterval * 2) ? maxBrightness() / 2.0f : (elapsed < checkInterval * 3) ? maxBrightness() / 4.0f : 0.0f;
         //
 //        MainActivity.log("updateBrightness : " + elapsed + " " + percentage);
         //
@@ -154,7 +168,7 @@ public class OBBrightnessManager
             lastBrightness = percentage;
             setBrightness(percentage);
             //
-            if (percentage == maxBrightness)
+            if (percentage == maxBrightness())
             {
                 setScreenSleepTimeToMax();
             }
@@ -169,9 +183,9 @@ public class OBBrightnessManager
 
     public void onSuspend ()
     {
-//        MainActivity.log("OBBrightnessManager.onSuspend detected");
+        MainActivity.log("OBBrightnessManager.onSuspend detected");
         suspended = true;
-        setBrightness(maxBrightness);
+        setBrightness(maxBrightness());
     }
 
 
@@ -212,34 +226,80 @@ public class OBBrightnessManager
     }
 
 
+    public void disableBrightnessAdjustment()
+    {
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run () throws Exception
+            {
+                MainActivity.log("OBBrightnessManager.disabling brightness adjustment");
+                MainActivity.mainActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                MainActivity.mainActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+                if (OBSystemsManager.sharedManager.hasWriteSettingsPermission())
+                {
+                    int one_minute = 1000 * 60;
+                    int valueForSettings = Math.round(maxBrightness() * 255);
+                    Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, valueForSettings);
+                    Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC);
+                    Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, one_minute);
+                    WindowManager.LayoutParams layoutpars = MainActivity.mainActivity.getWindow().getAttributes();
+                    layoutpars.screenBrightness = maxBrightness();
+                    MainActivity.mainActivity.getWindow().setAttributes(layoutpars);
+                    OBSystemsManager.sharedManager.refreshStatus();
+                }
+                else
+                {
+                    MainActivity.log("OBBrightnessManager.does not have write settings permission. unable to revert changes for brightness management");
+                }
+            }
+        });
+    }
+
+
     public void setScreenTimeout (int millisecs)
     {
-        MainActivity.mainActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        MainActivity.mainActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
-        //
+        MainActivity.log("OBBrightnessManager.setScreenTimeout: " + millisecs);
         try
         {
             if (OBSystemsManager.sharedManager.hasWriteSettingsPermission())
             {
                 Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, millisecs);
             }
+            else
+            {
+                MainActivity.log("OBBrightnessManager.setScreenTimeout: Application does not have write settings permission");
+            }
         }
         catch (Exception e)
         {
-            // do nothing, permissions may have not been set yet
+            MainActivity.log("OBBrightnessManager.setScreenTimeout: exception caught");
+            e.printStackTrace();
         }
     }
 
     public void setScreenSleepTimeToMax()
     {
+        MainActivity.log("OBBrightnessManager.setScreenSleepTimeToMax");
+        //
+        MainActivity.mainActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        MainActivity.mainActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        //
+        String maxTimeString = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SCREEN_MAX_TIMEOUT);
         int maxTime = 60000; // 1 minute
-        if (MainActivity.mainActivity.isDebugMode()) maxTime = Integer.MAX_VALUE;
+        if (maxTimeString != null) maxTime = Integer.parseInt(maxTimeString) * 1000;
+        //
         setScreenTimeout(maxTime);
     }
 
 
     public void setScreenSleepTimeToMin ()
     {
+        MainActivity.log("OBBrightnessManager.setScreenSleepTimeToMin");
+        //
+        MainActivity.mainActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        MainActivity.mainActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        //
         setScreenTimeout(1);
     }
 

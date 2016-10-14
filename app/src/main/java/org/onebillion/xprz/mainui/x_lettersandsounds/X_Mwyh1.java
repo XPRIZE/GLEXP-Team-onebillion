@@ -996,8 +996,10 @@ public class X_Mwyh1 extends XPRZ_Generic_WordsEvent
         //
         if (correctLabel.text().compareTo(label.text()) == 0)
         {
-            if (OBUtils.RectOverlapRatio(correctLabel.frame, label.frame) > 0.1)
+            if (OBUtils.RectOverlapRatio(correctLabel.frame, label.frame) > 0.2)
             {
+                setStatus(STATUS_CHECKING);
+                //
                 target = null;
                 //
                 playSfxAudio("click", false);

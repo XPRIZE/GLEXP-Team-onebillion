@@ -21,6 +21,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.onebillion.xprz.mainui.MainActivity.Config;
+import static org.onebillion.xprz.mainui.OBViewController.MainViewController;
+
 /**
  * Created by michal on 08/08/16.
  */
@@ -44,12 +47,13 @@ public class XPRZ_FatController extends OBFatController
 
 
     private long sessionTimeout;
-    private  int unitAttemptsCount;
+    private  int unitAttemptsCount, disallowStartHour,disallowEndHour;
 
     private MlUnitInstance currentUnitInstance;
     private OBUser currentUser;
     private int currentSessionId;
     private long currentSessionStartTime, currentSessionEndTime;
+    private boolean showTestMenu;
 
     private Handler timeoutHandler;
     private Runnable timeoutRunnable;
@@ -57,7 +61,7 @@ public class XPRZ_FatController extends OBFatController
     @Override
     public int buttonFlags()
     {
-        return OBMainViewController.SHOW_TOP_LEFT_BUTTON| OBMainViewController.SHOW_TOP_RIGHT_BUTTON | OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON | OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON;
+        return OBMainViewController.SHOW_TOP_RIGHT_BUTTON | OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON | OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON;
     }
 
     public long getCurrentTime()
@@ -208,12 +212,20 @@ public class XPRZ_FatController extends OBFatController
     {
         try
         {
-            sessionTimeout = MainActivity.mainActivity.configIntForKey(MainActivity.CONFIG_SESSION_TIMEOUT) * 60;
+            sessionTimeout = MainActivity.mainActivity.configIntForKey(MainActivity.CONFIG_SESSION_TIMEOUT);
             unitAttemptsCount = MainActivity.mainActivity.configIntForKey(MainActivity.CONFIG_UNIT_TIMEOUT_COUNT);
+            String disallowHours = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_DISALLOW_HOURS);
+            String[] disallowArray = disallowHours.split(",");
+            disallowStartHour = Integer.valueOf(disallowArray[0]);
+            disallowEndHour = Integer.valueOf(disallowArray[1]);
+            showTestMenu = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SHOW_TEST_MENU).equalsIgnoreCase("true");
         } catch (Exception e)
         {
-            sessionTimeout =60 * 60;
+            sessionTimeout = 2 * 60 * 60;
             unitAttemptsCount = 3;
+            disallowStartHour = 23;
+            disallowEndHour = 4;
+            showTestMenu = false;
         }
 
         initDB();
@@ -222,23 +234,35 @@ public class XPRZ_FatController extends OBFatController
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(getCurrentTime()*1000);
-       // calendar.add(Calendar.DATE,1);
-        //calendar.set(Calendar.HOUR_OF_DAY, 0);
+        //calendar.add(Calendar.DATE,1);
+        calendar.set(Calendar.HOUR_OF_DAY, disallowStartHour);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
-        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_HOUR, OBAlarmManager.REQUEST_SESSION_CHECK);// AlarmManager.INTERVAL_DAY
-        calendar.set(Calendar.MINUTE, 55);
-        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_HOUR, OBAlarmManager.REQUEST_SESSION_CHECK2);
-        String menuClassName =  MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MENU_CLASS);
-        if (showTestMenu())
-            menuClassName = "XPRZ_TestMenu";
-        if (menuClassName != null)
-            OBMainViewController.MainViewController().pushViewControllerWithName(menuClassName,false,false,"menu");
+        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, OBAlarmManager.REQUEST_SESSION_CHECK);
+        calendar.set(Calendar.HOUR_OF_DAY, disallowEndHour);
+        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, OBAlarmManager.REQUEST_SESSION_CHECK2);
+
+        continueFromLastUnit();
+
+        if (showTestMenu)
+        {
+            MainViewController().pushViewControllerWithName("XPRZ_TestMenu", false, false, "menu");
+        }
+        else
+        {
+            String menuClassName = (String) Config().get(MainActivity.CONFIG_MENU_CLASS);
+            String appCode = (String) Config().get(MainActivity.CONFIG_APP_CODE);
+            if (menuClassName != null && appCode != null)
+            {
+                OBBrightnessManager.sharedManager.onContinue();
+                MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
+
+            }
+        }
     }
 
     public boolean checkAndPrepareNewSession()
     {
-
         if(currentSessionLocked())
             return false;
 
@@ -250,12 +274,9 @@ public class XPRZ_FatController extends OBFatController
 
         currentCalendar.setTimeInMillis(getCurrentTime()*1000);
         calendarLastSession.setTimeInMillis(currentSessionStartTime*1000);
-        int minutesSessionStart = calendarLastSession.get(Calendar.MINUTE);
-        int minutesNow = currentCalendar.get(Calendar.MINUTE);
-        int sessionBegin = (int)Math.floor(minutesSessionStart/10);
-        int nowBegin = (int)Math.floor(minutesNow/10);
-        if(currentCalendar.get(Calendar.HOUR) != calendarLastSession.get(Calendar.HOUR))
-        //if(currentCalendar.get(Calendar.DAY_OF_YEAR) != calendarLastSession.get(Calendar.DAY_OF_YEAR) || currentCalendar.get(Calendar.YEAR) != calendarLastSession.get(Calendar.YEAR))
+
+        if(currentCalendar.get(Calendar.DAY_OF_YEAR) != calendarLastSession.get(Calendar.DAY_OF_YEAR)
+                || currentCalendar.get(Calendar.YEAR) != calendarLastSession.get(Calendar.YEAR))
         {
             prepareNewSession();
             return true;
@@ -267,12 +288,11 @@ public class XPRZ_FatController extends OBFatController
     {
         Calendar currentCalendar = Calendar.getInstance();
         currentCalendar.setTimeInMillis(getCurrentTime()*1000);
-        int minutesNow = currentCalendar.get(Calendar.MINUTE);
+        int hourNow = currentCalendar.get(Calendar.HOUR_OF_DAY);
 
-        if(55 <= minutesNow)
-            return true;
-
-        return false;
+        boolean hourIsBetween = (disallowEndHour > disallowStartHour && hourNow >= disallowStartHour && hourNow < disallowEndHour)
+                || (disallowEndHour < disallowStartHour && (hourNow >= disallowStartHour || hourNow < disallowEndHour));
+        return hourIsBetween;
     }
 
     public void initDB()
@@ -402,12 +422,6 @@ public class XPRZ_FatController extends OBFatController
         if(unitInstance.sectionController != null && !unitInstance.sectionController._aborting)
             unitInstance.sectionController.exitEvent();
     }
-
-    public boolean showTestMenu()
-    {
-        return true;
-    }
-
 
     @Override
     public void updateScores()
@@ -594,9 +608,9 @@ public class XPRZ_FatController extends OBFatController
                 {
                     MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
                     //if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("X_TestEvent","x-miniapp6",true,true,"test"))
-                    if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
+                    if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
-                        currentUnitInstance.sectionController = OBMainViewController.MainViewController().topController();
+                        currentUnitInstance.sectionController = MainViewController().topController();
                         startUnitInstanceTimeout(currentUnitInstance);
                     }
                     else
