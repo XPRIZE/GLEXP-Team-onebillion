@@ -23,7 +23,12 @@ public class OBUser extends MlObject
     }
 
 
-    public static OBUser OBUseruserFromDB(int userid)
+    public static OBUser OBUserForID(int userid)
+    {
+        return OBUserFromDBForID(userid);
+    }
+
+    private static OBUser OBUserFromDBForID(int userid)
     {
         Map<String,String> whereMap  = new ArrayMap<>();
         whereMap.put("userid",String.valueOf(userid));
@@ -54,6 +59,7 @@ public class OBUser extends MlObject
 
         return user;
     }
+
 
     public static OBUser initAndSaveUserInDB(DBSQL db, String name)
     {

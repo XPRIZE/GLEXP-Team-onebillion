@@ -47,7 +47,7 @@ public class XPRZ_FatController extends OBFatController
 
 
     private long sessionTimeout;
-    private  int unitAttemptsCount, disallowStartHour,disallowEndHour;
+    private int unitAttemptsCount, disallowStartHour,disallowEndHour;
 
     private MlUnitInstance currentUnitInstance;
     private OBUser currentUser;
@@ -61,7 +61,7 @@ public class XPRZ_FatController extends OBFatController
     @Override
     public int buttonFlags()
     {
-        return OBMainViewController.SHOW_TOP_RIGHT_BUTTON | OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON | OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON;
+        return  OBMainViewController.SHOW_TOP_RIGHT_BUTTON | OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON | OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON;
     }
 
     public long getCurrentTime()
@@ -96,8 +96,9 @@ public class XPRZ_FatController extends OBFatController
                     for (OBXMLNode levelNode : rootNode.childrenOfType("level"))
                     {
                         int level = levelNode.attributeIntValue("id");
-                        masterList.addAll(levelNode.childrenOfType("unit"));
+
                         List<OBXMLNode> nodes = levelNode.childrenOfType("unit");
+                        masterList.addAll(nodes);
 
                         for (int i=0; i<nodes.size(); i++)
                         {
@@ -590,13 +591,12 @@ public class XPRZ_FatController extends OBFatController
         {
             firstUnstartedIndex = unit.unitid+1;
         }
-        currentUnitInstance = MlUnitInstance.initMlUnitDBWith(unit,currentUser.userid,currentSessionId,getCurrentTime());
+        currentUnitInstance = MlUnitInstance.initWithMlUnit(unit,currentUser.userid,currentSessionId,getCurrentTime());
         initScores();
     }
 
     public void startSectionByUnit(final MlUnit unit)
     {
-
         sectionStartedWithUnit(unit);
         final String lastAppCode = (String)MainActivity.mainActivity.config.get(MainActivity.CONFIG_APP_CODE);
 
@@ -686,8 +686,6 @@ public class XPRZ_FatController extends OBFatController
 
         if(elapsedTime >= sessionTimeout)
             finishCurrentSessionInDB(db);
-
-        db.close();
     }
 
     public int unitAttemtpsCountInDB(DBSQL db, int unitid)
@@ -710,10 +708,12 @@ public class XPRZ_FatController extends OBFatController
         Cursor cursor = db.prepareRawQuery(String.format("SELECT unitid FROM %s WHERE userid = ? AND unitid = ? AND endtime > 0", DBSQL.TABLE_UNIT_INSTANCES),
                 Arrays.asList(String.valueOf(currentUser.userid),String.valueOf(unitid)));
 
-        if(cursor.moveToFirst())
+        boolean rowExists = cursor.moveToFirst();
+        cursor.close();
+        if(rowExists)
             return true;
 
-        cursor.close();
+
         if(unitAttemptsCount>0 && unitAttemptsCount <= unitAttemtpsCountInDB(db, unitid))
             return true;
 
@@ -727,8 +727,6 @@ public class XPRZ_FatController extends OBFatController
 
         return currentSessionEndTime > 0;
     }
-
-
 
 
     private void loadLastSessionFromDB(DBSQL db, int userid)
@@ -877,7 +875,7 @@ public class XPRZ_FatController extends OBFatController
             if (colour == null)
                 colour = String.valueOf(OB_Maths.randomInt(1, 5));
             for(int awardNum : result.get(level))
-                saveStarForUnitInDB(db,currentUser.userid,level,awardNum,colour);
+                saveStarInDB(db,currentUser.userid,level,awardNum,colour);
         }
     }
 
@@ -943,7 +941,7 @@ public class XPRZ_FatController extends OBFatController
         try
         {
             db = new DBSQL(true);
-            saveStarForUnitInDB(db,currentUser.userid,unit.level,unit.awardStar,colour);
+            saveStarInDB(db,currentUser.userid,unit.level,unit.awardStar,colour);
         }
         catch(Exception e)
         {
@@ -956,7 +954,7 @@ public class XPRZ_FatController extends OBFatController
         }
     }
 
-    public void saveStarForUnitInDB(DBSQL db, int userid, int level, int awardStar,String colour)
+    public void saveStarInDB(DBSQL db, int userid, int level, int awardStar, String colour)
     {
         ContentValues contentValues = new ContentValues();
         contentValues.put("userid",userid);

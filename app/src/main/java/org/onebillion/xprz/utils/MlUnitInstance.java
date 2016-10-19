@@ -35,9 +35,13 @@ public class MlUnitInstance extends MlObject
     }
 
 
-    public static MlUnitInstance initMlUnitDBWith(MlUnit unit, int userid, int sessionid, long starttime)
+    public static MlUnitInstance initWithMlUnit(MlUnit unit, int userid, int sessionid, long starttime)
     {
+       return initInDBWithMlUnit(unit,userid,sessionid,starttime);
+    }
 
+    private static MlUnitInstance initInDBWithMlUnit(MlUnit unit, int userid, int sessionid, long starttime)
+    {
         MlUnitInstance mlui = new MlUnitInstance();
         mlui.userid = userid;
         mlui.unitid = unit.unitid;
@@ -78,39 +82,6 @@ public class MlUnitInstance extends MlObject
         return mlui;
     }
 
-    public static MlUnitInstance mlUnitInstanceFromDBFor(int userid, MlUnit unit, int seqno)
-    {
-        Map<String,String> whereMap = new ArrayMap<>();
-        whereMap.put("userid",String.valueOf(userid));
-        whereMap.put("unitid",String.valueOf(unit.unitid));
-        whereMap.put("seqno",String.valueOf(seqno));
-
-        MlUnitInstance mlui = null;
-
-        DBSQL db = null;
-        try
-        {
-            db = new DBSQL(false);
-            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES,allFieldNames(null,intFields,longFields,floatFields),whereMap);
-            if(cursor.moveToFirst())
-            {
-                mlui = new MlUnitInstance();
-                mlui.cursorToObject(cursor,null,floatFields,intFields,longFields);
-                mlui.mlUnit = unit;
-            }
-            cursor.close();
-        }
-        catch(Exception e)
-        {
-
-        }
-        finally
-        {
-            if(db != null)
-                db.close();
-        }
-        return mlui;
-    }
 
     public boolean updateDataInDB(DBSQL db)
     {
@@ -124,14 +95,14 @@ public class MlUnitInstance extends MlObject
         contentValues.put("score",score);
         contentValues.put("elapsedtime",elapsedtime);
 
-        boolean result = db.doUpdateOnTable(DBSQL.TABLE_UNIT_INSTANCES,whereMap,contentValues) > -1;
+        boolean result = db.doUpdateOnTable(DBSQL.TABLE_UNIT_INSTANCES,whereMap,contentValues) > 0;
         return result;
     }
 
     public Boolean saveToDB(DBSQL db)
     {
         ContentValues contentValues = getContentValues(null,intFields,longFields,floatFields);
-        boolean result = db.doInsertOnTable(DBSQL.TABLE_UNIT_INSTANCES,contentValues) > -1;
+        boolean result = db.doInsertOnTable(DBSQL.TABLE_UNIT_INSTANCES,contentValues) > 0;
         return result;
     }
 

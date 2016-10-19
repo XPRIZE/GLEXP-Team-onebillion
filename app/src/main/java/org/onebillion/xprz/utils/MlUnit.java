@@ -89,30 +89,4 @@ public class MlUnit extends MlObject
         return unit;
     }
 
-    public static int awardNumForLevel(int level, int unitid)
-    {
-        int lastStar = 0;
-        DBSQL db = null;
-        try
-        {
-            db = new DBSQL(false);
-            Cursor cursor = db.prepareRawQuery("SELECT MAX(awardStar) as awardStar FROM "+DBSQL.TABLE_UNITS+" WHERE level = ? AND unitid <= ?", Arrays.asList(String.valueOf(level),String.valueOf(unitid)));
-
-            if(cursor.moveToFirst())
-                lastStar = cursor.getInt(cursor.getColumnIndex("awardStar"));
-
-            cursor.close();
-        }
-        catch(Exception e)
-        {
-
-        }
-        finally
-        {
-            if(db != null)
-                db.close();
-        }
-        return lastStar;
-    }
-
 }

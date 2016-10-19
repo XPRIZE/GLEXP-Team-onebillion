@@ -150,7 +150,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
             currentLevel--;
 
         loadTrophies(currentLevel-1);
-        loadTopBar(currentLevel, lastUnit != null && lastUnit.unitid != 0);
+        loadTopBar(currentLevel, lastUnit != null);
         hideControls("choice_star_.*");
 
         if(lastCommand == XPRZ_FatController.OFC_NEW_SESSION)
@@ -757,6 +757,10 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
 
     public void animateTopBar() throws Exception
     {
+        OBControl topBar = objectDict.get("top_bar");
+        if(topBar.fillColor() == (int)topBar.propertyValue("dest_colour"))
+            return;
+
         List<OBAnim> anims = new ArrayList<>();
         for (int i = 1; i <= 10; i++)
         {
@@ -777,7 +781,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
                 }
             });
         }
-        OBControl topBar = objectDict.get("top_bar");
+
         int destColour = (int) topBar.propertyValue("dest_colour");
         playSfxAudio("topbaron", false);
         topBar.setFillColor(destColour);
@@ -1095,6 +1099,7 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
     {
         presenter.control.setPosition((PointF) presenter.control.propertyValue("end_loc"));
         presenter.selectArmIndex(0);
+        presenter.control.hide();
     }
 
     public void demoDayStartButton() throws Exception
