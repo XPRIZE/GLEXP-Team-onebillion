@@ -112,9 +112,10 @@ public class MainActivity extends Activity
             CONFIG_MENU_CLASS = "menuclass",
             CONFIG_SESSION_TIMEOUT = "sessionTimeout",
             CONFIG_UNIT_TIMEOUT_COUNT = "unitAttemptsCount",
-            CONFIG_DISALLOW_HOURS = "disallowHours",
-            CONFIG_SHOW_TEST_MENU = "showTestMenu";
-
+            CONFIG_SHOW_TEST_MENU = "showTestMenu",
+            CONFIG_SHOW_DATE_TIME_SETTINGS = "showDateTimeSettings",
+            CONFIG_SCREEN_MAX_TIMEOUT = "screenMaxTimeout",
+            CONFIG_DISALLOW_HOURS = "disallowHours";
     public static String TAG = "livecode";
     //
     public static OBSystemsManager systemsManager = new OBSystemsManager();
@@ -337,8 +338,39 @@ public class MainActivity extends Activity
                                             return;
                                         }
                                         //
-                                        boolean administratorServices = OBSystemsManager.sharedManager.usesAdministratorServices();
-                                        if (administratorServices)
+                                        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+                                        boolean gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+                                        boolean network_enabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+                                        if (gps_enabled || network_enabled)
+                                        {
+                                            Toast.makeText(MainActivity.mainActivity, "Please disable the location services before going back.", Toast.LENGTH_LONG).show();
+                                            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                                            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                                            startActivityForResult(intent, REQUEST_FIRST_SETUP_WIFI_BT_SCANNING);
+                                            return;
+                                        }
+                                        boolean scanningDisabled = OBSystemsManager.sharedManager.connectionManager.isScanningDisabled();
+                                        if (!scanningDisabled)
+                                        {
+                                            Toast.makeText(MainActivity.mainActivity, "Please disable all Wifi and Bluetooth scanning before going back.", Toast.LENGTH_LONG).show();
+                                            Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
+                                            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                                            startActivityForResult(intent, REQUEST_FIRST_SETUP_WIFI_BT_SCANNING);
+                                            return;
+                                        }
+                                        //
+                                        boolean writeSettingsPermission = OBSystemsManager.sharedManager.hasWriteSettingsPermission();
+                                        if (!writeSettingsPermission)
+                                        {
+                                            Toast.makeText(MainActivity.mainActivity, "Please allow this app to write settings before going back.", Toast.LENGTH_LONG).show();
+                                            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                                            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                                            intent.setData(Uri.parse("package:" + getPackageName()));
+                                            startActivityForResult(intent, REQUEST_FIRST_SETUP_PERMISSIONS);
+                                            return;
+                                        }
+                                        //
+                                        if (OBSystemsManager.sharedManager.shouldShowDateTimeSettings())
                                         {
                                             boolean dateTimeSetupComplete = getPreferences("dateTimeSetupComplete") != null;
                                             if (!dateTimeSetupComplete)
@@ -349,38 +381,11 @@ public class MainActivity extends Activity
                                                 startActivityForResult(intent, REQUEST_FIRST_SETUP_DATE_TIME);
                                                 return;
                                             }
-                                            LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-                                            boolean gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-                                            boolean network_enabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-                                            if (gps_enabled || network_enabled)
-                                            {
-                                                Toast.makeText(MainActivity.mainActivity, "Please disable the location services before going back.", Toast.LENGTH_LONG).show();
-                                                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                                                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                                                startActivityForResult(intent, REQUEST_FIRST_SETUP_WIFI_BT_SCANNING);
-                                                return;
-                                            }
-                                            boolean scanningDisabled = OBSystemsManager.sharedManager.connectionManager.isScanningDisabled();
-                                            if (!scanningDisabled)
-                                            {
-                                                Toast.makeText(MainActivity.mainActivity, "Please disable all Wifi and Bluetooth scanning before going back.", Toast.LENGTH_LONG).show();
-                                                Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
-                                                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                                                startActivityForResult(intent, REQUEST_FIRST_SETUP_WIFI_BT_SCANNING);
-                                                return;
-                                            }
-                                            //
-                                            boolean writeSettingsPermission = OBSystemsManager.sharedManager.hasWriteSettingsPermission();
-                                            if (!writeSettingsPermission)
-                                            {
-                                                Toast.makeText(MainActivity.mainActivity, "Please allow this app to write settings before going back.", Toast.LENGTH_LONG).show();
-                                                Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
-                                                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                                                intent.setData(Uri.parse("package:" + getPackageName()));
-                                                startActivityForResult(intent, REQUEST_FIRST_SETUP_PERMISSIONS);
-                                                return;
-                                            }
-                                            //
+                                        }
+                                        //
+                                        boolean administratorServices = OBSystemsManager.sharedManager.usesAdministratorServices();
+                                        if (administratorServices)
+                                        {
                                             boolean hasAdministratorPrivileges = OBSystemsManager.sharedManager.hasAdministratorPrivileges();
                                             if (!hasAdministratorPrivileges)
                                             {
@@ -405,19 +410,16 @@ public class MainActivity extends Activity
                                                         e.printStackTrace();
                                                     }
                                                 }
-//                Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
-//                intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, OBSystemsManager.sharedManager.AdministratorReceiver());
-//                intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "");
                                                 return;
                                             }
-                                            if (OBSystemsManager.sharedManager.shouldRequestDeviceOwner())
+                                        }
+                                        if (OBSystemsManager.sharedManager.shouldRequestDeviceOwner())
+                                        {
+                                            //
+                                            boolean isDeviceOwner = OBSystemsManager.sharedManager.isDeviceOwner();
+                                            if (!isDeviceOwner)
                                             {
-                                                //
-                                                boolean isDeviceOwner = OBSystemsManager.sharedManager.isDeviceOwner();
-                                                if (!isDeviceOwner)
-                                                {
-                                                    OBSystemsManager.sharedManager.requestDeviceOwner();
-                                                }
+                                                OBSystemsManager.sharedManager.requestDeviceOwner();
                                             }
                                         }
                                         //
@@ -913,7 +915,9 @@ public class MainActivity extends Activity
         Boolean allPermissionsOK = true;
         for (String permission : PERMISSION_ALL)
         {
-            allPermissionsOK = allPermissionsOK && checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED;
+            boolean permissionGranted = checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED;
+            MainActivity.log("MainActivity.Permission " + (permissionGranted ? "" : "NOT ") + "granted: " + permission);
+            allPermissionsOK = allPermissionsOK && permissionGranted;
         }
         if (!allPermissionsOK)
             ActivityCompat.requestPermissions(this, PERMISSION_ALL, REQUEST_ALL);

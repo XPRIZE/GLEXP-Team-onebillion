@@ -396,18 +396,6 @@ public class X_Counting5and10_S4 extends XPRZ_Generic_SelectCorrectObject
         }
     }
 
-    @Override
-    public void touchDownAtPoint (PointF pt, View v)
-    {
-        // do nothing
-    }
-
-    @Override
-    public void touchUpAtPoint (PointF pt, View v)
-    {
-        // do nothing
-    }
-
     public void fin()
     {
         goToCard(X_Counting5and10_S4g.class, "event4");

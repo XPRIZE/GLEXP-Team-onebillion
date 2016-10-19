@@ -55,6 +55,7 @@
             </intent-filter>
         </receiver>
 
+
         <service
             android:name="org.onebillion.xprz.utils.OBAutoStartActivityService"
             android:enabled="true"
