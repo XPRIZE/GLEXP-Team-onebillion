@@ -238,11 +238,10 @@ public class OBBrightnessManager
                 MainActivity.mainActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
                 if (OBSystemsManager.sharedManager.hasWriteSettingsPermission())
                 {
-                    int one_minute = 1000 * 60;
                     int valueForSettings = Math.round(maxBrightness() * 255);
                     Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, valueForSettings);
                     Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC);
-                    Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, one_minute);
+                    Settings.System.putInt(MainActivity.mainActivity.getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, getScreenMaxTimeout());
                     WindowManager.LayoutParams layoutpars = MainActivity.mainActivity.getWindow().getAttributes();
                     layoutpars.screenBrightness = maxBrightness();
                     MainActivity.mainActivity.getWindow().setAttributes(layoutpars);
@@ -285,11 +284,7 @@ public class OBBrightnessManager
         MainActivity.mainActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         MainActivity.mainActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         //
-        String maxTimeString = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SCREEN_MAX_TIMEOUT);
-        int maxTime = 60000; // 1 minute
-        if (maxTimeString != null) maxTime = Integer.parseInt(maxTimeString) * 1000;
-        //
-        setScreenTimeout(maxTime);
+        setScreenTimeout(getScreenMaxTimeout());
     }
 
 
@@ -301,6 +296,15 @@ public class OBBrightnessManager
         MainActivity.mainActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         //
         setScreenTimeout(1);
+    }
+
+
+    public int getScreenMaxTimeout()
+    {
+        String maxTimeString = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SCREEN_MAX_TIMEOUT);
+        int maxTime = 60000; // 1 minute
+        if (maxTimeString != null) maxTime = Integer.parseInt(maxTimeString) * 1000;
+        return maxTime;
     }
 
 }
