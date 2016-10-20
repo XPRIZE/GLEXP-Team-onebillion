@@ -1,36 +1,24 @@
 package org.onebillion.xprz.utils;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.app.ActivityManager;
-import android.app.AlertDialog;
 import android.app.DownloadManager;
-import android.app.PendingIntent;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.hardware.display.DisplayManager;
 import android.os.Build;
-import android.os.DeadObjectException;
 import android.os.Debug;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.view.Display;
-import android.view.DragEvent;
 import android.widget.Toast;
 
-import org.onebillion.xprz.R;
 import org.onebillion.xprz.controls.OBLabel;
 import org.onebillion.xprz.mainui.MainActivity;
 import org.onebillion.xprz.receivers.OBBatteryReceiver;
@@ -41,21 +29,16 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
-import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Created by pedroloureiro on 31/08/16.
@@ -76,7 +59,6 @@ public class OBSystemsManager
     public OBConnectionManager connectionManager;
 
     private boolean AppIsInForeground;
-    private final int keepInForegroundInterval = 1000;
     private boolean suspended;
     private boolean kioskModeActive = false;
 
