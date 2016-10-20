@@ -37,6 +37,7 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
     int currentDemoAudioIndex;
     int savedStatus;
     List<Object> savedReplayAudio;
+    OBAnimationGroup returnToOriginalPositionAnimation;
 
     public XPRZ_Generic_Event ()
     {
@@ -244,8 +245,12 @@ public class XPRZ_Generic_Event extends XPRZ_SectionController
 
     public void action_moveObjectToOriginalPosition (OBControl control, Boolean wait)
     {
+        if (returnToOriginalPositionAnimation != null)
+        {
+            returnToOriginalPositionAnimation.flags = OBAnimationGroup.ANIM_CANCEL;
+        }
         OBAnim anim = OBAnim.moveAnim((PointF) control.propertyValue("originalPosition"), control);
-        OBAnimationGroup.runAnims(Arrays.asList(anim), 0.3, wait, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+        returnToOriginalPositionAnimation = OBAnimationGroup.runAnims(Arrays.asList(anim), 0.3, wait, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
     }
 
 

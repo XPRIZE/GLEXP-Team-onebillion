@@ -1,8 +1,6 @@
 package org.onebillion.xprz.mainui.x_addtakeaway;
 
-import android.graphics.PathMeasure;
 import android.graphics.PointF;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.view.View;
 
@@ -11,13 +9,11 @@ import org.onebillion.xprz.controls.OBGroup;
 import org.onebillion.xprz.controls.OBPath;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic;
 import org.onebillion.xprz.mainui.generic.XPRZ_Generic_Event;
-import org.onebillion.xprz.mainui.generic.XPRZ_Generic_SelectCorrectObject;
 import org.onebillion.xprz.utils.OBAnim;
 import org.onebillion.xprz.utils.OBAnimationGroup;
 import org.onebillion.xprz.utils.OBUtils;
 import org.onebillion.xprz.utils.OB_Maths;
 
-import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -36,6 +32,7 @@ public class X_AddTakeAway_S7 extends XPRZ_Generic_Event
     OBControl correctCell;
     int number_plays, currentPosition, nextPlayValue, totalSnakes;
     Boolean tumbler_locked;
+    OBAnimationGroup counterMovementAnimation;
 
     public X_AddTakeAway_S7 ()
     {
@@ -493,7 +490,8 @@ public class X_AddTakeAway_S7 extends XPRZ_Generic_Event
                     tumbler_locked = false;
                     //
                     OBAnim moveAnim = OBAnim.moveAnim(closestCell.position(), counter);
-                    OBAnimationGroup.runAnims(Arrays.asList(moveAnim), 0.2f, true, OBAnim.ANIM_EASE_IN, this);
+                    if (counterMovementAnimation != null) counterMovementAnimation.flags = OBAnimationGroup.ANIM_CANCEL;
+                    counterMovementAnimation = OBAnimationGroup.runAnims(Arrays.asList(moveAnim), 0.2f, true, OBAnim.ANIM_EASE_IN, this);
                     //
                     OBPath path = (OBPath) closestCell.propertyValue("path");
                     OBControl destination = (OBControl) closestCell.propertyValue("destination");
@@ -509,8 +507,8 @@ public class X_AddTakeAway_S7 extends XPRZ_Generic_Event
                         OBAnim animToPath = OBAnim.moveAnim(path.firstPoint(), counter);
                         OBAnim anim = OBAnim.pathMoveAnim(counter, path.path(), false, 0.0f);
                         OBAnim animFromPath = OBAnim.moveAnim(destination.getWorldPosition(), counter);
-                        OBAnimationGroup.chainAnimations(Arrays.asList(Arrays.asList(animToPath),Arrays.asList(anim),Arrays.asList(animFromPath)), Arrays.asList(0.2f,1.5f,0.2f), true, Arrays.asList(OBAnim.ANIM_EASE_IN, OBAnim.ANIM_LINEAR, OBAnim.ANIM_EASE_OUT), 1, this);
-//                        OBAnimationGroup.runAnims(Arrays.asList(animToPath, anim, animFromPath), 1.5, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+                        if (counterMovementAnimation != null) counterMovementAnimation.flags = OBAnimationGroup.ANIM_CANCEL;
+                        counterMovementAnimation = OBAnimationGroup.chainAnimations(Arrays.asList(Arrays.asList(animToPath),Arrays.asList(anim),Arrays.asList(animFromPath)), Arrays.asList(0.2f,1.5f,0.2f), true, Arrays.asList(OBAnim.ANIM_EASE_IN, OBAnim.ANIM_LINEAR, OBAnim.ANIM_EASE_OUT), 1, this);
                         //
                         currentPosition = (Integer) destination.propertyValue("number");
                         counter.setProperty("originalPosition", counter.getWorldPosition());
@@ -552,7 +550,8 @@ public class X_AddTakeAway_S7 extends XPRZ_Generic_Event
                     //
                     currentCell = objectDict.get(String.format("cell_%d", currentPosition));
                     OBAnim moveAnim = OBAnim.moveAnim(currentCell.position(), counter);
-                    OBAnimationGroup.runAnims(Arrays.asList(moveAnim), 0.3, true, OBAnim.ANIM_EASE_IN, this);
+                    if (counterMovementAnimation != null) counterMovementAnimation.flags = OBAnimationGroup.ANIM_CANCEL;
+                    counterMovementAnimation = OBAnimationGroup.runAnims(Arrays.asList(moveAnim), 0.2, false, OBAnim.ANIM_EASE_IN, this);
                     waitForSecs(0.3);
                     //
                     playSceneAudio("INCORRECT", false);
@@ -574,7 +573,8 @@ public class X_AddTakeAway_S7 extends XPRZ_Generic_Event
                 //
                 currentCell = objectDict.get(String.format("cell_%d", currentPosition));
                 OBAnim moveAnim = OBAnim.moveAnim(currentCell.position(), counter);
-                OBAnimationGroup.runAnims(Arrays.asList(moveAnim), 0.1, true, OBAnim.ANIM_EASE_IN, this);
+                if (counterMovementAnimation != null) counterMovementAnimation.flags = OBAnimationGroup.ANIM_CANCEL;
+                counterMovementAnimation = OBAnimationGroup.runAnims(Arrays.asList(moveAnim), 0.2, false, OBAnim.ANIM_EASE_IN, this);
             }
         }
         catch (Exception e)

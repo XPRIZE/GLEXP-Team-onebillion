@@ -830,7 +830,7 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
     public void replayAudio ()
     {
         final X_TalkingHead sc = this;
-        if (!isReplayAudioPlaying)
+        if (!isReplayAudioPlaying && status() == STATUS_AWAITING_CLICK)
         {
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
@@ -876,7 +876,7 @@ public class X_TalkingHead extends XPRZ_Generic_WordsEvent
         }
         else
         {
-            MainActivity.log("X_TalkingHead: Replay Audio is still playing");
+            MainActivity.log("X_TalkingHead: Replay Audio is still playing or status is not waiting for click");
         }
     }
 
