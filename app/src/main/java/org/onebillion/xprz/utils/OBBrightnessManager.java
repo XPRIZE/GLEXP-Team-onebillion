@@ -8,6 +8,7 @@ import android.provider.Settings;
 import android.view.WindowManager;
 
 import org.onebillion.xprz.mainui.MainActivity;
+import org.onebillion.xprz.mainui.OBSectionController;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -95,18 +96,29 @@ public class OBBrightnessManager
             if (brightnessCheckRunnable == null)
             {
                 final long interval = checkInterval * 1000;
+                //
+                MainActivity.log("OBBrightnessManager.created brightnessCheckRunnable with " + interval + "ms interval");
+                //
                 brightnessCheckRunnable = new Runnable()
                 {
                     public void run ()
                     {
-                        if (updateBrightness(true))
+                        try
                         {
-                            OBSystemsManager.sharedManager.mainHandler.removeCallbacks(brightnessCheckRunnable);
-                            OBSystemsManager.sharedManager.mainHandler.postDelayed(this, interval);
-                        }
-                        else
-                        {
+                            if (updateBrightness(true))
+                            {
+                                OBSystemsManager.sharedManager.mainHandler.removeCallbacks(brightnessCheckRunnable);
+                                OBSystemsManager.sharedManager.mainHandler.postDelayed(this, interval);
+                            }
+                            else
+                            {
 //                        MainActivity.log("Brightness checker was paused");
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            MainActivity.log("OBBrightnessManager.brightnessCheckRunnable exception caught");
+                            e.printStackTrace();
                         }
                     }
                 };
@@ -132,6 +144,7 @@ public class OBBrightnessManager
 
     public void registeredTouchOnScreen ()
     {
+//        MainActivity.log("registeredTouchOnScreen");
         if (usesBrightnessAdjustment)
         {
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
@@ -157,9 +170,32 @@ public class OBBrightnessManager
         }
         if (suspended) return false;
         //
+        int status = MainActivity.mainViewController.topController().status();
+        if (status == OBSectionController.STATUS_DOING_DEMO || status == OBSectionController.STATUS_CHECKING || status == OBSectionController.STATUS_DRAGGING)
+        {
+            return loop && !paused;
+        }
+        //
+        if (OBAudioManager.audioManager.isPlaying())
+        {
+            long duration = (long) (OBAudioManager.audioManager.duration() * 1000);
+            MainActivity.log("OBBrightnessManager.brightnessCheckRunnable.audio is playing file with " + duration + "ms. ignoring brightness update");
+            try
+            {
+                Thread.sleep((duration));
+            }
+            catch (Exception e)
+            {
+                MainActivity.log("updateBrightness.Exception caught");
+                e.printStackTrace();
+            }
+            return loop && !paused;
+        }
+        //
+        long checkIntervalMS = checkInterval * 1000;
         long currentTimeStamp = System.currentTimeMillis();
         long elapsed = currentTimeStamp - lastTouchTimeStamp;
-        float percentage = (elapsed < checkInterval) ? maxBrightness() : (elapsed < checkInterval * 2) ? maxBrightness() / 2.0f : (elapsed < checkInterval * 3) ? maxBrightness() / 4.0f : 0.0f;
+        float percentage = (elapsed < checkIntervalMS) ? maxBrightness() : (elapsed < checkIntervalMS * 2) ? maxBrightness() / 2.0f : (elapsed < checkIntervalMS * 3) ? maxBrightness() / 4.0f : 0.0f;
         //
 //        MainActivity.log("updateBrightness : " + elapsed + " " + percentage);
         //
@@ -191,20 +227,20 @@ public class OBBrightnessManager
 
     public void onContinue ()
     {
-//        MainActivity.log("OBBrightnessManager.onContinue detected");
-        lastTouchTimeStamp = System.currentTimeMillis();
+        MainActivity.log("OBBrightnessManager.onContinue detected");
         suspended = false;
+        //
+        lastTouchTimeStamp = System.currentTimeMillis();
         runBrightnessCheck();
     }
 
 
     public void onResume ()
     {
-//        MainActivity.log("OBBrightnessManager.onResume detected");
-        lastTouchTimeStamp = System.currentTimeMillis();
+        MainActivity.log("OBBrightnessManager.onResume detected");
         paused = false;
         MainActivity.log("OBBrightnessManager.onResume --> restoring brightnessCheckRunnable to Handler");
-        runBrightnessCheck();
+        registeredTouchOnScreen();
     }
 
 

@@ -86,7 +86,8 @@ public class XPRZ_FatController extends OBFatController
             String token = OBPreferenceManager.getStringPreference(OBPreferenceManager.PREFERENCE_ML_TOKEN, db);
             String mlname = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_MASTER_LIST);
             OBXMLManager xmlManager = new OBXMLManager();
-            InputStream is = OBUtils.getInputStreamForPath(String.format("config/%s", mlname));
+//            InputStream is = OBUtils.getInputStreamForPath(String.format("config/%s", mlname));
+            InputStream is = OBUtils.getInputStreamForPath(String.format("masterlists/%s/units.xml", mlname));
             List<OBXMLNode> xml = xmlManager.parseFile(is);
             OBXMLNode rootNode = xml.get(0);
             List<OBXMLNode> masterList = new ArrayList<>();

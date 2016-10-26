@@ -629,10 +629,11 @@ public class MainActivity extends Activity
             }
         }
         highres.add(OBUtils.stringByAppendingPathComponent(genDir, "img/shared_4"));
-
+        //
         List imageSearchPath = new ArrayList(4);
         imageSearchPath.addAll(highres);
         imageSearchPath.addAll(lowres);
+        //
         return imageSearchPath;
     }
 

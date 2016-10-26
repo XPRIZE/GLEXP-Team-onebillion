@@ -473,12 +473,11 @@ public class X_miniapp6_menu extends XPRZ_Menu implements XPRZ_FatReceiver
     {
         lockScreen();
         String imgName = String.format("%s_big", unit.icon);
-
+        //
         if (OBImageManager.sharedImageManager().getImgPath(imgName) != null)
             bigIcon = loadImageWithName(imgName, new PointF(0, 0), new RectF(bounds()));
         else
             bigIcon = loadImageWithName("icon_default_big", new PointF(0, 0), new RectF(bounds()));
-
         bigIcon.setScale(applyGraphicScale(1));
         bigIcon.setRasterScale(applyGraphicScale(1));
         bigIcon.setProperty("unit", unit);

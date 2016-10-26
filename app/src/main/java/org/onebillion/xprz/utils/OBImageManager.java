@@ -52,7 +52,20 @@ public class OBImageManager
             suffixes.add((String) obj);
         }
         else
+        {
             suffixes = (List<String>) obj;
+        }
+        // check if it's icon for masterlist
+        String mlname = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_MASTER_LIST);
+        if (mlname != null)
+        {
+            for (String imageSuffix : suffixes)
+            {
+                String fullPath = String.format("masterlists/%s/icons/%s.%s", mlname, imageName, imageSuffix);
+                if (OBUtils.fileExistsAtPath(fullPath)) return fullPath;
+            }
+        }
+        //
         List<String> searchPaths = (List<String>) config.get(MainActivity.CONFIG_IMAGE_SEARCH_PATH);
         //
         for (String imageSuffix : suffixes)
@@ -63,6 +76,7 @@ public class OBImageManager
                 if (OBUtils.fileExistsAtPath(fullPath)) return fullPath;
             }
         }
+        //
         return null;
 //        AssetManager am = MainActivity.mainActivity.getAssets();
 //        for (String imageSuffix : suffixes)
