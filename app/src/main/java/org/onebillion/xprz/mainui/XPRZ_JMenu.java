@@ -177,7 +177,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
     {
         super.start();
         setStatus(STATUS_IDLE);
-        blankTextureID(2);
+        //blankTextureID(2);
         if (videoPlayer != null)
             videoPlayer.frameIsAvailable = false;
         if (!inited)
@@ -720,6 +720,8 @@ public class XPRZ_JMenu extends XPRZ_Menu
     {
         if (idx == 0 && !play)
             intro_video_state = ivs_before_play;
+        else
+            intro_video_state = ivs_act_normal;
         String tabstring = "video";
         OBXMLNode tab = tabXmlDict.get(tabstring);
         List<OBXMLNode> targs = tab.childrenOfType("video");
@@ -727,7 +729,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
         String movieName = OBUtils.stringByAppendingPathComponent(movieFolder,movienode.contents);
         OBControl placeHolder = objectDict.get("video_video");
         lockScreen();
-        blankTextureID(2);
+        //blankTextureID(2);
         if (videoPlayer == null)
         {
             RectF r = new RectF();
@@ -857,6 +859,8 @@ public class XPRZ_JMenu extends XPRZ_Menu
 
     public void touchUpAtPoint(PointF pto,View v)
     {
+        if (status() == 0)
+            return;
         if (currentTab.equals("video"))
         {
             if (videoScrollState > 0)
@@ -976,6 +980,8 @@ public class XPRZ_JMenu extends XPRZ_Menu
     }
     public void touchMovedToPoint(PointF pt,View v)
     {
+        if (status() == 0)
+            return;
         if (currentTab.equals("video"))
         {
             if (videoScrollState == VIDEO_SCROLL_TOUCH_DOWNED)
