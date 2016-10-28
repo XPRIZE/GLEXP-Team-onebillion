@@ -94,6 +94,18 @@ android {
                     appIcon: "@mipmap/icon_child"
             ]
         }
+        judgeNYMenu {
+            minSdkVersion 23
+            applicationId 'org.onebillion.xprz0.judgeny'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "onebillion - Judges Chichewa"
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settingsjny.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/icon_judges"
+                    ]
+        }
     }
 }
 

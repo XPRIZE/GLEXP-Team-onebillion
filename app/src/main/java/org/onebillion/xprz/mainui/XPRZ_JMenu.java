@@ -66,6 +66,7 @@ public class XPRZ_JMenu extends XPRZ_Menu
     String movieFolder;
     boolean slowingDown;
     List<OBXMLNode>masterList;
+    List<String>languages,languageNames;
     OBControl highlightedIcon = null;
     int chosenLanguage;
     boolean inited = false;
@@ -134,14 +135,14 @@ public class XPRZ_JMenu extends XPRZ_Menu
 
     void createToggleLabels()
     {
-        OBLabel label = new OBLabel("swahili",plainFont(),toggleTextSize);
+        OBLabel label = new OBLabel(languageNames.get(0).toUpperCase(),plainFont(),toggleTextSize);
         label.setColour(Color.argb((int)(0.8f * 255),255,255,255));
         OBControl placeHolder = objectDict.get("toggleleft");
         label.setPosition(placeHolder.position());
         label.setZPosition(placeHolder.zPosition()+10);
         attachControl(label);
         objectDict.put("toggletextl",label);
-        label = new OBLabel("english",plainFont(),toggleTextSize);
+        label = new OBLabel(languageNames.get(1).toUpperCase(),plainFont(),toggleTextSize);
         label.setColour(Color.argb((int)(0.8f * 255),255,255,255));
         placeHolder = objectDict.get("toggleright");
         label.setPosition(placeHolder.position());
@@ -152,7 +153,9 @@ public class XPRZ_JMenu extends XPRZ_Menu
     public void prepare()
     {
         super.prepare();
-        loadMasterList("sw");
+        languages = (List<String>)Config().get("languages");
+        languageNames = (List<String>)Config().get("languagenames");
+        loadMasterList(languages.get(0));
         saveConfig = (String)Config().get(MainActivity.CONFIG_APP_CODE);
         loadEvent("mastera");
         tabTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("tabtextsize")));
@@ -205,10 +208,11 @@ public class XPRZ_JMenu extends XPRZ_Menu
 
     String currentLang()
     {
-        if (chosenLanguage == 1)
+        return languages.get(chosenLanguage);
+        /*if (chosenLanguage == 1)
             return "en";
         else
-            return "sw";
+            return "sw";*/
     }
     void chooseToggle(int i)
     {

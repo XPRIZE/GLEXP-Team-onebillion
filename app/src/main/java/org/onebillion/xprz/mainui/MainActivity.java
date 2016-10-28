@@ -238,7 +238,7 @@ public class MainActivity extends Activity
             checkForFirstSetupAndRun();
             //glSurfaceView.controller = mainViewController;
 
-            ((ThreadPoolExecutor) AsyncTask.THREAD_POOL_EXECUTOR).setCorePoolSize(12);
+            ((ThreadPoolExecutor) AsyncTask.THREAD_POOL_EXECUTOR).setCorePoolSize(20);
         }
         catch (Exception e)
         {
