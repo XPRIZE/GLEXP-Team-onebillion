@@ -23,6 +23,8 @@
     <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
     <uses-permission android:name="android.permission.MANAGE_DEVICE_ADMINS"/>
     <uses-permission android:name="android.permission.READ_LOGS" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <uses-feature android:name="android.hardware.camera"/>
     <uses-feature android:name="android.hardware.camera.autofocus"/>
@@ -59,7 +61,8 @@
         <service
             android:name="org.onebillion.xprz.utils.OBAutoStartActivityService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true">
+        </service>
 
         <!--android:debuggable="true"-->
 

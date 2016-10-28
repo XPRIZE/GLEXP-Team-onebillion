@@ -3,11 +3,13 @@ package org.onebillion.xprz.utils;
 import android.app.ActivityManager;
 import android.app.DownloadManager;
 import android.app.admin.DevicePolicyManager;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.display.DisplayManager;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Debug;
 import android.os.Environment;
@@ -25,6 +27,7 @@ import org.onebillion.xprz.receivers.OBBatteryReceiver;
 import org.onebillion.xprz.receivers.OBDeviceAdminReceiver;
 import org.onebillion.xprz.receivers.OBSettingsContentObserver;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -33,12 +36,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by pedroloureiro on 31/08/16.
@@ -58,6 +67,7 @@ public class OBSystemsManager
     public OBSettingsContentObserver settingsContentObserver;
     public OBConnectionManager connectionManager;
 
+    private ReentrantLock backupLock;
     private boolean AppIsInForeground;
     private boolean suspended;
     private boolean kioskModeActive = false;
@@ -66,6 +76,7 @@ public class OBSystemsManager
     public OBSystemsManager ()
     {
         batteryReceiver = new OBBatteryReceiver();
+        //
         settingsContentObserver = new OBSettingsContentObserver(MainActivity.mainActivity, new Handler());
         brightnessManager = new OBBrightnessManager();
         expansionManager = new OBExpansionManager();
@@ -187,21 +198,27 @@ public class OBSystemsManager
             mainHandler = new Handler(MainActivity.mainActivity.getMainLooper());
         }
         //
-        MainActivity.log("OBSystemsManager.runChecks --> checkForConnection");
-        connectionManager.sharedManager.checkForConnection();
+        if (shouldConnectToWifiOnStartup())
+        {
+            MainActivity.log("OBSystemsManager.runChecks --> startupConnection");
+            connectionManager.sharedManager.startupConnection();
+        }
         //
         MainActivity.log("OBSystemsManager.runChecks --> SQL maintenance");
         OBSQLiteHelper.getSqlHelper().runMaintenance();
         //
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        if (shouldRunChecksumVerification())
         {
-            @Override
-            public void run () throws Exception
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
-                MainActivity.log("OBSystemsManager.runChecks --> checksum comparison");
-                runChecksumComparisonTest();
-            }
-        });
+                @Override
+                public void run () throws Exception
+                {
+                    MainActivity.log("OBSystemsManager.runChecks --> checksum comparison");
+                    runChecksumComparisonTest();
+                }
+            });
+        }
     }
 
 
@@ -942,4 +959,211 @@ public class OBSystemsManager
         String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SHOW_DATE_TIME_SETTINGS);
         return (value != null && value.equalsIgnoreCase("true"));
     }
+
+
+    public boolean shouldRunChecksumVerification()
+    {
+        String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_CHECKSUM_VERIFICATION);
+        return (value != null && value.equalsIgnoreCase("true"));
+    }
+
+    public boolean shouldConnectToWifiOnStartup()
+    {
+        String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_WIFI_CONNECT_ON_STARTUP);
+        return (value != null && value.equalsIgnoreCase("true"));
+    }
+
+
+    public boolean shouldSendBackupWhenConnected()
+    {
+        String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BACKUP_SEND_WHEN_CONNECTED);
+        return (value != null && value.equalsIgnoreCase("true"));
+    }
+
+    public String backup_Wifi_SSID()
+    {
+        return MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BACKUP_WIFI);
+    }
+
+    public URL backup_URL() throws MalformedURLException
+    {
+        String url = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BACKUP_URL);
+        return new URL("http://" + url);
+    }
+
+    public int backup_interval() // MINUTES
+    {
+        String value_string = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BACKUP_INTERVAL);
+        int value = Integer.parseInt(value_string);
+        return value;
+    }
+
+    public boolean backup_isRequired()
+    {
+        MainActivity.log("OBSystemsManager.backup_isRequired");
+        String value_string = MainActivity.mainActivity.getPreferences("lastBackupTimeStamp");
+        if (value_string == null) return true;
+        long value = Long.parseLong(value_string);
+        long currentTime = System.currentTimeMillis() / 1000;
+        long elapsed = currentTime - value;
+        boolean result = elapsed > backup_interval() * 60;
+        MainActivity.log("OBSystemsManager.backup_isRequired --> " + result);
+        return result;
+    }
+
+    public void backup_connectToWifiAndUploadDatabase ()
+    {
+        MainActivity.log("OBSystemsManager.backup_connectToWifiAndUploadDatabase");
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run () throws Exception
+            {
+                connectionManager.connectToNetwork(backup_Wifi_SSID(), "", new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run () throws Exception
+                    {
+                        backup_uploadDatabase();
+                    }
+                });
+            }
+        });
+    }
+
+    public Lock backup_getLock()
+    {
+        if (backupLock == null)
+        {
+            backupLock = new ReentrantLock();
+        }
+        return backupLock;
+    }
+
+    public void backup_uploadDatabase()
+    {
+        MainActivity.log("OBSystemsManager.backup_uploadDatabase attempting lock");
+        if (backup_getLock().tryLock())
+        {
+            try
+            {
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase.generating database backup");
+                final boolean freshBackup = true;
+                String fileURL = (freshBackup) ? OBSQLiteHelper.getSqlHelper().backupDatabase() : OBSQLiteHelper.getSqlHelper().getLatestDatabaseBackup();
+                if (fileURL == null) fileURL = OBSQLiteHelper.getSqlHelper().backupDatabase();
+                //
+                if (fileURL == null)
+                {
+                    MainActivity.log("OBSystemsManager.backup_uploadDatabase.could not generate a database backup");
+                    return;
+                }
+                //
+                File file = new File(fileURL);
+                URL url = backup_URL();
+                //
+                String attachmentName = "file";
+                String attachmentFileName = "database.sql";
+                String crlf = "\r\n";
+                String twoHyphens = "--";
+                String boundary = "*****";
+                //
+                HttpURLConnection httpUrlConnection = null;
+
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase.URL: " + url);
+                httpUrlConnection = (HttpURLConnection) url.openConnection();
+                httpUrlConnection.setUseCaches(false);
+                httpUrlConnection.setDoOutput(true);
+                //
+                httpUrlConnection.setRequestMethod("POST");
+                httpUrlConnection.setRequestProperty("Connection", "Keep-Alive");
+                httpUrlConnection.setRequestProperty("Cache-Control", "no-cache");
+                httpUrlConnection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+                //
+                DataOutputStream request = new DataOutputStream(httpUrlConnection.getOutputStream());
+                request.writeBytes(twoHyphens + boundary + crlf);
+                request.writeBytes("Content-Disposition: form-data; name=\"" + attachmentName + "\";filename=\"" + attachmentFileName + "\"" + crlf);
+                request.writeBytes(crlf);
+                //
+                int size = (int) file.length();
+                byte[] bytes = new byte[size];
+                BufferedInputStream buffer = new BufferedInputStream(new FileInputStream(file));
+                buffer.read(bytes, 0, bytes.length);
+                request.write(bytes);
+                //
+                request.writeBytes(crlf);
+                request.writeBytes(twoHyphens + boundary + twoHyphens + crlf);
+                request.flush();
+                request.close();
+                //
+                InputStream responseStream = new BufferedInputStream(httpUrlConnection.getInputStream());
+                BufferedReader responseStreamReader = new BufferedReader(new InputStreamReader(responseStream));
+                String line = "";
+                StringBuilder stringBuilder = new StringBuilder();
+
+                while ((line = responseStreamReader.readLine()) != null)
+                {
+                    stringBuilder.append(line).append("\n");
+                }
+                responseStreamReader.close();
+                //
+                String response = stringBuilder.toString();
+                //
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase response from server: " + response);
+                //
+                responseStream.close();
+                httpUrlConnection.disconnect();
+                //
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase updating lastBackupTimeStamp");
+                long currentTime = System.currentTimeMillis() / 1000;
+                MainActivity.mainActivity.addToPreferences("lastBackupTimeStamp", String.format("%d", currentTime));
+                //
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase disconnecting from wifi");
+                connectionManager.disconnectWifi();
+                //
+                OBUtils.runOnMainThread(new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run () throws Exception
+                    {
+                        Toast.makeText(MainActivity.mainActivity, "Database has been uploaded to the server", Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+            catch (Exception e)
+            {
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase exception caught");
+                e.printStackTrace();
+            }
+            MainActivity.log("OBSystemsManager.backup_uploadDatabase releasing lock");
+            backup_getLock().unlock();
+        }
+        else
+        {
+            MainActivity.log("OBSystemsManager.backup_uploadDatabase backup already in progress");
+        }
+    }
+
+
+    public static void unregisterReceiver(BroadcastReceiver receiver)
+    {
+        if (receiver != null)
+        {
+            try
+            {
+                MainActivity.mainActivity.unregisterReceiver(receiver);
+                MainActivity.log("OBSystemsManager.unregisterReceiver successfull");
+            }
+            catch (Exception e)
+            {
+                MainActivity.log("OBSystemsManager.unregisterReceiver NOT successfull --> not registered");
+            }
+        }
+        else
+        {
+            MainActivity.log("OBSystemsManager.unregisterReceiver NOT successfull --> not initialised");
+        }
+    }
+
+
+
 }

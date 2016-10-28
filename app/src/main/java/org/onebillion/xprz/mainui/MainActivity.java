@@ -97,6 +97,7 @@ public class MainActivity extends Activity
             CONFIG_DEBUG = "debug",
             CONFIG_DEFAULT_AUDIO_VOLUME = "defaultAudioVolume",
             CONFIG_MIN_AUDIO_VOLUME = "minimumAudioVolume",
+            CONFIG_WIFI_CONNECT_ON_STARTUP = "connectToWifiOnStartup",
             CONFIG_WIFI_SSID = "wifiSSID",
             CONFIG_WIFI_PASSWORD = "wifiPassword",
             CONFIG_USES_BRIGHTNESS_ADJUSTMENT = "usesBrightnessAdjustment",
@@ -115,6 +116,11 @@ public class MainActivity extends Activity
             CONFIG_SHOW_TEST_MENU = "showTestMenu",
             CONFIG_SHOW_DATE_TIME_SETTINGS = "showDateTimeSettings",
             CONFIG_SCREEN_MAX_TIMEOUT = "screenMaxTimeout",
+            CONFIG_CHECKSUM_VERIFICATION = "checksumVerification",
+            CONFIG_BACKUP_SEND_WHEN_CONNECTED = "backupSendWhenConnected",
+            CONFIG_BACKUP_WIFI = "backupWifi",
+            CONFIG_BACKUP_URL = "backupURL",
+            CONFIG_BACKUP_INTERVAL = "backupInterval",
             CONFIG_DISALLOW_HOURS = "disallowHours";
     public static String TAG = "livecode";
     //
@@ -135,8 +141,12 @@ public class MainActivity extends Activity
     };
 
     private static String[] PERMISSION_ALL = {
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.ACCESS_WIFI_STATE,
+            Manifest.permission.CHANGE_WIFI_STATE,
             Manifest.permission.RECORD_AUDIO,
             Manifest.permission.CAMERA
     };
@@ -943,7 +953,7 @@ public class MainActivity extends Activity
         SharedPreferences sharedPreferences = getSharedPreferences("preferences", Context.MODE_PRIVATE);
         String result = sharedPreferences.getString(key, null);
         //
-        log("Preferences get [" + key + "] --> " + result);
+        log("Preferences GET [" + key + "] --> " + result);
         //
         return result;
     }

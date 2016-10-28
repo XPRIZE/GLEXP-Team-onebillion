@@ -477,14 +477,14 @@ public class OBExpansionManager
                 catch (UnknownHostException e)
                 {
                     updateProgressDialog(e.getMessage(), true);
-                    checkIfSetupIsComplete();
+                    compareExpansionFilesAndInstallMissingOrOutdated();
                     return;
                 }
                 catch (Exception e)
                 {
                     e.printStackTrace();
                     updateProgressDialog(e.getMessage(), true);
-                    checkIfSetupIsComplete();
+                    compareExpansionFilesAndInstallMissingOrOutdated();
                     return;
                 }
             }
@@ -496,6 +496,7 @@ public class OBExpansionManager
 //        MainActivity.log("compareExpansionFilesAndInstallMissingOrOutdated");
         //
         checkForInternalExpansionFiles();
+        downloadQueue.clear();
         //
         if (internalExpansionFiles == null) return;
         //
@@ -757,16 +758,23 @@ public class OBExpansionManager
     }
 
 
-    public void updateProgressDialog(String message, Boolean killDialog)
+    public void updateProgressDialog(final String message, final Boolean killDialog)
     {
         if (waitDialog != null)
         {
-            waitDialog.setMessage(message);
-            //
-            if (killDialog)
+            OBUtils.runOnMainThread(new OBUtils.RunLambda()
             {
-                waitDialog.setCanceledOnTouchOutside(true);
-            }
+                @Override
+                public void run () throws Exception
+                {
+                    waitDialog.setMessage(message);
+                    //
+                    if (killDialog)
+                    {
+                        waitDialog.setCanceledOnTouchOutside(true);
+                    }
+                }
+            });
         }
     }
 

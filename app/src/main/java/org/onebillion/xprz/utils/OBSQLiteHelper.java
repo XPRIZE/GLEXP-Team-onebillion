@@ -254,7 +254,7 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
         }
     }
 
-    private void backupDatabase ()
+    public String backupDatabase ()
     {
         try
         {
@@ -282,6 +282,7 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
 //                Toast toast = Toast.makeText(MainActivity.mainActivity.getApplicationContext(), "Database backup successful!", Toast.LENGTH_SHORT);
 //                toast.setDuration(Toast.LENGTH_SHORT);
 //                toast.show();
+                return backupDB.getAbsolutePath();
             }
         }
         catch (Exception e)
@@ -292,6 +293,34 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
 //            toast.setDuration(Toast.LENGTH_SHORT);
 //            toast.show();
         }
+        return null;
+    }
+
+
+    public String getLatestDatabaseBackup()
+    {
+        File sd = new File(Environment.getExternalStorageDirectory(), "//onebillion//databases//");
+        sd.mkdirs();
+        //
+        File[] backupFiles = sd.listFiles();
+        Arrays.sort(backupFiles);
+        Collections.reverse(Arrays.asList(backupFiles));
+        //
+        File data = Environment.getDataDirectory();
+        //
+        if (sd.canWrite())
+        {
+            for (File backupDB : backupFiles)
+            {
+                String currentDBPath = "//data//" + MainActivity.mainActivity.getApplicationContext().getPackageName() + "//databases//" + DATABASE_NAME;
+                File currentDB = new File(data, currentDBPath);
+                if (currentDB.exists())
+                {
+                    return currentDB.getAbsolutePath();
+                }
+            }
+        }
+        return null;
     }
 
 

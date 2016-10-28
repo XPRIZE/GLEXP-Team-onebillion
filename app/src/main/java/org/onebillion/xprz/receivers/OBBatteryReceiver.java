@@ -29,11 +29,22 @@ public class OBBatteryReceiver extends BroadcastReceiver
 
         acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
         //
-        float battery = OBBatteryReceiver.getBatteryLevel();
-        //
+//        float battery = OBBatteryReceiver.getBatteryLevel();
 //        MainActivity.log("Battery Info: " + ((isCharging) ? "is charging" : "not charging") + " " + ((usbCharge) ? "USB" : "" + " ") + ((acCharge) ? "AC" : "") + " " + battery + "%");
         //
         OBSystemsManager.sharedManager.refreshStatus();
+        //
+        MainActivity.log(" chargePlug flag value: " + chargePlug);
+        //
+        if (chargePlug > 0 && OBSystemsManager.sharedManager.shouldSendBackupWhenConnected())
+        {
+            MainActivity.log("OBBatteryReceiver.Device is now connected to a power supply.");
+            if (OBSystemsManager.sharedManager.backup_isRequired())
+            {
+                MainActivity.log("OBBatteryReceiver.Backup is required. Connecting to backup WIFI.");
+                OBSystemsManager.sharedManager.backup_connectToWifiAndUploadDatabase();
+            }
+        }
     }
 
     public String printStatus()

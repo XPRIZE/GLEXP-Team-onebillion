@@ -83,6 +83,35 @@ public class XPRZ_TestMenu extends OBSectionController
             }
         });
 
+        Button connectToWifiButton = (Button)MainActivity.mainActivity.findViewById(R.id.connectWifiButton);
+        connectToWifiButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                OBSystemsManager.sharedManager.backup_connectToWifiAndUploadDatabase();
+            }
+        });
+
+
+        Button uploadBackupButton = (Button)MainActivity.mainActivity.findViewById(R.id.uploadBackup);
+        uploadBackupButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run () throws Exception
+                    {
+                        OBSystemsManager.sharedManager.backup_uploadDatabase();
+                    }
+                });
+            }
+        });
+
+
         Button refreshButton = (Button)MainActivity.mainActivity.findViewById(R.id.refreshButton);
         refreshButton.setOnClickListener(new View.OnClickListener()
         {
