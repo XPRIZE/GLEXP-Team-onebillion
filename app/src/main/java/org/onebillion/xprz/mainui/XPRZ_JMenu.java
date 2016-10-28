@@ -372,8 +372,13 @@ public class XPRZ_JMenu extends XPRZ_Menu
                 OBXMLNode levelnode = masterList.get(startidx++);
 
                 String src = levelnode.attributeStringValue("icon");
-                src = src + "_big";
-                OBControl im = loadImageWithName(src,pt,boundsf(),true);
+                String srcb = src + currentLang() +  "_big";
+                OBControl im = loadImageWithName(srcb,pt,boundsf(),true);
+                if (im == null)
+                {
+                    srcb = src +  "_big";
+                    im = loadImageWithName(srcb,pt,boundsf(),true);
+                }
                 im.setZPosition(zpos);
                 objectDict.put(tabstring+String.format("_iconi%d",idx+1),im);
                 String boxname = iconBoxStrings.get(idx);
