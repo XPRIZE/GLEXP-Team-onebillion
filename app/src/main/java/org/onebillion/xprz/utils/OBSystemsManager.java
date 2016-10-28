@@ -994,6 +994,11 @@ public class OBSystemsManager
     public int backup_interval() // MINUTES
     {
         String value_string = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BACKUP_INTERVAL);
+        if (value_string == null)
+        {
+            MainActivity.log("OBSystemsManager.backup_interval Please enter a value in settings.plist for " + MainActivity.CONFIG_BACKUP_INTERVAL + ". Using default 120mins");
+            return 120;
+        }
         int value = Integer.parseInt(value_string);
         return value;
     }

@@ -173,6 +173,11 @@ public class OBConnectionManager
     public void connectToNetwork(final String ssid, final String password, final OBUtils.RunLambda block)
     {
         MainActivity.log("OBConnectionManager.connectToNetwork [" + ssid + "] [" + password + "]");
+        if (ssid == null)
+        {
+            MainActivity.log("OBConnectionManager.connectToNetwork SSID is null. Aborting and not running completion block");
+            return;
+        }
         final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getSystemService(Context.WIFI_SERVICE);
         //
         if (!wfMgr.isWifiEnabled())
