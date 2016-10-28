@@ -134,41 +134,6 @@ public class OBConnectionManager
     }
 
 
-    public String getEncryptionType(String ssid){
-
-        String encryptType = "";
-        WifiManager wifi = (WifiManager) MainActivity.mainActivity.getSystemService(Context.WIFI_SERVICE);
-        List<ScanResult> networkList = wifi.getScanResults();
-        //
-        if (networkList != null) {
-            for (ScanResult network : networkList)
-            {
-                //check if current connected SSID
-                if (ssid.equals(network.SSID))
-                {
-                    //get capabilities of current connection
-                    String Capabilities = network.capabilities;
-                    MainActivity.log(network.SSID + " capabilities : " + Capabilities);
-
-                    if (Capabilities.contains("WPA2"))
-                    {
-                        encryptType = "WPA2";
-                    }
-                    else if (Capabilities.contains("WPA"))
-                    {
-                        encryptType = "WPA";
-                    }
-                    else if (Capabilities.contains("WEP"))
-                    {
-                        encryptType = "WEP";
-                    }
-                }
-            }
-        }
-        return encryptType;
-    }
-
-
 
     public void connectToNetwork(final String ssid, final String password, final OBUtils.RunLambda block)
     {
