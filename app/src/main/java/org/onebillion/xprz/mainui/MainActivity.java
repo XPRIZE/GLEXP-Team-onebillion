@@ -114,6 +114,7 @@ public class MainActivity extends Activity
             CONFIG_SESSION_TIMEOUT = "sessionTimeout",
             CONFIG_UNIT_TIMEOUT_COUNT = "unitAttemptsCount",
             CONFIG_SHOW_TEST_MENU = "showTestMenu",
+            CONFIG_SHOW_BACK_BUTTON = "showBackButton",
             CONFIG_SHOW_DATE_TIME_SETTINGS = "showDateTimeSettings",
             CONFIG_SCREEN_MAX_TIMEOUT = "screenMaxTimeout",
             CONFIG_CHECKSUM_VERIFICATION = "checksumVerification",
