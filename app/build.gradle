@@ -77,7 +77,7 @@ android {
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onebillion - Judges"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settingsj.plist"'
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_judge.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/icon_judges"
             ]

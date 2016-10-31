@@ -76,6 +76,8 @@ public class X_Counting4To6_S5 extends XPRZ_Generic_SelectCorrectObject
         action_animatePlatform(target, true);
         waitAudio();
         //
+        playAudioQueuedScene(currentEvent(), "FINAL", true);
+        //
         nextScene();
     }
 }
