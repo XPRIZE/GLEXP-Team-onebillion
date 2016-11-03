@@ -77,9 +77,21 @@ android {
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onebillion - Judges"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settingsj.plist"'
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_judge.plist"'
             manifestPlaceholders = [
-                    appIcon: "@mipmap/icon_judges"
+                    appIcon: "@mipmap/judges"
+            ]
+        }
+        judgeMenu_ny_ {
+            minSdkVersion 23
+            applicationId 'org.onebillion.xprz0.judges.ny'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "onebillion - Judges (chichewa)"
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_judge_ny.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/judges_ny"
             ]
         }
         childMenu {
@@ -94,17 +106,41 @@ android {
                     appIcon: "@mipmap/icon_child"
             ]
         }
-        judgeNYMenu {
+        childMenu_enGB_ {
             minSdkVersion 23
-            applicationId 'org.onebillion.xprz0.judges.ny'
+            applicationId 'org.onebillion.xprz0.child.en_GB'
             targetSdkVersion 23
             versionCode 1
             versionName '1.0'
-            resValue "string", "app_name", "onebillion - Judges Chichewa"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settingsjny.plist"'
+            resValue "string", "app_name", "onebillion - Child (english)"
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_child_en_GB.plist"'
             manifestPlaceholders = [
-                    appIcon: "@mipmap/icon_judges"
-                    ]
+                    appIcon: "@mipmap/child_en_gb"
+            ]
+        }
+        childMenu_ny_ {
+            minSdkVersion 23
+            applicationId 'org.onebillion.xprz0.child.ny'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "onebillion - Child (chichewa)"
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_child_ny.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/child_ny"
+            ]
+        }
+        childMenu_sw_ {
+            minSdkVersion 23
+            applicationId 'org.onebillion.xprz0.child.sw'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "onebillion - Child (swahili)"
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_child_sw.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/child_sw"
+            ]
         }
     }
 }

@@ -61,7 +61,7 @@ public class XPRZ_FatController extends OBFatController
     public int buttonFlags()
     {
         int result = OBMainViewController.SHOW_TOP_RIGHT_BUTTON | OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON | OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON;
-        if (showTestMenu()) result = result | OBMainViewController.SHOW_TOP_LEFT_BUTTON;
+        if (showBackButton()) result = result | OBMainViewController.SHOW_TOP_LEFT_BUTTON;
         return result;
     }
 
@@ -69,6 +69,13 @@ public class XPRZ_FatController extends OBFatController
     private boolean showTestMenu()
     {
         String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SHOW_TEST_MENU);
+        return (value != null && value.equalsIgnoreCase("true"));
+    }
+
+
+    private boolean showBackButton()
+    {
+        String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SHOW_BACK_BUTTON);
         return (value != null && value.equalsIgnoreCase("true"));
     }
 
