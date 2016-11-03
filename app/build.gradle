@@ -96,7 +96,7 @@ android {
         }
         judgeNYMenu {
             minSdkVersion 23
-            applicationId 'org.onebillion.xprz0.judgeny'
+            applicationId 'org.onebillion.xprz0.judges.ny'
             targetSdkVersion 23
             versionCode 1
             versionName '1.0'
