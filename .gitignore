@@ -12,3 +12,17 @@
 .idea/modules.xml
 
 projectFilesBackup1/.idea/workspace.xml
+
+app/src/main/java/org/onebillion/onecourse/mainui/generic/XPRZ_Generic.java
+
+app/src/main/java/org/onebillion/onecourse/mainui/generic/XPRZ_Generic_CompleteSequence.java
+
+app/src/main/java/org/onebillion/onecourse/mainui/generic/XPRZ_Generic_WordsEvent.java
+
+app/src/main/java/org/onebillion/onecourse/mainui/generic/XPRZ_Generic_Event.java
+
+app/src/main/java/org/onebillion/onecourse/mainui/generic/XPRZ_Generic_SelectCorrectObject.java
+
+app/src/main/java/org/onebillion/onecourse/mainui/generic/XPRZ_Generic_AddRemoveObjectsToScene.java
+
+app/src/main/java/org/onebillion/onecourse/mainui/generic/XPRZ_Generic_DragObjectsToCorrectPlace.java
