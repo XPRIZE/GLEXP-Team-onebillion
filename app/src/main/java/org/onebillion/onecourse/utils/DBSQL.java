@@ -86,6 +86,11 @@ public class DBSQL
         return database.query(table,columns.toArray(new String[columns.size()]),mapToWhereStatement(whereMap),mapToWhereValues(whereMap),null,null,orderBy);
     }
 
+    public Cursor doSelectOnTable(String table, List<String> columns, Map<String,String> whereMap, String groupBy , String orderBy)
+    {
+        return database.query(table,columns.toArray(new String[columns.size()]),mapToWhereStatement(whereMap),mapToWhereValues(whereMap),groupBy,null,orderBy);
+    }
+
     public long doDeleteOnTable(String table, Map<String,String> whereMap)
     {
         long result = database.delete(table,mapToWhereStatement(whereMap),mapToWhereValues(whereMap));

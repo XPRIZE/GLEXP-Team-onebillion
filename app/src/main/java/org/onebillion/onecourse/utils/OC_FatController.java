@@ -174,6 +174,30 @@ public class OC_FatController extends OBFatController
     }
 
 
+    public void loadUserDB(DBSQL db)
+    {
+        OBUser u = OBUser.lastUserFromDB(db);
+        if (u == null)
+        {
+            u = OBUser.initAndSaveUserInDB(db, "Student");
+            currentUser = u;
+            currentSessionId = -1;
+            prepareNewSessionInDB(db, u.userid);
+        } else
+        {
+            currentUser = u;
+            loadLastSessionFromDB(db, u.userid);
+            if(currentSessionId == -1)
+            {
+                prepareNewSessionInDB(db, u.userid);
+            }
+            else
+            {
+                loadLastUnitIndexFromDB(db);
+            }
+        }
+    }
+
     public void loadUser()
     {
         DBSQL db = null;
@@ -181,19 +205,7 @@ public class OC_FatController extends OBFatController
         {
 
             db = new DBSQL(true);
-            OBUser u = OBUser.lastUserFromDB(db);
-            if (u == null)
-            {
-                u = OBUser.initAndSaveUserInDB(db, "Student");
-                currentUser = u;
-                currentSessionId = -1;
-                prepareNewSessionInDB(db, u.userid);
-            } else
-            {
-                currentUser = u;
-                loadLastSessionFromDB(db, u.userid);
-                loadLastUnitIndexFromDB(db);
-            }
+            loadUserDB(db);
 
         }
         catch (Exception e)
@@ -620,9 +632,9 @@ public class OC_FatController extends OBFatController
             {
                 try
                 {
-                    MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
-                    //if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OC_TestEvent","oc-miniapp6",true,true,"test"))
-                    if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
+                   // MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
+                    if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OC_TestEvent","oc-childmenu",true,true,"test"))
+                   // if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
                         currentUnitInstance.sectionController = MainViewController().topController();
                         startUnitInstanceTimeout(currentUnitInstance);
@@ -750,7 +762,11 @@ public class OC_FatController extends OBFatController
         currentSessionEndTime = currentSessionStartTime = 0;
         try
         {
-            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_SESSIONS, Arrays.asList("MAX(sessionid) as sessionid", "starttime", "endtime"), whereMap);
+            //Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_SESSIONS, Arrays.asList("sessionid", "starttime", "endtime"), whereMap);
+            Cursor cursor = db.prepareRawQuery("SELECT SE.sessionid as sessionid, starttime, endtime FROM "+DBSQL.TABLE_SESSIONS+" AS SE " +
+                    "JOIN (SELECT userid, MAX(sessionid) AS sessionid FROM "+DBSQL.TABLE_SESSIONS+" WHERE userid = ? GROUP BY userid ) " +
+                    "TAB ON TAB.userid = SE.userid AND TAB.sessionid = SE.sessionid"
+                    ,Collections.singletonList(String.valueOf(userid)));
             if (cursor.moveToFirst())
             {
                 currentSessionStartTime = cursor.getLong(cursor.getColumnIndex("starttime"));
@@ -1027,8 +1043,8 @@ public class OC_FatController extends OBFatController
         Map<String,String> whereMap = new ArrayMap<>();
         whereMap.put("userid",String.valueOf(userid));
         whereMap.put("level",String.valueOf(level));
-        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_STARS, Arrays.asList("MAX(starnum) as starnum","colour"),whereMap);
-
+        Cursor cursor = db.prepareRawQuery("SELECT colour FROM "+DBSQL.TABLE_STARS+" WHERE userid = ? ORDER BY level DESC,starnum DESC LIMIT 1",
+                Collections.singletonList(String.valueOf(userid)));
         String result = null;
         if(cursor.moveToFirst())
             result = cursor.getString(cursor.getColumnIndex("colour"));
@@ -1150,8 +1166,60 @@ public class OC_FatController extends OBFatController
         return (value != null && value.equals("true"));
     }
 
-    public void checkAndResetTheProgress()
-    {}
+    public boolean currentPathComplete()
+    {
+        int maxUnitID = 0;
+        boolean unitCompleted = false;
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(false);
+            Map<String,String> whereMap = new ArrayMap<>();
+            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNITS, Collections.singletonList("MAX(unitid) as unitid"),null);
+            if(cursor.moveToFirst())
+                maxUnitID = cursor.getInt(cursor.getColumnIndex("unitid"));
+            cursor.close();
+
+            unitCompleted = unitCompletedByUser(db,maxUnitID);
+
+        }
+        catch(Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+        return unitCompleted;
+    }
+
+    public void resetProgress()
+    {
+        int maxUnitID = 0;
+        boolean unitCompleted = false;
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(true);
+            db.doDeleteOnTable(DBSQL.TABLE_STARS,null);
+            db.doDeleteOnTable(DBSQL.TABLE_UNIT_INSTANCES,null);
+            db.doDeleteOnTable(DBSQL.TABLE_SESSIONS,null);
+
+            firstUnstartedIndex = 0;
+            loadUserDB(db);
+        }
+        catch(Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+    }
 
 
     //borrowed from http://www.ben-daglish.net/moon.shtml
