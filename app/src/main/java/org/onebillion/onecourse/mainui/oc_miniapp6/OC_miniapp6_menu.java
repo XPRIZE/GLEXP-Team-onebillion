@@ -176,7 +176,7 @@ public class OC_miniapp6_menu extends OC_Menu implements OC_FatReceiver
             public void run() throws Exception
             {
 
-                if (bigIcon == null && (prepareNextEvent() || (lastUnit.level == 10 && lastUnit.awardStar == 10)))
+                if (bigIcon == null && (prepareNextEvent() || (lastUnit.awardStar == 10)))
                 {
                     refreshCurrentLabel();
                     lastCommand = -1;
@@ -1295,7 +1295,7 @@ public class OC_miniapp6_menu extends OC_Menu implements OC_FatReceiver
             }
         }
 
-        if (fatController.currentSessionFinished())
+        if (fatController.currentSessionFinished() || bigIcon == null)
         {
             prepareSectionForLastUnit(lastUnit, OC_FatController.OFC_SESSION_TIMED_OUT, true);
             demopresentertimeout();
