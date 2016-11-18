@@ -1150,6 +1150,10 @@ public class OC_FatController extends OBFatController
         return (value != null && value.equals("true"));
     }
 
+    public void checkAndResetTheProgress()
+    {}
+
+
     //borrowed from http://www.ben-daglish.net/moon.shtml
     public int getCurrentMoonPhase()
     {

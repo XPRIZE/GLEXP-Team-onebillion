@@ -1,4 +1,4 @@
-package org.onebillion.onecourse.mainui.oc_miniapp6;
+package org.onebillion.onecourse.mainui.oc_childmenu;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -34,7 +34,7 @@ import java.util.Map;
 /**
  * Created by michal on 08/09/16.
  */
-public class OC_miniapp6_menu extends OC_Menu implements OC_FatReceiver
+public class OC_ChildMenu extends OC_Menu implements OC_FatReceiver
 {
     private enum TouchTargets
     {
@@ -364,7 +364,7 @@ public class OC_miniapp6_menu extends OC_Menu implements OC_FatReceiver
                 public void run() throws Exception
                 {
                     stopAllAudio();
-                    MainViewController().pushViewController(OC_miniapp6_menu.class,false,false,null,true);
+                    MainViewController().pushViewController(OC_ChildMenu.class,false,false,null,true);
                 }
             });
             return true;

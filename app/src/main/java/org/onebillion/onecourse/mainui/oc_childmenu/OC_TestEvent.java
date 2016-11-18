@@ -1,4 +1,4 @@
-package org.onebillion.onecourse.mainui.oc_miniapp6;
+package org.onebillion.onecourse.mainui.oc_childmenu;
 
 import android.graphics.PointF;
 import android.view.View;
