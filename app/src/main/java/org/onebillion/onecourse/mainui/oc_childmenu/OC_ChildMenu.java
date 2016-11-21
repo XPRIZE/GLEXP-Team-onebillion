@@ -1,5 +1,7 @@
-package org.onebillion.onecourse.mainui.oc_miniapp6;
+package org.onebillion.onecourse.mainui.oc_childmenu;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PointF;
@@ -34,7 +36,7 @@ import java.util.Map;
 /**
  * Created by michal on 08/09/16.
  */
-public class OC_miniapp6_menu extends OC_Menu implements OC_FatReceiver
+public class OC_ChildMenu extends OC_Menu implements OC_FatReceiver
 {
     private enum TouchTargets
     {
@@ -166,6 +168,9 @@ public class OC_miniapp6_menu extends OC_Menu implements OC_FatReceiver
     @Override
     public void start()
     {
+        if(checkPathComplete())
+            return;
+
         if(checkCurrentCommand())
             return;
 
@@ -176,7 +181,7 @@ public class OC_miniapp6_menu extends OC_Menu implements OC_FatReceiver
             public void run() throws Exception
             {
 
-                if (bigIcon == null && (prepareNextEvent() || (lastUnit.level == 10 && lastUnit.awardStar == 10)))
+                if (bigIcon == null && (prepareNextEvent() || (lastUnit.awardStar == 10)))
                 {
                     refreshCurrentLabel();
                     lastCommand = -1;
@@ -300,6 +305,34 @@ public class OC_miniapp6_menu extends OC_Menu implements OC_FatReceiver
     }
 
 
+    public boolean checkPathComplete()
+    {
+        if(fatController.currentPathComplete())
+        {
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.mainActivity);
+            builder.setMessage(String.format("You have completed Level %d of 10.\n" +
+                    "\n" +
+                    "Further levels will be added in updates scheduled for 2017.\n" +
+                    "\n" +
+                    "Press Reset to restart onecourse.",lastUnit.level))
+                    .setTitle("End of level");
+            builder.setPositiveButton("RESET", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id)
+            {
+                fatController.resetProgress();
+                restartCurrentScreen();
+            }});
+            AlertDialog dialog = builder.create();
+            dialog.setCanceledOnTouchOutside(false);
+            dialog.show();
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     private void replayReminders() throws Exception
     {
         waitForSecs(1);
@@ -354,24 +387,29 @@ public class OC_miniapp6_menu extends OC_Menu implements OC_FatReceiver
         if((fatController.currentSessionLocked() && !currentSection.equalsIgnoreCase("locked")) ||
                 fatController.checkAndPrepareNewSession())
         {
-            setStatus(STATUS_EXITING);
-            killAnimations();
-            playAudio(null);
-            _aborting = true;
-            OBUtils.runOnMainThread(new OBUtils.RunLambda()
-            {
-                @Override
-                public void run() throws Exception
-                {
-                    stopAllAudio();
-                    MainViewController().pushViewController(OC_miniapp6_menu.class,false,false,null,true);
-                }
-            });
+            restartCurrentScreen();
             return true;
 
         }
         return false;
 
+    }
+
+    public void restartCurrentScreen()
+    {
+        setStatus(STATUS_EXITING);
+        killAnimations();
+        playAudio(null);
+        _aborting = true;
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                stopAllAudio();
+                MainViewController().pushViewController(OC_ChildMenu.class,false,false,null,true);
+            }
+        });
     }
 
     public void refreshCurrentLabel()
@@ -1295,7 +1333,7 @@ public class OC_miniapp6_menu extends OC_Menu implements OC_FatReceiver
             }
         }
 
-        if (fatController.currentSessionFinished())
+        if (fatController.currentSessionFinished() || bigIcon == null)
         {
             prepareSectionForLastUnit(lastUnit, OC_FatController.OFC_SESSION_TIMED_OUT, true);
             demopresentertimeout();
