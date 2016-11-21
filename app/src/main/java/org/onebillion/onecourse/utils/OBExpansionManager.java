@@ -299,6 +299,7 @@ public class OBExpansionManager
 
     private void mountAvailableExpansionFolders ()
     {
+        MainActivity.log("OBExpansionManager.mountAvailableExpansionFolders");
         String currentExternalAssets = MainActivity.mainActivity.getPreferences("externalAssets");
         if (currentExternalAssets != null)
         {
@@ -395,16 +396,28 @@ public class OBExpansionManager
 
     private void checkForInternalExpansionFiles()
     {
+        MainActivity.log("OBExpansionManager.checkForInternalExpansionFiles");
         if (internalExpansionFiles == null)
         {
+            MainActivity.log("OBExpansionManager.checkForInternalExpansionFiles InternalExpansionFiles are null. Initialising");
             internalExpansionFiles = new HashMap<String, OBExpansionFile>();
             mountAvailableExpansionFolders();
+        }
+        else
+        {
+            MainActivity.log("OBExpansionManager.checkForInternalExpansionFiles. InternalExpansionFiles are NOT null.");
+            for (String key : internalExpansionFiles.keySet())
+            {
+                MainActivity.log(key + " --> " + internalExpansionFiles.get(key).id + " " + internalExpansionFiles.get(key).bundle + " " + internalExpansionFiles.get(key).destination);
+            }
         }
     }
 
 
     public boolean checkForBundledOBB()
     {
+        if (internalOBBFile() == null) return false;
+        //
         final PackageManager pm = MainActivity.mainActivity.getPackageManager();
         List<ApplicationInfo> packages =  pm.getInstalledApplications(PackageManager.GET_META_DATA);
         for (ApplicationInfo packageInfo : packages)
@@ -514,53 +527,62 @@ public class OBExpansionManager
             else
             {
                 MainActivity.log("OBExpansionManager.checkForUpdates.there is NO bundled OBB");
+                checkForRemoteOBB();
             }
         }
         else
         {
-            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-            {
-                @Override
-                public void run () throws Exception
-                {
-                    try
-                    {
-                        URL url = new URL(expansionURL + "list.xml");
-                        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                        urlConnection.connect();
-                        OBXMLManager xmlManager = new OBXMLManager();
-                        List<OBXMLNode> xml = xmlManager.parseFile(urlConnection.getInputStream());
-                        OBXMLNode rootNode = xml.get(0);
-                        for (OBXMLNode xmlNode : rootNode.children)
-                        {
-                            String id = xmlNode.attributeStringValue("id");
-                            String bundle = xmlNode.attributeStringValue("bundle");
-                            String destination = xmlNode.attributeStringValue("destination");
-                            long version = xmlNode.attributeLongValue("version");
-                            if (id.length() > 0)
-                            {
-                                remoteExpansionFiles.put(id, new OBExpansionFile(id, bundle, destination, version, null));
-                            }
-                        }
-                        //
-                        compareExpansionFilesAndInstallMissingOrOutdated();
-                    }
-                    catch (UnknownHostException e)
-                    {
-                        updateProgressDialog(e.getMessage(), true);
-                        compareExpansionFilesAndInstallMissingOrOutdated();
-                        return;
-                    }
-                    catch (Exception e)
-                    {
-                        e.printStackTrace();
-                        updateProgressDialog(e.getMessage(), true);
-                        compareExpansionFilesAndInstallMissingOrOutdated();
-                        return;
-                    }
-                }
-            });
+            MainActivity.log("OBExpansionManager.checkForUpdates.the internal expansion files are NOT empty. checking for remote OBB");
+            checkForRemoteOBB();
         }
+    }
+
+    private void checkForRemoteOBB()
+    {
+        MainActivity.log("OBExpansionManager.checkForRemoteOBB");
+        final String expansionURL = (String) MainActivity.mainActivity.Config().get(MainActivity.CONFIG_EXPANSION_URL);
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run () throws Exception
+            {
+                try
+                {
+                    URL url = new URL(expansionURL + "list.xml");
+                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                    urlConnection.connect();
+                    OBXMLManager xmlManager = new OBXMLManager();
+                    List<OBXMLNode> xml = xmlManager.parseFile(urlConnection.getInputStream());
+                    OBXMLNode rootNode = xml.get(0);
+                    for (OBXMLNode xmlNode : rootNode.children)
+                    {
+                        String id = xmlNode.attributeStringValue("id");
+                        String bundle = xmlNode.attributeStringValue("bundle");
+                        String destination = xmlNode.attributeStringValue("destination");
+                        long version = xmlNode.attributeLongValue("version");
+                        if (id.length() > 0)
+                        {
+                            remoteExpansionFiles.put(id, new OBExpansionFile(id, bundle, destination, version, null));
+                        }
+                    }
+                    //
+                    compareExpansionFilesAndInstallMissingOrOutdated();
+                }
+                catch (UnknownHostException e)
+                {
+                    updateProgressDialog(e.getMessage(), true);
+                    compareExpansionFilesAndInstallMissingOrOutdated();
+                    return;
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                    updateProgressDialog(e.getMessage(), true);
+                    compareExpansionFilesAndInstallMissingOrOutdated();
+                    return;
+                }
+            }
+        });
     }
 
     private void compareExpansionFilesAndInstallMissingOrOutdated ()
