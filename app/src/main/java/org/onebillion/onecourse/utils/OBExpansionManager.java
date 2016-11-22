@@ -487,7 +487,9 @@ public class OBExpansionManager
 
     public String internalOBBFile()
     {
-        return MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BUNDLED_OBB_FILENAME);
+        String bundledFile = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BUNDLED_OBB_FILENAME);
+        if (bundledFile == null) return "";
+        return bundledFile;
     }
 
     public void checkForUpdates (OBUtils.RunLambda whenComplete)

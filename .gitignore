@@ -26,3 +26,5 @@ app/src/main/java/org/onebillion/onecourse/mainui/generic/XPRZ_Generic_SelectCor
 app/src/main/java/org/onebillion/onecourse/mainui/generic/XPRZ_Generic_AddRemoveObjectsToScene.java
 
 app/src/main/java/org/onebillion/onecourse/mainui/generic/XPRZ_Generic_DragObjectsToCorrectPlace.java
+
+*.apk
