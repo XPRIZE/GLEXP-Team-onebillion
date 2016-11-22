@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * Created by alan on 12/08/16.
  */
-public class OC_G3OC3Syl2 extends OC_G3OC3Syl1
+public class OC_G3x3syltwo extends OC_G3x3sylone
 {
     public void processWords()
     {
