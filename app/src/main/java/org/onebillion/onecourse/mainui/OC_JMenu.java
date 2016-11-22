@@ -5,6 +5,7 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.view.View;
+import android.widget.Toast;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
@@ -34,7 +35,7 @@ public class OC_JMenu extends OC_Menu
     List<OBControl> tabs;
     Map<String,OBXMLNode>tabXmlDict;
     public float tabTextSize,subheadtextSize,subsubheadtextSize,itemHeadTextSize,itemBodyTextSize,videoHeadTextSize,videoBodyTextSize,
-    toggleTextSize;
+    toggleTextSize,videoPreviewTextHeadingSize,videoPreviewSubTextSize;
     static Typeface plain,bold,italic,boldItalic;
     boolean scrollable;
     float originalY,maximumY,minimumY;
@@ -63,6 +64,7 @@ public class OC_JMenu extends OC_Menu
     List<OBXMLNode>masterList;
     List<String>languages,languageNames;
     OBControl highlightedIcon = null;
+    OBControl scrollMask = null;
     int chosenLanguage;
     boolean inited = false;
 
@@ -128,6 +130,11 @@ public class OC_JMenu extends OC_Menu
         }
     }
 
+    void showMessage()
+    {
+        int duration = Toast.LENGTH_SHORT;
+        Toast.makeText(MainActivity.mainActivity, "This is only a drill", duration).show();
+    }
     void createToggleLabels()
     {
         OBLabel label = new OBLabel(languageNames.get(0).toUpperCase(),plainFont(),toggleTextSize);
@@ -161,6 +168,8 @@ public class OC_JMenu extends OC_Menu
         videoHeadTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("videoheadtextsize")));
         videoBodyTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("videobodytextsize")));
         toggleTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("toggletextsize")));
+        videoPreviewTextHeadingSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("videopreviewtextheadingsize")));
+        videoPreviewSubTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("videopreviewsubtextsize")));
         tabs = sortedFilteredControls("tab.*");
         for (OBControl t : tabs)
             t.setZPosition(t.zPosition()+60);
@@ -183,6 +192,7 @@ public class OC_JMenu extends OC_Menu
             switchTo("video",false);
             inited = true;
         }
+        showMessage();
     }
 
     void setToggleTo(int i)
@@ -734,6 +744,11 @@ public class OC_JMenu extends OC_Menu
         OBControl placeHolder = objectDict.get("video_video");
         lockScreen();
         //blankTextureID(2);
+        if (videoPlayer != null)
+        {
+            detachControl(videoPlayer);
+            videoPlayer = null;
+        }
         if (videoPlayer == null)
         {
             RectF r = new RectF();
@@ -779,9 +794,21 @@ public class OC_JMenu extends OC_Menu
 
     public void setUpGroup()
     {
-        scrollGroup = new OBGroup(filterControls(currentTab+".*"));
-        scrollGroup.setShouldTexturise(false);
+        List<OBControl> kids = filterControls(currentTab+".*");
+        OBControl back = objectDict.get(currentTab+"_background");
+        kids.remove(back);
+        back.setZPosition(-0.1f);
+        scrollGroup = new OBGroup(kids);
+        //scrollGroup.setShouldTexturise(false);
+        if (scrollMask == null)
+        {
+            scrollMask = objectDict.get("maskscroll");
+            scrollMask.show();
+            detachControl(scrollMask);
+        }
         attachControl(scrollGroup);
+        if (scrollable)
+            scrollGroup.setScreenMaskControl(scrollMask);
     }
 
     public void switchTo(String s,boolean force)

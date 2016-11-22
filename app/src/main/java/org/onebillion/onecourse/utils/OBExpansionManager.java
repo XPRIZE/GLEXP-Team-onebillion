@@ -405,6 +405,8 @@ public class OBExpansionManager
 
     public boolean checkForBundledOBB()
     {
+        if (internalOBBFile() == null) return false;
+        //
         final PackageManager pm = MainActivity.mainActivity.getPackageManager();
         List<ApplicationInfo> packages =  pm.getInstalledApplications(PackageManager.GET_META_DATA);
         for (ApplicationInfo packageInfo : packages)
