@@ -137,30 +137,33 @@ public class OC_Wordcontroller extends OC_SectionController
             String wordID = w.soundid;
             String fileName = wordID.replace("fc_", "fc_syl_");
             List<List<Double>> timings = OBUtils.ComponentTimingsForWord(getLocalPath(fileName + ".etpa"));
-            playAudio(fileName);
-            long startTime = SystemClock.uptimeMillis();
-            int i = 0;
-            int rangelocation = 0,rangelength = 0;
-            for (OBSyllable syllable : w.syllables())
+            if (timings.size() > 0)
             {
-                double currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
-                List<Double> timing = timings.get(i);
-                double timeStart = timing.get(0);
-                double timeEnd = timing.get(1);
-                double waitTime = timeStart - currTime;
-                if (waitTime > 0.0)
-                    waitForSecs(waitTime);
-                rangelength = syllable.text.length();
-                highlightWrd(w,rangelocation,rangelocation+rangelength,true);
-                currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
-                waitTime = timeEnd - currTime;
-                if (waitTime > 0.0)
-                    waitForSecs(waitTime);
-                highlightWrd(w,rangelocation,rangelocation+rangelength,false);
+                playAudio(fileName);
+                long startTime = SystemClock.uptimeMillis();
+                int i = 0;
+                int rangelocation = 0,rangelength = 0;
+                for (OBSyllable syllable : w.syllables())
+                {
+                    double currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
+                    List<Double> timing = timings.get(i);
+                    double timeStart = timing.get(0);
+                    double timeEnd = timing.get(1);
+                    double waitTime = timeStart - currTime;
+                    if (waitTime > 0.0)
+                        waitForSecs(waitTime);
+                    rangelength = syllable.text.length();
+                    highlightWrd(w,rangelocation,rangelocation+rangelength,true);
+                    currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
+                    waitTime = timeEnd - currTime;
+                    if (waitTime > 0.0)
+                        waitForSecs(waitTime);
+                    highlightWrd(w,rangelocation,rangelocation+rangelength,false);
 
-                rangelocation += rangelength;
-                rangelength = 0;
-                i++;
+                    rangelocation += rangelength;
+                    rangelength = 0;
+                    i++;
+                }
             }
             waitForSecs(0.3f);
             highlightWrd(w,0,w.text.length(),true);

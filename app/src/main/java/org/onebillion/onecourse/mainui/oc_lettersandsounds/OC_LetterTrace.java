@@ -737,7 +737,7 @@ public class OC_LetterTrace extends OC_Wordcontroller
             waitForSecs(0.3f);
             if(currentAudio(demoN).size() > 1)
             {
-                playAudioQueuedScene(currentEvent(),demoN,false);
+                playAudioQueuedSceneIndex(currentEvent(),demoN,1,false);
                 waitForSecs(0.1f);
             }
         }
@@ -756,6 +756,7 @@ public class OC_LetterTrace extends OC_Wordcontroller
         float duration = p.length()  * 2 * durationMultiplier / theMoveSpeed;
         OBAnimationGroup.runAnims(Collections.singletonList(anim),duration,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
         playSfxAudio("ping",true);
+        waitAudio();
         movePointerForwards(-applyGraphicScale(100),-1);
     }
     public void demoj() throws Exception

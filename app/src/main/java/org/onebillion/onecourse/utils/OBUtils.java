@@ -922,6 +922,8 @@ public class OBUtils
     public static List<List<Double>> ComponentTimingsForWord (String xmlPath)
     {
         List<List<Double>> timings = new ArrayList<List<Double>>();
+        if (xmlPath == null)
+            return timings;
         //
         xmlPath = getFilePath(xmlPath);
         //
