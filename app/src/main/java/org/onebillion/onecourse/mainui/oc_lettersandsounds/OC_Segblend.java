@@ -312,7 +312,7 @@ public class OC_Segblend extends OC_Wordcontroller
             highlightAndSpeakComponents(wordLabels,words.get(i),currReadingWord.text,fileName);
 
 
-        highlightAndSpeakComponents(wordLabels,words.get(i),currReadingWord.text,fileName);
+        //highlightAndSpeakComponents(wordLabels,words.get(i),currReadingWord.text,fileName);
         waitForSecs(0.5f);
         playAudio("blend");
         joinComponents(wordLabels,leftOffsets,mainLabel);
