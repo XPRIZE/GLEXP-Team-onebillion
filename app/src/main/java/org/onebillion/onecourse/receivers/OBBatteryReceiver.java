@@ -31,17 +31,20 @@ public class OBBatteryReceiver extends BroadcastReceiver
 //        float battery = OBBatteryReceiver.getBatteryLevel();
 //        MainActivity.log("Battery Info: " + ((isCharging) ? "is charging" : "not charging") + " " + ((usbCharge) ? "USB" : "" + " ") + ((acCharge) ? "AC" : "") + " " + battery + "%");
         //
-        OBSystemsManager.sharedManager.refreshStatus();
-        //
-        MainActivity.log(" chargePlug flag value: " + chargePlug);
-        //
-        if (chargePlug > 0 && OBSystemsManager.sharedManager.shouldSendBackupWhenConnected())
+        if (OBSystemsManager.sharedManager != null)
         {
-            MainActivity.log("OBBatteryReceiver.Device is now connected to a power supply.");
-            if (OBSystemsManager.sharedManager.backup_isRequired())
+            OBSystemsManager.sharedManager.refreshStatus();
+            //
+            MainActivity.log(" chargePlug flag value: " + chargePlug);
+            //
+            if (chargePlug > 0 && OBSystemsManager.sharedManager.shouldSendBackupWhenConnected())
             {
-                MainActivity.log("OBBatteryReceiver.Backup is required. Connecting to backup WIFI.");
-                OBSystemsManager.sharedManager.backup_connectToWifiAndUploadDatabase();
+                MainActivity.log("OBBatteryReceiver.Device is now connected to a power supply.");
+                if (OBSystemsManager.sharedManager.backup_isRequired())
+                {
+                    MainActivity.log("OBBatteryReceiver.Backup is required. Connecting to backup WIFI.");
+                    OBSystemsManager.sharedManager.backup_connectToWifiAndUploadDatabase();
+                }
             }
         }
     }

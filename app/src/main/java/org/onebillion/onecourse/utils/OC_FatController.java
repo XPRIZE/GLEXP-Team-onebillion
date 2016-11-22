@@ -632,9 +632,9 @@ public class OC_FatController extends OBFatController
             {
                 try
                 {
-                   // MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
-                    if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OC_TestEvent","oc-childmenu",true,true,"test"))
-                   // if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
+                    MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
+//                    if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OC_TestEvent","oc-childmenu",true,true,"test"))
+                    if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
                         currentUnitInstance.sectionController = MainViewController().topController();
                         startUnitInstanceTimeout(currentUnitInstance);
