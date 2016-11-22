@@ -22,7 +22,7 @@ import java.util.Set;
 /**
  * Created by alan on 11/08/16.
  */
-public class OC_G3x3sylone extends OC_Grid33Sp
+public class OC_G3x3syl1 extends OC_Grid33Sp
 {
     Set syllableSet;
     int gridColour;
