@@ -375,7 +375,7 @@ public class OC_Crdw extends OC_Wordcontroller
             stroke2.setFillColor(0);
             bigCard.insertMember(stroke2,0,"stroke2");
             stroke2.setZPosition(13);
-
+            bigCard.setNeedsRetexture();
         }
         unlockScreen();
         waitForSecs(0.5f);
