@@ -1131,7 +1131,8 @@ public class OC_JMenu extends OC_Menu
             {
                 RectF r = convertRectFromControl(highlightedIcon.bounds(),highlightedIcon);
                 if (r.contains(pt.x,pt.y))
-                    highlightedIcon.highlight();
+                    //highlightedIcon.highlight();
+                    highlightIcon(highlightedIcon);
                 else
                     highlightedIcon.lowlight();
                 return;
@@ -1185,7 +1186,8 @@ public class OC_JMenu extends OC_Menu
         {
             final String parm = (String) c.propertyValue("params");
             setStatus(STATUS_BUSY);
-            c.highlight();
+            //c.highlight();
+            highlightIcon(c);
             String languageName = (String) c.propertyValue("lang");
             String configName = (String) c.propertyValue("config");
             if (configName == null)
@@ -1200,6 +1202,11 @@ public class OC_JMenu extends OC_Menu
                 setStatus(STATUS_IDLE);
 
         }
+    }
+
+    void highlightIcon(OBControl c)
+    {
+        c.setHighlightColour(Color.argb(100,0,0,0));
     }
     public void touchDownAtPoint(PointF pt, View v)
     {
@@ -1242,7 +1249,8 @@ public class OC_JMenu extends OC_Menu
         c = findIcon(pt);
         if (c != null)
         {
-            c.highlight();
+            //c.highlight();
+            highlightIcon(c);
             highlightedIcon = c;
             setStatus(STATUS_DRAGGING);
             return;
