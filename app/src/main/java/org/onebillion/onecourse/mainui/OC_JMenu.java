@@ -13,6 +13,7 @@ import org.onebillion.onecourse.controls.OBImage;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBTextLayer;
 import org.onebillion.onecourse.controls.OBVideoPlayer;
+import org.onebillion.onecourse.glstuff.OBRenderer;
 import org.onebillion.onecourse.utils.OBImageManager;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OBXMLManager;
@@ -177,9 +178,32 @@ public class OC_JMenu extends OC_Menu
         obl.setZPosition(obl.zPosition()+60);
         setUpTabTitles();
         createToggleLabels();
+        hideControls("toggle.*");
         setToggleTo(0);
     }
 
+    public void videoinit()
+    {
+        OBRenderer rn = MainActivity.mainActivity.renderer;
+
+        while (rn.colourProgram == null)
+            try
+            {
+                waitForSecs(0.1);
+            }
+            catch(Exception e)
+            {
+
+            }
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                switchTo("video",false);
+            }
+        });
+    }
     public void start()
     {
         super.start();
@@ -189,7 +213,14 @@ public class OC_JMenu extends OC_Menu
             videoPlayer.frameIsAvailable = false;
         if (!inited)
         {
-            switchTo("video",false);
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    videoinit();
+                }
+            });
             inited = true;
         }
         //showMessage();
