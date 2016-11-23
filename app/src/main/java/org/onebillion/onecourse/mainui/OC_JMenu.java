@@ -192,7 +192,7 @@ public class OC_JMenu extends OC_Menu
             switchTo("video",false);
             inited = true;
         }
-        showMessage();
+        //showMessage();
     }
 
     void setToggleTo(int i)
@@ -640,6 +640,12 @@ public class OC_JMenu extends OC_Menu
             deleteControls("video_selector");
             OBControl p1 = objectDict.get("video_preview1");
             OBControl p2 = objectDict.get("video_preview2");
+            OBControl r1 = objectDict.get("video_HeadingR");
+            OBControl r2 = objectDict.get("video_SubHeadingR");
+            float toplabelleft = r1.left() - p1.left();
+            float toplabeltop = r1.top() - p1.top();
+            float bottomlabelright = p1.right() - r2.right();
+            float bottomlabelbottom = p1.bottom() - r2.bottom();
             float videoPreviewX = p1.position().x;
             float videoPreviewTopY = p1.position().y;
             float videoPreviewYOffset = p2.position().y - videoPreviewTopY;
@@ -647,6 +653,7 @@ public class OC_JMenu extends OC_Menu
             int idx = 0;
             float zpos = objectDict.get(tabstring + "_background").zPosition() + 10;
             videoPreviewImages = new ArrayList<>();
+            List<OBControl> lstgp = new ArrayList<>();
             for (OBXMLNode v : targs)
             {
                 OBXMLNode imgnode = v.childrenOfType("preview").get(0);
@@ -663,14 +670,48 @@ public class OC_JMenu extends OC_Menu
                 im.setPosition(videoPreviewX,videoPreviewTopY + idx * videoPreviewYOffset);
                 im.setScale(videoPreviewHeight / im.height());
                 im.setZPosition(5);
+
+                im.setHighlightColour(Color.argb(100,0,0,0));
+
+                OBLabel label = new OBLabel(String.format("%d",idx+1),boldFont(),videoPreviewTextHeadingSize);
+                label.setColour(Color.WHITE);
+                label.setLeft(im.left() + toplabelleft);
+                label.setTop(im.top() + toplabeltop);
+                label.setZPosition(7);
+                lstgp.add(label);
+
+                OBXMLNode n = v.childrenOfType("thumbnaillabel").get(0);
+                OBLabel label2 = new OBLabel(n.contents,plainFont(),videoPreviewTextHeadingSize);
+                label2.setColour(Color.WHITE);
+                label2.setLeft(label.right() + toplabelleft);
+                label2.setTop(im.top() + toplabeltop);
+                label2.setZPosition(7);
+                lstgp.add(label2);
+
+                n = v.childrenOfType("language").get(0);
+                OBLabel label3 = new OBLabel(n.contents,plainFont(),videoPreviewSubTextSize);
+                label3.setColour(Color.WHITE);
+                label3.setRight(im.right() - bottomlabelright);
+                label3.setBottom(im.bottom() - bottomlabelbottom);
+                label3.setZPosition(7);
+                lstgp.add(label3);
+
+                n = v.childrenOfType("duration").get(0);
+                OBLabel label4 = new OBLabel(n.contents,plainFont(),videoPreviewSubTextSize);
+                label4.setColour(Color.WHITE);
+                label4.setRight(label3.left() - bottomlabelright);
+                label4.setBottom(label3.bottom());
+                label4.setZPosition(7);
+                lstgp.add(label4);
+
                 idx++;
             }
+            lstgp.addAll(videoPreviewImages);
             OBControl selector = new OBControl();
             selector.setBackgroundColor(col);
             selector.setFrame(videoPreviewImages.get(0).frame());
             selector.setZPosition(1);
             objectDict.put("numeracy_selector",selector);
-            List<OBControl> lstgp = new ArrayList<>(videoPreviewImages);
             lstgp.add(selector);
 
             OBControl mask = objectDict.get("video_mask");
