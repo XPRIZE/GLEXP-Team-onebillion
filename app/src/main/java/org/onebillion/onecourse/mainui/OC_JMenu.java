@@ -1,5 +1,7 @@
 package org.onebillion.onecourse.mainui;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
@@ -14,6 +16,8 @@ import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBTextLayer;
 import org.onebillion.onecourse.controls.OBVideoPlayer;
 import org.onebillion.onecourse.glstuff.OBRenderer;
+import org.onebillion.onecourse.utils.OBAnim;
+import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBImageManager;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OBXMLManager;
@@ -22,6 +26,7 @@ import org.onebillion.onecourse.utils.OB_Maths;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -133,8 +138,19 @@ public class OC_JMenu extends OC_Menu
 
     void showMessage()
     {
-        int duration = Toast.LENGTH_SHORT;
-        Toast.makeText(MainActivity.mainActivity, "This is only a drill", duration).show();
+        //int duration = Toast.LENGTH_SHORT;
+        //Toast.makeText(MainActivity.mainActivity, "This is only a drill", duration).show();
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.mainActivity);
+        builder.setMessage("This is just a demo app - not what the child sees.\n")
+                .setTitle("Message");
+        builder.setPositiveButton("Dismiss", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id)
+            {
+            }});
+        AlertDialog dialog = builder.create();
+        dialog.setCanceledOnTouchOutside(true);
+        dialog.show();
+
     }
     void createToggleLabels()
     {
@@ -201,6 +217,8 @@ public class OC_JMenu extends OC_Menu
             public void run() throws Exception
             {
                 switchTo("video",false);
+                showMessage();
+
             }
         });
     }
@@ -223,7 +241,6 @@ public class OC_JMenu extends OC_Menu
             });
             inited = true;
         }
-        //showMessage();
     }
 
     void setToggleTo(int i)
@@ -702,7 +719,7 @@ public class OC_JMenu extends OC_Menu
                 im.setScale(videoPreviewHeight / im.height());
                 im.setZPosition(5);
 
-                im.setHighlightColour(Color.argb(100,0,0,0));
+                im.setHighlightColour(Color.argb(80,0,0,0));
 
                 OBLabel label = new OBLabel(String.format("%d",idx+1),boldFont(),videoPreviewTextHeadingSize);
                 label.setColour(Color.WHITE);
@@ -748,7 +765,9 @@ public class OC_JMenu extends OC_Menu
             OBControl mask = objectDict.get("video_mask");
             OBControl mc = mask.copy();
             lstgp.add(mc);
-            videoPreviewGroup = new OBGroup(lstgp);
+            RectF r = OBGroup.frameUnion(lstgp);
+            r.bottom += applyGraphicScale(24);
+            videoPreviewGroup = new OBGroup(lstgp,r);
             videoPreviewGroup.removeMember(mc);
             attachControl(videoPreviewGroup);
             videoPreviewGroup.setZPosition(zpos);
@@ -862,6 +881,7 @@ public class OC_JMenu extends OC_Menu
         OBXMLNode tab = tabXmlDict.get(tabstring);
         populateVideoPreviews(tabstring,tab);
         setUpVideoPlayerForIndex(videoPreviewIdx,false);
+        scrollPreviewToVisible(videoPreviewIdx,false);
     }
 
     public void setUpGroup()
@@ -960,6 +980,44 @@ public class OC_JMenu extends OC_Menu
         return null;
     }
 
+    void scrollPreviewToVisible(int idx,boolean animate)
+    {
+        OBControl preview = videoPreviewImages.get(idx);
+        OBControl mask = objectDict.get("video_mask");
+        RectF maskFrame = convertRectToControl(mask.frame(),videoPreviewGroup);
+        float diff = 0;
+        if (preview.top() < maskFrame.top)
+        {
+            float requiredY = 2 * preview.height() + maskFrame.top;
+            diff = requiredY - preview.position().y;
+        }
+        else if (preview.bottom() > maskFrame.bottom)
+        {
+            float requiredY = maskFrame.bottom - 2 * preview.height();
+            diff = requiredY - preview.position().y;
+        }
+        if (diff == 0)
+            return;
+        float newY = videoPreviewGroup.position().y + diff;
+        if (newY > maximumY)
+            newY = maximumY;
+        else if (newY < minimumY)
+            newY = minimumY;
+        if (newY != videoPreviewGroup.position().y)
+        {
+            if (animate)
+            {
+                PointF pt = new PointF(videoPreviewGroup.position().x,newY);
+                OBAnim anim = OBAnim.moveAnim(pt,videoPreviewGroup);
+                OBAnimationGroup grp = new OBAnimationGroup();
+                registerAnimationGroup(grp,"videoscrollanim");
+                grp.applyAnimations(Collections.singletonList(anim),0.4,false,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
+            }
+            else
+                videoPreviewGroup.setPosition(videoPreviewGroup.position().x,newY);
+        }
+
+    }
     public void touchUpAtPoint(PointF pto,View v)
     {
         if (status() == 0)
@@ -981,6 +1039,7 @@ public class OC_JMenu extends OC_Menu
                             if (videoPlayer != null)
                                 videoPlayer.stop();
                             selectPreview(i);
+                            scrollPreviewToVisible(i,true);
                             setStatus(STATUS_IDLE);
                             setUpVideoPlayerForIndex(i,true);
                             return;
