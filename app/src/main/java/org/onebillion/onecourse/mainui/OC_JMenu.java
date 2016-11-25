@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.os.Handler;
 import android.view.View;
 import android.widget.Toast;
 
@@ -37,6 +38,10 @@ import java.util.Map;
 public class OC_JMenu extends OC_Menu
 {
     public static final String titles[] = {"video","reading","stories","numeracy","writing","design","tech"};
+    static float intervalSecs = 5 * 50;
+    long lastMessageShowTime;
+    private Runnable messageCheckRunnable;
+    private Handler messageCheckHandler = new Handler();
     String currentTab = null;
     List<OBControl> tabs;
     Map<String,OBXMLNode>tabXmlDict;
@@ -72,7 +77,7 @@ public class OC_JMenu extends OC_Menu
     OBControl highlightedIcon = null;
     OBControl scrollMask = null;
     int chosenLanguage;
-    boolean inited = false;
+    boolean inited = false,showingMessage = false;
 
     static Typeface plainFont()
     {
@@ -136,19 +141,50 @@ public class OC_JMenu extends OC_Menu
         }
     }
 
+    void scheduleMessageHandler()
+    {
+        long lastEventTime;
+        if (lastMessageShowTime > MainViewController().lastTouchActivity)
+            lastEventTime = lastMessageShowTime;
+        else
+            lastEventTime = MainViewController().lastTouchActivity;
+        long nextEventTime = lastEventTime + (long)(intervalSecs * 1000);
+        long interval = nextEventTime - System.currentTimeMillis();
+        if (interval > 0)
+        {
+            if (messageCheckRunnable == null)
+            {
+                messageCheckRunnable = new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        checkMessageNow();
+                    }
+                };
+            }
+            messageCheckHandler.removeCallbacks(messageCheckRunnable);
+            messageCheckHandler.postDelayed(messageCheckRunnable,interval);
+        }
+    }
+
     void showMessage()
     {
-        //int duration = Toast.LENGTH_SHORT;
-        //Toast.makeText(MainActivity.mainActivity, "This is only a drill", duration).show();
+        if (showingMessage)
+            return;
+        showingMessage = true;
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.mainActivity);
         builder.setMessage("This is just a demo app - not what the child sees.\n")
                 .setTitle("Message");
         builder.setPositiveButton("Dismiss", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id)
             {
+                showingMessage = false;
+                lastMessageShowTime = System.currentTimeMillis();
+                scheduleMessageHandler();
             }});
         AlertDialog dialog = builder.create();
-        dialog.setCanceledOnTouchOutside(true);
+        dialog.setCanceledOnTouchOutside(false);
         dialog.show();
 
     }
@@ -1325,6 +1361,21 @@ public class OC_JMenu extends OC_Menu
         }
     }
 
+    void checkMessageNow()
+    {
+        long lastEventTime;
+        if (lastMessageShowTime > MainViewController().lastTouchActivity)
+            lastEventTime = lastMessageShowTime;
+        else
+            lastEventTime = MainViewController().lastTouchActivity;
+        long untouchedInterval = System.currentTimeMillis() - lastEventTime;
+        float utsecs = untouchedInterval / 1000f;
+        if (utsecs > intervalSecs)
+            showMessage();
+        else
+            scheduleMessageHandler();
+    }
+
     public void onResume()
     {
         videoPlayer.onResume();
@@ -1332,6 +1383,7 @@ public class OC_JMenu extends OC_Menu
         {
             setUpVideoPlayerForIndex(videoPreviewIdx,false);
         }
+        checkMessageNow();
         super.onResume();
     }
 

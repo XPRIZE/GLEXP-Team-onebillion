@@ -36,6 +36,7 @@ public class OBMainViewController extends OBViewController
     public boolean navigating;
     protected Rect _buttonBoxRect = null;
     OBControl downButton;
+    public long lastTouchActivity = 0;
     private Integer currentTouchID;
 
     public OBMainViewController (Activity a)
@@ -177,8 +178,13 @@ public class OBMainViewController extends OBViewController
         return null;
     }
 
+    public void setTouchTime()
+    {
+        lastTouchActivity = System.currentTimeMillis();
+    }
     public void touchDownAtPoint (float x, float y, OBGLView v)
     {
+        setTouchTime();
         OBControl but = buttonForPoint(x, y);
         if (but == null)
             topController().touchDownAtPoint(new PointF(x, y), v);
@@ -191,6 +197,7 @@ public class OBMainViewController extends OBViewController
 
     public void touchUpAtPoint (float x, float y, OBGLView v)
     {
+        setTouchTime();
         final OBControl db = downButton;
         if (db != null)
             OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
