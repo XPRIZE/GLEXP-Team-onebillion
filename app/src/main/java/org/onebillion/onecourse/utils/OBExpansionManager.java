@@ -429,8 +429,9 @@ public class OBExpansionManager
                 if (possibleFile.exists())
                 {
                     MainActivity.log("OBExpansionManager. internal file exists.");
+
                     final File externalFile = new File(Environment.getExternalStorageDirectory(), "onebillion/" + internalOBBFile());
-                    if (!externalFile.exists())
+                    if (internalOBBFile().length() == 0 || !externalFile.exists() || !externalFile.isFile())
                     {
                         MainActivity.log("OBExpansionManager. external file does NOT exist. moving internal to external");
                         OBUtils.runOnMainThread(new OBUtils.RunLambda()
