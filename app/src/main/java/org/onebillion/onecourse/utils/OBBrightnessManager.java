@@ -173,15 +173,10 @@ public class OBBrightnessManager
         {
             long duration = (long) (OBAudioManager.audioManager.duration() * 1000);
             MainActivity.log("OBBrightnessManager.brightnessCheckRunnable.audio is playing file with " + duration + "ms. ignoring brightness update");
-            try
-            {
-                Thread.sleep((duration));
-            }
-            catch (Exception e)
-            {
-                MainActivity.log("updateBrightness.Exception caught");
-                e.printStackTrace();
-            }
+            //
+            OBSystemsManager.sharedManager.mainHandler.removeCallbacks(brightnessCheckRunnable);
+            OBSystemsManager.sharedManager.mainHandler.postDelayed(brightnessCheckRunnable, duration);
+            //
             return loop && !paused;
         }
         //
