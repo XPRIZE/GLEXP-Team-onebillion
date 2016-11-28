@@ -963,6 +963,8 @@ public class OC_ChildMenu extends OC_Menu implements OC_FatReceiver
 
     public void animateStarFlyToBar(final OBControl star, int starNum) throws Exception
     {
+        if(starNum > 10)
+            starNum = 10;
         OBGroup target = (OBGroup) objectDict.get(String.format("top_bar_star_%d", starNum));
         float startScale = star.scale();
         playSfxAudio("starfly", false);
