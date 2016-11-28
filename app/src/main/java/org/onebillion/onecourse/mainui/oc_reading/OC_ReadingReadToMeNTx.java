@@ -68,7 +68,7 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
                 {
                 }
                 return null;
-            }}.execute();
+            }}.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
     }
 
     public void loadTemplate()
