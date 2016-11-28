@@ -72,6 +72,7 @@ public class OBConnectionManager
         }
         else
         {
+            MainActivity.log("OBConnectionManager.wifi is already setup, continuing.");
             if (block != null)
             {
                 try

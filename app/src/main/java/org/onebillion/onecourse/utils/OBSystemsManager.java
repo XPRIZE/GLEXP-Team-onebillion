@@ -2,6 +2,7 @@ package org.onebillion.onecourse.utils;
 
 import android.app.ActivityManager;
 import android.app.DownloadManager;
+import android.app.ProgressDialog;
 import android.app.admin.DevicePolicyManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -84,6 +85,38 @@ public class OBSystemsManager
         memoryUsageMap = new HashMap<String, List<String>>();
         //
         sharedManager = this;
+    }
+
+    public void checkForConnectivity(final OBUtils.RunLambda block)
+    {
+        if (this.connectionManager.wifiSSID() != null && this.connectionManager.wifiPassword() != null)
+        {
+            OBExpansionManager.sharedManager.connectToWifiDialog();
+            this.connectionManager.startupConnection(block);
+        }
+        else
+        {
+            if (block != null)
+            {
+                try
+                {
+                    MainActivity.log("OBSystemsManager.checkForConnectivity. running completion block");
+                    OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run () throws Exception
+                        {
+                            block.run();
+                        }
+                    });
+                }
+                catch (Exception e)
+                {
+                    MainActivity.log("OBSystemsManager.checkForConnectivity.exception caught while running completion block");
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     public boolean hasWriteSettingsPermission()

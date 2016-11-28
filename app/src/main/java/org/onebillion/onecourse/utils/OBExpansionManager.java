@@ -17,6 +17,7 @@ import android.os.Environment;
 import android.os.storage.OnObbStateChangeListener;
 import android.os.storage.StorageManager;
 import android.service.notification.StatusBarNotification;
+import android.support.v4.app.NotificationCompatSideChannelService;
 import android.widget.Toast;
 
 import org.apache.commons.io.FileUtils;
@@ -61,7 +62,7 @@ public class OBExpansionManager
         {
             if (state == OnObbStateChangeListener.ERROR_COULD_NOT_MOUNT)
             {
-                updateProgressDialog("Error: could not mount OBB file", true);
+                updateProgressDialogWithSpinner("Error: could not mount OBB file", true);
                 MainActivity.log("Could not mount OBB file " + path);
                 //
                 checkIfSetupIsComplete();
@@ -106,25 +107,7 @@ public class OBExpansionManager
                             unpackFileTotal = result.size();
                             unpackFileCounter = 0;
                             //
-                            OBUtils.runOnMainThread(new OBUtils.RunLambda()
-                            {
-                                @Override
-                                public void run () throws Exception
-                                {
-                                    if (waitDialog != null)
-                                    {
-                                        waitDialog.dismiss();
-                                        waitDialog.cancel();
-                                    }
-                                    waitDialog = new ProgressDialog(MainActivity.mainActivity);
-                                    waitDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                                    waitDialog.setCanceledOnTouchOutside(false);
-                                    waitDialog.setMessage("Copying assets to internal storage");
-                                    waitDialog.setProgress(unpackFileCounter);
-                                    waitDialog.setMax(unpackFileTotal);
-                                    waitDialog.show();
-                                }
-                            });
+                            updateProgressDialogWithProgress("Copying assets to internal storage", unpackFileCounter, unpackFileTotal);
                             //
                             MainActivity.log("OBExpansionManager.eventListener: copying " + unpackFileTotal + " files/folders");
                             //
@@ -205,7 +188,7 @@ public class OBExpansionManager
             }
             else if (state == OnObbStateChangeListener.ERROR_PERMISSION_DENIED)
             {
-                updateProgressDialog("Error: could not mount OBB file. Permission Denied.", true);
+                updateProgressDialogWithSpinner("Error: could not mount OBB file. Permission Denied.", true);
                 MainActivity.log("Permission Denied " + path);
                 //
                 checkIfSetupIsComplete();
@@ -216,14 +199,14 @@ public class OBExpansionManager
             }
             else if (state == OnObbStateChangeListener.ERROR_INTERNAL)
             {
-                updateProgressDialog("Error: could not mount OBB file. Internal Error.", true);
+                updateProgressDialogWithSpinner("Error: could not mount OBB file. Internal Error.", true);
                 MainActivity.log("Internal Error " + path);
                 //
                 checkIfSetupIsComplete();
             }
             else
             {
-                updateProgressDialog("Error: could not mount OBB file. Unkown Error.", true);
+                updateProgressDialogWithSpinner("Error: could not mount OBB file. Unkown Error.", true);
                 MainActivity.log("Unknown Error " + path);
                 //
                 checkIfSetupIsComplete();
@@ -338,29 +321,8 @@ public class OBExpansionManager
 
     public void waitForDownload ()
     {
-        try
-        {
-            OBUtils.runOnMainThread(new OBUtils.RunLambda()
-                                    {
-                                        @Override
-                                        public void run () throws Exception
-                                        {
-                                            if (waitDialog == null)
-                                            {
-                                                waitDialog = new ProgressDialog(MainActivity.mainActivity);
-                                            }
-                                            waitDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                                            updateProgressDialog("Downloading assets. Please wait...", false);
-                                            waitDialog.setCanceledOnTouchOutside(false);
-                                            waitDialog.show();
-                                        }
-                                    }
-            );
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
+        MainActivity.log("OBExpansionManager.waitForDownload");
+        updateProgressDialogWithSpinner("Contacting server", false);
     }
 
     public List<File> getExternalExpansionFolders ()
@@ -419,6 +381,28 @@ public class OBExpansionManager
         }
     }
 
+    public void connectToWifiDialog()
+    {
+        MainActivity.log("OBExpansionManager.connectToWifiDialog");
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run () throws Exception
+            {
+                if ( waitDialog != null)
+                {
+                    waitDialog.dismiss();
+                    waitDialog.cancel();
+                }
+                waitDialog = new ProgressDialog(MainActivity.mainActivity);
+                waitDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                waitDialog.setCanceledOnTouchOutside(false);
+                waitDialog.setMessage("Attempting to connect to Wifi. Please wait");
+                waitDialog.show();
+            }
+        });
+    }
+
 
     public boolean checkForBundledOBB()
     {
@@ -440,23 +424,8 @@ public class OBExpansionManager
                     if (internalOBBFile().length() == 0 || !externalFile.exists() || !externalFile.isFile())
                     {
                         MainActivity.log("OBExpansionManager. external file does NOT exist. moving internal to external");
-                        OBUtils.runOnMainThread(new OBUtils.RunLambda()
-                        {
-                            @Override
-                            public void run () throws Exception
-                            {
-                                if (waitDialog != null)
-                                {
-                                    waitDialog.dismiss();
-                                    waitDialog.cancel();
-                                }
-                                waitDialog = new ProgressDialog(MainActivity.mainActivity);
-                                waitDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                                waitDialog.setCanceledOnTouchOutside(false);
-                                waitDialog.setMessage("First run detected. Setting up OBB file. Please wait");
-                                waitDialog.show();
-                            }
-                        });
+                        updateProgressDialogWithSpinner("First run detected. Setting up OBB file. Please wait.", false);
+                        //
                         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                         {
                             @Override
@@ -579,14 +548,14 @@ public class OBExpansionManager
                 }
                 catch (UnknownHostException e)
                 {
-                    updateProgressDialog(e.getMessage(), true);
+                    updateProgressDialogWithSpinner(e.getMessage(), true);
                     compareExpansionFilesAndInstallMissingOrOutdated();
                     return;
                 }
                 catch (Exception e)
                 {
                     e.printStackTrace();
-                    updateProgressDialog(e.getMessage(), true);
+                    updateProgressDialogWithSpinner(e.getMessage(), true);
                     compareExpansionFilesAndInstallMissingOrOutdated();
                     return;
                 }
@@ -641,23 +610,7 @@ public class OBExpansionManager
 
     private void unpackOBB (final String filePath)
     {
-        OBUtils.runOnMainThread(new OBUtils.RunLambda()
-        {
-            @Override
-            public void run () throws Exception
-            {
-                if (waitDialog != null)
-                {
-                    waitDialog.dismiss();
-                    waitDialog.cancel();
-                }
-                waitDialog = new ProgressDialog(MainActivity.mainActivity);
-                waitDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                waitDialog.setCanceledOnTouchOutside(false);
-                waitDialog.setMessage("Mounting OBB file");
-                waitDialog.show();
-            }
-        });
+        this.updateProgressDialogWithSpinner("Mounting OBB file", false);
         //
         MainActivity.log("OBExpansionManager.unpackOBB: " + filePath);
         //
@@ -755,10 +708,12 @@ public class OBExpansionManager
             final long downloadID = downloadManager.enqueue(request);
             downloadQueue.put(downloadID, fileName);
             //
-            new Thread(new Runnable()
+            stopProgressDialog();
+            //
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
                 @Override
-                public void run ()
+                public void run () throws Exception
                 {
                     boolean downloading = true;
                     while (downloading)
@@ -779,20 +734,12 @@ public class OBExpansionManager
                                     downloading = false;
                                 }
                                 //
-                                final int dl_progress = (int) ((double) bytes_downloaded / (double) bytes_total * 100f);
+                                int max = Math.round(bytes_total / (1024f * 1024f));
+                                int current = Math.round(bytes_downloaded / (1024f * 1024f));
+                                OBExpansionManager.sharedManager.updateProgressDialogWithProgress("Downloading assets", current, max);
                                 //
-                                OBUtils.runOnMainThread(new OBUtils.RunLambda()
-                                {
-                                    @Override
-                                    public void run () throws Exception
-                                    {
-                                        waitDialog.setMax(Math.round(bytes_total / (1024f * 1024f)));
-                                        waitDialog.setProgress(Math.round(bytes_downloaded / (1024f * 1024f)));
-                                        //waitDialog.setProgress(dl_progress);
-                                    }
-                                });
-                                //
-                                // MainActivity.log("OBExpansionManager.downloadOBB: " + bytes_downloaded + " " + bytes_total + " " + dl_progress);
+                                //final int dl_progress = (int) ((double) bytes_downloaded / (double) bytes_total * 100f);
+                                //MainActivity.log("OBExpansionManager.downloadOBB: " + bytes_downloaded + " " + bytes_total + " " + dl_progress);
                             }
                             cursor.close();
                             //
@@ -802,10 +749,11 @@ public class OBExpansionManager
                         {
                             MainActivity.log("OBExpansionManager.downloadOBB: exception caught");
                             e.printStackTrace();
+                            downloading = false;
                         }
                     }
                 }
-            }).start();
+            });
         }
         else
         {
@@ -853,25 +801,66 @@ public class OBExpansionManager
     }
 
 
-    public void updateProgressDialog(final String message, final Boolean killDialog)
+    public void updateProgressDialogWithSpinner(final String message, final Boolean killDialog)
     {
-        if (waitDialog != null)
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
         {
-            OBUtils.runOnMainThread(new OBUtils.RunLambda()
+            @Override
+            public void run () throws Exception
             {
-                @Override
-                public void run () throws Exception
+                if (waitDialog == null)
                 {
-                    waitDialog.setMessage(message);
-                    //
-                    if (killDialog)
-                    {
-                        waitDialog.setCanceledOnTouchOutside(true);
-                    }
+                    waitDialog = new ProgressDialog(MainActivity.mainActivity);
                 }
-            });
-        }
+                waitDialog = new ProgressDialog(MainActivity.mainActivity);
+                waitDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                waitDialog.setCanceledOnTouchOutside(killDialog);
+                waitDialog.setMessage(message);
+                waitDialog.show();
+            }
+        });
     }
+
+
+    public void updateProgressDialogWithProgress(final String message, final int value, final int max)
+    {
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run () throws Exception
+            {
+                if (waitDialog == null)
+                {
+                    waitDialog = new ProgressDialog(MainActivity.mainActivity);
+                }
+                waitDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                waitDialog.setCanceledOnTouchOutside(false);
+                waitDialog.setMessage(message);
+                waitDialog.setProgress(value);
+                waitDialog.setMax(max);
+                waitDialog.show();
+            }
+        });
+    }
+
+
+    public void stopProgressDialog()
+    {
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run () throws Exception
+            {
+                if (waitDialog != null)
+                {
+                    waitDialog.dismiss();
+                    waitDialog.cancel();
+                }
+                waitDialog = null;
+            }
+        });
+    }
+
 
 //    protected void moveDownloadedFileToInternalStorage (String filePath) throws IOException
 //    {

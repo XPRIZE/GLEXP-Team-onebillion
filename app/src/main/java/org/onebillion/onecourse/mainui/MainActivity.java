@@ -471,13 +471,13 @@ public class MainActivity extends Activity
 
     public void checkForUpdatesAndLoadMainViewController()
     {
-        MainActivity.log("MainActivity.checkForUpdatesAndLoadMainViewController.starting up wifi");
-        OBSystemsManager.sharedManager.connectionManager.startupConnection(new OBUtils.RunLambda()
+        MainActivity.log("MainActivity.checkForUpdatesAndLoadMainViewController");
+        OBSystemsManager.sharedManager.checkForConnectivity(new OBUtils.RunLambda()
         {
             @Override
             public void run () throws Exception
             {
-                MainActivity.log("MainActivity.checkForUpdatesAndLoadMainViewController");
+                MainActivity.log("MainActivity.checkForUpdatesAndLoadMainViewController.checking for updates in the ExpansionManager");
                 OBExpansionManager.sharedManager.checkForUpdates(new OBUtils.RunLambda()
                 {
                     @Override
