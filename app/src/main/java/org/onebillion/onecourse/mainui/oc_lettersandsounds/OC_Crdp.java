@@ -87,7 +87,8 @@ public class OC_Crdp extends OC_Wordcontroller
             c.setPosition(position(i*2));
             String wordid = words.get(i);
             c.setProperty("wordid",wordid);
-            OBControl im = loadImageWithName(wordid,new PointF(0, 0),boundsf(),false);
+            OBWord rw = (OBWord) wordDict.get(wordid);
+            OBControl im = loadImageWithName(rw.imageName,new PointF(0, 0),boundsf(),false);
             if(im != null)
             {
                 c.insertMember(im,0,"im");
@@ -105,7 +106,6 @@ public class OC_Crdp extends OC_Wordcontroller
             OBGroup c2 = (OBGroup) c.copy();
             c2.setPosition(position(i*2+1));
 
-            OBWord rw = (OBWord) wordDict.get(wordid);
             OBLabel lab = new OBLabel(rw.text,tf,bigTextSize);
             lab.setColour(Color.BLACK);
             c.insertMember(lab,-1,"lab");
