@@ -199,7 +199,7 @@ public class OBSystemsManager
         if (shouldConnectToWifiOnStartup())
         {
             MainActivity.log("OBSystemsManager.runChecks --> startupConnection");
-            connectionManager.sharedManager.startupConnection();
+            connectionManager.sharedManager.startupConnection(null);
         }
         //
         MainActivity.log("OBSystemsManager.runChecks --> SQL maintenance");

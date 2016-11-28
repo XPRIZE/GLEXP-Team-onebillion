@@ -471,25 +471,33 @@ public class MainActivity extends Activity
 
     public void checkForUpdatesAndLoadMainViewController()
     {
-        MainActivity.log("MainActivity.checkForUpdatesAndLoadMainViewController");
-        OBExpansionManager.sharedManager.checkForUpdates(new OBUtils.RunLambda()
+        MainActivity.log("MainActivity.checkForUpdatesAndLoadMainViewController.starting up wifi");
+        OBSystemsManager.sharedManager.connectionManager.startupConnection(new OBUtils.RunLambda()
         {
             @Override
             public void run () throws Exception
             {
-                try
+                MainActivity.log("MainActivity.checkForUpdatesAndLoadMainViewController");
+                OBExpansionManager.sharedManager.checkForUpdates(new OBUtils.RunLambda()
                 {
-                    MainActivity.log("MainActivity.startup block. runChecks");
-                    OBSystemsManager.sharedManager.runChecks();
-                    MainActivity.log("MainActivity.startup block. memory dump");
-                    OBSystemsManager.sharedManager.printMemoryStatus("Before mainViewController");
-                    MainActivity.log("MainActivity.startup block. creating mainViewControlller");
-                    mainViewController = new OBMainViewController(MainActivity.mainActivity);
-                }
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
+                    @Override
+                    public void run () throws Exception
+                    {
+                        try
+                        {
+                            MainActivity.log("MainActivity.startup block. runChecks");
+                            OBSystemsManager.sharedManager.runChecks();
+                            MainActivity.log("MainActivity.startup block. memory dump");
+                            OBSystemsManager.sharedManager.printMemoryStatus("Before mainViewController");
+                            MainActivity.log("MainActivity.startup block. creating mainViewControlller");
+                            mainViewController = new OBMainViewController(MainActivity.mainActivity);
+                        }
+                        catch (Exception e)
+                        {
+                            e.printStackTrace();
+                        }
+                    }
+                });
             }
         });
     }

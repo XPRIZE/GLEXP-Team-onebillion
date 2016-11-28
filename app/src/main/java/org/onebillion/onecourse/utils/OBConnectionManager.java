@@ -43,7 +43,7 @@ public class OBConnectionManager
         return MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_WIFI_PASSWORD);
     }
 
-    public void startupConnection ()
+    public void startupConnection (final OBUtils.RunLambda block)
     {
         MainActivity.log("OBConnectionManager.checkForConnection");
         ConnectivityManager connManager = (ConnectivityManager) MainActivity.mainActivity.getSystemService(MainActivity.CONNECTIVITY_SERVICE);
@@ -66,9 +66,32 @@ public class OBConnectionManager
                 {
                     MainActivity.log("Wifi not connected. Attempting to activate and connect");
                     // attempt to connect to wifi
-                    connectToNetwork(wifiSSID(), wifiPassword(), null);
+                    connectToNetwork(wifiSSID(), wifiPassword(), block);
                 }
             });
+        }
+        else
+        {
+            if (block != null)
+            {
+                try
+                {
+                    MainActivity.log("OBConnectionManager.startupConnection. running completion block");
+                    OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run () throws Exception
+                        {
+                            block.run();
+                        }
+                    });
+                }
+                catch (Exception e)
+                {
+                    MainActivity.log("OBConnectionManager.startupConnection.exception caught while running completion block");
+                    e.printStackTrace();
+                }
+            }
         }
     }
 

@@ -340,16 +340,22 @@ public class OBExpansionManager
     {
         try
         {
-            if (waitDialog == null)
-            {
-                waitDialog = new ProgressDialog(MainActivity.mainActivity);
-            }
-//            waitDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            waitDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            updateProgressDialog("Downloading assets. Please wait...", false);
-//            waitDialog.setIndeterminate(true);
-            waitDialog.setCanceledOnTouchOutside(false);
-            waitDialog.show();
+            OBUtils.runOnMainThread(new OBUtils.RunLambda()
+                                    {
+                                        @Override
+                                        public void run () throws Exception
+                                        {
+                                            if (waitDialog == null)
+                                            {
+                                                waitDialog = new ProgressDialog(MainActivity.mainActivity);
+                                            }
+                                            waitDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                                            updateProgressDialog("Downloading assets. Please wait...", false);
+                                            waitDialog.setCanceledOnTouchOutside(false);
+                                            waitDialog.show();
+                                        }
+                                    }
+            );
         }
         catch (Exception e)
         {
