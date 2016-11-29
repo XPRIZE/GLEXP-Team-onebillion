@@ -142,16 +142,20 @@ public class OBConnectionManager
     public boolean setBluetooth (boolean enable)
     {
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        boolean isEnabled = bluetoothAdapter.isEnabled();
-        if (enable && !isEnabled)
+        if (bluetoothAdapter != null)
         {
-            return bluetoothAdapter.enable();
+            boolean isEnabled = bluetoothAdapter.isEnabled();
+            if (enable && !isEnabled)
+            {
+                return bluetoothAdapter.enable();
+            }
+            else if (!enable && isEnabled)
+            {
+                return bluetoothAdapter.disable();
+            }
+            return true;
         }
-        else if (!enable && isEnabled)
-        {
-            return bluetoothAdapter.disable();
-        }
-        return true;
+        return false;
     }
 
 

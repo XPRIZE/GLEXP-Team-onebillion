@@ -379,6 +379,9 @@ public class OBSystemsManager
         {
             MainActivity.mainActivity.unregisterReceiver(OBExpansionManager.sharedManager.downloadCompleteReceiver);
         }
+        //
+        OBExpansionManager.sharedManager.stopProgressDialog();
+        //
         OBBrightnessManager.sharedManager.onPause();
         //
 //        OBSQLiteHelper.getSqlHelper().emergencyRestore();

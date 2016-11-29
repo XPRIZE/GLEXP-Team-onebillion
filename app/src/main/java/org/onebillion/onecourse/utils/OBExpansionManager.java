@@ -77,6 +77,8 @@ public class OBExpansionManager
             {
                 MainActivity.log("Mounted OBB file " + path);
                 //
+                stopProgressDialog();
+                //
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
                     @Override
@@ -302,11 +304,8 @@ public class OBExpansionManager
             setupComplete = true;
             MainActivity.log("ExpansionManager has downloaded all the files it requires to continue.");
             //
-            if (waitDialog != null)
-            {
-                waitDialog.dismiss();
-                waitDialog.cancel();
-            }
+            stopProgressDialog();
+            //
             if (completionBlock != null)
             {
                 MainActivity.log("OBExpansionManager.calling onContinue");
@@ -433,7 +432,10 @@ public class OBExpansionManager
                             {
                                 try
                                 {
+                                    MainActivity.log("OBExpansionManager.copying internal file to external location");
                                     FileUtils.copyFile(possibleFile, externalFile);
+                                    //
+                                    MainActivity.log("OBExpansionManager.unpacking bundled OBB file in external location");
                                     unpackOBB(externalFile.getAbsolutePath());
                                 }
                                 catch (Exception e)
@@ -644,8 +646,7 @@ public class OBExpansionManager
                         {
                             MainActivity.log("OBExpansionManager.unpackOBB: unable to find specified OBB file: " + filePath);
                             //
-                            waitDialog.dismiss();
-                            waitDialog.cancel();
+                            stopProgressDialog();
                             //
                             Toast.makeText(MainActivity.mainActivity, "Unable to find specified OBB file", Toast.LENGTH_LONG).show();
                             //
@@ -811,8 +812,8 @@ public class OBExpansionManager
                 if (waitDialog == null)
                 {
                     waitDialog = new ProgressDialog(MainActivity.mainActivity);
+                    MainActivity.log("WaitDialog " + waitDialog + " created");
                 }
-                waitDialog = new ProgressDialog(MainActivity.mainActivity);
                 waitDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                 waitDialog.setCanceledOnTouchOutside(killDialog);
                 waitDialog.setMessage(message);
@@ -832,6 +833,7 @@ public class OBExpansionManager
                 if (waitDialog == null)
                 {
                     waitDialog = new ProgressDialog(MainActivity.mainActivity);
+                    MainActivity.log("WaitDialog " + waitDialog + " created");
                 }
                 waitDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
                 waitDialog.setCanceledOnTouchOutside(false);
@@ -853,6 +855,7 @@ public class OBExpansionManager
             {
                 if (waitDialog != null)
                 {
+                    MainActivity.log("WaitDialog " + waitDialog + " being killed");
                     waitDialog.dismiss();
                     waitDialog.cancel();
                 }

@@ -485,10 +485,15 @@ public class MainActivity extends Activity
                     {
                         try
                         {
+                            MainActivity.log("MainActivity. killing progress dialog (if it's still on screen)");
+                            OBExpansionManager.sharedManager.stopProgressDialog();
+                            //
                             MainActivity.log("MainActivity.startup block. runChecks");
                             OBSystemsManager.sharedManager.runChecks();
+                            //
                             MainActivity.log("MainActivity.startup block. memory dump");
                             OBSystemsManager.sharedManager.printMemoryStatus("Before mainViewController");
+                            //
                             MainActivity.log("MainActivity.startup block. creating mainViewControlller");
                             mainViewController = new OBMainViewController(MainActivity.mainActivity);
                         }
@@ -811,13 +816,13 @@ public class MainActivity extends Activity
         fatController = (OBFatController) cons.newInstance();
         //
         // Setting the default value for volume
-        String volume = configStringForKey(CONFIG_DEFAULT_AUDIO_VOLUME);
-        if (volume != null)
-        {
-            float volumePercentage = Float.parseFloat(volume) / (float) 100;
-            AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-            am.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(am.getStreamMaxVolume(AudioManager.STREAM_MUSIC) * volumePercentage), 0);
-        }
+//        String volume = configStringForKey(CONFIG_DEFAULT_AUDIO_VOLUME);
+//        if (volume != null)
+//        {
+//            float volumePercentage = Float.parseFloat(volume) / (float) 100;
+//            AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+//            am.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(am.getStreamMaxVolume(AudioManager.STREAM_MUSIC) * volumePercentage), 0);
+//        }
     }
 
     public void updateGraphicScale(float newWidth, float newHeight)
