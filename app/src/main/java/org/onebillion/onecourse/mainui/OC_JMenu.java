@@ -38,7 +38,7 @@ import java.util.Map;
 public class OC_JMenu extends OC_Menu
 {
     public static final String titles[] = {"video","reading","stories","numeracy","writing","design","tech"};
-    static float intervalSecs = 5 * 50;
+    static float intervalSecs = 60 * 60;
     long lastMessageShowTime;
     private Runnable messageCheckRunnable;
     private Handler messageCheckHandler = new Handler();
@@ -1131,6 +1131,12 @@ public class OC_JMenu extends OC_Menu
                             highlightedIcon = null;
                         }
                     });
+                }
+                else
+                {
+                    highlightedIcon.lowlight();
+                    highlightedIcon = null;
+
                 }
 
             }
