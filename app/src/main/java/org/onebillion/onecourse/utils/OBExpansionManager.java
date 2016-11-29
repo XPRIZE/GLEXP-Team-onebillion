@@ -77,8 +77,6 @@ public class OBExpansionManager
             {
                 MainActivity.log("Mounted OBB file " + path);
                 //
-                stopProgressDialog();
-                //
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
                     @Override
@@ -109,6 +107,7 @@ public class OBExpansionManager
                             unpackFileTotal = result.size();
                             unpackFileCounter = 0;
                             //
+                            stopProgressDialog();
                             updateProgressDialogWithProgress("Copying assets to internal storage", unpackFileCounter, unpackFileTotal);
                             //
                             MainActivity.log("OBExpansionManager.eventListener: copying " + unpackFileTotal + " files/folders");
@@ -383,23 +382,7 @@ public class OBExpansionManager
     public void connectToWifiDialog()
     {
         MainActivity.log("OBExpansionManager.connectToWifiDialog");
-        OBUtils.runOnMainThread(new OBUtils.RunLambda()
-        {
-            @Override
-            public void run () throws Exception
-            {
-                if ( waitDialog != null)
-                {
-                    waitDialog.dismiss();
-                    waitDialog.cancel();
-                }
-                waitDialog = new ProgressDialog(MainActivity.mainActivity);
-                waitDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                waitDialog.setCanceledOnTouchOutside(false);
-                waitDialog.setMessage("Attempting to connect to Wifi. Please wait");
-                waitDialog.show();
-            }
-        });
+        updateProgressDialogWithSpinner("Attempting to connect to Wifi. Please wait.", false);
     }
 
 
@@ -423,7 +406,7 @@ public class OBExpansionManager
                     if (internalOBBFile().length() == 0 || !externalFile.exists() || !externalFile.isFile())
                     {
                         MainActivity.log("OBExpansionManager. external file does NOT exist. moving internal to external");
-                        updateProgressDialogWithSpinner("First run detected. Setting up OBB file. Please wait.", false);
+                        updateProgressDialogWithSpinner("First run detected. Please wait.", false);
                         //
                         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                         {
@@ -460,6 +443,13 @@ public class OBExpansionManager
         }
         MainActivity.log("OBExpansionManager.checkForBundledOBB: nothing found");
         return false;
+    }
+
+
+    public Boolean searchForUpdates()
+    {
+        String searchForUpdates = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_EXPANSION_SEARCH_FOR_UPDATES);
+        return (searchForUpdates != null && searchForUpdates.equals("true"));
     }
 
 
@@ -519,6 +509,12 @@ public class OBExpansionManager
 
     private void checkForRemoteOBB()
     {
+        if (!searchForUpdates())
+        {
+            MainActivity.log("OBExpansionManager.checkForRemoteOBB.searchForUpdates is disabled. running completion block");
+            OBUtils.runOnMainThread(completionBlock);
+            return;
+        }
         MainActivity.log("OBExpansionManager.checkForRemoteOBB");
         final String expansionURL = (String) MainActivity.mainActivity.Config().get(MainActivity.CONFIG_EXPANSION_URL);
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
@@ -612,7 +608,7 @@ public class OBExpansionManager
 
     private void unpackOBB (final String filePath)
     {
-        this.updateProgressDialogWithSpinner("Mounting OBB file", false);
+        updateProgressDialogWithSpinner("Mounting assets file", false);
         //
         MainActivity.log("OBExpansionManager.unpackOBB: " + filePath);
         //
@@ -648,7 +644,7 @@ public class OBExpansionManager
                             //
                             stopProgressDialog();
                             //
-                            Toast.makeText(MainActivity.mainActivity, "Unable to find specified OBB file", Toast.LENGTH_LONG).show();
+                            Toast.makeText(MainActivity.mainActivity, "Unable to find specified assets file", Toast.LENGTH_LONG).show();
                             //
                             MainActivity.mainActivity.finish();
                         }
@@ -812,7 +808,7 @@ public class OBExpansionManager
                 if (waitDialog == null)
                 {
                     waitDialog = new ProgressDialog(MainActivity.mainActivity);
-                    MainActivity.log("WaitDialog " + waitDialog + " created");
+//                    MainActivity.log("WaitDialog " + waitDialog + " created");
                 }
                 waitDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                 waitDialog.setCanceledOnTouchOutside(killDialog);
@@ -833,7 +829,7 @@ public class OBExpansionManager
                 if (waitDialog == null)
                 {
                     waitDialog = new ProgressDialog(MainActivity.mainActivity);
-                    MainActivity.log("WaitDialog " + waitDialog + " created");
+//                    MainActivity.log("WaitDialog " + waitDialog + " created");
                 }
                 waitDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
                 waitDialog.setCanceledOnTouchOutside(false);
@@ -855,7 +851,7 @@ public class OBExpansionManager
             {
                 if (waitDialog != null)
                 {
-                    MainActivity.log("WaitDialog " + waitDialog + " being killed");
+//                    MainActivity.log("WaitDialog " + waitDialog + " being killed");
                     waitDialog.dismiss();
                     waitDialog.cancel();
                 }
@@ -863,41 +859,6 @@ public class OBExpansionManager
             }
         });
     }
-
-
-//    protected void moveDownloadedFileToInternalStorage (String filePath) throws IOException
-//    {
-//        File downloadedFile = new File(filePath);
-//        File source = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/" + downloadedFile.getName());
-//        File destinationFolder = new File(getFilesDir().getAbsoluteFile() + File.separator + "obb" + File.separator);
-//        destinationFolder.mkdirs();
-//        File destination = new File(destinationFolder.getAbsolutePath() + File.separator + source.getName());
-//        //
-//        FileChannel inChannel = new FileInputStream(source).getChannel();
-//        FileChannel outChannel = new FileOutputStream(destination).getChannel();
-//        //
-//        try
-//        {
-//            inChannel.transferTo(0, inChannel.size(), outChannel);
-//        }
-//        catch (Exception e)
-//        {
-//            e.printStackTrace();
-//        }
-//        finally
-//        {
-//            if (inChannel != null) inChannel.close();
-//            if (outChannel != null) outChannel.close();
-//            //
-//            boolean deleted = source.delete();
-//            if (!deleted)
-//            {
-//                Log.v(TAG, "unable to delete downloaded file");
-//            }
-//        }
-//        //
-//        unpackOBB(destination.getName());
-//    }
 
 
 }

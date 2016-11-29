@@ -59,6 +59,8 @@ public class OBConnectionManager
         }
         if (!wifiFoundAndConnected)
         {
+            OBExpansionManager.sharedManager.connectToWifiDialog();
+            //
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
                 @Override

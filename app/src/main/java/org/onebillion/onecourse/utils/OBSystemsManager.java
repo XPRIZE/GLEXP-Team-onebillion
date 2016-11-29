@@ -89,9 +89,8 @@ public class OBSystemsManager
 
     public void checkForConnectivity(final OBUtils.RunLambda block)
     {
-        if (this.connectionManager.wifiSSID() != null && this.connectionManager.wifiPassword() != null)
+        if (shouldConnectToWifiOnStartup() && this.connectionManager.wifiSSID() != null && this.connectionManager.wifiPassword() != null)
         {
-            OBExpansionManager.sharedManager.connectToWifiDialog();
             this.connectionManager.startupConnection(block);
         }
         else
@@ -229,11 +228,11 @@ public class OBSystemsManager
             mainHandler = new Handler(MainActivity.mainActivity.getMainLooper());
         }
         //
-        if (shouldConnectToWifiOnStartup())
-        {
-            MainActivity.log("OBSystemsManager.runChecks --> startupConnection");
-            connectionManager.sharedManager.startupConnection(null);
-        }
+//        if (shouldConnectToWifiOnStartup())
+//        {
+//            MainActivity.log("OBSystemsManager.runChecks --> startupConnection");
+//            connectionManager.sharedManager.startupConnection(null);
+//        }
         //
         MainActivity.log("OBSystemsManager.runChecks --> SQL maintenance");
         OBSQLiteHelper.getSqlHelper().runMaintenance();
@@ -379,8 +378,6 @@ public class OBSystemsManager
         {
             MainActivity.mainActivity.unregisterReceiver(OBExpansionManager.sharedManager.downloadCompleteReceiver);
         }
-        //
-        OBExpansionManager.sharedManager.stopProgressDialog();
         //
         OBBrightnessManager.sharedManager.onPause();
         //

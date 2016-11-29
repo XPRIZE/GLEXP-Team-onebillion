@@ -43,21 +43,33 @@ public class OC_Sorting_S6 extends OC_SectionController
     public void start()
     {
         setStatus(0);
-        new AsyncTask<Void, Void,Void>()
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
-            protected Void doInBackground(Void... params) {
-                try
+            @Override
+            public void run () throws Exception
+            {
+                if (!performSel("demo",currentEvent()))
                 {
-                    if (!performSel("demo",currentEvent()))
-                    {
-                        doBody(currentEvent());
-                    }
+                    doBody(currentEvent());
                 }
-                catch (Exception exception)
-                {
-                }
-                return null;
-            }}.execute();
+            }
+        });
+//        new AsyncTask<Void, Void,Void>()
+//        {
+//            protected Void doInBackground(Void... params) {
+//                try
+//                {
+//                    if (!performSel("demo",currentEvent()))
+//                    {
+//                        doBody(currentEvent());
+//                    }
+//                }
+//                catch (Exception exception)
+//                {
+//                    exception.printStackTrace();
+//                }
+//                return null;
+//            }}.execute();
     }
 
     public void doAudio(String scene) throws Exception
@@ -105,8 +117,9 @@ public class OC_Sorting_S6 extends OC_SectionController
         }
     }
 
-    void demo6a() throws Exception
+    public void demo6a() throws Exception
     {
+        MainActivity.log("Demo6a begin!");
         RectF r = new RectF(0,0,right(),bottom());
         PointF restPt = OB_Maths.locationForRect(0.6f,0.5f,r);
         PointF startPt = OB_Maths.locationForRect(0.6f,1.01f,r);
@@ -324,14 +337,22 @@ public class OC_Sorting_S6 extends OC_SectionController
     {
         if (status() == STATUS_DRAGGING)
         {
-            new AsyncTask<Void, Void, Void>()
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
-                protected Void doInBackground(Void... params)
+                @Override
+                public void run () throws Exception
                 {
                     checkDragAtPoint(pt);
-                    return null;
                 }
-            }.execute();
+            });
+//            new AsyncTask<Void, Void, Void>()
+//            {
+//                protected Void doInBackground(Void... params)
+//                {
+//                    checkDragAtPoint(pt);
+//                    return null;
+//                }
+//            }.execute();
         }
     }
     OBControl findTarget(PointF pt)
@@ -366,15 +387,14 @@ public class OC_Sorting_S6 extends OC_SectionController
             if (c != null)
             {
                 setStatus(STATUS_CHECKING);
-                new AsyncTask<Void, Void, Void>()
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
-                    protected Void doInBackground(Void... params)
+                    @Override
+                    public void run () throws Exception
                     {
                         checkDragTarget(c,pt);
-                        return null;
                     }
-                }.execute();
-
+                });
             }
         }
 

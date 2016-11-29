@@ -92,6 +92,7 @@ public class MainActivity extends Activity
             CONFIG_AWARDAUDIO = "staraudio",
             CONFIG_APP_CODE = "app_code",
             CONFIG_USER = "user",
+            CONFIG_EXPANSION_SEARCH_FOR_UPDATES = "expansionSearchForUpdates",
             CONFIG_EXPANSION_URL = "expansionURL",
             CONFIG_OBB_PASSWORD = "obbPassword",
             CONFIG_FAT_CONTROLLER = "fatcontrollerclass",
