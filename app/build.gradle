@@ -2,10 +2,10 @@ apply plugin: 'com.android.application'
 android {
     signingConfigs {
         config {
-            keyAlias 'onebillion'
-            keyPassword 'onebillion'
-            storeFile file('/Users/pedroloureiro/StudioProjects/onecourse/keystore.jks')
-            storePassword 'onebillion'
+            keyAlias 'android'
+            keyPassword 'android'
+            storeFile file('/Users/alan/AndroidStudioProjects/XPRIZE-ob-android/keystore2.jks')
+            storePassword 'android'
         }
     }
     compileSdkVersion 23

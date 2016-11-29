@@ -7,6 +7,7 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -1127,15 +1128,19 @@ public class OC_JMenu extends OC_Menu
                         @Override
                         public void run() throws Exception
                         {
+                            lockScreen();
                             highlightedIcon.lowlight();
-                            highlightedIcon = null;
+                            unlockScreen();
+                            setHighlightedIcon(null);
                         }
                     });
                 }
                 else
                 {
+                    lockScreen();
                     highlightedIcon.lowlight();
-                    highlightedIcon = null;
+                    unlockScreen();
+                    setHighlightedIcon(null);
 
                 }
 
@@ -1223,8 +1228,10 @@ public class OC_JMenu extends OC_Menu
                 {
                     if (OB_Maths.PointDistance(firstPoint,pt) > 6)
                     {
+                        lockScreen();
                         highlightedIcon.lowlight();
-                        highlightedIcon = null;
+                        unlockScreen();
+                        setHighlightedIcon(null);
                     }
                 }
             }
@@ -1352,7 +1359,7 @@ public class OC_JMenu extends OC_Menu
         {
             //c.highlight();
             highlightIcon(c);
-            highlightedIcon = c;
+            setHighlightedIcon(c);
             setStatus(STATUS_DRAGGING);
             return;
         }
@@ -1408,6 +1415,10 @@ public class OC_JMenu extends OC_Menu
 
     }
 
+    void setHighlightedIcon(OBControl c)
+    {
+        highlightedIcon = c;
+    }
 }
 
 
