@@ -175,8 +175,12 @@ public class OC_JMenu extends OC_Menu
             return;
         showingMessage = true;
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.mainActivity);
-        builder.setMessage("This is just a demo app - not what the child sees.\n")
-                .setTitle("Message");
+        builder.setMessage("This is a demo of onebillion’s onecourse app for reading, writing and numeracy.\n" +
+                "You can try a selection of learning units from all ten levels of onecourse, and see videos of children learning.\n" +
+                "\n" +
+                "The child’s experience of onecourse is different. They begin at level 1 and work through their learning journey guided by Anna, our teacher figure.\n" +
+                "You can try the child’s experience of onecourse Swahili on the other tablet provided by XPRIZE.")
+                .setTitle("Note for XPRIZE judges");
         builder.setPositiveButton("Dismiss", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id)
             {
