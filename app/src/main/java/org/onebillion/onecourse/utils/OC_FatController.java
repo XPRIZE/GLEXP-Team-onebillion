@@ -249,25 +249,17 @@ public class OC_FatController extends OBFatController
             disallowEndHour = Integer.valueOf(disallowArray[1]);
         } catch (Exception e)
         {
-            sessionTimeout = 2 * 60 * 60;
+            sessionTimeout =0;
             unitAttemptsCount = 3;
-            disallowStartHour = 23;
-            disallowEndHour = 4;
+            disallowStartHour = 0;
+            disallowEndHour = 0;
         }
 
         initDB();
 
         timeoutHandler = new Handler();
 
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(getCurrentTime()*1000);
-        //calendar.add(Calendar.DATE,1);
-        calendar.set(Calendar.HOUR_OF_DAY, disallowStartHour);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, OBAlarmManager.REQUEST_SESSION_CHECK);
-        calendar.set(Calendar.HOUR_OF_DAY, disallowEndHour);
-        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, OBAlarmManager.REQUEST_SESSION_CHECK2);
+        prepareAlarm();
 
         continueFromLastUnit();
 
@@ -286,6 +278,23 @@ public class OC_FatController extends OBFatController
 
             }
         }
+    }
+
+    public void prepareAlarm()
+    {
+        if(disallowEndHour == disallowStartHour)
+            return;
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(getCurrentTime() * 1000);
+        //calendar.add(Calendar.DATE,1);
+        calendar.set(Calendar.HOUR_OF_DAY, disallowStartHour);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, OBAlarmManager.REQUEST_SESSION_CHECK);
+
+        calendar.set(Calendar.HOUR_OF_DAY, disallowEndHour);
+        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, OBAlarmManager.REQUEST_SESSION_CHECK2);
     }
 
     public boolean checkAndPrepareNewSession()
@@ -313,6 +322,9 @@ public class OC_FatController extends OBFatController
 
     public boolean currentSessionLocked()
     {
+        if(disallowEndHour == disallowStartHour)
+            return false;
+
         Calendar currentCalendar = Calendar.getInstance();
         currentCalendar.setTimeInMillis(getCurrentTime()*1000);
         int hourNow = currentCalendar.get(Calendar.HOUR_OF_DAY);
@@ -699,6 +711,9 @@ public class OC_FatController extends OBFatController
 
     public void checkCurrentSessionTimeout(DBSQL db)
     {
+        if(sessionTimeout <= 0)
+            return;
+
         Map<String,String> whereMap  = new ArrayMap<>();
         whereMap.put("userid",String.valueOf(currentUser.userid));
         whereMap.put("sessionid",String.valueOf(currentSessionId));
@@ -942,6 +957,9 @@ public class OC_FatController extends OBFatController
 
     public void finishCurrentSessionInDB(DBSQL db)
     {
+        if(sessionTimeout <= 0)
+            return;
+
         if(currentSessionId < 0)
             return;
 
