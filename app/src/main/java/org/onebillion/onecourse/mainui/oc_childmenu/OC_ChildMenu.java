@@ -319,12 +319,25 @@ public class OC_ChildMenu extends OC_Menu implements OC_FatReceiver
             builder.setPositiveButton("RESET", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id)
             {
-                fatController.resetProgress();
-                restartCurrentScreen();
+                resetEntireCourse();
             }});
-            AlertDialog dialog = builder.create();
+            final AlertDialog dialog = builder.create();
             dialog.setCanceledOnTouchOutside(false);
             dialog.show();
+            final OBSectionController controller = this;
+            OBUtils.runOnOtherThreadDelayed(10, new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    if (dialog.isShowing()&&!controller._aborting)
+                    {
+                        dialog.dismiss();
+                        resetEntireCourse();
+                    }
+                }
+
+            });
             return true;
         }
         else
@@ -333,6 +346,11 @@ public class OC_ChildMenu extends OC_Menu implements OC_FatReceiver
         }
     }
 
+    private void resetEntireCourse()
+    {
+        fatController.resetProgress();
+        restartCurrentScreen();
+    }
     private void replayReminders() throws Exception
     {
         waitForSecs(1);
