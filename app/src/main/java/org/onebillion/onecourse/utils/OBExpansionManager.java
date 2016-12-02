@@ -122,9 +122,8 @@ public class OBExpansionManager
                                 }
                             };
                             //
+                            MainActivity.log("Copying assets to " + destination.getAbsolutePath());
                             FileUtils.copyDirectory(source, destination, counterFileFilter, false);
-                            //
-//                            FileUtils.copyDirectory(source, destination, false);
                             //
                             String currentExternalAssets = MainActivity.mainActivity.getPreferences("externalAssets");
                             if (currentExternalAssets == null)

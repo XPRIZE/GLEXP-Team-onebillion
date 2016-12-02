@@ -42,6 +42,7 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -625,9 +626,10 @@ public class OBSystemsManager
         String packageName = MainActivity.mainActivity.getPackageName();
         try
         {
-            String[] command = new String[]{"su", "-c", "dpm set-device-owner " + packageName + "/" + AdministratorReceiver().getClassName()};
+//            String[] command = new String[]{"su", "-c", "dpm set-device-owner " + packageName + "/" + AdministratorReceiver().getClassName()}; // for normal Root
+            String[] command = new String[]{"/system/xbin/su", "0", "dpm", "set-device-owner", packageName + "/" + AdministratorReceiver().getClassName()}; // for AOSP root
             //
-            MainActivity.log("OBSystemsManager.requestDeviceOwner.running [" + command.toString() + "]");
+            MainActivity.log("OBSystemsManager.requestDeviceOwner.running [" + Arrays.toString(command) + "]");
             //
             Process process = Runtime.getRuntime().exec(command);
             process.waitFor();
