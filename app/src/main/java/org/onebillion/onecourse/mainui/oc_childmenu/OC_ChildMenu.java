@@ -310,13 +310,11 @@ public class OC_ChildMenu extends OC_Menu implements OC_FatReceiver
         if(fatController.currentPathComplete())
         {
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.mainActivity);
-            builder.setMessage(String.format("You have completed Level %d of 10.\n" +
+            builder.setMessage("You have reached the end of the current version of onecourse.\n" +
                     "\n" +
-                    "Further levels will be added in updates scheduled for 2017.\n" +
-                    "\n" +
-                    "Press Reset to restart onecourse.",lastUnit.level))
-                    .setTitle("End of level");
-            builder.setPositiveButton("RESET", new DialogInterface.OnClickListener() {
+                    "More learning units will be added by August 2017.")
+                    .setTitle("End of onecourse");
+            builder.setPositiveButton("Continue", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id)
             {
                 resetEntireCourse();
