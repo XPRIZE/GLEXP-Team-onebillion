@@ -130,7 +130,7 @@ public class MainActivity extends Activity
             CONFIG_BACKUP_INTERVAL = "backupInterval",
             CONFIG_DISALLOW_HOURS = "disallowHours",
             CONFIG_BUNDLED_OBB_FILENAME = "bundledOBBFilename";
-    public static String TAG = "livecode";
+    public static String TAG = "onecourse";
     //
     public static OBSystemsManager systemsManager = new OBSystemsManager();
     public static MainActivity mainActivity;

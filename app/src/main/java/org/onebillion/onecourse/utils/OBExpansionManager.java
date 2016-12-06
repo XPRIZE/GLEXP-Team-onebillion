@@ -294,6 +294,19 @@ public class OBExpansionManager
         }
     }
 
+    public void runCompletionBlock()
+    {
+        if (completionBlock != null)
+        {
+            MainActivity.log("OBExpansionManager.calling onContinue");
+            OBSystemsManager.sharedManager.onContinue();
+            //
+            MainActivity.log("OBExpansionManager.running completionBlock");
+            OBUtils.runOnMainThread(completionBlock);
+            MainActivity.log("OBExpansionManager.running completionBlock complete");
+        }
+    }
+
     public void checkIfSetupIsComplete ()
     {
         MainActivity.log("OBExpansionManager.checkIfSetupIsComplete");
@@ -304,15 +317,7 @@ public class OBExpansionManager
             //
             stopProgressDialog();
             //
-            if (completionBlock != null)
-            {
-                MainActivity.log("OBExpansionManager.calling onContinue");
-                OBSystemsManager.sharedManager.onContinue();
-                //
-                MainActivity.log("OBExpansionManager.running completionBlock");
-                OBUtils.runOnMainThread(completionBlock);
-                MainActivity.log("OBExpansionManager.running completionBlock complete");
-            }
+            runCompletionBlock();
         }
     }
 
@@ -511,7 +516,7 @@ public class OBExpansionManager
         if (!searchForUpdates())
         {
             MainActivity.log("OBExpansionManager.checkForRemoteOBB.searchForUpdates is disabled. running completion block");
-            OBUtils.runOnMainThread(completionBlock);
+            runCompletionBlock();
             return;
         }
         MainActivity.log("OBExpansionManager.checkForRemoteOBB");

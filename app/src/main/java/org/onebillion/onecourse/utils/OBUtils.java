@@ -195,8 +195,8 @@ public class OBUtils
         }
         catch (Exception e)
         {
-//            Log.v("getInputStream", "unable to find bundled asset: " + path);
-//            e.printStackTrace();
+            MainActivity.log("OBUtils.getInputStreamPath.unable to find bundled asset: " + path);
+            e.printStackTrace();
         }
         //
         for (File mounted : OBExpansionManager.sharedManager.getExternalExpansionFolders())

@@ -631,6 +631,18 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
         boolean result = devicePolicyManager.isDeviceOwnerApp(MainActivity.mainActivity.getPackageName());
         MainActivity.log(result ? "It is device owner" : "It's NOT device owner");
+        if (!result)
+        {
+            try
+            {
+                devicePolicyManager.clearDeviceOwnerApp(MainActivity.mainActivity.getPackageName());
+            }
+            catch (Exception e)
+            {
+                MainActivity.log("Exception caught while trying to clear device owner");
+                e.printStackTrace();
+            }
+        }
         return result;
     }
 
@@ -651,7 +663,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         try
         {
 //            String[] command = new String[]{"su", "-c", "dpm set-device-owner " + packageName + "/" + AdministratorReceiver().getClassName()}; // for normal Root
-            String[] command = new String[]{"/system/xbin/su", "-c", "'", "dpm", "set-device-owner", packageName + "/" + AdministratorReceiver().getClassName(), "'"}; // for AOSP root
+            String[] command = new String[]{"/system/xbin/su", "1000", "dpm", "set-device-owner", packageName + "/" + AdministratorReceiver().getClassName()}; // for AOSP root
             //
             MainActivity.log("OBSystemsManager.requestDeviceOwner.running [" + Arrays.toString(command) + "]");
             //
@@ -823,8 +835,6 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                         {
                             MainActivity.log("OBSystemsManager.pinApplication: starting locked task");
                             MainActivity.mainActivity.startLockTask();
-                            devicePolicyManager.setStatusBarDisabled(adminReceiver, true);
-                            devicePolicyManager.setKeyguardDisabled(adminReceiver, true);
                             kioskModeActive = true;
                         }
                         catch (Exception e)
