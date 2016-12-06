@@ -1,12 +1,18 @@
 package org.onebillion.onecourse.utils;
 
+import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.AlarmManager;
+import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
+import android.app.TimePickerDialog;
 import android.app.admin.DevicePolicyManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.display.DisplayManager;
@@ -19,6 +25,8 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.view.Display;
+import android.widget.DatePicker;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import org.onebillion.onecourse.controls.OBLabel;
@@ -43,6 +51,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +62,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Created by pedroloureiro on 31/08/16.
  */
-public class OBSystemsManager
+public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, DatePickerDialog.OnDateSetListener
 {
     public static OBSystemsManager sharedManager;
 
@@ -71,6 +81,8 @@ public class OBSystemsManager
     private boolean AppIsInForeground;
     private boolean suspended;
     private boolean kioskModeActive = false;
+
+    private OBUtils.RunLambda dateSetCompletionBlock, timeSetCompletionBlock;
 
 
     public OBSystemsManager ()
@@ -127,6 +139,12 @@ public class OBSystemsManager
     public boolean isAppIsInForeground ()
     {
         return AppIsInForeground;
+    }
+
+
+    public void setDateTime()
+    {
+
     }
 
 
@@ -209,7 +227,10 @@ public class OBSystemsManager
 
     public void runChecks ()
     {
+        MainActivity.log("OBSystemsManager.runChecks check for suspended");
         if (suspended) return;
+        //
+        MainActivity.log("OBSystemsManager.runChecks check for first setup complete");
         if (!OBSystemsManager.isFirstSetupComplete()) return;
         //
         MainActivity.log("OBSystemsManager.runChecks");
@@ -606,8 +627,11 @@ public class OBSystemsManager
 
     public boolean isDeviceOwner()
     {
+        MainActivity.log("OBSystemsManager.isDeviceOwner");
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
-        return devicePolicyManager.isDeviceOwnerApp(MainActivity.mainActivity.getPackageName());
+        boolean result = devicePolicyManager.isDeviceOwnerApp(MainActivity.mainActivity.getPackageName());
+        MainActivity.log(result ? "It is device owner" : "It's NOT device owner");
+        return result;
     }
 
 
@@ -627,7 +651,7 @@ public class OBSystemsManager
         try
         {
 //            String[] command = new String[]{"su", "-c", "dpm set-device-owner " + packageName + "/" + AdministratorReceiver().getClassName()}; // for normal Root
-            String[] command = new String[]{"/system/xbin/su", "0", "dpm", "set-device-owner", packageName + "/" + AdministratorReceiver().getClassName()}; // for AOSP root
+            String[] command = new String[]{"/system/xbin/su", "-c", "'", "dpm", "set-device-owner", packageName + "/" + AdministratorReceiver().getClassName(), "'"}; // for AOSP root
             //
             MainActivity.log("OBSystemsManager.requestDeviceOwner.running [" + Arrays.toString(command) + "]");
             //
@@ -799,6 +823,8 @@ public class OBSystemsManager
                         {
                             MainActivity.log("OBSystemsManager.pinApplication: starting locked task");
                             MainActivity.mainActivity.startLockTask();
+                            devicePolicyManager.setStatusBarDisabled(adminReceiver, true);
+                            devicePolicyManager.setKeyguardDisabled(adminReceiver, true);
                             kioskModeActive = true;
                         }
                         catch (Exception e)
@@ -1202,6 +1228,91 @@ public class OBSystemsManager
         }
     }
 
+    public Dialog createDateSetDialog(OBUtils.RunLambda completionBlock)
+    {
+        dateSetCompletionBlock = completionBlock;
+        final Calendar calendar = Calendar.getInstance();
+        DatePickerDialog d = new DatePickerDialog(MainActivity.mainActivity, this, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+        d.setCancelable(false);
+        d.setCanceledOnTouchOutside(false);
+        d.setButton(DatePickerDialog.BUTTON_NEGATIVE, null, (DialogInterface.OnClickListener) null);
+        d.setMessage("Please set the current date.\n");
+        //
+        DatePicker datePicker = d.getDatePicker();
+        calendar.clear();
+        calendar.set(2016, Calendar.JANUARY, 1);
+        datePicker.setMinDate(calendar.getTimeInMillis());
+        calendar.clear();
+        calendar.set(2020, Calendar.DECEMBER, 31);
+        datePicker.setMaxDate(calendar.getTimeInMillis());
+        return d;
+    }
+
+    public Dialog createTimeSetDialog(OBUtils.RunLambda completionBlock)
+    {
+        timeSetCompletionBlock = completionBlock;
+        final Calendar calendar = Calendar.getInstance();
+        TimePickerDialog d = new TimePickerDialog(MainActivity.mainActivity, this, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), DateFormat.is24HourFormat(MainActivity.mainActivity));
+        d.setCancelable(false);
+        d.setCanceledOnTouchOutside(false);
+        d.setButton(DatePickerDialog.BUTTON_NEGATIVE, null, (DialogInterface.OnClickListener) null);
+        d.setMessage("Please set the current time.\n");
+        return d;
+    }
 
 
+    @Override
+    public void onDateSet (DatePicker view, int year, int monthOfYear, int dayOfMonth)
+    {
+        final Activity activity = MainActivity.mainActivity;
+        if (activity != null) {
+            setDate(activity, year, monthOfYear, dayOfMonth);
+        }
+        if (dateSetCompletionBlock != null)
+        {
+            OBUtils.runOnMainThread(dateSetCompletionBlock);
+        }
+    }
+
+    @Override
+    public void onTimeSet (TimePicker view, int hourOfDay, int minute)
+    {
+        final Activity activity = MainActivity.mainActivity;;
+        if (activity != null) {
+            setTime(activity, hourOfDay, minute);
+        }
+        if (timeSetCompletionBlock != null)
+        {
+            OBUtils.runOnMainThread(timeSetCompletionBlock);
+        }
+    }
+
+    static void setDate(Context context, int year, int month, int day) {
+        Calendar c = Calendar.getInstance();
+        //
+        c.set(Calendar.YEAR, year);
+        c.set(Calendar.MONTH, month);
+        c.set(Calendar.DAY_OF_MONTH, day);
+        long when = c.getTimeInMillis();
+        //
+        if (when / 1000 < Integer.MAX_VALUE)
+        {
+            ((AlarmManager) context.getSystemService(Context.ALARM_SERVICE)).setTime(when);
+        }
+    }
+
+    static void setTime(Context context, int hourOfDay, int minute) {
+        Calendar c = Calendar.getInstance();
+        //
+        c.set(Calendar.HOUR_OF_DAY, hourOfDay);
+        c.set(Calendar.MINUTE, minute);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        long when = c.getTimeInMillis();
+        //
+        if (when / 1000 < Integer.MAX_VALUE)
+        {
+            ((AlarmManager) context.getSystemService(Context.ALARM_SERVICE)).setTime(when);
+        }
+    }
 }

@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.content.pm.ConfigurationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.Typeface;
 import android.location.LocationManager;
@@ -23,7 +24,9 @@ import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -410,10 +413,29 @@ public class MainActivity extends Activity
                                             boolean dateTimeSetupComplete = getPreferences("dateTimeSetupComplete") != null;
                                             if (!dateTimeSetupComplete)
                                             {
-                                                Toast.makeText(MainActivity.mainActivity, "Please set the date and time before going back.", Toast.LENGTH_LONG).show();
-                                                Intent intent = new Intent(Settings.ACTION_DATE_SETTINGS);
-                                                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                                                startActivityForResult(intent, REQUEST_FIRST_SETUP_DATE_TIME);
+//                                                Toast.makeText(MainActivity.mainActivity, "Please set the current date", Toast.LENGTH_LONG).show();
+                                                OBSystemsManager.sharedManager.createDateSetDialog(new OBUtils.RunLambda()
+                                                {
+                                                    @Override
+                                                    public void run () throws Exception
+                                                    {
+//                                                        Toast.makeText(MainActivity.mainActivity, "Please set the current time", Toast.LENGTH_LONG).show();
+                                                        OBSystemsManager.sharedManager.createTimeSetDialog(new OBUtils.RunLambda()
+                                                        {
+                                                            @Override
+                                                            public void run () throws Exception
+                                                            {
+                                                                addToPreferences("dateTimeSetupComplete", "true");
+                                                                checkForFirstSetupAndRun();
+                                                            }
+                                                        }).show();
+                                                    }
+                                                }).show();
+                                                //
+//                                                Toast.makeText(MainActivity.mainActivity, "Please set the date and time before going back.", Toast.LENGTH_LONG).show();
+//                                                Intent intent = new Intent(Settings.ACTION_DATE_SETTINGS);
+//                                                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+//                                                startActivityForResult(intent, REQUEST_FIRST_SETUP_DATE_TIME);
                                                 return;
                                             }
                                         }
