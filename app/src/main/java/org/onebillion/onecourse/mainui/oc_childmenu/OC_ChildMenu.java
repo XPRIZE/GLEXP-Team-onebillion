@@ -1245,11 +1245,12 @@ public class OC_ChildMenu extends OC_Menu implements OC_FatReceiver
     public void demounitdefault() throws Exception
     {
         int audioIndex = getStartAudio();
-        if (audioIndex > -1 )
+        List<String> aud = getAudioForScene("unit", "DEMO");
+        if (audioIndex > -1 &&  aud!= null && aud.size() > audioIndex)
         {
             walkPresenterIn((PointF) presenter.control.propertyValue("start_loc"));
             waitForSecs(0.3f);
-            presenter.speak((List<Object>) (Object) Arrays.asList(getAudioForScene("unit", "DEMO").get(audioIndex)), this);
+            presenter.speak((List<Object>) (Object) Arrays.asList(aud.get(audioIndex)), this);
 
             waitForSecs(0.3f);
             walkPresenterOut();
