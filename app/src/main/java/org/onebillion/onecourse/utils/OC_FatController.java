@@ -421,6 +421,24 @@ public class OC_FatController extends OBFatController
         cont.exitEvent();
     }
 
+    public void completeEvent3()
+    {
+        OBSectionController cont = currentUnitInstance.sectionController;
+        cancelTimeout();
+        updateScores2();
+
+        if(currentSessionLocked())
+            signalSessionLocked();
+        else if (finalScore >= currentUnit().passThreshold)
+            signalSectionSucceeded();
+        else
+            signalSectionFailed();
+
+        currentUnitInstance = null;
+
+        cont.exitEvent();
+    }
+
     public void triggerTimeout()
     {
         cancelTimeout();

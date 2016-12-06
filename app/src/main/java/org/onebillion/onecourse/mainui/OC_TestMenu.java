@@ -80,6 +80,25 @@ public class OC_TestMenu extends OBSectionController
             }
         });
 
+        Button loopButton = (Button)MainActivity.mainActivity.findViewById(R.id.loopButton);
+        loopButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                OBSystemsManager.sharedManager.onSuspend();
+                String menuClassName = "OC_LoopMenu";
+                String appCode = "oc-gen";
+                if (menuClassName != null && appCode != null)
+                {
+                    OBBrightnessManager.sharedManager.onContinue();
+                    db.close();
+                    MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
+                }
+
+            }
+        });
+
         Button connectToWifiButton = (Button)MainActivity.mainActivity.findViewById(R.id.connectWifiButton);
         connectToWifiButton.setOnClickListener(new View.OnClickListener()
         {
