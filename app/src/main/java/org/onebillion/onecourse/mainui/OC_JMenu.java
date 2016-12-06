@@ -233,6 +233,8 @@ public class OC_JMenu extends OC_Menu
             t.setZPosition(t.zPosition()+60);
         OBControl obl = objectDict.get("onecourse");
         obl.setZPosition(obl.zPosition()+60);
+        OBControl playicon = objectDict.get("playicon");
+        playicon.setZPosition(playicon.zPosition()+60);
         setUpTabTitles();
         createToggleLabels();
         hideControls("toggle.*");
@@ -343,7 +345,7 @@ public class OC_JMenu extends OC_Menu
     {
         for (int i = 1;i < tabs.size();i++)
         {
-            OBLabel label = new OBLabel(titles[i],plainFont(),tabTextSize);
+            OBLabel label = new OBLabel(titles[i],boldFont(),tabTextSize);
             label.setColour(Color.WHITE);
             OBControl placeHolder = tabs.get(i);
             label.setPosition(placeHolder.position());
@@ -1378,6 +1380,11 @@ public class OC_JMenu extends OC_Menu
         }
     }
 
+    Boolean otherControllerOnTop()
+    {
+        return MainViewController().topController() != this;
+    }
+
     void checkMessageNow()
     {
         long lastEventTime;
@@ -1388,7 +1395,12 @@ public class OC_JMenu extends OC_Menu
         long untouchedInterval = System.currentTimeMillis() - lastEventTime;
         float utsecs = untouchedInterval / 1000f;
         if (utsecs > intervalSecs)
+        {
+            while (otherControllerOnTop())
+                MainViewController().popViewController();
+            switchTo("video",true);
             showMessage();
+        }
         else
             scheduleMessageHandler();
     }
