@@ -1586,15 +1586,29 @@ public class OBSectionController extends OBViewController
     }
 
 
-    public void playSFX (final String fileName)
+    void _playSFX(String fileName)
     {
-        new OBRunnableSyncUI()
+        if (Looper.myLooper() == Looper.getMainLooper())
         {
-            public void ex ()
+            OBAudioManager.audioManager.startPlayingSFX(fileName, volumeForSfx(fileName));
+        }
+        else
+        {
+            final String fn = new String(fileName);
+            new OBRunnableSyncUI()
             {
-                OBAudioManager.audioManager.startPlayingSFX(fileName,volumeForSfx(fileName));
-            }
-        }.run();
+                public void ex ()
+                {
+                    _playSFX(fn);
+                }
+            }.run();
+        }
+    }
+
+
+    public void playSFX (String fileName)
+    {
+        _playSFX(fileName);
     }
 
     public long takeSequenceLockInterrupt (boolean interrupt)
@@ -1712,15 +1726,32 @@ public class OBSectionController extends OBViewController
     public void playSfxAudio (String audioName, boolean wait) throws Exception
     {
         if (audioScenes == null)
+        {
+            MainActivity.log("OBSectionController.playSfxAudio unable play sfx audio. no audioscenes for SFX");
             return;
+        }
+        //
         Map<String, List<String>> sc = (Map<String, List<String>>) audioScenes.get("sfx");
         if (sc != null)
         {
             List<Object> evl = (List<Object>) (Object) sc.get(audioName); //yuk!
             if (evl != null && evl.size() > 0)
+            {
                 playSFX((String) evl.get(0));
-            if (wait)
-                waitSFX();
+                //
+                if (wait)
+                {
+                    waitSFX();
+                }
+            }
+            else
+            {
+                MainActivity.log("OBSectionController.playSfxAudio unable to find audio: " + audioName);
+            }
+        }
+        else
+        {
+            MainActivity.log("OBSectionController.playSfxAudio unable to play sfx audio. no audioscenes for SFX");
         }
     }
 

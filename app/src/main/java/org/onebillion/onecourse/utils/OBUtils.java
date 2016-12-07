@@ -188,6 +188,8 @@ public class OBUtils
 
     public static InputStream getInputStreamForPath (String path)
     {
+        if (path == null) return null;
+        //
         try
         {
             InputStream is = MainActivity.mainActivity.getAssets().open(path);
@@ -271,7 +273,7 @@ public class OBUtils
         }
         catch (IOException e)
         {
-//            Log.v("getAssetFileDescriptor", "unable to find asset in bundled assets " + path);
+            MainActivity.log("OBUtils.getAssetFileDescriptor. unable to find asset in bundled assets " + path);
         }
         // attempt to get from external assets
         for (File mounted : OBExpansionManager.sharedManager.getExternalExpansionFolders())
@@ -285,7 +287,7 @@ public class OBUtils
             }
             catch (IOException e)
             {
-//                Log.v("getAssetFileDescriptor", "unable to find asset in downloaded assets " + extendedFile);
+                MainActivity.log("OBUtils.getAssetFileDescriptor. unable to find asset in downloaded assets " + path);
             }
         }
         try
@@ -298,7 +300,7 @@ public class OBUtils
         }
         catch (Exception e)
         {
-
+            MainActivity.log("OBUtils.getAssetFileDescriptor. unable to find asset with path " + path);
         }
         return null;
     }

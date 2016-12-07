@@ -413,29 +413,15 @@ public class MainActivity extends Activity
                                             boolean dateTimeSetupComplete = getPreferences("dateTimeSetupComplete") != null;
                                             if (!dateTimeSetupComplete)
                                             {
-//                                                Toast.makeText(MainActivity.mainActivity, "Please set the current date", Toast.LENGTH_LONG).show();
-                                                OBSystemsManager.sharedManager.createDateSetDialog(new OBUtils.RunLambda()
+                                                OBSystemsManager.sharedManager.setDateAndTimeDialog(new OBUtils.RunLambda()
                                                 {
                                                     @Override
                                                     public void run () throws Exception
                                                     {
-//                                                        Toast.makeText(MainActivity.mainActivity, "Please set the current time", Toast.LENGTH_LONG).show();
-                                                        OBSystemsManager.sharedManager.createTimeSetDialog(new OBUtils.RunLambda()
-                                                        {
-                                                            @Override
-                                                            public void run () throws Exception
-                                                            {
-                                                                addToPreferences("dateTimeSetupComplete", "true");
-                                                                checkForFirstSetupAndRun();
-                                                            }
-                                                        }).show();
+                                                        addToPreferences("dateTimeSetupComplete", "true");
+                                                        checkForFirstSetupAndRun();
                                                     }
-                                                }).show();
-                                                //
-//                                                Toast.makeText(MainActivity.mainActivity, "Please set the date and time before going back.", Toast.LENGTH_LONG).show();
-//                                                Intent intent = new Intent(Settings.ACTION_DATE_SETTINGS);
-//                                                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-//                                                startActivityForResult(intent, REQUEST_FIRST_SETUP_DATE_TIME);
+                                                });
                                                 return;
                                             }
                                         }

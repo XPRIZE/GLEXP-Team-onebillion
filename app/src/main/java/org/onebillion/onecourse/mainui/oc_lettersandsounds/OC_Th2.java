@@ -766,6 +766,8 @@ public class OC_Th2 extends OC_Generic_WordsEvent
                     action_showState(control, "correct");
                 }
                 unlockScreen();
+                //
+                waitSFX();
                 waitForSecs(0.3);
                 //
                 action_intro(showText, true, timestamp);
@@ -802,6 +804,8 @@ public class OC_Th2 extends OC_Generic_WordsEvent
             else
             {
                 control.highlight();
+                //
+                waitSFX();
                 waitForSecs(0.3);
                 //
                 gotItWrongWithSfx();
@@ -826,9 +830,16 @@ public class OC_Th2 extends OC_Generic_WordsEvent
                         if (statusChanged(st)) return;
                         waitForSecs(0.3);
                         //
-                        playSceneAudioIndex("INCORRECT", 2, true);
-                        if (statusChanged(st)) return;
-                        waitForSecs(0.3);
+                        try
+                        {
+                            playSceneAudioIndex("INCORRECT", 2, true);
+                            if (statusChanged(st)) return;
+                            waitForSecs(0.3);
+                        }
+                        catch (Exception e)
+                        {
+                            // nothing to do here. audio doesn't exist for all events
+                        }
                     }
                 });
             }

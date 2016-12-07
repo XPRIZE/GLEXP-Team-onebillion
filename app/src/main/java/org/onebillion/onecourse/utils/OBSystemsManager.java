@@ -1258,14 +1258,21 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         return d;
     }
 
-    public Dialog createTimeSetDialog(OBUtils.RunLambda completionBlock)
+    public Dialog createTimeSetDialog(OBUtils.RunLambda completionBlock, final OBUtils.RunLambda cancelCompletionBlock)
     {
         timeSetCompletionBlock = completionBlock;
         final Calendar calendar = Calendar.getInstance();
         TimePickerDialog d = new TimePickerDialog(MainActivity.mainActivity, this, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), DateFormat.is24HourFormat(MainActivity.mainActivity));
         d.setCancelable(false);
         d.setCanceledOnTouchOutside(false);
-        d.setButton(DatePickerDialog.BUTTON_NEGATIVE, null, (DialogInterface.OnClickListener) null);
+        d.setButton(DatePickerDialog.BUTTON_NEGATIVE, "Back", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick (DialogInterface dialog, int which)
+            {
+                OBUtils.runOnMainThread(cancelCompletionBlock);
+            }
+        });
         d.setMessage("Please set the current time.\n");
         return d;
     }
@@ -1324,5 +1331,25 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         {
             ((AlarmManager) context.getSystemService(Context.ALARM_SERVICE)).setTime(when);
         }
+    }
+
+
+    public void setDateAndTimeDialog(final OBUtils.RunLambda completionBlock)
+    {
+        createDateSetDialog(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run () throws Exception
+            {
+                createTimeSetDialog(completionBlock, new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run () throws Exception
+                    {
+                        setDateAndTimeDialog(completionBlock);
+                    }
+                }).show();
+            }
+        }).show();
     }
 }
