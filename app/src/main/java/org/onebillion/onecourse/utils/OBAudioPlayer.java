@@ -10,6 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
+import android.os.Handler;
 
 import org.onebillion.onecourse.mainui.MainActivity;
 
@@ -282,18 +283,28 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
     public void onCompletion (MediaPlayer mp)
     {
         setState(OBAP_IDLE);
-        MediaPlayer cpplayer = player;
+        final MediaPlayer cpplayer = player;
         player = null;
         playerLock.lock();
         condition.signalAll();
         playerLock.unlock();
         try
         {
-            cpplayer.reset();
-            cpplayer.release();
+            Runnable runnable = new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    cpplayer.reset();
+                    cpplayer.release();
+                }
+            };
+            Handler handler = new Handler();
+            handler.postDelayed(runnable,15);
         }
         catch (Exception e)
         {
+            e.printStackTrace();
         }
     }
 
