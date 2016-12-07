@@ -631,18 +631,6 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
         boolean result = devicePolicyManager.isDeviceOwnerApp(MainActivity.mainActivity.getPackageName());
         MainActivity.log(result ? "It is device owner" : "It's NOT device owner");
-        if (!result)
-        {
-            try
-            {
-                devicePolicyManager.clearDeviceOwnerApp(MainActivity.mainActivity.getPackageName());
-            }
-            catch (Exception e)
-            {
-                MainActivity.log("Exception caught while trying to clear device owner");
-                e.printStackTrace();
-            }
-        }
         return result;
     }
 
