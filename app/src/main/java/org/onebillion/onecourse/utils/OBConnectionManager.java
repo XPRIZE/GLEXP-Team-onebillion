@@ -80,14 +80,7 @@ public class OBConnectionManager
                 try
                 {
                     MainActivity.log("OBConnectionManager.startupConnection. running completion block");
-                    OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
-                    {
-                        @Override
-                        public void run () throws Exception
-                        {
-                            block.run();
-                        }
-                    });
+                    OBUtils.runOnOtherThreadDelayed(1.0f, block);
                 }
                 catch (Exception e)
                 {
@@ -206,14 +199,7 @@ public class OBConnectionManager
                     try
                     {
                         MainActivity.log("OBConnectionManager.connectToNetwork. running completion block");
-                        OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
-                        {
-                            @Override
-                            public void run () throws Exception
-                            {
-                                block.run();
-                            }
-                        });
+                        OBUtils.runOnOtherThreadDelayed(1.0f, block);
                     }
                     catch (Exception e)
                     {
@@ -321,14 +307,7 @@ public class OBConnectionManager
                                             try
                                             {
                                                 MainActivity.log("OBConnectionManager.connectToNetwork. running completion block");
-                                                OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
-                                                {
-                                                    @Override
-                                                    public void run () throws Exception
-                                                    {
-                                                        block.run();
-                                                    }
-                                                });
+                                                OBUtils.runOnOtherThreadDelayed(1.0f, block);
                                             }
                                             catch (Exception e)
                                             {

@@ -105,6 +105,8 @@ public class OC_Counting5and10_S6 extends OC_Generic_Event
         //
         action_playNextDemoSentence(false); // Look.
         OC_Generic.pointer_moveToObjectByName("dot_0", -25, 0.6f, EnumSet.of(OC_Generic.Anchor.ANCHOR_BOTTOM), true, this);
+        waitAudio();
+        waitForSecs(0.3);
         action_playNextDemoSentence(false); // Zero.
         waitAudio();
         waitForSecs(0.3);
