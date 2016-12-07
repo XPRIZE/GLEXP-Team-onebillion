@@ -663,7 +663,7 @@ public class OC_JMenu extends OC_Menu
         videoPreviewIdx = i;
         Typeface tf = plainFont();
         Typeface tfb = boldFont();
-        OBControl selector = objectDict.get("numeracy_selector");
+        OBControl selector = objectDict.get("video_preview_selector");
         OBControl pim = videoPreviewImages.get(videoPreviewIdx);
         RectF f = new RectF();
         f.set(pim.frame());
@@ -802,7 +802,7 @@ public class OC_JMenu extends OC_Menu
             selector.setBackgroundColor(col);
             selector.setFrame(videoPreviewImages.get(0).frame());
             selector.setZPosition(1);
-            objectDict.put("numeracy_selector",selector);
+            objectDict.put("video_preview_selector",selector);
             lstgp.add(selector);
 
             OBControl mask = objectDict.get("video_mask");
@@ -1398,6 +1398,7 @@ public class OC_JMenu extends OC_Menu
         {
             while (otherControllerOnTop())
                 MainViewController().popViewController();
+            videoPreviewIdx = 0;
             switchTo("video",true);
             showMessage();
         }
