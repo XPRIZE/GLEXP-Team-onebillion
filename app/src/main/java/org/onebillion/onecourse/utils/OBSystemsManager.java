@@ -861,8 +861,8 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             devicePolicyManager.setKeyguardDisabled(adminReceiver, !status);
             MainActivity.log("OBSystemsManager.keyguard has been " + (status ? "enabled" : "disabled"));
             //
-            devicePolicyManager.setStatusBarDisabled(adminReceiver, !status);
-            MainActivity.log("OBSystemsManager.status bar has been " + (status ? "enabled" : "disabled"));
+//            devicePolicyManager.setStatusBarDisabled(adminReceiver, !status);
+//            MainActivity.log("OBSystemsManager.status bar has been " + (status ? "enabled" : "disabled"));
         }
     }
 

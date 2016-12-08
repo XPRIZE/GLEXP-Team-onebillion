@@ -13,6 +13,7 @@ import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.provider.Settings;
 
 import org.onebillion.onecourse.mainui.MainActivity;
 
@@ -163,6 +164,9 @@ public class OBConnectionManager
             MainActivity.log("OBConnectionManager.connectToNetwork SSID is null. Aborting and not running completion block");
             return;
         }
+        //
+        Settings.Global.putString(MainActivity.mainActivity.getContentResolver(), "airplane_mode_on", "0");
+        //
         final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getSystemService(Context.WIFI_SERVICE);
         //
         if (!wfMgr.isWifiEnabled())
@@ -200,6 +204,8 @@ public class OBConnectionManager
                     {
                         MainActivity.log("OBConnectionManager.connectToNetwork. running completion block");
                         OBUtils.runOnOtherThreadDelayed(1.0f, block);
+                        //
+                        Settings.Global.putString(MainActivity.mainActivity.getContentResolver(), "airplane_mode_on", "1");
                     }
                     catch (Exception e)
                     {
@@ -308,6 +314,8 @@ public class OBConnectionManager
                                             {
                                                 MainActivity.log("OBConnectionManager.connectToNetwork. running completion block");
                                                 OBUtils.runOnOtherThreadDelayed(1.0f, block);
+                                                //
+                                                Settings.Global.putString(MainActivity.mainActivity.getContentResolver(), "airplane_mode_on", "1");
                                             }
                                             catch (Exception e)
                                             {
