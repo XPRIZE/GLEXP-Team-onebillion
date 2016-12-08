@@ -1246,7 +1246,7 @@ public class OC_ChildMenu extends OC_Menu implements OC_FatReceiver
     {
         int audioIndex = getStartAudio();
         List<String> aud = getAudioForScene("unit", "DEMO");
-        if (audioIndex > -1 &&  aud!= null && aud.size() > audioIndex)
+        if (audioIndex > -1 &&  aud != null && aud.size() > audioIndex)
         {
             walkPresenterIn((PointF) presenter.control.propertyValue("start_loc"));
             waitForSecs(0.3f);

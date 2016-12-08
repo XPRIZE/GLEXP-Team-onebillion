@@ -305,6 +305,9 @@ public class OC_FatController extends OBFatController
         if(currentSessionStartTime == 0)
             return true;
 
+        if(disallowEndHour == disallowStartHour)
+            return false;
+
         Calendar currentCalendar = Calendar.getInstance();
         Calendar calendarLastSession = Calendar.getInstance();
 
