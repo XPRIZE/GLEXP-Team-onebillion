@@ -698,7 +698,7 @@ public class OC_Reading extends OC_SectionController
         String pref = "p";
         if (slowWordsAvailable)
             pref = "ps";
-        playAudioFromTo(String.format("%s%d_%d",pref,pageNo,w.paraNo),w.slowTimeStart,w.slowTimeEnd);
+        playAudioFromToN(String.format("%s%d_%d",pref,pageNo,w.paraNo),w.slowTimeStart,w.slowTimeEnd);
         waitAudio();
     }
 

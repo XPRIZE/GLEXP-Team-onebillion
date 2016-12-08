@@ -1537,7 +1537,7 @@ public class OBSectionController extends OBViewController
         }
     }
 
-    void _playAudio (final String fileName, double atTime)
+    void _playAudio (final String fileName, final double atTime)
     {
         if (Looper.myLooper() == Looper.getMainLooper())
             OBAudioManager.audioManager.startPlaying(fileName, atTime);
@@ -1547,7 +1547,7 @@ public class OBSectionController extends OBViewController
             {
                 public void ex ()
                 {
-                    _playAudio(fileName);
+                    _playAudio(fileName,atTime);
                 }
             }.run();
         }
@@ -1583,6 +1583,36 @@ public class OBSectionController extends OBViewController
                 }
             }.run();
         }
+    }
+
+    public void playAudioFromToN (final String fileName, double fromTime, double toTime)
+    {
+        updateAudioQueueToken();
+        final long aqtCopy = audioQueueToken;
+        float m4afrig = 2112f / 44100f;
+        //fromTime += m4afrig ;
+        toTime += m4afrig ;
+        _playAudio(fileName, fromTime);
+        waitUntilPlaying();
+        final long t = (long) Math.ceil((toTime - fromTime) * 1000);
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                Handler h = new Handler();
+                h.postDelayed(new Runnable()
+                {
+                    @Override
+                    public void run ()
+                    {
+                        if (aqtCopy == audioQueueToken)
+                            OBAudioManager.audioManager.stopPlaying();
+                    }
+                }, t);
+            }
+        });
+
     }
 
 
@@ -2021,6 +2051,16 @@ public class OBSectionController extends OBViewController
             MainActivity.mainActivity.suspendLock.lock();
             MainActivity.mainActivity.suspendLock.unlock();
         }
+    }
+
+    public void waitPrepared()
+    {
+        OBAudioManager.audioManager.waitPrepared();
+    }
+
+    public void waitUntilPlaying()
+    {
+        OBAudioManager.audioManager.waitUntilPlaying();
     }
 
     public void waitAudioChannel (String ch) throws Exception

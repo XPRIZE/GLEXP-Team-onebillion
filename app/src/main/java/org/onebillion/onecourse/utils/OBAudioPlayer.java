@@ -300,7 +300,7 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
                 }
             };
             Handler handler = new Handler();
-            handler.postDelayed(runnable,15);
+            handler.postDelayed(runnable,250);
         }
         catch (Exception e)
         {

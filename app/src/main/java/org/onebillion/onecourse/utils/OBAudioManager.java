@@ -216,6 +216,30 @@ public class OBAudioManager
         startPlaying(fileName, AM_SFX_CHANNEL, 0, vol);
     }
 
+    public void waitPrepared ()
+    {
+        waitPrepared(AM_MAIN_CHANNEL);
+    }
+
+    public void waitUntilPlaying ()
+    {
+        waitUntilPlaying(AM_MAIN_CHANNEL);
+    }
+
+    public void waitPrepared (String ch)
+    {
+        OBAudioPlayer player = players.get(ch);
+        if (player != null)
+            player.waitPrepared();
+    }
+
+    public void waitUntilPlaying (String ch)
+    {
+        OBAudioPlayer player = players.get(ch);
+        if (player != null)
+            player.waitUntilPlaying();
+    }
+
     public void waitAudioChannel (String ch)
     {
         OBAudioPlayer player = players.get(ch);
