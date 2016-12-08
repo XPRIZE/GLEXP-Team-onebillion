@@ -1638,7 +1638,14 @@ public class OBSectionController extends OBViewController
 
     public void playSFX (String fileName)
     {
-        _playSFX(fileName);
+        if (fileName == null)
+        {
+            OBAudioManager.audioManager.stopPlayingSFX();
+        }
+        else
+        {
+            _playSFX(fileName);
+        }
     }
 
     public long takeSequenceLockInterrupt (boolean interrupt)
