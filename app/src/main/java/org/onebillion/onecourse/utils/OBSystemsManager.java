@@ -274,6 +274,16 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
+    public Handler getMainHandler()
+    {
+        if (mainHandler == null)
+        {
+            mainHandler = new Handler(MainActivity.mainActivity.getMainLooper());
+        }
+        return mainHandler;
+    }
+
+
     public void printMemoryStatus (String message)
     {
         ActivityManager activityManager = (ActivityManager) MainActivity.mainActivity.getSystemService(MainActivity.ACTIVITY_SERVICE);

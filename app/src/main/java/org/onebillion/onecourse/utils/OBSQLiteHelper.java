@@ -268,20 +268,30 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
                 String date = df.format("yyyy.MM.dd.hh.mm.ss", new java.util.Date()).toString();
                 //
                 String currentDBPath = "//data//" + MainActivity.mainActivity.getApplicationContext().getPackageName() + "//databases//" + DATABASE_NAME;
-                File currentDB = new File(data, currentDBPath);
-                File backupDB = new File(sd, String.format("%s.db", date));
                 //
-                FileChannel src = new FileInputStream(currentDB).getChannel();
-                FileChannel dst = new FileOutputStream(backupDB).getChannel();
-                dst.transferFrom(src, 0, src.size());
-                src.close();
-                dst.close();
-                //
-                MainActivity.log("Database backup successful!. New database backup " + backupDB.getName());
+                try
+                {
+                    File currentDB = new File(data, currentDBPath);
+                    File backupDB = new File(sd, String.format("%s.db", date));
+                    //
+                    FileChannel src = new FileInputStream(currentDB).getChannel();
+                    FileChannel dst = new FileOutputStream(backupDB).getChannel();
+                    //
+                    dst.transferFrom(src, 0, src.size());
+                    src.close();
+                    dst.close();
+                    //
+                    MainActivity.log("Database backup successful!. New database backup " + backupDB.getName());
 //                Toast toast = Toast.makeText(MainActivity.mainActivity.getApplicationContext(), "Database backup successful!", Toast.LENGTH_SHORT);
 //                toast.setDuration(Toast.LENGTH_SHORT);
 //                toast.show();
-                return backupDB.getAbsolutePath();
+                    return backupDB.getAbsolutePath();
+                }
+                catch (Exception e)
+                {
+                    MainActivity.log("OBSQLiteHelper.backupDatabase. database hasn't been created yet. Nothing to do here");
+                    return null;
+                }
             }
         }
         catch (Exception e)

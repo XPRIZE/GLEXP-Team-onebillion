@@ -163,6 +163,8 @@ public class OBBrightnessManager
         }
         if (suspended) return false;
         //
+        if (MainActivity.mainViewController.topController() == null) return false;
+        //
         int status = MainActivity.mainViewController.topController().status();
         if (status == OBSectionController.STATUS_DOING_DEMO || status == OBSectionController.STATUS_CHECKING || status == OBSectionController.STATUS_DRAGGING)
         {
