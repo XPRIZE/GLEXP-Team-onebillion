@@ -1616,7 +1616,7 @@ public class OBSectionController extends OBViewController
     }
 
 
-    void _playSFX(String fileName)
+    void _playSFX(final String fileName)
     {
         if (Looper.myLooper() == Looper.getMainLooper())
         {
@@ -1624,12 +1624,11 @@ public class OBSectionController extends OBViewController
         }
         else
         {
-            final String fn = new String(fileName);
             new OBRunnableSyncUI()
             {
                 public void ex ()
                 {
-                    _playSFX(fn);
+                    _playSFX(fileName);
                 }
             }.run();
         }
@@ -1638,14 +1637,7 @@ public class OBSectionController extends OBViewController
 
     public void playSFX (String fileName)
     {
-        if (fileName == null)
-        {
-            OBAudioManager.audioManager.stopPlayingSFX();
-        }
-        else
-        {
-            _playSFX(fileName);
-        }
+        _playSFX(fileName);
     }
 
     public long takeSequenceLockInterrupt (boolean interrupt)
