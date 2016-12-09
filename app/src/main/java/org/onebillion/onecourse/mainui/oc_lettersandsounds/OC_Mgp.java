@@ -118,6 +118,7 @@ public class OC_Mgp extends OC_SectionController
 
 
         int audioIndx = 1; int eventIndx = eventsData.size();
+        boolean startWithLetter = true, endWithLetter = true;
         for(int i=0; i<arr2.length; i++)
         {
             OBWord word = (OBWord)componentsDict.get(arr2[i]);
@@ -127,23 +128,22 @@ public class OC_Mgp extends OC_SectionController
 
             if(word != null)
             {
-                if(i == 0)
-                {
-                    if(word.text.startsWith(targetPhoneme.text))
-                        audioIndx = 0;
-                    else if (word.text.endsWith(targetPhoneme.text))
-                        audioIndx = 2;
-                    else
-                        audioIndx = 1;
-                }
-                else
-                {
-                    if((word.text.startsWith(targetPhoneme.text) && audioIndx != 0)
-                            ||(word.text.endsWith(targetPhoneme.text) && audioIndx != 2))
-                        audioIndx = 1;
-                }
+                if(startWithLetter && !word.text.startsWith(targetPhoneme.text))
+                    startWithLetter = false;
+
+                if(endWithLetter && !word.text.endsWith(targetPhoneme.text))
+                    endWithLetter = false;
+
             }
         }
+
+        if(startWithLetter == endWithLetter)
+            audioIndx = 1;
+        else if(startWithLetter)
+            audioIndx = 0;
+        else
+            audioIndx = 2;
+
 
         eventsData.get(eventIndx).put("audioIndex",audioIndx);
 
