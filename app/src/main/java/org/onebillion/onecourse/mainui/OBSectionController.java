@@ -1593,7 +1593,8 @@ public class OBSectionController extends OBViewController
         //fromTime += m4afrig ;
         toTime += m4afrig ;
         _playAudio(fileName, fromTime);
-        waitUntilPlaying();
+        waitPrepared();
+        //waitUntilPlaying();
         final long t = (long) Math.ceil((toTime - fromTime) * 1000);
         OBUtils.runOnMainThread(new OBUtils.RunLambda()
         {

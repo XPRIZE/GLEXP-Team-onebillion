@@ -52,6 +52,7 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
         if (player != null)
         {
             final MediaPlayer cpplayer = player;
+            setState(OBAP_IDLE);
             player = null;
 
             try
