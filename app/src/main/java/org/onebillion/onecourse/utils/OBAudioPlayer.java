@@ -49,10 +49,10 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
 
     public void stopPlaying ()
     {
+        setState(OBAP_IDLE);
         if (player != null)
         {
             final MediaPlayer cpplayer = player;
-            setState(OBAP_IDLE);
             player = null;
 
             try
@@ -72,7 +72,6 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
             catch (Exception e)
             {
             }
-            setState(OBAP_IDLE);
             playerLock.lock();
             condition.signalAll();
             playerLock.unlock();
@@ -206,10 +205,10 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
 
     public void waitPrepared ()
     {
-        if (getState() == OBAP_IDLE)
+        if (getState() == OBAP_IDLE || player == null)
             return;
         playerLock.lock();
-        while (player == null || getState() == OBAP_PREPARING)
+        while (getState() == OBAP_PREPARING)
         {
             try
             {
@@ -224,7 +223,7 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
 
     public void waitUntilPlaying ()
     {
-        if (getState() == OBAP_IDLE)
+        if (getState() == OBAP_IDLE || player == null)
             return;
         playerLock.lock();
         while (player == null || getState() != OBAP_PLAYING)
