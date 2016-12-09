@@ -19,6 +19,8 @@ import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
 
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Handler;
 
 /**
@@ -34,6 +36,8 @@ public class OBConnectionManager
     private double timeStampForConnectionAttempt;
     private WifiManager.WifiLock wifiLock;
     private Runnable timeoutRunnable;
+    private ReentrantLock completionLock;
+
 
     public OBConnectionManager ()
     {
@@ -185,9 +189,26 @@ public class OBConnectionManager
                 //
                 if (newInfo.getSupplicantState() == SupplicantState.COMPLETED)
                 {
-                    MainActivity.log("OBConnectionManager.connectToNetwork. Wifi is now connected. Go to connectToWifi");
+                    MainActivity.log("OBConnectionManager.connectToNetwork. Wifi is now connected. Go to connectToNetWork_complete");
                     OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(timeoutRunnable);
-                    connectToNetWork_complete(true, block);
+                    connectToNetWork_complete(true, new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run () throws Exception
+                        {
+                            if (getCompletionLock().tryLock())
+                            {
+                                MainActivity.log("OBConnectionManager.connectToNetwork. WITH the completion lock. running block");
+                                block.run();
+                                connectToNetwork_disconnect();
+                                getCompletionLock().unlock();
+                            }
+                            else
+                            {
+                                MainActivity.log("OBConnectionManager.connectToNetwork. WITHOUT the completion lock. exiting.");
+                            }
+                        }
+                    });
                 }
             }
         };
@@ -316,7 +337,7 @@ public class OBConnectionManager
 
 
 
-    public void connectToNetWork_complete(boolean success, OBUtils.RunLambda block)
+    public void connectToNetWork_complete(boolean success, final OBUtils.RunLambda block)
     {
         final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getSystemService(Context.WIFI_SERVICE);
         //
@@ -328,15 +349,6 @@ public class OBConnectionManager
                 {
                     MainActivity.log("OBConnectionManager.connectToNetWork_complete. running completion block");
                     OBUtils.runOnOtherThreadDelayed(1.0f, block);
-                    //
-                    MainActivity.log("OBConnectionManager.connectToNetWork_complete.disable wifi");
-                    wfMgr.setWifiEnabled(false);
-                    //
-                    MainActivity.log("OBConnectionManager.connectToNetWork_complete.enable airplane mode");
-                    Settings.Global.putInt(MainActivity.mainActivity.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 1);
-                    Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
-                    intent.putExtra("state", true);
-                    MainActivity.mainActivity.sendBroadcast(intent);
                 }
                 catch (Exception e)
                 {
@@ -347,6 +359,8 @@ public class OBConnectionManager
             else
             {
                 MainActivity.log("OBConnectionManager.connectToNetWork_complete.block is empty. nothing to do");
+                //
+                connectToNetwork_disconnect();
             }
         }
         if (wifiLock != null)
@@ -355,6 +369,23 @@ public class OBConnectionManager
         }
         //
         timeStampForConnectionAttempt = -1;
+    }
+
+
+    public void connectToNetwork_disconnect()
+    {
+        final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getSystemService(Context.WIFI_SERVICE);
+        //
+        MainActivity.log("OBConnectionManager.connectToNetWork_complete.block complete");
+        //
+        MainActivity.log("OBConnectionManager.connectToNetWork_complete.disable wifi");
+        wfMgr.setWifiEnabled(false);
+        //
+        MainActivity.log("OBConnectionManager.connectToNetWork_complete.enable airplane mode");
+        Settings.Global.putInt(MainActivity.mainActivity.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 1);
+        Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        intent.putExtra("state", true);
+        MainActivity.mainActivity.sendBroadcast(intent);
     }
 
 
@@ -519,6 +550,16 @@ public class OBConnectionManager
         MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.starting scan");
         wfMgr.disconnect();
         wfMgr.startScan();
+    }
+
+
+    public Lock getCompletionLock()
+    {
+        if (completionLock == null)
+        {
+            completionLock = new ReentrantLock();
+        }
+        return completionLock;
     }
 
 
