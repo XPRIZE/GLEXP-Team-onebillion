@@ -197,7 +197,7 @@ public class OBUtils
         }
         catch (Exception e)
         {
-            MainActivity.log("OBUtils.getInputStreamPath.unable to find bundled asset: " + path);
+//            MainActivity.log("OBUtils.getInputStreamPath.unable to find bundled asset: " + path);
             e.printStackTrace();
         }
         //
