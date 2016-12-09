@@ -42,9 +42,9 @@ Each of the three versions of **onecourse** has as a set of Android filesytem im
 4. The device will display a warning about unlocking the bootloader.
 5. Press the **power** button on the device to unlock the bootloader.
 6. The device will reboot into the bootloader and display _Waiting for fastboot command…_.
-7. Reboot the device back into the bootloader by running:
+7. Reboot the device back into Android by running:
  
-        adb reboot-bootloader
+        fastboot reboot
 
 8. Since your device will be reset, you will need to [enable USB debugging](#enable-usb-debugging) once more.
 
