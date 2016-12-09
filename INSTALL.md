@@ -12,7 +12,7 @@ Each of the three versions of **onecourse** has as a set of Android filesytem im
 
 ##### Enable developer mode
 1. Go to **Settings > About tablet**.
-2. Tap **Build Number** 7 times until it displays **_"You are now a developer"_**.
+2. Tap **Build Number** 7 times until it displays _"You are now a developer"_.
 
 
 #####Enable OEM Unlocking
@@ -24,8 +24,8 @@ Each of the three versions of **onecourse** has as a set of Android filesytem im
 1. Go to **Settings > Developer** options.
 2. Tap **Enable USB debugging**.
 3. Tap **OK** when prompted by the disclaimer.
-4. You should see dialog with you computer's **_"RSA key fingerprint"_**.
-5. Tap **_"Always allow from this computer"_**.
+4. You should see dialog with you computer's _"RSA key fingerprint"_.
+5. Tap _"Always allow from this computer"_.
 6. Tap **OK**.
 
 ##Unlock the bootloader
@@ -33,7 +33,7 @@ Each of the three versions of **onecourse** has as a set of Android filesytem im
 
         adb reboot-bootloader
  
-2. The device will now boot into the bootloader and display **_Waiting for fastboot command…_**.
+2. The device will now boot into the bootloader and display _Waiting for fastboot command…_.
 
 3. Unlock the bootloader by running:
  
@@ -41,7 +41,7 @@ Each of the three versions of **onecourse** has as a set of Android filesytem im
 
 4. The device will display a warning about unlocking the bootloader.
 5. Press the **power** button on the device to unlock the bootloader.
-6. The device will reboot into the bootloader and display **__Waiting for fastboot command…_**.
+6. The device will reboot into the bootloader and display _Waiting for fastboot command…_.
 7. Reboot the device back into the bootloader by running:
  
         adb reboot-bootloader
@@ -61,7 +61,7 @@ Each of the three versions of **onecourse** has as a set of Android filesytem im
  
         adb reboot-bootloader
  
-3. The device will now boot into the bootloader and display **_Waiting for fastboot command…_**.
+3. The device will now boot into the bootloader and display _Waiting for fastboot command…_.
 
 
 4. On your computer, set the `ANDROID_PRODUCT_OUT` enviroment variable to the directory containing the filesytem images by running:
