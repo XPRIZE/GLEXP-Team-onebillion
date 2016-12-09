@@ -51,13 +51,22 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
     {
         if (player != null)
         {
-            MediaPlayer cpplayer = player;
+            final MediaPlayer cpplayer = player;
             player = null;
+
             try
             {
                 cpplayer.setOnPreparedListener(null);
                 cpplayer.setOnCompletionListener(null);
                 cpplayer.setOnSeekCompleteListener(null);
+            }
+            catch (Exception e)
+            {
+            }
+            try
+            {
+                if (cpplayer.isPlaying())
+                    cpplayer.stop();
             }
             catch (Exception e)
             {
@@ -68,11 +77,21 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
             playerLock.unlock();
             try
             {
-                cpplayer.reset();
-                cpplayer.release();
+                Runnable runnable = new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        cpplayer.reset();
+                        cpplayer.release();
+                    }
+                };
+                Handler handler = new Handler();
+                handler.postDelayed(runnable,250);
             }
             catch (Exception e)
             {
+                e.printStackTrace();
             }
         }
     }

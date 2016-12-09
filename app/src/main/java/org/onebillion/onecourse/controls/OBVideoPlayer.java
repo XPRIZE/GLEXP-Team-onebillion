@@ -169,11 +169,25 @@ public class OBVideoPlayer extends OBControl
         float widthRatio = 0;
         float heightRatio = 0;
 
+        float left=0,right=boundsWidth,top=0,bottom=boundsHeight;
         if (fillType == VP_FILL_TYPE_ASPECT_FIT)
         {
             float oldratio1 = ratio1;
             ratio1 = ratio2;
             ratio2 = oldratio1;
+
+            float ratiow = boundsWidth / cameraWidth;
+            float ratioh = boundsHeight / cameraHeight;
+            if (ratioh > ratiow)
+            {
+                top = (boundsHeight - cameraHeight * ratiow) / 2;
+                bottom = boundsHeight - top;
+            }
+            else if (ratioh < ratiow)
+            {
+                left = (boundsWidth - cameraWidth * ratioh) / 2;
+                right = boundsHeight - left;
+            }
         }
 
         if (ratio1 > ratio2)
@@ -199,7 +213,8 @@ public class OBVideoPlayer extends OBControl
         }
 
         tr.setUVs(targetUVW, targetUVH, 1 - targetUVW, 1 - targetUVH);
-        tr.drawSurface(renderer, widthRatio*boundsWidth, heightRatio*boundsHeight, (1 - widthRatio)*boundsWidth, (1 - heightRatio)*boundsHeight, surfaceTexture, mirrored);
+        //tr.drawSurface(renderer, widthRatio*boundsWidth, heightRatio*boundsHeight, (1 - widthRatio)*boundsWidth, (1 - heightRatio)*boundsHeight, surfaceTexture, mirrored);
+        tr.drawSurface(renderer, left,top,right,bottom, surfaceTexture, mirrored);
         tr.setUVs(0, 0, 1, 1);
     }
 
