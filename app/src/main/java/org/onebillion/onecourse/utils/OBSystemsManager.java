@@ -90,9 +90,11 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         batteryReceiver = new OBBatteryReceiver();
         //
         settingsContentObserver = new OBSettingsContentObserver(MainActivity.mainActivity, new Handler());
+        //
         brightnessManager = new OBBrightnessManager();
         expansionManager = new OBExpansionManager();
         connectionManager = new OBConnectionManager();
+        //
         suspended = true;
         //
         memoryUsageMap = new HashMap<String, List<String>>();

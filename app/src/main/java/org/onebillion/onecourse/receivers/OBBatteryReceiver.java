@@ -28,8 +28,7 @@ public class OBBatteryReceiver extends BroadcastReceiver
 
         acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
         //
-//        float battery = OBBatteryReceiver.getBatteryLevel();
-//        MainActivity.log("Battery Info: " + ((isCharging) ? "is charging" : "not charging") + " " + ((usbCharge) ? "USB" : "" + " ") + ((acCharge) ? "AC" : "") + " " + battery + "%");
+        MainActivity.log(printStatus());
         //
         if (OBSystemsManager.sharedManager != null)
         {

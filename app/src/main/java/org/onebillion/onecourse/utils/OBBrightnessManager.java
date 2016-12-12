@@ -12,7 +12,6 @@ import org.onebillion.onecourse.mainui.OBSectionController;
 public class OBBrightnessManager
 {
     private long checkInterval;
-    private boolean usesBrightnessAdjustment;
     //
     public static OBBrightnessManager sharedManager;
     private long lastTouchTimeStamp;
@@ -71,21 +70,19 @@ public class OBBrightnessManager
 
     public void runBrightnessCheck ()
     {
+        MainActivity.log("OBBrightnessManager.runBrightnessCheck");
         if (suspended) return;
         //
-        String brightnessInterval = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BRIGHTNESS_CHECK_INTERVAL);
-        checkInterval = 5;
-        if (brightnessInterval != null) checkInterval = Long.parseLong(brightnessInterval);
-        //
-        String usesBrightnessAdjustmentString = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_USES_BRIGHTNESS_ADJUSTMENT);
-        usesBrightnessAdjustment = (usesBrightnessAdjustmentString != null && usesBrightnessAdjustmentString.equals("true"));
-        //
-        if (!usesBrightnessAdjustment)
+        if (!usesBrightnessAdjustment())
         {
             disableBrightnessAdjustment();
         }
         else
         {
+            String brightnessInterval = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BRIGHTNESS_CHECK_INTERVAL);
+            checkInterval = 5;
+            if (brightnessInterval != null) checkInterval = Long.parseLong(brightnessInterval);
+            //
             if (brightnessCheckRunnable == null)
             {
                 final long interval = checkInterval * 1000;
@@ -138,8 +135,9 @@ public class OBBrightnessManager
     public void registeredTouchOnScreen ()
     {
 //        MainActivity.log("registeredTouchOnScreen");
-        if (usesBrightnessAdjustment)
+        if (usesBrightnessAdjustment())
         {
+            MainActivity.log("OBBrightnessManager.registeredTouchOnScreen --> restoring brightnessCheckRunnable to Handler");
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
                 @Override
@@ -155,10 +153,11 @@ public class OBBrightnessManager
 
     public boolean updateBrightness (boolean loop)
     {
-        if (!usesBrightnessAdjustment)
+        if (!usesBrightnessAdjustment())
         {
-            setScreenSleepTimeToMax();
-            setBrightness(maxBrightness());
+            disableBrightnessAdjustment();
+//            setScreenSleepTimeToMax();
+//            setBrightness(maxBrightness());
             return false;
         }
         if (suspended) return false;
@@ -229,7 +228,6 @@ public class OBBrightnessManager
     {
         MainActivity.log("OBBrightnessManager.onResume detected");
         paused = false;
-        MainActivity.log("OBBrightnessManager.onResume --> restoring brightnessCheckRunnable to Handler");
         registeredTouchOnScreen();
     }
 
@@ -331,6 +329,13 @@ public class OBBrightnessManager
         int maxTime = 60000; // 1 minute
         if (maxTimeString != null) maxTime = Integer.parseInt(maxTimeString) * 1000;
         return maxTime;
+    }
+
+
+    public boolean usesBrightnessAdjustment()
+    {
+        String usesBrightnessAdjustmentString = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_USES_BRIGHTNESS_ADJUSTMENT);
+        return (usesBrightnessAdjustmentString != null && usesBrightnessAdjustmentString.equals("true"));
     }
 
 }
