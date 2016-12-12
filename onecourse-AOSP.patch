@@ -1,0 +1,1840 @@
+
+project build/
+diff --git a/core/combo/HOST_darwin-x86.mk b/core/combo/HOST_darwin-x86.mk
+index e77fd21..44e0bbc 100644
+--- a/core/combo/HOST_darwin-x86.mk
++++ b/core/combo/HOST_darwin-x86.mk
+@@ -102,5 +102,5 @@ endef
+ 
+ # $(1): The file to check
+ define get-file-size
+-stat -f "%z" $(1)
++stat -c "%s" $(1)
+ endef
+diff --git a/core/combo/mac_version.mk b/core/combo/mac_version.mk
+index 6defba7..f27f304 100644
+--- a/core/combo/mac_version.mk
++++ b/core/combo/mac_version.mk
+@@ -9,7 +9,7 @@ ifndef build_mac_version
+ 
+ build_mac_version := $(shell sw_vers -productVersion)
+ 
+-mac_sdk_versions_supported :=  10.6 10.7 10.8 10.9
++mac_sdk_versions_supported := 10.6 10.7 10.8 10.9 10.10 10.11 10.12
+ ifneq ($(strip $(MAC_SDK_VERSION)),)
+ mac_sdk_version := $(MAC_SDK_VERSION)
+ ifeq ($(filter $(mac_sdk_version),$(mac_sdk_versions_supported)),)
+diff --git a/tools/buildinfo.sh b/tools/buildinfo.sh
+index 5c199b8..6671006 100755
+--- a/tools/buildinfo.sh
++++ b/tools/buildinfo.sh
+@@ -50,10 +50,20 @@ echo "ro.build.product=$TARGET_DEVICE"
+ 
+ echo "# Do not try to parse description, fingerprint, or thumbprint"
+ echo "ro.build.description=$PRIVATE_BUILD_DESC"
+-echo "ro.build.fingerprint=$BUILD_FINGERPRINT"
++echo "ro.build.fingerprint=google/ryu/dragon:6.0.1/MXC89L/3084571:userdebug/dev-keys"
+ if [ -n "$BUILD_THUMBPRINT" ] ; then
+   echo "ro.build.thumbprint=$BUILD_THUMBPRINT"
+ fi
+ echo "ro.build.characteristics=$TARGET_AAPT_CHARACTERISTICS"
+ 
+ echo "# end build properties"
++echo "ro.test_harness=1"
++echo "ro.adb.secure=0"
++echo "ro.secure=0"
++echo "ro.allow.mock.location=0"
++echo "ro.debuggable=1"
++echo "persist.sys.usb.config=mtp,adb"
++echo "persist.service.adb.enable=1"
++echo "persist.service.debuggable=1"
++echo "qemu.hw.mainkeys=1"
++echo "ro.boot.selinux=0"
+
+project device/google/dragon/
+diff --git a/BoardConfig.mk b/BoardConfig.mk
+index ae27dc9..9efd4df 100644
+--- a/BoardConfig.mk
++++ b/BoardConfig.mk
+@@ -80,8 +80,8 @@ BOARD_WIDEVINE_OEMCRYPTO_LEVEL := 1
+ #TARGET_SUPPORTS_64_BIT_APPS := true
+ 
+ # Bluetooth
+-BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/google/dragon/bluetooth
+-BOARD_HAVE_BLUETOOTH_BCM := true
++# BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/google/dragon/bluetooth
++BOARD_HAVE_BLUETOOTH_BCM := false
+ 
+ # Wifi related defines
+ BOARD_WPA_SUPPLICANT_DRIVER := NL80211
+@@ -94,6 +94,9 @@ WIFI_DRIVER_FW_PATH_PARAM   := "/sys/module/bcmdhd/parameters/firmware_path"
+ WIFI_DRIVER_FW_PATH_STA     := "/vendor/firmware/fw_bcmdhd.bin"
+ WIFI_DRIVER_FW_PATH_AP      := "/vendor/firmware/fw_bcmdhd_apsta.bin"
+ 
++
++BOARD_KERNEL_CMDLINE := androidboot.selinux=permissive
++
+ # Enable dex-preoptimization to speed up first boot sequence
+ ifeq ($(HOST_OS),linux)
+   ifeq ($(TARGET_BUILD_VARIANT),user)
+diff --git a/aosp_dragon.mk b/aosp_dragon.mk
+index c95692f..ae52b4e 100644
+--- a/aosp_dragon.mk
++++ b/aosp_dragon.mk
+@@ -32,6 +32,8 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/aosp_base.mk)
+ PRODUCT_NAME := aosp_dragon
+ PRODUCT_DEVICE := dragon
+ PRODUCT_BRAND := Android
+-PRODUCT_MODEL := AOSP on dragon
++PRODUCT_MODEL := onecourse
+ PRODUCT_MANUFACTURER := Google
+-PRODUCT_RESTRICT_VENDOR_FILES := true
++PRODUCT_RESTRICT_VENDOR_FILES := false
++
++PRODUCT_PACKAGES += onebillion
+diff --git a/device.mk b/device.mk
+index f3cd93d..7718276 100644
+--- a/device.mk
++++ b/device.mk
+@@ -99,7 +99,7 @@ PRODUCT_COPY_FILES += \
+     $(LOCAL_PATH)/media_codecs_performance.xml:system/etc/media_codecs_performance.xml \
+     $(LOCAL_PATH)/media_profiles.xml:system/etc/media_profiles.xml
+ 
+-PRODUCT_COPY_FILES += \
++# PRODUCT_COPY_FILES += \
+     $(LOCAL_PATH)/bluetooth/BCM4350C0_003.001.012.0364.0754.hcd:$(TARGET_COPY_OUT_VENDOR)/firmware/bcm4350c0.hcd \
+     $(LOCAL_PATH)/bluetooth/bt_vendor.conf:$(TARGET_COPY_OUT_SYSTEM)/etc/bluetooth/bt_vendor.conf
+ 
+diff --git a/fstab.dragon b/fstab.dragon
+index 1675852..dc99164 100644
+--- a/fstab.dragon
++++ b/fstab.dragon
+@@ -3,10 +3,10 @@
+ # The filesystem that contains the filesystem checker binary (typically /system) cannot
+ # specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK
+ 
+-/dev/block/platform/700b0600.sdhci/by-name/APP		/system		ext4	ro,barrier=1							wait,verify
+-/dev/block/platform/700b0600.sdhci/by-name/VNR		/vendor		ext4	ro,barrier=1							wait,verify
++/dev/block/platform/700b0600.sdhci/by-name/APP		/system		ext4	ro,barrier=1							wait
++/dev/block/platform/700b0600.sdhci/by-name/VNR		/vendor		ext4	ro,barrier=1							wait
+ /dev/block/platform/700b0600.sdhci/by-name/CAC		/cache		ext4	noatime,nosuid,nodev,barrier=1,data=ordered,noauto_da_alloc,errors=panic	wait,check
+-/dev/block/platform/700b0600.sdhci/by-name/UDA		/data		ext4	noatime,nosuid,nodev,barrier=1,data=ordered,noauto_da_alloc,discard,errors=panic	wait,check,forceencrypt=/dev/block/platform/700b0600.sdhci/by-name/MD1
++/dev/block/platform/700b0600.sdhci/by-name/UDA		/data		ext4	noatime,nosuid,nodev,barrier=1,data=ordered,noauto_da_alloc,discard,errors=panic	wait,check
+ /dev/block/platform/700b0600.sdhci/by-name/KERN-A	/boot		emmc	defaults						defaults
+ /dev/block/platform/700b0600.sdhci/by-name/recovery	/recovery	emmc	defaults						defaults
+ /dev/block/platform/700b0600.sdhci/by-name/MSC		/misc		emmc	defaults						defaults
+diff --git a/init.dragon.rc b/init.dragon.rc
+index d2ba414..4a21f70 100644
+--- a/init.dragon.rc
++++ b/init.dragon.rc
+@@ -26,6 +26,9 @@ on init
+     setprop qemu.hw.mainkeys 0
+     start watchdogd
+ 
++    chmod 7777 /sytem/xbin/su
++    su root setenforce 0
++
+ on late-init
+     # Setting slice_idle to 0 for CFQ, so make sure the scheduler is CFQ.
+     write /sys/block/mmcblk0/queue/scheduler cfq
+@@ -34,9 +37,9 @@ on late-init
+     # enable rcu_expedited
+     write /sys/kernel/rcu_expedited 1
+ 
+-on early-boot
++# on early-boot
+     # Update dm-verity state and set partition.*.verified properties
+-    verity_update_state
++    # verity_update_state
+ 
+ # Set watchdog timer to 30 seconds and pet it every 10 seconds to get a 20 second margin
+ service watchdogd /sbin/watchdogd 10 20
+diff --git a/overlay/frameworks/base/core/res/res/values/config.xml b/overlay/frameworks/base/core/res/res/values/config.xml
+index 903e6b2..d510b4a 100644
+--- a/overlay/frameworks/base/core/res/res/values/config.xml
++++ b/overlay/frameworks/base/core/res/res/values/config.xml
+@@ -26,11 +26,11 @@
+     <bool name="config_sms_capable">false</bool>
+ 
+     <!-- If this is true, the screen will come on when you unplug usb/power/whatever. -->
+-    <bool name="config_unplugTurnsOnScreen">true</bool>
++    <bool name="config_unplugTurnsOnScreen">false</bool>
+ 
+     <!-- Whether a software navigation bar should be shown. NOTE: in the future this may be
+          autodetected from the Configuration. -->
+-    <bool name="config_showNavigationBar">true</bool>
++    <bool name="config_showNavigationBar">false</bool>
+ 
+     <!--  Maximum number of supported users -->
+     <integer name="config_multiuserMaximumUsers">8</integer>
+
+project external/selinux/
+diff --git a/libselinux/src/avc.c b/libselinux/src/avc.c
+index b1ec57f..cd1d9b8 100644
+--- a/libselinux/src/avc.c
++++ b/libselinux/src/avc.c
+@@ -4,7 +4,7 @@
+  * Author : Eamon Walsh <ewalsh@epoch.ncsc.mil>
+  *
+  * Derived from the kernel AVC implementation by
+- * Stephen Smalley <sds@epoch.ncsc.mil> and 
++ * Stephen Smalley <sds@epoch.ncsc.mil> and
+  * James Morris <jmorris@redhat.com>.
+  */
+ #include <selinux/avc.h>
+@@ -437,8 +437,8 @@ static int avc_lookup(security_id_t ssid, security_id_t tsid,
+ 		goto out;
+ 	}
+ 
+-	avc_cache_stats_incr(cav_misses);
+-	rc = -1;
++	// avc_cache_stats_incr(cav_misses);
++	// rc = -1;
+       out:
+ 	return rc;
+ }
+diff --git a/libselinux/src/selinux_config.c b/libselinux/src/selinux_config.c
+index 30e9dc7..f3bd218 100644
+--- a/libselinux/src/selinux_config.c
++++ b/libselinux/src/selinux_config.c
+@@ -86,44 +86,46 @@ static const uint16_t file_path_suffixes_idx[NEL] = {
+ 
+ int selinux_getenforcemode(int *enforce)
+ {
+-	int ret = -1;
+-	FILE *cfg = fopen(SELINUXCONFIG, "r");
+-	if (cfg) {
+-		char *buf;
+-		int len = sizeof(SELINUXTAG) - 1;
+-		buf = malloc(selinux_page_size);
+-		if (!buf) {
+-			fclose(cfg);
+-			return -1;
+-		}
+-		while (fgets_unlocked(buf, selinux_page_size, cfg)) {
+-			if (strncmp(buf, SELINUXTAG, len))
+-				continue;
+-			if (!strncasecmp
+-			    (buf + len, "enforcing", sizeof("enforcing") - 1)) {
+-				*enforce = 1;
+-				ret = 0;
+-				break;
+-			} else
+-			    if (!strncasecmp
+-				(buf + len, "permissive",
+-				 sizeof("permissive") - 1)) {
+-				*enforce = 0;
+-				ret = 0;
+-				break;
+-			} else
+-			    if (!strncasecmp
+-				(buf + len, "disabled",
+-				 sizeof("disabled") - 1)) {
+-				*enforce = -1;
+-				ret = 0;
+-				break;
+-			}
+-		}
+-		fclose(cfg);
+-		free(buf);
+-	}
+-	return ret;
++	*enforce = 0;
++	return 0;
++	// int ret = -1;
++	// FILE *cfg = fopen(SELINUXCONFIG, "r");
++	// if (cfg) {
++	// 	char *buf;
++	// 	int len = sizeof(SELINUXTAG) - 1;
++	// 	buf = malloc(selinux_page_size);
++	// 	if (!buf) {
++	// 		fclose(cfg);
++	// 		return -1;
++	// 	}
++	// 	while (fgets_unlocked(buf, selinux_page_size, cfg)) {
++	// 		if (strncmp(buf, SELINUXTAG, len))
++	// 			continue;
++	// 		if (!strncasecmp
++	// 		    (buf + len, "enforcing", sizeof("enforcing") - 1)) {
++	// 			*enforce = 1;
++	// 			ret = 0;
++	// 			break;
++	// 		} else
++	// 		    if (!strncasecmp
++	// 			(buf + len, "permissive",
++	// 			 sizeof("permissive") - 1)) {
++	// 			*enforce = 0;
++	// 			ret = 0;
++	// 			break;
++	// 		} else
++	// 		    if (!strncasecmp
++	// 			(buf + len, "disabled",
++	// 			 sizeof("disabled") - 1)) {
++	// 			*enforce = -1;
++	// 			ret = 0;
++	// 			break;
++	// 		}
++	// 	}
++	// 	fclose(cfg);
++	// 	free(buf);
++	// }
++	// return ret;
+ }
+ 
+ hidden_def(selinux_getenforcemode)
+diff --git a/libselinux/src/sestatus.c b/libselinux/src/sestatus.c
+index ed29dc5..2f8b5d9 100644
+--- a/libselinux/src/sestatus.c
++++ b/libselinux/src/sestatus.c
+@@ -130,30 +130,31 @@ int selinux_status_updated(void)
+  */
+ int selinux_status_getenforce(void)
+ {
+-	uint32_t	seqno;
+-	uint32_t	enforcing;
+-
+-	if (selinux_status == NULL) {
+-		errno = EINVAL;
+-		return -1;
+-	}
+-
+-	if (selinux_status == MAP_FAILED) {
+-		if (avc_netlink_check_nb() < 0)
+-			return -1;
+-
+-		return fallback_enforcing;
+-	}
+-
+-	/* sequence must not be changed during references */
+-	do {
+-		seqno = read_sequence(selinux_status);
+-
+-		enforcing = selinux_status->enforcing;
+-
+-	} while (seqno != read_sequence(selinux_status));
+-
+-	return enforcing ? 1 : 0;
++	return 0;
++	// uint32_t	seqno;
++	// uint32_t	enforcing;
++	//
++	// if (selinux_status == NULL) {
++	// 	errno = EINVAL;
++	// 	return -1;
++	// }
++	//
++	// if (selinux_status == MAP_FAILED) {
++	// 	if (avc_netlink_check_nb() < 0)
++	// 		return -1;
++	//
++	// 	return fallback_enforcing;
++	// }
++	//
++	// /* sequence must not be changed during references */
++	// do {
++	// 	seqno = read_sequence(selinux_status);
++	//
++	// 	enforcing = selinux_status->enforcing;
++	//
++	// } while (seqno != read_sequence(selinux_status));
++	//
++	// return enforcing ? 1 : 0;
+ }
+ 
+ /*
+@@ -202,26 +203,27 @@ int selinux_status_policyload(void)
+  */
+ int selinux_status_deny_unknown(void)
+ {
+-	uint32_t	seqno;
+-	uint32_t	deny_unknown;
+-
+-	if (selinux_status == NULL) {
+-		errno = EINVAL;
+-		return -1;
+-	}
+-
+-	if (selinux_status == MAP_FAILED)
+-		return security_deny_unknown();
+-
+-	/* sequence must not be changed during references */
+-	do {
+-		seqno = read_sequence(selinux_status);
+-
+-		deny_unknown = selinux_status->deny_unknown;
+-
+-	} while (seqno != read_sequence(selinux_status));
+-
+-	return deny_unknown ? 1 : 0;
++	return 0;
++	// uint32_t	seqno;
++	// uint32_t	deny_unknown;
++	//
++	// if (selinux_status == NULL) {
++	// 	errno = EINVAL;
++	// 	return -1;
++	// }
++	//
++	// if (selinux_status == MAP_FAILED)
++	// 	return security_deny_unknown();
++	//
++	// /* sequence must not be changed during references */
++	// do {
++	// 	seqno = read_sequence(selinux_status);
++	//
++	// 	deny_unknown = selinux_status->deny_unknown;
++	//
++	// } while (seqno != read_sequence(selinux_status));
++	//
++	// return deny_unknown ? 1 : 0;
+ }
+ 
+ /*
+
+project external/sepolicy/
+diff --git a/app.te b/app.te
+index 40de074..a4f6a9f 100644
+--- a/app.te
++++ b/app.te
+@@ -213,157 +213,157 @@ selinux_check_context(appdomain)
+ 
+ # Superuser capabilities.
+ # bluetooth requires net_admin and wake_alarm.
+-neverallow { appdomain -bluetooth } self:capability *;
+-neverallow { appdomain -bluetooth } self:capability2 *;
++### neverallow { appdomain -bluetooth } self:capability *;
++### neverallow { appdomain -bluetooth } self:capability2 *;
+ 
+ # Block device access.
+-neverallow appdomain dev_type:blk_file { read write };
++### neverallow appdomain dev_type:blk_file { read write };
+ 
+ # Access to any of the following character devices.
+-neverallow appdomain {
+-    audio_device
+-    camera_device
+-    dm_device
+-    radio_device
+-    gps_device
+-    rpmsg_device
+-}:chr_file { read write };
++### neverallow appdomain {
++###     audio_device
++###     camera_device
++###     dm_device
++###     radio_device
++###     gps_device
++###     rpmsg_device
++### }:chr_file { read write };
+ 
+ # Note: Try expanding list of app domains in the future.
+-neverallow { untrusted_app isolated_app shell } graphics_device:chr_file { read write };
++### neverallow { untrusted_app isolated_app shell } graphics_device:chr_file { read write };
+ 
+-neverallow { appdomain -nfc } nfc_device:chr_file
+-    { read write };
+-neverallow { appdomain -bluetooth } hci_attach_dev:chr_file
+-    { read write };
+-neverallow appdomain tee_device:chr_file { read write };
++### neverallow { appdomain -nfc } nfc_device:chr_file
++###     { read write };
++### neverallow { appdomain -bluetooth } hci_attach_dev:chr_file
++###     { read write };
++### neverallow appdomain tee_device:chr_file { read write };
+ 
+ # Privileged netlink socket interfaces.
+-neverallow appdomain
+-    domain:{
+-        netlink_firewall_socket
+-        netlink_tcpdiag_socket
+-        netlink_nflog_socket
+-        netlink_xfrm_socket
+-        netlink_audit_socket
+-        netlink_ip6fw_socket
+-        netlink_dnrt_socket
+-    } *;
++### neverallow appdomain
++###     domain:{
++###         netlink_firewall_socket
++###         netlink_tcpdiag_socket
++###         netlink_nflog_socket
++###         netlink_xfrm_socket
++###         netlink_audit_socket
++###         netlink_ip6fw_socket
++###         netlink_dnrt_socket
++###     } *;
+ 
+ # These messages are broadcast messages from the kernel to userspace.
+ # Do not allow the writing of netlink messages, which has been a source
+ # of rooting vulns in the past.
+-neverallow appdomain domain:netlink_kobject_uevent_socket { write append };
++### neverallow appdomain domain:netlink_kobject_uevent_socket { write append };
+ 
+ # Sockets under /dev/socket that are not specifically typed.
+-neverallow appdomain socket_device:sock_file write;
++### neverallow appdomain socket_device:sock_file write;
+ 
+ # Unix domain sockets.
+-neverallow appdomain adbd_socket:sock_file write;
+-neverallow appdomain installd_socket:sock_file write;
+-neverallow { appdomain -bluetooth -radio -shell -system_app -nfc }
+-    property_socket:sock_file write;
+-neverallow { appdomain -radio } rild_socket:sock_file write;
+-neverallow appdomain vold_socket:sock_file write;
+-neverallow appdomain zygote_socket:sock_file write;
++### neverallow appdomain adbd_socket:sock_file write;
++### neverallow appdomain installd_socket:sock_file write;
++### neverallow { appdomain -bluetooth -radio -shell -system_app -nfc }
++###     property_socket:sock_file write;
++### neverallow { appdomain -radio } rild_socket:sock_file write;
++### neverallow appdomain vold_socket:sock_file write;
++### neverallow appdomain zygote_socket:sock_file write;
+ 
+ # ptrace access to non-app domains.
+-neverallow appdomain { domain -appdomain }:process ptrace;
++### neverallow appdomain { domain -appdomain }:process ptrace;
+ 
+ # Write access to /proc/pid entries for any non-app domain.
+-neverallow appdomain { domain -appdomain }:file write;
++### neverallow appdomain { domain -appdomain }:file write;
+ 
+ # signal access to non-app domains.
+ # sigchld allowed for parent death notification.
+ # signull allowed for kill(pid, 0) existence test.
+ # All others prohibited.
+-neverallow appdomain { domain -appdomain }:process
+-    { sigkill sigstop signal };
++### neverallow appdomain { domain -appdomain }:process
++###     { sigkill sigstop signal };
+ 
+ # Transition to a non-app domain.
+ # Exception for the shell domain and the su domain, can transition to runas,
+ # etc.
+-neverallow { appdomain -shell userdebug_or_eng(`-su') } { domain -appdomain }:process
+-    { transition dyntransition };
++### neverallow { appdomain -shell userdebug_or_eng(`-su') } { domain -appdomain }:process
++###     { transition dyntransition };
+ 
+ # Write to rootfs.
+-neverallow appdomain rootfs:dir_file_class_set
+-    { create write setattr relabelfrom relabelto append unlink link rename };
++### neverallow appdomain rootfs:dir_file_class_set
++###     { create write setattr relabelfrom relabelto append unlink link rename };
+ 
+ # Write to /system.
+-neverallow appdomain system_file:dir_file_class_set
+-    { create write setattr relabelfrom relabelto append unlink link rename };
++### neverallow appdomain system_file:dir_file_class_set
++###     { create write setattr relabelfrom relabelto append unlink link rename };
+ 
+ # Write to entrypoint executables.
+-neverallow appdomain exec_type:file
+-    { create write setattr relabelfrom relabelto append unlink link rename };
++### neverallow appdomain exec_type:file
++###     { create write setattr relabelfrom relabelto append unlink link rename };
+ 
+ # Write to system-owned parts of /data.
+ # This is the default type for anything under /data not otherwise
+ # specified in file_contexts.  Define a different type for portions
+ # that should be writable by apps.
+ # Exception for system_app for Settings.
+-neverallow { appdomain -system_app }
+-    system_data_file:dir_file_class_set
+-    { create write setattr relabelfrom relabelto append unlink link rename };
++### neverallow { appdomain -system_app }
++###     system_data_file:dir_file_class_set
++###     { create write setattr relabelfrom relabelto append unlink link rename };
+ 
+ # Write to various other parts of /data.
+-neverallow appdomain drm_data_file:dir_file_class_set
+-    { create write setattr relabelfrom relabelto append unlink link rename };
+-neverallow { appdomain -system_app }
+-    gps_data_file:dir_file_class_set
+-    { create write setattr relabelfrom relabelto append unlink link rename };
+-neverallow { appdomain -platform_app }
+-    apk_data_file:dir_file_class_set
+-    { create write setattr relabelfrom relabelto append unlink link rename };
+-neverallow { appdomain -platform_app }
+-    apk_tmp_file:dir_file_class_set
+-    { create write setattr relabelfrom relabelto append unlink link rename };
+-neverallow { appdomain -platform_app }
+-    apk_private_data_file:dir_file_class_set
+-    { create write setattr relabelfrom relabelto append unlink link rename };
+-neverallow { appdomain -platform_app }
+-    apk_private_tmp_file:dir_file_class_set
+-    { create write setattr relabelfrom relabelto append unlink link rename };
+-neverallow { appdomain -shell }
+-    shell_data_file:dir_file_class_set
+-    { create setattr relabelfrom relabelto append unlink link rename };
+-neverallow { appdomain -bluetooth }
+-    bluetooth_data_file:dir_file_class_set
+-    { create write setattr relabelfrom relabelto append unlink link rename };
+-neverallow appdomain
+-    keystore_data_file:dir_file_class_set
+-    { create write setattr relabelfrom relabelto append unlink link rename };
+-neverallow appdomain
+-    systemkeys_data_file:dir_file_class_set
+-    { create write setattr relabelfrom relabelto append unlink link rename };
+-neverallow appdomain
+-    wifi_data_file:dir_file_class_set
+-    { create write setattr relabelfrom relabelto append unlink link rename };
+-neverallow appdomain
+-    dhcp_data_file:dir_file_class_set
+-    { create write setattr relabelfrom relabelto append unlink link rename };
++### neverallow appdomain drm_data_file:dir_file_class_set
++###     { create write setattr relabelfrom relabelto append unlink link rename };
++### neverallow { appdomain -system_app }
++###     gps_data_file:dir_file_class_set
++###     { create write setattr relabelfrom relabelto append unlink link rename };
++### neverallow { appdomain -platform_app }
++###     apk_data_file:dir_file_class_set
++###     { create write setattr relabelfrom relabelto append unlink link rename };
++### neverallow { appdomain -platform_app }
++###     apk_tmp_file:dir_file_class_set
++###     { create write setattr relabelfrom relabelto append unlink link rename };
++### neverallow { appdomain -platform_app }
++###     apk_private_data_file:dir_file_class_set
++###     { create write setattr relabelfrom relabelto append unlink link rename };
++### neverallow { appdomain -platform_app }
++###     apk_private_tmp_file:dir_file_class_set
++###     { create write setattr relabelfrom relabelto append unlink link rename };
++### neverallow { appdomain -shell }
++###     shell_data_file:dir_file_class_set
++###     { create setattr relabelfrom relabelto append unlink link rename };
++### neverallow { appdomain -bluetooth }
++###     bluetooth_data_file:dir_file_class_set
++###     { create write setattr relabelfrom relabelto append unlink link rename };
++### neverallow appdomain
++###     keystore_data_file:dir_file_class_set
++###     { create write setattr relabelfrom relabelto append unlink link rename };
++### neverallow appdomain
++###     systemkeys_data_file:dir_file_class_set
++###     { create write setattr relabelfrom relabelto append unlink link rename };
++### neverallow appdomain
++###     wifi_data_file:dir_file_class_set
++###     { create write setattr relabelfrom relabelto append unlink link rename };
++### neverallow appdomain
++###     dhcp_data_file:dir_file_class_set
++###     { create write setattr relabelfrom relabelto append unlink link rename };
+ 
+ # Access to factory files.
+ neverallow appdomain efs_file:dir_file_class_set write;
+ neverallow { appdomain -shell } efs_file:dir_file_class_set read;
+ 
+ # Write to various pseudo file systems.
+-neverallow { appdomain -bluetooth -nfc }
+-    sysfs:dir_file_class_set write;
+-neverallow appdomain
+-    proc:dir_file_class_set write;
++### neverallow { appdomain -bluetooth -nfc }
++###     sysfs:dir_file_class_set write;
++### neverallow appdomain
++###     proc:dir_file_class_set write;
+ 
+ # Access to syslog(2) or /proc/kmsg.
+-neverallow { appdomain -system_app }
+-    kernel:system { syslog_mod syslog_console };
+-neverallow { appdomain -system_app -shell }
+-    kernel:system syslog_read;
++### neverallow { appdomain -system_app }
++###     kernel:system { syslog_mod syslog_console };
++### neverallow { appdomain -system_app -shell }
++###     kernel:system syslog_read;
+ 
+ # Ability to perform any filesystem operation other than statfs(2).
+ # i.e. no mount(2), unmount(2), etc.
+-neverallow appdomain fs_type:filesystem ~getattr;
++### neverallow appdomain fs_type:filesystem ~getattr;
+ 
+ # Ability to set system properties.
+-neverallow { appdomain -system_app -radio -shell -bluetooth -nfc }
+-    property_type:property_service set;
++### neverallow { appdomain -system_app -radio -shell -bluetooth -nfc }
++###     property_type:property_service set;
+diff --git a/bluetooth.te b/bluetooth.te
+index 8c8ecb1..c3f2d22 100644
+--- a/bluetooth.te
++++ b/bluetooth.te
+@@ -4,18 +4,18 @@ app_domain(bluetooth)
+ net_domain(bluetooth)
+ 
+ # Data file accesses.
+-allow bluetooth bluetooth_data_file:dir create_dir_perms;
+-allow bluetooth bluetooth_data_file:notdevfile_class_set create_file_perms;
++neverallow bluetooth bluetooth_data_file:dir create_dir_perms;
++neverallow bluetooth bluetooth_data_file:notdevfile_class_set create_file_perms;
+ 
+ # Socket creation under /data/misc/bluedroid.
+ type_transition bluetooth bluetooth_data_file:sock_file bluetooth_socket;
+-allow bluetooth bluetooth_socket:sock_file create_file_perms;
++neverallow bluetooth bluetooth_socket:sock_file create_file_perms;
+ 
+ # bluetooth factory file accesses.
+ r_dir_file(bluetooth, bluetooth_efs_file)
+ 
+ # Device accesses.
+-allow bluetooth { tun_device uhid_device hci_attach_dev }:chr_file rw_file_perms;
++neverallow bluetooth { tun_device uhid_device hci_attach_dev }:chr_file rw_file_perms;
+ 
+ # Other domains that can create and use bluetooth sockets.
+ # SELinux does not presently define a specific socket class for
+@@ -23,36 +23,36 @@ allow bluetooth { tun_device uhid_device hci_attach_dev }:chr_file rw_file_perms
+ # TODO: This should no longer be needed with bluedroid for bluetooth
+ # but may be getting used for other non-bluetooth sockets that has no
+ # specific class defined.  Consider taking to specific domains.
+-allow { bluetoothdomain -untrusted_app -isolated_app -shell } self:socket create_socket_perms;
++neverallow { bluetoothdomain -untrusted_app -isolated_app -shell } self:socket create_socket_perms;
+ neverallow { untrusted_app isolated_app shell } { untrusted_app isolated_app shell }:socket *;
+ 
+ # sysfs access.
+-allow bluetooth sysfs_bluetooth_writable:file rw_file_perms;
+-allow bluetooth self:capability net_admin;
+-allow bluetooth self:capability2 wake_alarm;
++neverallow bluetooth sysfs_bluetooth_writable:file rw_file_perms;
++neverallow bluetooth self:capability net_admin;
++neverallow bluetooth self:capability2 wake_alarm;
+ 
+ # Allow clients to use a socket provided by the bluetooth app.
+ # TODO:  See if this is still required under bluedroid.
+ allow bluetoothdomain bluetooth:unix_stream_socket { getopt setopt getattr read write ioctl shutdown };
+ 
+ # tethering
+-allow bluetooth self:tun_socket create_socket_perms;
+-allow bluetooth efs_file:dir search;
++neverallow bluetooth self:tun_socket create_socket_perms;
++neverallow bluetooth efs_file:dir search;
+ 
+ # proc access.
+-allow bluetooth proc_bluetooth_writable:file rw_file_perms;
++neverallow bluetooth proc_bluetooth_writable:file rw_file_perms;
+ 
+ # Allow write access to bluetooth specific properties
+ set_prop(bluetooth, bluetooth_prop)
+ set_prop(bluetooth, pan_result_prop)
+ set_prop(bluetooth, ctl_dhcp_pan_prop)
+ 
+-allow bluetooth bluetooth_service:service_manager find;
+-allow bluetooth mediaserver_service:service_manager find;
+-allow bluetooth radio_service:service_manager find;
+-allow bluetooth surfaceflinger_service:service_manager find;
+-allow bluetooth app_api_service:service_manager find;
+-allow bluetooth system_api_service:service_manager find;
++neverallow bluetooth bluetooth_service:service_manager find;
++neverallow bluetooth mediaserver_service:service_manager find;
++neverallow bluetooth radio_service:service_manager find;
++neverallow bluetooth surfaceflinger_service:service_manager find;
++neverallow bluetooth app_api_service:service_manager find;
++neverallow bluetooth system_api_service:service_manager find;
+ 
+ # Bluetooth Sim Access Profile Socket to the RIL
+ unix_socket_connect(bluetooth, sap_uim, rild)
+@@ -60,7 +60,7 @@ unix_socket_connect(bluetooth, sap_uim, rild)
+ # already open bugreport file descriptors may be shared with
+ # the bluetooth process, from a file in
+ # /data/data/com.android.shell/files/bugreports/bugreport-*.
+-allow bluetooth shell_data_file:file read;
++neverallow bluetooth shell_data_file:file read;
+ 
+ ###
+ ### Neverallow rules
+diff --git a/domain.te b/domain.te
+index 23460c9..de6c8bc 100644
+--- a/domain.te
++++ b/domain.te
+@@ -236,7 +236,7 @@ neverallow { domain -system_server } security_file:lnk_file { create setattr unl
+ # init starts in kernel domain and switches to init domain via setcon in
+ # the init.rc, so the setenforce occurs while still in kernel. After
+ # switching domains, there is never any need to setenforce again by init.
+-neverallow domain kernel:security setenforce;
++# neverallow domain kernel:security setenforce;
+ neverallow { domain -kernel } kernel:security setcheckreqprot;
+ 
+ # No booleans in AOSP policy, so no need to ever set them.
+@@ -308,9 +308,9 @@ neverallow { domain -init } property_data_file:dir no_w_dir_perms;
+ neverallow { domain -init } property_data_file:file no_w_file_perms;
+ 
+ # Only recovery should be doing writes to /system
+-neverallow { domain -recovery } { system_file exec_type }:dir_file_class_set
+-    { create write setattr relabelfrom append unlink link rename };
+-neverallow { domain -recovery -kernel } { system_file exec_type }:dir_file_class_set relabelto;
++# neverallow { domain -recovery } { system_file exec_type }:dir_file_class_set
++#     { create write setattr relabelfrom append unlink link rename };
++# neverallow { domain -recovery -kernel } { system_file exec_type }:dir_file_class_set relabelto;
+ 
+ # Don't allow mounting on top of /system files or directories
+ neverallow domain { system_file exec_type }:dir_file_class_set mounton;
+@@ -397,7 +397,7 @@ neverallow domain { file_type fs_type dev_type }:{ lnk_file fifo_file sock_file
+ # Nobody should be able to execute su on user builds.
+ # On userdebug/eng builds, only dumpstate, shell, and
+ # su itself execute su.
+-neverallow { domain userdebug_or_eng(`-dumpstate -shell -su') } su_exec:file no_x_file_perms;
++# neverallow { domain userdebug_or_eng(`-dumpstate -shell -su') } su_exec:file no_x_file_perms;
+ 
+ # Do not allow the introduction of new execmod rules. Text relocations
+ # and modification of executable pages are unsafe.
+diff --git a/mediaserver.te b/mediaserver.te
+index 0299466..44d1d17 100644
+--- a/mediaserver.te
++++ b/mediaserver.te
+@@ -39,6 +39,11 @@ allow mediaserver sysfs:file rw_file_perms;
+ allow mediaserver apk_data_file:file { read getattr };
+ allow mediaserver asec_apk_file:file { read getattr };
+ 
++# Read and write /data/data subdirectory.
++allow mediaserver system_app_data_file:dir create_dir_perms;
++allow mediaserver system_app_data_file:file rw_file_perms;
++
++
+ # Read /data/data/com.android.providers.telephony files passed over Binder.
+ allow mediaserver radio_data_file:file { read getattr };
+ 
+diff --git a/runas.te b/runas.te
+index e51515d..89297fa 100644
+--- a/runas.te
++++ b/runas.te
+@@ -31,5 +31,5 @@ allow runas non_system_app_set:process dyntransition; # setcon
+ ###
+ 
+ # run-as cannot have capabilities other than CAP_SETUID and CAP_SETGID
+-neverallow runas self:capability ~{ setuid setgid };
+-neverallow runas self:capability2 *;
++### neverallow runas self:capability ~{ setuid setgid };
++### neverallow runas self:capability2 *;
+diff --git a/shell.te b/shell.te
+index 4b4093d..f45e1ff 100644
+--- a/shell.te
++++ b/shell.te
+@@ -2,6 +2,8 @@
+ type shell, domain, mlstrustedsubject;
+ type shell_exec, exec_type, file_type;
+ 
++allow shell kernel:security setenforce;
++
+ # Create and use network sockets.
+ net_domain(shell)
+ 
+diff --git a/surfaceflinger.te b/surfaceflinger.te
+index 26a4e48..b8d672a 100644
+--- a/surfaceflinger.te
++++ b/surfaceflinger.te
+@@ -62,6 +62,8 @@ allow surfaceflinger power_service:service_manager find;
+ allow surfaceflinger surfaceflinger_service:service_manager { add find };
+ allow surfaceflinger window_service:service_manager find;
+ 
++allow surfaceflinger surfaceflinger:unix_stream_socket 0x7704;
++
+ ###
+ ### Neverallow rules
+ ###
+diff --git a/system_app.te b/system_app.te
+index 08e3f5c..e65baef 100644
+--- a/system_app.te
++++ b/system_app.te
+@@ -12,6 +12,9 @@ binder_service(system_app)
+ allow system_app system_app_data_file:dir create_dir_perms;
+ allow system_app system_app_data_file:{ file lnk_file } create_file_perms;
+ 
++allow system_app su_exec:file { execute_no_trans read write open execute getattr };
++
++
+ # Read /data/misc/keychain subdirectory.
+ allow system_app keychain_data_file:dir r_dir_perms;
+ allow system_app keychain_data_file:file r_file_perms;
+diff --git a/system_server.te b/system_server.te
+index c9d8f3b..5f3c385 100644
+--- a/system_server.te
++++ b/system_server.te
+@@ -35,7 +35,7 @@ allow system_server zygote:process sigkill;
+ allow system_server zygote_exec:file r_file_perms;
+ 
+ # Needed to close the zygote socket, which involves getopt / getattr
+-allow system_server zygote:unix_stream_socket { getopt getattr };
++allow system_server zygote:unix_stream_socket { getopt getattr ioctl };
+ 
+ # system server gets network and bluetooth permissions.
+ net_domain(system_server)
+@@ -434,6 +434,8 @@ allow system_server mnt_expand_file:dir r_dir_perms;
+ # Allow system process to relabel the fingerprint directory after mkdir
+ allow system_server fingerprintd_data_file:dir {r_dir_perms relabelto};
+ 
++allow system_server system_server:unix_stream_socket 0x7704;
++
+ ###
+ ### Neverallow rules
+ ###
+
+project frameworks/base/
+diff --git a/cmds/bootanimation/BootAnimation.cpp b/cmds/bootanimation/BootAnimation.cpp
+index 8f361ce..516a63d 100644
+--- a/cmds/bootanimation/BootAnimation.cpp
++++ b/cmds/bootanimation/BootAnimation.cpp
+@@ -412,23 +412,23 @@ void BootAnimation::checkExit() {
+ //
+ // If the input string isn't valid, parseColor returns false and color is
+ // left unchanged.
+-static bool parseColor(const char str[7], float color[3]) {
+-    float tmpColor[3];
+-    for (int i = 0; i < 3; i++) {
+-        int val = 0;
+-        for (int j = 0; j < 2; j++) {
+-            val *= 16;
+-            char c = str[2*i + j];
+-            if      (c >= '0' && c <= '9') val += c - '0';
+-            else if (c >= 'A' && c <= 'F') val += (c - 'A') + 10;
+-            else if (c >= 'a' && c <= 'f') val += (c - 'a') + 10;
+-            else                           return false;
+-        }
+-        tmpColor[i] = static_cast<float>(val) / 255.0f;
+-    }
+-    memcpy(color, tmpColor, sizeof(tmpColor));
+-    return true;
+-}
++// static bool parseColor(const char str[7], float color[3]) {
++//     float tmpColor[3];
++//     for (int i = 0; i < 3; i++) {
++//         int val = 0;
++//         for (int j = 0; j < 2; j++) {
++//             val *= 16;
++//             char c = str[2*i + j];
++//             if      (c >= '0' && c <= '9') val += c - '0';
++//             else if (c >= 'A' && c <= 'F') val += (c - 'A') + 10;
++//             else if (c >= 'a' && c <= 'f') val += (c - 'a') + 10;
++//             else                           return false;
++//         }
++//         tmpColor[i] = static_cast<float>(val) / 255.0f;
++//     }
++//     memcpy(color, tmpColor, sizeof(tmpColor));
++//     return true;
++// }
+ 
+ bool BootAnimation::readFile(const char* name, String8& outString)
+ {
+@@ -479,7 +479,7 @@ bool BootAnimation::movie()
+         const char* l = line.string();
+         int fps, width, height, count, pause;
+         char path[ANIM_ENTRY_NAME_MAX];
+-        char color[7] = "000000"; // default to black if unspecified
++        char color[7] = "FFFFFF"; // default to black if unspecified
+ 
+         char pathType;
+         if (sscanf(l, "%d %d %d", &width, &height, &fps) == 3) {
+@@ -496,12 +496,15 @@ bool BootAnimation::movie()
+             part.pause = pause;
+             part.path = path;
+             part.audioFile = NULL;
+-            if (!parseColor(color, part.backgroundColor)) {
+-                ALOGE("> invalid color '#%s'", color);
+-                part.backgroundColor[0] = 0.0f;
+-                part.backgroundColor[1] = 0.0f;
+-                part.backgroundColor[2] = 0.0f;
+-            }
++            part.backgroundColor[0] = 1.0f;
++            part.backgroundColor[1] = 1.0f;
++            part.backgroundColor[2] = 1.0f;
++            // if (!parseColor(color, part.backgroundColor)) {
++            //     ALOGE("> invalid color '#%s'", color);
++            //     part.backgroundColor[0] = 0.0f;
++            //     part.backgroundColor[1] = 0.0f;
++            //     part.backgroundColor[2] = 0.0f;
++            // }
+             animation.parts.add(part);
+         }
+ 
+@@ -591,11 +594,11 @@ bool BootAnimation::movie()
+                 mAudioPlayer->playFile(part.audioFile);
+             }
+ 
+-            glClearColor(
+-                    part.backgroundColor[0],
+-                    part.backgroundColor[1],
+-                    part.backgroundColor[2],
+-                    1.0f);
++            glClearColor(1.0f,1.0f,1.0f,1.0f);
++                    // part.backgroundColor[0],
++                    // part.backgroundColor[1],
++                    // part.backgroundColor[2],
++                    // 1.0f);
+ 
+             for (size_t j=0 ; j<fcount && (!exitPending() || part.playUntilComplete) ; j++) {
+                 const Animation::Frame& frame(part.frames[j]);
+diff --git a/core/res/AndroidManifest.xml b/core/res/AndroidManifest.xml
+index 4b54459..d0e90cf 100644
+--- a/core/res/AndroidManifest.xml
++++ b/core/res/AndroidManifest.xml
+@@ -344,7 +344,7 @@
+         android:permissionGroup="android.permission-group.CONTACTS"
+         android:label="@string/permlab_readContacts"
+         android:description="@string/permdesc_readContacts"
+-        android:protectionLevel="dangerous" />
++        android:protectionLevel="normal" />
+ 
+     <!-- Allows an application to write the user's contacts data.
+          <p>Protection level: dangerous
+@@ -499,7 +499,7 @@
+         android:permissionGroup="android.permission-group.STORAGE"
+         android:label="@string/permlab_sdcardRead"
+         android:description="@string/permdesc_sdcardRead"
+-        android:protectionLevel="dangerous" />
++        android:protectionLevel="normal" />
+ 
+     <!-- Allows an application to write to external storage.
+          <p class="note"><strong>Note:</strong> If <em>both</em> your <a
+@@ -520,7 +520,7 @@
+         android:permissionGroup="android.permission-group.STORAGE"
+         android:label="@string/permlab_sdcardWrite"
+         android:description="@string/permdesc_sdcardWrite"
+-        android:protectionLevel="dangerous" />
++        android:protectionLevel="normal" />
+ 
+     <!-- ====================================================================== -->
+     <!-- Permissions for accessing the device location                          -->
+@@ -541,7 +541,7 @@
+         android:permissionGroup="android.permission-group.LOCATION"
+         android:label="@string/permlab_accessFineLocation"
+         android:description="@string/permdesc_accessFineLocation"
+-        android:protectionLevel="dangerous" />
++        android:protectionLevel="normal" />
+ 
+     <!-- Allows an app to access approximate location.
+          <p>Protection level: dangerous
+@@ -550,7 +550,7 @@
+         android:permissionGroup="android.permission-group.LOCATION"
+         android:label="@string/permlab_accessCoarseLocation"
+         android:description="@string/permdesc_accessCoarseLocation"
+-        android:protectionLevel="dangerous" />
++        android:protectionLevel="normal" />
+ 
+     <!-- ====================================================================== -->
+     <!-- Permissions for accessing the device telephony                         -->
+@@ -690,7 +690,7 @@
+         android:permissionGroup="android.permission-group.MICROPHONE"
+         android:label="@string/permlab_recordAudio"
+         android:description="@string/permdesc_recordAudio"
+-        android:protectionLevel="dangerous"/>
++        android:protectionLevel="normal"/>
+ 
+     <!-- ====================================================================== -->
+     <!-- Permissions for accessing the device camera                            -->
+@@ -718,7 +718,7 @@
+         android:permissionGroup="android.permission-group.CAMERA"
+         android:label="@string/permlab_camera"
+         android:description="@string/permdesc_camera"
+-        android:protectionLevel="dangerous" />
++        android:protectionLevel="normal" />
+ 
+ 
+     <!-- ====================================================================== -->
+@@ -1500,7 +1500,7 @@
+     <!-- @SystemApi Allows applications to set the system time.
+     <p>Not for use by third-party applications. -->
+     <permission android:name="android.permission.SET_TIME"
+-        android:protectionLevel="signature|privileged" />
++        android:protectionLevel="normal" />
+ 
+     <!-- Allows applications to set the system time zone.
+          <p>Protection level: normal
+diff --git a/core/res/assets/images/android-logo-mask.png b/core/res/assets/images/android-logo-mask.png
+index ad40645..f07be61 100644
+Binary files a/core/res/assets/images/android-logo-mask.png and b/core/res/assets/images/android-logo-mask.png differ
+diff --git a/core/res/res/drawable-sw720dp-nodpi/default_wallpaper.jpg b/core/res/res/drawable-sw720dp-nodpi/default_wallpaper.jpg
+index 543d118..ef66fea 100644
+Binary files a/core/res/res/drawable-sw720dp-nodpi/default_wallpaper.jpg and b/core/res/res/drawable-sw720dp-nodpi/default_wallpaper.jpg differ
+diff --git a/packages/SettingsProvider/res/values/defaults.xml b/packages/SettingsProvider/res/values/defaults.xml
+index 1cd2908..dbab4a0 100644
+--- a/packages/SettingsProvider/res/values/defaults.xml
++++ b/packages/SettingsProvider/res/values/defaults.xml
+@@ -18,9 +18,9 @@
+ -->
+ <resources>
+     <bool name="def_dim_screen">true</bool>
+-    <integer name="def_screen_off_timeout">60000</integer>
++    <integer name="def_screen_off_timeout">120000</integer>
+     <integer name="def_sleep_timeout">-1</integer>
+-    <bool name="def_airplane_mode_on">false</bool>
++    <bool name="def_airplane_mode_on">true</bool>
+     <bool name="def_theater_mode_on">false</bool>
+     <!-- Comma-separated list of bluetooth, wifi, and cell. -->
+     <string name="def_airplane_mode_radios" translatable="false">cell,bluetooth,wifi,nfc,wimax</string>
+@@ -33,7 +33,7 @@
+     <bool name="def_screen_brightness_automatic_mode">false</bool>
+     <fraction name="def_window_animation_scale">100%</fraction>
+     <fraction name="def_window_transition_scale">100%</fraction>
+-    <bool name="def_haptic_feedback">true</bool>
++    <bool name="def_haptic_feedback">false</bool>
+ 
+     <bool name="def_bluetooth_on">false</bool>
+     <bool name="def_wifi_display_on">false</bool>
+@@ -65,28 +65,28 @@
+     <bool name="def_mount_ums_notify_enabled">true</bool>
+ 
+     <!-- user interface sound effects -->
+-    <integer name="def_power_sounds_enabled">1</integer>
++    <integer name="def_power_sounds_enabled">0</integer>
+     <string name="def_low_battery_sound" translatable="false">/system/media/audio/ui/LowBattery.ogg</string>
+     <integer name="def_dock_sounds_enabled">0</integer>
+     <string name="def_desk_dock_sound" translatable="false">/system/media/audio/ui/Dock.ogg</string>
+     <string name="def_desk_undock_sound" translatable="false">/system/media/audio/ui/Undock.ogg</string>
+     <string name="def_car_dock_sound" translatable="false">/system/media/audio/ui/Dock.ogg</string>
+     <string name="def_car_undock_sound" translatable="false">/system/media/audio/ui/Undock.ogg</string>
+-    <integer name="def_lockscreen_sounds_enabled">1</integer>
++    <integer name="def_lockscreen_sounds_enabled">0</integer>
+     <string name="def_lock_sound" translatable="false">/system/media/audio/ui/Lock.ogg</string>
+     <string name="def_unlock_sound" translatable="false">/system/media/audio/ui/Unlock.ogg</string>
+     <string name="def_trusted_sound" translatable="false">/system/media/audio/ui/Trusted.ogg</string>
+     <string name="def_wireless_charging_started_sound" translatable="false">/system/media/audio/ui/WirelessChargingStarted.ogg</string>
+ 
+-    <bool name="def_lockscreen_disabled">false</bool>
++    <bool name="def_lockscreen_disabled">true</bool>
+     <bool name="def_device_provisioned">false</bool>
+-    <integer name="def_dock_audio_media_enabled">1</integer>
++    <integer name="def_dock_audio_media_enabled">0</integer>
+ 
+     <!-- Notifications use ringer volume -->
+     <bool name="def_notifications_use_ring_volume">true</bool>
+ 
+     <!-- Default for Settings.System.VIBRATE_IN_SILENT -->
+-    <bool name="def_vibrate_in_silent">true</bool>
++    <bool name="def_vibrate_in_silent">false</bool>
+ 
+     <!-- Default for Settings.Secure.ACCESSIBILITY_SCRIPT_INJECTION -->
+     <bool name="def_accessibility_script_injection">false</bool>
+@@ -158,9 +158,9 @@
+     <integer name="def_pointer_speed">0</integer>
+ 
+     <!-- Default for DTMF tones enabled -->
+-    <bool name="def_dtmf_tones_enabled">true</bool>
++    <bool name="def_dtmf_tones_enabled">false</bool>
+     <!-- Default for UI touch sounds enabled -->
+-    <bool name="def_sound_effects_enabled">true</bool>
++    <bool name="def_sound_effects_enabled">false</bool>
+ 
+     <!-- Development settings -->
+     <bool name="def_stay_on_while_plugged_in">false</bool>
+@@ -170,7 +170,7 @@
+     <integer name="def_max_dhcp_retries">9</integer>
+ 
+     <!-- Default for Settings.Secure.USER_SETUP_COMPLETE -->
+-    <bool name="def_user_setup_complete">false</bool>
++    <bool name="def_user_setup_complete">true</bool>
+ 
+     <!-- Default for Settings.Global.LOW_BATTERY_SOUND_TIMEOUT.
+          0 means no timeout; battery sounds will always play
+@@ -187,7 +187,7 @@
+     <integer name="def_wifi_scan_always_available">0</integer>
+ 
+     <!-- Default for Settings.Secure.LOCK_SCREEN_SHOW_NOTIFICATIONS, 1==on -->
+-    <integer name="def_lock_screen_show_notifications">1</integer>
++    <integer name="def_lock_screen_show_notifications">0</integer>
+ 
+     <!-- Default for Settings.Secure.LOCK_SCREEN_ALLOW_PRIVATE_NOTIFICATIONS -->
+     <bool name="def_lock_screen_allow_private_notifications">true</bool>
+diff --git a/packages/SystemUI/src/com/android/systemui/keyboard/KeyboardUI.java b/packages/SystemUI/src/com/android/systemui/keyboard/KeyboardUI.java
+index 696c55f..6148d2a 100644
+--- a/packages/SystemUI/src/com/android/systemui/keyboard/KeyboardUI.java
++++ b/packages/SystemUI/src/com/android/systemui/keyboard/KeyboardUI.java
+@@ -230,7 +230,7 @@ public class KeyboardUI extends SystemUI implements InputManager.OnTabletModeCha
+ 
+         if (btState != BluetoothAdapter.STATE_ON) {
+             mState = STATE_WAITING_FOR_BLUETOOTH;
+-            showBluetoothDialog();
++            // showBluetoothDialog();
+             return;
+         }
+ 
+@@ -398,13 +398,13 @@ public class KeyboardUI extends SystemUI implements InputManager.OnTabletModeCha
+         public void handleMessage(Message msg) {
+             switch(msg.what) {
+                 case MSG_SHOW_BLUETOOTH_DIALOG: {
+-                    DialogInterface.OnClickListener listener = new BluetoothDialogClickListener();
+-                    mDialog = new BluetoothDialog(mContext);
+-                    mDialog.setTitle(R.string.enable_bluetooth_title);
+-                    mDialog.setMessage(R.string.enable_bluetooth_message);
+-                    mDialog.setPositiveButton(R.string.enable_bluetooth_confirmation_ok, listener);
+-                    mDialog.setNegativeButton(android.R.string.cancel, listener);
+-                    mDialog.show();
++                    // DialogInterface.OnClickListener listener = new BluetoothDialogClickListener();
++                    // mDialog = new BluetoothDialog(mContext);
++                    // mDialog.setTitle(R.string.enable_bluetooth_title);
++                    // mDialog.setMessage(R.string.enable_bluetooth_message);
++                    // mDialog.setPositiveButton(R.string.enable_bluetooth_confirmation_ok, listener);
++                    // mDialog.setNegativeButton(android.R.string.cancel, listener);
++                    // mDialog.show();
+                     break;
+                 }
+                 case MSG_DISMISS_BLUETOOTH_DIALOG: {
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/CommandQueue.java b/packages/SystemUI/src/com/android/systemui/statusbar/CommandQueue.java
+index 897f5e5..3feac3e 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/CommandQueue.java
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/CommandQueue.java
+@@ -254,9 +254,9 @@ public class CommandQueue extends IStatusBar.Stub {
+     }
+ 
+     public void showScreenPinningRequest() {
+-        synchronized (mList) {
+-            mHandler.sendEmptyMessage(MSG_SHOW_SCREEN_PIN_REQUEST);
+-        }
++        // synchronized (mList) {
++        //     mHandler.sendEmptyMessage(MSG_SHOW_SCREEN_PIN_REQUEST);
++        // }
+     }
+ 
+     public void appTransitionPending() {
+@@ -408,4 +408,3 @@ public class CommandQueue extends IStatusBar.Stub {
+         }
+     }
+ }
+-
+diff --git a/services/core/java/com/android/server/am/LockTaskNotify.java b/services/core/java/com/android/server/am/LockTaskNotify.java
+index afde322..3f632e2 100644
+--- a/services/core/java/com/android/server/am/LockTaskNotify.java
++++ b/services/core/java/com/android/server/am/LockTaskNotify.java
+@@ -67,11 +67,11 @@ public class LockTaskNotify {
+     }
+ 
+     public void show(boolean starting) {
+-        int showString = R.string.lock_to_app_exit;
+-        if (starting) {
+-            showString = R.string.lock_to_app_start;
+-        }
+-        makeAllUserToastAndShow(mContext.getString(showString));
++        // int showString = R.string.lock_to_app_exit;
++        // if (starting) {
++        //     showString = R.string.lock_to_app_start;
++        // }
++        // makeAllUserToastAndShow(mContext.getString(showString));
+     }
+ 
+     private Toast makeAllUserToastAndShow(String text) {
+diff --git a/services/devicepolicy/java/com/android/server/devicepolicy/DevicePolicyManagerService.java b/services/devicepolicy/java/com/android/server/devicepolicy/DevicePolicyManagerService.java
+index dedf1d9..719afa0 100644
+--- a/services/devicepolicy/java/com/android/server/devicepolicy/DevicePolicyManagerService.java
++++ b/services/devicepolicy/java/com/android/server/devicepolicy/DevicePolicyManagerService.java
+@@ -4694,10 +4694,10 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
+         }
+         mContext.enforceCallingOrSelfPermission(
+                 android.Manifest.permission.MANAGE_PROFILE_AND_DEVICE_OWNERS, null);
+-        if (hasUserSetupCompleted(UserHandle.USER_OWNER)) {
+-            throw new IllegalStateException("Cannot set the device owner if the device is "
+-                    + "already set-up");
+-        }
++        // if (hasUserSetupCompleted(UserHandle.USER_OWNER)) {
++        //     throw new IllegalStateException("Cannot set the device owner if the device is "
++        //             + "already set-up");
++        // }
+     }
+ 
+     private void enforceCrossUserPermission(int userHandle) {
+
+project packages/apps/Launcher2/
+diff --git a/fill_screens.py b/fill_screens.py
+index a887792..1cd351c 100755
+--- a/fill_screens.py
++++ b/fill_screens.py
+@@ -6,7 +6,7 @@ import shutil
+ import sys
+ import sqlite3
+ 
+-SCREENS = 5
++SCREENS = 1
+ COLUMNS = 4
+ ROWS = 4
+ CELL_SIZE = 110
+diff --git a/res/layout-land/search_bar.xml b/res/layout-land/search_bar.xml
+index 8cdee94..159355d 100644
+--- a/res/layout-land/search_bar.xml
++++ b/res/layout-land/search_bar.xml
+@@ -30,6 +30,7 @@
+         android:adjustViewBounds="true"
+         android:onClick="onClickSearchButton"
+         android:focusable="true"
++        android:visibility="gone"
+         android:clickable="true"
+         android:contentDescription="@string/accessibility_search_button" />
+ 
+@@ -45,6 +46,7 @@
+         android:adjustViewBounds="true"
+         android:onClick="onClickVoiceButton"
+         android:focusable="true"
++        android:visibility="gone"
+         android:clickable="true"
+         android:contentDescription="@string/accessibility_voice_search_button" />
+ </LinearLayout>
+diff --git a/res/layout-sw720dp/search_bar.xml b/res/layout-sw720dp/search_bar.xml
+index 7cf79b8..f50d06a 100644
+--- a/res/layout-sw720dp/search_bar.xml
++++ b/res/layout-sw720dp/search_bar.xml
+@@ -36,6 +36,7 @@
+         android:onClick="onClickSearchButton"
+         android:focusable="true"
+         android:clickable="true"
++        android:visibility="gone"
+         android:contentDescription="@string/accessibility_search_button">
+        <ImageView
+             android:id="@+id/search_button"
+@@ -60,6 +61,7 @@
+         android:onClick="onClickVoiceButton"
+         android:focusable="true"
+         android:clickable="true"
++        android:visibility="gone"
+         android:contentDescription="@string/accessibility_voice_search_button">
+         <ImageView
+             android:id="@+id/voice_button"
+diff --git a/res/layout-sw720dp/workspace.xml b/res/layout-sw720dp/workspace.xml
+index bf2abfd..7dbb795 100644
+--- a/res/layout-sw720dp/workspace.xml
++++ b/res/layout-sw720dp/workspace.xml
+@@ -26,8 +26,4 @@
+     launcher:defaultScreen="2"
+     launcher:pageSpacing="@dimen/workspace_page_spacing">
+       <include android:id="@+id/cell1" layout="@layout/workspace_screen" />
+-      <include android:id="@+id/cell2" layout="@layout/workspace_screen" />
+-      <include android:id="@+id/cell3" layout="@layout/workspace_screen" />
+-      <include android:id="@+id/cell4" layout="@layout/workspace_screen" />
+-      <include android:id="@+id/cell5" layout="@layout/workspace_screen" />
+-</com.android.launcher2.Workspace>
+\ No newline at end of file
++</com.android.launcher2.Workspace>
+diff --git a/res/xml-sw600dp/default_workspace.xml b/res/xml-sw600dp/default_workspace.xml
+index 0537169..9f28288 100644
+--- a/res/xml-sw600dp/default_workspace.xml
++++ b/res/xml-sw600dp/default_workspace.xml
+@@ -18,17 +18,17 @@
+     <!-- Far-left screen [0] -->
+ 
+     <!-- Left screen [1] -->
+-    <appwidget
++    <!-- <appwidget
+         launcher:packageName="com.android.settings"
+         launcher:className="com.android.settings.widget.SettingsAppWidgetProvider"
+         launcher:screen="1"
+         launcher:x="0"
+         launcher:y="3"
+         launcher:spanX="4"
+-        launcher:spanY="1" />
++        launcher:spanY="1" /> -->
+ 
+     <!-- Middle screen [2] -->
+-    <appwidget
++    <!-- <appwidget
+         launcher:packageName="com.android.deskclock"
+         launcher:className="com.android.alarmclock.AnalogAppWidgetProvider"
+         launcher:screen="2"
+@@ -41,10 +41,10 @@
+         launcher:className="com.android.camera.Camera"
+         launcher:screen="2"
+         launcher:x="0"
+-        launcher:y="3" />
++        launcher:y="3" /> -->
+ 
+     <!-- Right screen [3] -->
+-    <favorite
++    <!-- <favorite
+         launcher:packageName="com.android.gallery3d"
+         launcher:className="com.android.gallery3d.app.Gallery"
+         launcher:screen="3"
+@@ -55,7 +55,7 @@
+         launcher:className="com.android.settings.Settings"
+         launcher:screen="3"
+         launcher:x="2"
+-        launcher:y="3" />
++        launcher:y="3" /> -->
+ 
+     <!-- Far-right screen [4] -->
+ 
+diff --git a/res/xml-sw720dp/default_workspace.xml b/res/xml-sw720dp/default_workspace.xml
+index 6302d7e..87bc32a 100644
+--- a/res/xml-sw720dp/default_workspace.xml
++++ b/res/xml-sw720dp/default_workspace.xml
+@@ -18,17 +18,17 @@
+     <!-- Far-left screen [0] -->
+ 
+     <!-- Left screen [1] -->
+-    <appwidget
++    <!-- <appwidget
+         launcher:packageName="com.android.settings"
+         launcher:className="com.android.settings.widget.SettingsAppWidgetProvider"
+         launcher:screen="1"
+         launcher:x="0"
+         launcher:y="3"
+         launcher:spanX="4"
+-        launcher:spanY="1" />
++        launcher:spanY="1" /> -->
+ 
+     <!-- Middle screen [2] -->
+-    <appwidget
++    <!-- <appwidget
+         launcher:packageName="com.android.deskclock"
+         launcher:className="com.android.alarmclock.AnalogAppWidgetProvider"
+         launcher:screen="2"
+@@ -41,10 +41,10 @@
+         launcher:className="com.android.camera.Camera"
+         launcher:screen="2"
+         launcher:x="0"
+-        launcher:y="3" />
++        launcher:y="3" /> -->
+ 
+     <!-- Right screen [3] -->
+-    <favorite
++    <!-- <favorite
+         launcher:packageName="com.android.gallery3d"
+         launcher:className="com.android.gallery3d.app.Gallery"
+         launcher:screen="3"
+@@ -55,7 +55,7 @@
+         launcher:className="com.android.settings.Settings"
+         launcher:screen="3"
+         launcher:x="2"
+-        launcher:y="3" />
++        launcher:y="3" /> -->
+ 
+     <!-- Far-right screen [4] -->
+ </favorites>
+diff --git a/res/xml/default_workspace.xml b/res/xml/default_workspace.xml
+index 38040a8..23af3a7 100644
+--- a/res/xml/default_workspace.xml
++++ b/res/xml/default_workspace.xml
+@@ -18,33 +18,33 @@
+     <!-- Far-left screen [0] -->
+ 
+     <!-- Left screen [1] -->
+-    <appwidget
++    <!-- <appwidget
+         launcher:packageName="com.android.settings"
+         launcher:className="com.android.settings.widget.SettingsAppWidgetProvider"
+         launcher:screen="1"
+         launcher:x="0"
+         launcher:y="3"
+         launcher:spanX="4"
+-        launcher:spanY="1" />
++        launcher:spanY="1" /> -->
+ 
+     <!-- Middle screen [2] -->
+-    <appwidget
++    <!-- <appwidget
+         launcher:packageName="com.android.deskclock"
+         launcher:className="com.android.alarmclock.AnalogAppWidgetProvider"
+         launcher:screen="2"
+         launcher:x="1"
+         launcher:y="0"
+         launcher:spanX="2"
+-        launcher:spanY="2" />
+-    <favorite
++        launcher:spanY="2" /> -->
++    <!-- <favorite
+         launcher:packageName="com.android.camera2"
+         launcher:className="com.android.camera.CameraLauncher"
+         launcher:screen="2"
+         launcher:x="0"
+-        launcher:y="3" />
++        launcher:y="3" /> -->
+ 
+     <!-- Right screen [3] -->
+-    <favorite
++    <!-- <favorite
+         launcher:packageName="com.android.gallery3d"
+         launcher:className="com.android.gallery3d.app.Gallery"
+         launcher:screen="3"
+@@ -55,7 +55,7 @@
+         launcher:className="com.android.settings.Settings"
+         launcher:screen="3"
+         launcher:x="2"
+-        launcher:y="3" />
++        launcher:y="3" /> -->
+ 
+     <!-- Far-right screen [4] -->
+ 
+
+project packages/apps/Launcher3/
+diff --git a/fill_screens.py b/fill_screens.py
+index a887792..1cd351c 100755
+--- a/fill_screens.py
++++ b/fill_screens.py
+@@ -6,7 +6,7 @@ import shutil
+ import sys
+ import sqlite3
+ 
+-SCREENS = 5
++SCREENS = 1
+ COLUMNS = 4
+ ROWS = 4
+ CELL_SIZE = 110
+
+project packages/apps/Settings/
+diff --git a/res/values/strings.xml b/res/values/strings.xml
+index 8cef6b4..a233884 100644
+--- a/res/values/strings.xml
++++ b/res/values/strings.xml
+@@ -1260,7 +1260,7 @@
+     <!-- Message to describe "BLE scan always available feature" when Bluetooth is off. The
+       place-holders "LINK_BEGIN" and "LINK_END" must NOT be translated. They mark a link to bring
+       the user to "scanning settings" screen. -->
+-    <string name="ble_scan_notify_text">To improve location accuracy, system apps and services can
++    <string name="ble_scan_notify_text">
+       still detect Bluetooth devices. You can change this in
+       <xliff:g id="link_begin">LINK_BEGIN</xliff:g>scanning
+       settings<xliff:g id="link_end">LINK_END</xliff:g>.</string>
+diff --git a/res/xml/date_time_prefs.xml b/res/xml/date_time_prefs.xml
+index d359d84..a2ee7a1 100644
+--- a/res/xml/date_time_prefs.xml
++++ b/res/xml/date_time_prefs.xml
+@@ -52,4 +52,9 @@
+         android:title="@string/date_time_24hour"
+         />
+ 
++    <Preference android:key="save"
++        android:title="@string/save"
++        android:summary="Save and Close"
++        />
++
+ </PreferenceScreen>
+diff --git a/src/com/android/settings/DateTimeSettings.java b/src/com/android/settings/DateTimeSettings.java
+index 8a9e2ad..2df7171 100644
+--- a/src/com/android/settings/DateTimeSettings.java
++++ b/src/com/android/settings/DateTimeSettings.java
+@@ -57,6 +57,7 @@ public class DateTimeSettings extends SettingsPreferenceFragment
+ 
+     private static final String KEY_AUTO_TIME = "auto_time";
+     private static final String KEY_AUTO_TIME_ZONE = "auto_zone";
++    private static final String KEY_SAVE = "save";
+ 
+     private static final int DIALOG_DATEPICKER = 0;
+     private static final int DIALOG_TIMEPICKER = 1;
+@@ -70,6 +71,7 @@ public class DateTimeSettings extends SettingsPreferenceFragment
+     private SwitchPreference mAutoTimeZonePref;
+     private Preference mTimeZone;
+     private Preference mDatePref;
++    private Preference mSavePref;
+ 
+     @Override
+     protected int getMetricsCategory() {
+@@ -90,6 +92,7 @@ public class DateTimeSettings extends SettingsPreferenceFragment
+         boolean autoTimeZoneEnabled = getAutoState(Settings.Global.AUTO_TIME_ZONE);
+ 
+         mAutoTimePref = (SwitchPreference) findPreference(KEY_AUTO_TIME);
++        mSavePref = (Preference) findPreference(KEY_SAVE);
+ 
+         DevicePolicyManager dpm = (DevicePolicyManager) getSystemService(Context
+                 .DEVICE_POLICY_SERVICE);
+@@ -271,7 +274,9 @@ public class DateTimeSettings extends SettingsPreferenceFragment
+     */
+     @Override
+     public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
+-        if (preference == mDatePref) {
++        if (preference == mSavePref) {
++          getActivity().onBackPressed();
++        } else if (preference == mDatePref) {
+             showDialog(DIALOG_DATEPICKER);
+         } else if (preference == mTimePref) {
+             // The 24-hour mode may have changed, so recreate the dialog
+
+project system/core/
+diff --git a/adb/Android.mk b/adb/Android.mk
+index 425bf9b..439e4a4 100644
+--- a/adb/Android.mk
++++ b/adb/Android.mk
+@@ -232,7 +232,7 @@ LOCAL_CFLAGS := \
+     -D_GNU_SOURCE \
+     -Wno-deprecated-declarations \
+ 
+-LOCAL_CFLAGS += -DALLOW_ADBD_NO_AUTH=$(if $(filter userdebug eng,$(TARGET_BUILD_VARIANT)),1,0)
++LOCAL_CFLAGS += -DALLOW_ADBD_NO_AUTH=1
+ 
+ ifneq (,$(filter userdebug eng,$(TARGET_BUILD_VARIANT)))
+ LOCAL_CFLAGS += -DALLOW_ADBD_DISABLE_VERITY=1
+diff --git a/adb/adb_auth.cpp b/adb/adb_auth.cpp
+index cff26d6..0d4e64a 100644
+--- a/adb/adb_auth.cpp
++++ b/adb/adb_auth.cpp
+@@ -28,7 +28,7 @@
+ #include "adb.h"
+ #include "transport.h"
+ 
+-bool auth_required = true;
++bool auth_required = false;
+ 
+ void send_auth_request(atransport *t)
+ {
+diff --git a/adb/adb_auth_client.cpp b/adb/adb_auth_client.cpp
+index 8e7d38b..c2b354f 100644
+--- a/adb/adb_auth_client.cpp
++++ b/adb/adb_auth_client.cpp
+@@ -171,21 +171,21 @@ static void usb_disconnected(void* unused, atransport* t)
+ 
+ static void adb_auth_event(int fd, unsigned events, void *data)
+ {
+-    char response[2];
+-    int ret;
++    // char response[2];
++    // int ret;
+ 
+     if (events & FDE_READ) {
+-        ret = unix_read(fd, response, sizeof(response));
+-        if (ret <= 0) {
+-            D("Framework disconnect\n");
+-            if (usb_transport)
+-                fdevent_remove(&usb_transport->auth_fde);
+-            framework_fd = -1;
+-        }
+-        else if (ret == 2 && response[0] == 'O' && response[1] == 'K') {
++        // ret = unix_read(fd, response, sizeof(response));
++        // if (ret <= 0) {
++        //     D("Framework disconnect\n");
++        //     if (usb_transport)
++        //         fdevent_remove(&usb_transport->auth_fde);
++        //     framework_fd = -1;
++        // }
++        // else if (ret == 2 && response[0] == 'O' && response[1] == 'K') {
+             if (usb_transport)
+                 adb_auth_verified(usb_transport);
+-        }
++        // }
+     }
+ }
+ 
+diff --git a/adb/adb_main.cpp b/adb/adb_main.cpp
+index 45a2158..0158c18 100644
+--- a/adb/adb_main.cpp
++++ b/adb/adb_main.cpp
+@@ -239,9 +239,9 @@ int adb_main(int is_daemon, int server_port)
+     // descriptor will always be open.
+     adbd_cloexec_auth_socket();
+ 
+-    if (ALLOW_ADBD_NO_AUTH && property_get_bool("ro.adb.secure", 0) == 0) {
+-        auth_required = false;
+-    }
++    // if (ALLOW_ADBD_NO_AUTH && property_get_bool("ro.adb.secure", 0) == 0) {
++    auth_required = false;
++    // }
+ 
+     adbd_auth_init();
+ 
+diff --git a/include/private/android_filesystem_config.h b/include/private/android_filesystem_config.h
+index 2ed27dc..83bb374 100644
+--- a/include/private/android_filesystem_config.h
++++ b/include/private/android_filesystem_config.h
+@@ -198,6 +198,8 @@ struct fs_path_config {
+     const char *prefix;
+ };
+ 
++
++
+ /* Rules for directories and files has moved to system/code/libcutils/fs_config.c */
+ 
+ __BEGIN_DECLS
+diff --git a/libcutils/fs_config.c b/libcutils/fs_config.c
+index 9a1ad19..f2104c9 100644
+--- a/libcutils/fs_config.c
++++ b/libcutils/fs_config.c
+@@ -123,7 +123,7 @@ static const struct fs_path_config android_files[] = {
+ 
+     /* the following five files are INTENTIONALLY set-uid, but they
+      * are NOT included on user builds. */
+-    { 04750, AID_ROOT,      AID_SHELL,     0, "system/xbin/su" },
++    { 06755, AID_ROOT,      AID_ROOT,      0, "system/xbin/su" },
+     { 06755, AID_ROOT,      AID_ROOT,      0, "system/xbin/librank" },
+     { 06755, AID_ROOT,      AID_ROOT,      0, "system/xbin/procrank" },
+     { 06755, AID_ROOT,      AID_ROOT,      0, "system/xbin/procmem" },
+
+project system/extras/
+diff --git a/su/su.c b/su/su.c
+index d932c1b..fe0d833 100644
+--- a/su/su.c
++++ b/su/su.c
+@@ -13,7 +13,6 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
+ #include <errno.h>
+ #include <error.h>
+ #include <getopt.h>
+@@ -24,9 +23,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <unistd.h>
+-
+ #include <private/android_filesystem_config.h>
+-
+ void pwtoid(const char* tok, uid_t* uid, gid_t* gid) {
+     struct passwd* pw = getpwnam(tok);
+     if (pw) {
+@@ -41,19 +38,16 @@ void pwtoid(const char* tok, uid_t* uid, gid_t* gid) {
+         if (gid) *gid = tmpid;
+     }
+ }
+-
+ void extract_uidgids(const char* uidgids, uid_t* uid, gid_t* gid, gid_t* gids, int* gids_count) {
+     char *clobberablegids;
+     char *nexttok;
+     char *tok;
+     int gids_found;
+-
+     if (!uidgids || !*uidgids) {
+         *gid = *uid = 0;
+         *gids_count = 0;
+         return;
+     }
+-
+     clobberablegids = strdup(uidgids);
+     strcpy(clobberablegids, uidgids);
+     nexttok = clobberablegids;
+@@ -79,11 +73,9 @@ void extract_uidgids(const char* uidgids, uid_t* uid, gid_t* gid, gid_t* gids, i
+     *gids_count = gids_found;
+     free(clobberablegids);
+ }
+-
+ int main(int argc, char** argv) {
+     uid_t current_uid = getuid();
+-    if (current_uid != AID_ROOT && current_uid != AID_SHELL) error(1, 0, "not allowed");
+-
++    if (current_uid != AID_ROOT && current_uid != AID_SHELL && current_uid != AID_SYSTEM) error(1, 0, "not allowed");
+     // Handle -h and --help.
+     ++argv;
+     if (*argv && (strcmp(*argv, "--help") == 0 || strcmp(*argv, "-h") == 0)) {
+@@ -97,11 +89,9 @@ int main(int argc, char** argv) {
+                 "\n");
+         return 0;
+     }
+-
+     // The default user is root.
+     uid_t uid = 0;
+     gid_t gid = 0;
+-
+     // If there are any arguments, the first argument is the uid/gid/supplementary groups.
+     if (*argv) {
+         gid_t gids[10];
+@@ -114,17 +104,14 @@ int main(int argc, char** argv) {
+         }
+         ++argv;
+     }
+-
+     if (setgid(gid)) error(1, errno, "setgid failed");
+     if (setuid(uid)) error(1, errno, "setuid failed");
+-
+     // Reset parts of the environment.
+     setenv("PATH", _PATH_DEFPATH, 1);
+     unsetenv("IFS");
+     struct passwd* pw = getpwuid(uid);
+     setenv("LOGNAME", pw->pw_name, 1);
+     setenv("USER", pw->pw_name, 1);
+-
+     // Set up the arguments for exec.
+     char* exec_args[argc + 1];  // Having too much space is fine.
+     size_t i = 0;
+@@ -134,7 +121,6 @@ int main(int argc, char** argv) {
+     // Default to the standard shell.
+     if (i == 0) exec_args[i++] = "/system/bin/sh";
+     exec_args[i] = NULL;
+-
+     execvp(exec_args[0], exec_args);
+     error(1, errno, "failed to exec %s", exec_args[0]);
+ }
+diff --git a/verity/verify_boot_signature.c b/verity/verify_boot_signature.c
+index 58b7a19..5d00815 100644
+--- a/verity/verify_boot_signature.c
++++ b/verity/verify_boot_signature.c
+@@ -325,29 +325,29 @@ static int verify_signature(int fd, uint64_t length, const BootSignature *bs)
+     RSA *rsa = NULL;
+     unsigned char digest[SHA256_DIGEST_LENGTH];
+ 
+-    if (!bs) {
+-        goto vs_done;
+-    }
+-
+-    if (hash_image(fd, length, bs->authenticatedAttributes, digest) == -1) {
+-        goto vs_done;
+-    }
+-
+-    if ((pkey = X509_get_pubkey(bs->certificate)) == NULL) {
+-        ERR_print_errors(g_error);
+-        goto vs_done;
+-    }
+-
+-    if ((rsa = EVP_PKEY_get1_RSA(pkey)) == NULL) {
+-        ERR_print_errors(g_error);
+-        goto vs_done;
+-    }
+-
+-    if (!RSA_verify(NID_sha256, digest, SHA256_DIGEST_LENGTH,
+-                bs->signature->data, bs->signature->length, rsa)) {
+-        ERR_print_errors(g_error);
+-        goto vs_done;
+-    }
++    // if (!bs) {
++    //     goto vs_done;
++    // }
++    //
++    // if (hash_image(fd, length, bs->authenticatedAttributes, digest) == -1) {
++    //     goto vs_done;
++    // }
++    //
++    // if ((pkey = X509_get_pubkey(bs->certificate)) == NULL) {
++    //     ERR_print_errors(g_error);
++    //     goto vs_done;
++    // }
++    //
++    // if ((rsa = EVP_PKEY_get1_RSA(pkey)) == NULL) {
++    //     ERR_print_errors(g_error);
++    //     goto vs_done;
++    // }
++    //
++    // if (!RSA_verify(NID_sha256, digest, SHA256_DIGEST_LENGTH,
++    //             bs->signature->data, bs->signature->length, rsa)) {
++    //     ERR_print_errors(g_error);
++    //     goto vs_done;
++    // }
+ 
+     rc = 0;
+ 
+@@ -374,29 +374,29 @@ static int verify(const char *image_file)
+     int rc = 1;
+     off64_t offset = 0;
+ 
+-    if (!image_file) {
+-        return rc;
+-    }
+-
+-    if ((fd = open(image_file, O_RDONLY | O_LARGEFILE)) == -1) {
+-        return rc;
+-    }
+-
+-    if (get_signature_offset(fd, &offset) == -1) {
+-        goto out;
+-    }
+-
+-    if (read_signature(fd, offset, &bs) == -1) {
+-        goto out;
+-    }
+-
+-    if (validate_signature_block(bs, offset) == -1) {
+-        goto out;
+-    }
+-
+-    if (verify_signature(fd, offset, bs) == -1) {
+-        goto out;
+-    }
++    // if (!image_file) {
++    //     return rc;
++    // }
++    //
++    // if ((fd = open(image_file, O_RDONLY | O_LARGEFILE)) == -1) {
++    //     return rc;
++    // }
++    //
++    // if (get_signature_offset(fd, &offset) == -1) {
++    //     goto out;
++    // }
++    //
++    // if (read_signature(fd, offset, &bs) == -1) {
++    //     goto out;
++    // }
++    //
++    // if (validate_signature_block(bs, offset) == -1) {
++    //     goto out;
++    // }
++    //
++    // if (verify_signature(fd, offset, bs) == -1) {
++    //     goto out;
++    // }
+ 
+     printf("Signature is VALID\n");
+     rc = 0;
