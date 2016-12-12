@@ -1398,7 +1398,7 @@ public class OC_JMenu extends OC_Menu
         if (utsecs > intervalSecs)
         {
             while (otherControllerOnTop())
-                MainViewController().popViewController();
+                MainViewController().topController().exitEvent();
             videoPreviewIdx = 0;
             switchTo("video",true);
             showMessage();
