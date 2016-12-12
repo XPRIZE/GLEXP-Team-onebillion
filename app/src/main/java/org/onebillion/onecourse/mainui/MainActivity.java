@@ -346,135 +346,120 @@ public class MainActivity extends Activity
     public void checkForFirstSetupAndRun()
     {
         OBUtils.runOnMainThread(new OBUtils.RunLambda()
-                                {
-                                    @Override
-                                    public void run () throws Exception
-                                    {
-                                        boolean permissionsGranted = isAllPermissionGranted();
-                                        if (!permissionsGranted)
-                                        {
-//                                            String[] permissions = new String[]{"ACCESS_COARSE_LOCATION", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE", "ACCESS_WIFI_STATE", "CHANGE_WIFI_STATE", "RECORD_AUDIO", "CAMERA"};
-//                                            for (String permission : permissions)
-//                                            {
-//                                                String[] command = new String[]{"su", "-c", String.format("pm grant %s android.permission.%s", getPackageName(), permission)};
-//                                                StringBuilder buffer = new StringBuilder();
-//                                                for (String each : command) buffer.append(" ").append(each);
-//                                                //
-//                                                try
-//                                                {
-//                                                    MainActivity.log("OBSystemsManager.checkForFirstSetupAndRun.running [" + buffer.toString() + "]");
-//                                                    Process process = Runtime.getRuntime().exec(command);
-//                                                    process.waitFor();
-//                                                }
-//                                                catch (Exception e)
-//                                                {
-//                                                    MainActivity.log("OBSystemsManager.checkForFirstSetupAndRun.exception caught while running [" + buffer.toString() + "]");
-//                                                    e.printStackTrace();
-//                                                }
-//                                            }
-                                            //
-                                            return;
-                                        }
-                                        //
-                                        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-                                        boolean gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-                                        boolean network_enabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-                                        if (gps_enabled || network_enabled)
-                                        {
-                                            Toast.makeText(MainActivity.mainActivity, "Please disable the location services before going back.", Toast.LENGTH_LONG).show();
-                                            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                                            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                                            startActivityForResult(intent, REQUEST_FIRST_SETUP_WIFI_BT_SCANNING);
-                                            return;
-                                        }
-                                        boolean scanningDisabled = OBSystemsManager.sharedManager.connectionManager.isScanningDisabled();
-                                        if (!scanningDisabled)
-                                        {
-                                            Toast.makeText(MainActivity.mainActivity, "Please disable all Wifi and Bluetooth scanning before going back.", Toast.LENGTH_LONG).show();
-                                            Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
-                                            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                                            startActivityForResult(intent, REQUEST_FIRST_SETUP_WIFI_BT_SCANNING);
-                                            return;
-                                        }
-                                        //
-                                        boolean writeSettingsPermission = OBSystemsManager.sharedManager.hasWriteSettingsPermission();
-                                        if (!writeSettingsPermission)
-                                        {
-                                            Toast.makeText(MainActivity.mainActivity, "Please allow this app to write settings before going back.", Toast.LENGTH_LONG).show();
-                                            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
-                                            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                                            intent.setData(Uri.parse("package:" + getPackageName()));
-                                            startActivityForResult(intent, REQUEST_FIRST_SETUP_PERMISSIONS);
-                                            return;
-                                        }
-                                        //
-                                        if (OBSystemsManager.sharedManager.shouldShowDateTimeSettings())
-                                        {
-                                            boolean dateTimeSetupComplete = getPreferences("dateTimeSetupComplete") != null;
-                                            if (!dateTimeSetupComplete)
-                                            {
-                                                OBSystemsManager.sharedManager.setDateAndTimeDialog(new OBUtils.RunLambda()
-                                                {
-                                                    @Override
-                                                    public void run () throws Exception
-                                                    {
-                                                        addToPreferences("dateTimeSetupComplete", "true");
-                                                        checkForFirstSetupAndRun();
-                                                    }
-                                                });
-                                                return;
-                                            }
-                                        }
-                                        //
-                                        boolean administratorServices = OBSystemsManager.sharedManager.usesAdministratorServices();
-                                        if (administratorServices)
-                                        {
-                                            boolean hasAdministratorPrivileges = OBSystemsManager.sharedManager.hasAdministratorPrivileges();
-                                            if (!hasAdministratorPrivileges)
-                                            {
-                                                MainActivity.log("MainActivity.App does not have administrator privileges. Requesting");
-                                                //
-                                                Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
-                                                final PackageManager packageManager = MainActivity.mainActivity.getPackageManager();
-                                                final List<ResolveInfo> resolveInfos = packageManager.queryIntentActivities(intent, 0);
-                                                if (resolveInfos != null && !resolveInfos.isEmpty())
-                                                {
-                                                    try
-                                                    {
-                                                        final ResolveInfo resolveInfo = resolveInfos.get(0);
-                                                        intent = new Intent();
-                                                        intent.setComponent(new ComponentName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name));
-                                                        intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, OBSystemsManager.sharedManager.AdministratorReceiver());
-                                                        startActivityForResult(intent, MainActivity.REQUEST_FIRST_SETUP_ADMINISTRATOR_PRIVILEGES);
-                                                        return;
-                                                    }
-                                                    catch (final Exception e)
-                                                    {
-                                                        e.printStackTrace();
-                                                    }
-                                                }
-                                                return;
-                                            }
-                                        }
-                                        if (OBSystemsManager.sharedManager.shouldRequestDeviceOwner())
-                                        {
-                                            //
-                                            boolean isDeviceOwner = OBSystemsManager.sharedManager.isDeviceOwner();
-                                            if (!isDeviceOwner)
-                                            {
-                                                OBSystemsManager.sharedManager.requestDeviceOwner();
-                                            }
-                                        }
-                                        //
-                                        log("First Setup complete. Loading Main View Controller");
-                                        //
-                                        addToPreferences("firstSetupComplete", "true");
-                                        //
-                                        checkForUpdatesAndLoadMainViewController();
+        {
+            @Override
+            public void run () throws Exception
+            {
+                boolean permissionsGranted = isAllPermissionGranted();
+                if (!permissionsGranted)
+                {
+                    return;
+                }
+                //
+                LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+                boolean gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+                boolean network_enabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+                if (gps_enabled || network_enabled)
+                {
+                    Toast.makeText(MainActivity.mainActivity, "Please disable the location services before going back.", Toast.LENGTH_LONG).show();
+                    Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    startActivityForResult(intent, REQUEST_FIRST_SETUP_WIFI_BT_SCANNING);
+                    return;
+                }
+                boolean scanningDisabled = OBSystemsManager.sharedManager.connectionManager.isScanningDisabled();
+                if (!scanningDisabled)
+                {
+                    Toast.makeText(MainActivity.mainActivity, "Please disable all Wifi and Bluetooth scanning before going back.", Toast.LENGTH_LONG).show();
+                    Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    startActivityForResult(intent, REQUEST_FIRST_SETUP_WIFI_BT_SCANNING);
+                    return;
+                }
+                //
+                boolean writeSettingsPermission = OBSystemsManager.sharedManager.hasWriteSettingsPermission();
+                if (!writeSettingsPermission)
+                {
+                    Toast.makeText(MainActivity.mainActivity, "Please allow this app to write settings before going back.", Toast.LENGTH_LONG).show();
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    intent.setData(Uri.parse("package:" + getPackageName()));
+                    startActivityForResult(intent, REQUEST_FIRST_SETUP_PERMISSIONS);
+                    return;
+                }
+                //
+                if (OBSystemsManager.sharedManager.shouldShowDateTimeSettings())
+                {
+                    MainActivity.log("MainActivity.checkForFirstSetupAndRun.will show date and time settings");
+                    boolean dateTimeSetupComplete = getPreferences("dateTimeSetupComplete") != null;
+                    if (!dateTimeSetupComplete)
+                    {
+                        OBSystemsManager.sharedManager.setDateAndTimeDialog(new OBUtils.RunLambda()
+                        {
+                            @Override
+                            public void run () throws Exception
+                            {
+                                addToPreferences("dateTimeSetupComplete", "true");
+                                checkForFirstSetupAndRun();
+                            }
+                        });
+                        return;
+                    }
+                }
+                else
+                {
+                    MainActivity.log("MainActivity.checkForFirstSetupAndRun. will NOT show date and time settings");
+                    addToPreferences("dateTimeSetupComplete", "true");
+                }
+                //
+                boolean administratorServices = OBSystemsManager.sharedManager.usesAdministratorServices();
+                if (administratorServices)
+                {
+                    boolean hasAdministratorPrivileges = OBSystemsManager.sharedManager.hasAdministratorPrivileges();
+                    if (!hasAdministratorPrivileges)
+                    {
+                        MainActivity.log("MainActivity.App does not have administrator privileges. Requesting");
+                        //
+                        Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+                        final PackageManager packageManager = MainActivity.mainActivity.getPackageManager();
+                        final List<ResolveInfo> resolveInfos = packageManager.queryIntentActivities(intent, 0);
+                        if (resolveInfos != null && !resolveInfos.isEmpty())
+                        {
+                            try
+                            {
+                                final ResolveInfo resolveInfo = resolveInfos.get(0);
+                                intent = new Intent();
+                                intent.setComponent(new ComponentName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name));
+                                intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, OBSystemsManager.sharedManager.AdministratorReceiver());
+                                startActivityForResult(intent, MainActivity.REQUEST_FIRST_SETUP_ADMINISTRATOR_PRIVILEGES);
+                                return;
+                            }
+                            catch (final Exception e)
+                            {
+                                e.printStackTrace();
+                            }
+                        }
+                        return;
+                    }
+                }
+                if (OBSystemsManager.sharedManager.shouldRequestDeviceOwner())
+                {
+                    //
+                    boolean isDeviceOwner = OBSystemsManager.sharedManager.isDeviceOwner();
+                    if (!isDeviceOwner)
+                    {
+                        OBSystemsManager.sharedManager.requestDeviceOwner();
+                    }
+                }
+                //
+                log("First Setup complete. Loading Main View Controller");
+                //
+                addToPreferences("firstSetupComplete", "true");
+                //
+                checkForUpdatesAndLoadMainViewController();
 
-                                    }
-                                }
-        );
+            }
+        });
     }
 
 

@@ -107,18 +107,6 @@ android {
                     appIcon: "@mipmap/child_ny"
             ]
         }
-//        childMenu_sw_ {
-//            minSdkVersion 23
-//            applicationId 'org.onebillion.onecourse.child.sw'
-//            targetSdkVersion 23
-//            versionCode 1
-//            versionName '1.0'
-//            resValue "string", "app_name", "onecourse - Child (swahili)"
-//            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_child_sw.plist"'
-//            manifestPlaceholders = [
-//                    appIcon: "@mipmap/child_sw"
-//            ]
-//        }
     }
 }
 
