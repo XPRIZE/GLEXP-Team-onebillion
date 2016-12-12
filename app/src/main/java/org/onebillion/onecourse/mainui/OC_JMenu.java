@@ -238,7 +238,8 @@ public class OC_JMenu extends OC_Menu
         setUpTabTitles();
         createToggleLabels();
         hideControls("toggle.*");
-        setToggleTo(0);
+        //setToggleTo(1);
+        chooseToggle(1);
     }
 
     public void videoinit()
