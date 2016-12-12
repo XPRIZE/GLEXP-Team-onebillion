@@ -39,7 +39,7 @@ Building **onecourse** is a two-step process:
 6. Build the desired **onecourse** `.apk`:
  - onecourse demo for XPRIZE judges:
 
-          ./gradlew assembleChildMenu
+          ./gradlew assembleJudgeMenu
 
  - onecourse Swahili:
 
@@ -73,8 +73,8 @@ Building **onecourse** is a two-step process:
 
 5. Add the desired **onecourse** `.apk`
 
-        mkdir packages/apps/
-        mv $ROOT_FOLDER/app/build/outputs/apk/* packages/apps/
+        mkdir packages/apps/onebillion
+        mv $ROOT_FOLDER/app/build/outputs/apk/* packages/apps/onebillion
 
 6. Build the AOSP filesytem images. This will take several hours:
 
