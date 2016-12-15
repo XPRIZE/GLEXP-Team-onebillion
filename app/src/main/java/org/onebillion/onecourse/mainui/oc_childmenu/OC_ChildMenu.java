@@ -264,13 +264,13 @@ public class OC_ChildMenu extends OC_Menu implements OC_FatReceiver
 
         if (status() == STATUS_AWAITING_CLICK)
         {
-            setStatus(STATUS_AWAITING_CLICK);
+            final long time = setStatus(STATUS_AWAITING_CLICK);
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
                 @Override
                 public void run() throws Exception
                 {
-                    replayReminders();
+                    replayReminders(time);
                 }
             });
         } else if (status() == STATUS_IDLE && currentSection.equalsIgnoreCase("timeout"))
@@ -349,18 +349,22 @@ public class OC_ChildMenu extends OC_Menu implements OC_FatReceiver
         fatController.resetProgress();
         restartCurrentScreen();
     }
-    private void replayReminders() throws Exception
+    private void replayReminders(long time) throws Exception
     {
         waitForSecs(1);
-        if (currentTarget == TouchTargets.TARGET_BUTTON)
+        if(statusTime == time)
         {
-            playAudioQueued((List<Object>) (Object) getAudioForScene("button", "REMINDER"), true);
-        } else if (currentTarget == TouchTargets.TARGET_STAR)
-        {
-            presenter.speak((List<Object>) (Object) getAudioForScene((lastUnit.level == 1 && lastUnit.awardStar == 1) ? "1" : "default", "REMINDER"), this);
-        } else
-        {
-            playAudioQueued((List<Object>) (Object) getAudioForScene("unit", "REMINDER"), true);
+            if (currentTarget == TouchTargets.TARGET_BUTTON)
+            {
+                playAudioQueued((List<Object>) (Object) getAudioForScene("button", "REMINDER"), true);
+
+            } else if (currentTarget == TouchTargets.TARGET_STAR)
+            {
+                presenter.speak((List<Object>) (Object) getAudioForScene((lastUnit.level == 1 && lastUnit.awardStar == 1) ? "1" : "default", "REMINDER"), this);
+            } else
+            {
+                playAudioQueued((List<Object>) (Object) getAudioForScene("unit", "REMINDER"), true);
+            }
         }
     }
 
