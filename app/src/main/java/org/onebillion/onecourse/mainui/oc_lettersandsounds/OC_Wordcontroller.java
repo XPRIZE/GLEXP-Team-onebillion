@@ -13,6 +13,7 @@ import android.util.Log;
 
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.mainui.OC_SectionController;
+import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBSyllable;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OBWord;
@@ -126,7 +127,11 @@ public class OC_Wordcontroller extends OC_SectionController
             }
             if(rw != null)
             {
-                playLetterSound(rw.syllables().get(0).phonemes.get(0).text);
+                OBPhoneme obphn = rw.syllables().get(0).phonemes.get(0);
+                String s = obphn.soundid;
+                if (s == null)
+                    s = obphn.text;
+                playLetterSound(s);
             }
         }
         catch(Exception exception)
