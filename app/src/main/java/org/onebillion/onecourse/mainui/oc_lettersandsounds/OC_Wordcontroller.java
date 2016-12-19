@@ -73,14 +73,19 @@ public class OC_Wordcontroller extends OC_SectionController
         unlockScreen();
     }
 
-    public void  playLetterSound(final String s)
+    public void playLetterSound(final String s)
     {
         OBUtils.runOnMainThread(new OBUtils.RunLambda()
         {
             @Override
             public void run() throws Exception
             {
-                playAudio(String.format("is_%s",s));
+                String fn;
+                if (s.startsWith("is_"))
+                    fn = s;
+                else
+                    fn = String.format("is_%s",s);
+                playAudio(fn);
             }
         });
     }
