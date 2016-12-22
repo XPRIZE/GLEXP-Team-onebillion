@@ -416,6 +416,21 @@ public class OC_Sorting_S3 extends OC_SectionController
         return null;
     }
 
+    OBControl dropPointForTag(String tag)
+    {
+        for (OBControl dropPoint : dropBoxArray)
+            if (dropPoint.attributes().get("tag").equals(tag))
+                return dropPoint;
+        return null;
+    }
+    boolean nearDestPoint(OBControl t)
+    {
+        PointF correctPt = (PointF) t.propertyValue("destpos");
+        if (correctPt == null)
+            return false;
+        return (OB_Maths.PointDistance(correctPt,t.position()) < applyGraphicScale(50));
+    }
+
     public void touchUpAtPoint(final PointF pt,View v)
     {
         if (status() == STATUS_DRAGGING)
@@ -443,14 +458,19 @@ public class OC_Sorting_S3 extends OC_SectionController
         try
         {
             setStatus(STATUS_CHECKING);
-
+            boolean nearDest = nearDestPoint(target);
             OBControl dropPoint = dropPointUnderPoint(pt);
             if (dropPoint == null)
             {
-                flyHome();
-                target.setZPosition(target.zPosition() - 30);
-                switchStatus(currentEvent());
-                return;
+                if (nearDest)
+                    dropPoint = dropPointForTag((String) target.attributes().get("tag"));
+                if (dropPoint == null)
+                {
+                    flyHome();
+                    target.setZPosition(target.zPosition() - 30);
+                    switchStatus(currentEvent());
+                    return;
+                }
             }
             if (dropPoint.attributes().get("tag").equals(target.attributes().get("tag")))
             {
