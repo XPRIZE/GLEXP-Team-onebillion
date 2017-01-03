@@ -1,4 +1,5 @@
-#Welcome to onecourse! 
+![Welcome to onecourse!](https://onebillion.org/img/onecourse/onecourse-logo.svg)
+
 
 ######One app for reading, writing and numeracy. By non-profit onebillion.
 
