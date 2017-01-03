@@ -86,4 +86,4 @@ Building **onecourse** is a two-step process:
 
         /out/target/product/dragon/
 
-8. You can now [install onecourse onto a device](https://github.com/onebillionchildren/XPRIZE-ob-android/blob/master/INSTALL.md).
+8. You can now [install onecourse onto a device](INSTALL.md).
