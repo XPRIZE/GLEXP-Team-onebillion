@@ -37,7 +37,7 @@ Here you can experience the onecourse material as children in Tanzania would exp
 Our onecourse English entry is on our github repository, but not on a tablet. It has been verified by the XPRIZE team. 
 
 ###4. onecourse handbook
-[![onecourse](https://img.shields.io/badge/PDF-📖%20View%20onecourse%20Handbook-0092ff.svg)](onecourse-handbook.pdf "onecourse demo")
+[![onecourse](https://img.shields.io/badge/PDF-📖%20View%20onecourse%20Handbook-0092ff.svg)](onecourse_handbook.pdf "onecourse demo")
 
 The handbook contains:
 
