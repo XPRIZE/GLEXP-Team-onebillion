@@ -65,10 +65,9 @@ Building **onecourse** is a two-step process:
  - [Google device drivers](https://dl.google.com/dl/android/aosp/google_devices-dragon-mxc89l-5452d463.tgz)
  - [Nvidia drivers](https://dl.google.com/dl/android/aosp/nvidia-dragon-mxc89l-7dd0c758.tgz)
 
-4. Apply `onecourse-AOSP.patch` to the AOSP source tree:
+4. Apply `onecourse-AOSP.patch` from the **onecourse source** repository to the AOSP source tree (current workign folder):
 
-        curl https://github.com/XPRIZE/GLEXP-Team-onebillion/master/onecourse-AOSP.patch | git apply -v --index
-        
+        git apply -v --index $ROOT_FOLDER/onecourse-AOSP.patch    
         git commit -m "Applied onecourse system modifications"
 
 
