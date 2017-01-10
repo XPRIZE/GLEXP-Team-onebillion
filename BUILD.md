@@ -71,19 +71,23 @@ Building **onecourse** is a two-step process:
         
         git commit -m "Applied onecourse system modifications"
 
-5. Add the desired **onecourse** `.apk`
+5. Add the desired **onecourse** `.apk`:
 
         mkdir packages/apps/onebillion
         mv $ROOT_FOLDER/app/build/outputs/apk/* packages/apps/onebillion
 
-6. Build the AOSP filesytem images. This will take several hours:
+6. Copy `Android.mk` to the app package folder: 
+
+        cp $ROOT_FOLDER/onecourse-Android.mk packages/apps/onebillion/Android.mk
+
+7. Build the AOSP filesytem images. This will take several hours:
 
         source build/envsetup.sh
         lunch aosp_dragon-userdebug
         make -j4
 
-7. The filesytem images will be placed in:
+8. The filesytem images will be placed in:
 
         /out/target/product/dragon/
 
-8. You can now [install onecourse onto a device](INSTALL.md).
+9. You can now [install onecourse onto a device](INSTALL.md).
