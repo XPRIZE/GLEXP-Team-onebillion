@@ -71,23 +71,45 @@ Building **onecourse** is a two-step process:
         
         git commit -m "Applied onecourse system modifications"
 
-5. Add the desired **onecourse** `.apk`:
 
-        mkdir packages/apps/onebillion
-        mv $ROOT_FOLDER/app/build/outputs/apk/* packages/apps/onebillion
+5. On building for the first time, clean the build folders. This is not required for subsequent builds:
 
-6. Copy `Android.mk` to the app package folder: 
+        make clobber 
+        
+6. Copy the following files and folders from the **onecourse source** repository to your AOSP folder:
 
-        cp $ROOT_FOLDER/onecourse-Android.mk packages/apps/onebillion/Android.mk
+          rm -rf packages/apps/onebillion
+          mkdir -p packages/apps/onebillion
+          cp -r $ROOT_FOLDER/AOSP/frameworks/ .
+          mkdir -p out/target/product/dragon/system/media/
+          cp $ROOT_FOLDER/AOSP/bootanimation.zip out/target/product/dragon/system/media/
+ 
+7. Copy the desired **onecourse** `.apk` and makefile from the **onecourse source** repository to your AOSP folder:
+ - onecourse demo for XPRIZE judges:
 
-7. Build the AOSP filesytem images. This will take several hours:
+          cp $ROOT_FOLDER/app/build/outputs/apk/app-judgeMenu-release.apk packages/apps/onebillion/
+          cp $ROOT_FOLDER/AOSP/judgeMenu-Android.mk packages/apps/onebillion/Android.mk
+
+ - onecourse Swahili:
+
+          cp $ROOT_FOLDER/app/build/outputs/apk/app-childMenu-release.apk packages/apps/onebillion/
+          cp $ROOT_FOLDER/AOSP/childMenu-Android.mk packages/apps/onebillion/Android.mk
+
+ - onecourse English:
+
+          cp $ROOT_FOLDER/app/build/outputs/apk/app-childMenu_enGB_-release.apk packages/apps/onebillion/
+          cp $ROOT_FOLDER/AOSP/childMenu_en_GB_-Android.mk packages/apps/onebillion/Android.mk
+              
+         
+        
+8. Build the filesystem images. This will take several hours:
 
         source build/envsetup.sh
         lunch aosp_dragon-userdebug
         make -j4
 
-8. The filesytem images will be placed in:
+9. The filesytem images will be placed in:
 
         /out/target/product/dragon/
 
-9. You can now [install onecourse onto a device](INSTALL.md).
+10. You can now [install onecourse onto a device](INSTALL.md).
