@@ -20,7 +20,7 @@ Building **onecourse** is a two-step process:
         
         git clone https://github.com/XPRIZE/GLEXP-Team-onebillion.git $ROOT_FOLDER/
 
-3. Configure the `ASSETS_FOLDER` environment variable, download and extract the [`assets.tar.gz`](https://xprizefoundation.box.com/s/gr2ynosj8qi244hbn4sf09q3s26u9dpk) file from onebillion's Box account (`onebillion/Supplemental/content/assets.tar.gz`).
+3. Configure the `ASSETS_FOLDER` environment variable, download and extract the [`assets.tar.gz`](https://xprizefoundation.box.com/s/gr2ynosj8qi244hbn4sf09q3s26u9dpk) file from onebillion's Box account `onebillion/Supplemental/content/assets.tar.gz`:
 
         export ASSETS_FOLDER=$ROOT_FOLDER/app/src/main/assets
         
