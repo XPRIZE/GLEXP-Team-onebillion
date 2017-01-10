@@ -18,15 +18,15 @@ Building **onecourse** is a two-step process:
 
         export ROOT_FOLDER=onecourse
         
-        git clone https://github.com/onebillionchildren/XPRIZE-ob-android.git $ROOT_FOLDER/
+        git clone https://github.com/XPRIZE/GLEXP-Team-onebillion.git $ROOT_FOLDER/
 
-3. Configure the `ASSETS_FOLDER` environment variable and clone the **onecourse assets** repository 
+3. Configure the `ASSETS_FOLDER` environment variable, download and extract the [`assets.tar.gz`](https://xprizefoundation.box.com/s/gr2ynosj8qi244hbn4sf09q3s26u9dpk) file from onebillion's Box account (`onebillion/Supplemental/content/assets.tar.gz`).
 
         export ASSETS_FOLDER=$ROOT_FOLDER/app/src/main/assets
         
         mkdir $ASSETS_FOLDER
         
-        git clone https://github.com/onebillionchildren/XPRIZE-assets.git $ASSETS_FOLDER/
+        tar xf assets.tar.gz -C $ASSETS_FOLDER
 
 4. Configure the `ANDROID_HOME` environment variable based on the location of the Android SDK:
 
@@ -67,7 +67,7 @@ Building **onecourse** is a two-step process:
 
 4. Apply `onecourse-AOSP.patch` to the AOSP source tree:
 
-        curl https://raw.githubusercontent.com/onebillionchildren/XPRIZE-ob-android/master/onecourse-AOSP.patch | git apply -v --index
+        curl https://github.com/XPRIZE/GLEXP-Team-onebillion/master/onecourse-AOSP.patch | git apply -v --index
         
         git commit -m "Applied onecourse system modifications"
 
