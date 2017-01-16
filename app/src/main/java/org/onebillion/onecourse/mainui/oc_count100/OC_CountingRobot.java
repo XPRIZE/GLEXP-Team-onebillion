@@ -1,9 +1,13 @@
 package org.onebillion.onecourse.mainui.oc_count100;
 
+import android.graphics.Color;
 import android.graphics.PointF;
+import android.graphics.Rect;
+import android.graphics.RectF;
 
 import org.onebillion.onecourse.controls.*;
 import org.onebillion.onecourse.mainui.OC_SectionController;
+import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimBlock;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
@@ -20,7 +24,7 @@ import java.util.List;
 public class OC_CountingRobot
 {
     public OBGroup robot;
-    public final int ROBOT_HAPPY = 0,
+    public static final int ROBOT_HAPPY = 0,
             ROBOT_SAD = 1,
             ROBOT_ANGRY = 2,
             ROBOT_ANGRY2 = 3,
@@ -46,8 +50,16 @@ public class OC_CountingRobot
         setArmAnchor("sidearm2");
         robot.objectDict.get("righteyeball").masksToBounds();
         robot.objectDict.get("lefteyeball").masksToBounds();
-        robot.objectDict.get("righteyeball").setProperty("originposition",robot.objectDict.get("righteyeball").position());
-        robot.objectDict.get("lefteyeball").setProperty("originposition",robot.objectDict.get("lefteyeball").position());
+        robot.objectDict.get("righteyeball").setProperty("originposition",OC_Generic.copyPoint(robot.objectDict.get("righteyeball").position()));
+        robot.objectDict.get("lefteyeball").setProperty("originposition",OC_Generic.copyPoint(robot.objectDict.get("lefteyeball").position()));
+        RectF bounds = robot.bounds();
+        float scale = robot.scale();
+        robot.sizeToBox(new RectF(bounds.left - robot.width(), bounds.top-0.2f*robot.height(), bounds.right + robot.width(), bounds.bottom+0.2f*robot.height()));
+        //robot.setPosition(robot.position().x,robot.position().y - 0.05f*robot.height());
+        //robot.setScale(scale);
+        //robot.setBounds(bounds.left - robot.width(), bounds.top-0.5f*robot.height(), bounds.right + robot.width(), bounds.bottom+0.5f*robot.height());
+        //robot.setAnchorPoint(0.5f,0.75f);
+
     }
 
     public void setArmAnchor(String groupName)
@@ -217,8 +229,8 @@ public class OC_CountingRobot
     {
         final OBGroup face = (OBGroup)robot.objectDict.get("face");
         final OBGroup arm = (OBGroup)robot.objectDict.get("sidearm");
-        final PointF facePoint = face.position();
-        final PointF armPoint = arm.position();
+        final PointF facePoint = OC_Generic.copyPoint(face.position());
+        final PointF armPoint = OC_Generic.copyPoint(arm.position());
         final float jump = 8;
         OBAnim blockAnim = new OBAnimBlock()
         {

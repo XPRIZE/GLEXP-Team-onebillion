@@ -301,7 +301,7 @@ public class OC_Sm2 extends OC_Sm1
                                                                                                                                                        public void run() throws Exception
                     {
                         long sttime = statusTime;
-                        playAudioQueuedScene("INCORRECT",300,true);
+                        playAudioQueuedScene("INCORRECT",0.3f,true);
                         waitForSecs(0.3f);
                         if(sttime == statusTime)
                             playFirstSoundOfWordId(currWordID, (OBWord) wordDict.get(currWordID));

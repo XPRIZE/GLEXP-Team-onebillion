@@ -374,7 +374,7 @@ public class OC_Sm1 extends OC_Wordcontroller
                     public void run() throws Exception
                     {
                         final long sttime = statusTime;
-                        playAudioQueuedScene("INCORRECT",300,true);
+                        playAudioQueuedScene("INCORRECT",0.3f,true);
                         waitForSecs(0.3f);
                         waitAudio();
                         if(sttime == statusTime)
