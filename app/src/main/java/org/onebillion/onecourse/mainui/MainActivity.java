@@ -129,7 +129,8 @@ public class MainActivity extends Activity
             CONFIG_BACKUP_URL = "backupURL",
             CONFIG_BACKUP_INTERVAL = "backupInterval",
             CONFIG_DISALLOW_HOURS = "disallowHours",
-            CONFIG_BUNDLED_OBB_FILENAME = "bundledOBBFilename";
+            CONFIG_BUNDLED_OBB_FILENAME = "bundledOBBFilename",
+            CONFIG_CHECK_FOR_DISABLED_SCANNING = "checkForDisabledScanning";
     public static String TAG = "onecourse";
     //
     public static OBSystemsManager systemsManager = new OBSystemsManager();
@@ -367,14 +368,19 @@ public class MainActivity extends Activity
                     startActivityForResult(intent, REQUEST_FIRST_SETUP_WIFI_BT_SCANNING);
                     return;
                 }
-                boolean scanningDisabled = OBSystemsManager.sharedManager.connectionManager.isScanningDisabled();
-                if (!scanningDisabled)
+                String checkForDisabledScanning = mainActivity.configStringForKey(CONFIG_CHECK_FOR_DISABLED_SCANNING);
+                if (checkForDisabledScanning != null && checkForDisabledScanning.compareTo("true") == 0)
                 {
-                    Toast.makeText(MainActivity.mainActivity, "Please disable all Wifi and Bluetooth scanning before going back.", Toast.LENGTH_LONG).show();
-                    Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    startActivityForResult(intent, REQUEST_FIRST_SETUP_WIFI_BT_SCANNING);
-                    return;
+                    boolean scanningDisabled = OBSystemsManager.sharedManager.connectionManager.isScanningDisabled();
+                    //
+                    if (!scanningDisabled)
+                    {
+                        Toast.makeText(MainActivity.mainActivity, "Please disable all Wifi and Bluetooth scanning before going back.", Toast.LENGTH_LONG).show();
+                        Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                        startActivityForResult(intent, REQUEST_FIRST_SETUP_WIFI_BT_SCANNING);
+                        return;
+                    }
                 }
                 //
                 boolean writeSettingsPermission = OBSystemsManager.sharedManager.hasWriteSettingsPermission();
