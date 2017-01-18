@@ -31,10 +31,26 @@ public class OC_Generic_ColourObjectsWithoutPaintpots extends OC_Generic_ColourO
         return "colour_object";
     }
 
-    public Boolean value_shouldPlayWrongAudioSFX()
+    public Boolean value_shouldPlayWrongAudio_wrongColourForObject()
     {
         return false;
     }
+
+    public Boolean value_shouldPlayWrongAudioSFX_wrongPaintpotColour()
+    {
+        return false;
+    }
+
+    public Boolean value_shoulPlayWrongAudioSFX_paintpotNotSelected()
+    {
+        return false;
+    }
+
+    public Boolean value_shouldPlayWrongAudioSFX_replacingObjectColour()
+    {
+        return false;
+    }
+
 
     @Override
     public void action_prepareScene (String scene, Boolean redraw)

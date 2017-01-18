@@ -21,9 +21,14 @@ import java.util.Map;
 
 public class OC_Generic_ColourObjects extends OC_Generic_Event
 {
-    int selectedColour;
-    int correctColour, correctQuantity;
-    Map<String,Integer> coloursOfObjects;
+    public int selectedColour;
+    public int correctQuantity;
+    public int correctColour;
+    //
+    public Map<String,Integer> coloursOfObjects;
+
+
+
 
     public OC_Generic_ColourObjects()
     {
@@ -61,7 +66,32 @@ public class OC_Generic_ColourObjects extends OC_Generic_Event
         return "selectColour";
     }
 
-    public Boolean value_shouldPlayWrongAudioSFX()
+    public Boolean value_shouldPlayWrongAudio_wrongColourForObject()
+    {
+        return true;
+    }
+
+    public Boolean value_shouldPlayWrongAudioSFX_wrongPaintpotColour()
+    {
+        return true;
+    }
+
+    public Boolean value_shoulPlayWrongAudioSFX_paintpotNotSelected()
+    {
+        return true;
+    }
+
+    public Boolean value_shouldPlayWrongAudioSFX_replacingObjectColour()
+    {
+        return true;
+    }
+
+    public Boolean value_mustColourObjectCorrectly()
+    {
+        return true;
+    }
+
+    public Boolean action_isColourCorrectForObject(OBControl object)
     {
         return true;
     }
@@ -107,6 +137,14 @@ public class OC_Generic_ColourObjects extends OC_Generic_Event
                 control.setProperty("colour", paintpotColour);
                 OC_Generic.colourObject(control, paintpotColour);
                 i++;
+            }
+        }
+        else
+        {
+            for (OBControl control : sortedFilteredControls(String.format("%s.*", value_paintPotPrefix())))
+            {
+                int paintpotColour = control.fillColor();
+                control.setProperty("colour", paintpotColour);
             }
         }
         action_selectPaintPoint(null);
@@ -260,7 +298,7 @@ public class OC_Generic_ColourObjects extends OC_Generic_Event
             int paintpotColour = (int) paintpot.propertyValue("colour");
             if (value_mustPickCorrectColour() && paintpotColour != correctColour)
             {
-                if (value_shouldPlayWrongAudioSFX())
+                if (value_shouldPlayWrongAudioSFX_wrongPaintpotColour())
                 {
                     playSfxAudio("wrong", false);
                 }
@@ -302,7 +340,7 @@ public class OC_Generic_ColourObjects extends OC_Generic_Event
             if (selectedColour == -1)
             {
                 // colour hasnt been selected
-                if (value_shouldPlayWrongAudioSFX())
+                if (value_shoulPlayWrongAudioSFX_paintpotNotSelected())
                 {
                     playSfxAudio("wrong", false);
                 }
@@ -322,7 +360,7 @@ public class OC_Generic_ColourObjects extends OC_Generic_Event
                 if (objectColour != -1 && !value_canReplaceColours())
                 {
                     // cannot replace the existing colour
-                    if (value_shouldPlayWrongAudioSFX())
+                    if (value_shouldPlayWrongAudioSFX_replacingObjectColour())
                     {
                         playSfxAudio("wrong", false);
                     }
@@ -338,29 +376,49 @@ public class OC_Generic_ColourObjects extends OC_Generic_Event
                 }
                 else
                 {
-                    action_playColourObjectSoundEffect(false);
-                    action_colourObjectWithSelectedColour(object);
-                    //
-                    if (action_getMatchingColouredObjectCount(selectedColour) == correctQuantity)
+                    if (value_mustColourObjectCorrectly() && ! action_isColourCorrectForObject(object))
                     {
-                        waitForSecs(0.3);
-                        //
-                        gotItRightBigTick(true);
-                        waitForSecs(0.3);
-                        //
-                        playSceneAudio("CORRECT", true);
-                        if (audioSceneExists("FINAL"))
+                        // wrong colour for the object
+                        if (value_shouldPlayWrongAudio_wrongColourForObject())
                         {
-                            waitForSecs(0.3);
-                            playSceneAudio("FINAL", true);
+                            playSfxAudio("wrong", false);
                         }
-                        waitForSecs(0.3);
-                        //
-                        nextScene();
+                        OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
+                        {
+                            @Override
+                            public void run () throws Exception
+                            {
+                                playSceneAudio("INCORRECT", false);
+                            }
+                        });
+                        setStatus(STATUS_AWAITING_CLICK);
                     }
                     else
                     {
-                        setStatus(STATUS_AWAITING_CLICK);
+                        action_playColourObjectSoundEffect(false);
+                        action_colourObjectWithSelectedColour(object);
+                        //
+                        if (action_getMatchingColouredObjectCount(selectedColour) == correctQuantity)
+                        {
+                            waitForSecs(0.3);
+                            //
+                            gotItRightBigTick(true);
+                            waitForSecs(0.3);
+                            //
+                            playSceneAudio("CORRECT", true);
+                            if (audioSceneExists("FINAL"))
+                            {
+                                waitForSecs(0.3);
+                                playSceneAudio("FINAL", true);
+                            }
+                            waitForSecs(0.3);
+                            //
+                            nextScene();
+                        }
+                        else
+                        {
+                            setStatus(STATUS_AWAITING_CLICK);
+                        }
                     }
                 }
             }
