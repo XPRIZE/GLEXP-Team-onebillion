@@ -51,6 +51,23 @@ public class OC_Generic_ColourObjects extends OC_Generic_Event
         return true;
     }
 
+    public String value_colourObjectSFX()
+    {
+        return "colourObject";
+    }
+
+    public String value_selectPaintPotSFX()
+    {
+        return "selectColour";
+    }
+
+    public Boolean value_shouldPlayWrongAudioSFX()
+    {
+        return true;
+    }
+
+
+
     @Override
     public void action_prepareScene (String scene, Boolean redraw)
     {
@@ -58,7 +75,9 @@ public class OC_Generic_ColourObjects extends OC_Generic_Event
         //
         super.action_prepareScene(scene, redraw);
         //
-        if (coloursOfObjects == null || redraw)
+        Boolean resetColours = eventAttributes.get("resetColours") != null && eventAttributes.get("resetColours").equals("true");
+        //
+        if (coloursOfObjects == null || redraw || resetColours)
         {
             coloursOfObjects = new HashMap<String,Integer>();
         }
@@ -77,20 +96,28 @@ public class OC_Generic_ColourObjects extends OC_Generic_Event
                 control.setProperty("colour", -1);
             }
         }
-        int i = 0;
-        String colours[] = eventAttributes.get("colours").split(",");
-        for (OBControl control : sortedFilteredControls(String.format("%s.*", value_paintPotPrefix())))
+        String coloursString = eventAttributes.get("colours");
+        if (coloursString != null)
         {
-            int paintpotColour = getColourForString(colours[i]);
-            control.setProperty("colour", paintpotColour);
-            OC_Generic.colourObject(control, paintpotColour);
-            i++;
+            int i = 0;
+            String colours[] = eventAttributes.get("colours").split(",");
+            for (OBControl control : sortedFilteredControls(String.format("%s.*", value_paintPotPrefix())))
+            {
+                int paintpotColour = getColourForString(colours[i]);
+                control.setProperty("colour", paintpotColour);
+                OC_Generic.colourObject(control, paintpotColour);
+                i++;
+            }
         }
         action_selectPaintPoint(null);
         correctColour = getColourForString(eventAttributes.get("correctColour"));
         //
         correctQuantity = -1;
         String correctNumberString = eventAttributes.get("correctNumber");
+        if (correctNumberString == null)
+        {
+            correctNumberString = eventAttributes.get("correct_quantity");
+        }
         if (correctNumberString != null)
         {
             correctQuantity = Integer.parseInt(correctNumberString);
@@ -161,6 +188,7 @@ public class OC_Generic_ColourObjects extends OC_Generic_Event
         return counter;
     }
 
+
     public void action_colourObjectWithSelectedColour(OBControl object)
     {
         lockScreen();
@@ -169,6 +197,38 @@ public class OC_Generic_ColourObjects extends OC_Generic_Event
         unlockScreen();
         //
         coloursOfObjects.put((String)object.attributes().get("id"), Integer.valueOf(selectedColour));
+    }
+
+
+    public void action_refreshSelectedColour()
+    {
+        // do nothing for this case
+    }
+
+    public void action_playColourObjectSoundEffect(boolean wait)
+    {
+        try
+        {
+            playSfxAudio(value_colourObjectSFX(), wait);
+        }
+        catch (Exception e)
+        {
+            MainActivity.log("OC_Generic_ColourObjects:action_playColourObjectSoundEffect:exception caught");
+            e.printStackTrace();
+        }
+    }
+
+    public void action_playSelectPaintpotSoundEffect(boolean wait)
+    {
+        try
+        {
+            playSfxAudio(value_selectPaintPotSFX(), wait);
+        }
+        catch (Exception e)
+        {
+            MainActivity.log("OC_Generic_ColourObjects:action_playColourObjectSoundEffect:exception caught");
+            e.printStackTrace();
+        }
     }
 
 
@@ -200,7 +260,10 @@ public class OC_Generic_ColourObjects extends OC_Generic_Event
             int paintpotColour = (int) paintpot.propertyValue("colour");
             if (value_mustPickCorrectColour() && paintpotColour != correctColour)
             {
-                playSfxAudio("wrong", false);
+                if (value_shouldPlayWrongAudioSFX())
+                {
+                    playSfxAudio("wrong", false);
+                }
                 OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
                 {
                     @Override
@@ -213,7 +276,7 @@ public class OC_Generic_ColourObjects extends OC_Generic_Event
             else
             {
                 lockScreen();
-                playSfxAudio("selectColour", false);
+                action_playSelectPaintpotSoundEffect(false);
                 action_selectPaintPoint((OBGroup) paintpot);
                 unlockScreen();
             }
@@ -222,6 +285,7 @@ public class OC_Generic_ColourObjects extends OC_Generic_Event
         catch (Exception e)
         {
             MainActivity.log("OC_CountingTo3_S2:checkObject:exception caught");
+            e.printStackTrace();
             setStatus(STATUS_AWAITING_CLICK);
         }
     }
@@ -233,10 +297,15 @@ public class OC_Generic_ColourObjects extends OC_Generic_Event
         setStatus(STATUS_CHECKING);
         try
         {
+            action_refreshSelectedColour();
+            //
             if (selectedColour == -1)
             {
                 // colour hasnt been selected
-                playSfxAudio("wrong", false);
+                if (value_shouldPlayWrongAudioSFX())
+                {
+                    playSfxAudio("wrong", false);
+                }
                 OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
                 {
                     @Override
@@ -253,7 +322,10 @@ public class OC_Generic_ColourObjects extends OC_Generic_Event
                 if (objectColour != -1 && !value_canReplaceColours())
                 {
                     // cannot replace the existing colour
-                    playSfxAudio("wrong", false);
+                    if (value_shouldPlayWrongAudioSFX())
+                    {
+                        playSfxAudio("wrong", false);
+                    }
                     OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
                     {
                         @Override
@@ -266,7 +338,7 @@ public class OC_Generic_ColourObjects extends OC_Generic_Event
                 }
                 else
                 {
-                    playSfxAudio("colourObject", false);
+                    action_playColourObjectSoundEffect(false);
                     action_colourObjectWithSelectedColour(object);
                     //
                     if (action_getMatchingColouredObjectCount(selectedColour) == correctQuantity)
@@ -296,6 +368,7 @@ public class OC_Generic_ColourObjects extends OC_Generic_Event
         catch (Exception e)
         {
             MainActivity.log("OC_Generic_ColourObjects:checkObject:exception caught");
+            e.printStackTrace();
             setStatus(STATUS_AWAITING_CLICK);
         }
     }

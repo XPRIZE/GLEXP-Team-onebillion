@@ -55,15 +55,15 @@ public class OC_CountingTo3_S2 extends OC_Generic_ColourObjects
         //
         action_playNextDemoSentence(false); // Now let’s colour some stars. Like this.
         OBGroup paintpot = (OBGroup)objectDict.get("paintpot_1");
-        movePointerToPoint(paintpot.position(), -10, 0.6f, true);
+        movePointerToPoint(paintpot.position(), -10, 1.2f, true);
         waitAudio();
         //
-        playSfxAudio("selectColour", false);
+        action_playSelectPaintpotSoundEffect(false);
         action_selectPaintPoint(paintpot);
         //
         OBControl object = objectDict.get("obj_3");
         movePointerToPoint(object.position(), -10, 0.6f, true);
-        playSfxAudio("colourObject", false);
+        action_playColourObjectSoundEffect(false);
         action_colourObjectWithSelectedColour(object);
         waitForSecs(0.3);
         //
