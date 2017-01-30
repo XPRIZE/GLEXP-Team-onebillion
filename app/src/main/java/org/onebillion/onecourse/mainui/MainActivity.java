@@ -1,6 +1,7 @@
 package org.onebillion.onecourse.mainui;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.admin.DevicePolicyManager;
@@ -52,6 +53,8 @@ import org.onebillion.onecourse.utils.OBUser;
 import org.onebillion.onecourse.utils.OBXMLManager;
 import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OBUtils;
+
+import static android.R.attr.targetSdkVersion;
 
 /**
  * MainActivity
@@ -129,7 +132,9 @@ public class MainActivity extends Activity
             CONFIG_BACKUP_URL = "backupURL",
             CONFIG_BACKUP_INTERVAL = "backupInterval",
             CONFIG_DISALLOW_HOURS = "disallowHours",
-            CONFIG_BUNDLED_OBB_FILENAME = "bundledOBBFilename";
+            CONFIG_BUNDLED_OBB_FILENAME = "bundledOBBFilename",
+            CONFIG_CHECK_FOR_DISABLED_LOCATION_SERVICES = "checkForDisabledLocationServices",
+            CONFIG_CHECK_FOR_DISABLED_SCANNING = "checkForDisabledScanning";
     public static String TAG = "onecourse";
     //
     public static OBSystemsManager systemsManager = new OBSystemsManager();
@@ -356,25 +361,34 @@ public class MainActivity extends Activity
                     return;
                 }
                 //
-                LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-                boolean gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-                boolean network_enabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-                if (gps_enabled || network_enabled)
+                String checkForDisabledLocationServices = mainActivity.configStringForKey(CONFIG_CHECK_FOR_DISABLED_LOCATION_SERVICES);
+                if (checkForDisabledLocationServices != null && checkForDisabledLocationServices.compareTo("true") == 0)
                 {
-                    Toast.makeText(MainActivity.mainActivity, "Please disable the location services before going back.", Toast.LENGTH_LONG).show();
-                    Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    startActivityForResult(intent, REQUEST_FIRST_SETUP_WIFI_BT_SCANNING);
-                    return;
+                    LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+                    boolean gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+                    boolean network_enabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+                    if (gps_enabled || network_enabled)
+                    {
+                        Toast.makeText(MainActivity.mainActivity, "Please disable the location services before going back.", Toast.LENGTH_LONG).show();
+                        Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                        startActivityForResult(intent, REQUEST_FIRST_SETUP_WIFI_BT_SCANNING);
+                        return;
+                    }
                 }
-                boolean scanningDisabled = OBSystemsManager.sharedManager.connectionManager.isScanningDisabled();
-                if (!scanningDisabled)
+                String checkForDisabledScanning = mainActivity.configStringForKey(CONFIG_CHECK_FOR_DISABLED_SCANNING);
+                if (checkForDisabledScanning != null && checkForDisabledScanning.compareTo("true") == 0)
                 {
-                    Toast.makeText(MainActivity.mainActivity, "Please disable all Wifi and Bluetooth scanning before going back.", Toast.LENGTH_LONG).show();
-                    Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                    startActivityForResult(intent, REQUEST_FIRST_SETUP_WIFI_BT_SCANNING);
-                    return;
+                    boolean scanningDisabled = OBSystemsManager.sharedManager.connectionManager.isScanningDisabled();
+                    //
+                    if (!scanningDisabled)
+                    {
+                        Toast.makeText(MainActivity.mainActivity, "Please disable all Wifi and Bluetooth scanning before going back.", Toast.LENGTH_LONG).show();
+                        Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                        startActivityForResult(intent, REQUEST_FIRST_SETUP_WIFI_BT_SCANNING);
+                        return;
+                    }
                 }
                 //
                 boolean writeSettingsPermission = OBSystemsManager.sharedManager.hasWriteSettingsPermission();
@@ -907,8 +921,8 @@ public class MainActivity extends Activity
 
     public boolean isStoragePermissionGranted ()
     {
-        Boolean writePermission = checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-        Boolean readPermission = checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        Boolean writePermission = selfPermissionGranted(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        Boolean readPermission = selfPermissionGranted(android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
         //
         Boolean result = writePermission && readPermission;
         if (!result)
@@ -920,7 +934,7 @@ public class MainActivity extends Activity
 
     public boolean isMicrophonePermissionGranted ()
     {
-        Boolean micPermission = checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
+        Boolean micPermission = selfPermissionGranted(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
         //
         if (!micPermission)
             ActivityCompat.requestPermissions(this, PERMISSIONS_MICROPHONE, REQUEST_MICROPHONE);
@@ -930,7 +944,7 @@ public class MainActivity extends Activity
 
     public boolean isCameraPermissionGranted ()
     {
-        Boolean micPermission = checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+        Boolean micPermission = selfPermissionGranted(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
         //
         if (!micPermission)
             ActivityCompat.requestPermissions(this, PERMISSIONS_CAMERA, REQUEST_CAMERA);
@@ -962,7 +976,7 @@ public class MainActivity extends Activity
         Boolean allPermissionsOK = true;
         for (String permission : PERMISSION_ALL)
         {
-            boolean permissionGranted = checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED;
+            boolean permissionGranted = selfPermissionGranted(permission) == PackageManager.PERMISSION_GRANTED;
             MainActivity.log("MainActivity.Permission " + (permissionGranted ? "" : "NOT ") + "granted: " + permission);
             allPermissionsOK = allPermissionsOK && permissionGranted;
         }
@@ -1007,6 +1021,26 @@ public class MainActivity extends Activity
             if (!OBSystemsManager.sharedManager.settingsContentObserver.allowsLowerVolume()) return true;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+
+
+    public int selfPermissionGranted(String permission)
+    {
+        // For Android < Android M, self permissions are always granted.
+        int result = PackageManager.PERMISSION_GRANTED;;
+        //
+        if (isSDKCompatible())
+        {
+            return ActivityCompat.checkSelfPermission(MainActivity.mainActivity.getApplicationContext(), permission);
+        }
+        return result;
+    }
+
+
+    public static boolean isSDKCompatible()
+    {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && targetSdkVersion >= Build.VERSION_CODES.M;
     }
 
 }

@@ -247,9 +247,9 @@ public class OC_Count100_S3 extends OC_SectionController
             waitSFX();
             hiliteButton("button2",false);
             if(currentNum == 0){
-                playAudioQueuedScene("INCORRECT",300,false);
+                playAudioQueuedScene("INCORRECT",0.3f,false);
             }else{
-                playAudioQueuedScene("INCORRECT3",300,false);
+                playAudioQueuedScene("INCORRECT3",0.3f,false);
             }
         }
         checkButtonFin();
@@ -270,7 +270,7 @@ public class OC_Count100_S3 extends OC_SectionController
             gotItWrongWithSfx();
             waitSFX();
             hiliteButton("button1",false);
-            playAudioQueuedScene("INCORRECT2",300,false);
+            playAudioQueuedScene("INCORRECT2",0.3f,false);
         }
         checkButtonFin();
     }
@@ -282,7 +282,7 @@ public class OC_Count100_S3 extends OC_SectionController
             waitAudio();
             displayTick();
             resetButtons();
-            playAudioQueuedScene("FINAL3",300,true);
+            playAudioQueuedScene("FINAL3",0.3f,true);
             waitForSecs(0.3f);
             animateGrid();
 
@@ -315,7 +315,7 @@ public class OC_Count100_S3 extends OC_SectionController
             waitForSecs(0.2f);
 
             gotItRightBigTick(true);
-            playAudioQueuedScene("FINAL",300,true);
+            playAudioQueuedScene("FINAL",0.3f,true);
             waitForSecs(0.3f);
             animateGrid();
             nextScene();
@@ -328,7 +328,7 @@ public class OC_Count100_S3 extends OC_SectionController
             waitSFX();
             target.setColour(numColour);
             if(time == statusTime)
-                playAudioQueuedScene("INCORRECT",300,false);
+                playAudioQueuedScene("INCORRECT",0.3f,false);
 
 
         }

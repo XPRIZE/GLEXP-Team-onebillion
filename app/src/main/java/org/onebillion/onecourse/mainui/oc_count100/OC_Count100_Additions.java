@@ -157,10 +157,13 @@ public class OC_Count100_Additions
         if(!groupOnlyBoxes)
             boxes.addAll(numbers);
 
-        OBGroup groupBoxes = new OBGroup(boxes);
-        controller.attachControl(groupBoxes);
-        controller.objectDict.put("grid_box", groupBoxes);
-        groupBoxes.setZPosition(1);
+        if(!single)
+        {
+            OBGroup groupBoxes = new OBGroup(boxes);
+            controller.attachControl(groupBoxes);
+            controller.objectDict.put("grid_box", groupBoxes);
+            groupBoxes.setZPosition(1);
+        }
 
 
 

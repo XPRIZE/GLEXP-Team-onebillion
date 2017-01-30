@@ -157,11 +157,26 @@ public class OC_Generic
         {
             OBGroup group = (OBGroup) control;
             //
-            if (group.objectDict.get("col.*") == null)
+            ArrayList<OBControl> colourableLayers = new ArrayList();
+            for (String key : group.objectDict.keySet())
+            {
+                if (key.startsWith("col"))
+                {
+                    colourableLayers.add(group.objectDict.get(key));
+                }
+            }
+            if (colourableLayers.isEmpty())
             {
                 for (OBControl member : group.members)
                 {
                     colourObject(member, colour);
+                }
+            }
+            else
+            {
+                for (OBControl layer : colourableLayers)
+                {
+                    colourObject(layer, colour);
                 }
             }
         }
