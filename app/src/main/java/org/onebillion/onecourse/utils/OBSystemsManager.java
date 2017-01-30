@@ -135,6 +135,11 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 
     public boolean hasWriteSettingsPermission()
     {
+        if (!MainActivity.isSDKCompatible())
+        {
+            MainActivity.log("OBSystemsManager:hasWriteSettingsPermission: incompatible SDK version. exiting function");
+            return true;
+        }
         return Settings.System.canWrite(MainActivity.mainActivity);
     }
 
@@ -288,6 +293,12 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 
     public void printMemoryStatus (String message)
     {
+        if (!MainActivity.isSDKCompatible())
+        {
+            MainActivity.log("OBSystemsManager:printMemoryStatus: incompatible SDK version. exiting function");
+            return;
+        }
+        //
         ActivityManager activityManager = (ActivityManager) MainActivity.mainActivity.getSystemService(MainActivity.ACTIVITY_SERVICE);
         int id = android.os.Process.myPid();
         int[] list = {id};
@@ -777,6 +788,11 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 
     public void disableAdministratorPrivileges ()
     {
+        if (!MainActivity.isSDKCompatible())
+        {
+            MainActivity.log("OBSystemsManager:disableAdministratorPrivileges: incompatible SDK version. exiting function");
+            return;
+        }
         MainActivity.log("OBSystemsManager.disableAdministratorPrivileges");
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
         ComponentName adminReceiver = OBDeviceAdminReceiver.getComponentName(MainActivity.mainActivity);
@@ -865,6 +881,11 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 
     public void toggleKeyguardAndStatusBar (boolean status)
     {
+        if (!MainActivity.isSDKCompatible())
+        {
+            MainActivity.log("OBSystemsManager:toggleKeyguardAndStatusBar: incompatible SDK version. exiting function");
+            return;
+        }
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
         ComponentName adminReceiver = OBDeviceAdminReceiver.getComponentName(MainActivity.mainActivity);
         //

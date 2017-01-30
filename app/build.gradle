@@ -12,7 +12,7 @@ android {
     buildToolsVersion '23.0.3'
     defaultConfig {
         applicationId 'org.onebillion.onecourse'
-        minSdkVersion 23
+        minSdkVersion 22
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -39,7 +39,8 @@ android {
     dependencies {
         compile fileTree(dir: 'libs', include: ['*.jar'])
         testCompile 'junit:junit:4.12'
-        compile 'com.android.support:appcompat-v7:23.0.0'
+        compile 'com.android.support:appcompat-v7:23.1.1'
+//        compile 'com.android.support:appcompat-v7:22.0.0'
     }
     dexOptions {
 //        javaMaxHeapSize "8192M"
@@ -48,7 +49,7 @@ android {
     sourceSets { main { assets.srcDirs = ['src/main/assets', 'src/main/assets_obb'] } }
     productFlavors {
         pedro {
-            minSdkVersion 23
+            minSdkVersion 22
             applicationId 'org.onebillion.onecourse.pedro'
             targetSdkVersion 23
             versionCode 1
@@ -60,7 +61,7 @@ android {
             ]
         }
         judgeMenu {
-            minSdkVersion 23
+            minSdkVersion 22
             applicationId 'org.onebillion.onecourse.judges'
             targetSdkVersion 23
             versionCode 1

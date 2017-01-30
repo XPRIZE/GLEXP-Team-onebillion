@@ -19,6 +19,8 @@ public class OBBatteryReceiver extends BroadcastReceiver
     @Override
     public void onReceive (Context context, Intent intent)
     {
+        if (MainActivity.mainActivity == null) return;
+        //
         int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
 //        isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
         isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING;
@@ -56,13 +58,17 @@ public class OBBatteryReceiver extends BroadcastReceiver
 
     public static float getBatteryLevel()
     {
-        Intent batteryIntent = MainActivity.mainActivity.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-        int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-        int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-        if (level == -1 || scale == -1)
+        if (MainActivity.mainActivity != null)
         {
-            return 50.0f;
+            Intent batteryIntent = MainActivity.mainActivity.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+            int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+            if (level == -1 || scale == -1)
+            {
+                return 50.0f;
+            }
+            return ((float) level / (float) scale) * 100.0f;
         }
-        return ((float) level / (float) scale) * 100.0f;
+        return 0;
     }
 }
