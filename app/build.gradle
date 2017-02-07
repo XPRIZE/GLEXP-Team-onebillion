@@ -44,7 +44,8 @@ android {
     }
     dexOptions {
 //        javaMaxHeapSize "8192M"
-        javaMaxHeapSize "4096M"
+//        javaMaxHeapSize "4096M"
+        javaMaxHeapSize "512M"
     }
     sourceSets { main { assets.srcDirs = ['src/main/assets', 'src/main/assets_obb'] } }
     productFlavors {
@@ -85,7 +86,7 @@ android {
 //            ]
 //        }
         childMenu {
-            minSdkVersion 23
+            minSdkVersion 22
             applicationId 'org.onebillion.onecourse.child'
             targetSdkVersion 23
             versionCode 1
@@ -97,7 +98,7 @@ android {
             ]
         }
         childMenu_enGB_ {
-            minSdkVersion 23
+            minSdkVersion 22
             applicationId 'org.onebillion.onecourse.child.en_GB'
             targetSdkVersion 23
             versionCode 1
