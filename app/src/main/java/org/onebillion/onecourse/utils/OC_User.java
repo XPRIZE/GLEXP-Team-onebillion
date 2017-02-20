@@ -57,6 +57,7 @@ public class OC_User extends MlObject
             OC_User user = new OC_User();
             user.name = name;
             user.userid = (int)rowId;
+            user.masterlistid = 1;
             return user;
         }
         else

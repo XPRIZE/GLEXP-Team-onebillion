@@ -181,7 +181,7 @@ public class OC_ChildMenu extends OC_Menu implements OC_FatReceiver
             public void run() throws Exception
             {
 
-                if (bigIcon == null && (prepareNextEvent() || (lastUnit.awardStar == 10)))
+                if (bigIcon == null && (prepareNextEvent() || (lastUnit.level == 10 && lastUnit.awardStar == 10)))
                 {
                     refreshCurrentLabel();
                     lastCommand = -1;
