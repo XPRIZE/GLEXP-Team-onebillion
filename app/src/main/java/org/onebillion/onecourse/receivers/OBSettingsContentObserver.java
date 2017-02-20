@@ -29,6 +29,8 @@ public class OBSettingsContentObserver extends ContentObserver
 
     public boolean allowsLowerVolume()
     {
+        if (MainActivity.mainActivity == null) return false;
+        //
         String minVolume = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MIN_AUDIO_VOLUME);
         if (minVolume != null)
         {
@@ -45,6 +47,8 @@ public class OBSettingsContentObserver extends ContentObserver
     @Override
     public void onChange(boolean selfChange)
     {
+        if (MainActivity.mainActivity == null) return;
+        //
         String minVolume = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MIN_AUDIO_VOLUME);
         if (minVolume != null)
         {
@@ -66,6 +70,8 @@ public class OBSettingsContentObserver extends ContentObserver
 
     public String printVolumeStatus()
     {
+        if (MainActivity.mainActivity == null) return "";
+        //
         AudioManager am = (AudioManager) MainActivity.mainActivity.getSystemService(Context.AUDIO_SERVICE);
         int maxVolume = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         currentVolume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
@@ -76,6 +82,8 @@ public class OBSettingsContentObserver extends ContentObserver
 
     public static void setDefaultAudioVolume()
     {
+        if (MainActivity.mainActivity == null) return;
+        //
         String volume = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_DEFAULT_AUDIO_VOLUME);
         if (volume != null)
         {
@@ -89,6 +97,8 @@ public class OBSettingsContentObserver extends ContentObserver
 
     public void onResume()
     {
+        if (MainActivity.mainActivity == null) return;
+        //
         MainActivity.mainActivity.getContentResolver().registerContentObserver(android.provider.Settings.System.CONTENT_URI, true, this);
     }
 
@@ -96,6 +106,8 @@ public class OBSettingsContentObserver extends ContentObserver
 
     public void onPause()
     {
+        if (MainActivity.mainActivity == null) return;
+        //
         MainActivity.mainActivity.getContentResolver().unregisterContentObserver(this);
     }
 }

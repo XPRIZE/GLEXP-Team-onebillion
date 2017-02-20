@@ -55,7 +55,9 @@ public class OBVideoPlayer extends OBControl
     long fromTime;
     private int textureId;
     private Size previewSize;
-    private MediaPlayer player;
+    //
+    public MediaPlayer player;
+    //
     private int backgroundFillColour;
     boolean mirrored;
     public boolean frameIsAvailable = false;
@@ -94,6 +96,7 @@ public class OBVideoPlayer extends OBControl
         }
         return false;
     }
+
 
     public void setBackgroundFillColour(int colour)
     {
@@ -481,5 +484,29 @@ public class OBVideoPlayer extends OBControl
         egl.eglTerminate(display);
     }
 
+
+    public int currentPosition()
+    {
+        try
+        {
+            return player.getCurrentPosition();
+        }
+        catch (Exception e)
+        {
+        }
+        return -1;
+    }
+
+    public int duration()
+    {
+        try
+        {
+            return player.getDuration();
+        }
+        catch (Exception e)
+        {
+            return -1;
+        }
+    }
 }
 

@@ -5,6 +5,7 @@ import android.graphics.PointF;
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
+import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
@@ -152,6 +153,8 @@ public class OC_Generic_Event extends OC_SectionController
     @Override
     public void setSceneXX (String scene)
     {
+        MainActivity.log("OC_Generic_Event.setSceneXX");
+        //
         ArrayList<OBControl> oldControls = new ArrayList<>(objectDict.values());
         //
         loadEvent(scene);

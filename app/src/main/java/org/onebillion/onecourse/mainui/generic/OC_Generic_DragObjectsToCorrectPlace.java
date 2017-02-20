@@ -137,7 +137,7 @@ public class OC_Generic_DragObjectsToCorrectPlace extends OC_Generic_Event
     public OBControl findTarget (PointF pt)
     {
         targets = filterControls(String.format("%s.*", action_getObjectPrefix()));
-        return super.findTarget(pt);
+        return finger(-1, 2, targets, pt, true);
     }
 
 
