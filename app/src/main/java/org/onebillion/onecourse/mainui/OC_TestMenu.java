@@ -273,7 +273,7 @@ public class OC_TestMenu extends OBSectionController
 
     public Cursor getCursorForList(DBSQL db)
     {
-        return db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("key", "unitid as _id", "level", "awardStar", "startAudio"),null,"unitid ASC");
+        return db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("key", "unitIndex as _id", "level", "awardStar", "startAudio"),null,"unitid ASC");
     }
 
     public void selectCurrentUnit()

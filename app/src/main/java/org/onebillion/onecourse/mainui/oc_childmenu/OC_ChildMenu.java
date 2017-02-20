@@ -476,7 +476,7 @@ public class OC_ChildMenu extends OC_Menu implements OC_FatReceiver
             {
                 currentSection = "unit1";
             }
-        } else if (unit.unitid == 0)
+        } else if (unit.unitIndex == 0)
         {
             currentSection = "unit2";
         } else if ((command == OC_FatController.OFC_SUCCEEDED || command == OC_FatController.OFC_FINISHED_LOW_SCORE) && fatController.shouldAwardStar(unit))
