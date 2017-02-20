@@ -101,7 +101,7 @@ public class OC_LoopMenu extends OC_Menu implements OC_FatReceiver
         currentLevel = 1;
         fatController = (OC_FatController)MainActivity.mainActivity.fatController;
         fatController.menu = this ;
-        startIndex = fatController.getLastUnitId()-1;
+        startIndex = fatController.getLastUnitIndex()-1;
 
     }
 
@@ -151,7 +151,7 @@ public class OC_LoopMenu extends OC_Menu implements OC_FatReceiver
 
     public boolean isFirstEvent()
     {
-        return fatController.getLastUnitId() == -1;
+        return fatController.getLastUnitIndex() == -1;
     }
 
 

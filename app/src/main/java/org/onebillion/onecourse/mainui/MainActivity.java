@@ -114,6 +114,7 @@ public class MainActivity extends Activity
             CONFIG_PIN_APPLICATION = "pinApplication",
             CONFIG_HIDE_NAVIGATION_BAR = "hideNavigationBar",
             CONFIG_ALLOWS_TIMEOUT = "allowsTimeout",
+            CONFIG_SHOW_USER_NAME = "showUserName",
             CONFIG_USE_ADMINISTRATOR_SERVICES = "enableAdministratorServices",
             CONFIG_REQUEST_DEVICE_OWNER = "requestDeviceOwner",
             CONFIG_MENU_CLASS = "menuclass",
@@ -607,9 +608,15 @@ public class MainActivity extends Activity
     }
 
     public float configFloatForKey (String k)
-    {
-        Float f = (Float) config.get(k);
+    {Float f = (Float) config.get(k);
+
         return f.floatValue();
+    }
+
+    public boolean configBooleanForKey (String k)
+    {
+        String boolString = (String) config.get(k);
+        return  (boolString != null && boolString.equals("true"));
     }
 
     public List<String> audioSearchPath (String appDir, String genDir)

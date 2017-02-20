@@ -155,21 +155,48 @@ public class MlObject
         ContentValues contentValues = new ContentValues();
 
         if(stringFields != null)
-            for(String fieldName : stringFields)
-                contentValues.put(fieldName, node.attributeStringValue(dbFieldtoXMLfield(fieldName,dbToXML)));
+        {
+            for (String fieldName : stringFields)
+            {
+                String convertedName = dbFieldtoXMLfield(fieldName, dbToXML);
+                if (node.attributeStringValue(convertedName) != null)
+                    contentValues.put(fieldName, node.attributeStringValue(convertedName));
+            }
+        }
 
         if(floatFields != null)
-            for(String fieldName : floatFields)
-                contentValues.put(fieldName, node.attributeFloatValue(dbFieldtoXMLfield(fieldName,dbToXML)));
+        {
+            for (String fieldName : floatFields)
+            {
+                String convertedName = dbFieldtoXMLfield(fieldName, dbToXML);
+                if (node.attributeStringValue(convertedName) != null)
+                    contentValues.put(fieldName, node.attributeFloatValue(convertedName));
+
+            }
+
+        }
 
         if(intFields != null)
-             for(String fieldName : intFields)
-                contentValues.put(fieldName, node.attributeIntValue(dbFieldtoXMLfield(fieldName,dbToXML)));
-
+        {
+            for (String fieldName : intFields)
+            {
+                String convertedName = dbFieldtoXMLfield(fieldName, dbToXML);
+                if (node.attributeStringValue(convertedName) != null)
+                    contentValues.put(fieldName, node.attributeIntValue(convertedName));
+            }
+        }
 
         if(longFields != null)
-            for(String fieldName : longFields)
-               contentValues.put(fieldName, node.attributeIntValue(dbFieldtoXMLfield(fieldName,dbToXML)));
+        {
+            for (String fieldName : longFields)
+            {
+                String convertedName = dbFieldtoXMLfield(fieldName, dbToXML);
+                if (node.attributeStringValue(convertedName) != null)
+                    contentValues.put(fieldName, node.attributeIntValue(convertedName));
+
+            }
+
+        }
 
         return contentValues;
     }

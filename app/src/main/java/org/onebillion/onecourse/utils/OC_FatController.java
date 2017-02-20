@@ -32,7 +32,7 @@ import static org.onebillion.onecourse.mainui.OBViewController.MainViewControlle
 public class OC_FatController extends OBFatController
 {
 
-    private long firstUnstartedIndex;
+    private int firstUnstartedIndex;
     public int scoreCorrect,scoreWrong;
     public float finalScore;
     public OC_FatReceiver menu;
@@ -50,9 +50,11 @@ public class OC_FatController extends OBFatController
     private int unitAttemptsCount, disallowStartHour,disallowEndHour;
 
     private MlUnitInstance currentUnitInstance;
-    private OBUser currentUser;
+    private OC_User currentUser;
     private int currentSessionId;
     private long currentSessionStartTime, currentSessionEndTime;
+    private boolean  allowsTimeOuts, showUserName;
+
 
     private Handler timeoutHandler;
     private Runnable timeoutRunnable;
@@ -107,7 +109,7 @@ public class OC_FatController extends OBFatController
                     int startAudio = 0;
                     int nextAudio = OB_Maths.randomInt(3,5);
                     db.doDeleteOnTable(DBSQL.TABLE_UNITS, null);
-                    int unitid = 0;
+                    int unitIndex = 0;
                     int nextStar = 0;
                     for (OBXMLNode levelNode : rootNode.childrenOfType("level"))
                     {
@@ -124,15 +126,15 @@ public class OC_FatController extends OBFatController
                             {
                                 OBXMLNode nextNode = nodes.get(i+2);
                                 if(nextNode.attributeIntValue("awardStar") > 0)
-                                    nextStar = unitid+2;
+                                    nextStar = unitIndex+2;
 
                             }
 
                             int currentStartAudio = -1;
-                            if((unitid >= nextStar-2) && (unitid <= nextStar+2))
+                            if((unitIndex >= nextStar-2) && (unitIndex <= nextStar+2))
                                 currentStartAudio = -2;
 
-                            if(unitid == nextAudio)
+                            if(unitIndex == nextAudio)
                             {
                                 if(currentStartAudio == -2)
                                 {
@@ -146,8 +148,8 @@ public class OC_FatController extends OBFatController
                                 }
                             }
 
-                            MlUnit.insertUnitFromXMLNodeintoDB(db, node, unitid,level,currentStartAudio);
-                            unitid++;
+                            MlUnit.insertUnitFromXMLNodeintoDB(db, node, 1, unitIndex,level,currentStartAudio);
+                            unitIndex++;
                         }
                     }
                     OBPreferenceManager.setPreference(OBPreferenceManager.PREFERENCE_ML_TOKEN,masterListToken, db);
@@ -173,29 +175,45 @@ public class OC_FatController extends OBFatController
 
     }
 
-
     public void loadUserDB(DBSQL db)
     {
-        OBUser u = OBUser.lastUserFromDB(db);
+        OC_User u = lastUserActiveFromDB(db);
         if (u == null)
         {
-            u = OBUser.initAndSaveUserInDB(db, "Student");
-            currentUser = u;
-            currentSessionId = -1;
-            prepareNewSessionInDB(db, u.userid);
-        } else
-        {
-            currentUser = u;
-            loadLastSessionFromDB(db, u.userid);
-            if(currentSessionId == -1)
-            {
-                prepareNewSessionInDB(db, u.userid);
-            }
-            else
-            {
-                loadLastUnitIndexFromDB(db);
-            }
+            u = OC_User.initAndSaveUserInDB(db, "Student");
         }
+        setCurrentUserDB(db,u);
+        checkAndPrepareNewSession();
+
+    }
+
+    public static OC_User lastUserActiveFromDB(DBSQL db)
+    {
+        Cursor cursor = db.prepareRawQuery(String.format("SELECT U.userid AS userid FROM %s AS U LEFT JOIN %s AS S ON S.userid = U.userid ORDER BY S.startTime DESC LIMIT 1",
+                DBSQL.TABLE_USERS,DBSQL.TABLE_SESSIONS), null);
+        int userId = -1;
+        int columnIndex = cursor.getColumnIndex("userid");
+        if(cursor.moveToFirst() && !cursor.isNull(columnIndex))
+        {
+            userId = cursor.getInt(columnIndex);
+        }
+        cursor.close();
+        OC_User user = null;
+
+        if(userId > -1)
+            user = OC_User.UserFromDBForID(db, userId);
+
+        return user;
+
+    }
+
+    public void setCurrentUserDB(DBSQL db, OC_User user)
+    {
+        loadLastSessionFromDB(db, user.userid);
+        currentUser = user;
+        if(currentSessionId == -1)
+            prepareNewSessionInDB(db, user.userid);
+
     }
 
     public void loadUser()
@@ -206,7 +224,6 @@ public class OC_FatController extends OBFatController
 
             db = new DBSQL(true);
             loadUserDB(db);
-
         }
         catch (Exception e)
         {
@@ -223,11 +240,11 @@ public class OC_FatController extends OBFatController
 
     public void loadLastUnitIndexFromDB(DBSQL db)
     {
-        int lastUnitID = currentUser.lastUnitIDFromDB(db);
-        if (!unitCompletedByUser(db,lastUnitID))
-            lastUnitID--;
+        int lastUnitIndex = currentUser.lastUnitIndexFromDB(db, currentUser.masterlistid);
+        if (!unitCompletedByUser(db,currentUser.userid, currentUser.masterlistid, lastUnitIndex))
+            lastUnitIndex--;
 
-        firstUnstartedIndex = lastUnitID + 1;
+        firstUnstartedIndex = lastUnitIndex + 1;
     }
 
 
@@ -247,12 +264,16 @@ public class OC_FatController extends OBFatController
             String[] disallowArray = disallowHours.split(",");
             disallowStartHour = Integer.valueOf(disallowArray[0]);
             disallowEndHour = Integer.valueOf(disallowArray[1]);
+            allowsTimeOuts =  MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_ALLOWS_TIMEOUT);
+            showUserName =  MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_SHOW_USER_NAME);
         } catch (Exception e)
         {
             sessionTimeout =0;
             unitAttemptsCount = 3;
             disallowStartHour = 0;
             disallowEndHour = 0;
+            allowsTimeOuts = true;
+            showUserName = false;
         }
 
         initDB();
@@ -279,6 +300,24 @@ public class OC_FatController extends OBFatController
             }
         }
     }
+
+    public boolean showUserName()
+    {
+        return showUserName;
+    }
+
+    public String currentUserName()
+    {
+        if(currentUser != null)
+        {
+            return currentUser.name;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
 
     public void prepareAlarm()
     {
@@ -458,7 +497,7 @@ public class OC_FatController extends OBFatController
             {
                 signalSessionLocked();
             }
-            else if(unitCompletedByUser(db, unitInstance.mlUnit.unitid))
+            else if(unitCompletedByCurrentUser(db, unitInstance.mlUnit))
             {
                 signalSectionFailed();
             }
@@ -495,9 +534,9 @@ public class OC_FatController extends OBFatController
             if (tot > 0)
                 finalScore = scoreCorrect * 1.0f / tot;
 
-            currentUnitInstance.endtime = getCurrentTime();
+            currentUnitInstance.endTime = getCurrentTime();
             currentUnitInstance.score = finalScore;
-            currentUnitInstance.elapsedtime = (int)(currentUnitInstance.endtime - currentUnitInstance.starttime);
+            currentUnitInstance.elapsedTime = (int)(currentUnitInstance.endTime - currentUnitInstance.startTime);
             currentUnitInstance.updateDataInDB(db);
             checkCurrentSessionTimeout(db);
         }
@@ -523,9 +562,9 @@ public class OC_FatController extends OBFatController
             if (tot > 0)
                 finalScore = scoreCorrect * 1.0f / tot;
 
-            currentUnitInstance.endtime = getCurrentTime();
+            currentUnitInstance.endTime = getCurrentTime();
             currentUnitInstance.score = finalScore;
-            currentUnitInstance.elapsedtime = 30;
+            currentUnitInstance.elapsedTime = 30;
             currentUnitInstance.updateDataInDB(db);
             checkCurrentSessionTimeout(db);
         }
@@ -584,14 +623,14 @@ public class OC_FatController extends OBFatController
         List<MlUnit> arr = new ArrayList<>();
         for (int i = 0;i < count;i++)
         {
-            arr.add(MlUnit.mlUnitforUnitID(currentUnit().unitid + 1 + i));
+            arr.add(MlUnit.mlUnitforMasterlistID(currentUser.masterlistid,currentUnit().unitIndex + 1 + i));
         }
         return arr;
     }
 
     public MlUnit requestNextUnit()
     {
-        return MlUnit.mlUnitforUnitID(firstUnstartedIndex);
+        return MlUnit.mlUnitforMasterlistID(currentUser.masterlistid,firstUnstartedIndex);
     }
 
     private MlUnit currentUnit()
@@ -602,14 +641,14 @@ public class OC_FatController extends OBFatController
             return currentUnitInstance.mlUnit;
     }
 
-    public long getLastUnitId()
+    public int getLastUnitIndex()
     {
         return firstUnstartedIndex -1;
     }
 
-    public void setCurrentUnitId(long unitid)
+    public void setCurrentUnitIndex(int unitIndex)
     {
-        firstUnstartedIndex = unitid;
+        firstUnstartedIndex = unitIndex;
     }
 
     public Map<String,Object> getLastCommand()
@@ -619,7 +658,7 @@ public class OC_FatController extends OBFatController
         DBSQL db = new DBSQL(false);
         try
         {
-            unit = MlUnit.mlUnitforUnitIDFromDB(db,getLastUnitId());
+            unit = MlUnit.mlUnitforMasterlistIDFromDB(db,currentUser.masterlistid,getLastUnitIndex());
 
             if(currentSessionLocked())
                 code = OFC_SESSION_LOCKED;
@@ -647,7 +686,7 @@ public class OC_FatController extends OBFatController
     {
         if(unit.unitid >= firstUnstartedIndex)
         {
-            firstUnstartedIndex = unit.unitid+1;
+            firstUnstartedIndex = unit.unitIndex+1;
         }
         currentUnitInstance = MlUnitInstance.initWithMlUnit(unit,currentUser.userid,currentSessionId,getCurrentTime());
         initScores();
@@ -666,7 +705,7 @@ public class OC_FatController extends OBFatController
                 try
                 {
                     MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
-//                    if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OC_TestEvent","oc-childmenu",true,true,"test"))
+                    //if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OC_TestEvent","oc-childmenu",true,true,"test"))
                     if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
                         currentUnitInstance.sectionController = MainViewController().topController();
@@ -698,16 +737,15 @@ public class OC_FatController extends OBFatController
         sessionSegmentLastActive = systime;
     }
 
-    public long lastPlayedUnitIndexFromDB(DBSQL db)
+    public int lastPlayedUnitIndexFromDB(DBSQL db)
     {
-        return MlUnitInstance.lastPlayedUnitIndexForUserIDInDB(db, currentUser.userid);
+        return MlUnitInstance.lastPlayedUnitIndexForUserIDInDB(db, currentUser.userid, currentUser.masterlistid);
     }
 
     public void resetDatabase()
     {
         DBSQL.deleteDB();
         initDB();
-
     }
 
     public void refreshUnitsList()
@@ -738,10 +776,12 @@ public class OC_FatController extends OBFatController
         Map<String,String> whereMap  = new ArrayMap<>();
         whereMap.put("userid",String.valueOf(currentUser.userid));
         whereMap.put("sessionid",String.valueOf(currentSessionId));
-        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES, Collections.singletonList("SUM(elapsedtime) as elapsedtime"), whereMap);
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES, Collections.singletonList("SUM(elapsedTime) as elapsedTime"), whereMap);
         long elapsedTime = 0;
-        if(cursor.moveToFirst())
-            elapsedTime = cursor.getLong(cursor.getColumnIndex("elapsedtime"));
+
+        int columnIndex = cursor.getColumnIndex("elapsedTime");
+        if(cursor.moveToFirst()  && !cursor.isNull(columnIndex))
+            elapsedTime = cursor.getLong(columnIndex);
 
         cursor.close();
 
@@ -749,25 +789,32 @@ public class OC_FatController extends OBFatController
             finishCurrentSessionInDB(db);
     }
 
-    public int unitAttemtpsCountInDB(DBSQL db, int unitid)
+    public int unitAttemptsCountInDB(DBSQL db, int userid, int masterlistid, int unitIndex)
     {
-        Map<String,String> whereMap  = new ArrayMap<>();
-        whereMap.put("userid",String.valueOf(currentUser.userid));
-        whereMap.put("unitid",String.valueOf(unitid));
-        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES, Collections.singletonList("COUNT(*) as count"), whereMap);
+        Cursor cursor = db.prepareRawQuery(String.format("SELECT MAX(seqNo) as count FROM %s AS U JOIN %s AS UI ON UI.unitid = U.unitid WHERE UI.userid = ? AND U.masterlistid = ? AND U.unitIndex = ?",
+                DBSQL.TABLE_UNITS,  DBSQL.TABLE_UNIT_INSTANCES),
+                Arrays.asList(String.valueOf(userid),String.valueOf(masterlistid),String.valueOf(unitIndex)));
         int count = 0;
-        if(cursor.moveToFirst())
-            count = cursor.getInt(cursor.getColumnIndex("count"));
+
+        int columnIndex = cursor.getColumnIndex("count");
+        if(cursor.moveToFirst() && !cursor.isNull(columnIndex))
+            count = cursor.getInt(columnIndex);
 
         cursor.close();
 
         return count;
     }
 
-    public boolean unitCompletedByUser(DBSQL db, int unitid)
+    public  boolean unitCompletedByCurrentUser(DBSQL db, MlUnit unit)
     {
-        Cursor cursor = db.prepareRawQuery(String.format("SELECT unitid FROM %s WHERE userid = ? AND unitid = ? AND endtime > 0", DBSQL.TABLE_UNIT_INSTANCES),
-                Arrays.asList(String.valueOf(currentUser.userid),String.valueOf(unitid)));
+        return unitCompletedByUser(db,currentUser.userid, unit.masterlistid, unit.unitIndex);
+    }
+
+    public boolean unitCompletedByUser(DBSQL db, int userid, int masterlistid, int unitIndex)
+    {
+        Cursor cursor = db.prepareRawQuery(String.format("SELECT U.unitid FROM %s AS U JOIN %s AS UI ON UI.unitid = U.unitid WHERE UI.userid = ? AND U.masterlistid = ? AND U.unitIndex = ? AND UI.endTime > 0",
+                DBSQL.TABLE_UNITS,  DBSQL.TABLE_UNIT_INSTANCES),
+                Arrays.asList(String.valueOf(userid),String.valueOf(masterlistid),String.valueOf(unitIndex)));
 
         boolean rowExists = cursor.moveToFirst();
         cursor.close();
@@ -775,7 +822,7 @@ public class OC_FatController extends OBFatController
             return true;
 
 
-        if(unitAttemptsCount>0 && unitAttemptsCount <= unitAttemtpsCountInDB(db, unitid))
+        if(unitAttemptsCount>0 && (unitAttemptsCount-1) <= unitAttemptsCountInDB(db, userid, masterlistid, unitIndex))
             return true;
 
         return false;
@@ -798,15 +845,12 @@ public class OC_FatController extends OBFatController
         currentSessionEndTime = currentSessionStartTime = 0;
         try
         {
-            //Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_SESSIONS, Arrays.asList("sessionid", "starttime", "endtime"), whereMap);
-            Cursor cursor = db.prepareRawQuery("SELECT SE.sessionid as sessionid, starttime, endtime FROM "+DBSQL.TABLE_SESSIONS+" AS SE " +
-                    "JOIN (SELECT userid, MAX(sessionid) AS sessionid FROM "+DBSQL.TABLE_SESSIONS+" WHERE userid = ? GROUP BY userid ) " +
-                    "TAB ON TAB.userid = SE.userid AND TAB.sessionid = SE.sessionid"
+            Cursor cursor = db.prepareRawQuery(String.format("SELECT sessionid, startTime, endTime FROM %s WHERE userid = ? ORDER BY sessionid DESC LIMIT 1",DBSQL.TABLE_SESSIONS)
                     ,Collections.singletonList(String.valueOf(userid)));
             if (cursor.moveToFirst())
             {
-                currentSessionStartTime = cursor.getLong(cursor.getColumnIndex("starttime"));
-                currentSessionEndTime = cursor.getLong(cursor.getColumnIndex("endtime"));
+                currentSessionStartTime = cursor.getLong(cursor.getColumnIndex("startTime"));
+                currentSessionEndTime = cursor.getLong(cursor.getColumnIndex("endTime"));
                 currentSessionId = cursor.getInt(cursor.getColumnIndex("sessionid"));
             }
             cursor.close();
@@ -869,7 +913,6 @@ public class OC_FatController extends OBFatController
         {
             db = new DBSQL(true);
             prepareNewSessionInDB(db, currentUser.userid);
-            loadLastUnitIndexFromDB(db);
         }
         catch(Exception e)
         {
@@ -902,7 +945,7 @@ public class OC_FatController extends OBFatController
         ContentValues contentValues = new ContentValues();
         contentValues.put("userid", userid);
         contentValues.put("sessionid", sessionid);
-        contentValues.put("starttime",currentSessionStartTime);
+        contentValues.put("startTime",currentSessionStartTime);
         db.doInsertOnTable(DBSQL.TABLE_SESSIONS,contentValues);
         currentSessionId = sessionid;
 
@@ -911,36 +954,36 @@ public class OC_FatController extends OBFatController
 
     public void fixMissingStarsInDB(DBSQL db)
     {
-        Cursor cursor = db.prepareRawQuery(String.format("SELECT TAB.level as level, TAB.awardStar as awardStar " +
-                "FROM (SELECT DISTINCT(UI.unitid), userid, level, awardStar " +
-                "FROM "+DBSQL.TABLE_UNITS+" AS U JOIN "+DBSQL.TABLE_UNIT_INSTANCES+" AS UI ON UI.unitid = U.unitid  " +
-                "WHERE (endtime>0 OR (SELECT COUNT(*) FROM "+DBSQL.TABLE_UNIT_INSTANCES+" WHERE unitid = UI.unitid AND userid = UI.userid) >= %d) AND userid = %d AND awardStar >0) TAB " +
-                "LEFT JOIN "+DBSQL.TABLE_STARS+" AS S ON  TAB.userid = S.userid AND TAB.level = S.level AND TAB.awardStar = S.starnum WHERE S.userid IS NULL",
-                unitAttemptsCount , currentUser.userid)
-                ,null);
-        Map<Integer,List<Integer>> result = new ArrayMap<>();
+        Cursor cursor = db.prepareRawQuery(String.format("SELECT TAB.unitid as unitid, TAB.awardStar as awardStar, TAB.masterlistid as masterlistid FROM (SELECT UI.unitid as unitid, userid, awardStar, masterlistid  " +
+                "FROM %s AS U JOIN %s AS UI ON UI.unitid = U.unitid " +
+                "WHERE (endTime>0 OR (SELECT COUNT(*) FROM %s WHERE unitid = UI.unitid AND userid = UI.userid) >= ?) AND userid = ? AND awardStar >0) TAB " +
+                "LEFT JOIN %s AS S ON  TAB.userid = S.userid AND TAB.unitid = S.unitid WHERE S.userid IS NULL",DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES,DBSQL.TABLE_UNIT_INSTANCES, DBSQL.TABLE_STARS)
+                ,Arrays.asList(String.valueOf(unitAttemptsCount), String.valueOf(currentUser.userid)));
+
+        Map<Integer,List<Long>> result = new ArrayMap<>();
         if(cursor.moveToFirst())
         {
             while (cursor.isAfterLast() == false)
             {
-                int level = cursor.getInt(cursor.getColumnIndex("level"));
-                int awardStar = cursor.getInt(cursor.getColumnIndex("awardStar"));
-                if(result.get(level) == null)
-                    result.put(level, new ArrayList<Integer>());
-                result.get(level).add(awardStar);
+                int masterlistid = cursor.getInt(cursor.getColumnIndex("masterlistid"));
+                long unitid = cursor.getLong(cursor.getColumnIndex("unitid"));
+                if(result.get(masterlistid) == null)
+                    result.put(masterlistid, new ArrayList<Long>());
+
+                result.get(masterlistid).add(unitid);
                 cursor.moveToNext();
             }
 
         }
         cursor.close();
 
-        for(int level : result.keySet())
+        for(int masterlistid : result.keySet())
         {
-            String colour = lastStarColourForLevelFromDB(db, currentUser.userid, level);
+            String colour = lastStarColourForLevelFromDB(db, currentUser.userid, masterlistid);
             if (colour == null)
                 colour = String.valueOf(OB_Maths.randomInt(1, 5));
-            for(int awardNum : result.get(level))
-                saveStarInDB(db,currentUser.userid,level,awardNum,colour);
+            for(long unitid : result.get(masterlistid))
+                saveStarInDB(db,currentUser.userid,unitid,colour);
         }
     }
 
@@ -962,7 +1005,7 @@ public class OC_FatController extends OBFatController
         try
         {
             db = new DBSQL(true);
-            updateCurrentSessionTimeInDB(db,"starttime", currentSessionStartTime);
+            updateCurrentSessionTimeInDB(db,"startTime", currentSessionStartTime);
         }
         catch (Exception e)
         {
@@ -986,7 +1029,7 @@ public class OC_FatController extends OBFatController
 
         currentSessionEndTime =  getCurrentTime();
 
-        updateCurrentSessionTimeInDB(db,"endtime", currentSessionEndTime);
+        updateCurrentSessionTimeInDB(db,"endTime", currentSessionEndTime);
     }
 
     private boolean updateCurrentSessionTimeInDB(DBSQL db, String fieldName, long value)
@@ -1009,7 +1052,7 @@ public class OC_FatController extends OBFatController
         try
         {
             db = new DBSQL(true);
-            saveStarInDB(db,currentUser.userid,unit.level,unit.awardStar,colour);
+            saveStarInDB(db,currentUser.userid,unit.unitid,colour);
         }
         catch(Exception e)
         {
@@ -1022,12 +1065,11 @@ public class OC_FatController extends OBFatController
         }
     }
 
-    public void saveStarInDB(DBSQL db, int userid, int level, int awardStar, String colour)
+    public void saveStarInDB(DBSQL db, int userid, long unitid, String colour)
     {
         ContentValues contentValues = new ContentValues();
         contentValues.put("userid",userid);
-        contentValues.put("level",level);
-        contentValues.put("starnum",awardStar);
+        contentValues.put("unitid",unitid);
         contentValues.put("colour",colour);
 
         boolean result = db.doReplaceOnTable(DBSQL.TABLE_STARS,contentValues) > 0;
@@ -1041,7 +1083,7 @@ public class OC_FatController extends OBFatController
         try
         {
             db = new DBSQL(false);
-            result = starsForLevelFromDB(db,level);
+            result = starsForLevelFromDB(db,currentUser.userid, currentUser.masterlistid, level);
         }
         catch(Exception e)
         {
@@ -1055,19 +1097,18 @@ public class OC_FatController extends OBFatController
         return result;
     }
 
-    private Map<Integer,String> starsForLevelFromDB(DBSQL db, int level)
+    private Map<Integer,String> starsForLevelFromDB(DBSQL db, int userid, int masterlistid,  int level)
     {
-        Map<String,String> whereMap = new ArrayMap<>();
-        whereMap.put("userid",String.valueOf(currentUser.userid));
-        whereMap.put("level",String.valueOf(level));
-        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_STARS,Arrays.asList("starnum","colour"),whereMap);
+        Cursor cursor = db.prepareRawQuery(String.format("SELECT awardStar,colour FROM %s AS S JOIN %s AS U ON U.unitid = S.unitid WHERE S.userid = ? AND U.masterlistid = ? AND U.level = ?",
+                DBSQL.TABLE_STARS, DBSQL.TABLE_UNITS),
+                Arrays.asList(String.valueOf(userid),String.valueOf(masterlistid),String.valueOf(level)));
 
         Map<Integer,String> result = new ArrayMap<>();
         if(cursor.moveToFirst())
         {
             while (cursor.isAfterLast() == false)
             {
-                result.put(cursor.getInt(cursor.getColumnIndex("starnum")), cursor.getString(cursor.getColumnIndex("colour")));
+                result.put(cursor.getInt(cursor.getColumnIndex("awardStar")), cursor.getString(cursor.getColumnIndex("colour")));
                 cursor.moveToNext();
             }
 
@@ -1077,22 +1118,22 @@ public class OC_FatController extends OBFatController
         return result;
     }
 
-    public String lastStarColourForLevelFromDB(DBSQL db, int userid, int level)
+    public String lastStarColourForLevelFromDB(DBSQL db, int userid, int masterlistid)
     {
-        Map<String,String> whereMap = new ArrayMap<>();
-        whereMap.put("userid",String.valueOf(userid));
-        whereMap.put("level",String.valueOf(level));
-        Cursor cursor = db.prepareRawQuery("SELECT colour FROM "+DBSQL.TABLE_STARS+" WHERE userid = ? ORDER BY level DESC,starnum DESC LIMIT 1",
-                Collections.singletonList(String.valueOf(userid)));
+        Cursor cursor = db.prepareRawQuery(String.format("SELECT colour FROM %s AS S JOIN %s AS U ON U.unitid = S.unitid WHERE S.userid = ? AND U.masterlistid = ? ORDER BY unitIndex DESC LIMIT 1",
+                DBSQL.TABLE_STARS, DBSQL.TABLE_UNITS),
+                Arrays.asList(String.valueOf(userid),String.valueOf(masterlistid)));
         String result = null;
-        if(cursor.moveToFirst())
-            result = cursor.getString(cursor.getColumnIndex("colour"));
+
+        int columnIndex = cursor.getColumnIndex("colour");
+        if(cursor.moveToFirst() && !cursor.isNull(columnIndex))
+            result = cursor.getString(columnIndex);
 
         cursor.close();
         return result;
     }
 
-    public String starForLevel(int level,int starnum)
+    public String starForUser(int userid,int unitid)
     {
         String result = null;
         DBSQL db = null;
@@ -1100,9 +1141,8 @@ public class OC_FatController extends OBFatController
         {
             db = new DBSQL(false);
             Map<String,String> whereMap = new ArrayMap<>();
-            whereMap.put("userid",String.valueOf(currentUser.userid));
-            whereMap.put("level",String.valueOf(level));
-            whereMap.put("starnum",String.valueOf(starnum));
+            whereMap.put("userid",String.valueOf(userid));
+            whereMap.put("unitid",String.valueOf(unitid));
             Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_STARS, Collections.singletonList("colour"),whereMap);
 
             if(cursor.moveToFirst())
@@ -1130,7 +1170,7 @@ public class OC_FatController extends OBFatController
         if(unit.awardStar < 0)
             return false;
 
-        return starForLevel(unit.level,unit.awardStar) == null;
+        return starForUser(currentUser.userid,unit.unitid) == null;
     }
 
     @Override
@@ -1180,7 +1220,7 @@ public class OC_FatController extends OBFatController
 
     public boolean checkTimeout(MlUnitInstance unitInstance)
     {
-        if (!allowsTimeOut())
+        if (!allowsTimeOuts)
             return false;
 
         if(unitInstance != currentUnitInstance)
@@ -1189,7 +1229,7 @@ public class OC_FatController extends OBFatController
         if(unitInstance.sectionController == null || unitInstance.sectionController._aborting)
             return false;
 
-        if((unitInstance.starttime + unitInstance.mlUnit.targetDuration) <= getCurrentTime())
+        if((unitInstance.startTime + unitInstance.mlUnit.targetDuration) <= getCurrentTime())
         {
             MainActivity.log("Time out!!");
             timeOutUnit(unitInstance);
@@ -1198,28 +1238,22 @@ public class OC_FatController extends OBFatController
         return true;
     }
 
-
-    public boolean allowsTimeOut()
-    {
-        String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_ALLOWS_TIMEOUT);
-        return (value != null && value.equals("true"));
-    }
-
     public boolean currentPathComplete()
     {
-        int maxUnitID = 0;
+        int maxUnitIndex = 0;
         boolean unitCompleted = false;
         DBSQL db = null;
         try
         {
             db = new DBSQL(false);
             Map<String,String> whereMap = new ArrayMap<>();
-            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNITS, Collections.singletonList("MAX(unitid) as unitid"),null);
+            whereMap.put("masterlistid", String.valueOf(currentUser.masterlistid));
+            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNITS, Collections.singletonList("MAX(unitIndex) as unitIndex"),whereMap);
             if(cursor.moveToFirst())
-                maxUnitID = cursor.getInt(cursor.getColumnIndex("unitid"));
+                maxUnitIndex = cursor.getInt(cursor.getColumnIndex("unitIndex"));
             cursor.close();
 
-            unitCompleted = unitCompletedByUser(db,maxUnitID);
+            unitCompleted = unitCompletedByUser(db,currentUser.userid, currentUser.masterlistid, maxUnitIndex);
 
         }
         catch(Exception e)

@@ -6,6 +6,7 @@ import android.util.ArrayMap;
 
 import org.onebillion.onecourse.mainui.OBSectionController;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -15,23 +16,23 @@ import java.util.Map;
 public class MlUnitInstance extends MlObject
 {
     public long unitid;
-    public int userid, sessionid, seqno, elapsedtime;
+    public int userid, sessionid, seqNo, elapsedTime;
     public float score;
-    public long starttime, endtime;
+    public long startTime, endTime;
 
     public OBSectionController sectionController;
     public MlUnit mlUnit;
 
-    private static final String[] intFields = {"userid","sessionid","seqno","elapsedtime"};
+    private static final String[] intFields = {"userid","sessionid","seqNo","elapsedTime"};
     private static final String[] floatFields = {"score"};
-    private static final String[] longFields = {"starttime","endtime","unitid"};
+    private static final String[] longFields = {"startTime","endTime","unitid"};
 
     public MlUnitInstance()
     {
         score = 0;
-        elapsedtime = 0;
-        starttime = 0;
-        endtime = 0;
+        elapsedTime = 0;
+        startTime = 0;
+        endTime = 0;
     }
 
 
@@ -56,16 +57,18 @@ public class MlUnitInstance extends MlObject
         try
         {
             db = new DBSQL(true);
-            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES, Collections.singletonList("MAX(seqno) as seqno"),whereMap);
-            if(cursor.moveToFirst())
+            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES, Collections.singletonList("MAX(seqNo) as seqNo"),whereMap);
+
+            int columnIndex = cursor.getColumnIndex("seqNo");
+            if(cursor.moveToFirst() && !cursor.isNull(columnIndex))
             {
-                mlui.seqno = cursor.getInt(cursor.getColumnIndex("seqno")) + 1;
+                mlui.seqNo = cursor.getInt(columnIndex) + 1;
             }
             else
             {
-                mlui.seqno = 0;
+                mlui.seqNo = 0;
             }
-            mlui.starttime = starttime;
+            mlui.startTime = starttime;
             if(!mlui.saveToDB(db))
                 mlui = null;
             cursor.close();
@@ -88,12 +91,12 @@ public class MlUnitInstance extends MlObject
         Map<String,String> whereMap = new ArrayMap<>();
         whereMap.put("userid",String.valueOf(userid));
         whereMap.put("unitid",String.valueOf(unitid));
-        whereMap.put("seqno",String.valueOf(seqno));
+        whereMap.put("seqNo",String.valueOf(seqNo));
 
         ContentValues contentValues = new ContentValues();
-        contentValues.put("endtime",endtime);
+        contentValues.put("endTime",endTime);
         contentValues.put("score",score);
-        contentValues.put("elapsedtime",elapsedtime);
+        contentValues.put("elapsedTime",elapsedTime);
 
         boolean result = db.doUpdateOnTable(DBSQL.TABLE_UNIT_INSTANCES,whereMap,contentValues) > 0;
         return result;
@@ -106,13 +109,16 @@ public class MlUnitInstance extends MlObject
         return result;
     }
 
-    public static long lastPlayedUnitIndexForUserIDInDB(DBSQL db, int userid)
+    public static int lastPlayedUnitIndexForUserIDInDB(DBSQL db, int userid, int masterlist)
     {
-        Cursor cursor = db.prepareRawQuery("SELECT unitid, MAX(starttime) FROM unitinstances WHERE userid = ? GROUP BY userid", Collections.singletonList(String.valueOf(userid)));
-        int maxId = -1;
-        if(cursor.moveToFirst())
+        Cursor cursor = db.prepareRawQuery(String.format("SELECT unitIndex FROM %s AS U JOIN %s AS UI ON UI.unitid = U.unitid WHERE UI.userid = ? AND U.masterlistid = ? ORDER BY UI.startTime DESC LIMIT 1",
+                DBSQL.TABLE_UNITS, DBSQL.TABLE_UNIT_INSTANCES),
+                Arrays.asList(String.valueOf(userid), String.valueOf(masterlist)));
+        int maxId = 0;
+        int columnIndex = cursor.getColumnIndex("unitIndex");
+        if(cursor.moveToFirst() && !cursor.isNull(columnIndex))
         {
-            maxId = cursor.getInt(cursor.getColumnIndex("unitid"));
+            maxId = cursor.getInt(columnIndex);
         }
         cursor.close();
 

@@ -35,7 +35,7 @@ public class OC_TestMenu extends OBSectionController
     private ListView listView;
     private OBCursorAdapter cursorAdapter;
     private DBSQL db;
-    private long currentUnitId;
+    private int currentUnitIndex;
     OC_FatController controller;
 
     public OC_TestMenu ()
@@ -48,7 +48,7 @@ public class OC_TestMenu extends OBSectionController
         OBBrightnessManager.sharedManager.onSuspend();
         db = new DBSQL(false);
         controller = (OC_FatController)MainActivity.mainActivity.fatController;
-        currentUnitId = controller.lastPlayedUnitIndexFromDB(db);
+        currentUnitIndex = controller.lastPlayedUnitIndexFromDB(db);
         MainActivity.mainActivity.setContentView(R.layout.list_menu);
         listView = (ListView)MainActivity.mainActivity.findViewById(R.id.listView);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener()
@@ -56,8 +56,8 @@ public class OC_TestMenu extends OBSectionController
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id)
             {
-                currentUnitId = id;
-                controller.setCurrentUnitId(id);
+                currentUnitIndex = (int)id;
+                controller.setCurrentUnitIndex(currentUnitIndex);
             }
         });
 
@@ -160,7 +160,7 @@ public class OC_TestMenu extends OBSectionController
                             cursorAdapter.swapCursor(cursor);
                         }
                         cursorAdapter.notifyDataSetChanged();
-                        currentUnitId = 0;
+                        currentUnitIndex = 0;
                         selectCurrentUnit();
                     }
                 });
@@ -278,8 +278,8 @@ public class OC_TestMenu extends OBSectionController
 
     public void selectCurrentUnit()
     {
-        listView.setSelection((int)currentUnitId);
-        listView.setItemChecked((int)currentUnitId,true);
+        listView.setSelection((int)currentUnitIndex);
+        listView.setItemChecked((int)currentUnitIndex,true);
     }
 
 
