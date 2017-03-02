@@ -121,6 +121,18 @@ android {
                     appIcon: "@mipmap/child_ny"
             ]
         }
+        alan {
+            minSdkVersion 21
+            applicationId 'org.onebillion.onecourse.alan'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "onecourse - alan"
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settingsas.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/child_ny"
+            ]
+        }
     }
 }
 
