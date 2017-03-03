@@ -22,7 +22,7 @@ public class OBGradientPath extends OBPath
 {
     public int flags;
     public OBShapeLayer strokeLayer,maskLayer;
-    OBGradientLayer gradientLayer;
+    public OBGradientLayer gradientLayer;
     public OBGradientPath()
     {
         super(null);

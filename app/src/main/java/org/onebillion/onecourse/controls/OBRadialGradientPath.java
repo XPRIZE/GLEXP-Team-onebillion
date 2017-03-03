@@ -29,6 +29,21 @@ public class OBRadialGradientPath extends OBGradientPath
         adjustLayers();
     }
 
+    public OBRadialGradientPath(Path p,float cx,float cy,float radius,int ccol,int ecol)
+    {
+        super(p);
+        OBRadialGradientLayer gl = new OBRadialGradientLayer();
+        gl.cx = cx;
+        gl.cy = cy;
+        gl.radius = radius;
+        int cols[] = new int[2];
+        cols[0] = ccol;
+        cols[1] = ecol;
+        gl.colours = cols;
+        gradientLayer = gl;
+        adjustLayers();
+    }
+
 
     public void takeValuesFrom(URadialGradient ugradient, List<Map<String,Object>> settingsStack)
     {
