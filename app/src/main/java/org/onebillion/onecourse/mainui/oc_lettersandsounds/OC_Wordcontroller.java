@@ -142,6 +142,11 @@ public class OC_Wordcontroller extends OC_SectionController
 
     public void highlightAndSpeakSyllablesForWord(final OBWord w)
     {
+        highlightAndSpeakSyllablesForWord(w,false);
+    }
+
+    public void highlightAndSpeakSyllablesForWord(final OBWord w,final Boolean leaveHighlighted)
+    {
         try
         {
             String wordID = w.soundid;
@@ -178,7 +183,8 @@ public class OC_Wordcontroller extends OC_SectionController
             waitForSecs(0.3f);
             highlightWrd(w,0,w.text.length(),true);
             playAudioQueued(Collections.singletonList((Object)wordID),true);
-            highlightWrd(w,0,w.text.length(),false);
+            if (!leaveHighlighted)
+                highlightWrd(w,0,w.text.length(),false);
             waitForSecs(0.3f);
         }
         catch (Exception exception)
@@ -188,7 +194,8 @@ public class OC_Wordcontroller extends OC_SectionController
         {
             public void run() throws Exception
             {
-                highlightWrd(w,0,w.text.length(),false);
+                if (!leaveHighlighted)
+                    highlightWrd(w,0,w.text.length(),false);
             }
         });
     }

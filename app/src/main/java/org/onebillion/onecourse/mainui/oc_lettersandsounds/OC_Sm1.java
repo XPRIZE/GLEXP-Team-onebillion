@@ -27,7 +27,7 @@ public class OC_Sm1 extends OC_Wordcontroller
 {
     public Map<String,OBPhoneme> wordDict;
     public List<String> words;
-    public OBPath highlightswatch;
+    public OBPath highlightswatch,incorrectswatch;
     public float picScale;
     public String currWordID;
     public List<OBImage>pics = new ArrayList<>();

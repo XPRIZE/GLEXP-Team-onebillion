@@ -62,7 +62,16 @@ public class OC_Doodle extends OC_SectionController
             gradient = new OBRadialGradientPath(p,x,y,1500, Color.HSVToColor(HSV),Color.HSVToColor(0,HSV));
             gradient.setZPosition(template.zPosition() + 0.02f);
             gradient.sizeToBoundingBox();
-            //gradient.setPosition(template.position());
+
+            OBGradientLayer l = (OBGradientLayer)gradient.gradientLayer;
+            l.locations = new float[3];
+            l.locations[0] = 0;
+            l.locations[1] = 0.5f;
+            l.locations[2] = 1;
+            l.colours = new int[3];
+            l.colours[0] = Color.HSVToColor(HSV);
+            l.colours[1] = Color.HSVToColor(HSV);
+            l.colours[2] = Color.HSVToColor(0,HSV);
         }
         void doStep()
         {
@@ -90,7 +99,8 @@ public class OC_Doodle extends OC_SectionController
             HSV2[1] = HSV[1];
             HSV2[2] = HSV[2];
             rgb = Color.HSVToColor(HSV2);
-            l.colours[1] = Color.argb(0,Color.red(rgb),Color.green(rgb),Color.blue(rgb));
+            l.colours[1] = rgb;
+            l.colours[2] = Color.argb(0,Color.red(rgb),Color.green(rgb),Color.blue(rgb));
             //gradient.setNeedsRetexture();
         }
     }
@@ -101,6 +111,7 @@ public class OC_Doodle extends OC_SectionController
     float hInc = 5;
 
     protected OBControl board,eraser, eraser2, boardMask;
+    int boardMaskColour = Color.WHITE;
     List<PointF> pointQueue = new ArrayList<>();
     long lastTimeDrawn = 0;
     protected OBPresenter presenter;
@@ -204,15 +215,20 @@ public class OC_Doodle extends OC_SectionController
         backgroundImage.invalidate();
         backgroundImage.setNeedsRetexture();
     }
+
+    public void clearCanvas()
+    {
+        Paint p = new Paint();
+        p.setStyle(Paint.Style.FILL);
+        p.setColor(boardMaskColour);
+        canvas.drawRect(0,0,drawBitmap.getWidth(),drawBitmap.getHeight(),p);
+    }
     public void setupCanvas()
     {
         drawBitmap = Bitmap.createBitmap((int)board.width(), (int)board.height(), Bitmap.Config.ARGB_8888);
         drawOn.setContents(drawBitmap);
         canvas = new Canvas(drawBitmap);
-        Paint p = new Paint();
-        p.setStyle(Paint.Style.FILL);
-        p.setColor(Color.BLACK);
-        canvas.drawRect(0,0,drawBitmap.getWidth(),drawBitmap.getHeight(),p);
+        clearCanvas();
     }
 
     public void preparePaintForDrawing()
@@ -234,7 +250,7 @@ public class OC_Doodle extends OC_SectionController
         erasingPaint = new Paint();
         erasingPaint.setColor(Color.BLACK);
         //erasingPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.OVERLAY));
-        //erasingPaint.setColorFilter(new PorterDuffColorFilter(Color.BLACK,PorterDuff.Mode.SRC));
+        erasingPaint.setColorFilter(new PorterDuffColorFilter(boardMaskColour,PorterDuff.Mode.SRC_ATOP));
         eraserBitmap = eraserShadow.drawn();
     }
 
@@ -340,6 +356,7 @@ public class OC_Doodle extends OC_SectionController
             PointF p = points.get(1);
             points.clear();
             points.add(p);
+            refreshDrawingBoard();
         }
         else
         {
@@ -387,6 +404,16 @@ public class OC_Doodle extends OC_SectionController
         refreshDrawingBoard();
     }
 
+    void redButtonHit()
+    {
+        if (boardMaskColour == Color.BLACK)
+            boardMaskColour = Color.WHITE;
+        else
+            boardMaskColour = Color.BLACK;
+        clearCanvas();
+        refreshDrawingBoard();
+    }
+
     public void checkTouchUp()
     {
         if(eraserMode)
@@ -402,6 +429,11 @@ public class OC_Doodle extends OC_SectionController
         }
         else
         {
+            if (pointQueue.size() > 0)
+                if (pointQueue.size() == 1)
+                    drawPoint(pointQueue.get(0));
+                else
+                    drawPath(pointQueue);
             setStatus(STATUS_WAITING_FOR_DRAG);
         }
     }
@@ -435,6 +467,12 @@ public class OC_Doodle extends OC_SectionController
                 eraserMode = true;
                 startPoint = pt;
                 setStatus(STATUS_DRAGGING);
+            }
+            else if(finger(0,1,Collections.singletonList(objectDict.get("doodleredbutton")),pt) != null)
+            {
+                setStatus(STATUS_BUSY);
+                redButtonHit();
+                setStatus(STATUS_WAITING_FOR_DRAG);
             }
         }
 
