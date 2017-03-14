@@ -14,6 +14,7 @@ import org.onebillion.onecourse.utils.OBUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -158,6 +159,15 @@ public class OC_Generic_Event extends OC_SectionController
         ArrayList<OBControl> oldControls = new ArrayList<>(objectDict.values());
         //
         loadEvent(scene);
+        //
+        String masterEvent = eventAttributes.get("master");
+        if (masterEvent != null)
+        {
+            Map <String, String> currentEventAttributes = new HashMap<>(eventAttributes);
+            loadEvent(masterEvent);
+            //
+            eventAttributes = currentEventAttributes;
+        }
         //
         Boolean redraw = eventAttributes.get("redraw") != null && eventAttributes.get("redraw").equals("true");
         if (redraw)
