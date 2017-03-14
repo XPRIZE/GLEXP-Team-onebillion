@@ -130,22 +130,10 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
                 //
                 action_moveObjectToOriginalPosition(control, false);
                 //
-                playSceneAudioIndex("CORRECT", objectDeltaCount, false);
+                action_playCorrectAudioAfterHidingObject();
                 objectDeltaCount++;
                 //
-                if (getTotalShownObjects() == 0)
-                {
-                    waitForSecs(0.7);
-                    //
-                    gotItRightBigTick(true);
-                    waitForSecs(0.3);
-                    //
-                    action_finale();
-                }
-                else
-                {
-                    revertStatusAndReplayAudio();
-                }
+                check_correctNumberObjectsShow_viaHide();
             }
             else
             {
@@ -155,6 +143,30 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
         catch (Exception e)
         {
             e.printStackTrace();
+        }
+    }
+
+
+    public void action_playCorrectAudioAfterHidingObject() throws Exception
+    {
+        playSceneAudioIndex("CORRECT", objectDeltaCount, false);
+    }
+
+
+    public void check_correctNumberObjectsShow_viaHide() throws Exception
+    {
+        if (getTotalShownObjects() == 0)
+        {
+            waitForSecs(0.7);
+            //
+            gotItRightBigTick(true);
+            waitForSecs(0.3);
+            //
+            action_finale();
+        }
+        else
+        {
+            revertStatusAndReplayAudio();
         }
     }
 

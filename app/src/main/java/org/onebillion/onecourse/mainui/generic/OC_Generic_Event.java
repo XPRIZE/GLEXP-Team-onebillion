@@ -379,6 +379,18 @@ public class OC_Generic_Event extends OC_SectionController
     }
 
 
+    public List<Object> audioForScene (String audioScene)
+    {
+        if (audioScenes == null) return null;
+        //
+        Map<String, List<String>> sc = (Map<String, List<String>>) audioScenes.get(currentEvent());
+        //
+        if (sc == null) return null;
+        //
+        return (List<Object>) (Object) sc.get(audioScene);
+    }
+
+
     // Miscelaneous Functions
     public void playSceneAudio (String scene, Boolean wait) throws Exception
     {
