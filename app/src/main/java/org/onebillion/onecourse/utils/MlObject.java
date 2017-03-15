@@ -58,6 +58,44 @@ public class MlObject
 
     }
 
+    protected void xmlNodeToObject(OBXMLNode node, String[] stringFields, String[] intFields, String[] longFields, String[] floatFields)
+    {
+        if(stringFields != null)
+        {
+            for (String string : stringFields)
+            {
+                if(node.attributeStringValue(string) != null)
+                    setStringField(string, node.attributeStringValue(string));
+            }
+        }
+
+        if(floatFields != null)
+        {
+            for (String string : floatFields)
+            {
+                setFloatField(string, (float)node.attributeFloatValue(string));
+            }
+        }
+
+        if(intFields != null)
+        {
+            for (String string : intFields)
+            {
+
+                setIntField(string, node.attributeIntValue(string));
+            }
+        }
+
+        if(longFields != null)
+        {
+            for (String string : longFields)
+            {
+                setLongField(string, node.attributeLongValue(string));
+            }
+        }
+
+    }
+
     private void setStringField(String name, String value)
     {
         try {

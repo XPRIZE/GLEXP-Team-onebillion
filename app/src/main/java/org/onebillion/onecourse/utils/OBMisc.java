@@ -175,4 +175,9 @@ public class OBMisc
         }
         return result;
     }
+
+    public static PointF copyPoint(PointF original)
+    {
+        return new PointF(original.x, original.y);
+    }
 }

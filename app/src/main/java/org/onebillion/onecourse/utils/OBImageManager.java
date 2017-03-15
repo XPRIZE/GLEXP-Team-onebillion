@@ -154,10 +154,40 @@ public class OBImageManager
         return b;
     }
 
+    public Bitmap bitmapForPath (String imagePath,OB_MutFloat scale)
+    {
+        if (imagePath == null)
+            return null;
+        Bitmap b;
+        scale.value = 1.0f;
+        BitmapFactory.Options opt = new BitmapFactory.Options();
+        opt.inScaled = false;
+        b = BitmapFactory.decodeStream(OBUtils.getInputStreamForPath(imagePath), null, opt);
+        if (HighResPath(imagePath))
+            scale.value = 2.0f;
+        return b;
+    }
+
     public OBImage imageForName (String imageName)
     {
         OB_MutFloat fileScale = new OB_MutFloat(1.0f);
         Bitmap b = bitmapForName(imageName,fileScale);
+        if (b != null)
+        {
+            OBImage im = new OBImage(b);
+            int w = b.getWidth();
+            int h = b.getHeight();
+            im.setBounds(0, 0, w, h);
+            im.setIntrinsicScale(fileScale.value);
+            return im;
+        }
+        return null;
+    }
+
+    public OBImage imageForPath (String imagePath)
+    {
+        OB_MutFloat fileScale = new OB_MutFloat(1.0f);
+        Bitmap b = bitmapForPath(imagePath,fileScale);
         if (b != null)
         {
             OBImage im = new OBImage(b);
