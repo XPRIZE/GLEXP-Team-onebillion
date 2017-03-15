@@ -180,4 +180,14 @@ public class OBMisc
     {
         return new PointF(original.x, original.y);
     }
+
+    public static List<String> arrayOfStringsWithRoot(String root,int startidx,int endidx)
+    {
+        List<String> arr = new ArrayList<>();
+        for (int i = startidx;i <= endidx;i++)
+            arr.add(String.format("%s%d",root,i));
+        return arr;
+
+    }
+
 }

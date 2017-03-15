@@ -198,6 +198,11 @@ public class OBControl
         state = LCC_SELECTED;
     }
 
+    public boolean isSelected ()
+    {
+        return state == LCC_SELECTED;
+    }
+
     public float opacity ()
     {
         if (layer != null)
@@ -1027,6 +1032,8 @@ public class OBControl
             return false;
         int w = (int) thisFrame.width();
         int h = (int) thisFrame.height();
+        if(w == 0 || h == 0)
+            return false;
         Bitmap tinycache1 = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas canvas1 = new Canvas(tinycache1);
         canvas1.clipRect(0, 0, w, h);
