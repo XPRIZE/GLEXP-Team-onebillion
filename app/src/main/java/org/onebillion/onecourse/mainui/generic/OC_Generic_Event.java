@@ -1,10 +1,12 @@
 package org.onebillion.onecourse.mainui.generic;
 
 import android.animation.Animator;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PointF;
 
 import org.onebillion.onecourse.controls.OBControl;
+import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.mainui.MainActivity;
@@ -651,5 +653,42 @@ public class OC_Generic_Event extends OC_SectionController
             MainActivity.log("OC_Generic_Event:physics_bounce:exception caught");
             e.printStackTrace();
         }
+    }
+
+
+
+    public void action_showShadow(OBControl control)
+    {
+        float shadowRadius = 5;
+        List<OBControl> members = new ArrayList<>();
+        members.add(control);
+        //
+        lockScreen();
+        //
+        OBGroup shadowGroup = new OBGroup(members);
+        shadowGroup.outdent(shadowRadius);
+        attachControl(shadowGroup);
+        control.setProperty("shadowGroup", shadowGroup);
+        control.setShadow(shadowRadius, 1.0f, shadowRadius / 2, shadowRadius / 2, Color.DKGRAY);
+        shadowGroup.setShouldTexturise(true);
+        //
+        unlockScreen();
+    }
+
+
+    public void action_removeShadow(OBControl control)
+    {
+        lockScreen();
+        //
+        OBGroup shadowGroup = (OBGroup) control.propertyValue("shadowGroup");
+        if (shadowGroup != null)
+        {
+            shadowGroup.removeMember(control);
+            attachControl(control);
+            detachControl(shadowGroup);
+            control.setShadow(0, 0, 0, 0, Color.BLACK);
+        }
+        //
+        unlockScreen();
     }
 }

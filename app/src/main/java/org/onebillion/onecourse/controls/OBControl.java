@@ -1456,23 +1456,13 @@ public class OBControl
 
     private void blur (Bitmap bt, float radius)
     {
-
         RenderScript rs = RenderScript.create(MainActivity.mainActivity);
-
-        Allocation overlayAlloc = Allocation.createFromBitmap(
-                rs, bt);
-
-        ScriptIntrinsicBlur blur = ScriptIntrinsicBlur.create(
-                rs, overlayAlloc.getElement());
-
+        Allocation overlayAlloc = Allocation.createFromBitmap(rs, bt);
+        ScriptIntrinsicBlur blur = ScriptIntrinsicBlur.create(rs, overlayAlloc.getElement());
         blur.setInput(overlayAlloc);
-
         blur.setRadius(radius);
-
         blur.forEach(overlayAlloc);
-
         overlayAlloc.copyTo(bt);
-
         rs.destroy();
     }
 
