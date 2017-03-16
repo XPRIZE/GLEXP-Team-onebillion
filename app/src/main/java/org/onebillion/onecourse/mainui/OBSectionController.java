@@ -826,9 +826,11 @@ public class OBSectionController extends OBViewController
             if (attrs.get("stroke") != null)
             {
                 OBStroke str = new OBStroke(attrs, true);
-                im.setStroke(str);
                 if (im instanceof OBPath)
-                    ((OBPath)im).setLineWidth(graphicScale * ((OBPath)im).lineWidth());
+                {
+                    str.scaleComponents(graphicScale);
+                }
+                im.setStroke(str);
             }
             if (attrs.get("opacity") != null)
             {
@@ -1152,7 +1154,19 @@ public class OBSectionController extends OBViewController
     public List<OBControl> sortedFilteredControls (String pattern)
     {
         List<String> arr = filterControlsIDs(pattern);
-        Collections.sort(arr);
+        //
+        Collections.sort(arr, new Comparator<String>() {
+            public int compare(String o1, String o2) {
+                return extractInt(o1) - extractInt(o2);
+            }
+
+            int extractInt(String s) {
+                String num = s.replaceAll("\\D", "");
+                // return 0 if no digits found
+                return num.isEmpty() ? 0 : Integer.parseInt(num);
+            }
+        });
+        //
         List<OBControl> arr3 = new ArrayList<OBControl>();
         for (String k : arr)
             arr3.add(objectDict.get(k));

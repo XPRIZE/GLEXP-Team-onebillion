@@ -198,4 +198,16 @@ public class OBStroke
             dashes = l;
         }
     }
+
+    public void scaleComponents(float graphicScale)
+    {
+        if(dashes != null)
+        {
+            for (int i = 0; i < dashes.size(); i++)
+                dashes.set(i, dashes.get(i) * graphicScale);
+        }
+
+        lineWidth *= graphicScale;
+        dashPhase *= graphicScale;
+    }
 }

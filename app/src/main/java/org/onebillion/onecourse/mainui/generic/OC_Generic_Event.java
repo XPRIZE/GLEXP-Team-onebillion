@@ -1,19 +1,26 @@
 package org.onebillion.onecourse.mainui.generic;
 
+import android.animation.Animator;
+import android.graphics.Color;
+import android.graphics.Point;
 import android.graphics.PointF;
 
 import org.onebillion.onecourse.controls.OBControl;
+import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBAudioManager;
+import org.onebillion.onecourse.utils.OBAudioPlayer;
 import org.onebillion.onecourse.utils.OBUserPressedBackException;
 import org.onebillion.onecourse.utils.OBUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +28,7 @@ import java.util.Map;
  * OC_Generic_Event
  * Main Class for generic Events that are present in Maths and Letter and Sounds activities
  * Has a set of standard functions to handle touches on the screen, dragging objects, handling correct and wrong answers
- *
+ * <p>
  * Created by pedroloureiro on 20/06/16.
  */
 public class OC_Generic_Event extends OC_SectionController
@@ -158,6 +165,15 @@ public class OC_Generic_Event extends OC_SectionController
         ArrayList<OBControl> oldControls = new ArrayList<>(objectDict.values());
         //
         loadEvent(scene);
+        //
+        String masterEvent = eventAttributes.get("master");
+        if (masterEvent != null)
+        {
+            Map<String, String> currentEventAttributes = new HashMap<>(eventAttributes);
+            loadEvent(masterEvent);
+            //
+            eventAttributes = currentEventAttributes;
+        }
         //
         Boolean redraw = eventAttributes.get("redraw") != null && eventAttributes.get("redraw").equals("true");
         if (redraw)
@@ -338,8 +354,6 @@ public class OC_Generic_Event extends OC_SectionController
     }
 
 
-
-
     public OBLabel action_createLabelForControl (OBControl control)
     {
         return action_createLabelForControl(control, 1.0f, false);
@@ -379,6 +393,18 @@ public class OC_Generic_Event extends OC_SectionController
     }
 
 
+    public List<Object> audioForScene (String audioScene)
+    {
+        if (audioScenes == null) return null;
+        //
+        Map<String, List<String>> sc = (Map<String, List<String>>) audioScenes.get(currentEvent());
+        //
+        if (sc == null) return null;
+        //
+        return (List<Object>) (Object) sc.get(audioScene);
+    }
+
+
     // Miscelaneous Functions
     public void playSceneAudio (String scene, Boolean wait) throws Exception
     {
@@ -393,10 +419,9 @@ public class OC_Generic_Event extends OC_SectionController
     }
 
 
-
     // CHECKING functions
 
-    public void saveStatusClearReplayAudioSetChecking()
+    public void saveStatusClearReplayAudioSetChecking ()
     {
         savedStatus = status();
         setStatus(STATUS_CHECKING);
@@ -405,7 +430,7 @@ public class OC_Generic_Event extends OC_SectionController
         setReplayAudio(null);
     }
 
-    public long revertStatusAndReplayAudio()
+    public long revertStatusAndReplayAudio ()
     {
         long time = setStatus(savedStatus);
         setReplayAudio(savedReplayAudio);
@@ -427,4 +452,243 @@ public class OC_Generic_Event extends OC_SectionController
         }
     }
 
+
+    public void physics_verticalDrop (List<OBControl> objects, float maxDelta, String soundEffectOnCollision)
+    {
+        try
+        {
+            Boolean floorCollision = false;
+            Boolean atRest = false;
+            float g = 9.8f * 200;
+            double startTime = OC_Generic.currentTime();
+            float initialSpeed = 0;
+            //
+            for (OBControl control : objects)
+            {
+                control.setProperty("initial", control.getWorldPosition());
+            }
+            //
+            while (!atRest)
+            {
+                double t = OC_Generic.currentTime() - startTime;
+                //
+                float deltaY = (float) (initialSpeed * t + 0.5f * g * t * t);
+                //
+                if (!floorCollision && deltaY >= maxDelta)
+                {
+                    playSfxAudio(soundEffectOnCollision, false);
+                    startTime = OC_Generic.currentTime();
+                    initialSpeed = (float) (-0.3f * g * t);
+                    floorCollision = true;
+                    //
+                    for (OBControl control : objects)
+                    {
+                        control.setProperty("initial", control.getWorldPosition());
+                    }
+                    deltaY = maxDelta;
+                }
+                else if (floorCollision && deltaY >= 0)
+                {
+                    atRest = true;
+                    deltaY = 0;
+                }
+                //
+                if (atRest)
+                {
+                    lockScreen();
+                    //
+                    for (OBControl control : objects)
+                    {
+                        PointF originalPosition = OC_Generic.copyPoint((PointF) control.propertyValue("originalPosition"));
+                        control.setPosition(originalPosition);
+                    }
+                    unlockScreen();
+                }
+                else
+                {
+                    lockScreen();
+                    for (OBControl control : objects)
+                    {
+                        PointF initial = OC_Generic.copyPoint((PointF) control.propertyValue("initial"));
+                        initial.y += deltaY;
+                        control.setPosition(initial);
+                    }
+                    unlockScreen();
+                }
+                //
+                waitForSecs(0.01);
+            }
+        }
+        catch (Exception e)
+        {
+            MainActivity.log("OC_Generic_Event:physics_verticalDrop:exception caught");
+            e.printStackTrace();
+        }
+    }
+
+
+
+
+    public void physics_bounceObjectsWithPlacements(List<OBControl> objects, List<OBControl> placements, String soundEffectOnFloorCollision)
+    {
+        try
+        {
+            float g = 9.8f * 200;
+            float floorHeight = bounds().height() * 0.95f;
+            int totalCount = objects.size();
+            //
+            for (int i = 1; i <= totalCount; i++)
+            {
+                OBControl control = objects.get(i - 1);
+                control.setShouldTexturise(true);
+                //
+                OBControl placement = placements.get(i-1);
+                PointF destination = placement.getWorldPosition();
+                PointF initialPosition = control.getWorldPosition();
+                //
+                float distanceX = destination.x - initialPosition.x;
+                PointF midway = new PointF(initialPosition.x + distanceX * 0.75f, floorHeight);
+                //
+                float height = Math.abs(floorHeight - initialPosition.y);
+                float flightHeight = 1.2f * height;
+                float flightTime_phase1 = (float) Math.sqrt((2 * (flightHeight - height)) / g);
+                float freeFallTime = (float) Math.sqrt((2 * flightHeight) / g);
+                float totalTime_phase1 = flightTime_phase1 + freeFallTime;
+                //
+                float initialSpeedX_phase1 = (midway.x - initialPosition.x) / totalTime_phase1;
+                float initialSpeedY_phase1 = (float) Math.sqrt((flightHeight - height) * 2 * g);
+                PointF phase1 = new PointF(initialSpeedX_phase1, initialSpeedY_phase1);
+                //
+                float height_phase2 = Math.abs(floorHeight - destination.y);
+                float initialSpeedY_phase2 = (float) Math.sqrt(2 * g * height_phase2);
+                float flightTime_phase2 = initialSpeedY_phase2 / g;
+                float initalSpeedX_phase2 = (destination.x - midway.x) / flightTime_phase2;
+                PointF phase2 = new PointF(initalSpeedX_phase2, initialSpeedY_phase2);
+                //
+                control.setProperty("phase1", OC_Generic.copyPoint(phase1));
+                control.setProperty("phase2", OC_Generic.copyPoint(phase2));
+                control.setProperty("startTime", OC_Generic.currentTime() + i * 0.1);
+                control.setProperty("floorCollision", false);
+                control.setProperty("atRest", false);
+                control.setProperty("initialPosition", OC_Generic.copyPoint(initialPosition));
+                control.setProperty("midway", OC_Generic.copyPoint(midway));
+                control.setProperty("destination", OC_Generic.copyPoint(destination));
+                //
+                Map<String, Object> sfx_map = (Map<String, Object>) audioScenes.get("sfx");
+                List<String> sfx_array = (List<String>) sfx_map.get(soundEffectOnFloorCollision);
+                String soundEffect = sfx_array.get(0);
+//                MainActivity.log("OC_Generic_Event:physics:bounceObjectsWithPlacements:soundEffect:" + soundEffect);
+                OBAudioManager.audioManager.prepareForChannel(soundEffect, String.format("bounce_%d", i));
+            }
+            //
+            boolean animationComplete = false;
+            //
+            while (!animationComplete)
+            {
+                lockScreen();
+                for (int i = 1; i <= totalCount; i++)
+                {
+                    OBControl control = objects.get(i - 1);
+                    double startTime = (double) control.propertyValue("startTime");
+                    boolean floorCollision = (boolean) control.propertyValue("floorCollision");
+                    boolean atRest = (boolean) control.propertyValue("atRest");
+                    PointF midway = (PointF) control.propertyValue("midway");
+                    //
+                    double t = OC_Generic.currentTime() - startTime;
+                    //
+                    if (t < 0) continue;
+                    if (atRest) continue;
+                    //
+                    PointF newPosition;
+                    if (!floorCollision)
+                    {
+                        PointF phase1 = (PointF) control.propertyValue("phase1");
+                        PointF initialPosition = (PointF) control.propertyValue("initialPosition");
+                        //
+                        float newX = (float) (initialPosition.x + phase1.x * t);
+                        float newY = (float) (initialPosition.y + 0.5f * g * t * t - phase1.y * t);
+                        newPosition = new PointF(newX, newY);
+                        //
+                        if (newPosition.y > floorHeight)
+                        {
+                            control.setProperty("startTime", OC_Generic.currentTime());
+                            control.setProperty("floorCollision", true);
+                            newPosition = OC_Generic.copyPoint(midway);
+                            //
+                            OBAudioPlayer player = OBAudioManager.audioManager.playerForChannel(String.format("bounce_%d", i));
+                            player.play();
+                        }
+                    }
+                    else
+                    {
+                        PointF phase2 = (PointF) control.propertyValue("phase2");
+                        PointF destination = (PointF) control.propertyValue("destination");
+                        float newX = (float) (midway.x + phase2.x * t);
+                        float newY = (float) (midway.y - phase2.y * t + 0.5f * g * t * t);
+                        newPosition = new PointF(newX, newY);
+                        //
+                        float distanceToTarget = Math.abs(newPosition.y - destination.y);
+                        if (distanceToTarget <= 2)
+                        {
+                            control.setProperty("atRest", true);
+                            newPosition = OC_Generic.copyPoint(destination);
+                            //
+                            animationComplete = true;
+                            for (OBControl otherControl : objects)
+                            {
+                                animationComplete = animationComplete && (boolean) otherControl.propertyValue("atRest");
+                            }
+                        }
+                    }
+                    //
+                    control.setPosition(OC_Generic.copyPoint(newPosition));
+                }
+                unlockScreen();
+                //
+                waitForSecs(0.01f);
+            }
+        }
+        catch (Exception e)
+        {
+            MainActivity.log("OC_Generic_Event:physics_bounce:exception caught");
+            e.printStackTrace();
+        }
+    }
+
+
+
+    public void action_showShadow(OBControl control)
+    {
+        float shadowRadius = 5;
+        List<OBControl> members = new ArrayList<>();
+        members.add(control);
+        //
+        lockScreen();
+        //
+        OBGroup shadowGroup = new OBGroup(members);
+        shadowGroup.outdent(shadowRadius);
+        attachControl(shadowGroup);
+        control.setProperty("shadowGroup", shadowGroup);
+        control.setShadow(shadowRadius, 1.0f, shadowRadius / 2, shadowRadius / 2, Color.DKGRAY);
+        shadowGroup.setShouldTexturise(true);
+        //
+        unlockScreen();
+    }
+
+
+    public void action_removeShadow(OBControl control)
+    {
+        lockScreen();
+        //
+        OBGroup shadowGroup = (OBGroup) control.propertyValue("shadowGroup");
+        if (shadowGroup != null)
+        {
+            shadowGroup.removeMember(control);
+            attachControl(control);
+            detachControl(shadowGroup);
+            control.setShadow(0, 0, 0, 0, Color.BLACK);
+        }
+        //
+        unlockScreen();
+    }
 }

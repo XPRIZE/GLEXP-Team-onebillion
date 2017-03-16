@@ -382,6 +382,7 @@ public class OC_Generic
         catch (Exception e)
         {
             System.out.println("OC_Generic_Event:action_createLabelForControl:exception" + e.toString());
+            e.printStackTrace();
         }
         return null;
     }

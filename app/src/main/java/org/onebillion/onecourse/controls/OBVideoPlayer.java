@@ -246,8 +246,13 @@ public class OBVideoPlayer extends OBControl
         }
     }
 
-
     public void startPlayingAtTime(AssetFileDescriptor afd, long fr)
+    {
+        startPlayingAtTime(afd, fr, this, this);
+    }
+
+
+    public void startPlayingAtTime(AssetFileDescriptor afd, long fr, MediaPlayer.OnPreparedListener preparedListener, MediaPlayer.OnCompletionListener completionListener)
     {
         if(afd == null || activityPaused )
             return;
@@ -258,8 +263,8 @@ public class OBVideoPlayer extends OBControl
         player = new MediaPlayer();
         player.setSurface(surface);
         //surface.release();
-        player.setOnPreparedListener(this);
-        player.setOnCompletionListener(this);
+        player.setOnPreparedListener(preparedListener);
+        player.setOnCompletionListener(completionListener);
         player.setOnSeekCompleteListener(this);
         player.setOnErrorListener(this);
         player.setOnVideoSizeChangedListener(this);
