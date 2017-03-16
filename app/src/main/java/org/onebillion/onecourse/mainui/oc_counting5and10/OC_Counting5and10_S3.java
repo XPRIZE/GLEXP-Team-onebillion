@@ -136,6 +136,7 @@ public class OC_Counting5and10_S3 extends OC_Generic_SelectCorrectObject
             control.show();
             playSfxAudio(soundEffect, true);
             waitForSecs(0.3);
+
         }
     }
 
@@ -476,86 +477,15 @@ public class OC_Counting5and10_S3 extends OC_Generic_SelectCorrectObject
 
     public void action_dropNumbers ()
     {
-        try
+        List<OBControl> objectsForAnimation = new ArrayList<>();
+        objectsForAnimation.add(alignmentGroup);
+        for (OBLabel label : numbers)
         {
-            Boolean floorCollision = false;
-            Boolean atRest = false;
-            float maxDelta = 0.63f * bounds().height();
-            float g = 9.8f * 200;
-            double startTime = OC_Generic.currentTime();
-            float initialSpeed = 0;
-            //
-            alignmentGroup.setProperty("initial", alignmentGroup.getWorldPosition());
-            //
-            for (OBLabel label : numbers)
-            {
-                label.setProperty("initial", label.getWorldPosition());
-            }
-            //
-            while (!atRest)
-            {
-                double t = OC_Generic.currentTime() - startTime;
-                //
-                float deltaY = (float) (initialSpeed * t + 0.5f * g * t * t);
-                //
-                if (!floorCollision && deltaY >= maxDelta)
-                {
-                    playSfxAudio("drop_numbers", false);
-                    startTime = OC_Generic.currentTime();
-                    initialSpeed = (float) (-0.3f * g * t);
-                    floorCollision = true;
-                    //
-                    alignmentGroup.setProperty("initial", alignmentGroup.getWorldPosition());
-                    //
-                    for (OBLabel label : numbers)
-                    {
-                        label.setProperty("initial", label.getWorldPosition());
-                    }
-                    deltaY = maxDelta;
-                }
-                else if (floorCollision && deltaY >= 0)
-                {
-                    atRest = true;
-                    deltaY = 0;
-                }
-                //
-                if (atRest)
-                {
-                    lockScreen();
-                    PointF originalPosition = OC_Generic.copyPoint((PointF) alignmentGroup.propertyValue("originalPosition"));
-                    alignmentGroup.setPosition(originalPosition);
-                    //
-                    for (OBLabel label : numbers)
-                    {
-                        originalPosition = OC_Generic.copyPoint((PointF) label.propertyValue("originalPosition"));
-                        label.setPosition(originalPosition);
-                    }
-                    unlockScreen();
-                }
-                else
-                {
-                    lockScreen();
-                    PointF initial = OC_Generic.copyPoint((PointF) alignmentGroup.propertyValue("initial"));
-                    initial.y += deltaY;
-                    alignmentGroup.setPosition(initial);
-                    //
-                    for (OBLabel label : numbers)
-                    {
-                        initial = OC_Generic.copyPoint((PointF) label.propertyValue("initial"));
-                        initial.y += deltaY;
-                        label.setPosition(initial);
-                    }
-                    unlockScreen();
-                }
-                //
-                waitForSecs(0.01);
-            }
+            objectsForAnimation.add(label);
         }
-        catch (Exception e)
-        {
-            MainActivity.log("OC_Counting5and10_S3:action_dropNumbers:exception caught");
-            e.printStackTrace();
-        }
+        float maxDelta = 0.63f * bounds().height();
+        //
+        physics_verticalDrop(objectsForAnimation, maxDelta, "drop_numbers");
     }
 
 

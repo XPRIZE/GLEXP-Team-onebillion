@@ -29,6 +29,8 @@ import org.onebillion.onecourse.glstuff.TextureShaderProgram;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OBViewController;
+import org.onebillion.onecourse.utils.OBAnim;
+import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OBUtils;
 
@@ -1027,6 +1029,8 @@ public class OBControl
             return false;
         int w = (int) thisFrame.width();
         int h = (int) thisFrame.height();
+        if (w == 0 || h == 0) return false;
+        //
         Bitmap tinycache1 = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas canvas1 = new Canvas(tinycache1);
         canvas1.clipRect(0, 0, w, h);
@@ -1961,6 +1965,15 @@ public class OBControl
 
         RectF imageBounds = new RectF(leftColumn,topRow,rightColumn,bottomRow);
         return imageBounds;
+    }
+
+    public void moveToPoint(PointF pt, float time, boolean wait)
+    {
+        OBAnim moveAnim = OBAnim.moveAnim(pt, this);
+        List<OBAnim> animations = new ArrayList<>();
+        animations.add(moveAnim);
+        //
+        OBAnimationGroup.runAnims(animations, time, wait, OBAnim.ANIM_EASE_IN_EASE_OUT, (OBSectionController) this.controller);
     }
 
 
