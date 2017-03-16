@@ -58,6 +58,7 @@ public class OBControl
     public Texture texture;
     public float[] modelMatrix = new float[16];
     public float[] tempMatrix = new float[16];
+    public float[] shadMatrix = new float[16];
     public float blendColour[] = {1, 1, 1, 1};
     public float shadowBlendColour[] = {0,0,0,0};
     public float m34, cornerRadius;
@@ -1212,9 +1213,13 @@ public class OBControl
         if (texture == null || texture.bitmap() == null)
             return;
 
-        if(shouldRenderShadow())
-            tr.drawShadow(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, texture.bitmap());
-
+        if(shouldRenderShadow() && shadowRadius > 0f)
+        {
+            if (shadowCache == null)
+                createShadowCache(drawn());
+            //tr.drawShadow(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, texture.bitmap());
+            tr.draw(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, shadowCache);
+        }
         if (dynamicMask && maskControl != null && maskControl.texture != null)
             tr.draw(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, texture.bitmap(), maskControl.texture.bitmap());
         else
@@ -1236,6 +1241,8 @@ public class OBControl
             }
             //
             android.opengl.Matrix.multiplyMM(tempMatrix, 0, modelViewMatrix, 0, modelMatrix, 0);
+
+
             //
             if (needsTexture())
             {
@@ -1250,11 +1257,27 @@ public class OBControl
                     finalCol[i] *= op;
 
                 if(shouldRenderShadow())
-                {
-                    ShadowShaderProgram shadowShader = (ShadowShaderProgram) renderer.shadowProgram;
-                    shadowShader.useProgram();
-                    shadowShader.setUniforms(modelViewMatrix,modelMatrix,renderer.textureObjectIds[0],shadowOffsetX,shadowOffsetY,shadowBlendColour,finalCol);
-                }
+                    if( shadowRadius == 0f)
+                    {
+                        ShadowShaderProgram shadowShader = (ShadowShaderProgram) renderer.shadowProgram;
+                        shadowShader.useProgram();
+                        shadowShader.setUniforms(modelViewMatrix,modelMatrix,renderer.textureObjectIds[0],shadowOffsetX,shadowOffsetY,shadowBlendColour,finalCol);
+                    }
+                    else
+                    {
+                        float tm[] = new float[16];
+                        android.opengl.Matrix.setIdentityM(tm, 0);
+                        android.opengl.Matrix.translateM(tm, 0, shadowOffsetX, shadowOffsetY, 0);
+                        android.opengl.Matrix.multiplyMM(shadMatrix, 0, tempMatrix, 0, tm, 0);
+                        TextureShaderProgram textureShader = (TextureShaderProgram) renderer.textureProgram;
+                        textureShader.useProgram();
+                        textureShader.setUniforms(shadMatrix, renderer.textureObjectIds[0], finalCol, blendMode);
+                        if (shadowCache == null)
+                            createShadowCache(drawn());
+                        TextureRect tr = renderer.textureRect;
+                        tr.draw(renderer, 0, 0, shadowCache.getWidth(), shadowCache.getHeight(), shadowCache);
+
+                    }
 
                 if (dynamicMask && maskControl != null)
                 {
@@ -1418,22 +1441,29 @@ public class OBControl
 
     private void blur (Bitmap bt, float radius)
     {
-
         RenderScript rs = RenderScript.create(MainActivity.mainActivity);
 
-        Allocation overlayAlloc = Allocation.createFromBitmap(
-                rs, bt);
+        float thisrad = radius > 25f?25f:radius;
+        float remainrad = radius - thisrad;
+        while (thisrad > 0)
+        {
+            Allocation overlayAlloc = Allocation.createFromBitmap(
+                    rs, bt);
 
-        ScriptIntrinsicBlur blur = ScriptIntrinsicBlur.create(
-                rs, overlayAlloc.getElement());
+            ScriptIntrinsicBlur blur = ScriptIntrinsicBlur.create(
+                    rs, overlayAlloc.getElement());
 
-        blur.setInput(overlayAlloc);
+            blur.setInput(overlayAlloc);
 
-        blur.setRadius(radius);
+            blur.setRadius(thisrad);
 
-        blur.forEach(overlayAlloc);
+            blur.forEach(overlayAlloc);
 
-        overlayAlloc.copyTo(bt);
+            overlayAlloc.copyTo(bt);
+
+            thisrad = remainrad > 25f?25f:remainrad;
+            remainrad = remainrad - thisrad;
+        }
 
         rs.destroy();
     }
@@ -1452,7 +1482,7 @@ public class OBControl
     {
         int width = (int) Math.ceil((bounds().right - bounds().left) * rasterScale);
         int height = (int) Math.ceil((bounds().bottom - bounds().top) * rasterScale);
-        shadowCache = Bitmap.createBitmap(width, height, Bitmap.Config.ALPHA_8);
+        shadowCache = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(shadowCache);
         Matrix m = new Matrix();
         m.preScale(rasterScale, rasterScale);

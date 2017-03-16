@@ -1,6 +1,8 @@
 package org.onebillion.onecourse.mainui;
 
 import android.graphics.Bitmap;
+import android.graphics.PointF;
+import android.view.View;
 
 import org.onebillion.onecourse.controls.OBEmitter;
 
@@ -42,4 +44,8 @@ public class X_Test extends OC_SectionController
             canvas.drawBitmap(tempBitmap, 1100, 500, null);
         }
     }*/
+    public void touchDownAtPoint(PointF pt, View v)
+    {
+        invalidateView(0,0,bounds().right,bounds().bottom);
+    }
 }

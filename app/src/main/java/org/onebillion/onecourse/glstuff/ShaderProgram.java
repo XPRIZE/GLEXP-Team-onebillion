@@ -159,4 +159,11 @@ abstract class ShaderProgram {
         glUseProgram(program);
     }
 
+    public void finalize() throws Throwable
+    {
+        super.finalize();
+        if (program > 0)
+            glDeleteProgram(program);
+
+    }
 }

@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.view.View;
 
+import org.onebillion.onecourse.R;
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGradientLayer;
 import org.onebillion.onecourse.controls.OBGroup;
@@ -23,6 +24,7 @@ import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.controls.OBPresenter;
 import org.onebillion.onecourse.controls.OBRadialGradientLayer;
 import org.onebillion.onecourse.controls.OBRadialGradientPath;
+import org.onebillion.onecourse.glstuff.PixelShaderProgram;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
@@ -105,6 +107,8 @@ public class OC_Doodle extends OC_SectionController
         }
     }
     List<DoodleGradient> gradients = new ArrayList();
+    public PixelShaderProgram shaderProgram;
+
     private Runnable messageCheckRunnable;
     private Handler messageCheckHandler = new Handler();
     float[] HSV = new float[3];
@@ -130,6 +134,7 @@ public class OC_Doodle extends OC_SectionController
 
     public void miscSetUp()
     {
+        shaderProgram = new PixelShaderProgram(R.raw.threegradientsfragmentshader,boundsf().width(),boundsf().height());
         OBPath blackboard = (OBPath) objectDict.get("blackboard");
         OBPath blackborder = (OBPath) blackboard.copy();
         blackborder.setFillColor(0);
