@@ -1089,7 +1089,7 @@ public class OBGroup extends OBControl
             }
 
         }
-        this.setPosition(new PointF(fullBounds.left + (fullBounds.right - fullBounds.left) / 2.0f, fullBounds.top + (fullBounds.bottom - fullBounds.top) / 2.0f));
+       // this.setPosition(new PointF(fullBounds.left + (fullBounds.right - fullBounds.left) / 2.0f, fullBounds.top + (fullBounds.bottom - fullBounds.top) / 2.0f));
         this.setBounds(0,0,fullBounds.right-fullBounds.left,fullBounds.bottom-fullBounds.top);
     }
 

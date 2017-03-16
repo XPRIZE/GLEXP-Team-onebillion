@@ -33,6 +33,13 @@ public class MlUnit extends MlObject
         return unit;
     }
 
+    public static MlUnit mlUnitFromXMLNode(OBXMLNode node)
+    {
+        MlUnit unit = new MlUnit();
+        unit.xmlNodeToObject(node,stringFields,intFields,null,floatFields);
+        return unit;
+    }
+
     public static boolean insertUnitFromXMLNodeintoDB(DBSQL db, OBXMLNode node, int masterlistid, int unitIndex, int level, int startAudio)
     {
         ContentValues contentValues = contentValuesForNode(node,stringFields,intFields,null,floatFields,dbToXmlConvert);

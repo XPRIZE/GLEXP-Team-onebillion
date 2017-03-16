@@ -200,6 +200,11 @@ public class OBControl
         state = LCC_SELECTED;
     }
 
+    public boolean isSelected ()
+    {
+        return state == LCC_SELECTED;
+    }
+
     public float opacity ()
     {
         if (layer != null)
@@ -1029,7 +1034,7 @@ public class OBControl
             return false;
         int w = (int) thisFrame.width();
         int h = (int) thisFrame.height();
-        if (w == 0 || h == 0) return false;
+        if(w == 0 || h == 0) return false;
         //
         Bitmap tinycache1 = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas canvas1 = new Canvas(tinycache1);
@@ -1227,7 +1232,7 @@ public class OBControl
 
     public void render (OBRenderer renderer, OBViewController vc, float[] modelViewMatrix)
     {
-        if (!hidden && bounds().width() > 0 && bounds().height() > 0)
+        if (!hidden && bounds().width() > 0 && bounds().height() > 0 && shouldDrawOnScreen(modelViewMatrix))
         {
             matrix3dForDraw();
             if (doubleSided)
@@ -1241,6 +1246,7 @@ public class OBControl
             //
             android.opengl.Matrix.multiplyMM(tempMatrix, 0, modelViewMatrix, 0, modelMatrix, 0);
             //
+
             if (needsTexture())
             {
                 float op = opacity();
@@ -1301,6 +1307,34 @@ public class OBControl
 
             }
         }
+    }
+
+    public boolean shouldDrawOnScreen(float[] modelViewMatrix)
+    {
+        float[] resVec = new float[4];
+        float[] tempVec = new float[4];
+        RectF worldFrame = frame();
+        tempVec[0] = worldFrame.left;
+        tempVec[1] = worldFrame.top;
+        tempVec[2] = 0;
+        tempVec[3] = 1;
+        android.opengl.Matrix.multiplyMV(resVec,0,modelViewMatrix,0, tempVec, 0);
+
+        if(resVec[0] > 1.0f || resVec[1] < -1.0f)
+        {
+            return false;
+        }
+
+        tempVec[0] = worldFrame.right;
+        tempVec[1] = worldFrame.bottom;
+        android.opengl.Matrix.multiplyMV(resVec,0,modelViewMatrix,0, tempVec, 0);
+
+        if(resVec[0] < -1.0f || resVec[1] > 1.0f)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     public void draw (Canvas canvas)

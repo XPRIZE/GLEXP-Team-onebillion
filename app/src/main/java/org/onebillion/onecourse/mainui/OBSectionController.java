@@ -826,9 +826,11 @@ public class OBSectionController extends OBViewController
             if (attrs.get("stroke") != null)
             {
                 OBStroke str = new OBStroke(attrs, true);
-                im.setStroke(str);
                 if (im instanceof OBPath)
-                    ((OBPath)im).setLineWidth(graphicScale * ((OBPath)im).lineWidth());
+                {
+                    str.scaleComponents(graphicScale);
+                }
+                im.setStroke(str);
             }
             if (attrs.get("opacity") != null)
             {

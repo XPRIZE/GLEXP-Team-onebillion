@@ -309,6 +309,7 @@ public class OC_SectionController extends OBSectionController {
         }
         catch (Exception exception)
         {
+            exception.printStackTrace();
         }
     }
 
