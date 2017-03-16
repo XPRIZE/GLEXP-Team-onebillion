@@ -304,6 +304,7 @@ public class OC_Numberlines_Additions
             }
 
             parts.put(String.format("part%d",index++),labelGroup);
+            labelGroup.setShouldTexturise(false);
             controller.attachControl(labelGroup);
             labelGroup.show();
             //parts.put(String.format("label_%d",index++),eqLabel);
@@ -327,6 +328,7 @@ public class OC_Numberlines_Additions
         }
         else
         {
+            fullGroup.setShouldTexturise(false);
             fullGroup.objectDict = parts;
             controller.attachControl(fullGroup);
             controller.objectDict.put(name,fullGroup);

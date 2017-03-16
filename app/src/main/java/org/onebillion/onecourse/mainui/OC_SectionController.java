@@ -557,6 +557,15 @@ public class OC_SectionController extends OBSectionController {
         return aud2;
     }
 
+    public String getAudioForSceneIndex(String scene, String category, int index)
+    {
+       List<String> audioScene = getAudioForScene(scene, category);
+        if(audioScene == null || audioScene.size() < index)
+            return null;
+
+        return  audioScene.get(index);
+    }
+
     @Override
     public void onPause()
     {
