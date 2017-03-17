@@ -44,7 +44,7 @@ public class OBControl
     public Map<String, Object> settings;
     public OBLayer layer;
     public PointF anchorPoint;
-    public RectF frame, bounds;
+    public RectF frame, bounds,displayBounds;
     public Boolean hidden, animationsDisabled;
     public long animationKey;
     public Matrix drawMatrix, convertMatrix;
@@ -71,10 +71,11 @@ public class OBControl
     RectF tempRect = new RectF();
     float rasterScale, zPosition;
     OBStroke stroke;
-    boolean frameValid, masksToBounds;
+    boolean frameValid, masksToBounds,displayBoundsValid=false;
     boolean maskControlReversed = false, dynamicMask = false;
     private int shadowColour;
     float shadowOffsetX, shadowOffsetY, shadowOpacity, shadowRadius;
+    float shadowPad = 0f;
     boolean needsRetexture;
     float uvRight = 1, uvBottom = 1;
     float blendMode;
@@ -87,6 +88,7 @@ public class OBControl
         frame = new RectF();
         frameValid = false;
         bounds = new RectF();
+        displayBounds = new RectF();
         tempPoint = new PointF();
         animationsDisabled = false;
         hidden = false;
@@ -1275,9 +1277,17 @@ public class OBControl
                     else
                     {
                         float tm[] = new float[16];
+                        float tm2[] = new float[16];
                         android.opengl.Matrix.setIdentityM(tm, 0);
                         android.opengl.Matrix.translateM(tm, 0, shadowOffsetX, shadowOffsetY, 0);
-                        android.opengl.Matrix.multiplyMM(shadMatrix, 0, tempMatrix, 0, tm, 0);
+
+                        android.opengl.Matrix.multiplyMM(tm2, 0, tm, 0, modelMatrix, 0);
+                        android.opengl.Matrix.multiplyMM(shadMatrix, 0, modelViewMatrix, 0, tm2, 0);
+
+
+
+
+                        //android.opengl.Matrix.multiplyMM(shadMatrix, 0, tm, 0, tempMatrix, 0);
                         TextureShaderProgram textureShader = (TextureShaderProgram) renderer.textureProgram;
                         textureShader.useProgram();
                         textureShader.setUniforms(shadMatrix, renderer.textureObjectIds[0], finalCol, blendMode);
@@ -2066,4 +2076,18 @@ public class OBControl
         return shadowColour;
     }
 
+    public void computeDisplayBounds()
+    {
+        displayBounds = bounds();
+    }
+
+    public RectF displayBounds()
+    {
+        if (!displayBoundsValid)
+        {
+            computeDisplayBounds();
+            displayBoundsValid = true;
+        }
+        return displayBounds;
+    }
 }
