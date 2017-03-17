@@ -1,10 +1,13 @@
 package org.onebillion.onecourse.utils;
 
+import android.graphics.Color;
 import android.graphics.PointF;
+import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.util.ArrayMap;
 
 import org.onebillion.onecourse.controls.*;
+import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 
 import java.util.ArrayList;
@@ -189,5 +192,34 @@ public class OBMisc
         return arr;
 
     }
+
+    public static List<OBGroup> loadNumbersInBoxes(int from, int to, int boxColour, int labelColour, String name, OBSectionController controller)
+    {
+        List<OBGroup> numbers = new ArrayList<>();
+        OBControl numbox = controller.objectDict.get(name);
+        for(int i = from; i<=to; i++)
+        {
+            OBControl box = new OBControl();
+            box.setFrame(new RectF(0, 0, numbox.width()/ (to-from+1.0f), numbox.height()));
+            box.setBackgroundColor(boxColour);
+            box.setBorderColor(Color.BLACK);
+            box.setBorderWidth(controller.applyGraphicScale(2));
+            box.setPosition(OB_Maths.locationForRect(1.0f/(to-from+1)*(i-from),0.5f,numbox.frame()));
+            box.setLeft(numbox.position().x - ((to-from+1)/2.0f *(box.width() - box.borderWidth)) + (box.width() - box.borderWidth)*(i-from)*1.0f);
+            OBLabel label = new OBLabel(String.format("%d",i),OBUtils.standardTypeFace(),65.0f*numbox.height()/85.0f); label.setColour(Color.BLACK);
+            label.setPosition(copyPoint(box.position()));
+            label.setColour(labelColour);
+            OBGroup group = new OBGroup(Arrays.asList(box,label));
+            group.objectDict.put("label",label);
+            group.objectDict.put("box",box);
+            controller.attachControl(group);
+            group.setProperty("num_val",i);
+            numbers.add(group);
+        }
+        return numbers;
+    }
+
+
+
 
 }
