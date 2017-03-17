@@ -70,7 +70,7 @@ public class OC_AddSubtract_S1 extends OC_SectionController
             public void run() throws Exception
             {
                 if(!performSel("demo",currentEvent()))
-                 startPhase();
+                    startPhase();
             }
         });
     }
@@ -98,7 +98,6 @@ public class OC_AddSubtract_S1 extends OC_SectionController
 
             for(OBControl cont : filterControls("obj_.*"))
                 cont.setAnchorPoint(new PointF(0.5f, 1));
-
         }
 
         String equation = String.format(subtractMode ? "%s – %s = %s" : "%s + %s = %s", eqParts.get(0), eqParts.get(1), eqParts.get(2));
