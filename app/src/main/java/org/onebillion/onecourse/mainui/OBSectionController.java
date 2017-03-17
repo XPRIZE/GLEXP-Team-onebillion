@@ -1279,50 +1279,6 @@ public class OBSectionController extends OBViewController
 
     }
 
-    public void renderBackgroundo (OBRenderer renderer)
-    {
-        int POSITION_COMPONENT_COUNT = 3;
-        int COLOR_COMPONENT_COUNT = 3;
-        int BYTES_PER_FLOAT = 4;
-        int STRIDE = (POSITION_COMPONENT_COUNT + COLOR_COMPONENT_COUNT) * BYTES_PER_FLOAT;
-        float r1 = topColour[0],
-                g1 = topColour[1],
-                b1 = topColour[2];
-        float r2 = bottomColour[0],
-                g2 = bottomColour[1],
-                b2 = bottomColour[2];
-        float vertices[] = {
-                -1, 1, 0, r1, g1, b1,
-                -1, -1, 0, r2, g2, b2,
-                1, -1, 0, r1, g1, b1,
-                -1, 1, 0, r2, g2, b2
-        };
-        TextureRect.fillOutRectVertexData(vertices, 0, 0, renderer.w, renderer.h, POSITION_COMPONENT_COUNT + COLOR_COMPONENT_COUNT);
-        FloatBuffer vertexData = ByteBuffer
-                .allocateDirect(vertices.length * BYTES_PER_FLOAT)
-                .order(ByteOrder.nativeOrder()).asFloatBuffer();
-
-        vertexData.put(vertices);
-
-        int aPositionLocation = ((ColorShaderProgram) renderer.colourProgram).getPositionAttributeLocation();
-        int aColorLocation = ((ColorShaderProgram) renderer.colourProgram).getColorAttributeLocation();
-
-        // Bind our data, specified by the variable vertexData, to the vertex
-        // attribute at location A_POSITION_LOCATION.
-        vertexData.position(0);
-        glVertexAttribPointer(aPositionLocation, POSITION_COMPONENT_COUNT, GL_FLOAT,
-                false, STRIDE, vertexData);
-        glEnableVertexAttribArray(aPositionLocation);
-// Bind our data, specified by the variable vertexData, to the vertex
-        // attribute at location A_COLOR_LOCATION.
-        vertexData.position(POSITION_COMPONENT_COUNT);
-        glVertexAttribPointer(aColorLocation, COLOR_COMPONENT_COUNT, GL_FLOAT,
-                false, STRIDE, vertexData);
-
-        glEnableVertexAttribArray(aColorLocation);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    }
-
     public void render (OBRenderer renderer)
     {
         renderLock.lock();

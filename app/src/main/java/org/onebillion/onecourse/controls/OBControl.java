@@ -1534,31 +1534,20 @@ public class OBControl
 
     public void createShadowCache (Bitmap bitmap)
     {
-        int width = (int) Math.ceil((bounds().right - bounds().left) * rasterScale);
-        int height = (int) Math.ceil((bounds().bottom - bounds().top) * rasterScale);
+        int width = (int) Math.ceil((bounds().right - bounds().left) * rasterScale + shadowPad * 2);
+        int height = (int) Math.ceil((bounds().bottom - bounds().top) * rasterScale + shadowPad * 2);
         shadowCache = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(shadowCache);
         Matrix m = new Matrix();
         m.preScale(rasterScale, rasterScale);
-        //canvas.concat(m);
+        canvas.concat(m);
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        /*BlurMaskFilter bmf = new BlurMaskFilter(3,BlurMaskFilter.Blur.NORMAL);
-        paint.setMaskFilter(bmf);
-        paint.setColor(Color.BLACK);
-        paint.setFilterBitmap(true);
-        canvas.drawBitmap(cache,0,0,paint);*/
         Bitmap alpha = bitmap.extractAlpha();
         paint.setColor(shadowColour);
         paint.setAlpha((int) (shadowOpacity * 255));
 
         canvas.drawBitmap(alpha, 0, 0, paint);
-        // Create outer blur
-       /* final BlurMaskFilter filter = new BlurMaskFilter(9, BlurMaskFilter.Blur.OUTER);
-        paint.setMaskFilter(filter);
-        canvas.drawBitmap(alpha, 0, 0, paint);*/
-        Log.i("shadow", String.format("%g", shadowRadius));
         blur(shadowCache, shadowRadius);
-        //Runnable r2 = () -> System.out.println("Hello world two!");
     }
 
     public float rasterScale ()
