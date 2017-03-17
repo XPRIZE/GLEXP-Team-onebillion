@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.PointF;
 import android.view.View;
 
+import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBEmitter;
 
 import java.util.Collections;
@@ -25,8 +26,8 @@ public class X_Test extends OC_SectionController
         super.prepare();
          loadFingers();
         loadEvent("mastera");
-        events = Collections.singletonList("1a");
-
+        OBControl c = objectDict.get("Path1");
+        c.rotation = (float) Math.toRadians(45);
          doVisual(currentEvent());
         setStatus(STATUS_AWAITING_CLICK);
     }
