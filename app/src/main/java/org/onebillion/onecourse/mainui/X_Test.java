@@ -1,7 +1,10 @@
 package org.onebillion.onecourse.mainui;
 
 import android.graphics.Bitmap;
+import android.graphics.PointF;
+import android.view.View;
 
+import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBEmitter;
 
 import java.util.Collections;
@@ -23,8 +26,8 @@ public class X_Test extends OC_SectionController
         super.prepare();
          loadFingers();
         loadEvent("mastera");
-        events = Collections.singletonList("1a");
-
+        OBControl c = objectDict.get("Path1");
+        c.rotation = (float) Math.toRadians(45);
          doVisual(currentEvent());
         setStatus(STATUS_AWAITING_CLICK);
     }
@@ -42,4 +45,8 @@ public class X_Test extends OC_SectionController
             canvas.drawBitmap(tempBitmap, 1100, 500, null);
         }
     }*/
+    public void touchDownAtPoint(PointF pt, View v)
+    {
+        invalidateView(0,0,bounds().right,bounds().bottom);
+    }
 }
