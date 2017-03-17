@@ -58,7 +58,8 @@ public class OC_AddSubtract_S1 extends OC_SectionController
         }
         numbers = OBMisc.loadNumbersInBoxes(subtractMode ? 0 : 1, 10, eventColour.get("box"), Color.BLACK, "numbox", this);
         events = Arrays.asList(eventAttributes.get("scenes").split(","));
-        ((OBPath)objectDict.get("box")).sizeToBoundingBoxIncludingStroke();
+        if(objectDict.get("box") != null)
+            ((OBPath)objectDict.get("box")).sizeToBoundingBoxIncludingStroke();
         setSceneXX(currentEvent());
         showFirst();
     }
@@ -314,10 +315,10 @@ public class OC_AddSubtract_S1 extends OC_SectionController
         path.cubicTo(midX, bottom, destLoc.x, bottom, destLoc.x, destLoc.y);
         playSfxAudio("takeaway",false);
         OBAnimationGroup.runAnims(Arrays.asList(OBAnim.pathMoveAnim(control,path,false,0)),0.4f,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
-        PointF point = objectDict.get("bag_front").position();
-        PointF leftPoint = point;
+        PointF point = OBMisc.copyPoint(objectDict.get("bag_front").position());
+        PointF leftPoint = OBMisc.copyPoint(point);
         leftPoint.x -= applyGraphicScale(7);
-        PointF rightPoint = point;
+        PointF rightPoint = OBMisc.copyPoint(point);
         rightPoint.x += applyGraphicScale(7);
         List<OBControl> allControls = new ArrayList<>();
         allControls.addAll(baggedItems);
