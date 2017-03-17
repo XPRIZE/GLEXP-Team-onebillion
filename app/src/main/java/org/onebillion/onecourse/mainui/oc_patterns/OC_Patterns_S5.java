@@ -36,7 +36,7 @@ public class OC_Patterns_S5 extends OC_Generic_Event
 
     public void fin ()
     {
-//        goToCard(OC_Patterns_S5j.class, "event5");
+        goToCard(OC_Patterns_S5j.class, "event5");
     }
 
 
@@ -45,7 +45,7 @@ public class OC_Patterns_S5 extends OC_Generic_Event
     {
         super.action_prepareScene(scene, redraw);
         //
-        List lines = filterControls("obj.*");
+        List<OBControl> lines = filterControls("obj.*");
         totalLines = lines.size();
         placedLines = 0;
         //
@@ -130,32 +130,41 @@ public class OC_Patterns_S5 extends OC_Generic_Event
         control = objectDict.get("complete_1");
         UPath upath = deconstructedPath(currentEvent(), (String) control.attributes().get("id"));
         USubPath subPath = upath.subPaths.get(0);
-        List sides = new ArrayList();
         for (int i = 0; i < 3; i++)
         {
             ULine line = subPath.elements.get(i);
             Path bezier = new Path();
-            bezier.moveTo(line.pt0.x, line.pt0.y);
-            bezier.lineTo(line.pt1.x, line.pt1.y);
+            PointF newPt0 = line.pt0;
+            PointF newPt1 = line.pt1;
+            bezier.moveTo(newPt0.x, newPt0.y);
+            bezier.lineTo(newPt1.x, newPt1.y);
             //
             OBPath path = new OBPath();
             path.setPath(bezier);
-            path.setFrame(control.frame);
             path.setStrokeColor(Color.BLACK);
             path.setLineWidth(applyGraphicScale(24));
+            OC_Generic.sendObjectToTop(path, this);
             //
             OBPath clone = (OBPath) control.copy();
             OBGroup group = new OBGroup((List<OBControl>) (Object) Arrays.asList(clone, path));
             group.setMaskControl(clone);
             //
             action_playNextDemoSentence(false); // One. Two. Three.
-            OC_Generic.sendObjectToTop(group, this);
+            //
+            lockScreen();
             attachControl(group);
-            sides.add(group);
+            OC_Generic.sendObjectToTop(group, this);
             group.show();
+            group.setBorderColor(Color.RED);
+            group.setBorderWidth(2.0f);
+            unlockScreen();
+            //
             waitAudio();
             //
+            lockScreen();
             group.hide();
+            unlockScreen();
+            //
             waitForSecs(0.3f);
         }
         thePointer.hide();
@@ -180,7 +189,7 @@ public class OC_Patterns_S5 extends OC_Generic_Event
         UPath upath = deconstructedPath(currentEvent(), (String) control.attributes().get("id"));
         USubPath subPath = upath.subPaths.get(0);
         //
-        List<OBControl> sides = new ArrayList();
+        List<OBControl> paths = new ArrayList();
         for (int i = 0; i < 4; i++)
         {
             ULine line = subPath.elements.get(i);
@@ -190,40 +199,50 @@ public class OC_Patterns_S5 extends OC_Generic_Event
             //
             OBPath path = new OBPath();
             path.setPath(bezier);
-            path.setFrame(control.frame);
             path.setStrokeColor(Color.BLACK);
             path.setLineWidth(applyGraphicScale(24));
+            OC_Generic.sendObjectToTop(path, this);
+            paths.add(path.copy());
             //
             OBPath clone = (OBPath) control.copy();
             OBGroup group = new OBGroup((List<OBControl>) (Object) Arrays.asList(clone, path));
             group.setMaskControl(clone);
-            playAudioScene("FINAL", 2 + i, false); // One. Two. Three. Four.
             OC_Generic.sendObjectToTop(group, this);
+            //
+            playAudioScene("FINAL", 2 + i, false); // One. Two. Three. Four.
+            //
+            lockScreen();
             attachControl(group);
-            sides.add(group);
             group.show();
+            unlockScreen();
+            //
             waitAudio();
             //
+            lockScreen();
             group.hide();
+            unlockScreen();
+            //
             waitForSecs(0.3f);
         }
         playAudioScene("FINAL", 6, false); // They are all the same length.
+        OBPath clone = (OBPath) control.copy();
+        List membersForGroup = new ArrayList();
+        membersForGroup.add(clone);
+        for (OBControl path : paths) membersForGroup.add(path);
+        OBGroup group = new OBGroup(membersForGroup);
+        group.setMaskControl(clone);
+        OC_Generic.sendObjectToTop(group, this);
         //
         lockScreen();
-        for (OBControl group : sides)
-        {
-            group.show();
-        }
+        attachControl(group);
+        group.show();
         unlockScreen();
         //
         waitAudio();
         //
         lockScreen();
-        for (OBControl group : sides)
-        {
-            group.hide();
-            detachControl(group);
-        }
+        group.hide();
+        detachControl(group);
         unlockScreen();
         //
         waitForSecs(0.7f);
@@ -244,66 +263,92 @@ public class OC_Patterns_S5 extends OC_Generic_Event
         //
         UPath upath = deconstructedPath(currentEvent(), (String) control.attributes().get("id"));
         USubPath subPath = upath.subPaths.get(0);
-        List<OBGroup> sides = new ArrayList();
+        //
+        List<OBControl> paths = new ArrayList();
+        //
         for (int i = 0; i < 4; i++)
         {
             ULine line = subPath.elements.get(i);
             Path bezier = new Path();
             bezier.moveTo(line.pt0.x, line.pt0.y);
             bezier.lineTo(line.pt1.x, line.pt1.y);
+            //
             OBPath path = new OBPath();
             path.setPath(bezier);
-            path.setFrame(control.frame);
             path.setStrokeColor(Color.BLACK);
             path.setLineWidth(applyGraphicScale(24));
+            OC_Generic.sendObjectToTop(path, this);
+            paths.add(path.copy());
             //
             OBPath clone = (OBPath) control.copy();
             OBGroup group = new OBGroup((List<OBControl>) (Object) Arrays.asList(clone, path));
             group.setMaskControl(clone);
-            playAudioScene("FINAL", 2 + i, false); // One.Two.Three.Four.
             OC_Generic.sendObjectToTop(group, this);
+            //
+            playAudioScene("FINAL", 2 + i, false); // One.Two.Three.Four.
+            //
+            lockScreen();
             attachControl(group);
-            sides.add(group);
             group.show();
+            unlockScreen();
+            //
             waitAudio();
             //
+            lockScreen();
             group.hide();
+            detachControl(group);
+            unlockScreen();
+            //
             waitForSecs(0.3f);
         }
         playAudioScene("FINAL", 6, false); // These two sides are longer …
+        //
+        OBPath clone = (OBPath) control.copy();
+        List membersForGroup = new ArrayList();
+        membersForGroup.add(clone);
+        membersForGroup.add(paths.get(0));
+        membersForGroup.add(paths.get(2));
+        OBGroup group = new OBGroup(membersForGroup);
+        group.setMaskControl(clone);
+        OC_Generic.sendObjectToTop(group, this);
+        //
         lockScreen();
-        sides.get(0).show();
-        sides.get(2).show();
+        attachControl(group);
+        group.show();
         unlockScreen();
         //
         waitAudio();
         //
         lockScreen();
-        sides.get(0).hide();
-        sides.get(2).hide();
+        group.hide();
+        detachControl(group);
         unlockScreen();
         //
         waitForSecs(0.3f);
         //
         playAudioScene("FINAL", 7, false); // …than these two.
+        //
+        clone = (OBPath) control.copy();
+        membersForGroup = new ArrayList();
+        membersForGroup.add(clone);
+        membersForGroup.add(paths.get(1));
+        membersForGroup.add(paths.get(3));
+        group = new OBGroup(membersForGroup);
+        group.setMaskControl(clone);
+        OC_Generic.sendObjectToTop(group, this);
+        //
         lockScreen();
-        sides.get(1).show();
-        sides.get(3).show();
+        attachControl(group);
+        group.show();
         unlockScreen();
         //
         waitAudio();
         //
         lockScreen();
-        sides.get(1).hide();
-        sides.get(3).hide();
+        group.hide();
+        detachControl(group);
         unlockScreen();
         //
-        waitForSecs(0.3f);
-        //
-        for (OBGroup side : sides)
-        {
-            detachControl(side);
-        }
         waitForSecs(0.7f);
     }
 
@@ -319,17 +364,26 @@ public class OC_Patterns_S5 extends OC_Generic_Event
         OBPath path = (OBPath) control.copy();
         path.setStrokeColor(Color.BLACK);
         path.setLineWidth(applyGraphicScale(24));
+        OC_Generic.sendObjectToTop(path, this);
         //
         OBGroup group = new OBGroup((List<OBControl>) (Object) Arrays.asList(path, clone));
         group.setMaskControl(clone);
-        playAudioScene("FINAL", 1, false); // It is round.
         OC_Generic.sendObjectToTop(group, this);
+        //
+        playAudioScene("FINAL", 1, false); // It is round.
+        //
+        lockScreen();
         attachControl(group);
         group.show();
+        unlockScreen();
+        //
         waitAudio();
         //
+        lockScreen();
         group.hide();
         detachControl(group);
+        unlockScreen();
+        //
         waitForSecs(0.7f);
     }
 
@@ -346,10 +400,10 @@ public class OC_Patterns_S5 extends OC_Generic_Event
             {
                 if (placement.attributes().get("type").equals(control.attributes().get("type")))
                 {
+                    control.moveToPoint(placement.getWorldPosition(), 0.1f, false);
+                    //
                     gotItRightBigTick(false);
-                    placement.disable();
-                    control.disable();
-                    control.moveToPoint(placement.getWorldPosition(), 0.1f, true);
+                    //
                     placedLines++;
                     if (placedLines >= totalLines)
                     {
@@ -372,7 +426,7 @@ public class OC_Patterns_S5 extends OC_Generic_Event
                         }
                         for (OBControl controlAlt : filterControls("complete.*"))
                         {
-                            OBAnim anim = OBAnim.opacityAnim(1.0f, control);
+                            OBAnim anim = OBAnim.opacityAnim(1.0f, controlAlt);
                             animations.add(anim);
                         }
                         OBAnimationGroup.runAnims(animations, 0.5, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
@@ -400,14 +454,15 @@ public class OC_Patterns_S5 extends OC_Generic_Event
                 PointF value = (PointF) control.propertyValue("originalPosition");
                 control.moveToPoint(value, 0.3f, false);
             }
-            revertStatusAndReplayAudio();
-            setStatus(STATUS_AWAITING_CLICK);
         }
         catch (Exception e)
         {
             MainActivity.log("OC_Patterns_S5:checkDragAtPoint:exception caught");
             e.printStackTrace();
         }
+        //
+        revertStatusAndReplayAudio();
+        setStatus(STATUS_AWAITING_CLICK);
     }
 
 
