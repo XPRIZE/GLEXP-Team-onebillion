@@ -766,26 +766,28 @@ public class OBGroup extends OBControl
 
     public void render (OBRenderer renderer, OBViewController vc, float[] modelViewMatrix)
     {
-        if (shouldTexturise)
+        if(shouldDraw(modelViewMatrix))
         {
-            super.render(renderer, vc, modelViewMatrix);
-            return;
-        }
-        matrix3dForDraw();
-        if (doubleSided)
-        {
-            GLES20.glDisable(GLES20.GL_CULL_FACE);
-        }
-        else
-        {
-            GLES20.glEnable(GLES20.GL_CULL_FACE);
-        }
-        //
-        android.opengl.Matrix.multiplyMM(tempMatrix, 0, modelViewMatrix, 0, modelMatrix, 0);
-        populateSortedAttachedControls();
-        //
-        for (OBControl c : sortedAttachedControls)
-        {
+
+            if (shouldTexturise)
+            {
+                super.render(renderer, vc, modelViewMatrix);
+                return;
+            }
+            matrix3dForDraw();
+            if (doubleSided)
+            {
+                GLES20.glDisable(GLES20.GL_CULL_FACE);
+            } else
+            {
+                GLES20.glEnable(GLES20.GL_CULL_FACE);
+            }
+            //
+            android.opengl.Matrix.multiplyMM(tempMatrix, 0, modelViewMatrix, 0, modelMatrix, 0);
+            populateSortedAttachedControls();
+            //
+            for (OBControl c : sortedAttachedControls)
+            {
 //            if (OBPath.class.isInstance(c))
 //            {
 //                OBPath path = (OBPath) c;
@@ -802,8 +804,9 @@ public class OBGroup extends OBControl
 //                group.setFrame(newFrame);
 //                MainActivity.log("Group: " + oldFrame + " --> " + newFrame);
 //            }
-            //
-            c.render(renderer, vc, tempMatrix);
+                //
+                c.render(renderer, vc, tempMatrix);
+            }
         }
     }
 

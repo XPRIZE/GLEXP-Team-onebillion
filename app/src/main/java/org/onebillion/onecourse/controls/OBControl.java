@@ -1239,7 +1239,7 @@ public class OBControl
 
     public void render (OBRenderer renderer, OBViewController vc, float[] modelViewMatrix)
     {
-        if (!hidden && bounds().width() > 0 && bounds().height() > 0 && shouldDrawOnScreen(modelViewMatrix))
+        if (shouldDraw(modelViewMatrix))
         {
             matrix3dForDraw();
             if (doubleSided)
@@ -1341,7 +1341,13 @@ public class OBControl
         }
     }
 
-    public boolean shouldDrawOnScreen(float[] modelViewMatrix)
+    public boolean shouldDraw(float[] modelViewMatrix)
+    {
+        return !hidden && bounds().width() > 0 && bounds().height() > 0 && isInsideView(modelViewMatrix);
+    }
+
+
+    public boolean isInsideView(float[] modelViewMatrix)
     {
         float[] resVec = new float[4];
         float[] tempVec = new float[4];
