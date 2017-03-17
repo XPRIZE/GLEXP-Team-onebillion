@@ -27,7 +27,7 @@ public class X_Test extends OC_SectionController
          loadFingers();
         loadEvent("mastera");
         OBControl c = objectDict.get("Path1");
-        c.rotation = (float) Math.toRadians(45);
+        //c.rotation = (float) Math.toRadians(45);
          doVisual(currentEvent());
         setStatus(STATUS_AWAITING_CLICK);
     }
