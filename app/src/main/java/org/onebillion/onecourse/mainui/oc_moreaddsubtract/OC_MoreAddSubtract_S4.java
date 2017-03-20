@@ -33,7 +33,7 @@ public class OC_MoreAddSubtract_S4 extends OC_SectionController
 
     public float graphicScale()
     {
-        return this.bounds().width()/1024;
+        return this.bounds().width()/1024.0f;
     }
 
     public void prepare()
