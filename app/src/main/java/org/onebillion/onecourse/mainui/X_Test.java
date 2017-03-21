@@ -26,7 +26,10 @@ public class X_Test extends OC_SectionController
         super.prepare();
          loadFingers();
         loadEvent("mastera");
-        OBControl c = objectDict.get("Path1");
+        //hideControls("group.*");
+        //hideControls("Path.*");
+        OBControl c = objectDict.get("circle");
+        //c.setShouldTexturise(false);
         //c.rotation = (float) Math.toRadians(45);
          doVisual(currentEvent());
         setStatus(STATUS_AWAITING_CLICK);

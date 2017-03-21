@@ -361,11 +361,11 @@ public class OBGroup extends OBControl
             if (s != null)
             {
                 alpha = Float.parseFloat(s);
-                if (alpha > 0.0f)
-                {
-                    int intop = Math.round(alpha * 255f);
-                    col = Color.argb(intop,Color.red(col),Color.green(col),Color.blue(col));
-                }
+            }
+            if (alpha < 1.0f)
+            {
+                int intop = Math.round(alpha * 255f);
+                col = Color.argb(intop,Color.red(col),Color.green(col),Color.blue(col));
             }
             List<Object> ol = new ArrayList<>();
             ol.add(col);
