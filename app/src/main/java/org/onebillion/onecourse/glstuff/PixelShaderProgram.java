@@ -47,4 +47,8 @@ public class PixelShaderProgram extends ShaderProgram
         glUniform2f(uResolutionLocation,xres,yres);
     }
 
+    public int getPositionAttributeLocation() {
+        return aPositionLocation;
+    }
+
 }

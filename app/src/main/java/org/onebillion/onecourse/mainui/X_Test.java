@@ -4,8 +4,12 @@ import android.graphics.Bitmap;
 import android.graphics.PointF;
 import android.view.View;
 
+import org.onebillion.onecourse.R;
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBEmitter;
+import org.onebillion.onecourse.controls.OBShaderControl;
+import org.onebillion.onecourse.glstuff.OBRenderer;
+import org.onebillion.onecourse.glstuff.PixelShaderProgram;
 
 import java.util.Collections;
 
@@ -16,9 +20,13 @@ public class X_Test extends OC_SectionController
 {
     OBEmitter emitter;
     Bitmap tempBitmap;
+    public PixelShaderProgram shaderProgram;
+    OBShaderControl shc = new OBShaderControl();
     public X_Test()
     {
         super();
+        shc.setFrame(100,100,1024,1024);
+        attachControl(shc);
     }
 
     public void prepare()
@@ -36,18 +44,15 @@ public class X_Test extends OC_SectionController
     }
 
 
-    /*public void drawControls(Canvas canvas)
+    public void render (OBRenderer renderer)
     {
-        super.drawControls(canvas);
-        if (tempBitmap != null)
+        if (shaderProgram == null)
         {
-            Paint p = new Paint();
-            p.setStrokeWidth(1);
-            p.setColor(Color.BLACK);
-            canvas.drawRect(1100,500,1100 + tempBitmap.getWidth(),500 + tempBitmap.getHeight(),p);
-            canvas.drawBitmap(tempBitmap, 1100, 500, null);
+            shaderProgram = new PixelShaderProgram(R.raw.threegradientsfragmentshader,shc.width(),shc.height());
+            shc.shaderProgram = shaderProgram;
         }
-    }*/
+        super.render(renderer);
+    }
     public void touchDownAtPoint(PointF pt, View v)
     {
         invalidateView(0,0,bounds().right,bounds().bottom);

@@ -86,10 +86,11 @@ abstract class ShaderProgram {
         // Verify the compile status.
         if (compileStatus[0] == 0) {
             // If it failed, delete the shader object.
-            glDeleteShader(shaderObjectId);
 
             Log.w("compileShader", "Compilation of shader failed.");
-            Log.v("compileShader", "Results of compiling source:" + "\n" + shaderCode + "\n:" + glGetShaderInfoLog(shaderObjectId));
+            String msg = glGetShaderInfoLog(shaderObjectId);
+            Log.v("compileShader", "Results of compiling source:" + "\n" + shaderCode + "\n:" + msg);
+            glDeleteShader(shaderObjectId);
             return 0;
         }
 

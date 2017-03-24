@@ -10,6 +10,7 @@ import org.onebillion.onecourse.glstuff.ColorShaderProgram;
 import org.onebillion.onecourse.glstuff.GradientRect;
 import org.onebillion.onecourse.glstuff.MaskShaderProgram;
 import org.onebillion.onecourse.glstuff.OBRenderer;
+import org.onebillion.onecourse.glstuff.PixelRect;
 import org.onebillion.onecourse.glstuff.PixelShaderProgram;
 import org.onebillion.onecourse.glstuff.ShadowShaderProgram;
 import org.onebillion.onecourse.glstuff.TextureShaderProgram;
@@ -19,6 +20,7 @@ import org.onebillion.onecourse.utils.OBUtils;
 public class OBShaderControl extends OBControl
 {
     public PixelShaderProgram shaderProgram;
+    public PixelRect pixelRect;
 
     public void render (OBRenderer renderer, OBViewController vc, float[] modelViewMatrix)
     {
@@ -39,8 +41,9 @@ public class OBShaderControl extends OBControl
             float col[] = {1, 1, 1, 1};
             shaderProgram.useProgram();
             shaderProgram.setUniforms(tempMatrix);
-            GradientRect gr = renderer.gradientRect;
-            gr.draw(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, col, col);
+            if (pixelRect == null)
+                pixelRect = new PixelRect(shaderProgram);
+            pixelRect.draw(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top);
 
         }
     }
