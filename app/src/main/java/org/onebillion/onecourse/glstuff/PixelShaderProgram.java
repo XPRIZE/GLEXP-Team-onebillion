@@ -38,11 +38,9 @@ public class PixelShaderProgram extends ShaderProgram
         this.yres = yres;
     }
 
-    public void setUniforms(float[] matrix)
+    public void setUniforms(float[] matrix,float secs)
     {
         glUniformMatrix4fv(uMatrixLocation, 1, false, matrix, 0);
-        long tm = SystemClock.uptimeMillis();
-        float secs = tm / 1000f;
         glUniform1f(uTimeLocation,secs);
         glUniform2f(uResolutionLocation,xres,yres);
     }

@@ -65,7 +65,7 @@ vec4 gradVal(vec4 col1,vec4 col2,vec4 col3,float dist,float radius,float col2sto
 }
 void main(void)
 {
-	float uTimex = uTime*.1;
+	float uTimex = uTime*1.1;
 	vec2 position = (gl_FragCoord.xy / uResolution);
 
 	vec2 source1 = vec2(0.1,0.1);	

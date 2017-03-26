@@ -5,6 +5,7 @@ package org.onebillion.onecourse.controls;
  */
 
 import android.opengl.GLES20;
+import android.os.SystemClock;
 
 import org.onebillion.onecourse.glstuff.ColorShaderProgram;
 import org.onebillion.onecourse.glstuff.GradientRect;
@@ -21,6 +22,8 @@ public class OBShaderControl extends OBControl
 {
     public PixelShaderProgram shaderProgram;
     public PixelRect pixelRect;
+    long starttm = SystemClock.uptimeMillis();
+
 
     public void render (OBRenderer renderer, OBViewController vc, float[] modelViewMatrix)
     {
@@ -40,7 +43,9 @@ public class OBShaderControl extends OBControl
             //
             float col[] = {1, 1, 1, 1};
             shaderProgram.useProgram();
-            shaderProgram.setUniforms(tempMatrix);
+            long tm = SystemClock.uptimeMillis();
+            float secs = (tm - starttm) / 1000f;
+            shaderProgram.setUniforms(tempMatrix,secs);
             if (pixelRect == null)
                 pixelRect = new PixelRect(shaderProgram);
             pixelRect.draw(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top);
