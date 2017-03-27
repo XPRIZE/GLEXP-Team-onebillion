@@ -24,6 +24,8 @@ import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.controls.OBPresenter;
 import org.onebillion.onecourse.controls.OBRadialGradientLayer;
 import org.onebillion.onecourse.controls.OBRadialGradientPath;
+import org.onebillion.onecourse.controls.OBShaderControl;
+import org.onebillion.onecourse.glstuff.OBRenderer;
 import org.onebillion.onecourse.glstuff.PixelShaderProgram;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBAnim;
@@ -108,6 +110,7 @@ public class OC_Doodle extends OC_SectionController
     }
     List<DoodleGradient> gradients = new ArrayList();
     public PixelShaderProgram shaderProgram;
+    OBShaderControl shc;
 
     private Runnable messageCheckRunnable;
     private Handler messageCheckHandler = new Handler();
@@ -131,10 +134,40 @@ public class OC_Doodle extends OC_SectionController
     Bitmap gradBitmap;
     Canvas gradCanvas;
     OBImage eraserShadow;
+    Boolean gradMode = false;
 
+    public void setUpGradients()
+    {
+        OBPath blackboard = (OBPath) objectDict.get("blackboard");
+        DoodleGradient dg = new DoodleGradient(Color.RED,0.25f,0.8f,0.01f,0.03f,blackboard);
+        gradients.add(dg);
+        dg = new DoodleGradient(Color.BLUE,0.85f,0.2f,0.01f,0.03f,blackboard);
+        gradients.add(dg);
+        dg = new DoodleGradient(Color.YELLOW,0.5f,0.7f,0.01f,0.03f,blackboard);
+        gradients.add(dg);
+        backgroundImage = new OBImage();
+        backgroundImage.setFrame(board.frame());
+        backgroundImage.setZPosition(board.zPosition()+0.02f);
+        attachControl(backgroundImage);
+        gradBitmap = Bitmap.createBitmap((int)board.width(), (int)board.height(), Bitmap.Config.ARGB_8888);
+        gradCanvas = new Canvas(gradBitmap);
+        backgroundImage.setScreenMaskControl(boardMask);
+    }
+
+    public void setUpShader()
+    {
+        shc = new OBShaderControl();
+        shc.setFrame(board.frame());
+        shc.setZPosition(board.zPosition()+0.02f);
+        /*if (shaderProgram == null)
+        {
+            shaderProgram = new PixelShaderProgram(R.raw.threegradientsfragmentshader,shc.width(),shc.height());
+            shc.shaderProgram = shaderProgram;
+        }*/
+        attachControl(shc);
+    }
     public void miscSetUp()
     {
-        shaderProgram = new PixelShaderProgram(R.raw.threegradientsfragmentshader,boundsf().width(),boundsf().height());
         OBPath blackboard = (OBPath) objectDict.get("blackboard");
         OBPath blackborder = (OBPath) blackboard.copy();
         blackborder.setFillColor(0);
@@ -145,15 +178,15 @@ public class OC_Doodle extends OC_SectionController
 
         board = blackboard;
 
-        DoodleGradient dg = new DoodleGradient(Color.RED,0.25f,0.8f,0.01f,0.03f,blackboard);
-        gradients.add(dg);
-        //attachControl(dg.gradient);
-        dg = new DoodleGradient(Color.BLUE,0.85f,0.2f,0.01f,0.03f,blackboard);
-        gradients.add(dg);
-        //attachControl(dg.gradient);
-        dg = new DoodleGradient(Color.YELLOW,0.5f,0.7f,0.01f,0.03f,blackboard);
-        gradients.add(dg);
-        //attachControl(dg.gradient);
+        boardMask = blackboard.copy();
+        boardMask.setFillColor(Color.BLACK);
+
+        if (gradMode)
+            setUpGradients();
+        else
+        {
+            setUpShader();
+        }
 
         drawOn = new OBImage();
         drawOn.setFrame(blackboard.frame());
@@ -184,6 +217,8 @@ public class OC_Doodle extends OC_SectionController
         boardMask.setFillColor(Color.BLACK);
         drawOn.setScreenMaskControl(boardMask);
 
+        if (shc != null)
+            shc.setScreenMaskControl(boardMask);
         /*boardMask = new OBControl();
         boardMask.setFrame(board.frame());
         boardMask.setBackgroundColor(Color.BLACK);
@@ -193,22 +228,27 @@ public class OC_Doodle extends OC_SectionController
 
         setupCanvas();
 
-        backgroundImage = new OBImage();
-        backgroundImage.setFrame(board.frame());
-        backgroundImage.setZPosition(board.zPosition()+0.02f);
-        attachControl(backgroundImage);
-        gradBitmap = Bitmap.createBitmap((int)board.width(), (int)board.height(), Bitmap.Config.ARGB_8888);
-        gradCanvas = new Canvas(gradBitmap);
-        backgroundImage.setScreenMaskControl(boardMask);
-        refreshGradient();
 
         preparePaintForDrawing();
         preparePaintForErasing();
+        refreshGradient();
         refreshDrawingBoard();
+    }
+
+    public void render (OBRenderer renderer)
+    {
+        if (shaderProgram == null)
+        {
+            shaderProgram = new PixelShaderProgram(R.raw.threegradientsfragmentshadermask,shc.width(),shc.height(),true);
+            shc.shaderProgram = shaderProgram;
+        }
+        super.render(renderer);
     }
 
     void refreshGradient()
     {
+        if (!gradMode)
+            return;
         Paint p = new Paint();
         p.setStyle(Paint.Style.FILL);
         int rgb = Color.HSVToColor(HSV);
@@ -313,15 +353,21 @@ public class OC_Doodle extends OC_SectionController
     {
         if (theStatus != STATUS_DRAGGING && theStatus != STATUS_BUSY)
         {
-            HSV[0] -= hInc;
-            if (HSV[0] < 0f)
-                HSV[0] += 360.0f;
-            for (DoodleGradient dg : gradients)
+            if (gradMode)
             {
-                dg.doStep();
-                //invalidateControl(dg.gradient);
+                HSV[0] -= hInc;
+                if (HSV[0] < 0f)
+                    HSV[0] += 360.0f;
+                for (DoodleGradient dg : gradients)
+                {
+                    dg.doStep();
+                }
+                refreshGradient();
             }
-            refreshGradient();
+            else
+            {
+                shc.invalidate();
+            }
         }
         scheduleTimerEvent();
     }

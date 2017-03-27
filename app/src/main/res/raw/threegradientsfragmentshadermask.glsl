@@ -5,6 +5,14 @@ precision mediump float;
 uniform float uTime;
 uniform vec2 uResolution;
 
+uniform sampler2D u_TextureMask;
+
+uniform float u_BlendReverse;
+uniform float u_ScreenHeight;
+
+uniform vec4 u_MaskFrame;
+
+
 vec3 rgbToHsv(vec3 rgb)
 {
 	float M = max(rgb.r,max(rgb.g,rgb.b));
@@ -65,7 +73,7 @@ vec4 gradVal(vec4 col1,vec4 col2,vec4 col3,float dist,float radius,float col2sto
 }
 vec4 doEffect(void)
 {
-	float uTimex = uTime*1.1;
+	float uTimex = uTime* 0.5;
 	vec2 position = (gl_FragCoord.xy / uResolution);
 
 	vec2 source1 = vec2(0.1,0.1);	
@@ -108,7 +116,26 @@ vec4 doEffect(void)
 	return clamp(vec4(rgb,1.),0.,1.);
 }
 
+float is_greater(float x, float y)
+{
+  return max(sign(x - y), 0.0);
+}
+
+float is_lower(float x, float y)
+{
+  return max(sign(y - x), 0.0);
+}
+
 void main(void)
 {
-    gl_FragColor = doEffect();
+    vec4 screenLoc = gl_FragCoord;
+    screenLoc.y = u_ScreenHeight - screenLoc.y;
+    vec2 loc =  vec2((screenLoc.x-u_MaskFrame.x)/(u_MaskFrame.z-u_MaskFrame.x),(screenLoc.y-u_MaskFrame.y)/(u_MaskFrame.w-u_MaskFrame.y));
+
+    vec4 result = doEffect();
+
+    vec4 mask = texture2D(u_TextureMask, loc);
+    float maskAlpha = mask.a * is_greater(loc.x,0.0) * is_lower(loc.x,1.0) *is_greater(loc.y,0.0) * is_lower(loc.y,1.0);
+    result *= abs(u_BlendReverse-maskAlpha);
+    gl_FragColor = result;
 }

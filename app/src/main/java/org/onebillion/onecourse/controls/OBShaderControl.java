@@ -41,11 +41,20 @@ public class OBShaderControl extends OBControl
             //
             android.opengl.Matrix.multiplyMM(tempMatrix, 0, modelViewMatrix, 0, modelMatrix, 0);
             //
-            float col[] = {1, 1, 1, 1};
             shaderProgram.useProgram();
             long tm = SystemClock.uptimeMillis();
             float secs = (tm - starttm) / 1000f;
-            shaderProgram.setUniforms(tempMatrix,secs);
+            if (dynamicMask && maskControl != null)
+            {
+                float[] maskFrame = new float[4];
+                maskFrame[0] = maskControl.frame().left+vc.viewPortLeft;
+                maskFrame[1] = maskControl.frame().top+vc.viewPortTop;
+                maskFrame[2] = maskControl.frame().right+vc.viewPortLeft;
+                maskFrame[3] = maskControl.frame().bottom+vc.viewPortTop;
+                shaderProgram.setUniforms(tempMatrix,secs,renderer.textureObjectIds[1],maskControlReversed ? 1.0f : 0.0f,renderer.h, maskFrame);
+            }
+            else
+                shaderProgram.setUniforms(tempMatrix,secs);
             if (pixelRect == null)
                 pixelRect = new PixelRect(shaderProgram);
             pixelRect.draw(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top);

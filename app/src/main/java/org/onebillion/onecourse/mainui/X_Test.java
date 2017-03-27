@@ -48,7 +48,7 @@ public class X_Test extends OC_SectionController
     {
         if (shaderProgram == null)
         {
-            shaderProgram = new PixelShaderProgram(R.raw.threegradientsfragmentshader,shc.width(),shc.height());
+            shaderProgram = new PixelShaderProgram(R.raw.threegradientsfragmentshader,shc.width(),shc.height(),false);
             shc.shaderProgram = shaderProgram;
         }
         super.render(renderer);
