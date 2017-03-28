@@ -21,13 +21,21 @@ public class X_Test extends OC_SectionController
     OBEmitter emitter;
     Bitmap tempBitmap;
     public PixelShaderProgram shaderProgram;
-    OBShaderControl shc = new OBShaderControl();
-    public X_Test()
+    OBShaderControl shc;
+
+    void creShc()
     {
-        super();
+        if (shc != null)
+            detachControl(shc);
+        shc = new OBShaderControl();
         shc.setFrame(100,100,1024,1024);
         attachControl(shc);
     }
+    public X_Test()
+    {
+        super();
+        creShc();
+     }
 
     public void prepare()
     {
@@ -49,12 +57,22 @@ public class X_Test extends OC_SectionController
         if (shaderProgram == null)
         {
             shaderProgram = new PixelShaderProgram(R.raw.threegradientsfragmentshader,shc.width(),shc.height(),false);
-            shc.shaderProgram = shaderProgram;
         }
+        shc.shaderProgram = shaderProgram;
         super.render(renderer);
     }
     public void touchDownAtPoint(PointF pt, View v)
     {
         invalidateView(0,0,bounds().right,bounds().bottom);
+    }
+
+    @Override
+    public void onResume()
+    {
+        if (shc != null)
+        {
+            shaderProgram = null;
+            //creShc();
+        }
     }
 }

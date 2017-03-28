@@ -11,6 +11,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.view.View;
@@ -27,6 +28,7 @@ import org.onebillion.onecourse.controls.OBRadialGradientPath;
 import org.onebillion.onecourse.controls.OBShaderControl;
 import org.onebillion.onecourse.glstuff.OBRenderer;
 import org.onebillion.onecourse.glstuff.PixelShaderProgram;
+import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
@@ -117,6 +119,7 @@ public class OC_Doodle extends OC_SectionController
     float[] HSV = new float[3];
     float hInc = 5;
 
+    OBPath blackborder;
     protected OBControl board,eraser, eraser2, boardMask;
     int boardMaskColour = Color.WHITE;
     List<PointF> pointQueue = new ArrayList<>();
@@ -169,7 +172,7 @@ public class OC_Doodle extends OC_SectionController
     public void miscSetUp()
     {
         OBPath blackboard = (OBPath) objectDict.get("blackboard");
-        OBPath blackborder = (OBPath) blackboard.copy();
+        blackborder = (OBPath) blackboard.copy();
         blackborder.setFillColor(0);
         blackborder.setLineWidth(applyGraphicScale(6));
         blackborder.setZPosition(blackboard.zPosition()+ 0.3f);
@@ -243,6 +246,16 @@ public class OC_Doodle extends OC_SectionController
             shc.shaderProgram = shaderProgram;
         }
         super.render(renderer);
+    }
+
+    @Override
+    public void onResume()
+    {
+        if (shc != null)
+        {
+            shaderProgram = null;
+            //creShc();
+        }
     }
 
     void refreshGradient()
@@ -319,8 +332,7 @@ public class OC_Doodle extends OC_SectionController
         loadEvent("mastera");
         miscSetUp();
         events = new ArrayList<>();
-        events.addAll(Arrays.asList("c,d,e".split(",")));
-        events.add(0,"a");
+        events.addAll(Arrays.asList("toys","food","animals","transport"));
         doVisual(currentEvent());
     }
 
@@ -349,6 +361,27 @@ public class OC_Doodle extends OC_SectionController
     {
         return setStatus(STATUS_WAITING_FOR_DRAG);
     }
+
+    public int buttonFlags ()
+    {
+        return OBMainViewController.SHOW_TOP_LEFT_BUTTON;
+    }
+
+    public void setSceneXX (String scene)
+    {
+        deleteControls("obj.*");
+        deleteControls("swatch");
+        loadEvent(scene);
+        OBPath swatch = (OBPath) objectDict.get("swatch");
+        int col = swatch.strokeColor();
+        float lw = swatch.lineWidth();
+        blackborder.setStrokeColor(col);
+        blackborder.setLineWidth(lw);
+        boardMaskColour = swatch.fillColor();
+        clearCanvas();
+        refreshDrawingBoard();
+    }
+
     void timerEvent()
     {
         if (theStatus != STATUS_DRAGGING && theStatus != STATUS_BUSY)
@@ -455,14 +488,24 @@ public class OC_Doodle extends OC_SectionController
         refreshDrawingBoard();
     }
 
+    public void nextScene ()
+    {
+        eventIndex = (eventIndex + 1) % events.size();
+        new AsyncTask<Void, Void, Void>()
+        {
+            @Override
+            protected Void doInBackground (Void... params)
+            {
+                setScene(currentEvent());
+                switchStatus(currentEvent());
+                return null;
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
+    }
+
     void redButtonHit()
     {
-        if (boardMaskColour == Color.BLACK)
-            boardMaskColour = Color.WHITE;
-        else
-            boardMaskColour = Color.BLACK;
-        clearCanvas();
-        refreshDrawingBoard();
+        nextScene();
     }
 
     public void checkTouchUp()
@@ -493,7 +536,21 @@ public class OC_Doodle extends OC_SectionController
     {
         if(status() == STATUS_WAITING_FOR_DRAG)
         {
-            if(board.frame().contains(pt.x, pt.y))
+            if(finger(0,1,Collections.singletonList(objectDict.get("doodleredbutton")),pt) != null)
+            {
+                setStatus(STATUS_BUSY);
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                                         {
+                                             @Override
+                                             public void run() throws Exception
+                                             {
+                                                 redButtonHit();
+                                             }
+                                         }
+
+                );
+            }
+            else if(board.frame().contains(pt.x, pt.y))
             {
                 eraserMode = false;
                 startPoint = pt;
@@ -518,12 +575,6 @@ public class OC_Doodle extends OC_SectionController
                 eraserMode = true;
                 startPoint = pt;
                 setStatus(STATUS_DRAGGING);
-            }
-            else if(finger(0,1,Collections.singletonList(objectDict.get("doodleredbutton")),pt) != null)
-            {
-                setStatus(STATUS_BUSY);
-                redButtonHit();
-                setStatus(STATUS_WAITING_FOR_DRAG);
             }
         }
 
