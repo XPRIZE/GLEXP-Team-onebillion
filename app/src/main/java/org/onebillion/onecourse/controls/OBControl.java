@@ -1272,7 +1272,7 @@ public class OBControl
                     {
                         ShadowShaderProgram shadowShader = (ShadowShaderProgram) renderer.shadowProgram;
                         shadowShader.useProgram();
-                        shadowShader.setUniforms(modelViewMatrix,modelMatrix,renderer.textureObjectIds[0],shadowOffsetX,shadowOffsetY,shadowBlendColour,finalCol);
+                        shadowShader.setUniforms(modelViewMatrix,modelMatrix,renderer.textureObjectId(0),shadowOffsetX,shadowOffsetY,shadowBlendColour,finalCol);
                     }
                     else
                     {
@@ -1290,7 +1290,7 @@ public class OBControl
                         //android.opengl.Matrix.multiplyMM(shadMatrix, 0, tm, 0, tempMatrix, 0);
                         TextureShaderProgram textureShader = (TextureShaderProgram) renderer.textureProgram;
                         textureShader.useProgram();
-                        textureShader.setUniforms(shadMatrix, renderer.textureObjectIds[0], finalCol, blendMode);
+                        textureShader.setUniforms(shadMatrix, renderer.textureObjectId(0), finalCol, blendMode);
                         if (shadowCache == null)
                             createShadowCache(drawn());
                         TextureRect tr = renderer.textureRect;
@@ -1307,14 +1307,14 @@ public class OBControl
                     maskFrame[3] = maskControl.frame().bottom+vc.viewPortTop;
                     MaskShaderProgram maskProgram = (MaskShaderProgram) renderer.maskProgram;
                     maskProgram.useProgram();
-                    maskProgram.setUniforms(tempMatrix, renderer.textureObjectIds[0], renderer.textureObjectIds[1], finalCol, blendMode, maskControlReversed ? 1.0f : 0.0f,  renderer.w,renderer.h, maskFrame);
+                    maskProgram.setUniforms(tempMatrix, renderer.textureObjectId(0), renderer.textureObjectId(1), finalCol, blendMode, maskControlReversed ? 1.0f : 0.0f,  renderer.w,renderer.h, maskFrame);
 
                 }
                 else
                 {
                     TextureShaderProgram textureShader = (TextureShaderProgram) renderer.textureProgram;
                     textureShader.useProgram();
-                    textureShader.setUniforms(tempMatrix, renderer.textureObjectIds[0], finalCol, blendMode);
+                    textureShader.setUniforms(tempMatrix, renderer.textureObjectId(0), finalCol, blendMode);
                 }
 
                 renderLayer(renderer, vc);

@@ -51,7 +51,7 @@ public class OBShaderControl extends OBControl
                 maskFrame[1] = maskControl.frame().top+vc.viewPortTop;
                 maskFrame[2] = maskControl.frame().right+vc.viewPortLeft;
                 maskFrame[3] = maskControl.frame().bottom+vc.viewPortTop;
-                shaderProgram.setUniforms(tempMatrix,secs,renderer.textureObjectIds[1],maskControlReversed ? 1.0f : 0.0f,renderer.h, maskFrame);
+                shaderProgram.setUniforms(tempMatrix,secs,renderer.textureObjectId(1),maskControlReversed ? 1.0f : 0.0f,renderer.h, maskFrame);
             }
             else
                 shaderProgram.setUniforms(tempMatrix,secs);

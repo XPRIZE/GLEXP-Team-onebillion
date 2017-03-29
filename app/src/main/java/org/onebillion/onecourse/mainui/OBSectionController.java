@@ -2291,7 +2291,7 @@ public class OBSectionController extends OBViewController
         OBControl c = new OBControl();
         c.setBounds(0,0,8,8);
         c.setFillColor(Color.BLACK);
-        glBindTexture(GL_TEXTURE_2D, MainActivity.mainActivity.renderer.textureObjectIds[id]);
+        glBindTexture(GL_TEXTURE_2D, MainActivity.mainActivity.renderer.textureObjectId(id));
         texImage2D(GL_TEXTURE_2D,0,c.drawn(),0);
     }
 
