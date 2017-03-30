@@ -11,6 +11,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.view.View;
@@ -24,7 +25,10 @@ import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.controls.OBPresenter;
 import org.onebillion.onecourse.controls.OBRadialGradientLayer;
 import org.onebillion.onecourse.controls.OBRadialGradientPath;
+import org.onebillion.onecourse.controls.OBShaderControl;
+import org.onebillion.onecourse.glstuff.OBRenderer;
 import org.onebillion.onecourse.glstuff.PixelShaderProgram;
+import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
@@ -108,12 +112,14 @@ public class OC_Doodle extends OC_SectionController
     }
     List<DoodleGradient> gradients = new ArrayList();
     public PixelShaderProgram shaderProgram;
+    OBShaderControl shc;
 
     private Runnable messageCheckRunnable;
     private Handler messageCheckHandler = new Handler();
     float[] HSV = new float[3];
     float hInc = 5;
 
+    OBPath blackborder;
     protected OBControl board,eraser, eraser2, boardMask;
     int boardMaskColour = Color.WHITE;
     List<PointF> pointQueue = new ArrayList<>();
@@ -131,12 +137,42 @@ public class OC_Doodle extends OC_SectionController
     Bitmap gradBitmap;
     Canvas gradCanvas;
     OBImage eraserShadow;
+    Boolean gradMode = false;
 
+    public void setUpGradients()
+    {
+        OBPath blackboard = (OBPath) objectDict.get("blackboard");
+        DoodleGradient dg = new DoodleGradient(Color.RED,0.25f,0.8f,0.01f,0.03f,blackboard);
+        gradients.add(dg);
+        dg = new DoodleGradient(Color.BLUE,0.85f,0.2f,0.01f,0.03f,blackboard);
+        gradients.add(dg);
+        dg = new DoodleGradient(Color.YELLOW,0.5f,0.7f,0.01f,0.03f,blackboard);
+        gradients.add(dg);
+        backgroundImage = new OBImage();
+        backgroundImage.setFrame(board.frame());
+        backgroundImage.setZPosition(board.zPosition()+0.02f);
+        attachControl(backgroundImage);
+        gradBitmap = Bitmap.createBitmap((int)board.width(), (int)board.height(), Bitmap.Config.ARGB_8888);
+        gradCanvas = new Canvas(gradBitmap);
+        backgroundImage.setScreenMaskControl(boardMask);
+    }
+
+    public void setUpShader()
+    {
+        shc = new OBShaderControl();
+        shc.setFrame(board.frame());
+        shc.setZPosition(board.zPosition()+0.02f);
+        /*if (shaderProgram == null)
+        {
+            shaderProgram = new PixelShaderProgram(R.raw.threegradientsfragmentshader,shc.width(),shc.height());
+            shc.shaderProgram = shaderProgram;
+        }*/
+        attachControl(shc);
+    }
     public void miscSetUp()
     {
-        shaderProgram = new PixelShaderProgram(R.raw.threegradientsfragmentshader,boundsf().width(),boundsf().height());
         OBPath blackboard = (OBPath) objectDict.get("blackboard");
-        OBPath blackborder = (OBPath) blackboard.copy();
+        blackborder = (OBPath) blackboard.copy();
         blackborder.setFillColor(0);
         blackborder.setLineWidth(applyGraphicScale(6));
         blackborder.setZPosition(blackboard.zPosition()+ 0.3f);
@@ -145,15 +181,15 @@ public class OC_Doodle extends OC_SectionController
 
         board = blackboard;
 
-        DoodleGradient dg = new DoodleGradient(Color.RED,0.25f,0.8f,0.01f,0.03f,blackboard);
-        gradients.add(dg);
-        //attachControl(dg.gradient);
-        dg = new DoodleGradient(Color.BLUE,0.85f,0.2f,0.01f,0.03f,blackboard);
-        gradients.add(dg);
-        //attachControl(dg.gradient);
-        dg = new DoodleGradient(Color.YELLOW,0.5f,0.7f,0.01f,0.03f,blackboard);
-        gradients.add(dg);
-        //attachControl(dg.gradient);
+        boardMask = blackboard.copy();
+        boardMask.setFillColor(Color.BLACK);
+
+        if (gradMode)
+            setUpGradients();
+        else
+        {
+            setUpShader();
+        }
 
         drawOn = new OBImage();
         drawOn.setFrame(blackboard.frame());
@@ -184,6 +220,8 @@ public class OC_Doodle extends OC_SectionController
         boardMask.setFillColor(Color.BLACK);
         drawOn.setScreenMaskControl(boardMask);
 
+        if (shc != null)
+            shc.setScreenMaskControl(boardMask);
         /*boardMask = new OBControl();
         boardMask.setFrame(board.frame());
         boardMask.setBackgroundColor(Color.BLACK);
@@ -193,22 +231,37 @@ public class OC_Doodle extends OC_SectionController
 
         setupCanvas();
 
-        backgroundImage = new OBImage();
-        backgroundImage.setFrame(board.frame());
-        backgroundImage.setZPosition(board.zPosition()+0.02f);
-        attachControl(backgroundImage);
-        gradBitmap = Bitmap.createBitmap((int)board.width(), (int)board.height(), Bitmap.Config.ARGB_8888);
-        gradCanvas = new Canvas(gradBitmap);
-        backgroundImage.setScreenMaskControl(boardMask);
-        refreshGradient();
 
         preparePaintForDrawing();
         preparePaintForErasing();
+        refreshGradient();
         refreshDrawingBoard();
+    }
+
+    public void render (OBRenderer renderer)
+    {
+        if (shaderProgram == null)
+        {
+            shaderProgram = new PixelShaderProgram(R.raw.threegradientsfragmentshadermask,shc.width(),shc.height(),true);
+            shc.shaderProgram = shaderProgram;
+        }
+        super.render(renderer);
+    }
+
+    @Override
+    public void onResume()
+    {
+        if (shc != null)
+        {
+            shaderProgram = null;
+            //creShc();
+        }
     }
 
     void refreshGradient()
     {
+        if (!gradMode)
+            return;
         Paint p = new Paint();
         p.setStyle(Paint.Style.FILL);
         int rgb = Color.HSVToColor(HSV);
@@ -279,8 +332,7 @@ public class OC_Doodle extends OC_SectionController
         loadEvent("mastera");
         miscSetUp();
         events = new ArrayList<>();
-        events.addAll(Arrays.asList("c,d,e".split(",")));
-        events.add(0,"a");
+        events.addAll(Arrays.asList("toys","food","animals","transport"));
         doVisual(currentEvent());
     }
 
@@ -309,19 +361,46 @@ public class OC_Doodle extends OC_SectionController
     {
         return setStatus(STATUS_WAITING_FOR_DRAG);
     }
+
+    public int buttonFlags ()
+    {
+        return OBMainViewController.SHOW_TOP_LEFT_BUTTON;
+    }
+
+    public void setSceneXX (String scene)
+    {
+        deleteControls("obj.*");
+        deleteControls("swatch");
+        loadEvent(scene);
+        OBPath swatch = (OBPath) objectDict.get("swatch");
+        int col = swatch.strokeColor();
+        float lw = swatch.lineWidth();
+        blackborder.setStrokeColor(col);
+        blackborder.setLineWidth(lw);
+        boardMaskColour = swatch.fillColor();
+        clearCanvas();
+        refreshDrawingBoard();
+    }
+
     void timerEvent()
     {
         if (theStatus != STATUS_DRAGGING && theStatus != STATUS_BUSY)
         {
-            HSV[0] -= hInc;
-            if (HSV[0] < 0f)
-                HSV[0] += 360.0f;
-            for (DoodleGradient dg : gradients)
+            if (gradMode)
             {
-                dg.doStep();
-                //invalidateControl(dg.gradient);
+                HSV[0] -= hInc;
+                if (HSV[0] < 0f)
+                    HSV[0] += 360.0f;
+                for (DoodleGradient dg : gradients)
+                {
+                    dg.doStep();
+                }
+                refreshGradient();
             }
-            refreshGradient();
+            else
+            {
+                shc.invalidate();
+            }
         }
         scheduleTimerEvent();
     }
@@ -409,14 +488,24 @@ public class OC_Doodle extends OC_SectionController
         refreshDrawingBoard();
     }
 
+    public void nextScene ()
+    {
+        eventIndex = (eventIndex + 1) % events.size();
+        new AsyncTask<Void, Void, Void>()
+        {
+            @Override
+            protected Void doInBackground (Void... params)
+            {
+                setScene(currentEvent());
+                switchStatus(currentEvent());
+                return null;
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
+    }
+
     void redButtonHit()
     {
-        if (boardMaskColour == Color.BLACK)
-            boardMaskColour = Color.WHITE;
-        else
-            boardMaskColour = Color.BLACK;
-        clearCanvas();
-        refreshDrawingBoard();
+        nextScene();
     }
 
     public void checkTouchUp()
@@ -447,7 +536,21 @@ public class OC_Doodle extends OC_SectionController
     {
         if(status() == STATUS_WAITING_FOR_DRAG)
         {
-            if(board.frame().contains(pt.x, pt.y))
+            if(finger(0,1,Collections.singletonList(objectDict.get("doodleredbutton")),pt) != null)
+            {
+                setStatus(STATUS_BUSY);
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                                         {
+                                             @Override
+                                             public void run() throws Exception
+                                             {
+                                                 redButtonHit();
+                                             }
+                                         }
+
+                );
+            }
+            else if(board.frame().contains(pt.x, pt.y))
             {
                 eraserMode = false;
                 startPoint = pt;
@@ -472,12 +575,6 @@ public class OC_Doodle extends OC_SectionController
                 eraserMode = true;
                 startPoint = pt;
                 setStatus(STATUS_DRAGGING);
-            }
-            else if(finger(0,1,Collections.singletonList(objectDict.get("doodleredbutton")),pt) != null)
-            {
-                setStatus(STATUS_BUSY);
-                redButtonHit();
-                setStatus(STATUS_WAITING_FOR_DRAG);
             }
         }
 
