@@ -42,26 +42,27 @@ public class OC_AddSubtract_S6 extends OC_SectionController
         super.prepare();
         loadFingers();
         loadEvent("master");
+        //objectDict.get("space").hide();
         eventColour = OBMisc.loadEventColours(this);
         objectDict.get("eq_background").setZPosition(1);
         objectDict.get("eq_frame").setZPosition(5);
+        ((OBPath)objectDict.get("eq_frame")).sizeToBoundingBoxIncludingStroke();
+        ((OBPath)objectDict.get("frame")).sizeToBoundingBoxIncludingStroke();
         OBControl shutter =objectDict.get("eq_shutter");
         shutter.setZPosition ( 4);
         shutter.setProperty("start_width",shutter.width());
-        OBControl shutterMask = new OBControl();
-        shutterMask.setFrame(shutter.frame());
-        shutterMask.setBackgroundColor(Color.BLACK);
-        shutter.setScreenMaskControl(shutterMask);
+        shutter.setAnchorPoint(1,0.5f);
         OBGroup alien = (OBGroup)objectDict.get("alien");
         OBControl alienMask = objectDict.get("alien_mask");
         alienMask.show();
         alien.show();
         puzzleTargets = new ArrayList<>();
         detachControl(alienMask);
-        alien.setScreenMaskControl (alienMask);
+        alien.setScreenMaskControl(alienMask);
         float fontSize = 60 * objectDict.get("eq_background").height()/79.0f;
         events = Arrays.asList(eventAttributes.get("scenes").split(","));
         List<OBControl> controls =  OBUtils.randomlySortedArray(filterControls("obj_.*"));
+
         for(OBControl control : controls)
         {
             ((OBPath)control).sizeToBoundingBoxIncludingStroke();
@@ -75,9 +76,11 @@ public class OC_AddSubtract_S6 extends OC_SectionController
 
             OBControl mask = new OBControl();
             mask.setFrame(control.getWorldFrame());
-            mask.setBackgroundColor(Color.WHITE);
+            mask.setBackgroundColor(Color.BLACK);
             mask.setZPosition(10);
-            control.setScreenMaskControl(mask);
+            mask.texturise(false, this);
+           // control.setScreenMaskControl(mask);
+            control.setProperty("mask_control", mask);
             if(Integer.valueOf(eqParts[4]) == 3)
             {
                 puzzleTargets.add(0,control);
@@ -219,12 +222,10 @@ public class OC_AddSubtract_S6 extends OC_SectionController
                     waitForSecs(0.3f);
                     nextScene();
                 }
-
             }
             else
             {
                 nextScene();
-
             }
 
         }
@@ -246,10 +247,21 @@ public class OC_AddSubtract_S6 extends OC_SectionController
                 ,phase == 1? "": String.format("%d",phase),this);
     }
 
-    public void animateMaskMove(OBPath cont) throws Exception
+    public void animateMaskMove(final OBPath cont) throws Exception
     {
+        lockScreen();
+        cont.setScreenMaskControl((OBControl)cont.propertyValue("mask_control"));
+        unlockScreen();
         playSfxAudio("revealpic",false);
-        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("left",cont.width(),cont.maskControl))
+        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("left", cont.right(), cont.maskControl), new OBAnimBlock()
+
+                {
+                    @Override
+                    public void runAnimBlock(float frac)
+                    {
+                        cont.invalidate();
+                    }
+                })
                 ,0.5,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
         cont.hide();
     }
@@ -280,16 +292,15 @@ public class OC_AddSubtract_S6 extends OC_SectionController
         OC_Numberlines_Additions.colourEquation((OBGroup)objectDict.get("equation"),5,5,eventColour.get("num"),this);
         OC_Numberlines_Additions.hideEquation((OBGroup)objectDict.get("equation"),this);
         OC_Numberlines_Additions.showEquation((OBGroup)objectDict.get("equation"),1,4,null,this);
+
         unlockScreen();
     }
-
 
     public void animateShutterOpen() throws Exception
     {
         final OBControl shutter = objectDict.get("eq_shutter");
-        final float right = shutter.right();
         playSfxAudio("shutteropening",false);
-        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("left",shutter.right(),shutter.maskControl))
+        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("width",1,shutter))
                 ,0.5,true,OBAnim.ANIM_EASE_IN,this);
 
         shutter.hide();
@@ -298,7 +309,8 @@ public class OC_AddSubtract_S6 extends OC_SectionController
     public void showShutter() throws Exception
     {
         OBControl shutter = objectDict.get("eq_shutter");
-        shutter.maskControl.setFrame(shutter.frame());
+        float width = (float)shutter.settings.get("start_width") ;
+        shutter.setWidth(width);
         lockScreen();
         shutter.show();
         objectDict.get("equation").show();
@@ -316,6 +328,7 @@ public class OC_AddSubtract_S6 extends OC_SectionController
         startPhase();
 
     }
+
     public void demo26a() throws Exception
     {
         OBPath path = (OBPath)objectDict.get("finger_path");
@@ -323,14 +336,11 @@ public class OC_AddSubtract_S6 extends OC_SectionController
         loadPointer(POINTER_LEFT);
         moveScenePointer(OB_Maths.locationForRect(1.05f,0.5f,objectDict.get("eq_frame").frame()),-60,0.5f,"DEMO2",0,0.3f);
         playAudioScene("DEMO2",1,false);
-        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.moveAnim(path.firstPoint(),thePointer)),0.2,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
+        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.moveAnim(path.firstPoint(),thePointer)),0.5,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
         OBAnimationGroup.runAnims(Arrays.asList(OBAnim.pathMoveAnim(thePointer,path.path(),false,0)),2,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
         waitAudio();
         waitForSecs(0.3f);
         thePointer.hide();
         startPhase();
     }
-
-
-
 }
