@@ -220,6 +220,23 @@ public class OBMisc
     }
 
 
+    public static void setFirstLastPoints(OBPath path, PointF firstPoint, PointF lastPoint, OC_SectionController sectionController)
+    {
+        String name = (String) path.attributes().get("id");
+        if (name == null) name = (String) path.settings.get("name");
+        if (name == null) return;
+        UPath deconPath = sectionController.deconstructedPath(sectionController.currentEvent(), name);
+
+        USubPath subPath = deconPath.subPaths.get(0);
+        ULine line = subPath.elements.get(0);
+        line.pt0 = firstPoint;
+
+        USubPath subPath2 = deconPath.subPaths.get(deconPath.subPaths.size() - 1);
+        ULine line2 = subPath2.elements.get(subPath2.elements.size() - 1);
+        line2.pt1 = lastPoint;
+        path.setPath(deconPath.bezierPath());
+    }
+
 
 
 }
