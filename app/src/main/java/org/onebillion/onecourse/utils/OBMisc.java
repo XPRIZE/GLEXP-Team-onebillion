@@ -56,12 +56,12 @@ public class OBMisc
 
     }
 
-    public static void  doSceneAudio(float remindDelay,String event, long statusTime, OC_SectionController controller) throws Exception
+    public static void doSceneAudio(float remindDelay,String event, long statusTime, OC_SectionController controller) throws Exception
     {
         doSceneAudio(remindDelay,event,statusTime,"",controller);
     }
 
-    public static void  doSceneAudio(float remindDelay, long statusTime, OC_SectionController
+    public static void doSceneAudio(float remindDelay, long statusTime, OC_SectionController
             controller) throws Exception
     {
         doSceneAudio(remindDelay,controller.currentEvent(),statusTime,controller);
@@ -235,6 +235,16 @@ public class OBMisc
         ULine line2 = subPath2.elements.get(subPath2.elements.size() - 1);
         line2.pt1 = lastPoint;
         path.setPath(deconPath.bezierPath());
+    }
+
+    public static List<Integer> stringToIntegerList(String numbers, String component)
+    {
+        List<Integer> result = new ArrayList<>();
+        String[] strings = numbers.split(component);
+        for(String num : strings)
+            result.add(Integer.valueOf(num));
+
+        return result;
     }
 
 

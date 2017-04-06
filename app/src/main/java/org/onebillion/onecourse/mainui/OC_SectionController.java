@@ -543,6 +543,14 @@ public class OC_SectionController extends OBSectionController {
         waitForSecs(wait);
     }
 
+    public void moveScenePointer(PointF point, float time, String audio, float wait) throws Exception
+    {
+        movePointerToPoint(point,time,true);
+        playAudio(audio);
+        waitAudio();
+        waitForSecs(wait);
+    }
+
 
     public List<String> getAudioForScene(String scene, String category)
     {

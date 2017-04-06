@@ -42,7 +42,6 @@ public class OC_AddSubtract_S6 extends OC_SectionController
         super.prepare();
         loadFingers();
         loadEvent("master");
-        //objectDict.get("space").hide();
         eventColour = OBMisc.loadEventColours(this);
         objectDict.get("eq_background").setZPosition(1);
         objectDict.get("eq_frame").setZPosition(5);
