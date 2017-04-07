@@ -243,7 +243,7 @@ public class OC_MoreAddSubtract_S6 extends OC_SectionController
         if(obj.getClass() == OBGroup.class)
         {
             clone = obj.copy();
-            colourObjectFromAttributes((OBGroup)clone);
+            OBMisc.colourObjectFromAttributes((OBGroup)clone);
             clone.texturise(true, this);
         }
         else if(obj.getClass() == OBPath.class)
@@ -270,21 +270,6 @@ public class OC_MoreAddSubtract_S6 extends OC_SectionController
         }
 
         detachControl(obj);
-    }
-
-    public void colourObjectFromAttributes(OBGroup obj)
-    {
-        for (String key : obj.attributes().keySet())
-        {
-            if(key.startsWith("colour_"))
-            {
-                int colour = OBUtils.colorFromRGBString((String)obj.attributes().get(key));
-                String layer = key.replaceAll("colour_","");
-                for (OBControl con: obj.filterMembers(String.format("%s.*", layer)))
-                    if (con.getClass() == OBPath.class)
-                         ((OBPath)con).setFillColor(colour);
-            }
-        }
     }
 
     public void startScene() throws Exception

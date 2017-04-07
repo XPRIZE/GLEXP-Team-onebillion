@@ -505,7 +505,7 @@ public class OC_SectionController extends OBSectionController {
         return p;
     }
 
-    public void moveScenePointer(PointF point, int angle, float time, String audio, int index, float wait) throws Exception
+    public void moveScenePointer(PointF point, float angle, float time, String audio, int index, float wait) throws Exception
     {
         movePointerToPoint(point,angle,time,true);
         playAudioScene(currentEvent(),audio,index);

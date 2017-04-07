@@ -240,13 +240,50 @@ public class OBMisc
     public static List<Integer> stringToIntegerList(String numbers, String component)
     {
         List<Integer> result = new ArrayList<>();
-        String[] strings = numbers.split(component);
-        for(String num : strings)
-            result.add(Integer.valueOf(num));
-
+        if(numbers != null)
+        {
+            String[] strings = numbers.split(component);
+            for (String num : strings)
+                result.add(Integer.valueOf(num));
+        }
         return result;
     }
 
+    public static List<Float> stringToFloatList(String numbers, String component)
+    {
+        List<Float> result = new ArrayList<>();
+        if(numbers != null)
+        {
+            String[] strings = numbers.split(component);
+            for (String num : strings)
+                result.add(Float.valueOf(num));
+        }
+        return result;
+    }
 
+    public static void colourObjectFromAttributes(OBGroup obj)
+    {
+        for (String key : obj.attributes().keySet())
+        {
+            if(key.startsWith("colour_"))
+            {
+                int colour = OBUtils.colorFromRGBString((String)obj.attributes().get(key));
+                String layer = key.replaceAll("colour_","");
+                for (OBControl con: obj.filterMembers(String.format("%s.*", layer)))
+                {
+                    if (con.getClass() == OBPath.class)
+                    {
+                        ((OBPath) con).setFillColor(colour);
+                    }
+                    if (con.getClass() == OBGroup.class)
+                    {
+                        for (OBControl con2 : ((OBGroup) con).members)
+                            if (con2.getClass() == OBPath.class)
+                                ((OBPath) con2).setFillColor(colour);
+                    }
+                }
+            }
+        }
+    }
 
 }
