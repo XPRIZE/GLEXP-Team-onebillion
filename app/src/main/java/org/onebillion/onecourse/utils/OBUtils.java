@@ -1349,4 +1349,13 @@ public class OBUtils
     {
         public void run () throws Exception;
     }
+
+    public static List<Integer> RandomIndexesTo(int num)
+    {
+        List<Integer> indexes = new ArrayList<>();
+        for(int i=0; i<num; i++)
+            indexes.add(i);
+
+        return randomlySortedArray(indexes);
+    }
 }

@@ -31,7 +31,7 @@ public class OBTextLayer extends OBLayer
     int hiStartIdx=-1,hiEndIdx=-1;
     int hiRangeColour;
     float letterSpacing,lineSpaceMultiplier=1.0f;
-    int justification = JUST_CENTRE;
+    public int justification = JUST_CENTRE;
     Rect tempRect;
     SpannableString spanner;
     boolean displayObjectsValid = false;

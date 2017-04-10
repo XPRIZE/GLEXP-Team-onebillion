@@ -30,6 +30,7 @@ public class OC_MoreNumbers_Additions
         numGroup.setPosition(position);
         group.insertMember(numGroup,0,"number");
         group.objectDict.put("label",label);
+        numGroup.setZPosition(10);
     }
 
     public static void buttonSet(int state, OC_SectionController sectionController)

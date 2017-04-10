@@ -9,6 +9,7 @@ import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
+import org.onebillion.onecourse.controls.OBTextLayer;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBMisc;
 import org.onebillion.onecourse.utils.OBUtils;
@@ -25,7 +26,7 @@ import java.util.List;
 public class OC_MoreNumbers_S4s extends OC_SectionController
 {
     int targetNum;
-    OBLabel counter, underline;
+    OBLabel counter, underline1,underline2;
     OBControl lastTarget;
     String currentNumString;
     List<OBControl> clickNums;
@@ -45,18 +46,33 @@ public class OC_MoreNumbers_S4s extends OC_SectionController
         float fontSize = 110*numbox.height()/130.0f;
         counter = new OBLabel("––", OBUtils.standardTypeFace(),fontSize);
         counter.setPosition(numbox.position());
-        startRect = counter.frame;
+        ((OBTextLayer)counter.layer).justification = OBTextLayer.JUST_LEFT;
+        startRect = new RectF(counter.getWorldFrame());
         counter.setColour(Color.BLACK);
-        // ((CATextLayer*)counter.layer).setAlignmentMode ( kCAAlignmentLeft);
         attachControl(counter);
         counter.setString ( "");
-        underline = new OBLabel("––",OBUtils.standardTypeFace(),fontSize);
-        // ((CATextLayer*)underline.layer).setAlignmentMode ( kCAAlignmentRight);
-        underline.setPosition(OB_Maths.locationForRect(new PointF(0.5f, 0.75f), startRect));
-        underline.setColour(Color.BLACK);
+        OBLabel underline = new OBLabel("––",OBUtils.standardTypeFace(),fontSize);
+        underline.setPosition(OB_Maths.locationForRect(new PointF(0.5f, 0.8f), startRect));
+        ((OBTextLayer)underline.layer).justification = OBTextLayer.JUST_LEFT;
+        RectF bb = OBUtils.getBoundsForSelectionInLabel(0,1,underline);
+        underline1 = new OBLabel("–",OBUtils.standardTypeFace(),fontSize);
+        underline1.setPosition(underline.position());
+        underline1.setLeft(bb.left);
+        attachControl(underline1);
+
+        counter.hide();
+        underline1.hide();
+        underline2.hide();
+
+        bb = OBUtils.getBoundsForSelectionInLabel(1,2,underline);
+        underline2 = new OBLabel("–",OBUtils.standardTypeFace(),fontSize);
+        underline2.setPosition(underline.position());
+        underline2.setLeft(bb.left);
+        attachControl(underline2);
+
         counter.hide();
         underline.hide();
-        attachControl(underline);
+
         for(int i=0; i<10; i++)
         {
             String boxname = String.format("box_%d",i);
@@ -66,7 +82,7 @@ public class OC_MoreNumbers_S4s extends OC_SectionController
             float fontSize2 = 75.0f*box.height()/78.0f;
             OBLabel label = new OBLabel(String.format("%d",i),OBUtils.standardTypeFace(),fontSize2);
             label.setColour(Color.BLACK);
-            box.setZPosition ( 1);
+            box.setZPosition(1);
             OBGroup labelGroup = new OBGroup(Arrays.asList((OBControl)label));
             labelGroup.sizeToTightBoundingBox();
             labelGroup.setZPosition(2);
@@ -203,7 +219,7 @@ public class OC_MoreNumbers_S4s extends OC_SectionController
     public void checkButton() throws Exception
     {
         OC_MoreNumbers_Additions.buttonSet(1,this);
-        if(Integer.valueOf(currentNumString) == targetNum)
+        if(currentNumString != null && Integer.valueOf(currentNumString) == targetNum)
         {
             playAudio(null);
             gotItRightBigTick(true);
@@ -248,7 +264,8 @@ public class OC_MoreNumbers_S4s extends OC_SectionController
         lockScreen();
         if(currentNumString == null)
         {
-            underline.setString("––");
+            underline2.show();
+            underline1.show();
             counter.setString("");
             counter.setPosition(OB_Maths.locationForRect(new PointF(0.5f, 0.5f), startRect));
         }
@@ -256,13 +273,12 @@ public class OC_MoreNumbers_S4s extends OC_SectionController
         {
             if(currentNumString.length() > 1)
             {
-                underline.setString("");
+                underline2.hide();
                 counter.setString(currentNumString);
-
             }
             else
             {
-                underline.setString("–");
+                underline1.hide();
                 counter.setString(currentNumString);
                 if(currentNumString.equals("1"))
                     counter.setPosition(OB_Maths.locationForRect(new PointF(0.75f, 0.5f), startRect));
@@ -280,7 +296,8 @@ public class OC_MoreNumbers_S4s extends OC_SectionController
     public void removeObjsAndNum() throws Exception
     {
         lockScreen();
-        underline.setString ( "––");
+        underline1.show();
+        underline2.show();
         counter.setString ( "");
         counter.setPosition ( OB_Maths.locationForRect(new PointF(0.5f, 0.5f), startRect));
         currentNumString = null;
@@ -295,8 +312,8 @@ public class OC_MoreNumbers_S4s extends OC_SectionController
     {
         OBLabel label = (OBLabel)group.objectDict.get("label");
         label.setColour(colour);
-
     }
+
     public void showObjs() throws Exception
     {
         lockScreen();
@@ -363,8 +380,8 @@ public class OC_MoreNumbers_S4s extends OC_SectionController
         waitForSecs(0.3f);
         lockScreen();
         counter.show();
-        underline.show();
-
+        underline1.show();
+        underline2.show();
         unlockScreen();
         playSfxAudio("pop_on",false);
         waitForSecs(0.3f);
@@ -411,7 +428,7 @@ public class OC_MoreNumbers_S4s extends OC_SectionController
         moveScenePointer(OB_Maths.locationForRect(0.95f,0.8f,this.bounds()),-15,0.5f,"DEMO",0,0.3f);
         moveScenePointer(OB_Maths.locationForRect(4f,1.2f,eventObjs.get(22).frame()),-25,0.5f,"DEMO",1,0.3f);
         moveScenePointer(OB_Maths.locationForRect(0.5f,0.98f,this.bounds()),-30,0.5f,"DEMO",2,0.3f);
-        moveScenePointer(OB_Maths.locationForRect(0.5f,0.7f,underline.frame()),-25,0.5f,"DEMO",3,0.3f);
+        moveScenePointer(OB_Maths.locationForRect(0.5f,0.5f,underline2.frame()),-25,0.5f,"DEMO",3,0.3f);
         moveScenePointer(OB_Maths.locationForRect(0.6f,1f,objectDict.get("button_arrow").frame()),-10,0.5f,"DEMO",4,0.5f);
         thePointer.hide();
         startScene();

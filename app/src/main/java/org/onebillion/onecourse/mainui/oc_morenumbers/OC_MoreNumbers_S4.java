@@ -440,7 +440,6 @@ public class OC_MoreNumbers_S4 extends OC_SectionController
                 objectDict.get("numbox").hide();
                 objectDict.get("button_10").hide();
                 objectDict.get("button_1").hide();
-
             }
         }
         playSfxAudio("pop", false);
