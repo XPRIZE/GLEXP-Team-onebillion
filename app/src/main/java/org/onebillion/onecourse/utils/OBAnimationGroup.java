@@ -193,13 +193,13 @@ public void applyAnimations(List<OBAnim>anims,double dur,int timingFunction,OBSe
             if (owner == null)
                 try
                 {
-                    Thread.sleep(20);
+                    Thread.sleep(10);
                 }
                 catch (InterruptedException e)
                 {
                 }
             else
-                owner.waitForSecsNoThrow(0.02);
+                owner.waitForSecsNoThrow(0.01);
         }
     }
 
