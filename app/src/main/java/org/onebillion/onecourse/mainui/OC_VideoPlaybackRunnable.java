@@ -74,7 +74,7 @@ public class OC_VideoPlaybackRunnable implements Runnable
             }
             else
             {
-                MainActivity.log("OC_VideoPlaybackRunnable:run:showing subtitle:" + controller.subtitleIndex + " for video: " + controller.currentVideoIndex);
+                //MainActivity.log("OC_VideoPlaybackRunnable:run:showing subtitle:" + controller.subtitleIndex + " for video: " + controller.currentVideoIndex);
                 //
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {

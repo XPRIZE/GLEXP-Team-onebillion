@@ -106,7 +106,7 @@ public class OBConnectionManager
     public void disconnectWifi()
     {
         MainActivity.log("OBConnectionManager.disconnectWifi");
-        WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getSystemService(MainActivity.WIFI_SERVICE);
+        WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(MainActivity.WIFI_SERVICE);
         MainActivity.log("OBConnectionManager.disconnectWifi. Disconnected network");
         wifiManager.disconnect();
         MainActivity.log("OBConnectionManager.disconnectWifi. Disabling wifi");
@@ -127,7 +127,7 @@ public class OBConnectionManager
 
     public boolean isScanningDisabled()
     {
-        WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getSystemService(MainActivity.WIFI_SERVICE);
+        WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(MainActivity.WIFI_SERVICE);
         if (wifiManager.isScanAlwaysAvailable()) return false;
         //
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -141,7 +141,7 @@ public class OBConnectionManager
     {
         if (!keepWifiOn())
         {
-            WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getSystemService(MainActivity.WIFI_SERVICE);
+            WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(MainActivity.WIFI_SERVICE);
             wifiManager.setWifiEnabled(false);
         }
     }
@@ -168,13 +168,22 @@ public class OBConnectionManager
 
     public void connectToNetwork(final String ssid, final String password, final OBUtils.RunLambda block)
     {
-        final WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getSystemService(Context.WIFI_SERVICE);
+        final WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         //
-        MainActivity.log("OBConnectionManager.connectToNetwork.disable airplane mode");
-        Settings.Global.putInt(MainActivity.mainActivity.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0);
-        Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
-        intent.putExtra("state", false);
-        MainActivity.mainActivity.sendBroadcast(intent);
+        try
+        {
+            MainActivity.log("OBConnectionManager.connectToNetwork.disable airplane mode");
+            Settings.Global.putInt(MainActivity.mainActivity.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0);
+            Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+            intent.putExtra("state", false);
+            MainActivity.mainActivity.sendBroadcast(intent);
+        }
+        catch (Exception e)
+        {
+            MainActivity.log("<<<< Exception Caught while trying to disable airplane mode");
+            e.printStackTrace();
+            MainActivity.log(">>>> Exception Caught while trying to disable airplane mode");
+        }
         //
         wifiManager.setWifiEnabled(true);
         //
@@ -303,7 +312,7 @@ public class OBConnectionManager
 
     public void connectToNetwork_enableWifi(final String ssid, final String password, final OBUtils.RunLambda block)
     {
-        final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getSystemService(Context.WIFI_SERVICE);
+        final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifiLock = wfMgr.createWifiLock("LockTag");
         wifiLock.acquire();
         //
@@ -339,7 +348,7 @@ public class OBConnectionManager
 
     public void connectToNetWork_complete(boolean success, final OBUtils.RunLambda block)
     {
-        final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getSystemService(Context.WIFI_SERVICE);
+        final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         //
         if (success)
         {
@@ -374,18 +383,27 @@ public class OBConnectionManager
 
     public void connectToNetwork_disconnect()
     {
-        final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getSystemService(Context.WIFI_SERVICE);
+        final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         //
         MainActivity.log("OBConnectionManager.connectToNetWork_complete.block complete");
         //
         MainActivity.log("OBConnectionManager.connectToNetWork_complete.disable wifi");
         wfMgr.setWifiEnabled(false);
         //
-        MainActivity.log("OBConnectionManager.connectToNetWork_complete.enable airplane mode");
-        Settings.Global.putInt(MainActivity.mainActivity.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 1);
-        Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
-        intent.putExtra("state", true);
-        MainActivity.mainActivity.sendBroadcast(intent);
+        try
+        {
+            MainActivity.log("OBConnectionManager.connectToNetWork_complete.enable airplane mode");
+            Settings.Global.putInt(MainActivity.mainActivity.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 1);
+            Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+            intent.putExtra("state", true);
+            MainActivity.mainActivity.sendBroadcast(intent);
+        }
+        catch (Exception e)
+        {
+            MainActivity.log("<<<< Exception caught while trying to set the airplane mode");
+            e.printStackTrace();
+            MainActivity.log(">>>> Exception caught while trying to set the airplane mode");
+        }
     }
 
 
@@ -393,7 +411,7 @@ public class OBConnectionManager
 
     public void connectToNetwork_connectToWifi(final String ssid, final String password, final OBUtils.RunLambda block)
     {
-        final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getSystemService(Context.WIFI_SERVICE);
+        final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
         WifiInfo newInfo = wfMgr.getConnectionInfo();
         if (newInfo.getSSID().equals(ssid) && newInfo.getSupplicantState() == SupplicantState.COMPLETED)
@@ -412,7 +430,7 @@ public class OBConnectionManager
 
     public void connectToNetwork_scanForWifi(final String ssid, final String password, final OBUtils.RunLambda block)
     {
-        final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getSystemService(Context.WIFI_SERVICE);
+        final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         //
         OBSystemsManager.unregisterReceiver(scanResultsReceiver);
         scanResultsReceiver = new BroadcastReceiver()

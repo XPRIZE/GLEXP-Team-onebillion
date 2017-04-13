@@ -17,12 +17,17 @@ import org.onebillion.onecourse.utils.OBAudioManager;
 import org.onebillion.onecourse.utils.OBAudioPlayer;
 import org.onebillion.onecourse.utils.OBUserPressedBackException;
 import org.onebillion.onecourse.utils.OBUtils;
+import org.onebillion.onecourse.utils.OB_Maths;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import static org.onebillion.onecourse.utils.OB_Maths.PointDistance;
+import static org.onebillion.onecourse.utils.OB_Maths.relativePointInRectForLocation;
 
 /**
  * OC_Generic_Event
@@ -252,6 +257,176 @@ public class OC_Generic_Event extends OC_SectionController
         playAudioQueuedSceneIndex(currentEvent(), "DEMO", currentDemoAudioIndex, waitAudio);
         currentDemoAudioIndex++;
         waitForSecs(0.05);
+    }
+
+
+    public PointF closestDestinationForPosition (PointF origin, List<PointF> destinations)
+    {
+        PointF bestMatch = origin;
+        float bestDistance = -1;
+        for (PointF destination : destinations)
+        {
+            float distance = PointDistance(origin, destination);
+            if (bestDistance == -1 || distance < bestDistance)
+            {
+                bestMatch = destination;
+                bestDistance = distance;
+            }
+        }
+        return bestMatch;
+    }
+
+
+    public PointF getInboundPosition (OBControl object, PointF position, OBControl container, float margin)
+    {
+        PointF result = position;
+        float marginX = container.width() * margin;
+        float marginY = container.height() * margin;
+        float width = object.width();
+        float height = object.height();
+        float left = result.x - width / 2 - marginX;
+        float right = result.x + width / 2 + marginX;
+        float top = result.y - height / 2 - marginY;
+        float bottom = result.y + height / 2 + marginY;
+        if (left < container.left())
+        {
+            result.x += container.left() - left;
+        }
+        if (right > container.right())
+        {
+            result.x -= right - container.right();
+        }
+        if (top < container.top())
+        {
+            result.y += container.top() - top;
+        }
+        if (bottom > container.bottom())
+        {
+            result.y -= bottom - container.bottom();
+        }
+        return result;
+    }
+
+
+    public void action_moveObjectsToPosition (Map<String, PointF> positions, OBControl container, float time, boolean keepInBound)
+    {
+        Set<String> keys = positions.keySet();
+        // play drop sound
+        for (String key : keys)
+        {
+            OBControl control = objectDict.get(key);
+            PointF relativePosition = positions.get(key);
+            PointF destination = OB_Maths.locationForRect(relativePosition, container.frame());
+            if (keepInBound)
+            {
+                destination = getInboundPosition(control, destination, container, 0.03f);
+            }
+            control.moveToPoint(destination, time, false);
+            control.setProperty("currentPosition", OC_Generic.copyPoint(destination));
+        }
+    }
+
+
+    public void action_repositionObjectsInContainer (OBControl container, boolean keepInBound, OBControl addedObject)
+    {
+        List<OBControl> objectsContained = (List<OBControl>) container.propertyValue("objects");
+        int totalObjects = objectsContained.size();
+        //
+        int totalLines = Integer.parseInt(eventAttributes.get("lines"));
+        List positions = new ArrayList();
+        for (int i = 0; i < totalObjects; i++)
+        {
+            float x = (float) (i + 1) / (totalObjects + 1);
+            float y = 0.5f;
+            if (totalLines > 1) y = (float) (i + 1) / (totalObjects + 1);
+            positions.add(new PointF(x, y));
+        }
+        //
+        Map<String, PointF> repositioning = new HashMap();
+        //
+        if (addedObject != null)
+        {
+            PointF destination = closestDestinationForPosition(relativePointInRectForLocation(addedObject.position(), container.frame), positions);
+            positions.remove(destination);
+            String key = (String) addedObject.attributes().get("id");
+            //
+            repositioning.put(key, OC_Generic.copyPoint(destination));
+        }
+        //
+        for (OBControl control : objectsContained)
+        {
+            if (addedObject == control) continue;
+            PointF destination = closestDestinationForPosition(relativePointInRectForLocation(control.position(), container.frame), positions);
+            positions.remove(destination);
+            String key = (String) addedObject.attributes().get("id");
+            //
+            repositioning.put(key, OC_Generic.copyPoint(destination));
+        }
+        action_moveObjectsToPosition(repositioning, container, 0.2f, keepInBound);
+    }
+
+
+    public void action_removeObjectFromContainers (OBControl object, boolean keepInBound)
+    {
+        List<OBControl> containers = filterControls("box.*");
+        for (OBControl container : containers)
+        {
+            List<OBControl> containedObjects = (List<OBControl>) container.propertyValue("objects");
+            if (containedObjects.contains(object))
+            {
+                containedObjects.remove(object);
+                container.setProperty("objects", containedObjects);
+                action_repositionObjectsInContainer(container, keepInBound, null);
+            }
+        }
+    }
+
+
+    public void moveObjectToPoint (OBControl control, PointF position, float time, boolean withSound) throws Exception
+    {
+        if (withSound) playSfxAudio("dropObject", false);
+        control.moveToPoint(position, time, false);
+        control.setProperty("currentPosition", OC_Generic.copyPoint(position));
+    }
+
+
+    public void moveObjectToOriginalPosition (OBControl control, boolean withSound, boolean keepInBound) throws Exception
+    {
+        action_removeObjectFromContainers(control, keepInBound);
+        PointF originalPosition = (PointF) control.propertyValue("originalPosition");
+        moveObjectToPoint(control, originalPosition, 0.3f, withSound);
+    }
+
+
+    public boolean action_addObjectAndRearrangeContainer (OBControl object, OBControl container, int maxObjectsPerContainer, boolean keepInBound) throws Exception
+    {
+        List<OBControl> objectsContained = (List<OBControl>) container.propertyValue("objects");
+        if (objectsContained == null)
+        {
+            objectsContained = new ArrayList<>();
+        }
+        int objectCount = (int) objectsContained.size();
+        if (objectsContained.contains(object))
+        {
+            moveObjectToOriginalPosition(object, true, keepInBound);
+        }
+        else
+        {
+            if (objectCount == maxObjectsPerContainer)
+            {
+                moveObjectToOriginalPosition(object, true, keepInBound);
+            }
+            else
+            {
+                action_removeObjectFromContainers(object, keepInBound);
+                objectsContained.add(object);
+                container.setProperty("objects", objectsContained);
+                //
+                action_repositionObjectsInContainer(container, keepInBound, object);
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -527,9 +702,7 @@ public class OC_Generic_Event extends OC_SectionController
     }
 
 
-
-
-    public void physics_bounceObjectsWithPlacements(List<OBControl> objects, List<OBControl> placements, String soundEffectOnFloorCollision)
+    public void physics_bounceObjectsWithPlacements (List<OBControl> objects, List<OBControl> placements, String soundEffectOnFloorCollision)
     {
         try
         {
@@ -542,7 +715,7 @@ public class OC_Generic_Event extends OC_SectionController
                 OBControl control = objects.get(i - 1);
                 control.setShouldTexturise(true);
                 //
-                OBControl placement = placements.get(i-1);
+                OBControl placement = placements.get(i - 1);
                 PointF destination = placement.getWorldPosition();
                 PointF initialPosition = control.getWorldPosition();
                 //
@@ -656,8 +829,7 @@ public class OC_Generic_Event extends OC_SectionController
     }
 
 
-
-    public void action_showShadow(OBControl control)
+    public void action_showShadow (OBControl control)
     {
         float shadowRadius = 5;
         List<OBControl> members = new ArrayList<>();
@@ -676,7 +848,7 @@ public class OC_Generic_Event extends OC_SectionController
     }
 
 
-    public void action_removeShadow(OBControl control)
+    public void action_removeShadow (OBControl control)
     {
         lockScreen();
         //

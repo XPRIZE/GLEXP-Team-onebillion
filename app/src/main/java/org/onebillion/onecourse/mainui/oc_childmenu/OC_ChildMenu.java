@@ -27,6 +27,7 @@ import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OC_FatController;
 import org.onebillion.onecourse.utils.OC_FatReceiver;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -530,7 +531,9 @@ public class OC_ChildMenu extends OC_Menu implements OC_FatReceiver
     public void loadBigIconForUnit(MlUnit unit)
     {
         lockScreen();
-        String imgName = String.format("%s_big", unit.icon);
+//        String imgName = String.format("%s_big", unit.icon);
+        String imgName = String.format("%s", unit.icon);
+        String mlname = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_MASTER_LIST);
         //
         if (OBImageManager.sharedImageManager().getImgPath(imgName) != null)
             bigIcon = loadImageWithName(imgName, new PointF(0, 0), new RectF(bounds()));

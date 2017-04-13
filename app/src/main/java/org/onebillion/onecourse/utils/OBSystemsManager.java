@@ -1335,7 +1335,16 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         //
         if (when / 1000 < Integer.MAX_VALUE)
         {
-            ((AlarmManager) context.getSystemService(Context.ALARM_SERVICE)).setTime(when);
+            try
+            {
+                ((AlarmManager) context.getSystemService(Context.ALARM_SERVICE)).setTime(when);
+            }
+            catch (Exception e)
+            {
+                MainActivity.log("<<<< Exception caught while trying to set the Date");
+                e.printStackTrace();
+                MainActivity.log(">>>> Exception caught while trying to set the Date");
+            }
         }
     }
 
@@ -1350,7 +1359,16 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         //
         if (when / 1000 < Integer.MAX_VALUE)
         {
-            ((AlarmManager) context.getSystemService(Context.ALARM_SERVICE)).setTime(when);
+            try
+            {
+                ((AlarmManager) context.getSystemService(Context.ALARM_SERVICE)).setTime(when);
+            }
+            catch (Exception e)
+            {
+                MainActivity.log("<<<< Exception caught while trying to set the Time");
+                e.printStackTrace();
+                MainActivity.log(">>>> Exception caught while trying to set the Time");
+            }
         }
     }
 

@@ -94,6 +94,11 @@ public class OC_FatController extends OBFatController
             db = new DBSQL(true);
             String token = OBPreferenceManager.getStringPreference(OBPreferenceManager.PREFERENCE_ML_TOKEN, db);
             String mlname = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_MASTER_LIST);
+            if (mlname.length() == 0)
+            {
+                MainActivity.log("OC_FatController:loadMasterListIntoDB:no masterlist in the settings file. skipping");
+                return;
+            }
             OBXMLManager xmlManager = new OBXMLManager();
 //            InputStream is = OBUtils.getInputStreamForPath(String.format("config/%s", mlname));
             InputStream is = OBUtils.getInputStreamForPath(String.format("masterlists/%s/units.xml", mlname));
