@@ -1212,6 +1212,20 @@ public class OBControl
         return !(cornerRadius == 0 && (borderWidth == 0 || borderColour == 0));
     }
 
+    public void renderShadowLayer (OBRenderer renderer, OBViewController vc)
+    {
+        TextureRect tr = renderer.textureRect;
+        if (texture == null || needsRetexture)
+        {
+            texturise(false, vc);
+            needsRetexture = false;
+        }
+        if (texture == null || texture.bitmap() == null)
+            return;
+
+        tr.drawShadow(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, texture.bitmap());
+    }
+
     public void renderLayer (OBRenderer renderer, OBViewController vc)
     {
         TextureRect tr = renderer.textureRect;
@@ -1224,13 +1238,13 @@ public class OBControl
         if (texture == null || texture.bitmap() == null)
             return;
 
-        if(shouldRenderShadow() && shadowRadius > 0f)
+        /*if(shouldRenderShadow() && shadowRadius > 0f)
         {
             if (shadowCache == null)
                 createShadowCache(drawn());
             //tr.drawShadow(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, texture.bitmap());
             tr.draw(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, shadowCache);
-        }
+        }*/
         if (dynamicMask && maskControl != null && maskControl.texture != null)
             tr.draw(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, texture.bitmap(), maskControl.texture.bitmap());
         else
@@ -1273,6 +1287,7 @@ public class OBControl
                         ShadowShaderProgram shadowShader = (ShadowShaderProgram) renderer.shadowProgram;
                         shadowShader.useProgram();
                         shadowShader.setUniforms(modelViewMatrix,modelMatrix,renderer.textureObjectIds[0],shadowOffsetX,shadowOffsetY,shadowBlendColour,finalCol);
+                        renderShadowLayer(renderer,vc);
                     }
                     else
                     {
@@ -1294,7 +1309,7 @@ public class OBControl
                         if (shadowCache == null)
                             createShadowCache(drawn());
                         TextureRect tr = renderer.textureRect;
-                        tr.draw(renderer, 0, 0, shadowCache.getWidth(), shadowCache.getHeight(), shadowCache);
+                        tr.draw(renderer, 0, 0, shadowCache.getWidth()/rasterScale(), shadowCache.getHeight()/rasterScale(), shadowCache);
 
                     }
 
@@ -1539,7 +1554,8 @@ public class OBControl
         shadowCache = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(shadowCache);
         Matrix m = new Matrix();
-        m.preScale(rasterScale, rasterScale);
+        //m.preScale(rasterScale, rasterScale); scale not required as bitmap already scaled
+        m.preTranslate(shadowPad,shadowPad);
         canvas.concat(m);
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         Bitmap alpha = bitmap.extractAlpha();
@@ -1825,7 +1841,8 @@ public class OBControl
 
     private boolean shouldRenderShadow()
     {
-        return parent == null &&(shadowOffsetX != 0 || shadowOffsetY != 0);
+        return parent == null && shadowOpacity > 0;
+        //return parent == null &&(shadowOffsetX != 0 || shadowOffsetY != 0);
     }
 
 

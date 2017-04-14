@@ -840,7 +840,7 @@ public class OBSectionController extends OBViewController
             {
                 int col = OBUtils.colorFromRGBString((String) attrs.get("shadowcolour"));
                 float ratio = Math.abs(1 / shadScale);
-                if (!scalable)
+                //if (!scalable)
                     ratio = graphicScale;
                 float opacity = 1, xoff = 0, yoff = 0, rad = 3;
                 if (attrs.get("shadowopacity") != null)
