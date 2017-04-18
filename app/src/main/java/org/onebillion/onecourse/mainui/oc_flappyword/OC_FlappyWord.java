@@ -390,7 +390,7 @@ public class OC_FlappyWord extends OC_SectionController
                 loc.y = currentLocY;
 
             }
-            bord.setPosition ( loc);
+            bord.setPosition(loc);
             if(bord.top() <= skyLevel)
             {
                 bord.setTop(skyLevel);

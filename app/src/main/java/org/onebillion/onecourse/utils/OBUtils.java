@@ -25,6 +25,7 @@ import android.content.res.Resources;
 import android.graphics.*;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.text.TextPaint;
 
 import org.onebillion.onecourse.controls.OBControl;
@@ -1189,6 +1190,58 @@ public class OBUtils
             logger.log(Level.SEVERE, "Error in filePathForTempFile", exception);
         }
         return null;
+    }
+
+    public static String getFilePathForFolder (String fileName, String folderName, OBSectionController controller)
+    {
+        try
+        {
+            File outputDir = controller.activity.getDir(folderName, Context.MODE_PRIVATE);
+            File outputFile = new File(outputDir, fileName);
+            return outputFile.getPath();
+        }
+        catch (Exception exception)
+        {
+            Logger logger = Logger.getAnonymousLogger();
+            logger.log(Level.SEVERE, "Error in getFilePathForFolder", exception);
+        }
+        return null;
+    }
+
+    public static String getExternalFilePathForFolder (String fileName, String folderName, OBSectionController controller)
+    {
+        try
+        {
+            File outputDir = new File(Environment.getExternalStorageDirectory(), folderName);
+            boolean folderCreated = outputDir.mkdir();
+            File outputFile = new File(outputDir, fileName);
+            return outputFile.getAbsolutePath();
+        }
+        catch (Exception exception)
+        {
+            Logger logger = Logger.getAnonymousLogger();
+            logger.log(Level.SEVERE, "Error in getExternalFilePathForFolder", exception);
+        }
+        return null;
+    }
+
+
+    public static void deleteEmptyFilesInFolder(String folderName, OBSectionController controller)
+    {
+        try
+        {
+            File outputDir = controller.activity.getDir(folderName, Context.MODE_PRIVATE);
+            for(File file : outputDir.listFiles())
+            {
+                if(file.length() == 0)
+                    file.delete();
+            }
+        }
+        catch (Exception exception)
+        {
+            Logger logger = Logger.getAnonymousLogger();
+            logger.log(Level.SEVERE, "Error in deleteEmptyFilesInFolder", exception);
+        }
     }
 
     public static void cleanUpTempFiles (OBSectionController controller)

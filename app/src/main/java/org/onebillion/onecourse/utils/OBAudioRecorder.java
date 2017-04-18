@@ -47,6 +47,7 @@ public class OBAudioRecorder
 
     protected void initRecorder()
     {
+        recordingTimer = null;
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
@@ -86,21 +87,27 @@ public class OBAudioRecorder
         if(mediaRecorder != null && !activityPaused)
         {
             recording = true;
-            expectedAudioLength = Math.round(audioLength * 1000);
-            timeRecordingStart = timeLastSound = timeFirstSound = System.currentTimeMillis();
-            recordingTimer = new Timer();
-            mediaRecorder.start();
-            recordingTimer.scheduleAtFixedRate(new TimerTask()
-            {
 
-                @Override
-                public void run()
+            timeRecordingStart = timeLastSound = timeFirstSound = System.currentTimeMillis();
+            mediaRecorder.start();
+            if(audioLength > 0)
+            {
+                expectedAudioLength = Math.round(audioLength * 1000);
+                recordingTimer = new Timer();
+                recordingTimer.scheduleAtFixedRate(new TimerTask()
                 {
-                    recordingTimerFire();
-                }
-            }, 50, 50);
+
+                    @Override
+                    public void run()
+                    {
+                        recordingTimerFire();
+                    }
+                }, 50, 50);
+            }
         }
     }
+
+
 
 
 
@@ -111,8 +118,11 @@ public class OBAudioRecorder
             if (recording)
             {
                 recording = false;
-                recordingTimer.cancel();
-                recordingTimer.purge();
+                if(recordingTimer != null)
+                {
+                    recordingTimer.cancel();
+                    recordingTimer.purge();
+                }
                 mediaRecorder.stop();
                 mediaRecorder.reset();
                 mediaRecorder.release();

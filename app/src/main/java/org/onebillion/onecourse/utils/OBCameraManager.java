@@ -39,6 +39,8 @@ import static java.util.Collections.min;
  */
 public class OBCameraManager
 {
+    public static int CAMERA_FRONT = 1, CAMERA_BACK = 2;
+    private int currentCameraLoc;
     public CaptureRequest.Builder previewBuilder;
     public Size previewSize;
     public Size recordingSize;
@@ -68,7 +70,8 @@ public class OBCameraManager
     }
 
 
-    private void startCamera()
+
+    private void startCamera(final int cameraLoc)
     {
         startCameraLock();
         OBUtils.runOnMainThread(
@@ -86,63 +89,7 @@ public class OBCameraManager
                                 throw new RuntimeException("Camera not retrieved");
                             }
                             startBackgroundThread();
-                            for (String cameraId : cameraManager.getCameraIdList())
-                            {
-                                CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
-
-
-                                Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
-                                if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT)
-                                {
-                                    try
-                                    {
-                                        cameraManager.openCamera(cameraId, new CameraDevice.StateCallback()
-                                                {
-
-                                                    @Override
-                                                    public void onOpened(CameraDevice camDevice)
-                                                    {
-                                                        cameraSemaphore.release();
-                                                        cameraDevice = camDevice;
-                                                        finishCameraWait();
-
-                                                    }
-
-                                                    @Override
-                                                    public void onDisconnected(CameraDevice camDevice)
-                                                    {
-                                                        cameraSemaphore.release();
-                                                        cameraDevice.close();
-                                                        cameraDevice = null;
-                                                        finishCameraWait();
-                                                    }
-
-                                                    @Override
-                                                    public void onError(CameraDevice camDevice, int error)
-                                                    {
-                                                        cameraSemaphore.release();
-                                                        cameraDevice.close();
-                                                        cameraDevice = null;
-                                                        finishCameraWait();
-                                                    }
-
-                                                    @Override
-                                                    public void onClosed(CameraDevice camDevice)
-                                                    {
-                                                        cameraSemaphore.release();
-                                                        cameraDevice = null;
-                                                        finishCameraWait();
-                                                    }
-                                                },
-                                                null);
-                                        break;
-                                    } catch (SecurityException e)
-                                    {
-                                        Log.d("Camera error", e.getLocalizedMessage());
-                                    }
-
-                                }
-                            }
+                            openCamera(cameraLoc);
 
                         } catch (Exception e)
                         {
@@ -151,18 +98,109 @@ public class OBCameraManager
                     }
                 }
         );
+    }
+
+    private int getCameraCharacteristic(int cameraLoc)
+    {
+        return cameraLoc == CAMERA_BACK ? CameraCharacteristics.LENS_FACING_BACK : CameraCharacteristics.LENS_FACING_FRONT;
+    }
+
+    private void openCamera(int cameraLoc) throws Exception
+    {
+        for (String cameraId : cameraManager.getCameraIdList())
+        {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
 
 
+            Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
+            if (facing != null && facing == getCameraCharacteristic(cameraLoc))
+            {
+                currentCameraLoc = cameraLoc;
+                try
+                {
+                    cameraManager.openCamera(cameraId, new CameraDevice.StateCallback()
+                            {
 
+                                @Override
+                                public void onOpened(CameraDevice camDevice)
+                                {
+                                    cameraSemaphore.release();
+                                    cameraDevice = camDevice;
+                                    finishCameraWait();
+
+                                }
+
+                                @Override
+                                public void onDisconnected(CameraDevice camDevice)
+                                {
+                                    cameraSemaphore.release();
+                                    cameraDevice.close();
+                                    cameraDevice = null;
+                                    finishCameraWait();
+                                }
+
+                                @Override
+                                public void onError(CameraDevice camDevice, int error)
+                                {
+                                    cameraSemaphore.release();
+                                    cameraDevice.close();
+                                    cameraDevice = null;
+                                    finishCameraWait();
+                                }
+
+                                @Override
+                                public void onClosed(CameraDevice camDevice)
+                                {
+                                    cameraSemaphore.release();
+                                    cameraDevice = null;
+                                    finishCameraWait();
+                                }
+                            },
+                            null);
+                    break;
+                } catch (SecurityException e)
+                {
+                    Log.d("Camera error", e.getLocalizedMessage());
+                }
+
+            }
+        }
     }
 
     private void startBackgroundThread()
     {
-        backgroundThread = new HandlerThread("CameraBackgroundThreadHandler");
-        backgroundThread.start();
-        backgroundHandler = new Handler(backgroundThread.getLooper());
+        if(backgroundThread == null)
+        {
+            backgroundThread = new HandlerThread("CameraBackgroundThreadHandler");
+            backgroundThread.start();
+            backgroundHandler = new Handler(backgroundThread.getLooper());
+        }
     }
 
+
+    public void stopWithWait() throws Exception
+    {
+        stopPreview(true);
+
+        try
+        {
+            if (cameraDevice != null)
+            {
+                startCameraLock();
+                cameraDevice.close();
+                waitForCameraReady();
+            }
+        }catch (Exception e)
+        {
+
+        }
+
+        cameraDevice = null;
+
+       // stopBackgroundThread();
+
+        cameraSemaphore.release();
+    }
 
 
     public void stop() throws Exception
@@ -212,8 +250,12 @@ public class OBCameraManager
         }
     }
 
-
     private void startPreviewForControls(final OBVideoPlayer videoPlayer, final OBVideoRecorder videoRecorder)
+    {
+        startPreviewForControls(videoPlayer, videoRecorder, CAMERA_FRONT);
+    }
+
+    private void startPreviewForControls(final OBVideoPlayer videoPlayer, final OBVideoRecorder videoRecorder, int cameraLoc)
     {
         if (videoPlayer == null || activityPaused || controller.get()._aborting || videoPlayer.activityPaused)
             return;
@@ -222,7 +264,7 @@ public class OBCameraManager
         {
             if(cameraDevice == null)
             {
-                startCamera();
+                startCamera(cameraLoc);
                 waitForCameraReady();
                 if(cameraDevice == null)
                     throw new Exception("Error connecting to the camera!");
@@ -231,6 +273,7 @@ public class OBCameraManager
             stopPreview(true);
             startCameraLock();
             calculatePreviewAndRecordingSizes(videoPlayer.width(), videoPlayer.height());
+            
             videoPlayer.setPreviewSize(previewSize);
 
             previewBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
@@ -296,6 +339,11 @@ public class OBCameraManager
         startPreviewForControls(videoPlayer, null);
     }
 
+
+    public void startPreviewForRecording(final OBVideoPlayer videoPlayer, final OBVideoRecorder videoRecorder, int cameraLoc)
+    {
+        startPreviewForControls(videoPlayer, videoRecorder, cameraLoc);
+    }
 
     public void startPreviewForRecording(final OBVideoPlayer videoPlayer, final OBVideoRecorder videoRecorder)
     {
@@ -398,7 +446,6 @@ public class OBCameraManager
         builder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
     }
 
-
     public void stopPreview() throws Exception
     {
         stopPreview(true);
@@ -435,7 +482,8 @@ public class OBCameraManager
         cameraLock.lock();
         try
         {
-            condition.await();
+            if(condition != null)
+                 condition.await();
         } catch (Exception e)
         {
             e.printStackTrace();

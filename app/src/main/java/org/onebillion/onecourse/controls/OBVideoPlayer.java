@@ -66,9 +66,8 @@ public class OBVideoPlayer extends OBControl
     {
         activityPaused = true;
         setFrame(frame.left, frame.top, frame.right, frame.bottom);
-        this.mirrored = mirrored;
-        if (mirrored)
-            setScaleX(-1);
+        this.mirrored = false;
+        setDisplayMirrored(mirrored);
         textureId = MainActivity.mainActivity.renderer.textureObjectIds[2];
         rebuildTexture();
         playerLock = new ReentrantLock();
@@ -97,6 +96,15 @@ public class OBVideoPlayer extends OBControl
         return false;
     }
 
+    public void setDisplayMirrored(boolean mirrored)
+    {
+        if(mirrored != this.mirrored)
+        {
+            this.mirrored = mirrored;
+            setScaleX((this.mirrored ? -1 : 1)* Math.abs(scaleX()));
+        }
+    }
+
 
     public void setBackgroundFillColour(int colour)
     {
@@ -109,6 +117,11 @@ public class OBVideoPlayer extends OBControl
 
         surface = new Surface(surfaceTexture);
         surfaceTexture.setOnFrameAvailableListener(this);
+        clearSurface(surfaceTexture);
+    }
+
+    public void clearDisplay()
+    {
         clearSurface(surfaceTexture);
     }
 
