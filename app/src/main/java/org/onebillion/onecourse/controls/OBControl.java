@@ -628,16 +628,17 @@ public class OBControl
 
     public Matrix matrixForPointForwardConvert ()
     {
-        convertMatrix.reset();
+        Matrix cMatrix = new Matrix();
+        //convertMatrix.reset();
         float ax = anchorPoint.x * bounds().width();
         float ay = anchorPoint.y * bounds.height();
-        convertMatrix.postTranslate(-position.x, -position.y);
+        cMatrix.postTranslate(-position.x, -position.y);
         if (rotation != 0)
-            convertMatrix.postRotate((float) Math.toDegrees(-rotation));
+            cMatrix.postRotate((float) Math.toDegrees(-rotation));
         if (scaleX != 1 || scaleY != 1)
-            convertMatrix.postScale(1 / scaleX, 1 / scaleY);
-        convertMatrix.postTranslate(ax, ay);
-        return convertMatrix;
+            cMatrix.postScale(1 / scaleX, 1 / scaleY);
+        cMatrix.postTranslate(ax, ay);
+        return cMatrix;
     }
 
     public Matrix matrixForPointBackwardConvert ()

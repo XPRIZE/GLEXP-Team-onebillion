@@ -28,6 +28,7 @@ import org.onebillion.onecourse.controls.OBRadialGradientPath;
 import org.onebillion.onecourse.controls.OBShaderControl;
 import org.onebillion.onecourse.glstuff.OBRenderer;
 import org.onebillion.onecourse.glstuff.PixelShaderProgram;
+import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBAnim;
@@ -432,6 +433,7 @@ public class OC_Doodle extends OC_SectionController
 
     public void drawPath(List<PointF>points)
     {
+        //MainActivity.log(String.format("drawPath %d",points.size()));
         if (points.size() < 2)
             return;
         if (points.size() == 2)
@@ -446,13 +448,15 @@ public class OC_Doodle extends OC_SectionController
         {
             Path path = new Path();
             PointF p0 = points.get(0);
-            p0 = this.convertPointToControl(p0, board);
-            path.moveTo(p0.x,p0.y);
+            PointF pt0 = this.convertPointToControl(p0, board);
+            path.moveTo(pt0.x,pt0.y);
+           // MainActivity.log(String.format("drawPath moveto %g %g %g %g",p0.x, p0.y,pt0.x,pt0.y));
             for (int i = 1;i < points.size();i++)
             {
                 PointF p = points.get(i);
                 PointF pt1 = this.convertPointToControl(p, board);
                 path.lineTo(pt1.x,pt1.y);
+                //MainActivity.log(String.format("drawPath lineto %g %g",pt1.x, pt1.y));
             }
             canvas.drawPath(path,drawingPaint);
             PointF pl = points.get(points.size()-1);
@@ -467,6 +471,7 @@ public class OC_Doodle extends OC_SectionController
         PointF pt2 = this.convertPointToControl(toPoint, board);
 
         canvas.drawLine(pt1.x, pt1.y, pt2.x, pt2.y, drawingPaint);
+        //MainActivity.log(String.format("drawPath %g %g %g %g",pt1.x, pt1.y, pt2.x, pt2.y));
 
         refreshDrawingBoard();
     }
