@@ -507,6 +507,10 @@ public class OC_VideoPlayback extends OC_SectionController
             String frame = videoNode.attributeStringValue("frame");
             //
             OBImage im = loadImageWithName(frame, new PointF(), new RectF(), false);
+            if (im == null)
+            {
+                MainActivity.log("NULL IMAGE " + frame);
+            }
             if (movieFolder == null)
             {
                 String f = OBImageManager.sharedImageManager().getImgPath(frame);

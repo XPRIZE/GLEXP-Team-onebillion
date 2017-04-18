@@ -261,6 +261,14 @@ public class OC_TestMenu extends OBSectionController
             }
         });
 
+        TextView buildNumber = (TextView) MainActivity.mainActivity.findViewById(R.id.buildNumber);
+        String buildNumberValue = (String) MainActivity.Config().get(MainActivity.CONFIG_BUILD_NUMBER);
+        if (buildNumberValue == null)
+        {
+            buildNumberValue = "Missing BuildNo";
+        }
+        buildNumber.setText(buildNumberValue);
+
         Cursor cursor = getCursorForList(db);
         if(cursor.moveToFirst())
         {
@@ -354,7 +362,7 @@ public class OC_TestMenu extends OBSectionController
             }
             else
             {
-                unitName.setText(String.format("%d   - %s", level, unitKey));
+                unitName.setText(String.format("%d 0 - %s", level, unitKey));
             }
 
             int awardStar = cursor.getInt(cursor.getColumnIndex("awardStar"));
