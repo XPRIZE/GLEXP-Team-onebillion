@@ -11,6 +11,7 @@ import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
 
 import java.util.ArrayList;
@@ -511,6 +512,31 @@ public class OC_Sorting_S1 extends OC_SectionController
 
         catch (Exception exception)
         {
+        }
+    }
+
+    public void touchUpAtPoint(final PointF pt,View v)
+    {
+        if (status() == STATUS_DRAGGING)
+        {
+            if (target != null)
+            {
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run () throws Exception
+                    {
+                        checkDragAtPoint(pt);
+                        lockScreen();
+                        target.setZPosition(target.zPosition() - 30);
+                        unlockScreen();
+                    }
+                });
+            }
+            else
+            {
+                setStatus(STATUS_AWAITING_CLICK);
+            }
         }
     }
 

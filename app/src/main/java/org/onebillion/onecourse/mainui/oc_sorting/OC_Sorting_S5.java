@@ -109,13 +109,11 @@ public class OC_Sorting_S5 extends OC_SectionController
     void tracePointerAlongPath(final OBPath p,float durationMultiplier) throws Exception
 
     {
-        new OBRunnableSyncUI(){public void ex()
-        {
-            //p.setLineWidth(traceLineWidth);
-            p.setStrokeColor(Color.BLUE);
-            p.setStrokeEnd(0.0f);
-            p.setOpacity(1.0f);
-        }}.run();
+        lockScreen();
+        p.setStrokeColor(Color.BLUE);
+        p.setStrokeEnd(0.0f);
+        p.setOpacity(1.0f);
+        unlockScreen();
         long starttime = SystemClock.uptimeMillis();
         float duration = p.length() * 2 * durationMultiplier / theMoveSpeed;
         float frac = 0;
@@ -124,11 +122,10 @@ public class OC_Sorting_S5 extends OC_SectionController
             long currtime = SystemClock.uptimeMillis();
             frac = (float)(currtime - starttime) / (duration * 1000);
             final float t = (frac);
-            new OBRunnableSyncUI(){public void ex()
-            {
-                p.setStrokeEnd(t);
-                thePointer.setPosition(p.sAlongPath(t, null));
-            }}.run();
+            lockScreen();
+            p.setStrokeEnd(t);
+            thePointer.setPosition(p.sAlongPath(t, null));
+            unlockScreen();
             waitForSecs(0.02f);
         }
 
@@ -222,7 +219,9 @@ public class OC_Sorting_S5 extends OC_SectionController
             }
             else
             {
+                lockScreen();
                 drawingSurface.setPath(null);
+                unlockScreen();
                 new AsyncTask<Void, Void, Void>()
                 {
                     @Override
@@ -233,16 +232,14 @@ public class OC_Sorting_S5 extends OC_SectionController
                             gotItWrongWithSfx();
                             waitSFX();
                             playAudioQueuedScene(currentEvent(), "INCORRECT", false);
+                            setStatus(STATUS_AWAITING_CLICK);
                         }
                         catch(Exception e)
                         {
-
                         }
                         return null;
                     }
                 }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
-
-                setStatus(STATUS_AWAITING_CLICK);
             }
         }
         catch (Exception exception)
