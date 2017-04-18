@@ -56,12 +56,12 @@ public class OBMisc
 
     }
 
-    public static void  doSceneAudio(float remindDelay,String event, long statusTime, OC_SectionController controller) throws Exception
+    public static void doSceneAudio(float remindDelay,String event, long statusTime, OC_SectionController controller) throws Exception
     {
         doSceneAudio(remindDelay,event,statusTime,"",controller);
     }
 
-    public static void  doSceneAudio(float remindDelay, long statusTime, OC_SectionController
+    public static void doSceneAudio(float remindDelay, long statusTime, OC_SectionController
             controller) throws Exception
     {
         doSceneAudio(remindDelay,controller.currentEvent(),statusTime,controller);
@@ -220,6 +220,70 @@ public class OBMisc
     }
 
 
+    public static void setFirstLastPoints(OBPath path, PointF firstPoint, PointF lastPoint, OC_SectionController sectionController)
+    {
+        String name = (String) path.attributes().get("id");
+        if (name == null) name = (String) path.settings.get("name");
+        if (name == null) return;
+        UPath deconPath = sectionController.deconstructedPath(sectionController.currentEvent(), name);
 
+        USubPath subPath = deconPath.subPaths.get(0);
+        ULine line = subPath.elements.get(0);
+        line.pt0 = firstPoint;
+
+        USubPath subPath2 = deconPath.subPaths.get(deconPath.subPaths.size() - 1);
+        ULine line2 = subPath2.elements.get(subPath2.elements.size() - 1);
+        line2.pt1 = lastPoint;
+        path.setPath(deconPath.bezierPath());
+    }
+
+    public static List<Integer> stringToIntegerList(String numbers, String component)
+    {
+        List<Integer> result = new ArrayList<>();
+        if(numbers != null)
+        {
+            String[] strings = numbers.split(component);
+            for (String num : strings)
+                result.add(Integer.valueOf(num));
+        }
+        return result;
+    }
+
+    public static List<Float> stringToFloatList(String numbers, String component)
+    {
+        List<Float> result = new ArrayList<>();
+        if(numbers != null)
+        {
+            String[] strings = numbers.split(component);
+            for (String num : strings)
+                result.add(Float.valueOf(num));
+        }
+        return result;
+    }
+
+    public static void colourObjectFromAttributes(OBGroup obj)
+    {
+        for (String key : obj.attributes().keySet())
+        {
+            if(key.startsWith("colour_"))
+            {
+                int colour = OBUtils.colorFromRGBString((String)obj.attributes().get(key));
+                String layer = key.replaceAll("colour_","");
+                for (OBControl con: obj.filterMembers(String.format("%s.*", layer)))
+                {
+                    if (con.getClass() == OBPath.class)
+                    {
+                        ((OBPath) con).setFillColor(colour);
+                    }
+                    if (con.getClass() == OBGroup.class)
+                    {
+                        for (OBControl con2 : ((OBGroup) con).members)
+                            if (con2.getClass() == OBPath.class)
+                                ((OBPath) con2).setFillColor(colour);
+                    }
+                }
+            }
+        }
+    }
 
 }

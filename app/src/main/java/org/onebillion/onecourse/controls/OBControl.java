@@ -1212,6 +1212,20 @@ public class OBControl
         return !(cornerRadius == 0 && (borderWidth == 0 || borderColour == 0));
     }
 
+    public void renderShadowLayer (OBRenderer renderer, OBViewController vc)
+    {
+        TextureRect tr = renderer.textureRect;
+        if (texture == null || needsRetexture)
+        {
+            texturise(false, vc);
+            needsRetexture = false;
+        }
+        if (texture == null || texture.bitmap() == null)
+            return;
+
+        tr.drawShadow(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, texture.bitmap());
+    }
+
     public void renderLayer (OBRenderer renderer, OBViewController vc)
     {
         TextureRect tr = renderer.textureRect;
@@ -1224,13 +1238,13 @@ public class OBControl
         if (texture == null || texture.bitmap() == null)
             return;
 
-        if(shouldRenderShadow() && shadowRadius > 0f)
+        /*if(shouldRenderShadow() && shadowRadius > 0f)
         {
             if (shadowCache == null)
                 createShadowCache(drawn());
             //tr.drawShadow(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, texture.bitmap());
             tr.draw(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, shadowCache);
-        }
+        }*/
         if (dynamicMask && maskControl != null && maskControl.texture != null)
             tr.draw(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, texture.bitmap(), maskControl.texture.bitmap());
         else
@@ -1272,7 +1286,8 @@ public class OBControl
                     {
                         ShadowShaderProgram shadowShader = (ShadowShaderProgram) renderer.shadowProgram;
                         shadowShader.useProgram();
-                        shadowShader.setUniforms(modelViewMatrix,modelMatrix,renderer.textureObjectId(0),shadowOffsetX,shadowOffsetY,shadowBlendColour,finalCol);
+                        shadowShader.setUniforms(modelViewMatrix,modelMatrix,renderer.textureObjectIds[0],shadowOffsetX,shadowOffsetY,shadowBlendColour,finalCol);
+                        renderShadowLayer(renderer,vc);
                     }
                     else
                     {
@@ -1290,11 +1305,11 @@ public class OBControl
                         //android.opengl.Matrix.multiplyMM(shadMatrix, 0, tm, 0, tempMatrix, 0);
                         TextureShaderProgram textureShader = (TextureShaderProgram) renderer.textureProgram;
                         textureShader.useProgram();
-                        textureShader.setUniforms(shadMatrix, renderer.textureObjectId(0), finalCol, blendMode);
+                        textureShader.setUniforms(shadMatrix, renderer.textureObjectIds[0], finalCol, blendMode);
                         if (shadowCache == null)
                             createShadowCache(drawn());
                         TextureRect tr = renderer.textureRect;
-                        tr.draw(renderer, 0, 0, shadowCache.getWidth(), shadowCache.getHeight(), shadowCache);
+                        tr.draw(renderer, 0, 0, shadowCache.getWidth()/rasterScale(), shadowCache.getHeight()/rasterScale(), shadowCache);
 
                     }
 
@@ -1307,14 +1322,14 @@ public class OBControl
                     maskFrame[3] = maskControl.frame().bottom+vc.viewPortTop;
                     MaskShaderProgram maskProgram = (MaskShaderProgram) renderer.maskProgram;
                     maskProgram.useProgram();
-                    maskProgram.setUniforms(tempMatrix, renderer.textureObjectId(0), renderer.textureObjectId(1), finalCol, blendMode, maskControlReversed ? 1.0f : 0.0f,  renderer.w,renderer.h, maskFrame);
+                    maskProgram.setUniforms(tempMatrix, renderer.textureObjectIds[0], renderer.textureObjectIds[1], finalCol, blendMode, maskControlReversed ? 1.0f : 0.0f,  renderer.w,renderer.h, maskFrame);
 
                 }
                 else
                 {
                     TextureShaderProgram textureShader = (TextureShaderProgram) renderer.textureProgram;
                     textureShader.useProgram();
-                    textureShader.setUniforms(tempMatrix, renderer.textureObjectId(0), finalCol, blendMode);
+                    textureShader.setUniforms(tempMatrix, renderer.textureObjectIds[0], finalCol, blendMode);
                 }
 
                 renderLayer(renderer, vc);
@@ -1539,7 +1554,8 @@ public class OBControl
         shadowCache = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(shadowCache);
         Matrix m = new Matrix();
-        m.preScale(rasterScale, rasterScale);
+        //m.preScale(rasterScale, rasterScale); scale not required as bitmap already scaled
+        m.preTranslate(shadowPad,shadowPad);
         canvas.concat(m);
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         Bitmap alpha = bitmap.extractAlpha();
@@ -1825,7 +1841,8 @@ public class OBControl
 
     private boolean shouldRenderShadow()
     {
-        return parent == null &&(shadowOffsetX != 0 || shadowOffsetY != 0);
+        return parent == null && shadowOpacity > 0;
+        //return parent == null &&(shadowOffsetX != 0 || shadowOffsetY != 0);
     }
 
 

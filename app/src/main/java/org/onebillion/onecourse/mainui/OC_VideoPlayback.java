@@ -77,12 +77,14 @@ public class OC_VideoPlayback extends OC_SectionController
     public static int defaultWaitTime = 50;
     public float currentVideoPlayerVolume;
 
+
     private static Typeface plainFont ()
     {
         if (plain == null)
             plain = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/F37Ginger-Regular.otf");
         return plain;
     }
+
 
     private static Typeface boldFont ()
     {
@@ -91,12 +93,14 @@ public class OC_VideoPlayback extends OC_SectionController
         return bold;
     }
 
+
     private static Typeface italicFont ()
     {
         if (italic == null)
             italic = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/F37Ginger-Italic.otf");
         return italic;
     }
+
 
     private static Typeface boldItalicFont ()
     {
@@ -119,6 +123,12 @@ public class OC_VideoPlayback extends OC_SectionController
         subtitleTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("subtitletextsize")));
         loadPlaylist();
         loadVideoThumbnails();
+        //
+        hideControls(".*mask");
+        hideControls("video_video");
+        hideControls("video_textbox");
+        //
+        scrollPreviewToVisible(videoPreviewIdx, false);
     }
 
 
@@ -229,7 +239,7 @@ public class OC_VideoPlayback extends OC_SectionController
 //            label.setBorderWidth(2f);
             objectDict.put("subtitle", label);
             //
-            MainActivity.log("OC_VideoPlayback:showSubtitle:attaching new subtitle");
+            //MainActivity.log("OC_VideoPlayback:showSubtitle:attaching new subtitle");
             //
             OBUtils.runOnMainThread(new OBUtils.RunLambda()
             {
@@ -262,6 +272,7 @@ public class OC_VideoPlayback extends OC_SectionController
                 }
                 catch (Exception e)
                 {
+                    e.printStackTrace();
                     // nothing to do here
                 }
                 setStatus(STATUS_IDLE);
@@ -269,6 +280,10 @@ public class OC_VideoPlayback extends OC_SectionController
                 currentVideoPlayerVolume = 1;
                 videoPlayer.player.setVolume(currentVideoPlayerVolume, currentVideoPlayerVolume);
                 //
+                videoPlayer.start();
+            }
+            else if (!videoPlayer.isPlaying())
+            {
                 videoPlayer.start();
             }
             //
@@ -280,7 +295,7 @@ public class OC_VideoPlayback extends OC_SectionController
                 int excess = end - currentPosition;
                 if (currentPosition == -1) excess = 10;
                 //
-//                        MainActivity.log("OC_VideoPlayback:showSubtitle:waiting for subtitle:" + excess);
+                // MainActivity.log("OC_VideoPlayback:showSubtitle:waiting for subtitle:" + excess);
                 //
                 try
                 {
@@ -294,6 +309,7 @@ public class OC_VideoPlayback extends OC_SectionController
                 }
                 catch (Exception e)
                 {
+                    e.printStackTrace();
                     // nothing to do here
                 }
                 //
@@ -348,6 +364,18 @@ public class OC_VideoPlayback extends OC_SectionController
                     return;
                 }
                 //
+                if (!timestamps[0].contains(","))
+                {
+                    int breakIndex = timestamps[0].lastIndexOf(".");
+                    char[] charArray = timestamps[0].toCharArray();
+                    charArray[breakIndex] = ',';
+                    timestamps[0] = new String(charArray);
+                }
+                if (timestamps[0].startsWith("0:"))
+                {
+                    timestamps[0] = timestamps[0].substring(2);
+                }
+                //
                 String[] topParts = timestamps[0].split(",");
                 if (topParts.length != 2)
                 {
@@ -368,6 +396,18 @@ public class OC_VideoPlayback extends OC_SectionController
                 int milliseconds = Integer.parseInt(topParts[1]);
                 //
                 long subStart = milliseconds + seconds * 1000 + minutes * 60 * 1000 + hours * 60 * 60 * 1000;
+                //
+                if (!timestamps[1].contains(","))
+                {
+                    int breakIndex = timestamps[1].lastIndexOf(".");
+                    char[] charArray = timestamps[1].toCharArray();
+                    charArray[breakIndex] = ',';
+                    timestamps[1] = new String(charArray);
+                }
+                if (timestamps[1].startsWith("0:"))
+                {
+                    timestamps[1] = timestamps[1].substring(2);
+                }
                 //
                 topParts = timestamps[1].split(",");
                 if (topParts.length != 2)
@@ -456,7 +496,6 @@ public class OC_VideoPlayback extends OC_SectionController
         float videoPreviewTopY = p1.position().y;
         float videoPreviewXOffset = p2.position().x - p1.position().x;
         float videoPreviewHeight = p1.height();
-        float videoPreviewWidth = p1.width();
         int idx = 0;
         float zpos = OC_Generic.getNextZPosition(this);
         //
@@ -468,6 +507,10 @@ public class OC_VideoPlayback extends OC_SectionController
             String frame = videoNode.attributeStringValue("frame");
             //
             OBImage im = loadImageWithName(frame, new PointF(), new RectF(), false);
+            if (im == null)
+            {
+                MainActivity.log("NULL IMAGE " + frame);
+            }
             if (movieFolder == null)
             {
                 String f = OBImageManager.sharedImageManager().getImgPath(frame);
@@ -477,20 +520,23 @@ public class OC_VideoPlayback extends OC_SectionController
             }
             videoPreviewImages.add(im);
             im.setPosition(videoPreviewX + idx * videoPreviewXOffset, videoPreviewTopY);
-            im.setScale(videoPreviewHeight / im.height());
+            float originalScale = videoPreviewHeight / im.height();
+            im.setProperty("originalScale", originalScale);
+            originalScale *= 0.75;
+            im.setScale(originalScale);
             im.setZPosition(5);
-            im.setHighlightColour(Color.argb(80, 0, 0, 0));
+//            im.setHighlightColour(Color.argb(80, 0, 0, 0));
             //
             idx++;
         }
         lstgp.addAll(videoPreviewImages);
         //
-        OBControl selector = new OBControl();
-        selector.setBackgroundColor(col);
-        selector.setFrame(videoPreviewImages.get(0).frame());
-        selector.setZPosition(1);
-        objectDict.put("video_preview_selector", selector);
-        lstgp.add(selector);
+//        OBControl selector = new OBControl();
+//        selector.setBackgroundColor(col);
+//        selector.setFrame(videoPreviewImages.get(0).frame());
+//        selector.setZPosition(1);
+//        objectDict.put("video_preview_selector", selector);
+//        lstgp.add(selector);
         //
         OBControl mask = objectDict.get("video_mask");
         OBControl mc = mask.copy();
@@ -498,7 +544,6 @@ public class OC_VideoPlayback extends OC_SectionController
         RectF r = OBGroup.frameUnion(lstgp);
         //
         r.left -= videoPreviewImages.get(0).width();
-//        r.bottom += applyGraphicScale(24);
         r.right += videoPreviewImages.get(0).width();
         //
         videoPreviewGroup = new OBGroup(lstgp, r);
@@ -508,6 +553,7 @@ public class OC_VideoPlayback extends OC_SectionController
         objectDict.put("videoPreviewGroup", videoPreviewGroup);
         detachControl(mask);
         videoPreviewGroup.setScreenMaskControl(mask);
+//        videoPreviewGroup.setShouldTexturise(false);
         //
         float gradientNudge = videoPreviewImages.get(0).width() * 0.25f;
         maximumX = videoPreviewGroup.position().x + gradientNudge;
@@ -516,42 +562,6 @@ public class OC_VideoPlayback extends OC_SectionController
         selectPreview(videoPreviewIdx);
     }
 
-
-    private void videoinit ()
-    {
-        OBRenderer rn = MainActivity.mainActivity.renderer;
-        while (rn.colourProgram == null)
-        {
-            try
-            {
-                waitForSecs(0.1);
-            }
-            catch (Exception e)
-            {
-                MainActivity.log("OC_VideoPlayback:videoinit:exception caught");
-                e.printStackTrace();
-            }
-        }
-        OBUtils.runOnMainThread(new OBUtils.RunLambda()
-        {
-            @Override
-            public void run () throws Exception
-            {
-                lockScreen();
-                //
-                if (videoPlayer != null)
-                {
-                    videoPlayer.stop();
-                    detachControl(videoPlayer);
-                }
-                //
-                setUpVideoPlayerForIndex(videoPreviewIdx, false);
-                scrollPreviewToVisible(videoPreviewIdx, false);
-                //
-                unlockScreen();
-            }
-        });
-    }
 
     public void start ()
     {
@@ -567,7 +577,38 @@ public class OC_VideoPlayback extends OC_SectionController
                 @Override
                 public void run () throws Exception
                 {
-                    videoinit();
+                    OBRenderer rn = MainActivity.mainActivity.renderer;
+                    while (rn.colourProgram == null)
+                    {
+                        try
+                        {
+                            waitForSecs(0.1);
+                        }
+                        catch (Exception e)
+                        {
+                            MainActivity.log("OC_VideoPlayback:videoinit:exception caught");
+                            e.printStackTrace();
+                        }
+                    }
+                    OBUtils.runOnMainThread(new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run () throws Exception
+                        {
+                            lockScreen();
+                            //
+                            if (videoPlayer != null)
+                            {
+                                videoPlayer.stop();
+                                detachControl(videoPlayer);
+                            }
+                            //
+                            setUpVideoPlayerForIndex(videoPreviewIdx, false);
+                            scrollPreviewToVisible(videoPreviewIdx, false);
+                            //
+                            unlockScreen();
+                        }
+                    });
                 }
             });
             inited = true;
@@ -578,30 +619,30 @@ public class OC_VideoPlayback extends OC_SectionController
     private void selectPreview (int i)
     {
         videoPreviewIdx = i;
-        OBControl selector = objectDict.get("video_preview_selector");
+//        OBControl selector = objectDict.get("video_preview_selector");
         OBControl pim = videoPreviewImages.get(videoPreviewIdx);
         //
-        RectF f = new RectF();
-        f.set(pim.frame());
-        float amt = applyGraphicScale(-4);
-        f.inset(amt, amt);
-        selector.setFrame(f);
+//        RectF f = new RectF();
+//        f.set(pim.frame());
+//        float amt = applyGraphicScale(-4);
+//        f.inset(amt, amt);
+//        selector.setFrame(f);
         //
+        lockScreen();
+//        videoPreviewGroup.setShouldTexturise(false);
         for (OBControl preview : videoPreviewImages)
         {
-            preview.setColourOverlay(pim.equals(preview) ? Color.TRANSPARENT : Color.argb(180, 0, 0, 0));
+            float originalScale = (float) preview.propertyValue("originalScale");
+            float newScale = pim.equals(preview) ? originalScale : originalScale * 0.75f;
+            MainActivity.log("Setting scale for preview " + preview + ":" + newScale + " (" + originalScale + ")");
+            preview.setScale(newScale);
+//            preview.setColourOverlay(pim.equals(preview) ? Color.TRANSPARENT : Color.argb(180, 0, 0, 0));
         }
-
-    }
-
-
-    private void goSmallScreen ()
-    {
-        lockScreen();
-        OBControl placeHolder = objectDict.get("video_video");
-        videoPlayer.setFillType(OBVideoPlayer.VP_FILL_TYPE_ASPECT_FILL);
-        videoPlayer.setFrame(placeHolder.frame());
+        videoPreviewGroup.setNeedsRetexture();
+//        videoPreviewGroup.setShouldTexturise(true);
+//        videoPreviewGroup.invalidate();
         unlockScreen();
+
     }
 
     private void setUpVideoPlayerForIndex (final int idx, boolean play)
@@ -746,11 +787,11 @@ public class OC_VideoPlayback extends OC_SectionController
     {
         // add time threshold to prevent maniacal tapping
         //
-        if (status() == STATUS_WAITING_FOR_RESUME)
-        {
-            MainActivity.log("OC_VideoPlayback:touchUpAtPoint:status is waiting for resume: skipping further processing");
-            return;
-        }
+//        if (status() == STATUS_WAITING_FOR_RESUME)
+//        {
+//            MainActivity.log("OC_VideoPlayback:touchUpAtPoint:status is waiting for resume: skipping further processing");
+//            return;
+//        }
         if (status() == 0)
         {
             return;
@@ -838,11 +879,11 @@ public class OC_VideoPlayback extends OC_SectionController
 
     public void touchMovedToPoint (PointF pt, View v)
     {
-        if (status() == STATUS_WAITING_FOR_RESUME)
-        {
-            MainActivity.log("OC_VideoPlayback:touchMovedToPoint:status is waiting for resume: skipping further processing");
-            return;
-        }
+//        if (status() == STATUS_WAITING_FOR_RESUME)
+//        {
+//            MainActivity.log("OC_VideoPlayback:touchMovedToPoint:status is waiting for resume: skipping further processing");
+//            return;
+//        }
         if (status() == 0)
         {
             MainActivity.log("OC_VideoPlayback:touchMovedToPoint:status 0");
@@ -872,7 +913,11 @@ public class OC_VideoPlayback extends OC_SectionController
     {
         if (intro_video_state == ivs_before_play)
         {
-            goSmallScreen();
+            lockScreen();
+            OBControl placeHolder = objectDict.get("video_video");
+            videoPlayer.setFillType(OBVideoPlayer.VP_FILL_TYPE_ASPECT_FILL);
+            videoPlayer.setFrame(placeHolder.frame());
+            unlockScreen();
             //
             currentVideoPlayerVolume = 1;
             videoPlayer.player.setVolume(currentVideoPlayerVolume, currentVideoPlayerVolume);
@@ -895,8 +940,27 @@ public class OC_VideoPlayback extends OC_SectionController
         }
     }
 
-    private void processVideoTouch (PointF pt)
+
+    public void touchDownAtPoint (PointF pt, View v)
     {
+//        if (status() == STATUS_WAITING_FOR_RESUME)
+//        {
+//            MainActivity.log("OC_VideoPlayback:touchDownAtPoint:status is waiting for resume: skipping further processing");
+//            return;
+//        }
+        //
+        lastPoint.set(pt);
+        lastLastPoint.set(pt);
+        firstPoint.set(pt);
+        slowingDown = false;
+        //
+        if (status() != STATUS_IDLE)
+        {
+            return;
+        }
+        //
+        lastPoint.set(pt);
+        //
         videoScrollState = VIDEO_SCROLL_NONE;
         RectF f = videoPreviewGroup.frame();
         if (f.contains(pt.x, pt.y))
@@ -911,29 +975,6 @@ public class OC_VideoPlayback extends OC_SectionController
                 handleVideoPress(pt);
             }
         }
-    }
-
-
-    public void touchDownAtPoint (PointF pt, View v)
-    {
-        if (status() == STATUS_WAITING_FOR_RESUME)
-        {
-            MainActivity.log("OC_VideoPlayback:touchDownAtPoint:status is waiting for resume: skipping further processing");
-            return;
-        }
-        //
-        lastPoint.set(pt);
-        lastLastPoint.set(pt);
-        firstPoint.set(pt);
-        slowingDown = false;
-        //
-        if (status() != STATUS_IDLE)
-        {
-            return;
-        }
-        //
-        lastPoint.set(pt);
-        processVideoTouch(pt);
     }
 
 

@@ -134,8 +134,9 @@ public class OC_Library extends OC_SectionController
                         currentGroup.setProperty("last_loc", OBMisc.copyPoint(currentGroup.position()));
                         long time = setStatus(STATUS_DRAGGING);
                         currentGroup.setProperty("time", time);
-                        if (group.isEnabled())
-                            startSpeedMeasure(time, currentGroup);
+                        currentGroup.setProperty("last_scroll", System.currentTimeMillis());
+                       /* if (group.isEnabled())
+                            startSpeedMeasure(time, currentGroup);*/
 
                     }
 
@@ -151,6 +152,7 @@ public class OC_Library extends OC_SectionController
         {
             float x = OB_Maths.AddPoints(pt, dragOffset).x;
             setBookLine(currentGroup,x);
+            measureGroupSpeed(currentGroup);
         }
 
     }
@@ -167,11 +169,11 @@ public class OC_Library extends OC_SectionController
                     final OBControl curIcon = currentIcon;
                     currentGroup = null;
                     currentIcon = null;
-                    long currTime = System.currentTimeMillis();
+                    long startTime = System.currentTimeMillis();
                     PointF lastPosition = (PointF)curGroup.propertyValue("touch_loc");
                     float scrollSpeed = (float) curGroup.propertyValue("scrollSpeed");
                     boolean bookStarted = false;
-                    if (curIcon != null && (currTime - (long) curGroup.propertyValue("time")) < 1000
+                    if (curIcon != null && (startTime - (long) curGroup.propertyValue("time")) < 1000
                             && Math.abs(lastPosition.x - pt.x) < snapDist && scrollSpeed < applyGraphicScale(1))
                     {
                         bookStarted= true;
@@ -195,16 +197,21 @@ public class OC_Library extends OC_SectionController
                         long time = setStatus(STATUS_WAITING_FOR_DRAG);
                         if (!curGroup.isEnabled()) return;
                         curGroup.setProperty("time", time);
+                        float distance = scrollSpeed * 1000 * 0.5f;
+                        float targetX = Math.round(curGroup.position().x - distance );
                         while (Math.abs(scrollSpeed) > applyGraphicScale(0.5f) && time == (long) curGroup.propertyValue("time"))
-
                         {
                             waitForSecs(0.005f);
-                            if (scrollSpeed != 0 && time == (long) curGroup.propertyValue("time"))
+                            long currTime = System.currentTimeMillis();
+                            float  delta = distance * (float)Math.exp(-(currTime - startTime) / 325.0f);
+                            if (Math.abs(delta) > applyGraphicScale(10f) && time == (long) curGroup.propertyValue("time"))
                             {
-                                if (setBookLine(curGroup, curGroup.position().x - scrollSpeed))
-                                    scrollSpeed *= 0.99;
-                                else
+                                if (!setBookLine(curGroup, targetX + delta))
                                     scrollSpeed = 0;
+                            }
+                            else
+                            {
+                                break;
                             }
                         }
                         snapClosest(time, curGroup, false);
@@ -278,19 +285,25 @@ public class OC_Library extends OC_SectionController
         if(x+width <= limitRight)
         {
             pos.x = limitRight-width;
+            lockScreen();
             bookLine.setPosition(pos);
+            unlockScreen();
             return false;
         }
         else if(x-width >= limitLeft)
         {
             pos.x = limitLeft+width;
+            lockScreen();
             bookLine.setPosition(pos);
+            unlockScreen();
             return false;
         }
         else
         {
             pos.x = x;
+            lockScreen();
             bookLine.setPosition(pos);
+            unlockScreen();
             return true;
         }
     }
@@ -308,7 +321,9 @@ public class OC_Library extends OC_SectionController
         float dist = OB_Maths.locationForRect(0.5f, 0.5f, icon.getWorldFrame()).x - snapLoc.x;
         if (instant)
         {
+            lockScreen();
             bookLine.setPosition(bookLine.position().x - dist , bookLine.position().y);
+            unlockScreen();
         }
         else
         {
@@ -326,12 +341,30 @@ public class OC_Library extends OC_SectionController
             {
                 frac = (System.currentTimeMillis() - starttime) / (duration * 1000);
                 frac = OB_Maths.easein(frac);
+                lockScreen();
                 bookLine.setPosition(startPos.x - dist * frac, bookLine.position().y);
+                unlockScreen();
                 waitForSecs(0.005f);
 
             }
         }
 
+    }
+
+    public void measureGroupSpeed(OBGroup bookLine)
+    {
+        long time = System.currentTimeMillis();
+        long lastTime = (long)bookLine.propertyValue("last_scroll");
+        float lastScrollSpeed = (float)bookLine.propertyValue("scrollSpeed");
+        PointF lastPosition = (PointF)bookLine.propertyValue("last_loc") ;
+        PointF currPosition = OBMisc.copyPoint(bookLine.position());
+        long elapsed = time - lastTime;
+        float delta = currPosition.x - lastPosition.x;
+        float v = delta / (1+elapsed);
+        float scrollSpeed = 0.8f * v + 0.2f * lastScrollSpeed;
+        bookLine.setProperty("last_loc",currPosition);
+        bookLine.setProperty("scrollSpeed",-scrollSpeed);
+        currentGroup.setProperty("last_scroll",time);
     }
 
     public void startSpeedMeasure(final long time,final OBGroup bookLine)
