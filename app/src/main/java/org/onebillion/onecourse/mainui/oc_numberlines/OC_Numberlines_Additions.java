@@ -8,6 +8,7 @@ import android.graphics.Typeface;
 import android.util.ArrayMap;
 
 import org.onebillion.onecourse.controls.*;
+import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimBlock;
@@ -381,6 +382,21 @@ public class OC_Numberlines_Additions
     {
         OBGroup group = (OBGroup)equation.objectDict.get(String.format("part%d",labelNum));
         return (OBLabel)group.objectDict.get("label");
+    }
+
+
+    public static void setUpBasket(OBSectionController controller)
+    {
+        controller.objectDict.get("box_back").setZPosition(1.1f);
+        controller.objectDict.get("box_front").setZPosition(1.3f);
+        controller.objectDict.get("box_top").setZPosition(1.4f);
+        moveBasketParts(controller);
+    }
+
+    public static void moveBasketParts(OBSectionController controller)
+    {
+        controller.objectDict.get("box_back").setPosition(controller.objectDict.get("box_front").position());
+        controller.objectDict.get("box_top").setPosition(controller.objectDict.get("box_front").position());
     }
 
 
