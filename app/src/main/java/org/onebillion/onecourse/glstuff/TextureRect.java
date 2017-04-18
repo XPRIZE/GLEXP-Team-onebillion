@@ -91,7 +91,7 @@ public class TextureRect
 
         renderer.textureProgram.useProgram();
         bindData((TextureShaderProgram) renderer.textureProgram);
-        glBindTexture(GL_TEXTURE_2D, renderer.textureObjectIds[0]);
+        glBindTexture(GL_TEXTURE_2D, renderer.textureObjectId(0));
         GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 //        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
         GLES20.glEnable(GLES20.GL_BLEND);
@@ -113,13 +113,13 @@ public class TextureRect
         bindMaskData((MaskShaderProgram) renderer.maskProgram);
 
 
-        glBindTexture(GL_TEXTURE_2D, renderer.textureObjectIds[0]);
+        glBindTexture(GL_TEXTURE_2D, renderer.textureObjectId(0));
         GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 //        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
         GLES20.glEnable(GLES20.GL_BLEND);
         texImage2D(GL_TEXTURE_2D,0,bitmap,0);
 
-        glBindTexture(GL_TEXTURE_2D, renderer.textureObjectIds[1]);
+        glBindTexture(GL_TEXTURE_2D, renderer.textureObjectId(1));
         GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
         //GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
         GLES20.glEnable(GLES20.GL_BLEND);
@@ -184,7 +184,7 @@ public class TextureRect
             e.printStackTrace();
         }
 
-        glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,renderer.textureObjectIds[2]);
+        glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,renderer.textureObjectId(2));
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
         GLES20.glEnable(GLES20.GL_BLEND);
 
@@ -195,7 +195,7 @@ public class TextureRect
 
     public void unbindSurface(OBRenderer renderer)
     {
-        glDeleteTextures(1,new int[] {renderer.textureObjectIds[2]},0);
+        glDeleteTextures(1,new int[] {renderer.textureObjectId(2)},0);
     }
 
     public void drawShadow(OBRenderer renderer, float l, float t, float r, float b, Bitmap bitmap)
@@ -209,7 +209,7 @@ public class TextureRect
 
         renderer.shadowProgram.useProgram();
         bindData((ShadowShaderProgram) renderer.shadowProgram);
-        glBindTexture(GL_TEXTURE_2D, renderer.textureObjectIds[0]);
+        glBindTexture(GL_TEXTURE_2D, renderer.textureObjectId(0));
         GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 //        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
         GLES20.glEnable(GLES20.GL_BLEND);

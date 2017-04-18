@@ -66,9 +66,10 @@ public class OBVideoPlayer extends OBControl
     {
         activityPaused = true;
         setFrame(frame.left, frame.top, frame.right, frame.bottom);
-        this.mirrored = false;
-        setDisplayMirrored(mirrored);
-        textureId = MainActivity.mainActivity.renderer.textureObjectIds[2];
+        this.mirrored = mirrored;
+        if (mirrored)
+            setScaleX(-1);
+        textureId = MainActivity.mainActivity.renderer.textureObjectId(2);
         rebuildTexture();
         playerLock = new ReentrantLock();
         playAfterPrepare = _playAfterPrepare;

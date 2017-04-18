@@ -840,7 +840,7 @@ public class OBSectionController extends OBViewController
             {
                 int col = OBUtils.colorFromRGBString((String) attrs.get("shadowcolour"));
                 float ratio = Math.abs(1 / shadScale);
-                if (!scalable)
+                //if (!scalable)
                     ratio = graphicScale;
                 float opacity = 1, xoff = 0, yoff = 0, rad = 3;
                 if (attrs.get("shadowopacity") != null)
@@ -2291,7 +2291,7 @@ public class OBSectionController extends OBViewController
         OBControl c = new OBControl();
         c.setBounds(0,0,8,8);
         c.setFillColor(Color.BLACK);
-        glBindTexture(GL_TEXTURE_2D, MainActivity.mainActivity.renderer.textureObjectIds[id]);
+        glBindTexture(GL_TEXTURE_2D, MainActivity.mainActivity.renderer.textureObjectId(id));
         texImage2D(GL_TEXTURE_2D,0,c.drawn(),0);
     }
 

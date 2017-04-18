@@ -59,7 +59,11 @@ public class OBImageManager
             for (String imageSuffix : suffixes)
             {
                 String fullPath = String.format("masterlists/%s/icons/%s.%s", mlname, imageName, imageSuffix);
-                if (OBUtils.fileExistsAtPath(fullPath)) return fullPath;
+                if (OBUtils.fileExistsAtPath(fullPath))
+                {
+                    MainActivity.log("Found masterlist icon " + fullPath);
+                    return fullPath;
+                }
             }
         }
         //

@@ -59,7 +59,7 @@ vec3 hsvToRgb(vec3 hsv)
 
 float cycleh(float h,float timx)
 {
-	return mod(h + ((timx) + 1.) ,360.);
+	return mod(h + ((timx) + 1.) * 180. ,360.);
 }
 
 vec4 gradVal(vec4 col1,vec4 col2,vec4 col3,float dist,float radius,float col2stop)
@@ -73,7 +73,7 @@ vec4 gradVal(vec4 col1,vec4 col2,vec4 col3,float dist,float radius,float col2sto
 }
 vec4 doEffect(void)
 {
-	float uTimex = uTime* 0.5;
+	float uTimex = uTime* 0.1;
 	vec2 position = (gl_FragCoord.xy / uResolution);
 
 	vec2 source1 = vec2(0.1,0.1);	

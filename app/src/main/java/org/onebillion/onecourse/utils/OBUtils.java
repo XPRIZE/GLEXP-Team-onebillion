@@ -127,6 +127,9 @@ public class OBUtils
 
     public static Boolean fileExistsAtPath (String path)
     {
+        Boolean result = getInputStreamForPath(path) != null;
+        return result;
+        /*
         try
         {
             AssetManager am = MainActivity.mainActivity.getAssets();
@@ -154,6 +157,7 @@ public class OBUtils
         }
         //
         return false;
+        */
     }
 
 

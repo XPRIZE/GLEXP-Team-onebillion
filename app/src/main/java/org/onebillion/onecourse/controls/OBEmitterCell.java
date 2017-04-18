@@ -185,7 +185,7 @@ public class OBEmitterCell
                 matrix3dForDraw(ee.posX,ee.posY,w2,h2,ee.angle,ee.scale);
                 android.opengl.Matrix.multiplyMM(finalMatrix,0,modelViewMatrix,0,modelMatrix,0);
                 blendColour[3] = ee.alpha;
-                textureShader.setUniforms(finalMatrix,renderer.textureObjectIds[0],blendColour, 1);
+                textureShader.setUniforms(finalMatrix,renderer.textureObjectId(0),blendColour, 1);
                 tr.draw(renderer,0,0,w2*2,h2*2,texture.bitmap());
             }
         }

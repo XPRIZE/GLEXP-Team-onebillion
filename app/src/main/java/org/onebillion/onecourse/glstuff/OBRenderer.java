@@ -1,11 +1,15 @@
 package org.onebillion.onecourse.glstuff;
 
+import android.graphics.Bitmap;
 import android.opengl.GLES11Ext;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -33,7 +37,8 @@ import static android.opengl.Matrix.orthoM;
  */
 public class OBRenderer implements GLSurfaceView.Renderer
 {
-    public final int[] textureObjectIds = new int[3];
+    public final int[] textureObjectIds = new int[4];
+    public List<TextureUnit> textureUnits = new ArrayList<>();
     public ShaderProgram colourProgram,textureProgram, maskProgram, surfaceProgram, shadowProgram;
     public TextureRect textureRect;
     public GradientRect gradientRect;
@@ -42,6 +47,15 @@ public class OBRenderer implements GLSurfaceView.Renderer
     public OBSectionController transitionScreenL,transitionScreenR;
     public float transitionFrac;
 
+    public class TextureUnit
+    {
+        public int textureID;
+        Bitmap lastBitmap;
+        public TextureUnit(int id)
+        {
+            textureID = id;
+        }
+    }
     public void onSurfaceCreated(GL10 glUnused, EGLConfig config)
     {
         glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
@@ -51,7 +65,7 @@ public class OBRenderer implements GLSurfaceView.Renderer
         surfaceProgram = new SurfaceShaderProgram();
         shadowProgram = new ShadowShaderProgram();
 
-        glGenTextures(3, textureObjectIds, 0);
+        glGenTextures(4, textureObjectIds, 0);
 
         if (textureObjectIds[0] == 0) {
             Log.w("onSurfaceCreated", "Could not generate a new OpenGL texture object.");
@@ -64,6 +78,12 @@ public class OBRenderer implements GLSurfaceView.Renderer
         bindStandardTextureForId(textureObjectIds[0]);
         bindStandardTextureForId(textureObjectIds[1]);
         bindExternalTextureForId(textureObjectIds[2]);
+        bindStandardTextureForId(textureObjectIds[3]);
+
+        for (int i = 0;i < textureObjectIds.length;i++)
+        {
+            textureUnits.add(new TextureUnit(textureObjectIds[i]));
+        }
     }
 
     public void bindStandardTextureForId(int id)
@@ -120,6 +140,12 @@ public class OBRenderer implements GLSurfaceView.Renderer
             controller.render(this);
         MainActivity.mainViewController.render(this);
 
+    }
+
+    public int textureObjectId(int i)
+    {
+        //return textureObjectIds[i];
+        return textureUnits.get(i).textureID;
     }
 
     public void renderTwoScreens(OBSectionController screenl,OBSectionController screenr,float frac)

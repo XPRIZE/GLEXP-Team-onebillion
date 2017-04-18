@@ -135,7 +135,8 @@ public class MainActivity extends Activity
             CONFIG_DISALLOW_HOURS = "disallowHours",
             CONFIG_BUNDLED_OBB_FILENAME = "bundledOBBFilename",
             CONFIG_CHECK_FOR_DISABLED_LOCATION_SERVICES = "checkForDisabledLocationServices",
-            CONFIG_CHECK_FOR_DISABLED_SCANNING = "checkForDisabledScanning";
+            CONFIG_CHECK_FOR_DISABLED_SCANNING = "checkForDisabledScanning",
+            CONFIG_BUILD_NUMBER = "buildNumber";
     public static String TAG = "onecourse";
     //
     public static OBSystemsManager systemsManager = new OBSystemsManager();

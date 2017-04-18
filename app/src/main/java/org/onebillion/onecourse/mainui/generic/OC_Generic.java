@@ -217,11 +217,22 @@ public class OC_Generic
                     //
                     if (layers != null)
                     {
+                        boolean layerWasColoured = false;
                         for (String layerID : layers.keySet())
                         {
                             int colour = OBUtils.colorFromRGBString((String) layers.get(layerID));
                             OBControl layer = group.objectDict.get(layerID);
-                            colourObject(layer, colour);
+                            if (layer != null)
+                            {
+                                colourObject(layer, colour);
+                                layerWasColoured = true;
+                            }
+                        }
+                        //
+                        if (!layerWasColoured)
+                        {
+                            int colour = OBUtils.colorFromRGBString((String) layers.get("normal"));
+                            colourObject(group, colour);
                         }
                     }
                 }
