@@ -112,27 +112,40 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
     public void readTitle() throws Exception
     {
         OBReadingPara para = paragraphs.get(0);
-        lockScreen();
-        for (OBReadingWord w : para.words)
+        Exception ex = null;
+        long token = -1;
+        try
         {
-            if (w.label != null)
+            token = takeSequenceLockInterrupt(true);
+            if (token == sequenceToken)
             {
-                highlightWord(w,true,false);
+                lockScreen();
+                for (OBReadingWord w : para.words)
+                {
+                    if (w.label != null)
+                        highlightWord(w,true,false);
+                }
+                textBox.setNeedsRetexture();
+                unlockScreen();
+                readParagraph(0,0,false);
             }
+
         }
-        textBox.setNeedsRetexture();
-        unlockScreen();
-        readParagraph(0,0,false);
+        catch (Exception e)
+        {
+            ex = e;
+        }
         lockScreen();
         for (OBReadingWord w : para.words)
         {
             if (w.label != null)
-            {
                 highlightWord(w,false,false);
-            }
         }
         textBox.setNeedsRetexture();
         unlockScreen();
+        sequenceLock.unlock();
+        if (ex != null)
+            throw ex;
     }
 
     public void readingFinished()
