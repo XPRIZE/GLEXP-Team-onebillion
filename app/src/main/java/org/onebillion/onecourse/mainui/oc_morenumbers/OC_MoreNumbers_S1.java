@@ -114,6 +114,9 @@ public class OC_MoreNumbers_S1 extends OC_SectionController
 
     public void touchDownAtPoint(final PointF pt, View v)
     {
+        if(eventAttributes.get("target") == null)
+            return;
+
 
         if(eventAttributes.get("target").equals("column"))
         {
