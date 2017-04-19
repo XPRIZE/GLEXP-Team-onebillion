@@ -155,6 +155,7 @@ public class OBPresenter extends OBCharacter
                     int mframe = 1, nframe = 1;
                     while (audioMan.isPlaying() || audioMan.isPreparing())
                     {
+                        controller.lockScreen();
                         showOnly(String.format("mouth_%d", mframe), mouth);
                         nframe = OB_Maths.randomInt(1, 6);
                         if (mframe == nframe)
@@ -166,25 +167,30 @@ public class OBPresenter extends OBCharacter
                         }
                         control.needsRetexture = true;
                         control.invalidate();
-
+                        controller.unlockScreen();
                         controller.waitForSecs(0.07 + OB_Maths.rndom() / 10);
                     }
                 } else
                 {
+                    controller.lockScreen();
                     showOnly("mouth_0", mouth);
+                    controller.unlockScreen();
                     int f = (Integer) af;
                     controller.waitForSecs(f / 1000.0f);
                 }
+                controller.lockScreen();
                 control.needsRetexture = true;
                 control.invalidate();
+                controller.unlockScreen();
                 controller.checkSequenceToken(token);
             }
         } catch (Exception exception)
         {
         }
         controller.unlockSequenceLock();
+        controller.lockScreen();
         showOnly("mouth_0", mouth);
-
+        controller.unlockScreen();
     }
 
     public void speakWithToken(List<Object> audioFiles, long token, OBSectionController controller) throws Exception

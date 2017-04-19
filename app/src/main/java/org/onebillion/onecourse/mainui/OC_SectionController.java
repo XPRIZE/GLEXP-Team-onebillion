@@ -257,7 +257,9 @@ public class OC_SectionController extends OBSectionController {
         {
             if (target != null)
             {
+                lockScreen();
                 target.setPosition(OB_Maths.AddPoints(pt, dragOffset));
+                unlockScreen();
             }
             else
             {

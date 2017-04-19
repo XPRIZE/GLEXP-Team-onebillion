@@ -38,6 +38,7 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
     boolean questionsAsked;
     String pageName;
     OBEmitter starEmitter;
+    OBPath shape;
 
     public void start()
     {
@@ -531,6 +532,9 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
         if (cqType == 1 || cqType == 3)
         {
             loadEvent(pageName());
+            shape = (OBPath) objectDict.get("shape");
+            detachControl(shape);
+
         }
         else if (cqType == 2)
         {
@@ -644,7 +648,7 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
         OBPath smallStar = StarWithScale(applyGraphicScale(8), false);
         smallStar.setFillColor(Color.WHITE);
         smallStar.enCache();
-        OBPath shape = (OBPath) objectDict.get("shape");
+        //OBPath shape = (OBPath) objectDict.get("shape");
         //attachControl(shape);
         //shape.setZPosition(200);
         //shape.show();
@@ -673,7 +677,7 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
     public void moveEmitter()
     {
         OBControl starEmitter = objectDict.get("starEmitter");
-        OBPath shape = (OBPath) objectDict.get("shape");
+        //OBPath shape = (OBPath) objectDict.get("shape");
         //Matrix m = shape.matrixToConvertPointToControl(null);
         //Path p = new Path(shape.path());
         //p.transform(m);

@@ -673,20 +673,16 @@ public class OBControl
 
     public Matrix matrixForBackwardConvert ()
     {
-        //return matrixForPointForwardConvert();
-
-        convertMatrix.reset();
+        Matrix cMatrix = new Matrix();
         float ax = anchorPoint.x * bounds().width();
         float ay = anchorPoint.y * bounds.height();
-        convertMatrix.preTranslate(position.x, position.y);
-        //convertMatrix.preTranslate(-ax,-ay);
+        cMatrix.preTranslate(position.x, position.y);
         if (rotation != 0)
-            convertMatrix.preRotate((float) Math.toDegrees(rotation));
+            cMatrix.preRotate((float) Math.toDegrees(rotation));
         if (scaleX != 1 || scaleY != 1)
-            convertMatrix.preScale(scaleX, scaleY);
-        //convertMatrix.preTranslate(position.x, position.y);
-        convertMatrix.preTranslate(-ax, -ay);
-        return convertMatrix;
+            cMatrix.preScale(scaleX, scaleY);
+        cMatrix.preTranslate(-ax, -ay);
+        return cMatrix;
     }
 
     public PointF convertPointFromParent (PointF pt)
