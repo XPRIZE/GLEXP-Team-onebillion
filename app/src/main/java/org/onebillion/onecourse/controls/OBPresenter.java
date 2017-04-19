@@ -208,7 +208,9 @@ public class OBPresenter extends OBCharacter
                     int mframe = 1, nframe = 1;
                     while (audioMan.isPlaying() || audioMan.isPreparing())
                     {
+                        controller.lockScreen();
                         showOnly(String.format("mouth_%d", mframe), mouth);
+                        controller.unlockScreen();
                         nframe = OB_Maths.randomInt(1, 6);
                         if (mframe == nframe)
                         {
@@ -217,20 +219,25 @@ public class OBPresenter extends OBCharacter
                         {
                             mframe = nframe;
                         }
+                        controller.lockScreen();
                         control.needsRetexture = true;
                         control.invalidate();
-
+                        controller.unlockScreen();
                         controller.waitForSecs(0.07 + OB_Maths.rndom() / 10);
                     }
                 } else
                 {
+                    controller.lockScreen();
                     showOnly("mouth_0", mouth);
+                    controller.unlockScreen();
                     //float f = (Float) af;
                     int i = (Integer)af;
                     controller.waitForSecs(i / 1000f);
                 }
+                controller.lockScreen();
                 control.needsRetexture = true;
                 control.invalidate();
+                controller.unlockScreen();
                 controller.checkSequenceToken(token);
             }
         } catch (Exception exception)
@@ -238,7 +245,9 @@ public class OBPresenter extends OBCharacter
             throw (exception);
         } finally
         {
+            controller.lockScreen();
             showOnly("mouth_0", mouth);
+            controller.unlockScreen();
         }
     }
 

@@ -84,7 +84,7 @@ public class OBSectionController extends OBViewController
     protected int eventIndex, replayAudioIndex, theStatus, theMoveSpeed;
     protected List<Object> _replayAudio;
     protected long audioQueueToken, sequenceToken, statusTime;
-    protected Lock sequenceLock;
+    protected ReentrantLock sequenceLock;
 
     float topColour[] = {1, 1, 1, 1};
     float bottomColour[] = {1, 1, 1, 1};

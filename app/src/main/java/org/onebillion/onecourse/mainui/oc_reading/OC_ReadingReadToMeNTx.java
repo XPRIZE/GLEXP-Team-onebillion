@@ -730,8 +730,15 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
     public void checkAnswer2(OBControl targ,PointF pt)
     {
         setStatus(STATUS_CHECKING);
+        long token = -1;
         try
         {
+            if (sequenceLock.isLocked())
+            {
+                token = takeSequenceLockInterrupt(true);
+                sequenceLock.unlock();
+                waitForSecs(0.02);
+            }
             setAnswerButtonSelected((OBPath)targ);
             if (targ == targets.get(0))
             {
