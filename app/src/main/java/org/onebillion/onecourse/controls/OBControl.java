@@ -601,16 +601,16 @@ public class OBControl
 
     public Matrix matrixForDraw ()
     {
-        drawMatrix.reset();
+        Matrix cMatrix = new Matrix();
         float ax = anchorPoint.x * bounds().width();
         float ay = anchorPoint.y * bounds.height();
-        drawMatrix.preTranslate(position.x, position.y);
+        cMatrix.preTranslate(position.x, position.y);
         if (rotation != 0)
-            drawMatrix.preRotate((float) Math.toDegrees(rotation));
+            cMatrix.preRotate((float) Math.toDegrees(rotation));
         if (scaleX != 1 || scaleY != 1)
-            drawMatrix.preScale(scaleX, scaleY);
-        drawMatrix.preTranslate(-ax, -ay);
-        return drawMatrix;
+            cMatrix.preScale(scaleX, scaleY);
+        cMatrix.preTranslate(-ax, -ay);
+        return cMatrix;
     }
 
     public Matrix totalMatrixForDraw ()
@@ -618,12 +618,12 @@ public class OBControl
         List<OBControl> plist = controlsToAncestor(null);
         Collections.reverse(plist);
         plist.add(this);
-        convertMatrix.reset();
+        Matrix cMatrix = new Matrix();
         for (OBControl c : plist)
         {
-            convertMatrix.preConcat(c.matrixForDraw());
+            cMatrix.preConcat(c.matrixForDraw());
         }
-        return convertMatrix;
+        return cMatrix;
     }
 
     public Matrix matrixForPointForwardConvert ()
@@ -643,16 +643,16 @@ public class OBControl
 
     public Matrix matrixForPointBackwardConvert ()
     {
-        convertMatrix.reset();
+        Matrix cMatrix = new Matrix();
         float ax = anchorPoint.x * bounds().width();
         float ay = anchorPoint.y * bounds.height();
-        convertMatrix.postTranslate(-ax, -ay);
+        cMatrix.postTranslate(-ax, -ay);
         if (rotation != 0)
-            convertMatrix.postRotate((float) Math.toDegrees(rotation));
+            cMatrix.postRotate((float) Math.toDegrees(rotation));
         if (scaleX != 1 || scaleY != 1)
-            convertMatrix.postScale(scaleX, scaleY);
-        convertMatrix.postTranslate(position.x, position.y);
-        return convertMatrix;
+            cMatrix.postScale(scaleX, scaleY);
+        cMatrix.postTranslate(position.x, position.y);
+        return cMatrix;
     }
 
     public Matrix matrixForForwardConvert ()
