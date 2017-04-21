@@ -231,8 +231,12 @@ public class OC_Generic
                         //
                         if (!layerWasColoured)
                         {
-                            int colour = OBUtils.colorFromRGBString((String) layers.get("normal"));
-                            colourObject(group, colour);
+                            String colourString = (String) layers.get("normal");
+                            if (colourString != null)
+                            {
+                                int colour = OBUtils.colorFromRGBString(colourString);
+                                colourObject(group, colour);
+                            }
                         }
                     }
                 }

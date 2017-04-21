@@ -119,14 +119,16 @@ public class OC_Generic_DragObjectsToCorrectPlace extends OC_Generic_Event
             else
             {
                 gotItWrongWithSfx();
-                action_moveObjectToOriginalPosition(dragged, false);
+                // wait for end of animation needs to be enabled to prevent the animation from being cancelled too early
+                action_moveObjectToOriginalPosition(dragged, true);
                 //
                 revertStatusAndReplayAudio();
             }
         }
         else
         {
-            action_moveObjectToOriginalPosition(dragged, false);
+            // wait for end of animation needs to be enabled to prevent the animation from being cancelled too early
+            action_moveObjectToOriginalPosition(dragged, true);
             //
             revertStatusAndReplayAudio();
         }

@@ -40,7 +40,7 @@ public class OC_Th2 extends OC_Generic_WordsEvent
     List<List<String>> sets;
     List<OBGroup> touchables;
     String mode;
-    Boolean showPresenterIntro, showText, showTick;
+    Boolean showPresenterIntro, showText, showTick, replayAudioEnabled;
 
 
     public void pickCorrectAnswers ()
@@ -174,7 +174,7 @@ public class OC_Th2 extends OC_Generic_WordsEvent
     @Override
     public void replayAudio ()
     {
-        if (status() == STATUS_AWAITING_CLICK)
+        if (status() == STATUS_AWAITING_CLICK && replayAudioEnabled)
         {
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
@@ -205,22 +205,37 @@ public class OC_Th2 extends OC_Generic_WordsEvent
     @Override
     public void doAudio (String scene) throws Exception
     {
-        long timestamp = setStatus(STATUS_AWAITING_CLICK);
+        replayAudioEnabled = false;
+        long timestamp = setStatus(STATUS_DOING_DEMO);
         setReplayAudioScene(currentEvent(), "REPEAT");
-        waitForSecs(0.3);
         //
         if (scene.equals("c"))
         {
             action_intro(showText, false, timestamp);
             playSceneAudio("PROMPT", false);
+            //
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+
+                @Override
+                public void run () throws Exception
+                {
+                    waitAudio();
+                    replayAudioEnabled = true;
+                }
+            });
         }
         else
         {
             playSceneAudio("PROMPT", true);
             waitForSecs(0.3);
+            replayAudioEnabled = true;
             //
             action_intro(showText, false, timestamp);
         }
+        //
+        setStatus(STATUS_AWAITING_CLICK);
+        //
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             @Override
