@@ -3,6 +3,7 @@ package org.onebillion.onecourse.mainui.oc_reading;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Path;
+import android.graphics.PathMeasure;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.AsyncTask;
@@ -23,6 +24,7 @@ import org.onebillion.onecourse.utils.OBReadingWord;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -687,19 +689,37 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
         });
     }
 
+    List<Path> pathsFromComplexPath(Path p)
+    {
+        List<Path>pathList = new ArrayList<>();
+        PathMeasure pm = new PathMeasure(p,false);
+        Boolean fin = false;
+        while (!fin)
+        {
+            float len = pm.getLength();
+            if (len > 0)
+            {
+                Path np = new Path();
+                pm.getSegment(0,len,np,true);
+                pathList.add(np);
+            }
+            fin = !pm.nextContour();
+        }
+        return pathList;
+    }
     public void moveEmitter()
     {
         OBControl starEmitter = objectDict.get("starEmitter");
-        //OBPath shape = (OBPath) objectDict.get("shape");
-        //Matrix m = shape.matrixToConvertPointToControl(null);
-        //Path p = new Path(shape.path());
-        //p.transform(m);
         Path p = convertPathFromControl(shape.path(),shape);
-        //Path p = shape.convertPathToControl(shape.path(),starEmitter);
-        OBAnim anim = OBAnim.pathMoveAnim(starEmitter,p,false,0);
-        //anim.key = "layer.emitterPosition";
+        List<List<OBAnim>>anims = new ArrayList<>();
+        for (Path sp : pathsFromComplexPath(p))
+        {
+            OBAnim anim = OBAnim.pathMoveAnim(starEmitter, sp, false, 0);
+            anims.add(Collections.singletonList(anim));
+        }
         OBAnimationGroup agp = new OBAnimationGroup();
-        agp.applyAnimations(Collections.singletonList(anim),2,false,OBAnim.ANIM_LINEAR,2,null,this);
+        //agp.applyAnimations(Collections.singletonList(anim),2,false,OBAnim.ANIM_LINEAR,2,null,this);
+        agp.chainAnimations(anims,Collections.singletonList(2f/anims.size()),false,Collections.singletonList(OBAnim.ANIM_LINEAR),2,this);
     }
 
     public void checkAnswer1(OBControl targ,PointF pt)
