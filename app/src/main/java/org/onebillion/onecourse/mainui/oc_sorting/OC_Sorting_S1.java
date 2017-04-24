@@ -315,8 +315,9 @@ public class OC_Sorting_S1 extends OC_SectionController
     {
         List<SortInterval> intervals = (List<SortInterval>) box.propertyValue("intervals");
         RectF objframe = frameForObject(obj);
-        objframe.left -= box.frame().left;
-        objframe.right -= box.frame().left;
+        RectF boxFrame = new RectF(box.frame());
+        objframe.left -= boxFrame.left;
+        objframe.right -= boxFrame.left;
         SortInterval si = new SortInterval();
         si.startx = objframe.left;
         si.endx = objframe.right;
@@ -371,13 +372,13 @@ public class OC_Sorting_S1 extends OC_SectionController
             oi = OverlappingIntervals(intervals, si);
         }
         insertIntervalIntoIntervals(si,intervals);
-        float y = box.frame().centerY();
+        float y = boxFrame.centerY();
         for (SortInterval sint : intervals)
         {
             if (sint.object != null)
             {
                 float x = (sint.startx + sint.endx) / 2;
-                x += box.frame().left;
+                x += boxFrame.left;
                 PointF pt = new PointF(x, y);
                 if (!(pt.equals(sint.object.position())))
                 {

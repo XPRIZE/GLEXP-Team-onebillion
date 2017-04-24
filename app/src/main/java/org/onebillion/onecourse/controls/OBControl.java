@@ -248,10 +248,13 @@ public class OBControl
 
     public RectF frame ()
     {
-        frame.set(bounds());
-        Matrix m = matrixForBackwardConvert();
-        m.mapRect(frame);
-        frameValid = true;
+        if (!frameValid)
+        {
+            frame.set(bounds());
+            Matrix m = matrixForBackwardConvert();
+            m.mapRect(frame);
+            frameValid = true;
+        }
         return frame;
     }
 
