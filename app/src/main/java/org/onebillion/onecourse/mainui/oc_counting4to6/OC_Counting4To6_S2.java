@@ -71,7 +71,7 @@ public class OC_Counting4To6_S2 extends OC_Generic_AddRemoveObjectsToScene
         List animations = new ArrayList();
         for (OBGroup control : controls)
         {
-            OBAnim anim = OBAnim.sequenceAnim(control, Arrays.asList("frame_1", "frame_2", "frame_3", "frame_2"), 0.075f, true);
+            OBAnim anim = OBAnim.sequenceAnim(control, Arrays.asList("frame_1", "frame_2", "frame_3", "frame_2", "frame_3", "frame_2"), 0.1f, true);
             animations.add(anim);
         }
         OBAnimationGroup.runAnims(animations, 0.7f, false, OBAnim.ANIM_LINEAR, this);
@@ -83,7 +83,7 @@ public class OC_Counting4To6_S2 extends OC_Generic_AddRemoveObjectsToScene
         List animations = new ArrayList();
         for (OBGroup control : controls)
         {
-            OBAnim anim = OBAnim.sequenceAnim(control, Arrays.asList("frame_1", "frame_2"), 0.45f, true);
+            OBAnim anim = OBAnim.sequenceAnim(control, Arrays.asList("frame_1", "frame_2", "frame_1", "frame_2", "frame_1", "frame_2", "frame_1", "frame_2"), 0.45f, true);
             animations.add(anim);
         }
         OBAnimationGroup.runAnims(animations, 0.7f, false, OBAnim.ANIM_LINEAR, this);
@@ -128,7 +128,7 @@ public class OC_Counting4To6_S2 extends OC_Generic_AddRemoveObjectsToScene
         List animations = new ArrayList();
         for (OBGroup control : controls)
         {
-            OBAnim anim = OBAnim.sequenceAnim(control, Arrays.asList("frame1", "frame2"), 0.45f, true);
+            OBAnim anim = OBAnim.sequenceAnim(control, Arrays.asList("frame1", "frame2", "frame1", "frame2", "frame1", "frame2", "frame1", "frame2"), 0.45f, true);
             animations.add(anim);
         }
         OBAnimationGroup.runAnims(animations, 1.5f, true, OBAnim.ANIM_LINEAR, this);

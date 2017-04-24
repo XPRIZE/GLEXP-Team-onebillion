@@ -4,8 +4,12 @@ import android.graphics.PointF;
 import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
+import org.onebillion.onecourse.utils.OBAnim;
+import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
+
+import java.util.Arrays;
 
 /**
  * OC_Generic_AddRemoveObjectsToScene
@@ -102,11 +106,13 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
                 else
                 {
                     revertStatusAndReplayAudio();
+                    setStatus(STATUS_AWAITING_CLICK);
                 }
             }
             else
             {
                 revertStatusAndReplayAudio();
+                setStatus(STATUS_AWAITING_CLICK);
             }
         }
         catch (Exception e)
@@ -204,7 +210,8 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
         playSfxAudio(getSFX_placeObject(), false);
         control.show();
         //
-        action_moveObjectToOriginalPosition(control, false);
+        OBAnim anim = OBAnim.moveAnim((PointF) control.propertyValue("originalPosition"), control);
+        OBAnimationGroup.runAnims(Arrays.asList(anim), 0.3, false, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
         //
         playSceneAudioIndex("CORRECT", objectDeltaCount, false);
         objectDeltaCount++;
