@@ -65,6 +65,9 @@ public class OC_CountingTo3_S1 extends OC_Generic_SelectCorrectObject
     @Override
     public void action_answerIsCorrect(OBControl target) throws Exception
     {
+        gotItRightBigTick(false);
+        waitForSecs(0.3);
+        //
         playAudioQueuedScene(currentEvent(), "CORRECT", false);
         action_animatePlatform(target, true);
         waitAudio();

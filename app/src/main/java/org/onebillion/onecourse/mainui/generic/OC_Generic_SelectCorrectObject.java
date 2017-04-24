@@ -103,6 +103,7 @@ public class OC_Generic_SelectCorrectObject extends OC_Generic_Event
                 action_answerIsWrong(targ);
                 //
                 revertStatusAndReplayAudio();
+                setStatus(STATUS_AWAITING_CLICK);
             }
         }
         catch (Exception exception)

@@ -127,7 +127,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 catch (Exception e)
                 {
                     MainActivity.log("OBSystemsManager.checkForConnectivity.exception caught while running completion block");
-                    e.printStackTrace();
+//                    e.printStackTrace();
                 }
             }
         }
@@ -140,7 +140,15 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             MainActivity.log("OBSystemsManager:hasWriteSettingsPermission: incompatible SDK version. exiting function");
             return true;
         }
-        return Settings.System.canWrite(MainActivity.mainActivity);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+        {
+            return Settings.System.canWrite(MainActivity.mainActivity);
+        }
+        else
+        {
+            MainActivity.log("OBSystemsManager:hasWriteSettingsPermission: failsafe incompatible SDK version. exiting function");
+            return true;
+        }
     }
 
     public boolean isAppIsInForeground ()
@@ -308,7 +316,11 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 
         for (Debug.MemoryInfo info : result)
         {
-            Map<String, String> map = info.getMemoryStats();
+            Map<String, String> map = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M)
+            {
+                map = info.getMemoryStats();
+            }
             for (String key : map.keySet())
             {
                 List<String> memoryEntry = memoryUsageMap.get(key);
@@ -522,7 +534,8 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             }
             catch (Exception e)
             {
-                e.printStackTrace();
+                MainActivity.log("Exception caught while running the checksum comparison test");
+//                e.printStackTrace();
             }
         }
         MainActivity.log("Checksum comparison END");
@@ -560,7 +573,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         catch (NoSuchAlgorithmException e)
         {
             MainActivity.log("Exception while getting digest");
-            e.printStackTrace();
+//            e.printStackTrace();
             return null;
         }
 
@@ -592,7 +605,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             catch (IOException e)
             {
                 MainActivity.log("Exception on closing MD5 input stream");
-                e.printStackTrace();
+//                e.printStackTrace();
             }
         }
     }
@@ -704,8 +717,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         catch (Exception e)
         {
             MainActivity.log("OBSystemsManager.requestDeviceOwner: device is not rooted. No point in continuing.");
-            //
-            e.printStackTrace();
+//            e.printStackTrace();
         }
     }
 
@@ -775,8 +787,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             catch (Exception e)
             {
                 MainActivity.log("OBSystemsManager.device is not rooted. No point in continuing enableAdminstratorPrivileges");
-                //
-                e.printStackTrace();
+//                e.printStackTrace();
                 //
                 return true;
             }
@@ -799,10 +810,16 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         //
         if (devicePolicyManager.isDeviceOwnerApp(MainActivity.mainActivity.getPackageName()))
         {
-            devicePolicyManager.setKeyguardDisabled(adminReceiver, false);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+            {
+                devicePolicyManager.setKeyguardDisabled(adminReceiver, false);
+            }
             MainActivity.log("OBSystemsManager.keyguard restored");
             //
-            devicePolicyManager.setStatusBarDisabled(adminReceiver, false);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+            {
+                devicePolicyManager.setStatusBarDisabled(adminReceiver, false);
+            }
             MainActivity.log("OBSystemsManager.status bar restored");
             //
             try
@@ -816,7 +833,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             catch (Exception e)
             {
                 MainActivity.log("OBSystemsManager.disableAdministratorPrivileges: exception caught");
-                e.printStackTrace();
+//                e.printStackTrace();
                 // App might not be the device owner at this point
             }
         }
@@ -856,7 +873,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                         catch (Exception e)
                         {
                             MainActivity.log("OBSystemsManager.pinApplication: exception caught");
-                            e.printStackTrace();
+//                            e.printStackTrace();
                             kioskModeActive = false;
                         }
                     }
@@ -891,7 +908,10 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         //
         if (devicePolicyManager.isDeviceOwnerApp(MainActivity.mainActivity.getPackageName()))
         {
-            devicePolicyManager.setKeyguardDisabled(adminReceiver, !status);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+            {
+                devicePolicyManager.setKeyguardDisabled(adminReceiver, !status);
+            }
             MainActivity.log("OBSystemsManager.keyguard has been " + (status ? "enabled" : "disabled"));
             //
 //            devicePolicyManager.setStatusBarDisabled(adminReceiver, !status);
@@ -976,7 +996,8 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            MainActivity.log("OBSystemsManager.toggleNagivationBar. exception caught");
+//            e.printStackTrace();
         }
 
     }
@@ -1017,7 +1038,8 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             }
             catch (Exception e)
             {
-                e.printStackTrace();
+                MainActivity.log("OBSystemsManager.saveLogToFile: exception caught");
+//                e.printStackTrace();
             }
         }
     }
@@ -1227,7 +1249,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             catch (Exception e)
             {
                 MainActivity.log("OBSystemsManager.backup_uploadDatabase exception caught");
-                e.printStackTrace();
+//                e.printStackTrace();
             }
             MainActivity.log("OBSystemsManager.backup_uploadDatabase releasing lock");
             backup_getLock().unlock();
@@ -1341,9 +1363,8 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             }
             catch (Exception e)
             {
-                MainActivity.log("<<<< Exception caught while trying to set the Date");
-                e.printStackTrace();
-                MainActivity.log(">>>> Exception caught while trying to set the Date");
+                MainActivity.log("Exception caught while trying to set the Date");
+//                e.printStackTrace();
             }
         }
     }
@@ -1365,9 +1386,8 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             }
             catch (Exception e)
             {
-                MainActivity.log("<<<< Exception caught while trying to set the Time");
-                e.printStackTrace();
-                MainActivity.log(">>>> Exception caught while trying to set the Time");
+                MainActivity.log("Exception caught while trying to set the Time");
+                //e.printStackTrace();
             }
         }
     }

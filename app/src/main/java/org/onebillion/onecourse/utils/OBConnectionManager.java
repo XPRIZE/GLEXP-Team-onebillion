@@ -97,7 +97,7 @@ public class OBConnectionManager
                 catch (Exception e)
                 {
                     MainActivity.log("OBConnectionManager.startupConnection.exception caught while running completion block");
-                    e.printStackTrace();
+//                    e.printStackTrace();
                 }
             }
         }
@@ -180,9 +180,8 @@ public class OBConnectionManager
         }
         catch (Exception e)
         {
-            MainActivity.log("<<<< Exception Caught while trying to disable airplane mode");
-            e.printStackTrace();
-            MainActivity.log(">>>> Exception Caught while trying to disable airplane mode");
+            MainActivity.log("Exception Caught while trying to disable airplane mode");
+//            e.printStackTrace();
         }
         //
         wifiManager.setWifiEnabled(true);
@@ -362,7 +361,7 @@ public class OBConnectionManager
                 catch (Exception e)
                 {
                     MainActivity.log("OBConnectionManager.connectToNetWork_complete.exception caught while running completion block");
-                    e.printStackTrace();
+//                    e.printStackTrace();
                 }
             }
             else
@@ -400,9 +399,8 @@ public class OBConnectionManager
         }
         catch (Exception e)
         {
-            MainActivity.log("<<<< Exception caught while trying to set the airplane mode");
-            e.printStackTrace();
-            MainActivity.log(">>>> Exception caught while trying to set the airplane mode");
+            MainActivity.log("Exception caught while trying to set the airplane mode");
+//            e.printStackTrace();
         }
     }
 
