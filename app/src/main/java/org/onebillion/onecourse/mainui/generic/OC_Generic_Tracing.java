@@ -428,6 +428,7 @@ public class OC_Generic_Tracing extends OC_Tracer
     }
 
 
+
     public List<OBGroup> tracing_subpathControlsFromPath (String str)
     {
         List<OBGroup> arr = new ArrayList<>();
@@ -490,13 +491,18 @@ public class OC_Generic_Tracing extends OC_Tracer
 
     public void pointer_traceAlongPath (final OBPath p, float durationMultiplier) throws Exception
     {
+        lockScreen();
         p.setStrokeColor(pathColour);
         p.setStrokeEnd(0.0f);
         p.setOpacity(1.0f);
         //
+        p.setBorderWidth(1.0f);
+        p.setBorderColor(Color.RED);
+        //
         p.parent.primogenitor().show();
         p.show();
         trace_arrow.hide();
+        unlockScreen();
         //
         long starttime = SystemClock.uptimeMillis();
         float duration = p.length() * 2 * durationMultiplier / theMoveSpeed;
@@ -510,9 +516,11 @@ public class OC_Generic_Tracing extends OC_Tracer
             {
                 public void ex ()
                 {
+                    lockScreen();
                     p.setStrokeEnd(t);
                     thePointer.setPosition(convertPointFromControl(p.sAlongPath(t, null), p));
                     p.parent.primogenitor().setNeedsRetexture();
+                    unlockScreen();
                 }
             }.run();
             waitForSecs(0.02f);

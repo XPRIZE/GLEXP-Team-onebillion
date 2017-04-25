@@ -356,11 +356,13 @@ public class OC_Generic
                 while (label.height() > 0 && label.height() < control.bounds.height())
                 {
                     textLayer.setTextSize(textLayer.textSize() + 1);
-                    textLayer.sizeToBoundingBox();
+                    label.sizeToBoundingBox();
+//                    textLayer.sizeToBoundingBox();
                 }
                 //
                 textLayer.setTextSize(textLayer.textSize() * finalResizeFactor);
-                textLayer.sizeToBoundingBox();
+                label.sizeToBoundingBox();
+//                textLayer.sizeToBoundingBox();
             }
             //
             label.setPosition(control.position());

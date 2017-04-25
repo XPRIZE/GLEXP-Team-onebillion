@@ -30,6 +30,7 @@ public class OBLabel extends OBControl
 
     public void sizeToBoundingBox()
     {
+        frameValid = false;
         ((OBTextLayer)layer).sizeToBoundingBox();
         setNeedsRetexture();
         invalidate();

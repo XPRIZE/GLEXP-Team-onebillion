@@ -33,7 +33,8 @@ public class OC_CountingTo3_S4 extends OC_Generic_DragObjectsToCorrectPlace
     {
         super.setSceneXX(scene);
         //
-        for(OBControl number : filterControls("number.*"))
+        List<OBControl> controls = filterControls("number.*");
+        for(OBControl number : controls)
         {
             OBLabel label = action_createLabelForControl(number, 1.0f);
         }
@@ -79,7 +80,6 @@ public class OC_CountingTo3_S4 extends OC_Generic_DragObjectsToCorrectPlace
     {
         goToCard(OC_CountingTo3_S4f.class, "event4");
     }
-
 
 
 

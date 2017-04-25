@@ -888,6 +888,7 @@ public class OBPath extends OBControl
         RectF bb = new RectF();
         p.computeBounds(bb, true);
         //    obv.setBounds((int) bb.left, (int) bb.top, (int) bb.right, (int) bb.bottom);
+        frameValid = false;
         frame();
         bb.offset(frame.left, frame.top);
         return bb;
@@ -908,6 +909,7 @@ public class OBPath extends OBControl
 
     public void sizeToBox(RectF bb)
     {
+
         Path bez = path();
         RectF f = new RectF(frame());
         Matrix tr = new Matrix();
