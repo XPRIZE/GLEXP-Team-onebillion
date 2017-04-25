@@ -496,9 +496,6 @@ public class OC_Generic_Tracing extends OC_Tracer
         p.setStrokeEnd(0.0f);
         p.setOpacity(1.0f);
         //
-        p.setBorderWidth(1.0f);
-        p.setBorderColor(Color.RED);
-        //
         p.parent.primogenitor().show();
         p.show();
         trace_arrow.hide();
@@ -507,7 +504,7 @@ public class OC_Generic_Tracing extends OC_Tracer
         long starttime = SystemClock.uptimeMillis();
         float duration = p.length() * 2 * durationMultiplier / theMoveSpeed;
         float frac = 0;
-        while (frac <= 1.0)
+        while (frac <= 1f)
         {
             long currtime = SystemClock.uptimeMillis();
             frac = (float) (currtime - starttime) / (duration * 1000);
