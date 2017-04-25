@@ -49,7 +49,7 @@ public class OBGroup extends OBControl
         for (OBControl c : _members)
         {
             PointF pos = OB_Maths.OffsetPoint(c.position, -f.left, -f.top);
-            c.position = pos;
+            c.setPosition(pos);
             members.add(c);
             if (c.controller != null)
                 ((OBSectionController) c.controller).detachControl(c);
