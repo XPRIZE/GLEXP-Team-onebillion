@@ -890,13 +890,13 @@ public class OBGroup extends OBControl
         if (c.parent != null)
         {
             pt = convertPointFromControl(pt, c.parent);
-            c.position = pt;
+            c.setPosition(pt);
         }
         else if (c.controller != null)
         {
             pt = ((OBSectionController) controller).convertPointToControl(pt, this);
             ((OBSectionController) c.controller).detachControl(c);
-            c.position = pt;
+            c.setPosition(pt);
         }
         members.add(idx, c);
         c.parent = this;
