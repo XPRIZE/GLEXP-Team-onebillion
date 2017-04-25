@@ -499,14 +499,12 @@ public class OC_Sorting_S3 extends OC_SectionController
 
     OBControl findTarget(PointF pt)
     {
-        OBControl c = finger(-1,2,targets,pt);
-        if (c != null)
-            return c;
         if (currentEvent().equals("3h"))
             for (OBControl t : targets)
                 if (t.frame().contains(pt.x,pt.y))
                     return t;
-        return null;
+        OBControl c = finger(-1,2,targets,pt);
+        return c;
     }
 
     public void touchDownAtPoint(final PointF pt,View v)
