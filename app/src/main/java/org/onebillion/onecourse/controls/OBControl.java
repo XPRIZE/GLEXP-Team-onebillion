@@ -1816,6 +1816,7 @@ public class OBControl
 
         PointF oldAnchor = new PointF(anchorPoint.x, anchorPoint.y);
         anchorPoint.set(x, y);
+        frameValid = false;
         PointF absPoint = OB_Maths.locationForRect(oldAnchor, frame());
         PointF diff = OB_Maths.DiffPoints(position(), absPoint);
         setPosition(OB_Maths.OffsetPoint(position(), diff.x, diff.y));
