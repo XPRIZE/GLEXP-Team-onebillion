@@ -71,7 +71,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     private OBExpansionManager expansionManager;
     private Map<String, List<String>> memoryUsageMap;
 
-    public Handler mainHandler;
+    private Handler mainHandler;
     public OBLabel statusLabel;
 
     public OBSettingsContentObserver settingsContentObserver;

@@ -319,8 +319,8 @@ public class OC_VideoPlayback extends OC_SectionController
             clearSubtitle();
             subtitleIndex++;
             //
-            OBSystemsManager.sharedManager.mainHandler.removeCallbacks(syncSubtitlesRunnable);
-            OBSystemsManager.sharedManager.mainHandler.post(syncSubtitlesRunnable);
+            OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(syncSubtitlesRunnable);
+            OBSystemsManager.sharedManager.getMainHandler().post(syncSubtitlesRunnable);
         }
     }
 
@@ -709,8 +709,8 @@ public class OC_VideoPlayback extends OC_SectionController
                 currentVideoPlayerVolume = 1;
                 videoPlayer.player.setVolume(currentVideoPlayerVolume, currentVideoPlayerVolume);
                 //
-                OBSystemsManager.sharedManager.mainHandler.removeCallbacks(syncSubtitlesRunnable);
-                OBSystemsManager.sharedManager.mainHandler.post(syncSubtitlesRunnable);
+                OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(syncSubtitlesRunnable);
+                OBSystemsManager.sharedManager.getMainHandler().post(syncSubtitlesRunnable);
             }
         }, new MediaPlayer.OnCompletionListener()
         {

@@ -40,8 +40,8 @@ public class OC_VideoPlaybackRunnable implements Runnable
         //
         if (excessBeforeFade > 0)
         {
-            OBSystemsManager.sharedManager.mainHandler.removeCallbacks(this);
-            OBSystemsManager.sharedManager.mainHandler.postDelayed(this, excessBeforeFade);
+            OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(this);
+            OBSystemsManager.sharedManager.getMainHandler().postDelayed(this, excessBeforeFade);
         }
         else
         {
@@ -63,13 +63,13 @@ public class OC_VideoPlaybackRunnable implements Runnable
                     //
 //                    MainActivity.log("OC_VideoPlaybackRunnable:run:setting video player volume to " + controller.currentVideoPlayerVolume);
                     //
-                    OBSystemsManager.sharedManager.mainHandler.removeCallbacks(this);
-                    OBSystemsManager.sharedManager.mainHandler.postDelayed(this, controller.defaultWaitTime); // this is on purpose to have a regular fade
+                    OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(this);
+                    OBSystemsManager.sharedManager.getMainHandler().postDelayed(this, controller.defaultWaitTime); // this is on purpose to have a regular fade
                 }
                 else
                 {
-                    OBSystemsManager.sharedManager.mainHandler.removeCallbacks(this);
-                    OBSystemsManager.sharedManager.mainHandler.postDelayed(this, currentExcessBeforePause);
+                    OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(this);
+                    OBSystemsManager.sharedManager.getMainHandler().postDelayed(this, currentExcessBeforePause);
                 }
             }
             else
