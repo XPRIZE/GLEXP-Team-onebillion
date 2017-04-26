@@ -637,6 +637,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
             //
             if (touchable != null)
             {
+                touchables.remove(touchable);
                 OC_Generic.pointer_moveToObject(touchable, -5, 0.6f, EnumSet.of(OC_Generic.Anchor.ANCHOR_MIDDLE), true, this);
                 touchable.setColour(Color.RED);
                 waitForSecs(0.1);
