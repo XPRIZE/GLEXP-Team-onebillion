@@ -21,6 +21,7 @@ import org.onebillion.onecourse.utils.OBReadingWord;
 import org.onebillion.onecourse.utils.OBXMLManager;
 import org.onebillion.onecourse.utils.OBXMLNode;
 import org.onebillion.onecourse.utils.OBUtils;
+import org.onebillion.onecourse.utils.OB_Maths;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -396,8 +397,24 @@ public class OC_Reading extends OC_SectionController
         }
     }
 
+    float totalTextHeight()
+    {
+        if (paragraphs.size() == 0)
+            return 0;
+        RectF f1 = paragraphs.get(0).frame();
+        RectF f2 = paragraphs.get(paragraphs.size()-1).frame();
+        f1.union(f2);
+        return f1.height();
+    }
+
     public boolean adjustTitleTextPosition()
     {
+        float th = textBox.height();
+        float tth = totalTextHeight();
+        if (tth > th)
+            return false;
+        float diff = th - tth;
+        textBox.setPosition(OB_Maths.OffsetPoint(textBox.position(), 0, diff/2));
         return true;
     }
 
@@ -500,8 +517,11 @@ public class OC_Reading extends OC_SectionController
             if (!adjustTitleTextPosition())
             {
                 fontSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("smallfontsize")));
-                lineHeightMultiplier = Float.parseFloat(eventAttributes.get("smalllineheight"));
-                letterSpacing = Float.parseFloat(eventAttributes.get("smallspacing"));
+                String s;
+                if ((s = eventAttributes.get("smalllineheight")) != null)
+                    lineHeightMultiplier = Float.parseFloat(s);
+                if ((s = eventAttributes.get("smallspacing")) != null)
+                    letterSpacing = Float.parseFloat(s);
                 for (OBControl c : new ArrayList<>(textBox.members))
                 {
                     detachControl(c);
