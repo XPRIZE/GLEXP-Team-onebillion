@@ -1,6 +1,6 @@
-#Building onecourse
+# Building onecourse
 
-##Overview
+## Overview
 Building **onecourse** is a two-step process:
 
 
@@ -10,7 +10,7 @@ Building **onecourse** is a two-step process:
 
 
 
-##1. Building the onecourse app
+## 1. Building the onecourse app
 
 1. Ensure you have **Android Studio** installed. You can [follow the steps in this helpful guide](https://developer.android.com/studio/install.html).
 
