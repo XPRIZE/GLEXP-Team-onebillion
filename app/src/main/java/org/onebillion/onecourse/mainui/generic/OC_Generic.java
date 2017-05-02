@@ -100,9 +100,11 @@ public class OC_Generic
         return maxZPosition + 0.001f;
     }
 
-    public static void sendObjectToTop(OBControl control, OC_SectionController sc)
+    public static float sendObjectToTop(OBControl control, OC_SectionController sc)
     {
-        control.setZPosition(getNextZPosition(sc));
+        float newZPosition = getNextZPosition(sc);
+        control.setZPosition(newZPosition);
+        return newZPosition;
     }
 
     protected static Map<String,Object> loadObjectColours(OC_SectionController sc)

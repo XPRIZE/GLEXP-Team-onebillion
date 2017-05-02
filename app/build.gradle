@@ -97,6 +97,18 @@ android {
                     appIcon: "@mipmap/icon_child"
             ]
         }
+        childMenuTestVersion {
+            minSdkVersion 22
+            applicationId 'org.onebillion.onecourse.child'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "onecourse - Child"
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_child_sw_test.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/icon_child"
+            ]
+        }
         childMenu_enGB_ {
             minSdkVersion 22
             applicationId 'org.onebillion.onecourse.child.en_GB'

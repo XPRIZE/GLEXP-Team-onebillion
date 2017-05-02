@@ -6,6 +6,7 @@ import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
+import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.utils.OBUtils;
 
@@ -26,14 +27,13 @@ public class OC_Generic_DragNumbersToSlots extends OC_Generic_Event
         playSceneAudioIndex("DEMO", 0, true);
         doAudio(currentEvent());
         setStatus(STATUS_AWAITING_CLICK);
-
     }
 
 
     public void action_correctAnswer (OBControl target) throws Exception
     {
+        gotItRightBigTick(false);
         playAudioScene("CORRECT", Integer.parseInt((String) target.attributes().get("number")), true);
-
     }
 
 
@@ -41,6 +41,7 @@ public class OC_Generic_DragNumbersToSlots extends OC_Generic_Event
     {
         try
         {
+            gotItWrongWithSfx();
             moveObjectToOriginalPosition(target, false, false);
         }
         catch (Exception e)
@@ -56,10 +57,28 @@ public class OC_Generic_DragNumbersToSlots extends OC_Generic_Event
     {
         super.action_prepareScene(scene, redraw);
         //
-        List<OBControl> numbers = filterControls(String.format("%s.*", action_getObjectPrefix()));
+        action_addLabelsToObjects(String.format("%s.*", action_getNumberPrefix()));
+    }
+
+
+    public void action_addLabelsToObjects(String pattern)
+    {
+        List<OBControl> numbers = filterControls(pattern);
+        List<OBLabel> createdLabels = new ArrayList<>();
+        float smallestFontSize = 1000000000;
+        //
         for (OBControl number : numbers)
         {
-            action_createLabelForControl(number, 1.2f);
+            OBLabel label = action_createLabelForControl(number, 1.2f);
+            if (label.fontSize() < smallestFontSize) smallestFontSize = label.fontSize();
+            //
+            createdLabels.add(label);
+        }
+        //
+        for (OBLabel label : createdLabels)
+        {
+            label.setFontSize(smallestFontSize);
+            label.sizeToBoundingBox();
         }
     }
 
@@ -100,6 +119,11 @@ public class OC_Generic_DragNumbersToSlots extends OC_Generic_Event
 
     @Override
     public String action_getObjectPrefix ()
+    {
+        return "number";
+    }
+
+    public String action_getNumberPrefix ()
     {
         return "number";
     }
@@ -166,13 +190,13 @@ public class OC_Generic_DragNumbersToSlots extends OC_Generic_Event
                 {
                     action_wrongAnswer(number);
                 }
-
             }
             else
             {
                 moveObjectToOriginalPosition(number, true, false);
             }
             revertStatusAndReplayAudio();
+            setStatus(STATUS_AWAITING_CLICK);
         }
         catch (Exception e)
         {
