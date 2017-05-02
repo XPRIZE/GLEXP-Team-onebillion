@@ -150,7 +150,9 @@ public class OC_Generic_DragNumbersToSlots extends OC_Generic_Event
             if (container != null)
             {
                 playSfxAudio("drop_number", false);
-                if (container.attributes().get("correct_number") == number.attributes().get("number"))
+                String correctNumberValue = (String) container.attributes().get("correct_number");
+                String numberValue = (String) number.attributes().get("number");
+                if (correctNumberValue.equalsIgnoreCase(numberValue))
                 {
                     action_placeObjectInContainer(number, container);
                     //

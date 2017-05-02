@@ -355,16 +355,21 @@ public class OC_Generic
             {
                 OBTextLayer textLayer = (OBTextLayer) label.layer;
                 textLayer.sizeToBoundingBox();
-                while (label.height() > 0 && label.height() < control.bounds.height())
+                while (label.height() > 0 && label.height() < control.bounds.height() && textLayer.textWidth(content) < control.bounds.width())
                 {
                     textLayer.setTextSize(textLayer.textSize() + 1);
                     label.sizeToBoundingBox();
-//                    textLayer.sizeToBoundingBox();
                 }
                 //
-                textLayer.setTextSize(textLayer.textSize() * finalResizeFactor);
+                float currentTextSize = textLayer.textSize();
+                textLayer.setTextSize(currentTextSize * finalResizeFactor);
                 label.sizeToBoundingBox();
-//                textLayer.sizeToBoundingBox();
+                //
+                if (textLayer.textWidth(content) > control.bounds().width())
+                {
+                    textLayer.setTextSize(currentTextSize);
+                    label.sizeToBoundingBox();
+                }
             }
             //
             label.setPosition(control.position());
