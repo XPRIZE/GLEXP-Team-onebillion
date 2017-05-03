@@ -57,29 +57,7 @@ public class OC_Generic_DragNumbersToSlots extends OC_Generic_Event
     {
         super.action_prepareScene(scene, redraw);
         //
-        action_addLabelsToObjects(String.format("%s.*", action_getNumberPrefix()));
-    }
-
-
-    public void action_addLabelsToObjects(String pattern)
-    {
-        List<OBControl> numbers = filterControls(pattern);
-        List<OBLabel> createdLabels = new ArrayList<>();
-        float smallestFontSize = 1000000000;
-        //
-        for (OBControl number : numbers)
-        {
-            OBLabel label = action_createLabelForControl(number, 1.2f);
-            if (label.fontSize() < smallestFontSize) smallestFontSize = label.fontSize();
-            //
-            createdLabels.add(label);
-        }
-        //
-        for (OBLabel label : createdLabels)
-        {
-            label.setFontSize(smallestFontSize);
-            label.sizeToBoundingBox();
-        }
+        action_addLabelsToObjects(String.format("%s.*", action_getNumberPrefix()), 1.2f, true);
     }
 
     public void action_placeObjectInContainer (OBControl target, OBControl container)

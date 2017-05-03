@@ -870,6 +870,33 @@ public class OC_Generic_Event extends OC_SectionController
     }
 
 
+    public List<OBLabel> action_addLabelsToObjects(String pattern, float finalResizeFactor, boolean insertIntoGroup)
+    {
+        List<OBControl> numbers = sortedFilteredControls(pattern);
+        List<OBLabel> createdLabels = new ArrayList<>();
+        float smallestFontSize = 1000000000;
+        //
+        for (OBControl number : numbers)
+        {
+            OBLabel label = action_createLabelForControl(number, finalResizeFactor, insertIntoGroup);
+            if (label.fontSize() < smallestFontSize) smallestFontSize = label.fontSize();
+            //
+            createdLabels.add(label);
+        }
+        //
+        for (OBLabel label : createdLabels)
+        {
+            label.setFontSize(smallestFontSize);
+            label.sizeToBoundingBox();
+            //
+            label.setProperty("originalPosition", OC_Generic.copyPoint(label.getWorldPosition()));
+            attachControl(label);
+        }
+        return createdLabels;
+    }
+
+
+
     public PointF getRelativePositionForObject (OBControl control)
     {
         PointF position = control.position();
