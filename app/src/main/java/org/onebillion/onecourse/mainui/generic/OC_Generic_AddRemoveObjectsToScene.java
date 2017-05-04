@@ -45,6 +45,12 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
         return "placeObject";
     }
 
+    public boolean hasAlreadyVisibleObjects()
+    {
+        String type = eventAttributes.get("type");
+        return (type != null);
+    }
+
 
     @Override
     public void action_prepareScene (String scene, Boolean redraw)
@@ -59,7 +65,7 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
             isAdd = type.equalsIgnoreCase("add");
             // do not touch the visibility of the objects for the scenes that have the [type] event property
         }
-        else if (isAdd)
+        else if (isAdd && !hasAlreadyVisibleObjects())
         {
             for (OBControl control : filterControls(getObjectPrefix() + ".*"))
             {
@@ -98,12 +104,13 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
         {
             OBControl control = action_getClosestHiddenObject(pt);
             //
-            String type = eventAttributes.get("type");
-            if (type != null)
+            if (hasAlreadyVisibleObjects())
             {
                 // if there is a type in the event attributes, then the user needs to touch in the proximity of the object to reveal it
                 float distance = OB_Maths.PointDistance(pt, control.position());
-                float threshold = (float) Math.sqrt(control.height() * control.width()) * 0.5f * 1.2f;
+                float factorWidth = (control.width() < control.height() * 0.5f) ? control.height() / control.width() : 1.0f;
+                float factorHeight = (control.height() < control.width() * 0.5f) ? control.width() / control.height() : 1.0f;
+                float threshold = (float) Math.sqrt(control.height() * factorHeight * control.width() * factorWidth) * 0.5f * 1.2f;
                 if (distance > threshold)
                 {
                     // if the touch is further than 120% of the radius of the object, then it's nulled;
