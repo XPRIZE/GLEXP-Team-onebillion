@@ -154,6 +154,9 @@ public class OC_Generic_AddRemoveObjects_SelectCorrectNumber extends OC_Generic_
             phase = 1;
             action_showEquationForPhase();
             //
+            waitAudio();
+            waitForSecs(0.3);
+            //
             setReplayAudioScene(currentEvent(), "REPEAT2");
             playAudioQueuedScene(currentEvent(), "PROMPT2", false);
             //
@@ -173,6 +176,9 @@ public class OC_Generic_AddRemoveObjects_SelectCorrectNumber extends OC_Generic_
         {
             phase = 1;
             action_showEquationForPhase();
+            //
+            waitAudio();
+            waitForSecs(0.3);
             //
             setReplayAudioScene(currentEvent(), "REPEAT2");
             playAudioQueuedScene(currentEvent(), "PROMPT2", false);
