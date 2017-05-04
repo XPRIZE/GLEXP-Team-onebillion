@@ -1199,11 +1199,12 @@ public class OBSectionController extends OBViewController
                 OBControl c2 = objectDict.get(o2);
                 float z1 = c1.zPosition();
                 float z2 = c2.zPosition();
-                if (z1 < z2)
-                    return -1;
-                if (z1 > z2)
-                    return 1;
-                return 0;
+                return Float.compare(z2, z1);
+//                if (z1 < z2)
+//                    return -1;
+//                if (z1 > z2)
+//                    return 1;
+//                return 0;
             }
         });
         List<OBControl> carr = new ArrayList<OBControl>();

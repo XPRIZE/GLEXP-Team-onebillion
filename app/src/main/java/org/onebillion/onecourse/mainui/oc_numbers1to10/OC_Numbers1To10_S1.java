@@ -244,6 +244,8 @@ public class OC_Numbers1To10_S1 extends OC_Generic_Event
             }
             if (placedObjects >= numbers.size())
             {
+                setReplayAudio(null);
+                //
                 playAudio(correctAudio);
                 waitAudio();
                 waitForSecs(0.3f);
