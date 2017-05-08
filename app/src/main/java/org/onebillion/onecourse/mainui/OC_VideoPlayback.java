@@ -26,11 +26,14 @@ import org.onebillion.onecourse.utils.OBXMLNode;
 import org.onebillion.onecourse.utils.OB_Maths;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+
+import static org.onebillion.onecourse.utils.OBAnim.ANIM_EASE_IN_EASE_OUT;
 
 /**
  * Created by pedroloureiro on 07/02/2017.
@@ -124,8 +127,8 @@ public class OC_VideoPlayback extends OC_SectionController
         loadPlaylist();
         loadVideoThumbnails();
         //
-        hideControls(".*mask");
-        hideControls("video_video");
+        hideControls("video_preview.*");
+//        hideControls("video_video"); // the video place holder needs to be visible
         hideControls("video_textbox");
         //
         scrollPreviewToVisible(videoPreviewIdx, false);
@@ -487,9 +490,8 @@ public class OC_VideoPlayback extends OC_SectionController
 
     private void loadVideoThumbnails ()
     {
-        OBControl vs = objectDict.get("video_selector");
-        int col = vs.fillColor();
         deleteControls("video_selector");
+        //
         OBControl p1 = objectDict.get("video_preview1");
         OBControl p2 = objectDict.get("video_preview2");
         float videoPreviewX = p1.position().x;
@@ -525,41 +527,34 @@ public class OC_VideoPlayback extends OC_SectionController
             originalScale *= 0.75;
             im.setScale(originalScale);
             im.setZPosition(5);
-//            im.setHighlightColour(Color.argb(80, 0, 0, 0));
             //
             idx++;
         }
         lstgp.addAll(videoPreviewImages);
         //
-//        OBControl selector = new OBControl();
-//        selector.setBackgroundColor(col);
-//        selector.setFrame(videoPreviewImages.get(0).frame());
-//        selector.setZPosition(1);
-//        objectDict.put("video_preview_selector", selector);
-//        lstgp.add(selector);
-        //
-        OBControl mask = objectDict.get("video_mask");
-        OBControl mc = mask.copy();
-        lstgp.add(mc);
-        RectF r = OBGroup.frameUnion(lstgp);
-        //
-        r.left -= videoPreviewImages.get(0).width();
-        r.right += videoPreviewImages.get(0).width();
-        //
-        videoPreviewGroup = new OBGroup(lstgp, r);
-        videoPreviewGroup.removeMember(mc);
-        attachControl(videoPreviewGroup);
-        videoPreviewGroup.setZPosition(zpos);
-        objectDict.put("videoPreviewGroup", videoPreviewGroup);
-        detachControl(mask);
-        videoPreviewGroup.setScreenMaskControl(mask);
-//        videoPreviewGroup.setShouldTexturise(false);
-        //
+        OBControl mask = objectDict.get("playlist_mask");
+        OBControl maskCopy = mask.copy();
+        lstgp.add(maskCopy);
         float gradientNudge = videoPreviewImages.get(0).width() * 0.25f;
+        RectF frame = OBGroup.frameUnion(lstgp);
+        frame.left = mask.left();
+        frame.right = frame.left + frame.width() + gradientNudge;
+        //
+        videoPreviewGroup = new OBGroup(lstgp, frame);
+        videoPreviewGroup.removeMember(maskCopy);
+        attachControl(videoPreviewGroup);
+        objectDict.put("videoPreviewGroup", videoPreviewGroup);
         maximumX = videoPreviewGroup.position().x + gradientNudge;
         minimumX = maximumX - (videoPreviewGroup.right() - mask.right()) - gradientNudge;
-        //
+        videoPreviewGroup.setPosition(new PointF(maximumX, videoPreviewGroup.position().y));
         selectPreview(videoPreviewIdx);
+        mask.setHidden(true);
+        //
+        OC_Generic.sendObjectToTop(videoPreviewGroup, this);
+        OC_Generic.sendObjectToTop(objectDict.get("top_bar_left"), this);
+        OC_Generic.sendObjectToTop(objectDict.get("top_bar_right"), this);
+        OC_Generic.sendObjectToTop(objectDict.get("gradient_left"), this);
+        OC_Generic.sendObjectToTop(objectDict.get("gradient_right"), this);
     }
 
 
@@ -730,56 +725,91 @@ public class OC_VideoPlayback extends OC_SectionController
     private void scrollPreviewToVisible (int idx, boolean animate)
     {
         OBControl preview = videoPreviewImages.get(idx);
-        OBControl mask = objectDict.get("video_mask");
-        RectF maskFrame = convertRectToControl(mask.frame(), videoPreviewGroup);
-        //
         float gradientNudge = preview.width() * 0.25f;
-        float leftEdge = maskFrame.left + gradientNudge;
-        float rightEdge = maskFrame.right - gradientNudge;
-        //
+        float leftEdge =  ((OBControl) objectDict.get("top_bar_left")).right() + gradientNudge;
+        float rightEdge = ((OBControl) objectDict.get("top_bar_right")).left() - gradientNudge;
         float diff = 0;
-        if (preview.left() < leftEdge)
+        float leftThreshold = leftEdge + preview.width() * 0.75f;
+        float rightThreshold = rightEdge - preview.width() * 0.75f;
+        RectF previewFrame = convertRectFromControl(preview.frame, videoPreviewGroup);
+        float previewLeft = previewFrame.left;
+        float previewRight = previewFrame.right;
+        //
+        if (previewLeft < leftThreshold)
         {
-            MainActivity.log("OC_VideoPlayback:scrollPreviewToVisible --> left edge of the preview is too far");
-            float requiredX = 1 * preview.width() + leftEdge;
-            diff = requiredX - preview.position().x;
-            MainActivity.log("OC_VideoPlayback:scrollPreviewToVisible --> need to apply diff " + diff);
+            diff = leftThreshold - previewLeft;
         }
-        else if (preview.right() > rightEdge)
+        else if (previewRight > rightThreshold)
         {
-            MainActivity.log("OC_VideoPlayback:scrollPreviewToVisible --> right edge of the preview is too far");
-            float requiredX = rightEdge - 1 * preview.width();
-            diff = requiredX - preview.position().x;
-            MainActivity.log("OC_VideoPlayback:scrollPreviewToVisible --> need to apply diff " + diff);
+            diff = rightThreshold - previewRight;
         }
         if (diff == 0)
         {
             return;
+
         }
         float newX = videoPreviewGroup.position().x + diff;
-//        if (newX > maximumX)
-//        {
-//            newX = maximumX;
-//        }
-//        else if (newX < minimumX)
-//        {
-//            newX = minimumX;
-//        }
+        if (newX > maximumX) newX = maximumX;
+        if (newX < minimumX) newX = minimumX;
         if (newX != videoPreviewGroup.position().x)
         {
+            PointF pt = OC_Generic.copyPoint(new PointF(newX,  videoPreviewGroup.position().y));
             if (animate)
             {
-                PointF pt = new PointF(newX, videoPreviewGroup.position().y);
-                OBAnim anim = OBAnim.moveAnim(pt, videoPreviewGroup);
-                OBAnimationGroup grp = new OBAnimationGroup();
-                registerAnimationGroup(grp, "videoscrollanim");
-                grp.applyAnimations(Collections.singletonList(anim), 0.4, false, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+                OBAnim anim = OBAnim.moveAnim(pt,videoPreviewGroup);
+                OBAnimationGroup animGroup = new OBAnimationGroup();
+                registerAnimationGroup(animGroup, "videoscrollanim");
+                animGroup.applyAnimations(Arrays.asList(anim), 0.4f, true, ANIM_EASE_IN_EASE_OUT, null);
             }
             else
             {
-                videoPreviewGroup.setPosition(newX, videoPreviewGroup.position().y);
+                videoPreviewGroup.setPosition(pt);
             }
         }
+//        OBControl preview = videoPreviewImages.get(idx);
+//        OBControl mask = objectDict.get("video_mask");
+//        RectF maskFrame = convertRectToControl(mask.frame(), videoPreviewGroup);
+//        //
+//        float gradientNudge = preview.width() * 0.25f;
+//        float leftEdge = maskFrame.left + gradientNudge;
+//        float rightEdge = maskFrame.right - gradientNudge;
+//        //
+//        float diff = 0;
+//        if (preview.left() < leftEdge)
+//        {
+//            MainActivity.log("OC_VideoPlayback:scrollPreviewToVisible --> left edge of the preview is too far");
+//            float requiredX = 1 * preview.width() + leftEdge;
+//            diff = requiredX - preview.position().x;
+//            MainActivity.log("OC_VideoPlayback:scrollPreviewToVisible --> need to apply diff " + diff);
+//        }
+//        else if (preview.right() > rightEdge)
+//        {
+//            MainActivity.log("OC_VideoPlayback:scrollPreviewToVisible --> right edge of the preview is too far");
+//            float requiredX = rightEdge - 1 * preview.width();
+//            diff = requiredX - preview.position().x;
+//            MainActivity.log("OC_VideoPlayback:scrollPreviewToVisible --> need to apply diff " + diff);
+//        }
+//        if (diff == 0)
+//        {
+//            return;
+//        }
+//        float newX = videoPreviewGroup.position().x + diff;
+//        //
+//        if (newX != videoPreviewGroup.position().x)
+//        {
+//            if (animate)
+//            {
+//                PointF pt = new PointF(newX, videoPreviewGroup.position().y);
+//                OBAnim anim = OBAnim.moveAnim(pt, videoPreviewGroup);
+//                OBAnimationGroup grp = new OBAnimationGroup();
+//                registerAnimationGroup(grp, "videoscrollanim");
+//                grp.applyAnimations(Collections.singletonList(anim), 0.4, false, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+//            }
+//            else
+//            {
+//                videoPreviewGroup.setPosition(newX, videoPreviewGroup.position().y);
+//            }
+//        }
 
     }
 
