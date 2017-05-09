@@ -604,6 +604,10 @@ public class OBSectionController extends OBViewController
             if (attrs.get("skinoffset") != null)
                 skinOffset = Integer.parseInt((String) attrs.get("skinoffset"));
             int skincol = OBUtils.SkinColour(OBUtils.SkinColourIndex() + skinOffset);
+            if (im == null)
+            {
+                MainActivity.log("ERROR --> null object with name " + srcname);
+            }
             ((OBGroup) im).substituteFillForAllMembers("skin.*", skincol);
             if (attrs.get("fill") != null)
             {

@@ -919,4 +919,17 @@ public class OC_Generic_Event extends OC_SectionController
         return absoluteOffset;
     }
 
+
+    public PointF action_getMiddleOfGroup(String pattern)
+    {
+        PointF average = new PointF(0f,  0f);
+        List<OBControl> controls = filterControls(pattern);
+        for (OBControl control : controls)
+        {
+            average = OB_Maths.AddPoints(control.getWorldPosition(), average);
+        }
+        average = new PointF(average.x / controls.size(),  average.y / controls.size());
+        return average;
+    }
+
 }

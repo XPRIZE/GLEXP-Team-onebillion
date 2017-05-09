@@ -34,27 +34,34 @@ import java.util.regex.Pattern;
 /**
  * OC_Generic
  * Collection of functions that are common for all Maths and Literacy units.
- *
+ * <p>
  * Created by pedroloureiro on 23/06/16.
  */
 public class OC_Generic
 {
 
+    public static void pointer_lower (OC_SectionController sc)
+    {
+        PointF currentLocation = OC_Generic.copyPoint(sc.thePointer.position());
+        float delta = sc.bounds().height() * 0.03f;
+        sc.movePointerToPoint(new PointF(currentLocation.x, currentLocation.y + delta), 0.3f, true);
+    }
 
-    public static void pointer_nudge(float x, float y, float angle, float time, Boolean wait, OC_SectionController sc)
+
+    public static void pointer_nudge (float x, float y, float angle, float time, Boolean wait, OC_SectionController sc)
     {
         PointF relativePosition = OB_Maths.relativePointInRectForLocation(sc.thePointer.position(), new RectF(sc.bounds()));
         PointF nudge = OB_Maths.locationForRect(OB_Maths.AddPoints(relativePosition, new PointF(x, y)), new RectF(sc.bounds()));
         sc.movePointerToPoint(nudge, angle, time, wait);
     }
 
-    public static void pointer_moveToObjectByName(String controlName, float angle, float secs, EnumSet<Anchor> anchorFlags, Boolean wait, OC_SectionController sc)
+    public static void pointer_moveToObjectByName (String controlName, float angle, float secs, EnumSet<Anchor> anchorFlags, Boolean wait, OC_SectionController sc)
     {
         OBControl control = sc.objectDict.get(controlName);
         pointer_moveToObject(control, angle, secs, anchorFlags, wait, sc);
     }
 
-    public static void pointer_moveToObject(OBControl control, float angle, float secs, EnumSet<Anchor> anchorFlags, Boolean wait, OC_SectionController sc)
+    public static void pointer_moveToObject (OBControl control, float angle, float secs, EnumSet<Anchor> anchorFlags, Boolean wait, OC_SectionController sc)
     {
         PointF position = copyPoint(control.getWorldPosition());
         //
@@ -67,26 +74,26 @@ public class OC_Generic
     }
 
 
-    public static void pointer_moveToRelativePointOnScreen(float x, float y, float rotation, float secs, Boolean wait, OC_SectionController sc)
+    public static void pointer_moveToRelativePointOnScreen (float x, float y, float rotation, float secs, Boolean wait, OC_SectionController sc)
     {
         PointF destination = OB_Maths.locationForRect(x, y, new RectF(sc.bounds()));
         sc.movePointerToPoint(destination, rotation, secs, wait);
     }
 
-    public static void pointer_moveToPointWithObject(OBControl control, PointF destination, float rotation, float secs, Boolean wait, OC_SectionController sc)
+    public static void pointer_moveToPointWithObject (OBControl control, PointF destination, float rotation, float secs, Boolean wait, OC_SectionController sc)
     {
         OBAnim anim = OBAnim.moveAnim(destination, control);
         OBAnimationGroup.runAnims(Arrays.asList(anim), secs, false, OBAnim.ANIM_EASE_IN_EASE_OUT, sc);
         sc.movePointerToPoint(destination, rotation, secs, true);
     }
 
-    public static void pointer_simulateClick(OC_SectionController sc)
+    public static void pointer_simulateClick (OC_SectionController sc)
     {
         sc.movePointerForwards(sc.applyGraphicScale(10.0f), 0.1f);
         sc.movePointerForwards(-sc.applyGraphicScale(10.0f), 0.1f);
     }
 
-    public static float getNextZPosition(OC_SectionController sc)
+    public static float getNextZPosition (OC_SectionController sc)
     {
         float maxZPosition = 0.0f;
         for (OBControl control : sc.objectDict.values())
@@ -100,17 +107,17 @@ public class OC_Generic
         return maxZPosition + 0.001f;
     }
 
-    public static float sendObjectToTop(OBControl control, OC_SectionController sc)
+    public static float sendObjectToTop (OBControl control, OC_SectionController sc)
     {
         float newZPosition = getNextZPosition(sc);
         control.setZPosition(newZPosition);
         return newZPosition;
     }
 
-    protected static Map<String,Object> loadObjectColours(OC_SectionController sc)
+    protected static Map<String, Object> loadObjectColours (OC_SectionController sc)
     {
         String filePath = sc.getConfigPath("objectColours.xml");
-        Map<String,Object> objectColoursDictionary = new HashMap<>();
+        Map<String, Object> objectColoursDictionary = new HashMap<>();
         OBXMLNode xmlNode = null;
         try
         {
@@ -131,7 +138,7 @@ public class OC_Generic
                     List<OBXMLNode> xml_layers = xml_scheme.childrenOfType("layer");
                     Map<String, Object> layer_dictionary = new HashMap<>();
                     //
-                    for (OBXMLNode xml_layer: xml_layers)
+                    for (OBXMLNode xml_layer : xml_layers)
                     {
                         String layer_id = xml_layer.attributeStringValue("id");
                         String colour = xml_layer.attributeStringValue("colour");
@@ -153,7 +160,7 @@ public class OC_Generic
         return objectColoursDictionary;
     }
 
-    public static void colourObject(OBControl control, int colour)
+    public static void colourObject (OBControl control, int colour)
     {
         if (OBGroup.class.isInstance(control))
         {
@@ -193,11 +200,11 @@ public class OC_Generic
         }
     }
 
-    public static void colourObjectsWithScheme(OC_SectionController sc)
+    public static void colourObjectsWithScheme (OC_SectionController sc)
     {
-        Map<String,Object> objectColoursDictionary = loadObjectColours(sc);
+        Map<String, Object> objectColoursDictionary = loadObjectColours(sc);
         //
-        for(OBControl control : sc.filterControls(".*"))
+        for (OBControl control : sc.filterControls(".*"))
         {
             if (!(OBGroup.class.isInstance(control))) continue;
             //
@@ -211,7 +218,7 @@ public class OC_Generic
                 String parameters[] = scheme.split(" ");
                 String objectID = parameters[0];
                 String schemeID = parameters[1];
-                Map<String,Object> schemes = (Map<String,Object>) objectColoursDictionary.get(objectID);
+                Map<String, Object> schemes = (Map<String, Object>) objectColoursDictionary.get(objectID);
                 //
                 if (schemes != null)
                 {
@@ -246,7 +253,7 @@ public class OC_Generic
         }
     }
 
-    public static List<OBControl> controlsSortedFrontToBack(OBGroup group, String pattern)
+    public static List<OBControl> controlsSortedFrontToBack (OBGroup group, String pattern)
     {
         List<OBControl> result = new ArrayList<OBControl>();
         Pattern p = Pattern.compile(pattern);
@@ -271,17 +278,17 @@ public class OC_Generic
         return result;
     }
 
-    public static PointF copyPoint(PointF original)
+    public static PointF copyPoint (PointF original)
     {
         return new PointF(original.x, original.y);
     }
 
-    public static double currentTime()
+    public static double currentTime ()
     {
         return (SystemClock.uptimeMillis() / (double) 1000);
     }
 
-    public static PointF firstPoint(OBPath path, OC_SectionController sc)
+    public static PointF firstPoint (OBPath path, OC_SectionController sc)
     {
         String name = (String) path.attributes().get("id");
         if (name == null) name = (String) path.settings.get("name");
@@ -303,7 +310,7 @@ public class OC_Generic
         return line.pt1;
     }
 
-    public static void setFirstPoint(OBPath path, PointF pt, OC_SectionController sc)
+    public static void setFirstPoint (OBPath path, PointF pt, OC_SectionController sc)
     {
         String name = (String) path.attributes().get("id");
         if (name == null) name = (String) path.settings.get("name");
@@ -315,7 +322,7 @@ public class OC_Generic
         path.setPath(deconPath.bezierPath());
     }
 
-    public static void setLastPoint(OBPath path, PointF pt, OC_SectionController sc)
+    public static void setLastPoint (OBPath path, PointF pt, OC_SectionController sc)
     {
         String name = (String) path.attributes().get("id");
         if (name == null) name = (String) path.settings.get("name");
@@ -327,7 +334,7 @@ public class OC_Generic
         path.setPath(deconPath.bezierPath());
     }
 
-    public static int randomInt(int min, int max)
+    public static int randomInt (int min, int max)
     {
         double dval = Math.random();
         return (int) Math.round(min + (max - min) * dval);
@@ -412,7 +419,6 @@ public class OC_Generic
     }
 
 
-
     public static enum Anchor
     {
         ANCHOR_MIDDLE,
@@ -423,7 +429,7 @@ public class OC_Generic
 
         public final int anchor;
 
-        Anchor()
+        Anchor ()
         {
             this.anchor = 1 << this.ordinal();
         }
@@ -438,9 +444,7 @@ public class OC_Generic
     }
 
 
-
-
-    public static void animate_frogs(List<OBGroup> controls, AnimationType animationType, String specificEvent, OC_SectionController sc)
+    public static void animate_frogs (List<OBGroup> controls, AnimationType animationType, String specificEvent, OC_SectionController sc)
     {
         try
         {
@@ -455,7 +459,7 @@ public class OC_Generic
                         OBAnim blinkAnim1 = OBAnim.sequenceAnim(rightEye, Arrays.asList("eyelid_right_open", "eyelid_right_closed", "eyelid_right_open"), 0.1f, false);
                         OBGroup leftEye = (OBGroup) control.objectDict.get("left");
                         OBAnim blinkAnim2 = OBAnim.sequenceAnim(rightEye, Arrays.asList("eyelid_left_open", "eyelid_left_closed", "eyelid_left_open"), 0.1f, false);
-                        OBAnimationGroup.runAnims(Arrays.asList(blinkAnim1,blinkAnim2), 0.3, true, OBAnim.ANIM_LINEAR, sc);
+                        OBAnimationGroup.runAnims(Arrays.asList(blinkAnim1, blinkAnim2), 0.3, true, OBAnim.ANIM_LINEAR, sc);
                         sc.waitForSecs(randomInt(50, 250) / (float) 1000);
                     }
                     else if (animationType == AnimationType.ACTIVE)
@@ -466,7 +470,7 @@ public class OC_Generic
                         PointF endPoint = new PointF(startPoint.x, startPoint.y - (1.25f * control.height()));
                         OBAnim moveAnim1 = OBAnim.moveAnim(endPoint, control);
                         OBAnim moveAnim2 = OBAnim.moveAnim(startPoint, control);
-                        OBAnimationGroup.chainAnimations(Arrays.asList(Arrays.asList(moveAnim1, rotateAnim1), Arrays.asList(moveAnim2, rotateAnim2)), Arrays.asList(0.4f,0.4f), false, Arrays.asList(OBAnim.ANIM_EASE_IN, OBAnim.ANIM_EASE_OUT), 1, sc);
+                        OBAnimationGroup.chainAnimations(Arrays.asList(Arrays.asList(moveAnim1, rotateAnim1), Arrays.asList(moveAnim2, rotateAnim2)), Arrays.asList(0.4f, 0.4f), false, Arrays.asList(OBAnim.ANIM_EASE_IN, OBAnim.ANIM_EASE_OUT), 1, sc);
                         sc.waitForSecs(0.05);
                     }
                     else if (animationType == AnimationType.MOVEMENT)
@@ -489,9 +493,7 @@ public class OC_Generic
     }
 
 
-
-
-    public static void animate_birds(List<OBGroup> controls, AnimationType animationType, String specificEvent, OC_SectionController sc)
+    public static void animate_birds (List<OBGroup> controls, AnimationType animationType, String specificEvent, OC_SectionController sc)
     {
         try
         {
@@ -513,7 +515,7 @@ public class OC_Generic
                         PointF endPoint = new PointF(startPoint.x, startPoint.y - (1.0f * control.height()));
                         OBAnim moveAnim1 = OBAnim.moveAnim(endPoint, control);
                         OBAnim moveAnim2 = OBAnim.moveAnim(startPoint, control);
-                        OBAnimationGroup.chainAnimations(Arrays.asList(Arrays.asList(moveAnim1, flapAnim), Arrays.asList(moveAnim2, flapAnim)), Arrays.asList(0.4f,0.4f), false, Arrays.asList(OBAnim.ANIM_EASE_IN, OBAnim.ANIM_EASE_OUT), 1, sc);
+                        OBAnimationGroup.chainAnimations(Arrays.asList(Arrays.asList(moveAnim1, flapAnim), Arrays.asList(moveAnim2, flapAnim)), Arrays.asList(0.4f, 0.4f), false, Arrays.asList(OBAnim.ANIM_EASE_IN, OBAnim.ANIM_EASE_OUT), 1, sc);
                         sc.waitForSecs(0.05);
                     }
                     else if (animationType == AnimationType.MOVEMENT)
@@ -536,9 +538,7 @@ public class OC_Generic
     }
 
 
-
-
-    public static void animate_ladybirds(List<OBGroup> controls, AnimationType animationType, String specificEvent, OC_SectionController sc)
+    public static void animate_ladybirds (List<OBGroup> controls, AnimationType animationType, String specificEvent, OC_SectionController sc)
     {
         try
         {
@@ -562,7 +562,7 @@ public class OC_Generic
                         PointF endPoint = new PointF(startPoint.x, startPoint.y - (0.75f * control.height()));
                         OBAnim moveAnim1 = OBAnim.moveAnim(endPoint, control);
                         OBAnim moveAnim2 = OBAnim.moveAnim(startPoint, control);
-                        OBAnimationGroup.chainAnimations(Arrays.asList(Arrays.asList(moveAnim1, rotateAnim1, flapAnim), Arrays.asList(moveAnim2, rotateAnim2, flapAnim)), Arrays.asList(0.4f,0.4f), false, Arrays.asList(OBAnim.ANIM_EASE_IN, OBAnim.ANIM_EASE_OUT), 1, sc);
+                        OBAnimationGroup.chainAnimations(Arrays.asList(Arrays.asList(moveAnim1, rotateAnim1, flapAnim), Arrays.asList(moveAnim2, rotateAnim2, flapAnim)), Arrays.asList(0.4f, 0.4f), false, Arrays.asList(OBAnim.ANIM_EASE_IN, OBAnim.ANIM_EASE_OUT), 1, sc);
                         sc.waitForSecs(0.05);
                     }
                     else if (animationType == AnimationType.MOVEMENT)
@@ -583,7 +583,6 @@ public class OC_Generic
             e.printStackTrace();
         }
     }
-
 
 
 }
