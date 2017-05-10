@@ -1377,13 +1377,10 @@ public class OBUtils
 
     private static RectF RectIntersection(RectF r1, RectF r2)
     {
-        if (r1.intersect(r2))
+        RectF r1copy = new RectF(r1);
+        if (r1copy.intersect(r2))
         {
-            float xMin = Math.max(r1.left, r2.left);
-            float xMax = Math.min(r1.right, r2.right);
-            float yMin = Math.max(r1.top, r2.top);
-            float yMax = Math.min(r1.bottom, r2.bottom);
-            return new RectF(xMin, yMin, xMax, yMax);
+            return r1copy;
         }
         else
         {
