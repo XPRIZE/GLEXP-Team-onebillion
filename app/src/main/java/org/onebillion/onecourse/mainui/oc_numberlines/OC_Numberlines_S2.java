@@ -398,7 +398,7 @@ public class OC_Numberlines_S2 extends OC_SectionController
             Path path = new Path();
             path.moveTo(control.position().x, control.position().y);
             PointF cp1 = OB_Maths.locationForRect(0.5f,-1.8f,objectDict.get("box_front").getWorldFrame());
-            PointF cp2 = OB_Maths.AddPoints(endPoint ,new PointF(5,5));
+            PointF cp2 = OB_Maths.AddPoints(endPoint ,new PointF(applyGraphicScale(5),applyGraphicScale(5)));
             path.cubicTo(cp1.x, cp1.y, cp2.x, cp2.y, endPoint.x, endPoint.y);
             anims.add(OBAnim.pathMoveAnim(control,path,false,0));
             anims.add(OBAnim.rotationAnim((float)Math.toRadians(360),control));
