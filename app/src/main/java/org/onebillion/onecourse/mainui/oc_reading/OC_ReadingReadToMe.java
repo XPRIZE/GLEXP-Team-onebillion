@@ -4,6 +4,7 @@ import android.graphics.PointF;
 import android.os.AsyncTask;
 import android.view.View;
 
+import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.utils.OB_Maths;
 
 import java.util.Arrays;
@@ -47,7 +48,9 @@ public class OC_ReadingReadToMe extends OC_Reading
     public void setUpScene()
     {
         super.setUpScene();
-        objectDict.get("wordback").hide();
+        OBControl c = objectDict.get("wordback");
+        if (c != null)
+            c.hide();
     }
 
     public boolean showPrevButton()
