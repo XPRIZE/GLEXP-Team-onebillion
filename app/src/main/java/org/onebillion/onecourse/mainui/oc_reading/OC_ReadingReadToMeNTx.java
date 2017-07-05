@@ -150,31 +150,6 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
             throw ex;
     }
 
-    public void readingFinished()
-    {
-        try
-    {
-        waitForSecs(0.8);
-        if (status() != STATUS_FINISHING && !_aborting)
-        {
-            if (!considerComprehensionQuestions())
-                bringUpNextButton();
-        }
-    }
-        catch (Exception exception)
-        {
-        }
-
-    }
-    public boolean readPage()
-    {
-        if (super.readPage())
-        {
-            readingFinished();
-            return true;
-        }
-        return false;
-    }
     public boolean showNextButton()
     {
         return false;

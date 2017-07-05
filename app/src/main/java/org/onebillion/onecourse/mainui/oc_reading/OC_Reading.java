@@ -55,7 +55,7 @@ public class OC_Reading extends OC_SectionController
     public Condition sharedCondition;
     int currPara,level;
     float jumpOffset,lineHeightMultiplier,paraMultiplier,letterSpacing,fontSize,spaceExtra,playRate;
-    boolean reading,questionsAvailable,slowWordsAvailable,paragraphlessMode;
+    boolean reading,questionsAvailable,slowWordsAvailable,paragraphlessMode,nextOK,RAOK;
     int picJustify,textJustification;
     String indentString;
     int demoType,introNo,numberOfTextLines;
@@ -783,7 +783,7 @@ public class OC_Reading extends OC_SectionController
         return (sequenceToken == token);
     }
 
-    public void replayAudio()
+    public void readingReplayAudio()
     {
         if (!_aborting && !MainViewController().navigating && status()!= STATUS_FINISHING && status() != STATUS_DOING_DEMO)
         {
@@ -797,6 +797,14 @@ public class OC_Reading extends OC_SectionController
                     return null;
                 }
             }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
+        }
+    }
+
+    public void replayAudio()
+    {
+        if (status() != STATUS_DOING_DEMO  && RAOK)
+        {
+		    readingReplayAudio();
         }
     }
 
@@ -915,5 +923,16 @@ public class OC_Reading extends OC_SectionController
 
     }
 
+    public void waitAndCheck(long sttime,double secs,int count) throws Exception
+    {
+        for (int i = 0;i < count;i++)
+        {
+            if (statusChanged(sttime))
+                throw new Exception("flashline");
+            waitForSecs(secs);
+        }
+        if (statusChanged(sttime))
+            throw new Exception("flashline");
+    }
 
 }

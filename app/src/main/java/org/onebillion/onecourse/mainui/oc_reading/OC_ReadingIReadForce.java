@@ -63,19 +63,6 @@ public class OC_ReadingIReadForce extends OC_ReadingIRead
             }}.execute();
     }
 
-    public void showButtons()
-    {
-        int flags = 0;
-        if (showBackButton())
-            flags |= MainViewController().SHOW_TOP_LEFT_BUTTON;
-        flags |= (MainViewController().SHOW_TOP_RIGHT_BUTTON | MainViewController().SHOW_BOTTOM_RIGHT_BUTTON);
-        if (pageNo > 1)
-            flags |= MainViewController().SHOW_BOTTOM_LEFT_BUTTON;
-        lockScreen();
-        MainViewController().showButtons(flags);
-        unlockScreen();
-    }
-
     public void stage2() throws Exception
     {
         readPage();
@@ -183,18 +170,6 @@ public class OC_ReadingIReadForce extends OC_ReadingIRead
             long st =setStatus(STATUS_AWAITING_CLICK);
             endBody();
         }
-    }
-
-    public void waitAndCheck(long sttime,double secs,int count) throws Exception
-    {
-        for (int i = 0;i < count;i++)
-        {
-            if (statusChanged(sttime))
-                throw new Exception("flashline");
-            waitForSecs(secs);
-        }
-        if (statusChanged(sttime))
-            throw new Exception("flashline");
     }
 
     public void flashBox(long sttime)
