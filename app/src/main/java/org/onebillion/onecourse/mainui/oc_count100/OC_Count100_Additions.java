@@ -30,8 +30,8 @@ public class OC_Count100_Additions
     {
 
         OBMainViewController mainViewController = OBMainViewController.MainViewController();
-        while(rect.frame().intersect(mainViewController.topRightButton.frame())||
-                rect.frame().intersect(mainViewController.topLeftButton.frame()))
+        while(RectF.intersects(rect.frame(),mainViewController.topRightButton.frame())||
+                    RectF.intersects(rect.frame(),mainViewController.topLeftButton.frame()))
             rect.setScale(rect.scale() * 0.99f);
 
         List<OBControl> boxes = new ArrayList<OBControl>();

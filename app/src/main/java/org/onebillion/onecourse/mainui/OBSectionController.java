@@ -604,6 +604,10 @@ public class OBSectionController extends OBViewController
             if (attrs.get("skinoffset") != null)
                 skinOffset = Integer.parseInt((String) attrs.get("skinoffset"));
             int skincol = OBUtils.SkinColour(OBUtils.SkinColourIndex() + skinOffset);
+            if (im == null)
+            {
+                MainActivity.log("ERROR --> null object with name " + srcname);
+            }
             ((OBGroup) im).substituteFillForAllMembers("skin.*", skincol);
             if (attrs.get("fill") != null)
             {
@@ -1199,11 +1203,12 @@ public class OBSectionController extends OBViewController
                 OBControl c2 = objectDict.get(o2);
                 float z1 = c1.zPosition();
                 float z2 = c2.zPosition();
-                if (z1 < z2)
-                    return -1;
-                if (z1 > z2)
-                    return 1;
-                return 0;
+                return Float.compare(z2, z1);
+//                if (z1 < z2)
+//                    return -1;
+//                if (z1 > z2)
+//                    return 1;
+//                return 0;
             }
         });
         List<OBControl> carr = new ArrayList<OBControl>();

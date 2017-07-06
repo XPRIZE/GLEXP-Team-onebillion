@@ -1,6 +1,7 @@
 package org.onebillion.onecourse.utils;
 
 import android.graphics.PointF;
+import android.graphics.RectF;
 
 import java.util.List;
 
@@ -30,6 +31,17 @@ public class OBReadingPara
             mstr.append(w.text);
         }
         text = mstr.toString();
+    }
+
+    public RectF frame()
+    {
+        RectF f = new RectF();
+        for (OBReadingWord word : words)
+        {
+            if (word.label != null)
+                f.union(word.label.frame());
+        }
+        return f;
     }
 
 }

@@ -104,7 +104,7 @@ public class OC_SectionController extends OBSectionController {
         if (sc != null)
         {
             List<String> arr = sc.get(event); //yuk!
-            if (arr != null)
+            if (arr != null && arr.size() > idx)
                 playAudio(arr.get(idx));
         }
     }

@@ -10,11 +10,12 @@ import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
 
 import java.util.Arrays;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * OC_Generic_AddRemoveObjectsToScene
  * Generic Event designed for activities where the child has to add or remove objects to the scene by touching a container or the screen
- *
+ * <p>
  * Created by pedroloureiro on 21/07/16.
  */
 public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
@@ -34,14 +35,20 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
         return "obj";
     }
 
-    public String getSFX_hideObject()
+    public String getSFX_hideObject ()
     {
         return "hideObject";
     }
 
-    public String getSFX_placeObject()
+    public String getSFX_placeObject ()
     {
         return "placeObject";
+    }
+
+    public boolean hasAlreadyVisibleObjects()
+    {
+        String type = eventAttributes.get("type");
+        return (type != null);
     }
 
 
@@ -52,7 +59,13 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
         //
         objectDeltaCount = 0;
         //
-        if (isAdd)
+        String type = eventAttributes.get("type");
+        if (type != null)
+        {
+            isAdd = type.equalsIgnoreCase("add");
+            // do not touch the visibility of the objects for the scenes that have the [type] event property
+        }
+        else if (isAdd && !hasAlreadyVisibleObjects())
         {
             for (OBControl control : filterControls(getObjectPrefix() + ".*"))
             {
@@ -90,24 +103,26 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
         try
         {
             OBControl control = action_getClosestHiddenObject(pt);
-            if(control != null)
+            //
+            if (hasAlreadyVisibleObjects())
+            {
+                // if there is a type in the event attributes, then the user needs to touch in the proximity of the object to reveal it
+                float distance = OB_Maths.PointDistance(pt, control.position());
+                float factorWidth = (control.width() < control.height() * 0.5f) ? control.height() / control.width() : 1.0f;
+                float factorHeight = (control.height() < control.width() * 0.5f) ? control.width() / control.height() : 1.0f;
+                float threshold = (float) Math.sqrt(control.height() * factorHeight * control.width() * factorWidth) * 0.5f * 1.2f;
+                if (distance > threshold)
+                {
+                    // if the touch is further than 120% of the radius of the object, then it's nulled;
+                    control = null;
+                }
+            }
+            //
+            if (control != null)
             {
                 action_revealObject(control, pt);
                 //
-                if (getTotalHiddenObjects() == 0)
-                {
-                    waitForSecs(0.7);
-                    //
-                    gotItRightBigTick(true);
-                    waitForSecs(0.3);
-                    //
-                    action_finale();
-                }
-                else
-                {
-                    revertStatusAndReplayAudio();
-                    setStatus(STATUS_AWAITING_CLICK);
-                }
+                check_correctNumberObjectsShown_viaShow();
             }
             else
             {
@@ -122,14 +137,13 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
     }
 
 
-
     public void action_hideObject (OBControl control)
     {
         saveStatusClearReplayAudioSetChecking();
         //
         try
         {
-            if(control != null)
+            if (control != null)
             {
                 playSfxAudio(getSFX_hideObject(), false);
                 control.hide();
@@ -139,7 +153,7 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
                 action_playCorrectAudioAfterHidingObject();
                 objectDeltaCount++;
                 //
-                check_correctNumberObjectsShow_viaHide();
+                check_correctNumberObjectsShown_viaHide();
             }
             else
             {
@@ -153,13 +167,13 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
     }
 
 
-    public void action_playCorrectAudioAfterHidingObject() throws Exception
+    public void action_playCorrectAudioAfterHidingObject () throws Exception
     {
         playSceneAudioIndex("CORRECT", objectDeltaCount, false);
     }
 
 
-    public void check_correctNumberObjectsShow_viaHide() throws Exception
+    public void check_correctNumberObjectsShown_viaHide () throws Exception
     {
         if (getTotalShownObjects() == 0)
         {
@@ -173,13 +187,31 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
         else
         {
             revertStatusAndReplayAudio();
+            setStatus(STATUS_AWAITING_CLICK);
         }
     }
 
 
+    public void check_correctNumberObjectsShown_viaShow () throws Exception
+    {
+        if (getTotalHiddenObjects() == 0)
+        {
+            waitForSecs(0.7);
+            //
+            gotItRightBigTick(true);
+            waitForSecs(0.3);
+            //
+            action_finale();
+        }
+        else
+        {
+            revertStatusAndReplayAudio();
+            setStatus(STATUS_AWAITING_CLICK);
+        }
+    }
 
 
-    public int getTotalHiddenObjects()
+    public int getTotalHiddenObjects ()
     {
         int count = 0;
         for (OBControl control : filterControls(getObjectPrefix() + ".*"))
@@ -191,8 +223,7 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
     }
 
 
-
-    public int getTotalShownObjects()
+    public int getTotalShownObjects ()
     {
         int count = 0;
         for (OBControl control : filterControls(getObjectPrefix() + ".*"))
@@ -204,7 +235,7 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
     }
 
 
-    public void action_revealObject(OBControl control, PointF pt) throws Exception
+    public void action_revealObject (OBControl control, PointF pt) throws Exception
     {
         control.setPosition(pt);
         playSfxAudio(getSFX_placeObject(), false);
@@ -218,8 +249,7 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
     }
 
 
-
-    public void action_finale() throws Exception
+    public void action_finale () throws Exception
     {
         performSel("finalAnimation", currentEvent());
         waitForSecs(0.3);
@@ -231,15 +261,14 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
     }
 
 
-
     @Override
     public OBControl findTarget (PointF pt)
     {
-        return finger(-1, 2, filterControls(getObjectPrefix() + ".*"), pt, true);
+        return finger(0, 1, filterControls(getObjectPrefix() + ".*"), pt, true);
     }
 
 
-    public Boolean condition_isValidTouch(PointF pt)
+    public Boolean condition_isValidTouch (PointF pt)
     {
         return true;
     }

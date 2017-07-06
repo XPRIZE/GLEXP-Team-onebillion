@@ -404,7 +404,7 @@ public class OC_Crdp extends OC_Wordcontroller
         if(targ == firstHit)
             return;
         setStatus(STATUS_CHECKING);
-        List saveReplay = emptyReplayAudio();
+        //List saveReplay = emptyReplayAudio();
         try
         {
             int idx = backs.indexOf(targ);
@@ -429,7 +429,7 @@ public class OC_Crdp extends OC_Wordcontroller
                 ixs.add(firstIdx);
                 animateCard(ixs,true);
                 waitAudio();
-                setReplayAudio(saveReplay);
+                //setReplayAudio(saveReplay);
                 firstHit = null;
                 switchStatus(currentEvent());
             }
@@ -442,14 +442,14 @@ public class OC_Crdp extends OC_Wordcontroller
     public void checkTarget(Object targ)
     {
         setStatus(STATUS_CHECKING);
-        List saveReplay = emptyReplayAudio();
+        //List saveReplay = emptyReplayAudio();
         try
         {
             firstHit = (OBControl) targ;
             int idx = backs.indexOf(targ);
             playSfxAudio("tap",false);
             animateCard(Arrays.asList(idx),false);
-            setReplayAudio(saveReplay);
+            //setReplayAudio(saveReplay);
             setStatus(STATUS_AWAITING_CLICK2);
         }
         catch(Exception exception)

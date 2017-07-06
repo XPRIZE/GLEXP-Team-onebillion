@@ -1,26 +1,26 @@
-#Installing onecourse
+# Installing onecourse
 
-##Overview
+## Overview
 Each of the three versions of **onecourse** has as a set of Android filesytem images for the Google Pixel C. Follow the steps belows to install **onecourse**. If your Pixel C is already unlocked, skip straight to [the flashing step](#flash-filesystem-images).
 
-##Requirements
+## Requirements
 1. Ensure you have `adb` and `fastboot` installed on your computer. You can [follow the steps in this helpful guide](https://www.androidpit.com/how-to-install-adb-and-fastboot).
 2. Connect your computer to the device via USB.
 
 
-##Device preparation
+## Device preparation
 
 ##### Enable developer mode
 1. Go to **Settings > About tablet**.
 2. Tap **Build Number** 7 times until it displays _"You are now a developer"_.
 
 
-#####Enable OEM Unlocking
+##### Enable OEM Unlocking
 1. Go to **Settings > Developer** options.
 2. Enable OEM Unlocking.
 3. Tap **Enable** when prompted by the disclaimer.
 
-#####Enable USB Debugging
+##### Enable USB Debugging
 1. Go to **Settings > Developer** options.
 2. Tap **Enable USB debugging**.
 3. Tap **OK** when prompted by the disclaimer.
@@ -28,7 +28,7 @@ Each of the three versions of **onecourse** has as a set of Android filesytem im
 5. Tap _"Always allow from this computer"_.
 6. Tap **OK**.
 
-##Unlock the bootloader
+## Unlock the bootloader
 1. On you computer, reboot the device into the bootloader by running:
 
         adb reboot-bootloader
@@ -50,7 +50,7 @@ Each of the three versions of **onecourse** has as a set of Android filesytem im
 
 
 
-##Flash filesystem images
+## Flash filesystem images
 
 1. Download the set of filesystem images for the version of onecourse you wish to install:
  - [onecourse demo for XPRIZE judges](releases/download/v1.0.0/onecourse-demo-v1.0.0.tar.gz)

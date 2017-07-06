@@ -1,14 +1,14 @@
 ![Welcome to onecourse!](https://onebillion.org/img/onecourse/onecourse-logo-medium.svg)
 
 
-######One app for reading, writing and numeracy. By non-profit onebillion.
+###### One app for reading, writing and numeracy. By non-profit onebillion.
 
 
 
-##Our onecourse submission 
+## Our onecourse submission 
 Our onecourse submission for Global Learning XPRIZE consists of four elements:
 
-###1. onecourse demo for XPRIZE judges
+### 1. onecourse demo for XPRIZE judges
 [![onecourse](https://img.shields.io/badge/Filesytem%20Images-⬇%20Download%20onecourse%20Demo-37bc37.svg)](releases/download/v1.0.0/onecourse-demo-v1.0.0.tar.gz "onecourse demo")
 
 [Installation instructions for onecourse demo](INSTALL.md)
@@ -22,21 +22,21 @@ This is for you, and not for children. It contains:
 The two language buttons allow you switch between English and Swahili, for the sample units. 
 
 
-###2. onecourse Swahili for children
+### 2. onecourse Swahili for children
 [![onecourse](https://img.shields.io/badge/Filesytem%20Images-⬇%20Download%20onecourse%20Swahili-ffce00.svg)](releases/download/v1.0.0/onecourse-swahili-v1.0.0.tar.gz "onecourse demo")
 
 [Installation instructions for onecourse Swahili](INSTALL.md)
 
 Here you can experience the onecourse material as children in Tanzania would experience it.  
 
-###3. onecourse English for children
+### 3. onecourse English for children
 [![onecourse](https://img.shields.io/badge/Filesytem%20Images-⬇%20Download%20onecourse%20English-ff0000.svg)](releases/download/v1.0.0/onecourse-english-v1.0.0.tar.gz "onecourse demo")
 
 [Installation instructions for onecourse English](INSTALL.md)
 
 Our onecourse English entry is on our github repository, but not on a tablet. It has been verified by the XPRIZE team. 
 
-###4. onecourse handbook
+### 4. onecourse handbook
 [![onecourse](https://img.shields.io/badge/PDF-📖%20View%20onecourse%20Handbook-0092ff.svg)](onecourse_handbook.pdf "onecourse demo")
 
 The handbook contains:
@@ -48,6 +48,6 @@ The handbook contains:
 - a set of appendices with further details about the course, our research, the software, the schedule to completion, and so on.
 
 
-##Building onecourse
+## Building onecourse
 
 Please see our [detailed build instructions](BUILD.md)

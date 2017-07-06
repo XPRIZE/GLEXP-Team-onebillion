@@ -86,7 +86,7 @@ public class OBBrightnessManager
         {
             disableBrightnessAdjustment();
         }
-        else if (OBSystemsManager.sharedManager.mainHandler != null)
+        else if (OBSystemsManager.sharedManager.getMainHandler() != null)
         {
             //
             if (brightnessCheckRunnable == null)
@@ -103,8 +103,8 @@ public class OBBrightnessManager
                         {
                             if (updateBrightness(true))
                             {
-                                OBSystemsManager.sharedManager.mainHandler.removeCallbacks(brightnessCheckRunnable);
-                                OBSystemsManager.sharedManager.mainHandler.postDelayed(this, interval);
+                                OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(brightnessCheckRunnable);
+                                OBSystemsManager.sharedManager.getMainHandler().postDelayed(this, interval);
                             }
                             else
                             {
@@ -120,8 +120,8 @@ public class OBBrightnessManager
                 };
             }
             //
-            OBSystemsManager.sharedManager.mainHandler.removeCallbacks(brightnessCheckRunnable);
-            OBSystemsManager.sharedManager.mainHandler.post(brightnessCheckRunnable);
+            OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(brightnessCheckRunnable);
+            OBSystemsManager.sharedManager.getMainHandler().post(brightnessCheckRunnable);
         }
     }
 
@@ -145,6 +145,7 @@ public class OBBrightnessManager
             long currentTime = System.currentTimeMillis();
             long elapsed = currentTime - lastTouchTimeStamp;
             //
+            //MainActivity.mainViewController.lastTouchActivity
             lastTouchTimeStamp = System.currentTimeMillis();
             //
 //            MainActivity.log("Updating lastTouchTimeStamp with elapsed " + elapsed);
@@ -188,8 +189,8 @@ public class OBBrightnessManager
             long duration = (long) (OBAudioManager.audioManager.duration() * 1000);
             MainActivity.log("OBBrightnessManager.brightnessCheckRunnable.audio is playing file with " + duration + "ms. ignoring brightness update");
             //
-            OBSystemsManager.sharedManager.mainHandler.removeCallbacks(brightnessCheckRunnable);
-            OBSystemsManager.sharedManager.mainHandler.postDelayed(brightnessCheckRunnable, duration);
+            OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(brightnessCheckRunnable);
+            OBSystemsManager.sharedManager.getMainHandler().postDelayed(brightnessCheckRunnable, duration);
             //
             return loop && !paused;
         }
@@ -232,8 +233,9 @@ public class OBBrightnessManager
         MainActivity.log("OBBrightnessManager.onContinue detected");
         suspended = false;
         //
-        lastTouchTimeStamp = System.currentTimeMillis();
-        runBrightnessCheck();
+        registeredTouchOnScreen();
+//        lastTouchTimeStamp = System.currentTimeMillis();
+//        runBrightnessCheck();
     }
 
 
@@ -249,10 +251,10 @@ public class OBBrightnessManager
     {
 //        MainActivity.log("OBBrightnessManager.onPause detected");
         paused = true;
-        if (OBSystemsManager.sharedManager.mainHandler != null && brightnessCheckRunnable != null)
+        if (OBSystemsManager.sharedManager.getMainHandler() != null && brightnessCheckRunnable != null)
         {
             MainActivity.log("OBBrightnessManager.onPause --> removing brightnessCheckRunnable from Handler");
-            OBSystemsManager.sharedManager.mainHandler.removeCallbacks(brightnessCheckRunnable);
+            OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(brightnessCheckRunnable);
         }
     }
 

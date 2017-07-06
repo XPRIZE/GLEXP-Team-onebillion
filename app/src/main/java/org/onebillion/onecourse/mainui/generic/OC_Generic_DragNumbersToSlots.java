@@ -6,6 +6,7 @@ import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
+import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.utils.OBUtils;
 
@@ -26,14 +27,13 @@ public class OC_Generic_DragNumbersToSlots extends OC_Generic_Event
         playSceneAudioIndex("DEMO", 0, true);
         doAudio(currentEvent());
         setStatus(STATUS_AWAITING_CLICK);
-
     }
 
 
     public void action_correctAnswer (OBControl target) throws Exception
     {
+        gotItRightBigTick(false);
         playAudioScene("CORRECT", Integer.parseInt((String) target.attributes().get("number")), true);
-
     }
 
 
@@ -41,6 +41,7 @@ public class OC_Generic_DragNumbersToSlots extends OC_Generic_Event
     {
         try
         {
+            gotItWrongWithSfx();
             moveObjectToOriginalPosition(target, false, false);
         }
         catch (Exception e)
@@ -56,11 +57,7 @@ public class OC_Generic_DragNumbersToSlots extends OC_Generic_Event
     {
         super.action_prepareScene(scene, redraw);
         //
-        List<OBControl> numbers = filterControls(String.format("%s.*", action_getObjectPrefix()));
-        for (OBControl number : numbers)
-        {
-            action_createLabelForControl(number, 1.2f);
-        }
+        action_addLabelsToObjects(String.format("%s.*", action_getNumberPrefix()), 1.2f, true);
     }
 
     public void action_placeObjectInContainer (OBControl target, OBControl container)
@@ -104,6 +101,11 @@ public class OC_Generic_DragNumbersToSlots extends OC_Generic_Event
         return "number";
     }
 
+    public String action_getNumberPrefix ()
+    {
+        return "number";
+    }
+
 
     @Override
     public String action_getContainerPrefix ()
@@ -126,7 +128,9 @@ public class OC_Generic_DragNumbersToSlots extends OC_Generic_Event
             if (container != null)
             {
                 playSfxAudio("drop_number", false);
-                if (container.attributes().get("correct_number") == number.attributes().get("number"))
+                String correctNumberValue = (String) container.attributes().get("correct_number");
+                String numberValue = (String) number.attributes().get("number");
+                if (correctNumberValue.equalsIgnoreCase(numberValue))
                 {
                     action_placeObjectInContainer(number, container);
                     //
@@ -166,13 +170,13 @@ public class OC_Generic_DragNumbersToSlots extends OC_Generic_Event
                 {
                     action_wrongAnswer(number);
                 }
-
             }
             else
             {
                 moveObjectToOriginalPosition(number, true, false);
             }
             revertStatusAndReplayAudio();
+            setStatus(STATUS_AWAITING_CLICK);
         }
         catch (Exception e)
         {

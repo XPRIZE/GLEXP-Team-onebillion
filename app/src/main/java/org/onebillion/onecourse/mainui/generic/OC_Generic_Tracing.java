@@ -28,8 +28,9 @@ import java.util.Map;
 /**
  * OC_Generic_Tracing
  * Generic Event for Units where the Child has to trace numbers.
+ *
  * @param autoClean indicates if the tracing is cleared automatically after Child successfuly traces the number the first time or if it requires a touch to clear
- * Created by pedroloureiro on 12/07/16.
+ *                  Created by pedroloureiro on 12/07/16.
  */
 public class OC_Generic_Tracing extends OC_Tracer
 {
@@ -44,8 +45,8 @@ public class OC_Generic_Tracing extends OC_Tracer
 
     int savedStatus;
     List<Object> savedReplayAudio;
-    private Boolean autoClean;
-    private PointF lastPointAdded;
+    public Boolean autoClean;
+    public PointF lastPointAdded;
 
 
     public OC_Generic_Tracing (Boolean autoClean)
@@ -376,83 +377,76 @@ public class OC_Generic_Tracing extends OC_Tracer
     public List<OBPath> tracing_processDigit (OBGroup digit)
     {
         List<OBPath> arr = new ArrayList<>();
-        for (int i = 1; i <= 2; i++)
+        //
+        if (digit != null)
         {
-            OBPath p = (OBPath) digit.objectDict.get(String.format("p%d", i));
-            if (p != null)
+            for (int i = 1; i <= 2; i++)
             {
-                arr.add(p);
+                OBPath p = (OBPath) digit.objectDict.get(String.format("p%d", i));
+                if (p != null)
+                {
+                    arr.add(p);
+                }
+                else
+                    break;
             }
-            else
-                break;
         }
         return arr;
     }
 
-/*
 
-    -(NSArray*)processDigit:(OBPath*)digit
-    {
-        NSMutableArray *arr = [NSMutableArray array];
-        [digit setLineDashPattern:nil];
-        [digit setOpacity:0.3];
-        [digit setLineWidth:[self swollenLineWidth]];
-        [digit sizeToBoundingBoxIncludingStroke];
-        UPath *uPath = DeconstructedPath(digit.path);
-        [arr addObject:uPath];
-        return arr;
-    }
-*/
-
-
-    public OBGroup splitPath(OBPath obp)
+    public OBGroup splitPath (OBPath obp)
     {
         int lengthPerSplit = 100;
-        PathMeasure pm = new PathMeasure(obp.path(),false);
+        PathMeasure pm = new PathMeasure(obp.path(), false);
         float splen = pm.getLength();
-        int noSplits = (int)(splen / lengthPerSplit);
+        int noSplits = (int) (splen / lengthPerSplit);
         List<OBPath> newOBPaths = splitInto(obp, pm, noSplits, 1.0f / (noSplits * 4));
         for (OBPath newOBPath : newOBPaths)
         {
             //newOBPath.setBounds(obp.bounds);
             //newOBPath.setPosition(obp.position());
             //newOBPath.sizeToBox(obp.bounds());
-            newOBPath.setStrokeColor(Color.argb((int)(255 * 0.4f),255,0,0));
+            newOBPath.setStrokeColor(Color.argb((int) (255 * 0.4f), 255, 0, 0));
             newOBPath.setLineJoin(OBStroke.kCALineJoinRound);
             newOBPath.setFillColor(0);
             newOBPath.setLineWidth(swollenLineWidth);
         }
         MainActivity.log("Now serving " + newOBPaths.size());
-        OBGroup grp = new OBGroup((List<OBControl>)(Object)newOBPaths);
+        OBGroup grp = new OBGroup((List<OBControl>) (Object) newOBPaths);
         return grp;
     }
-
 
 
     public List<OBGroup> tracing_subpathControlsFromPath (String str)
     {
         List<OBGroup> arr = new ArrayList<>();
         OBGroup p = (OBGroup) objectDict.get(str);
-        for (int i = 1; i < 10; i++)
+        if (p != null)
         {
-            String pp = String.format("p%d", i);
-            OBPath characterfragment = (OBPath) p.objectDict.get(pp);
-            if (characterfragment != null)
+            for (int i = 1; i < 10; i++)
             {
-                float savelw = characterfragment.lineWidth();
-                characterfragment.setLineWidth(swollenLineWidth);
-                characterfragment.sizeToBoundingBoxIncludingStroke();
-                characterfragment.setLineWidth(savelw);
-                characterfragment.setStrokeEnd(0.0f);
-                OBGroup g = splitPath(characterfragment);
-                g.setScale(p.scale());
-                g.setPosition(p.position());
-                g.setPosition(convertPointFromControl(characterfragment.position(), characterfragment.parent));
-                attachControl(g);
-                arr.add(g);
+                String pp = String.format("p%d", i);
+                OBPath characterfragment = (OBPath) p.objectDict.get(pp);
+                if (characterfragment != null)
+                {
+                    float savelw = characterfragment.lineWidth();
+                    characterfragment.setLineWidth(swollenLineWidth);
+                    characterfragment.sizeToBoundingBoxIncludingStroke();
+                    characterfragment.setLineWidth(savelw);
+                    characterfragment.setStrokeEnd(0.0f);
+                    OBGroup g = splitPath(characterfragment);
+                    g.setScale(p.scale());
+                    g.setPosition(p.position());
+                    g.setPosition(convertPointFromControl(characterfragment.position(), characterfragment.parent));
+                    attachControl(g);
+                    arr.add(g);
+                }
+                else
+                {
+                    break;
+                }
             }
-            else
-                break;
         }
         return arr;
     }
@@ -739,6 +733,17 @@ public class OC_Generic_Tracing extends OC_Tracer
     }
 
 
+    public void action_cleanupTracing ()
+    {
+        lockScreen();
+        tracing_reset();
+        tracing_position_arrow();
+        unlockScreen();
+        //
+        setStatus(STATUS_WAITING_FOR_TRACE);
+    }
+
+
     public void touchDownAtPoint (PointF pt, View v)
     {
         if (status() == STATUS_AWAITING_CLICK)
@@ -756,9 +761,7 @@ public class OC_Generic_Tracing extends OC_Tracer
                         @Override
                         public void run () throws Exception
                         {
-                            tracing_reset();
-                            tracing_position_arrow();
-                            setStatus(STATUS_WAITING_FOR_TRACE);
+                            action_cleanupTracing();
                         }
                     });
                 }

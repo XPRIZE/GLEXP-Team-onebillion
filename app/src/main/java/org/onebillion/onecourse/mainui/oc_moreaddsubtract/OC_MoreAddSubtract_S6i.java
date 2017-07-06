@@ -2,6 +2,7 @@ package org.onebillion.onecourse.mainui.oc_moreaddsubtract;
 
 import android.graphics.Color;
 import android.graphics.PointF;
+import android.graphics.RectF;
 import android.view.View;
 
 import org.onebillion.onecourse.controls.*;
@@ -153,7 +154,7 @@ public class OC_MoreAddSubtract_S6i extends OC_SectionController
                     for(OBControl con : dropTargets)
                     {
 
-                        if(con.frame().intersect(targ.frame()))
+                        if(RectF.intersects(con.frame(),targ.frame()))
                         {
                             searchDrop = con;
                             break;

@@ -2103,4 +2103,10 @@ public class OBControl
         }
         return displayBounds;
     }
+
+
+    public int YPositionCompare(OBControl other)
+    {
+        return (int) (this.position.y - other.position.y);
+    }
 }

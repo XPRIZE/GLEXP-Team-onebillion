@@ -180,7 +180,7 @@ public class OC_Library extends OC_SectionController
                         curIcon.highlight();
                         //curIcon.setHighlightColour(Color.argb(125,0,0,0));
                         MlUnit unit = (MlUnit)curIcon.propertyValue("unit");
-                       // startSectionByUnit(unit);
+                        startSectionByUnit(unit);
                         setStatus(STATUS_WAITING_FOR_DRAG);
                         OBUtils.runOnOtherThreadDelayed(0.5f, new OBUtils.RunLambda()
                         {

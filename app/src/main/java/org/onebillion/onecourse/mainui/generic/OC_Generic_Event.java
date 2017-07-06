@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PointF;
+import android.graphics.RectF;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
@@ -332,7 +333,11 @@ public class OC_Generic_Event extends OC_SectionController
         List<OBControl> objectsContained = (List<OBControl>) container.propertyValue("objects");
         int totalObjects = objectsContained.size();
         //
-        int totalLines = Integer.parseInt(eventAttributes.get("lines"));
+        int totalLines = 1;
+        if (eventAttributes.get("lines") != null)
+        {
+            totalLines = Integer.parseInt(eventAttributes.get("lines"));
+        }
         List positions = new ArrayList();
         for (int i = 0; i < totalObjects; i++)
         {
@@ -372,7 +377,7 @@ public class OC_Generic_Event extends OC_SectionController
         for (OBControl container : containers)
         {
             List<OBControl> containedObjects = (List<OBControl>) container.propertyValue("objects");
-            if (containedObjects.contains(object))
+            if (containedObjects != null && containedObjects.contains(object))
             {
                 containedObjects.remove(object);
                 container.setProperty("objects", containedObjects);
@@ -863,4 +868,68 @@ public class OC_Generic_Event extends OC_SectionController
         //
         unlockScreen();
     }
+
+
+    public List<OBLabel> action_addLabelsToObjects(String pattern, float finalResizeFactor, boolean insertIntoGroup)
+    {
+        List<OBControl> numbers = sortedFilteredControls(pattern);
+        List<OBLabel> createdLabels = new ArrayList<>();
+        float smallestFontSize = 1000000000;
+        //
+        for (OBControl number : numbers)
+        {
+            OBLabel label = action_createLabelForControl(number, finalResizeFactor, insertIntoGroup);
+            if (label.fontSize() < smallestFontSize) smallestFontSize = label.fontSize();
+            //
+            createdLabels.add(label);
+        }
+        //
+        for (OBLabel label : createdLabels)
+        {
+            label.setFontSize(smallestFontSize);
+            label.sizeToBoundingBox();
+            //
+            label.setProperty("originalPosition", OC_Generic.copyPoint(label.getWorldPosition()));
+            attachControl(label);
+        }
+        return createdLabels;
+    }
+
+
+
+    public PointF getRelativePositionForObject (OBControl control)
+    {
+        PointF position = control.position();
+        OBControl parent = control.parent;
+        RectF dimensions;
+        if (parent != null) dimensions = parent.bounds;
+        else dimensions = boundsf();
+        //
+        PointF relativePosition = new PointF(position.x / dimensions.width(), position.y / dimensions.height());
+        return relativePosition;
+    }
+
+
+    public PointF getAbsoluteOffsetWithParent (OBControl control)
+    {
+        PointF relativePosition = getRelativePositionForObject(control);
+        PointF relativeOffset = OB_Maths.DiffPoints(new PointF(0.5f, 0.5f), relativePosition);
+        RectF dimensions = control.parent.bounds();
+        PointF absoluteOffset = new PointF(relativeOffset.x * dimensions.width(), relativeOffset.y * dimensions.height());
+        return absoluteOffset;
+    }
+
+
+    public PointF action_getMiddleOfGroup(String pattern)
+    {
+        PointF average = new PointF(0f,  0f);
+        List<OBControl> controls = filterControls(pattern);
+        for (OBControl control : controls)
+        {
+            average = OB_Maths.AddPoints(control.getWorldPosition(), average);
+        }
+        average = new PointF(average.x / controls.size(),  average.y / controls.size());
+        return average;
+    }
+
 }
