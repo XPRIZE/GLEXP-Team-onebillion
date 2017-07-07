@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * Created by michal on 09/08/16.
  */
-public class MlUnitInstance extends MlObject
+public class MlUnitInstance extends DBObject
 {
     public long unitid;
     public int userid, sessionid, seqNo, elapsedTime;

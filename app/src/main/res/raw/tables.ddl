@@ -63,3 +63,13 @@ create table stars
     colour text not null,
     constraint pkey primary key (userid,unitid) on conflict fail
 );
+
+create table playzoneassets
+(
+    userid integer not null references users(userid) on delete restrict,
+    assetid integer primary key,
+    type integer not null default 1,
+    thumbnail text,
+    params text,
+    createTime big unsigned int not null default 0
+);

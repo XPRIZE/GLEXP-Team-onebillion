@@ -2,6 +2,8 @@ package org.onebillion.onecourse.mainui.oc_playzone;
 
 import android.graphics.Color;
 import android.graphics.PointF;
+import android.os.SystemClock;
+import android.util.MutableBoolean;
 import android.view.View;
 import android.widget.Toast;
 
@@ -31,6 +33,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.onebillion.onecourse.utils.ScrollingHelper;
 
 /**
  * Created by michal on 13/03/2017.
@@ -77,11 +80,8 @@ public class OC_Library extends OC_SectionController
             {
                 setBookLine(bookLine, lineLocation(bookLine,1).x);
                 index++;
-
             }
-
         }
-
     }
 
     public void start()
@@ -95,9 +95,7 @@ public class OC_Library extends OC_SectionController
                     animateBooksOn();
                     firstStart = false;
                 }
-
                 setStatus(STATUS_WAITING_FOR_DRAG);
-
             }
         });
     }
@@ -119,25 +117,24 @@ public class OC_Library extends OC_SectionController
             final OBControl level = finger(-1, -1, filterControls("level_.*"), pt);
             if (level != null)
             {
+                setStatus(STATUS_BUSY);
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
                     public void run() throws Exception
                     {
-
                         OBGroup group = (OBGroup) level.propertyValue("books");
                         currentIcon = finger(-1, -1, group.members, pt);
-                        setStatus(STATUS_BUSY);
                         dragOffset = OB_Maths.DiffPoints(group.position(), pt);
                         currentGroup = group;
-                        currentGroup.setProperty("scrollSpeed", 0.0f);
                         currentGroup.setProperty("touch_loc", pt);
-                        currentGroup.setProperty("last_loc", OBMisc.copyPoint(currentGroup.position()));
+                        if(currentGroup.isEnabled())
+                        {
+                            ScrollingHelper.prepareForScrollMeasureTickValue(currentGroup, 0.0025f, 0.99f,
+                                    applyGraphicScale(0.08f), applyGraphicScale(0.08f));
+
+                        }
                         long time = setStatus(STATUS_DRAGGING);
                         currentGroup.setProperty("time", time);
-                        currentGroup.setProperty("last_scroll", System.currentTimeMillis());
-                       /* if (group.isEnabled())
-                            startSpeedMeasure(time, currentGroup);*/
-
                     }
 
                 });
@@ -152,7 +149,7 @@ public class OC_Library extends OC_SectionController
         {
             float x = OB_Maths.AddPoints(pt, dragOffset).x;
             setBookLine(currentGroup,x);
-            measureGroupSpeed(currentGroup);
+            ScrollingHelper.measureScrollSpeed(currentGroup);
         }
 
     }
@@ -161,68 +158,65 @@ public class OC_Library extends OC_SectionController
     {
         if (status() == STATUS_DRAGGING && currentGroup != null)
         {
+            setStatus(STATUS_BUSY);
+            final OBGroup curGroup = currentGroup;
+            final OBControl curIcon = currentIcon;
+            currentGroup = null;
+            currentIcon = null;
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    checkGroupIcon(pt, curGroup, curIcon);
+
+                }
+            });
+
+        }
+
+    }
+
+    public  void checkGroupIcon(PointF pt, final OBGroup curGroup, final OBControl curIcon) throws Exception
+    {
+        long currTime = SystemClock.currentThreadTimeMillis();
+        PointF lastPosition = (PointF) curGroup.propertyValue("touch_loc");
+        if (curIcon != null && (currTime - (long) curGroup.propertyValue("time")) < 1
+                && Math.abs(lastPosition.x - pt.x) < snapDist)
+        {
+            curIcon.highlight();
+            openBookForIcon(curIcon);
+            OBUtils.runOnOtherThreadDelayed(1, new OBUtils.RunLambda()
             {
                 public void run() throws Exception
                 {
-                    final OBGroup curGroup = currentGroup;
-                    final OBControl curIcon = currentIcon;
-                    currentGroup = null;
-                    currentIcon = null;
-                    long startTime = System.currentTimeMillis();
-                    PointF lastPosition = (PointF)curGroup.propertyValue("touch_loc");
-                    float scrollSpeed = (float) curGroup.propertyValue("scrollSpeed");
-                    boolean bookStarted = false;
-                    if (curIcon != null && (startTime - (long) curGroup.propertyValue("time")) < 1000
-                            && Math.abs(lastPosition.x - pt.x) < snapDist && scrollSpeed < applyGraphicScale(1))
-                    {
-                        bookStarted= true;
-                        curIcon.highlight();
-                        //curIcon.setHighlightColour(Color.argb(125,0,0,0));
-                        MlUnit unit = (MlUnit)curIcon.propertyValue("unit");
-                        startSectionByUnit(unit);
-                        setStatus(STATUS_WAITING_FOR_DRAG);
-                        OBUtils.runOnOtherThreadDelayed(0.5f, new OBUtils.RunLambda()
-                        {
-                            public void run() throws Exception
-                            {
-                                curIcon.lowlight();
-                                snapClosest(0, curGroup, true);
-                            }
-                        });
-
-                    }
-                    if(!bookStarted)
-                    {
-                        long time = setStatus(STATUS_WAITING_FOR_DRAG);
-                        if (!curGroup.isEnabled()) return;
-                        curGroup.setProperty("time", time);
-                        float distance = scrollSpeed * 1000 * 0.5f;
-                        float targetX = Math.round(curGroup.position().x - distance );
-                        while (Math.abs(scrollSpeed) > applyGraphicScale(0.5f) && time == (long) curGroup.propertyValue("time"))
-                        {
-                            waitForSecs(0.005f);
-                            long currTime = System.currentTimeMillis();
-                            float  delta = distance * (float)Math.exp(-(currTime - startTime) / 325.0f);
-                            if (Math.abs(delta) > applyGraphicScale(10f) && time == (long) curGroup.propertyValue("time"))
-                            {
-                                if (!setBookLine(curGroup, targetX + delta))
-                                    scrollSpeed = 0;
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-                        snapClosest(time, curGroup, false);
-                    }
+                    curIcon.lowlight();
                 }
             });
         }
+        long time = setStatus(STATUS_WAITING_FOR_DRAG);
+        if (!curGroup.isEnabled())
+            return;
+        curGroup.setProperty("time", time);
+        MutableBoolean finished = new MutableBoolean(false);
+        while (!this._aborting && !finished.value && time == (long)curGroup.propertyValue("time"))
+        {
+            if (time == (long)curGroup.propertyValue("time"))
+            {
+                PointF pos = ScrollingHelper.nextScrollingLocation(curGroup, finished);
+                if (!setBookLine(curGroup, pos.x))
+                    finished.value = true;
+
+            }
+            waitForSecs(0.001f);
+        }
+        if (!this._aborting)
+            snapClosest(time, curGroup, false);
     }
 
-    public void startSectionByUnit(final MlUnit unit)
+    public void openBookForIcon(OBControl icon)
     {
+        final MlUnit unit = (MlUnit)icon.propertyValue("unit");
         final String lastAppCode = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_APP_CODE);
 
         new OBRunnableSyncUI()

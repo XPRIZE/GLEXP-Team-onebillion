@@ -48,6 +48,7 @@ public class OBVideoPlayer extends OBControl
     public static int VP_FILL_TYPE_STRETCH = 0,
     VP_FILL_TYPE_ASPECT_FIT = 1,
     VP_FILL_TYPE_ASPECT_FILL = 2;
+    private OBUtils.RunLambda completionBlock;
 
 
     int fillType = VP_FILL_TYPE_ASPECT_FILL;
@@ -265,6 +266,12 @@ public class OBVideoPlayer extends OBControl
         startPlayingAtTime(afd, fr, this, this);
     }
 
+    public void startPlayingAtTime(AssetFileDescriptor afd, long fr, OBUtils.RunLambda compBlock)
+    {
+        this.completionBlock = compBlock;
+        startPlayingAtTime(afd, fr, this, this);
+    }
+
 
     public void startPlayingAtTime(AssetFileDescriptor afd, long fr, MediaPlayer.OnPreparedListener preparedListener, MediaPlayer.OnCompletionListener completionListener)
     {
@@ -299,6 +306,15 @@ public class OBVideoPlayer extends OBControl
     @Override
     public void onCompletion(MediaPlayer mp)
     {
+        try
+        {
+            if (completionBlock != null)
+                completionBlock.run();
+        } catch (Exception e)
+        {
+
+        }
+
         if (stopOnCompletion)
             stop();
     }

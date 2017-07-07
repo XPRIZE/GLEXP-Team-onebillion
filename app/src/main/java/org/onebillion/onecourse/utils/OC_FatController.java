@@ -10,6 +10,7 @@ import android.widget.Toast;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OBSectionController;
+import org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -1299,8 +1300,6 @@ public class OC_FatController extends OBFatController
         }
     }
 
-
-    //borrowed from http://www.ben-daglish.net/moon.shtml
     public int getCurrentMoonPhase()
     {
         Calendar calendar = Calendar.getInstance();
@@ -1317,6 +1316,32 @@ public class OC_FatController extends OBFatController
         long new_moon = calendar.getTimeInMillis();
         long phase = ((now - new_moon)/1000) % lp;
         return (int)(Math.floor(phase /(24*3600)) + 1);
+    }
+
+    public List<OC_PlayZoneAsset> getPlayZoneAssetForCurrentUser()
+    {
+        return OC_PlayZoneAsset.assetsFromDBForUserId(currentUser.userid);
+    }
+
+    public boolean savePlayZoneAssetForCurrentUserType(int type,String thumbnail,Map<String,String> params)
+    {
+        boolean result = false;
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(true);
+            result = OC_PlayZoneAsset.saveAssetInDBForUserId(db,currentUser.userid,type,thumbnail,params);
+        }
+        catch(Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+        return result;
     }
 
 }

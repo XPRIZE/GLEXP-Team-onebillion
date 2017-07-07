@@ -286,4 +286,14 @@ public class OBMisc
         }
     }
 
+    public static void scaleControlToControl(OBControl con1,OBControl con2, boolean widthOnly)
+    {
+        boolean scaleHeight = con1.width()/con1.height() < con2.width()/con2.height();
+        if(widthOnly != scaleHeight)
+            con1.setScale(con2.height()/con1.height());
+        else
+            con1.setScale(con2.width()/con1.width());
+
+    }
+
 }

@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * Created by michal on 09/08/16.
  */
-public class MlObject
+public class DBObject
 {
     protected void cursorToObject(Cursor cursor, String[] stringFields, String[] intFields, String[] longFields, String[] floatFields)
     {

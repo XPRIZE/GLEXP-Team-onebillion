@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * Created by michal on 09/08/16.
  */
-public class MlUnit extends MlObject
+public class MlUnit extends DBObject
 {
     public String key, icon, params, config, target, lang;
     public float passThreshold;

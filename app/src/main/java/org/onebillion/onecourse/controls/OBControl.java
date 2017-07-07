@@ -59,6 +59,7 @@ public class OBControl
     public String textureKey;
     public Texture texture;
     public float[] modelMatrix = new float[16];
+    public float[] multiplyMatrix = new float[16];
     public float[] tempMatrix = new float[16];
     public float[] shadMatrix = new float[16];
     public float blendColour[] = {1, 1, 1, 1};
@@ -106,6 +107,7 @@ public class OBControl
         rasterScale = 1;
         blendMode = 1;
         layer = new OBLayer();
+        android.opengl.Matrix.setIdentityM(multiplyMatrix, 0);
     }
 
     public static List<OBControl> controlsSortedFrontToBack (List<OBControl> controls)
@@ -1202,7 +1204,11 @@ public class OBControl
             android.opengl.Matrix.rotateM(modelMatrix, 0, (float) Math.toDegrees(yRotation), 1, 0, 0);
         if (scaleX != 1 || scaleY != 1)
             android.opengl.Matrix.scaleM(modelMatrix, 0, scaleX, scaleY, 1);
+
+
+        android.opengl.Matrix.multiplyMM(modelMatrix,0,modelMatrix,0,multiplyMatrix,0);
         android.opengl.Matrix.translateM(modelMatrix, 0, -ax, -ay, 0);
+
         return modelMatrix;
 
     }
