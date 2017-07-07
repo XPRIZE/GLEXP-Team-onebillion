@@ -88,7 +88,7 @@ public class OBSectionController extends OBViewController
 
     float topColour[] = {1, 1, 1, 1};
     float bottomColour[] = {1, 1, 1, 1};
-    List<Integer> busyStatuses =Arrays.asList(STATUS_BUSY,STATUS_DOING_DEMO,STATUS_DRAGGING,STATUS_CHECKING);
+    protected List<Integer> busyStatuses =Arrays.asList(STATUS_BUSY,STATUS_DOING_DEMO,STATUS_DRAGGING,STATUS_CHECKING);
 
     public OBSectionController (Activity a)
     {
@@ -897,6 +897,7 @@ public class OBSectionController extends OBViewController
             OBUtils.getFloatColour(col1, topColour);
             OBUtils.getFloatColour(col2, bottomColour);
         }
+        List<OBControl>loadedControls = new ArrayList<>();
         Map<String, Object> defs = new HashMap<String, Object>();
         List<Map<String, Object>> imageList = (List<Map<String, Object>>) event.get("objects");
         if (imageList != null)
@@ -912,12 +913,12 @@ public class OBSectionController extends OBViewController
                     {
                         objectDict.put(objID, (OBControl) im);
                         attachControl((OBControl) im);
-                        loadedControls.add((OBControl) im);
-                    } else
+                        loadedControls.add((OBControl)im);
+                    }
+                    else
                         defs.put(objID, im);
                 }
             }
-        }
         return loadedControls;
     }
 

@@ -118,6 +118,20 @@ public class OBAudioManager
             stopPlayingOnChannel(k);
     }
 
+    public String getAudioPath(String fileName)
+    {
+        Map<String, Object> config = MainActivity.mainActivity.config;
+        String suffix = (String) config.get(MainActivity.CONFIG_AUDIO_SUFFIX);
+        List<String> searchPaths = (List<String>) config.get(MainActivity.CONFIG_AUDIO_SEARCH_PATH);
+        for (String path : searchPaths)
+        {
+            String fullPath = path + "/" + fileName + "." + suffix;
+            AssetFileDescriptor fd = OBUtils.getAssetFileDescriptorForPath(fullPath);
+            if (fd != null)
+                return fullPath;
+        }
+        return null;
+    }
     public AssetFileDescriptor getAudioPathFD (String fileName)
     {
         AssetFileDescriptor fd = pathCacheDict.get(fileName);

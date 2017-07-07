@@ -40,6 +40,11 @@ public class OC_ReadingIRead extends OC_Reading
     boolean animatingBack,wordHelpAvailable;
 
 
+    public boolean showNextButton()
+    {
+        return false;
+    }
+
     public void start()
     {
         setStatus(0);
