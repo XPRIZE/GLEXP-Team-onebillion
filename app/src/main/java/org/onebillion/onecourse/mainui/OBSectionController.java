@@ -874,7 +874,7 @@ public class OBSectionController extends OBViewController
         return (Float) (Config().get(MainActivity.mainActivity.CONFIG_GRAPHIC_SCALE));
     }
 
-    public void loadEvent (String eventID)
+    public List<OBControl> loadEvent (String eventID)
     {
         float graphicScale = graphicScale();
         Map<String, Object> event = (Map<String, Object>) eventsDict.get(eventID);
@@ -896,6 +896,7 @@ public class OBSectionController extends OBViewController
             OBUtils.getFloatColour(col1, topColour);
             OBUtils.getFloatColour(col2, bottomColour);
         }
+        List<OBControl>loadedControls = new ArrayList<>();
         Map<String, Object> defs = new HashMap<String, Object>();
         List<Map<String, Object>> imageList = (List<Map<String, Object>>) event.get("objects");
         if (imageList != null)
@@ -910,11 +911,13 @@ public class OBSectionController extends OBViewController
                     {
                         objectDict.put(objID, (OBControl) im);
                         attachControl((OBControl) im);
+                        loadedControls.add((OBControl)im);
                     }
                     else
                         defs.put(objID, im);
                 }
             }
+        return loadedControls;
     }
 
     public void processParams ()
