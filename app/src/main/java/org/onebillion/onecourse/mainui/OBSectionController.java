@@ -88,7 +88,7 @@ public class OBSectionController extends OBViewController
 
     float topColour[] = {1, 1, 1, 1};
     float bottomColour[] = {1, 1, 1, 1};
-    List<Integer> busyStatuses =Arrays.asList(STATUS_BUSY,STATUS_DOING_DEMO,STATUS_DRAGGING,STATUS_CHECKING);
+    protected List<Integer> busyStatuses =Arrays.asList(STATUS_BUSY,STATUS_DOING_DEMO,STATUS_DRAGGING,STATUS_CHECKING);
 
     public OBSectionController (Activity a)
     {
