@@ -1,15 +1,24 @@
 package org.onebillion.onecourse.mainui.oc_playzone;
 
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.text.DynamicLayout;
+import android.text.Layout;
+import android.text.TextPaint;
+import android.util.Log;
+import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
+import org.onebillion.onecourse.controls.OBScrollingText;
+import org.onebillion.onecourse.glstuff.OBRenderer;
+import org.onebillion.onecourse.glstuff.TextureShaderProgram;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
@@ -40,9 +49,11 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
     List<List<OBGroup>> keyboardLayout;
     List<String> themeNames;
     Map<String,Map> themesData;
-    OBLabel textBox;
-    String currentText;
-    //TextFace currentFont;
+    OBScrollingText textBox;
+    StringBuffer currentText = new StringBuffer(512);
+    DynamicLayout layout;
+    Typeface currentTypeface;
+    float currentTypeSize;
     Map displayStringAttributes;
     OBGroup textBoxGroup;
     float currentTextBoxHeight;
@@ -62,8 +73,8 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         loadFingers();
         loadEvent("master");
         themesData = new HashMap();
-        String[] eva = ((String)eventAttributes.get("scenes")).split(",");
-        events = Arrays.asList(eva);
+        //String[] eva = ((String)eventAttributes.get("scenes")).split(",");
+        events = new ArrayList<>();
 
         List<List<String>> keyboardLetters = new ArrayList<>();
         highlightColour = objectDict.get("button_highlight").fillColor();
@@ -83,6 +94,13 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
 
         String[] themea = ((String)eventAttributes.get("themes")).split(",");;
         themeNames = Arrays.asList(themea);
+
+        textBox = new OBScrollingText(objectDict.get("text_box").frame());
+        textBox.setZPosition(5);
+        textBox.setFillColor(Color.WHITE);
+        textBox.setZPosition(100);
+        attachControl(textBox);
+
         loadTheme(themeNames.get(1));
 
 
@@ -121,7 +139,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
 
         currentTextBoxHeight = textBox.height();*/
         capitalMode = false;
-        setSceneXX(currentEvent());
+        //setSceneXX(currentEvent());
         currentTapIndex = 0;
     }
 
@@ -240,6 +258,17 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         }
 
         currentTheme = name;
+        //currentTypeface = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), (String)themeData.get("font"));
+        currentTypeface = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/AklatanicTSO.ttf");
+        currentTypeSize = applyGraphicScale(60f);
+
+        textBox.setTypeFace(currentTypeface);
+        textBox.setFontSize(currentTypeSize);
+        textBox.setColour(Color.BLACK);
+
+        textBox.setString("abcde");
+        currentText = textBox.textBuffer();
+
         /*
         NSMutableParagraphStyle *parStyle = [NSMutableParagraphStyle.alloc() init];
 
@@ -331,7 +360,9 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
                 boolean unicodeChar = displayLetter.startsWith("#");
                 if(unicodeChar)
                 {
-                    displayLetter =  (new Integer(displayLetter.substring(1))).toString();
+                    int codevalue = (new Integer(displayLetter.substring(1))).intValue();
+
+                    displayLetter =  Character.toString((char)codevalue);
                     if(!specialKey)
                         value = displayLetter;
                 }
@@ -461,6 +492,115 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         return label;
     }
 
+    public void touchDownKeyWithSound(OBGroup key,boolean sound)
+    {
+
+        if(sound)
+        {
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    String channel = String.format("special_%d",currentTapIndex);
+                    /*OBAudioManager.audioManager.pausePlayingOnChannel(channel);
+                    OBAudioManager.audioManager.setCurrentTime(0.15 onChannel:channel);
+                    OBAudioManager.audioManager.playOnChannel(channel);*/
+                    currentTapIndex =(currentTapIndex +1)%3;
+                }
+            });
+        }
+        highlightKey(key);
+        triggerKeyValue(key);
+
+
+    }
+
+    public void triggerKeyValue(OBControl key)
+    {
+
+    }
+
+    public void refreshCursorAndTextBox()
+    {
+
+    }
+    public void touchDownAtPoint(PointF pt,View v)
+    {
+        if(status() == STATUS_AWAITING_CLICK  && !keyboardLocked)
+        {
+            final OBGroup key = (OBGroup) finger(-1,-1,(List<OBControl>)((Object)(keyboardKeys.values())),pt);
+            if(key != null && key.isEnabled() )
+            {
+                lockKeyboard();
+                lastKey = key;
+                OBControl flastKey = lastKey;
+                dragMode = false;
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run() throws Exception
+                    {
+                        touchDownKeyWithSound(key,true);
+                    }
+                });
+                final long time = unlockKeyboard();
+
+                OBUtils.runOnOtherThreadDelayed(1,new OBUtils.RunLambda()
+                {
+                    public void run() throws Exception
+                    {
+                        try
+                        {
+                            if(time == statusTime  && !keyboardLocked && lastKey != null
+                                    && !key.propertyValue("value").equals(KEY_SHIFT))
+                            {
+                                while(time == statusTime  && lastKey != null)
+                                {
+                                    triggerKeyValue(key);
+                                    waitForSecs(0.02f);
+                                }
+                            }
+                        }
+                        catch(Exception exception)
+                        {
+
+                        }
+                    }
+                });
+            }
+            /*else if(textBoxGroup.frame.contains(pt.x, pt.y)))
+            {
+                statusSetLocked();
+                dragMode = true;
+                lastTextBoxLoc = textBox.position();
+                prepareForDragging(textBox point:pt);
+                textBox.prepareForScrollMeasure();
+                statusSetDragging();
+            }
+        else if(finger(-1 to:-1 objects:@objectDict.get("button").()  point:pt)  != null)
+            {
+                OBGroup themeButton = objectDict.get("button");
+                statusSetLocked();
+                DoSafeBlockOnThread(^{
+                        themeButton.highlight();
+                int index = themeNames.indexOfObject(currentTheme);
+                loadTheme(themeNames(index+1)%themeNames.count.() );
+                themeButton.lowlight();
+                statusSetWaitClick();
+            });
+            } else if(finger(-1 to:-1 objects:@objectDict.get("button_save").()  point:pt)  != null && currentText.length > 4)
+            {
+                OBGroup saveButton = objectDict.get("button_save");
+                statusSetLocked();
+                DoSafeBlockOnThread(^{
+                        saveButton.highlight();
+                saveCurrentText();
+            });
+            }*/
+        }
+    }
+
     public void touchUpKey(OBGroup key)
     {
         lowlightKey(key);
@@ -526,4 +666,31 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         lastKey = null;
     }
 
+    public void render (OBRenderer renderer)
+    {
+        renderLock.lock();
+        renderBackground(renderer);
+        TextureShaderProgram textureShader = (TextureShaderProgram) renderer.textureProgram;
+        textureShader.useProgram();
+        populateSortedAttachedControls();
+
+        List<OBControl> clist = null;
+        synchronized(sortedAttachedControls)
+        {
+            clist = sortedAttachedControls;
+            for (OBControl control : clist)
+            {
+                if (control == textBox)
+                {
+                    Log.d("aa", "render: ");
+                }
+                if (!control.hidden())
+                    control.render(renderer, this, renderer.projectionMatrix);
+            }
+        }
+
+        renderLock.unlock();
+
+
+    }
 }

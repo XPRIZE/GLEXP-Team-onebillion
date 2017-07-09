@@ -59,10 +59,10 @@ public class OBLabel extends OBControl
             synchronized (this)
             {
                 tl.setText(s);
-                if (texture != null)
-                {
-                    setNeedsRetexture();
-                }
+                //if (texture != null)
+                //{
+                setNeedsRetexture();
+                //}
             }
             invalidate();
         }
@@ -104,8 +104,7 @@ public class OBLabel extends OBControl
     public void setTypeFace(Typeface tf)
     {
         OBTextLayer tl = (OBTextLayer)layer;
-        tl.typeFace = tf;
-        tl.displayObjectsValid = false;
+        tl.setTypeFace(tf);
     }
     public float fontSize()
     {
