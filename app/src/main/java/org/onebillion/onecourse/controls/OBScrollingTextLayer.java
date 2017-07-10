@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.text.DynamicLayout;
 import android.text.Layout;
+import android.text.SpannableStringBuilder;
 import android.text.TextPaint;
 
 /**
@@ -15,7 +16,7 @@ import android.text.TextPaint;
 
 public class OBScrollingTextLayer extends OBTextLayer
 {
-    StringBuffer textBuffer;
+    SpannableStringBuilder textBuffer;
     float yOffset = 0,width;
     public DynamicLayout dynLayout;
 
@@ -30,7 +31,7 @@ public class OBScrollingTextLayer extends OBTextLayer
         this(w);
         typeFace = tf;
         textSize = size;
-        textBuffer = new StringBuffer(s);
+        textBuffer = new SpannableStringBuilder(s);
         colour = col;
     }
 
@@ -67,19 +68,19 @@ public class OBScrollingTextLayer extends OBTextLayer
     {
         if (textBuffer == null)
         {
-            textBuffer = new StringBuffer(text);
+            textBuffer = new SpannableStringBuilder(text);
             displayObjectsValid = false;
         }
         else
             textBuffer.replace(0,textBuffer.length(),text);
     }
 
-    public StringBuffer textBuffer()
+    public SpannableStringBuilder textBuffer()
     {
         return textBuffer;
     }
 
-    public void setTextBuffer(StringBuffer textBuffer)
+    public void setTextBuffer(SpannableStringBuilder textBuffer)
     {
         this.textBuffer = textBuffer;
         displayObjectsValid = false;
@@ -110,4 +111,12 @@ public class OBScrollingTextLayer extends OBTextLayer
     {
         textBuffer.append(s);
     }
+
+    public DynamicLayout layout()
+    {
+        if (dynLayout == null)
+            makeDisplayObjects(width,0);
+        return dynLayout;
+    }
+
 }

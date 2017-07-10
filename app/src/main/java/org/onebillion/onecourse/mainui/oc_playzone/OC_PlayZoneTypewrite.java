@@ -8,6 +8,7 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.text.DynamicLayout;
 import android.text.Layout;
+import android.text.SpannableStringBuilder;
 import android.text.TextPaint;
 import android.util.Log;
 import android.view.View;
@@ -22,6 +23,8 @@ import org.onebillion.onecourse.glstuff.TextureShaderProgram;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
+import org.onebillion.onecourse.utils.OBAnim;
+import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBAudioManager;
 import org.onebillion.onecourse.utils.OBUtils;
 
@@ -50,7 +53,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
     List<String> themeNames;
     Map<String,Map> themesData;
     OBScrollingText textBox;
-    StringBuffer currentText = new StringBuffer(512);
+    SpannableStringBuilder currentText;
     DynamicLayout layout;
     Typeface currentTypeface;
     float currentTypeSize;
@@ -59,7 +62,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
     float currentTextBoxHeight;
     float textBoxTopLimit, textBoxBottomLimit;
     PointF lastTextBoxLoc;
-    boolean dragMode, capitalMode;
+    boolean dragMode, capitalMode,cursorShouldShow;
     int currentTapIndex;
 
     public int buttonFlags()
@@ -115,8 +118,26 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         gradientTop.setTop(textBox.top() - applyGraphicScale(1));
         gradientBottom.setBottom(textBox.bottom() + applyGraphicScale(1));
 
-        OBControl cursor = objectDict.get("cursor");
-        cursor.setPosition(textBox.position());
+        OBPath cursor = (OBPath) objectDict.get("cursor");
+        float lw = cursor.shapeLayer().stroke.lineWidth;
+        int col = cursor.shapeLayer().stroke.colour;
+        OBControl newc = new OBControl();
+        newc.setBounds(0,0,lw,textBox.capHeight());
+        newc.setBackgroundColor(col);
+        newc.setPosition(textBox.position());
+        newc.setZPosition(textBox.zPosition() + 1);
+
+        detachControl(cursor);
+        attachControl(newc);
+        objectDict.put("cursor",newc);
+
+        textBoxGroup = new OBGroup(Arrays.asList(textBox,newc),textBox.frame());
+        textBoxGroup.setZPosition(50);
+        textBoxGroup.setPosition(objectDict.get("text_box_bg").position());
+        attachControl(textBoxGroup);
+
+        refreshCursorAndTextBox();
+        cursorShouldShow = true;
 
         objectDict.get("button").setZPosition(48);
         objectDict.get("button_save").setZPosition(48);
@@ -166,7 +187,8 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
                 lockScreen();
                 if(cursor.hidden() )
                 {
-                    cursor.show();
+                    if (cursorShouldShow)
+                        cursor.show();
                 }
                 else
                 {
@@ -274,20 +296,20 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
 
         parStyle.setLineBreakMode(NSLineBreakByWordWrapping);
 
-        currentFont = UIFont.fontWithName(themeData"font".()  size:applyGraphicScale(60));
+        currentFont = UIFont.fontWithName(themeData"font".()  size:applyGraphicScale(60));*/
         OBControl cursor = objectDict.get("cursor");
-        cursor.setHeight(currentFont.capHeight*1.2);
+        cursor.setHeight(currentTypeSize * 1.2f);
 
-        displayStringAttributes = @{NSFontAttributeName:currentFont,
+        /*displayStringAttributes = @{NSFontAttributeName:currentFont,
             NSForegroundColorAttributeName:(Object)[int.blackColor() CGColor],
         NSParagraphStyleAttributeName:parStyle
     };
 
         currentText = NSMutableAttributedString.alloc().initWithString(currentText == null ? "\t\t" : currentText.mutableString attributes:displayStringAttributes);
         textBox.setString((String*)currentText);
-        textBox.setTop(textBoxTopLimit);
-        refreshCursorAndTextBox();
-        */
+        textBox.setTop(textBoxTopLimit);*/
+        //refreshCursorAndTextBox();
+
         unlockScreen();
     }
 
@@ -518,18 +540,82 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
 
     public void triggerKeyValue(OBControl key)
     {
+        String value = (String) key.propertyValue("value");
+        String valueUpper = (String) key.propertyValue("value_upper");
+        lockScreen();
+        if(value.equals(KEY_BACK) )
+        {
+            int len = textBox.charLength();
+            if(len >= 2)
+            {
+                if(len >= 3 && currentText.subSequence(len-3,len).equals("\n\t\t"))
+                    textBox.deleteCharacters(len-3,len);
+                else
+                    textBox.deleteCharacters(len-1,len);
+            }
+
+        }
+        else if(value.equals(KEY_ENTER))
+        {
+            textBox.appendString("\n\t\t");
+        }
+        else if(value.equals(KEY_SHIFT))
+        {
+            capitalMode = !capitalMode;
+            setKeyboardCapitalMode(capitalMode);
+            if(capitalMode)
+                lastKey = null;
+        }
+        else
+        {
+            textBox.appendString((capitalMode && valueUpper != null) ? valueUpper : value);
+            if(capitalMode)
+            {
+                capitalMode = false;
+                setKeyboardCapitalMode(false);
+                lowlightKey(keyboardKeys.get(KEY_SHIFT));
+            }
+        }
+
+        refreshCursorAndTextBox();
+        unlockScreen();
+        textBox.scrollCursorToVisible();
+
+/*        float textBoxGroupHeight = textBoxBottomLimit;
+        if(currentTextBoxHeight != textBox.height ||(textBox.height > textBoxGroupHeight && textBox.bottom !=textBoxGroupHeight))
+        {
+            OBControl cursor = objectDict.get("cursor");
+            if(textBoxGroupHeight <= textBox.height)
+                OBAnimationGroup.runAnims(@[[OBAnim propertyAnim:"bottom" val:textBoxGroupHeight obj:textBox) ,
+            OBAnim.propertyAnim("bottom" val:cursor.bottom -(textBox.bottom - textBoxGroupHeight) obj:cursor) ]
+            duration:0.2 wait:true timingFunction:OBAnim.ANIM_EASE_IN_EASE_OUT completionBlock:null];
+        else if(textBox.top != textBoxTopLimit)
+            OBAnimationGroup.runAnims(@[[OBAnim propertyAnim:"top" val:textBoxTopLimit obj:textBox) ,
+            OBAnim.propertyAnim("bottom" val:cursor.bottom -(textBox.bottom -textBoxGroupHeight) obj:cursor) ]
+            duration:0.2 wait:true timingFunction:OBAnim.ANIM_EASE_IN_EASE_OUT completionBlock:null];
+        }
+
+        currentTextBoxHeight = textBox.height;*/
+        refreshCursorAndTextBox();
 
     }
 
+
     public void refreshCursorAndTextBox()
     {
+        OBControl cursor = objectDict.get("cursor");
+        float x = textBox.xOfLastLine();
+        float y = textBox.midYOfLastLine();
+        PointF pt = textBoxGroup.convertPointFromControl(new PointF(x,y),textBox);
+        cursor.setPosition(pt);
 
     }
     public void touchDownAtPoint(PointF pt,View v)
     {
         if(status() == STATUS_AWAITING_CLICK  && !keyboardLocked)
         {
-            final OBGroup key = (OBGroup) finger(-1,-1,(List<OBControl>)((Object)(keyboardKeys.values())),pt);
+            List<OBGroup>keys = new ArrayList<>(keyboardKeys.values());
+            final OBGroup key = (OBGroup) finger(-1,-1, (List<OBControl>)(Object) keys,pt);
             if(key != null && key.isEnabled() )
             {
                 lockKeyboard();
@@ -542,33 +628,33 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
                     public void run() throws Exception
                     {
                         touchDownKeyWithSound(key,true);
-                    }
-                });
-                final long time = unlockKeyboard();
-
-                OBUtils.runOnOtherThreadDelayed(1,new OBUtils.RunLambda()
-                {
-                    public void run() throws Exception
-                    {
-                        try
+                        final long time = unlockKeyboard();
+                        OBUtils.runOnOtherThreadDelayed(1,new OBUtils.RunLambda()
                         {
-                            if(time == statusTime  && !keyboardLocked && lastKey != null
-                                    && !key.propertyValue("value").equals(KEY_SHIFT))
+                            public void run() throws Exception
                             {
-                                while(time == statusTime  && lastKey != null)
+                                try
                                 {
-                                    triggerKeyValue(key);
-                                    waitForSecs(0.02f);
+                                    if(time == statusTime  && !keyboardLocked && lastKey != null
+                                            && !key.propertyValue("value").equals(KEY_SHIFT))
+                                    {
+                                        while(time == statusTime  && lastKey != null)
+                                        {
+                                            triggerKeyValue(key);
+                                            waitForSecs(0.02f);
+                                        }
+                                    }
+                                }
+                                catch(Exception exception)
+                                {
+
                                 }
                             }
-                        }
-                        catch(Exception exception)
-                        {
-
-                        }
+                        });
                     }
                 });
-            }
+
+             }
             /*else if(textBoxGroup.frame.contains(pt.x, pt.y)))
             {
                 statusSetLocked();
@@ -598,6 +684,38 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
                 saveCurrentText();
             });
             }*/
+        }
+    }
+
+    public void touchUpAtPoint(PointF pt,View v)
+    {
+        if(!dragMode && lastKey != null)
+        {
+            OBGroup temp = lastKey;
+            lastKey = null;
+            touchUpKey(temp);
+            if(!keyboardLocked)
+                unlockKeyboard();
+        }
+        else if(dragMode && status() == STATUS_DRAGGING )
+        {
+            final long time = setStatus(STATUS_AWAITING_CLICK);
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    boolean finished = false;
+                    while(!finished && time == statusTime  && !_aborting)
+                    {
+
+                        /*PointF loc = textBox.nextScrollingLocationFinished(&finished);
+                        if(setTextBoxLoc(loc))
+                            finished = true;*/
+                        waitForSecs(0.001f);
+                    }
+                }
+            });
         }
     }
 
