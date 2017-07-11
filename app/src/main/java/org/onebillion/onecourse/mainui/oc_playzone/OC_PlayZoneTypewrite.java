@@ -9,7 +9,9 @@ import android.graphics.Typeface;
 import android.text.DynamicLayout;
 import android.text.Layout;
 import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.text.TextPaint;
+import android.text.style.LeadingMarginSpan;
 import android.util.Log;
 import android.view.View;
 
@@ -27,12 +29,15 @@ import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBAudioManager;
 import org.onebillion.onecourse.utils.OBUtils;
+import org.onebillion.onecourse.utils.OC_FatController;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset.ASSET_TEXT;
 
 /**
  * Created by alan on 07/07/2017.
@@ -42,6 +47,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
 {
     static final String MODE_NORMAL= "normal",MODE_SPECIAL = "special", MODE_HIGHLIGHT = "highlight";
     static final String KEY_ENTER= "s_enter", KEY_SPACE = "s_space", KEY_SHIFT = "s_shift", KEY_NUM = "s_num", KEY_BACK = "s_back";
+    static final String line_prefix = "\t\t\t\t";
     static final float TICK_VALUE2 = 0.0025f;
 
     OBGroup lastKey;
@@ -64,6 +70,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
     PointF lastTextBoxLoc;
     boolean dragMode, capitalMode,cursorShouldShow;
     int currentTapIndex;
+    float dragStartTouchY,dragStartTextOffset;
 
     public int buttonFlags()
     {
@@ -103,6 +110,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         textBox.setFillColor(Color.WHITE);
         textBox.setZPosition(100);
         attachControl(textBox);
+        textBox.setString("");
 
         loadTheme(themeNames.get(1));
 
@@ -287,10 +295,10 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         textBox.setTypeFace(currentTypeface);
         textBox.setFontSize(currentTypeSize);
         textBox.setColour(Color.BLACK);
-
-        textBox.setString("abcde");
+        textBox.layout();
+        textBox.setString(line_prefix);
         currentText = textBox.textBuffer();
-
+        //currentText.setSpan(new LeadingMarginSpan.Standard(200, 0),0,currentText.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
         /*
         NSMutableParagraphStyle *parStyle = [NSMutableParagraphStyle.alloc() init];
 
@@ -546,10 +554,13 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         if(value.equals(KEY_BACK) )
         {
             int len = textBox.charLength();
-            if(len >= 2)
+            int preflen = line_prefix.length();
+            if(len > preflen)
             {
-                if(len >= 3 && currentText.subSequence(len-3,len).equals("\n\t\t"))
-                    textBox.deleteCharacters(len-3,len);
+                String eoln = String.format("\n%s",line_prefix);
+                String ss = currentText.subSequence(len-(preflen+1),len).toString();
+                if(len >= preflen + 1 && ss.equals(eoln))
+                    textBox.deleteCharacters(len-(preflen+1),len);
                 else
                     textBox.deleteCharacters(len-1,len);
             }
@@ -557,7 +568,8 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         }
         else if(value.equals(KEY_ENTER))
         {
-            textBox.appendString("\n\t\t");
+            String eoln = String.format("\n%s",line_prefix);
+            textBox.appendString(eoln);
         }
         else if(value.equals(KEY_SHIFT))
         {
@@ -655,35 +667,70 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
                 });
 
              }
-            /*else if(textBoxGroup.frame.contains(pt.x, pt.y)))
+            else if(textBoxGroup.frame().contains(pt.x, pt.y))
             {
-                statusSetLocked();
+                setStatus(STATUS_DOING_DEMO);
                 dragMode = true;
-                lastTextBoxLoc = textBox.position();
-                prepareForDragging(textBox point:pt);
-                textBox.prepareForScrollMeasure();
-                statusSetDragging();
+                dragStartTouchY = pt.y;
+                dragStartTextOffset = textBox.yOffset();
+                cursorShouldShow = false;
+                setStatus(STATUS_DRAGGING);
             }
-        else if(finger(-1 to:-1 objects:@objectDict.get("button").()  point:pt)  != null)
+            else if(finger(-1,-1,Arrays.asList(objectDict.get("button")),pt)  != null)
             {
-                OBGroup themeButton = objectDict.get("button");
-                statusSetLocked();
-                DoSafeBlockOnThread(^{
+                final OBGroup themeButton = (OBGroup) objectDict.get("button");
+                setStatus(STATUS_DOING_DEMO);
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    public void run() throws Exception
+                    {
                         themeButton.highlight();
-                int index = themeNames.indexOfObject(currentTheme);
-                loadTheme(themeNames(index+1)%themeNames.count.() );
-                themeButton.lowlight();
-                statusSetWaitClick();
-            });
-            } else if(finger(-1 to:-1 objects:@objectDict.get("button_save").()  point:pt)  != null && currentText.length > 4)
+                        int index = themeNames.indexOf(currentTheme);
+                        loadTheme(themeNames.get((index+1)%themeNames.size()));
+                        themeButton.lowlight();
+                        setStatus(STATUS_AWAITING_CLICK);
+                    }
+                });
+            }
+        }
+        else if(finger(-1,-1,Arrays.asList(objectDict.get("button_save")),pt)  != null && textBox.charLength() > 4)
             {
-                OBGroup saveButton = objectDict.get("button_save");
-                statusSetLocked();
-                DoSafeBlockOnThread(^{
+                final OBGroup saveButton = (OBGroup) objectDict.get("button_save");
+                setStatus(STATUS_DOING_DEMO);
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run() throws Exception
+                    {
                         saveButton.highlight();
-                saveCurrentText();
-            });
-            }*/
+                        saveCurrentText();
+                    }
+                }
+                );
+
+        }
+    }
+
+    public void touchMovedToPoint(PointF pt,View v)
+    {
+        if(status() == STATUS_DRAGGING)
+        {
+            if(textBoxGroup.frame().contains(pt.x, pt.y))
+            {
+                lockScreen();
+                float yMoved = pt.y - dragStartTouchY;
+                float amt = dragStartTextOffset + yMoved;
+                if (amt > 0)
+                    amt = 0;
+                else
+                {
+                    float topoff = textBox.topOffsetOfLastLine();
+                    if (-amt > topoff)
+                        amt = -topoff;
+                }
+                textBox.setYOffset(amt);
+                unlockScreen();
+            }
         }
     }
 
@@ -710,13 +757,43 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
                     {
 
                         /*PointF loc = textBox.nextScrollingLocationFinished(&finished);
-                        if(setTextBoxLoc(loc))
-                            finished = true;*/
+                        if(setTextBoxLoc(loc))*/
+                            finished = true;
                         waitForSecs(0.001f);
                     }
+                    refreshCursorAndTextBox();
+                    cursorShouldShow = true;
                 }
             });
         }
+    }
+
+    public void saveCurrentText()
+    {
+        Map<String,Object>params = new HashMap<>();
+        params.put("theme",currentTheme);
+        params.put("typeface",themesData.get(currentTheme));
+        params.put("text",textBox.textBuffer().toString());
+        OC_FatController fatController =(OC_FatController)(MainActivity.mainActivity.fatController);
+/*        fatController.savePlayZoneAssetForCurrentUserType(ASSET_TEXT,null,params);
+
+
+        hideControls(".*gradient.*");
+        OBControl bg = objectDict.get("text_box_bg");
+
+        OBAnimationGroup.runAnims(@[[OBAnim scaleAnim:0.4 obj:textBoxGroup) ,OBAnim.scaleAnim(0.4 obj:bg) ] duration:0.3
+        wait:true timingFunction:OBAnim.ANIM_EASE_IN_EASE_OUT completionBlock:null];
+        waitForSecs(0.2f);
+        OBAnimationGroup.runAnims(@[[OBAnim rotationAnim:RADIANS(-360) obj:textBoxGroup) ,
+        OBAnim.moveAnim([locationForScreenRectX:-0.5 y:0.5)  obj:textBoxGroup],
+        OBAnim.rotationAnim(RADIANS(-360) obj:bg) ,
+        OBAnim.moveAnim([locationForScreenRectX:-0.5 y:0.5)  obj:bg],
+                                 ]
+        duration:0.5 wait:true timingFunction:OBAnim.ANIM_EASE_IN completionBlock:null];
+*/
+        if(!_aborting)
+            exitEvent();
+
     }
 
     public void touchUpKey(OBGroup key)

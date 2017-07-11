@@ -40,7 +40,7 @@ public class OBScrollingTextLayer extends OBTextLayer
         textPaint.setTextSize(textSize);
         textPaint.setTypeface(typeFace);
         textPaint.setColor(colour);
-        dynLayout = new DynamicLayout(textBuffer,textPaint,(int)width, Layout.Alignment.ALIGN_NORMAL,1,0,true);
+        dynLayout = new DynamicLayout(textBuffer(),textPaint,(int)width, Layout.Alignment.ALIGN_NORMAL,1,0,true);
         displayObjectsValid = true;
     }
 
@@ -77,6 +77,8 @@ public class OBScrollingTextLayer extends OBTextLayer
 
     public SpannableStringBuilder textBuffer()
     {
+        if (textBuffer == null)
+            textBuffer = new SpannableStringBuilder("");
         return textBuffer;
     }
 

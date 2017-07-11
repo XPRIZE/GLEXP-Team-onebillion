@@ -34,6 +34,8 @@ public class OBScrollingText extends OBLabel
     public void setYOffset(float yOffset)
     {
         ((OBScrollingTextLayer)layer).setYOffset(yOffset);
+        setNeedsRetexture();
+        invalidate();
     }
 
     public SpannableStringBuilder textBuffer()
@@ -82,9 +84,21 @@ public class OBScrollingText extends OBLabel
         return (layout().getLineTop(i) + layout().getLineBaseline(i)) / 2f + offset;
     }
 
+    public float topOffsetOfLastLine()
+    {
+        int i = indexOfLastLine();
+        return layout().getLineTop(i);
+    }
+
     public float xOfLastLine()
     {
-        return layout().getLineRight(indexOfLastLine());
+        //int i = indexOfLastLine();
+        //return layout().getLineWidth(i);
+        //float f = layout().getLineRight(i);
+        //f = layout().getParagraphLeft(i);
+        //f = layout().getOffsetToRightOf(charLength());
+        //return layout().getLineRight(i) + layout().getParagraphLeft(i);
+        return layout().getPrimaryHorizontal(charLength());
     }
 
     public float capHeight()
