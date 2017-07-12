@@ -6,6 +6,14 @@ import android.graphics.Typeface;
 import android.text.DynamicLayout;
 import android.text.SpannableStringBuilder;
 
+import org.onebillion.onecourse.utils.OBAnim;
+import org.onebillion.onecourse.utils.OBAnimationGroup;
+
+import java.util.Arrays;
+
+import static org.onebillion.onecourse.utils.OBAnim.ANIM_EASE_IN_EASE_OUT;
+import static org.onebillion.onecourse.utils.OBAnim.ANIM_TYPE_FLOAT;
+
 /**
  * Created by alan on 08/07/17.
  */
@@ -80,7 +88,7 @@ public class OBScrollingText extends OBLabel
     public float midYOfLastLine()
     {
         int i = indexOfLastLine();
-        float offset = ((OBScrollingTextLayer)layer).yOffset;
+        float offset = yOffset();
         return (layout().getLineTop(i) + layout().getLineBaseline(i)) / 2f + offset;
     }
 
@@ -126,9 +134,10 @@ public class OBScrollingText extends OBLabel
         }
         if (amountToScroll != 0)
         {
-            ((OBScrollingTextLayer)layer).setYOffset(offset + amountToScroll);
-            invalidate();
-            setNeedsRetexture();
+            OBAnim anim = new OBAnim(this,"yOffset",ANIM_TYPE_FLOAT);
+            anim.value = offset + amountToScroll;
+            OBAnimationGroup.runAnims(Arrays.asList(anim),0.2,true,ANIM_EASE_IN_EASE_OUT,null);
+            //setYOffset(offset + amountToScroll);
         }
     }
 }

@@ -28,7 +28,9 @@ import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBAudioManager;
+import org.onebillion.onecourse.utils.OBFatController;
 import org.onebillion.onecourse.utils.OBUtils;
+import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OC_FatController;
 
 import java.util.ArrayList;
@@ -71,6 +73,8 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
     boolean dragMode, capitalMode,cursorShouldShow;
     int currentTapIndex;
     float dragStartTouchY,dragStartTextOffset;
+    float lastAmt;
+    double lastAmtTime,dragSpeed;
 
     public int buttonFlags()
     {
@@ -269,7 +273,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
                 //con.setShouldRasterize(true);
             }
             dictData.put("controls",themeFiles);
-            dictData.put("font",eventAttributes.get("font"));
+            dictData.put("font",eventAttributes.get("fontfile"));
             themesData.put(name,dictData);
             themeData = dictData;
         }
@@ -288,16 +292,18 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         }
 
         currentTheme = name;
-        //currentTypeface = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), (String)themeData.get("font"));
-        currentTypeface = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/AklatanicTSO.ttf");
+        String fontPath = String.format("fonts/%s",(String)themeData.get("font"));
+        currentTypeface = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), fontPath);
+        //currentTypeface = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/AklatanicTSO.ttf");
         currentTypeSize = applyGraphicScale(60f);
 
         textBox.setTypeFace(currentTypeface);
         textBox.setFontSize(currentTypeSize);
         textBox.setColour(Color.BLACK);
         textBox.layout();
-        textBox.setString(line_prefix);
         currentText = textBox.textBuffer();
+        if (currentText.length() == 0)
+            textBox.setString(line_prefix);
         //currentText.setSpan(new LeadingMarginSpan.Standard(200, 0),0,currentText.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
         /*
         NSMutableParagraphStyle *parStyle = [NSMutableParagraphStyle.alloc() init];
@@ -533,6 +539,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
                 public void run() throws Exception
                 {
                     String channel = String.format("special_%d",currentTapIndex);
+                    OBAudioManager.audioManager.startPlaying("keyboard_click",channel);
                     /*OBAudioManager.audioManager.pausePlayingOnChannel(channel);
                     OBAudioManager.audioManager.setCurrentTime(0.15 onChannel:channel);
                     OBAudioManager.audioManager.playOnChannel(channel);*/
@@ -673,6 +680,10 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
                 dragMode = true;
                 dragStartTouchY = pt.y;
                 dragStartTextOffset = textBox.yOffset();
+                lastAmt = dragStartTextOffset;
+                lastAmtTime = System.currentTimeMillis() / 1000f;
+                dragSpeed = 0;
+                objectDict.get("cursor").hide();
                 cursorShouldShow = false;
                 setStatus(STATUS_DRAGGING);
             }
@@ -687,28 +698,45 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
                         themeButton.highlight();
                         int index = themeNames.indexOf(currentTheme);
                         loadTheme(themeNames.get((index+1)%themeNames.size()));
+                        refreshCursorAndTextBox();
                         themeButton.lowlight();
                         setStatus(STATUS_AWAITING_CLICK);
                     }
                 });
             }
-        }
-        else if(finger(-1,-1,Arrays.asList(objectDict.get("button_save")),pt)  != null && textBox.charLength() > 4)
+            else if(finger(-1,-1,Arrays.asList(objectDict.get("button_save")),pt)  != null && textBox.charLength() > 4)
             {
                 final OBGroup saveButton = (OBGroup) objectDict.get("button_save");
                 setStatus(STATUS_DOING_DEMO);
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-                {
-                    @Override
-                    public void run() throws Exception
-                    {
-                        saveButton.highlight();
-                        saveCurrentText();
-                    }
-                }
+                                         {
+                                             @Override
+                                             public void run() throws Exception
+                                             {
+                                                 saveButton.highlight();
+                                                 saveCurrentText();
+                                             }
+                                         }
                 );
 
+            }
         }
+    }
+
+    public Boolean scrollBox(float amt)
+    {
+        if (amt > 0)
+            amt = 0;
+        else
+        {
+            float topoff = textBox.topOffsetOfLastLine();
+            if (-amt > topoff)
+                amt = -topoff;
+        }
+        if (amt == textBox.yOffset())
+            return false;
+        textBox.setYOffset(amt);
+        return true;
     }
 
     public void touchMovedToPoint(PointF pt,View v)
@@ -717,18 +745,15 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         {
             if(textBoxGroup.frame().contains(pt.x, pt.y))
             {
+                lastAmt = textBox.yOffset();
+                double thisTime = System.currentTimeMillis() / 1000.0;
                 lockScreen();
                 float yMoved = pt.y - dragStartTouchY;
                 float amt = dragStartTextOffset + yMoved;
-                if (amt > 0)
-                    amt = 0;
-                else
-                {
-                    float topoff = textBox.topOffsetOfLastLine();
-                    if (-amt > topoff)
-                        amt = -topoff;
-                }
-                textBox.setYOffset(amt);
+                scrollBox(amt);
+                dragSpeed = (amt - lastAmt) / (thisTime - lastAmtTime);
+                lastAmt = amt;
+                lastAmtTime = thisTime;
                 unlockScreen();
             }
         }
@@ -752,14 +777,17 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
                 @Override
                 public void run() throws Exception
                 {
-                    boolean finished = false;
+                    double speed = dragSpeed;
+                    boolean finished = Math.abs(speed) < 0.0001;
                     while(!finished && time == statusTime  && !_aborting)
                     {
 
-                        /*PointF loc = textBox.nextScrollingLocationFinished(&finished);
-                        if(setTextBoxLoc(loc))*/
-                            finished = true;
-                        waitForSecs(0.001f);
+                        double amt = speed * 0.01f;
+                        speed *= 0.97;
+                        Boolean moved = scrollBox((float)(amt + textBox.yOffset()));
+                        finished = !moved || Math.abs(speed) < 10;
+                        if (!finished)
+                            waitForSecs(0.01f);
                     }
                     refreshCursorAndTextBox();
                     cursorShouldShow = true;
@@ -770,27 +798,36 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
 
     public void saveCurrentText()
     {
-        Map<String,Object>params = new HashMap<>();
+        Map<String,String>params = new HashMap<>();
         params.put("theme",currentTheme);
-        params.put("typeface",themesData.get(currentTheme));
+        params.put("font", (String) (themesData.get(currentTheme)).get("fontfile"));
         params.put("text",textBox.textBuffer().toString());
-        OC_FatController fatController =(OC_FatController)(MainActivity.mainActivity.fatController);
-/*        fatController.savePlayZoneAssetForCurrentUserType(ASSET_TEXT,null,params);
+        OBFatController fatController = (MainActivity.mainActivity.fatController);
+        if (OC_FatController.class.isInstance(fatController))
+            ((OC_FatController)fatController).savePlayZoneAssetForCurrentUserType(ASSET_TEXT,null,params);
 
+        try
+        {
+            hideControls(".*gradient.*");
+            OBControl bg = objectDict.get("text_box_bg");
 
-        hideControls(".*gradient.*");
-        OBControl bg = objectDict.get("text_box_bg");
+            List<OBAnim> anims = new ArrayList<>();
+            anims.add(OBAnim.scaleAnim(0.4f,textBoxGroup));
+            anims.add(OBAnim.scaleAnim(0.4f,bg));
+            OBAnimationGroup.runAnims(anims,0.3f,true,OBAnim.ANIM_EASE_IN_EASE_OUT,null);
+            waitForSecs(0.2f);
+            anims.clear();
+            anims.add(OBAnim.rotationAnim((float) Math.toRadians(-360f),textBoxGroup));
+            anims.add(OBAnim.moveAnim(OB_Maths.locationForRect(0.5f,0.5f,boundsf()),textBoxGroup));
+            anims.add(OBAnim.rotationAnim((float) Math.toRadians(-360f),bg));
+            anims.add(OBAnim.moveAnim(OB_Maths.locationForRect(0.5f,0.5f,boundsf()),bg));
 
-        OBAnimationGroup.runAnims(@[[OBAnim scaleAnim:0.4 obj:textBoxGroup) ,OBAnim.scaleAnim(0.4 obj:bg) ] duration:0.3
-        wait:true timingFunction:OBAnim.ANIM_EASE_IN_EASE_OUT completionBlock:null];
-        waitForSecs(0.2f);
-        OBAnimationGroup.runAnims(@[[OBAnim rotationAnim:RADIANS(-360) obj:textBoxGroup) ,
-        OBAnim.moveAnim([locationForScreenRectX:-0.5 y:0.5)  obj:textBoxGroup],
-        OBAnim.rotationAnim(RADIANS(-360) obj:bg) ,
-        OBAnim.moveAnim([locationForScreenRectX:-0.5 y:0.5)  obj:bg],
-                                 ]
-        duration:0.5 wait:true timingFunction:OBAnim.ANIM_EASE_IN completionBlock:null];
-*/
+            OBAnimationGroup.runAnims(anims,0.5,true,OBAnim.ANIM_EASE_IN,null);
+        }
+        catch(Exception e)
+        {
+
+        }
         if(!_aborting)
             exitEvent();
 

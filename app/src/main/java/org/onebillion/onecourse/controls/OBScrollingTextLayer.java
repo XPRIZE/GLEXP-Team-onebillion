@@ -116,7 +116,7 @@ public class OBScrollingTextLayer extends OBTextLayer
 
     public DynamicLayout layout()
     {
-        if (dynLayout == null)
+        if (dynLayout == null || !displayObjectsValid)
             makeDisplayObjects(width,0);
         return dynLayout;
     }
