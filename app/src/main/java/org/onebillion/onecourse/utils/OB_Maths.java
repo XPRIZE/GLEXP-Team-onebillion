@@ -522,4 +522,64 @@ public class OB_Maths
         return pt;
     }
 
+    public void dlDFT(float[]data)
+    {
+        int n = data.length;        //This must be a power of 2
+        int isign = 1;
+        float temp;
+        int n2 = n / 2;
+        int j = 1;
+        for(int i = 1;i < n;i +=2)
+        {
+            if(j > i)
+            {
+                temp = data[j-1];data[j-1] = data[i-1];data[i-1] = temp;
+                temp = data[j];data[j] = data[i];data[i] = temp;
+            }
+            int m = n2;
+            while(m >= 2 && j > m)
+            {
+                j -= m;
+                m = m / 2;
+            }
+            j += m;
+        }
+        int mmax = 2;
+        while(n > mmax)
+        {
+            int istep = mmax * 2;
+            float theta = isign * (float)(Math.PI * 2.0 / mmax);
+            temp = (float)Math.sin(0.5 * theta);
+            float wpr = -2.0f * temp * temp;
+            float wpi = (float)Math.sin(theta);
+            float wr = 1.0f;
+            float wi = 0.0f;
+            for(int m = 1;m < mmax;m += 2)
+            {
+                for(int i = m;i <=n;i += istep)
+                {
+                    j = i + mmax;
+                    float tempr = wr * data[j - 1] - wi * data[j];
+                    float tempi = wr * data[j] + wi * data[j-1];
+                    data[j-1] = data[i-1]-tempr;
+                    data[j] = data[i]-tempi;
+                    data[i - 1] += tempr;
+                    data[i] += tempi;
+                }
+                temp=wr;
+                wr = wr*wpr-wi*wpi+wr;
+                wi = wi * wpr + temp * wpi + wi;
+            }
+            mmax = istep;
+        }
+        float mFFTNormFactor = 1.0f/(n);
+        for (int i = 0;i < n2;i++)
+            data[i] = data[i] * mFFTNormFactor;
+        for(int i = 0; i < n2; i++)
+        {
+            float re = data[i*2];
+            float im = data[i*2+1];
+            data[i] = (float)Math.sqrt(re*re + im*im);
+        }
+    }
 }

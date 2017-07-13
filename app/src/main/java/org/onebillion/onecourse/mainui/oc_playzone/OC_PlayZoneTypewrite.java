@@ -424,7 +424,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
                     if (specialKey)
                     {
                         tf = specialtypeface;
-                        fs = specialfontSize;
+                        //fs = specialfontSize;
                     }
                     lowerCaseLabel = labelForKey(key,tf,fs,displayLetter,!specialKey);
                     arr.add(lowerCaseLabel);
