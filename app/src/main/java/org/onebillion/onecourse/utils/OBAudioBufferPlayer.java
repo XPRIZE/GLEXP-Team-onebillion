@@ -69,6 +69,7 @@ public class OBAudioBufferPlayer extends Object
     {
         try
         {
+            state = OBAP_PREPARING;
             FileDescriptor fd = afd.getFileDescriptor();
             long fOffset = afd.getStartOffset();
             fileLength = afd.getLength();
@@ -96,7 +97,6 @@ public class OBAudioBufferPlayer extends Object
                 public void onInputBufferAvailable(MediaCodec mc, int inputBufferId)
                 {
                     ByteBuffer inputBuffer = codec.getInputBuffer(inputBufferId);
-                    // fill inputBuffer with valid data
                     Boolean fin = fillBuffer(inputBuffer);
                     MainActivity.log(String.format("%d bytes read",inputBuffer.limit()));
                     inputBuffer.rewind();
@@ -107,12 +107,13 @@ public class OBAudioBufferPlayer extends Object
                 public void onOutputBufferAvailable(MediaCodec mc, int outputBufferId, MediaCodec.BufferInfo info) {
                     ByteBuffer outputBuffer = codec.getOutputBuffer(outputBufferId);
                     MediaFormat bufferFormat = codec.getOutputFormat(outputBufferId); // option A
-                    // bufferFormat is equivalent to mOutputFormat
-                    // outputBuffer is ready to be processed or rendered.
                     int res = audioTrack.write(outputBuffer,outputBuffer.limit(),AudioTrack.WRITE_BLOCKING);
                     amtWritten += res;
                     if (audioTrack.getPlayState() != AudioTrack.PLAYSTATE_PLAYING && amtWritten > 300)
+                    {
                         audioTrack.play();
+                        state = OBAP_PLAYING;
+                    }
                     MainActivity.log(String.format("%d bytes written",res));
                     codec.releaseOutputBuffer(outputBufferId,true);
                 }
