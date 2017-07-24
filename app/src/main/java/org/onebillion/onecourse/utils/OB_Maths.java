@@ -522,7 +522,7 @@ public class OB_Maths
         return pt;
     }
 
-    public void dlDFT(float[]data)
+    public static void dlDFT(float[]data)
     {
         int n = data.length;        //This must be a power of 2
         int isign = 1;

@@ -1,6 +1,9 @@
 package org.onebillion.onecourse.mainui.oc_playzone;
 
 import android.content.res.AssetFileDescriptor;
+import android.graphics.Path;
+import android.graphics.PointF;
+import android.graphics.RectF;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioManager;
@@ -9,15 +12,22 @@ import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.os.AsyncTask;
+import android.os.Handler;
 
+import org.onebillion.onecourse.controls.OBControl;
+import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.mainui.MainActivity;
+import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
+import org.onebillion.onecourse.utils.OBAudioBufferPlayer;
 import org.onebillion.onecourse.utils.OBAudioManager;
+import org.onebillion.onecourse.utils.OB_Maths;
 
 import java.io.FileDescriptor;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static android.media.AudioFormat.CHANNEL_IN_MONO;
 import static android.media.AudioFormat.CHANNEL_OUT_MONO;
@@ -30,15 +40,44 @@ import static android.media.MediaCodec.BUFFER_FLAG_END_OF_STREAM;
 
 public class OC_BedtimeStory extends OC_SectionController
 {
-    public static final String fileName = "1_sample";
-    MediaExtractor mediaExtractor;
-    MediaCodec codec;
-    AudioTrack audioTrack;
-    long fLength = 0,fAmtRead,amtWritten=0;
-    long presentationTimeus = 0;
+    public String fileName = "1_sample";
+    OBAudioBufferPlayer player;
+    private Runnable timerRunnable;
+    private Handler timerHandler = new Handler();
+    float dftArea[] = new float[1024];
+    float displayScaleFactor = 1.0f;
+    float maxValue = 1.5f;
+
+    public int buttonFlags ()
+    {
+        return OBMainViewController.SHOW_TOP_LEFT_BUTTON;
+    }
+
     public void miscSetUp()
     {
-
+        for (OBControl c : filterControls("obj.*"))
+            ((OBPath)c).outdent(applyGraphicScale(5));
+        List<OBControl> rects = sortedFilteredControls("rect.*");
+        RectF b = rects.get(0).bounds();
+        PointF p1 = OB_Maths.locationForRect(0.5f,0.25f,b);
+        PointF p2 = OB_Maths.locationForRect(0.5f,0.75f,b);
+        for (int i = 0;i < rects.size();i++)
+        {
+            int j = i + 1;
+            OBPath bar = (OBPath) objectDict.get(String.format("bar%d",j));
+            OBPath rect = (OBPath) objectDict.get(String.format("rect%d",j));
+            OBPath circle = (OBPath) objectDict.get(String.format("obj%d",j));
+            bar.setStrokeColor(circle.fillColor());
+            bar.setFrame(rect.frame());
+            bar.setLineWidth(bar.width()/2f);
+            Path path = bar.path();
+            path.reset();
+            path.moveTo(p1.x,p1.y);
+            path.lineTo(p2.x,p2.y);
+            rect.hide();
+            circle.hide();
+        }
+        fileName = parameters.get("story");
     }
 
     public void prepare()
@@ -57,74 +96,10 @@ public class OC_BedtimeStory extends OC_SectionController
         setStatus(0);
         try
         {
-            mediaExtractor = new MediaExtractor();
+            player = new OBAudioBufferPlayer();
             AssetFileDescriptor afd = OBAudioManager.audioManager.getAudioPathFD(fileName);
-            FileDescriptor fd = afd.getFileDescriptor();
-            long fOffset = afd.getStartOffset();
-            fLength = afd.getLength();
-            fAmtRead = 0;
-            mediaExtractor.setDataSource(fd,fOffset,fLength);
-            int numTracks = mediaExtractor.getTrackCount();
-            mediaExtractor.selectTrack(0);
-
-            AudioFormat.Builder afb = new AudioFormat.Builder();
-            afb.setChannelMask(CHANNEL_OUT_MONO);
-            afb.setEncoding(AudioFormat.ENCODING_PCM_16BIT);
-            afb.setSampleRate(44100);
-            AudioAttributes.Builder aab = new AudioAttributes.Builder();
-            aab.setUsage(AudioAttributes.USAGE_MEDIA);
-            aab.setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
-            int bufsz = AudioTrack.getMinBufferSize(44100,CHANNEL_OUT_MONO,ENCODING_PCM_16BIT);
-            audioTrack = new AudioTrack(aab.build(),
-                    afb.build(),
-                    bufsz,AudioTrack.MODE_STREAM, AudioManager.AUDIO_SESSION_ID_GENERATE);
-
-            MediaFormat format = mediaExtractor.getTrackFormat(0);
-            String mime = format.getString(MediaFormat.KEY_MIME);
-            codec = MediaCodec.createDecoderByType(mime);
-            codec.configure(format, null /* surface */, null /* crypto */, 0 /* flags */);
-
-            codec.setCallback(new MediaCodec.Callback() {
-                @Override
-                public void onInputBufferAvailable(MediaCodec mc, int inputBufferId)
-                {
-                    ByteBuffer inputBuffer = codec.getInputBuffer(inputBufferId);
-                    // fill inputBuffer with valid data
-                    Boolean fin = fillBuffer(inputBuffer);
-                    MainActivity.log(String.format("%d bytes read",inputBuffer.limit()));
-                    inputBuffer.rewind();
-                    codec.queueInputBuffer(inputBufferId,0,inputBuffer.limit(),presentationTimeus,fin?BUFFER_FLAG_END_OF_STREAM:0);
-                }
-
-                @Override
-                public void onOutputBufferAvailable(MediaCodec mc, int outputBufferId, MediaCodec.BufferInfo info) {
-                    ByteBuffer outputBuffer = codec.getOutputBuffer(outputBufferId);
-                    MediaFormat bufferFormat = codec.getOutputFormat(outputBufferId); // option A
-                    // bufferFormat is equivalent to mOutputFormat
-                    // outputBuffer is ready to be processed or rendered.
-                    int res = audioTrack.write(outputBuffer,outputBuffer.limit(),AudioTrack.WRITE_BLOCKING);
-                    amtWritten += res;
-                    if (audioTrack.getPlayState() != AudioTrack.PLAYSTATE_PLAYING && amtWritten > 300)
-                        audioTrack.play();
-                    MainActivity.log(String.format("%d bytes written",res));
-                    codec.releaseOutputBuffer(outputBufferId,true);
-                }
-
-                @Override
-                public void onOutputFormatChanged(MediaCodec mc, MediaFormat format) {
-                    // Subsequent data will conform to new format.
-                    // Can ignore if using getOutputFormat(outputBufferId)
-                    //mOutputFormat = format; // option B
-                }
-
-                @Override
-                public void onError(MediaCodec codec,MediaCodec.CodecException e)
-                {
-                    e.printStackTrace();
-                }
-            });
-            codec.start();
-
+            player.startPlaying(afd);
+            scheduleTimerEvent();
 
         }
         catch (Exception e)
@@ -134,55 +109,112 @@ public class OC_BedtimeStory extends OC_SectionController
         }
     }
 
-    ByteBuffer fillBuffer()
+    static float maxInFloatArray(float[] fa,int st, int en)
     {
-        //long amtToAlloc = Math.min(fLength - fAmtRead,4096);
-        long amtToAlloc = 4096;
-        int byteAlloc = (int)amtToAlloc * 2;
-        if (amtToAlloc > 0)
+        if (fa.length == 0)
+            return 0;
+        float maxx = fa[st];
+        for (int i = st + 1;i < en;i++)
         {
-            {
-                ByteBuffer b = ByteBuffer.allocate(byteAlloc);
-                int bytesWritten = 0;
-                int bytesRead = mediaExtractor.readSampleData(b,bytesWritten);
-                while (bytesRead > 0 && (bytesWritten + bytesRead) < byteAlloc)
-                {
-                    bytesWritten += bytesRead;
-                    fAmtRead += bytesRead;
-                    mediaExtractor.advance();
-                    bytesRead = mediaExtractor.readSampleData(b,bytesWritten);
-                }
-                if (bytesWritten > 0)
-                    return b;
-            }
+            float x = fa[i];
+            if (x > maxx)
+                maxx = x;
         }
-        return null;
+        return maxx;
+    }
+    void putMaxesIntoBuckets(float data[],int inBucket[],float outBucket[])
+    {
+        int st = 0;
+        for (int i = 0;i < inBucket.length;i++)
+        {
+            float maxx = maxInFloatArray(data,st,inBucket[i]);
+            outBucket[i] = maxx;
+            st = inBucket[i];
+        }
     }
 
-    void fillBuffero(ByteBuffer b)
+    float mapValue(float minr,float maxr,float inVal)
     {
-        int amt = b.limit() - b.position();
-        int bytesWritten = 0;
-        presentationTimeus = mediaExtractor.getSampleTime();
-        int bytesRead = mediaExtractor.readSampleData(b,bytesWritten);
-        while (bytesRead > 0 && (bytesWritten + bytesRead) < amt)
-        {
-            bytesWritten += bytesRead;
-            fAmtRead += bytesRead;
-            mediaExtractor.advance();
-            bytesRead = mediaExtractor.readSampleData(b,bytesWritten);
-        }
+        if (inVal > maxValue)
+            maxValue = inVal;
+        else if (inVal < 0)
+            inVal = 0;
+        return minr + (inVal / maxValue) * (maxr - minr);
     }
-    Boolean fillBuffer(ByteBuffer b)
+
+    void setObjectValo(OBControl obj,float val)
     {
-        presentationTimeus = mediaExtractor.getSampleTime();
-        int bytesRead = mediaExtractor.readSampleData(b, 0);
-        if (bytesRead > 0)
+        float sc = mapValue(0.5f,1.2f,val);
+        obj.setScale(sc);
+    }
+    void setObjectVal(OBControl obj,float val)
+    {
+        float sc = mapValue(0.01f,0.9f,val);
+        float h = obj.height() / 2f;
+        float len = sc * h;
+        float x = obj.width() / 2f;
+        OBPath p = (OBPath)obj;
+        Path path = p.path();
+        path.reset();
+        path.moveTo(x,h - len);
+        path.lineTo(x,h + len);
+        p.setNeedsRetexture();
+        p.invalidate();
+    }
+    void processDFT()
+    {
+        player.getCurrentBufferFloats(dftArea);
+        OB_Maths.dlDFT(dftArea);
+        //MainActivity.log(String.format("max after dft %g",maxInFloatArray(dftArea,0,dftArea.length)));
+        //int[] thresholdindexes = {512-256,512-128,512-64,512};
+        int[] thresholdindexes = {512-128,512-64,512-32,512-2};
+        float[] outBuckets = new float[4];
+        putMaxesIntoBuckets(dftArea,thresholdindexes,outBuckets);
+        lockScreen();
+        int noBuckets = outBuckets.length;
+        for (int i = 0;i < noBuckets;i++)
         {
-            fAmtRead += bytesRead;
-            mediaExtractor.advance();
-            return false;
+            OBControl c = objectDict.get(String.format("bar%d",noBuckets-i));
+            float val = (float)Math.log10(outBuckets[i] + 1);
+            //float val = (outBuckets[i]);
+            //MainActivity.log(String.format("%g",val));
+            //sc = OB_Maths.clamp(0.1f,2,sc);
+            setObjectVal(c,val);
         }
-        return true;
+        unlockScreen();
+    }
+
+    void timerEvent()
+    {
+        if (player.isPlaying())
+        {
+            //MainActivity.log(String.format("currentframe %d",player.currentFrame()));
+            processDFT();
+        }
+        scheduleTimerEvent();
+    }
+    void scheduleTimerEvent()
+    {
+        if (_aborting || theStatus == STATUS_EXITING)
+            return;
+        if (timerRunnable == null)
+        {
+            timerRunnable = new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    timerEvent();
+                }
+            };
+        }
+        timerHandler.removeCallbacks(timerRunnable);
+        timerHandler.postDelayed(timerRunnable,20);
+    }
+
+    public void stopAllAudio ()
+    {
+        super.stopAllAudio();
+        player.stopPlaying();
     }
 }
