@@ -1037,8 +1037,9 @@ public class OC_PlayZoneMenu extends OC_Menu
             OBMisc.scaleControlToControl(doodleThumb,gradBg,false);
             gradBg.setPosition(OB_Maths.locationForRect(0.5f,0.5f,overlay.frame()));
             gradBg.setZPosition(2);
-            doodleThumb.setPosition(OB_Maths.locationForRect(new PointF(0.5f, 0.5f), gradBg.bounds));
+            doodleThumb.setPosition(OB_Maths.locationForRect(new PointF(0.5f, 0.5f), gradBg.bounds()));
             gradBg.setMaskControl(doodleThumb);
+            //gradBg.texturise(false,this);
             thumbnail = new OBGroup((List<OBControl>)(Object)Arrays.asList(overlay,gradBg));
         }
         else if(asset.type == OC_PlayZoneAsset.ASSET_TEXT)
@@ -1049,7 +1050,7 @@ public class OC_PlayZoneMenu extends OC_Menu
             overlay.setZPosition(3);
             String text = dataDict.get("text");
             Typeface currentFont =  OBUtils.TypefaceForFile(dataDict.get("font"));
-            float fontSize = applyGraphicScale(13);
+            float fontSize = applyGraphicScale(12);
             OBLabel thumbnailText = new OBLabel(text,currentFont,fontSize);
             thumbnailText.setFrame(0,0,overlay.width()*0.7f, overlay.height()*0.9f);
             thumbnailText.setPosition(OB_Maths.locationForRect(0.5f,0.5f,overlay.frame()));
@@ -1085,7 +1086,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         RectF rect = new RectF(frameGroup.bounds());
         rect.inset((frameGroup.bounds.width() - mrect.bounds.width())/2.0f,(frameGroup.bounds.height() - mrect.bounds.height())/2.0f );
         frameGroup.setBounds(rect);
-        frameGroup.setMasksToBounds(true);
+      //  frameGroup.setMasksToBounds(true);
         frameGroup.setZPosition(2);
         PointF loc = frameGroup.position();
         mbg.setPosition(loc.x + frameGroup.bounds().left, loc.y + frameGroup.bounds().top);
@@ -1158,6 +1159,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         // gradientManager = [OC_DoodleGradientManager.alloc()initWithPath:blackboard controller:;
         OBMisc.scaleControlToControl(currentImage,blackboard,true);
         currentImage.setPosition ( OB_Maths.locationForRect(new PointF(0.5f, 0.5f), blackboard.bounds));
+        currentImage.setColourOverlay(Color.BLACK);
         // gradientManager.control.setMaskControl ( currentImage);
         // controls.add(gradientManager.control);
         OBPath topborder = (OBPath)blackboard.copy();
@@ -1165,7 +1167,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         topborder.setZPosition(100);
         controls.add(topborder);
         OBGroup imageGroup = new OBGroup(controls);
-        imageGroup.setBounds (  objectDict.get("obj_background") .frame());
+        imageGroup.setBounds(objectDict.get("obj_background").frame());
         RectF iconFrame = icon.getWorldFrame();
         imageGroup.setPosition(icon.getWorldPosition());
         imageGroup.setScale(iconFrame.height()/imageGroup.height());
@@ -1173,7 +1175,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         imageGroup.setProperty("delete_after",true);
         //imageGroup.setProperty("gradient_manager",gradientManager);
         imageGroup.setProperty("target_scale",1.0f);
-        imageGroup.setZPosition ( 100);
+        imageGroup.setZPosition(100);
         imageGroup.show();
         attachControl(imageGroup);
         currentMediaLayer = imageGroup;
@@ -1208,7 +1210,6 @@ public class OC_PlayZoneMenu extends OC_Menu
             public void run() throws Exception
             {
                 AssetFileDescriptor afd = OBUtils.getAssetFileDescriptorForPath(params.get("video"));
-
 
                 videoPlayer.startPlayingAtTime(afd, 0, new OBUtils.RunLambda()
                 {
