@@ -75,6 +75,12 @@ public class MainActivity extends Activity
                     REQUEST_FIRST_SETUP_ADMINISTRATOR_PRIVILEGES = 7,
                     REQUEST_FIRST_SETUP_PROVISION_MANAGED_PROFILE = 8,
                     REQUEST_FIRST_SETUP_WIFI_BT_SCANNING = 9;
+    //
+    public static String    PREFERENCES_SETUP_COMPLETE = "setupComplete",
+                            PREFERENCES_TRIAL_START_DATE = "trialStartDate",
+                            PREFERENCES_CURRENT_BATTERY_SETTING = "currentBatterySetting",
+                            PREFERENCES_RUNNING_EXAMPLE_UNIT = "runningExampleUnit";
+    //
     public static String CONFIG_IMAGE_SUFFIX = "image_suffix",
             CONFIG_AUDIO_SUFFIX = "audio_suffix",
             CONFIG_AUDIO_SEARCH_PATH = "audioSearchPath",
@@ -110,7 +116,8 @@ public class MainActivity extends Activity
             CONFIG_WIFI_SSID = "wifiSSID",
             CONFIG_WIFI_PASSWORD = "wifiPassword",
             CONFIG_USES_BRIGHTNESS_ADJUSTMENT = "usesBrightnessAdjustment",
-            CONFIG_MAX_BRIGHTNESS = "maxBrightness",
+            CONFIG_DEFAULT_MAX_BRIGHTNESS = "defaultMaxBrightness",
+            CONFIG_DEFAULT_MAX_SCREEN_TIMEOUT = "defaultScreenMaxTimeout",
             CONFIG_BRIGHTNESS_CHECK_INTERVAL = "brightnessCheckInterval",
             CONFIG_KEEP_WIFI_ON = "keepWifiOn",
             CONFIG_RESTART_AFTER_CRASH = "restartAfterCrash",
@@ -121,6 +128,8 @@ public class MainActivity extends Activity
             CONFIG_USE_ADMINISTRATOR_SERVICES = "enableAdministratorServices",
             CONFIG_REQUEST_DEVICE_OWNER = "requestDeviceOwner",
             CONFIG_MENU_CLASS = "menuclass",
+            CONFIG_SETUP_CLASS = "setupClass",
+            CONFIG_SETUP_FOLDER = "setupFolder",
             CONFIG_SESSION_TIMEOUT = "sessionTimeout",
             CONFIG_UNIT_TIMEOUT_COUNT = "unitAttemptsCount",
             CONFIG_SHOW_TEST_MENU = "showTestMenu",
@@ -136,7 +145,19 @@ public class MainActivity extends Activity
             CONFIG_BUNDLED_OBB_FILENAME = "bundledOBBFilename",
             CONFIG_CHECK_FOR_DISABLED_LOCATION_SERVICES = "checkForDisabledLocationServices",
             CONFIG_CHECK_FOR_DISABLED_SCANNING = "checkForDisabledScanning",
-            CONFIG_BUILD_NUMBER = "buildNumber";
+            CONFIG_BUILD_NUMBER = "buildNumber",
+            CONFIG_USES_BATTERY_MANAGEMENT = "usesBatteryManagement",
+            CONFIG_BATTERY_LEVELS = "batteryLevels",
+            CONFIG_BATTERY_LEVEL_NORMAL = "normal",
+            CONFIG_BATTERY_LEVEL_LOW = "low",
+            CONFIG_BATTERY_LEVEL_CRITICAL = "critical",
+            CONFIG_MINIMUM_BATTERY_VALUE = "minBatteryValue",
+            CONFIG_MAX_BRIGHTNESS = "maxBrightness",
+            CONFIG_MAX_SCREEN_TIMEOUT = "screenMaxTimeout",
+            CONFIG_CHARGE_BATTERY_REMINDER = "chargeBatteryReminder",
+            CONFIG_CHARGE_BATTERY_REMINDER_INTERVAL = "chargeBatteryReminderInterval",
+            CONFIG_SHOW_BATTERY_LOCK_SCREEN = "showBatteryLockScreen"
+    ;
     public static String TAG = "onecourse";
     //
     public static OBSystemsManager systemsManager = new OBSystemsManager();
@@ -163,7 +184,10 @@ public class MainActivity extends Activity
             Manifest.permission.ACCESS_WIFI_STATE,
             Manifest.permission.CHANGE_WIFI_STATE,
             Manifest.permission.RECORD_AUDIO,
-            Manifest.permission.CAMERA
+            Manifest.permission.CAMERA,
+            Manifest.permission.INTERNET,
+            Manifest.permission.ACCESS_NETWORK_STATE,
+            Manifest.permission.ACCESS_WIFI_STATE
     };
     public Map<String, Object> config;
     public List<OBUser> users;
@@ -1019,6 +1043,11 @@ public class MainActivity extends Activity
     public static void log (String message)
     {
         Log.v(TAG, message);
+    }
+
+    public static void log(String format, Object... args)
+    {
+        log(String.format(format, args));
     }
 
 

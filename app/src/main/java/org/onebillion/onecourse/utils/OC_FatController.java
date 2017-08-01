@@ -64,7 +64,8 @@ public class OC_FatController extends OBFatController
     public int buttonFlags()
     {
         int result = OBMainViewController.SHOW_TOP_RIGHT_BUTTON | OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON | OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON;
-        if (showBackButton()) result = result | OBMainViewController.SHOW_TOP_LEFT_BUTTON;
+        boolean runningExampleUnit = MainActivity.mainActivity.getPreferences(MainActivity.PREFERENCES_RUNNING_EXAMPLE_UNIT).equals("true");
+        if (showBackButton() || runningExampleUnit) result = result | OBMainViewController.SHOW_TOP_LEFT_BUTTON;
         return result;
     }
 
@@ -262,6 +263,10 @@ public class OC_FatController extends OBFatController
     @Override
     public void startUp()
     {
+        // disabling the flag for running example unit from the setup menu
+        MainActivity.mainActivity.addToPreferences(MainActivity.PREFERENCES_RUNNING_EXAMPLE_UNIT, "false");
+        //
+        // initial setup
         try
         {
             sessionTimeout = MainActivity.mainActivity.configIntForKey(MainActivity.CONFIG_SESSION_TIMEOUT);
@@ -270,39 +275,70 @@ public class OC_FatController extends OBFatController
             String[] disallowArray = disallowHours.split(",");
             disallowStartHour = Integer.valueOf(disallowArray[0]);
             disallowEndHour = Integer.valueOf(disallowArray[1]);
-            allowsTimeOuts =  MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_ALLOWS_TIMEOUT);
-            showUserName =  MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_SHOW_USER_NAME);
-        } catch (Exception e)
+            allowsTimeOuts = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_ALLOWS_TIMEOUT);
+            showUserName = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_SHOW_USER_NAME);
+        }
+        catch (Exception e)
         {
-            sessionTimeout =0;
+            sessionTimeout = 0;
             unitAttemptsCount = 3;
             disallowStartHour = 0;
             disallowEndHour = 0;
             allowsTimeOuts = true;
             showUserName = false;
         }
-
         initDB();
-
+        //
         timeoutHandler = new Handler();
-
+        //
         prepareAlarm();
-
-        continueFromLastUnit();
-
-        if (showTestMenu())
+        //
+        // Setup screen
+        String isSetupComplete = MainActivity.mainActivity.getPreferences(MainActivity.PREFERENCES_SETUP_COMPLETE);
+        //
+        if (isSetupComplete == null || !isSetupComplete.equals("true"))
         {
-            MainViewController().pushViewControllerWithName("OC_TestMenu", false, false, "menu");
+            // before overriding the app_code save it in the preferences to restore after setup is complete
+            MainActivity.mainActivity.addToPreferences("originalAppCode", MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_APP_CODE));
+            MainActivity.mainActivity.updateConfigPaths(MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SETUP_FOLDER), true, null);
+            //
+            String setupClassName = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SETUP_CLASS);
+            if (setupClassName != null)
+            {
+                MainActivity.mainViewController.pushViewControllerWithName(setupClassName, false, true, "menu");
+            }
         }
         else
         {
-            String menuClassName = (String) Config().get(MainActivity.CONFIG_MENU_CLASS);
-            String appCode = (String) Config().get(MainActivity.CONFIG_APP_CODE);
-            if (menuClassName != null && appCode != null)
+            // setup is now complete: continue as usual
+            continueFromLastUnit();
+            //
+            if (showTestMenu())
             {
-                OBBrightnessManager.sharedManager.onContinue();
-                MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
-
+                MainViewController().pushViewControllerWithName("OC_TestMenu", false, false, "menu");
+            }
+            else
+            {
+                // restore app_code is it's coming from setup
+                String originalAppCode = MainActivity.mainActivity.getPreferences("originalAppCode");
+                if (originalAppCode != null)
+                {
+                    MainActivity.mainActivity.updateConfigPaths(originalAppCode, true, null);
+                }
+                //
+                String menuClassName = MainActivity.mainActivity.configStringForKey (MainActivity.CONFIG_MENU_CLASS);
+                String appCode = MainActivity.mainActivity.configStringForKey (MainActivity.CONFIG_APP_CODE);
+                //
+                MainActivity.log("OC_FatController:startUp: pushing view controller [%s] [%s]", menuClassName, appCode);
+                //
+                if (menuClassName != null && appCode != null)
+                {
+                    OBBrightnessManager.sharedManager.onContinue();
+                    if (!MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null))
+                    {
+                        MainActivity.log("OC_FatController:startUp:unable to load view controller [%s] [%s]", menuClassName, appCode);
+                    }
+                }
             }
         }
     }
@@ -431,17 +467,18 @@ public class OC_FatController extends OBFatController
     public void completeEvent(OBSectionController cont)
     {
         cancelTimeout();
-        updateScores();
+        if(currentUnitInstance != null)
+        {
+            updateScores();
+            if (currentSessionLocked())
+                signalSessionLocked();
+            else if (finalScore >= currentUnit().passThreshold)
+                signalSectionSucceeded();
+            else
+                signalSectionFailed();
 
-        if(currentSessionLocked())
-            signalSessionLocked();
-        else if (finalScore >= currentUnit().passThreshold)
-            signalSectionSucceeded();
-        else
-            signalSectionFailed();
-
-        currentUnitInstance = null;
-
+            currentUnitInstance = null;
+        }
         try
         {
             cont.displayAward();
@@ -697,6 +734,51 @@ public class OC_FatController extends OBFatController
         currentUnitInstance = MlUnitInstance.initWithMlUnit(unit,currentUser.userid,currentSessionId,getCurrentTime());
         initScores();
     }
+
+
+
+    public void startSectionByUnitNoUser(final MlUnit unit)
+    {
+        final String lastAppCode = (String)MainActivity.mainActivity.config.get(MainActivity.CONFIG_APP_CODE);
+        currentUnitInstance = null;
+        //
+        new OBRunnableSyncUI()
+        {
+            @Override
+            public void ex ()
+            {
+                try
+                {
+                    MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
+                    if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
+                    {
+                        if (currentUnitInstance != null)
+                        {
+                            currentUnitInstance.sectionController = MainViewController().topController();
+                            startUnitInstanceTimeout(currentUnitInstance);
+                        }
+                    }
+                    else
+                    {
+                        if (MainActivity.mainActivity.isDebugMode())
+                        {
+                            Toast.makeText(MainActivity.mainActivity, unit.target + " hasn't been converted to Android yet.", Toast.LENGTH_LONG).show();
+                            MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Logger logger = Logger.getAnonymousLogger();
+                    logger.log(Level.SEVERE, "Error in runOnMainThread", exception);
+
+                    MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                }
+            }
+        }.run();
+    }
+
+
 
     public void startSectionByUnit(final MlUnit unit)
     {

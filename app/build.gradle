@@ -55,8 +55,8 @@ android {
             targetSdkVersion 23
             versionCode 1
             versionName '1.0'
-            resValue "string", "app_name", "Pedro"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_pedro.plist"'
+            resValue "string", "app_name", "Setup Prototype"
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_setup.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/judges",
             ]
@@ -181,4 +181,5 @@ dependencies {
     //    compile 'org.apache.httpcomponents:httpclient:4.5'
     //
     compile files('libs/commons-io-2.5.jar')
+    compile files('libs/commons-net-3.6.jar')
 }

@@ -342,6 +342,11 @@ public class OC_Generic
 
     public static OBLabel action_createLabelForControl (OBControl control, float finalResizeFactor, Boolean insertIntoGroup, OC_SectionController sc)
     {
+        return action_createLabelForControl(control, finalResizeFactor, insertIntoGroup, sc, OBUtils.standardTypeFace());
+    }
+
+    public static OBLabel action_createLabelForControl (OBControl control, float finalResizeFactor, Boolean insertIntoGroup, OC_SectionController sc, Typeface tf)
+    {
         try
         {
             Boolean autoResize = sc.eventAttributes.get("textSize") == null;
@@ -355,7 +360,6 @@ public class OC_Generic
             if (content == null) content = (String) control.attributes().get("number");
             if (content == null) content = "";
             //
-            Typeface tf = OBUtils.standardTypeFace();
             OBLabel label = new OBLabel(content, tf, textSize);
             //
             if (autoResize)
