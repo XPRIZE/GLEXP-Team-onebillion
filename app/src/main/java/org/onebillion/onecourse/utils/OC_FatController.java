@@ -294,9 +294,10 @@ public class OC_FatController extends OBFatController
         prepareAlarm();
         //
         // Setup screen
+        Boolean usesSetupMenu = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_USES_SETUP_MENU);
         String isSetupComplete = MainActivity.mainActivity.getPreferences(MainActivity.PREFERENCES_SETUP_COMPLETE);
         //
-        if (isSetupComplete == null || !isSetupComplete.equals("true"))
+        if (usesSetupMenu && (isSetupComplete == null || !isSetupComplete.equals("true")))
         {
             // before overriding the app_code save it in the preferences to restore after setup is complete
             MainActivity.mainActivity.addToPreferences("originalAppCode", MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_APP_CODE));

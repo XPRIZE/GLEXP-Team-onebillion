@@ -128,6 +128,7 @@ public class MainActivity extends Activity
             CONFIG_USE_ADMINISTRATOR_SERVICES = "enableAdministratorServices",
             CONFIG_REQUEST_DEVICE_OWNER = "requestDeviceOwner",
             CONFIG_MENU_CLASS = "menuclass",
+            CONFIG_USES_SETUP_MENU = "usesSetupMenu",
             CONFIG_SETUP_CLASS = "setupClass",
             CONFIG_SETUP_FOLDER = "setupFolder",
             CONFIG_SESSION_TIMEOUT = "sessionTimeout",
