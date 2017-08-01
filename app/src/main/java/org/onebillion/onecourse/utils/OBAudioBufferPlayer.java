@@ -219,6 +219,7 @@ public class OBAudioBufferPlayer extends Object
     }
     int closestBufferToFrameNo(long frameNo)
     {
+        frameNo = frameNo - 512;
         int closest = -1;
         long mindiff = frameNo;
         int offset = nextBufIdx;
