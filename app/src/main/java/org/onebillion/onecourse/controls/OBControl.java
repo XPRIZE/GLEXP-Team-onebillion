@@ -599,6 +599,7 @@ public class OBControl
                     canvas.saveLayerAlpha(bounds(), (int) (opacity() * 255));
             }
             layer.draw(canvas);
+            applyMask(canvas);
             if (needsRestore)
                 canvas.restore();
         }
@@ -2114,5 +2115,21 @@ public class OBControl
     public int YPositionCompare(OBControl other)
     {
         return (int) (this.position.y - other.position.y);
+    }
+
+    protected void applyMask(Canvas canvas)
+    {
+        if (maskControl != null && dynamicMask == false)
+        {
+            Paint p = new Paint();
+            p.setXfermode(new PorterDuffXfermode(maskControlReversed ? PorterDuff.Mode.DST_OUT : PorterDuff.Mode.DST_IN));
+            float fw = (bounds().right - bounds().left) * Math.abs(rasterScale);
+            float fh = (bounds().bottom - bounds().top) * Math.abs(rasterScale);
+            int width = (int) Math.ceil(fw);
+            int height = (int) Math.ceil(fh);
+            canvas.saveLayer(0, 0, width, height, p, Canvas.ALL_SAVE_FLAG);
+            maskControl.draw(canvas);
+            canvas.restore();
+        }
     }
 }
