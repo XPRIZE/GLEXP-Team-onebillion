@@ -1434,6 +1434,8 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     public String getBatterySettingKeyForCurrentLevel ()
     {
         Map<String, Object> dictionary = (Map<String, Object>) MainActivity.Config().get(MainActivity.CONFIG_BATTERY_LEVELS);
+        if (dictionary == null)
+            return null;
         float batteryLevel = batteryReceiver.getBatteryLevel();
         //
         for (String levelKey : dictionary.keySet())
