@@ -39,7 +39,7 @@ public class OC_PlayZoneAsset extends DBObject
     private static final String[] intFields = {"assetid", "type", "userid"};
     private static final String[] longFields = {"createTime"};
 
-    public static List<String> assetsPathsForNewFile(int type)
+    public static List<String> assetsNamesForNewFile(int type)
     {
         File dir = MainActivity.mainActivity.getDir(ASSET_FOLDER, Context.MODE_PRIVATE);
 
@@ -51,7 +51,7 @@ public class OC_PlayZoneAsset extends DBObject
         if(type == ASSET_VIDEO)
         {
             prefix = "video";
-            extension2 = "m4a";
+            extension2 = "mp4";
 
         }
         else if(type == ASSET_DOODLE)
@@ -113,7 +113,7 @@ public class OC_PlayZoneAsset extends DBObject
             db = new DBSQL(false);
             Map<String,String> whereMap = new ArrayMap<>();
             whereMap.put("userid",String.valueOf(userid));
-            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_PLAYZONE_ASSETS,allFieldNames(stringFields,intFields,longFields,null),whereMap);
+            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_PLAYZONE_ASSETS,allFieldNames(stringFields,intFields,longFields,null),whereMap, "createTime DESC");
 
             if(cursor.moveToFirst())
             {

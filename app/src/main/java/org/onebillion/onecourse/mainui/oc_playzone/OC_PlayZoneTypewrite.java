@@ -406,6 +406,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
                 key.setTop(top);
                 key.setLeft(left);
                 key.setZPosition(1);
+                key.sizeToBoundingBoxIncludingStroke();
                 key.show();
 
                 if(key.right() > maxRight)
@@ -800,7 +801,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
     {
         Map<String,String>params = new HashMap<>();
         params.put("theme",currentTheme);
-        params.put("font", (String) (themesData.get(currentTheme)).get("fontfile"));
+        params.put("font", (String) (themesData.get(currentTheme)).get("font"));
         params.put("text",textBox.textBuffer().toString());
         OBFatController fatController = (MainActivity.mainActivity.fatController);
         if (OC_FatController.class.isInstance(fatController))
@@ -818,9 +819,9 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
             waitForSecs(0.2f);
             anims.clear();
             anims.add(OBAnim.rotationAnim((float) Math.toRadians(-360f),textBoxGroup));
-            anims.add(OBAnim.moveAnim(OB_Maths.locationForRect(0.5f,0.5f,boundsf()),textBoxGroup));
+            anims.add(OBAnim.moveAnim(OB_Maths.locationForRect(-0.2f,0.5f,boundsf()),textBoxGroup));
             anims.add(OBAnim.rotationAnim((float) Math.toRadians(-360f),bg));
-            anims.add(OBAnim.moveAnim(OB_Maths.locationForRect(0.5f,0.5f,boundsf()),bg));
+            anims.add(OBAnim.moveAnim(OB_Maths.locationForRect(-0.2f,0.5f,boundsf()),bg));
 
             OBAnimationGroup.runAnims(anims,0.5,true,OBAnim.ANIM_EASE_IN,null);
         }

@@ -9,6 +9,7 @@ import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.media.ExifInterface;
 import android.os.SystemClock;
 import android.util.ArrayMap;
 import android.view.View;
@@ -20,6 +21,7 @@ import org.onebillion.onecourse.controls.OBImage;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.controls.OBRadialGradientPath;
+import org.onebillion.onecourse.controls.OBScrollingText;
 import org.onebillion.onecourse.controls.OBVideoPlayer;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
@@ -59,7 +61,7 @@ public class OC_PlayZoneMenu extends OC_Menu
     List<OBGroup> mediaIcons, menuButtons;
     Map<String, OBGroup> mediaTextThemes;
     List<OC_PlayZoneAsset> mediaAssets;
-    OBControl currentMediaLayer, playBackLayer;
+    OBControl currentMediaLayer;
     OBGroup mediaIconsGroup, buttonsMaskGroup;
     long dragStartTime, lastFloatLoopTick, lastTouchTime, iconShakeStartTime;
     PointF lastTouchPoint;
@@ -96,7 +98,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         List<String> colours = OBUtils.randomlySortedArray(Arrays.asList(eventAttributes.get("button_colours").split(";")));
         int index = 0;
         List<Float> scaleOptions = OBUtils.randomlySortedArray(Arrays.asList(0.95f,0.975f,1.0f,1.025f,1.05f));
-       // boxTouchMode = parameters.get("intro") != null;
+        // boxTouchMode = parameters.get("intro") != null;
         boxTouchMode = false;
 
         for(OBControl iconCont : filterControls("menu_icon_.*"))
@@ -181,8 +183,7 @@ public class OC_PlayZoneMenu extends OC_Menu
                     MainActivity.log(e.getMessage());
                 }
             }
-            for(int i=0; i<4 ; i++)
-            {
+
                 Map<String, String> params = new ArrayMap<>();
                 params.put("doodle", "doodle_car.png");
                 params.put("theme", "transport");
@@ -203,7 +204,7 @@ public class OC_PlayZoneMenu extends OC_Menu
                         "thumb_doodle_butterfly.png", params);
 
                 params = new ArrayMap<>();
-                params.put("video", "plane_throw.mov");
+                params.put("video", "plane_throw.mp4");
                 fatController.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_VIDEO, "thumb_plane_throw.jpg", params);
 
                 params = new ArrayMap<>();
@@ -211,16 +212,12 @@ public class OC_PlayZoneMenu extends OC_Menu
                 params.put("font", "AnotherTypewriter.ttf");
                 params.put("text", "\t\tJana mama yanku alienda kasini, yeye ni mwalimu");
                 fatController.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_TEXT, null, params);
-            }
+
             mediaAssets = fatController.getPlayZoneAssetForCurrentUser();
 
         }
         videoPlayer = null;
-        playBackLayer = new OBControl();
-        playBackLayer.setFrame( new RectF(this.bounds()));
-        attachControl(playBackLayer);
-        playBackLayer.setZPosition(100);
-        playBackLayer.hide();
+
         loadAllMediaIcons(mediaAssets);
         mediaIsPlaying = false;
         if(boxTouchMode)
@@ -297,8 +294,14 @@ public class OC_PlayZoneMenu extends OC_Menu
             lockScreen();
             if(mediaIsPlaying)
             {
-                setMediaScrollableBoxLoc(OB_Maths.AddPoints(pt, dragOffset));
-                measureDragSpeed(target);
+                if(currentMediaLayer.propertyValue("scrollable_text") != null)
+                {
+                    OBScrollingText scrollingText  = (OBScrollingText)currentMediaLayer.propertyValue("scrollable_text");
+                    PointF lastLoc = (PointF)scrollingText.propertyValue("last_drag");
+                    PointF currentLoc = OB_Maths.AddPoints(pt,dragOffset);
+                    setScrollableTextBoxOffset(scrollingText, scrollingText.yOffset() + (currentLoc.y - lastLoc.y));
+                    measureDragSpeed(scrollingText,currentLoc);
+                }
             }
             else if(iconsScrollMode)
             {
@@ -344,7 +347,15 @@ public class OC_PlayZoneMenu extends OC_Menu
                 }
                 else if(iconsScrollMode)
                 {
-                    OBControl icon = finger(-1,-1,(List<OBControl>)(Object)mediaIcons,pt);
+                    OBControl icon = null;//finger(-1,-1,(List<OBControl>)(Object)mediaIcons,pt);
+                    for(OBControl con : mediaIcons)
+                    {
+                        if(con.getWorldFrame().contains(pt.x,pt.y))
+                        {
+                            icon = con;
+                            break;
+                        }
+                    }
                     if(icon != null)
                     {
                         final OBGroup iconGroup = (OBGroup)icon;
@@ -374,7 +385,7 @@ public class OC_PlayZoneMenu extends OC_Menu
                         {
                             setStatus(STATUS_BUSY);
                             setControlSpeed(targ,0.0f,0.0f);
-                            animateFloat = false;
+                            stopFloatLoop();
                             playMediaForIcon(iconGroup);
                         }
                     }
@@ -398,14 +409,14 @@ public class OC_PlayZoneMenu extends OC_Menu
             }
             else
             {
-                if(mediaIsPlaying && currentMediaLayer != null && currentMediaLayer.propertyValue("scrollable_control") != null)
+                if(mediaIsPlaying && currentMediaLayer != null && currentMediaLayer.propertyValue("scrollable_text") != null)
                 {
                     OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                     {
                         @Override
                         public void run() throws Exception
                         {
-                            startCurrentMediaScroll();
+                            startCurrentTextMediaScroll();
                         }
                     });
                 }
@@ -424,6 +435,9 @@ public class OC_PlayZoneMenu extends OC_Menu
 
     public void checkActiveMedia(final PointF pt)
     {
+        if(currentMediaLayer == null)
+            return;
+
         setStatus(STATUS_BUSY);
         final OC_SectionController sectionController = this;
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
@@ -434,9 +448,9 @@ public class OC_PlayZoneMenu extends OC_Menu
                 lastTouchPoint = pt;
                 dragTravelDistance = 0;
                 iconsScrollMode = false;
-                if(currentMediaLayer.propertyValue("scrollable_control") != null)
+                if(currentMediaLayer.propertyValue("scrollable_text") != null)
                 {
-                    OBControl scrollableControl = (OBControl) currentMediaLayer.propertyValue("scrollable_control");
+                    OBScrollingText scrollableControl = (OBScrollingText) currentMediaLayer.propertyValue("scrollable_text");
                     if (scrollableControl.getWorldFrame().contains(pt.x, pt.y))
                     {
                         prepareForSpeedMeasure(scrollableControl);
@@ -514,9 +528,17 @@ public class OC_PlayZoneMenu extends OC_Menu
 
     public void currentMediaTouch()
     {
-        if(currentMediaLayer == playBackLayer)
+        if(currentMediaLayer == videoPlayer)
         {
-            videoPlayer.stop();
+            try
+            {
+                videoPlayer.stop();
+                finishVideoPlaying(videoPlayer);
+            }
+            catch (Exception e)
+            {
+                MainActivity.log("Error stopping video: " + e.getMessage());
+            }
         }
         else
         {
@@ -525,23 +547,32 @@ public class OC_PlayZoneMenu extends OC_Menu
         }
     }
 
-    public void checkSectionButton(OBGroup targ) throws Exception
+    public void checkSectionButton(final OBGroup targ) throws Exception
     {
         OBControl highlight = targ.objectDict.get("highlight");
         highlight.show();
-        boolean started = startSectionButton(targ);
+        stopFloatLoop();
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                boolean started = startSectionButton(targ);
+            }
+        });
+
         waitForSecs(0.5f);
         targ.enable();
         highlight.hide();
-        if(!started)
-            setStatus(STATUS_AWAITING_CLICK);
+      //  if(!started)
+           // setStatus(STATUS_AWAITING_CLICK);
 
     }
 
-    public void startCurrentMediaScroll() throws Exception
+    public void startCurrentTextMediaScroll() throws Exception
     {
         long time = setStatus(STATUS_AWAITING_CLICK);
-        OBControl scrollableControl = (OBControl)currentMediaLayer.propertyValue("scrollable_control");
+        OBScrollingText scrollableControl = (OBScrollingText) currentMediaLayer.propertyValue("scrollable_text");
         long currentTime, lastLoopTime;
         currentTime = lastLoopTime = System.currentTimeMillis();
         float scrollSpeed = (float)scrollableControl.propertyValue("speedy");
@@ -549,7 +580,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         {
             currentTime = System.currentTimeMillis();
             float frameFrac = (currentTime - lastLoopTime)*1.0f/(TICK_VALUE*1000.0f) ;
-            moveScrollableBox(scrollableControl,frameFrac);
+            moveScrollableText(scrollableControl,frameFrac);
             lastLoopTime = currentTime;
             waitForSecs(0.001f);
         }
@@ -559,6 +590,7 @@ public class OC_PlayZoneMenu extends OC_Menu
     {
         if(con == null)
             return;
+        PointF currentLoc = OBMisc.copyPoint(con.position());
         long currentTime = System.currentTimeMillis();
         long lastTime = (long)con.propertyValue("last_action");
         if(currentTime == lastTime)
@@ -566,7 +598,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         float lastSpeedX = (float)con.propertyValue("speedx");
         float lastSpeedY = (float)con.propertyValue("speedy");
         PointF lastLoc = (PointF)con.propertyValue("last_drag");
-        PointF currentLoc = OBMisc.copyPoint(con.position());
+
         dragTravelDistance += OB_Maths.PointDistance(lastLoc, currentLoc);
         float ticks =  (currentTime - lastTime)*1.0f/(TICK_VALUE*1000.0f);
         float speedX = 0.8f * ((currentLoc.x - lastLoc.x) / ticks) + 0.2f * lastSpeedX;
@@ -576,10 +608,44 @@ public class OC_PlayZoneMenu extends OC_Menu
         con.setProperty("last_action",currentTime);
     }
 
+    public void measureDragSpeed(OBScrollingText con, PointF currentLoc)
+    {
+        if(con == null)
+            return;
+
+        long currentTime = System.currentTimeMillis();
+        long lastTime = (long)con.propertyValue("last_action");
+        if(currentTime == lastTime)
+            return;
+        float lastOffset = (float)con.propertyValue("last_offset");
+        float currentOffset = con.yOffset();
+        float lastSpeedY = (float)con.propertyValue("speedy");
+        PointF lastLoc = (PointF)con.propertyValue("last_drag");
+
+        dragTravelDistance += OB_Maths.PointDistance(lastLoc, currentLoc);
+        float ticks =  (currentTime - lastTime)*1.0f/(TICK_VALUE*1000.0f);
+        float speedY = 0.8f * ((currentOffset - lastOffset) / ticks) + 0.2f * lastSpeedY;
+        setControlSpeed(con,0,speedY);
+        con.setProperty("last_offset", con.yOffset());
+        con.setProperty("last_drag",currentLoc);
+        con.setProperty("last_action",currentTime);
+    }
+
     public void prepareForSpeedMeasure(OBControl con)
     {
         con.setProperty("last_action",System.currentTimeMillis());
         con.setProperty("last_drag",OBMisc.copyPoint(con.position()));
+        con.setProperty("speedx",0.0f);
+        con.setProperty("speedy",0.0f);
+        con.setProperty("collide",true);
+    }
+
+
+    public void prepareForSpeedMeasure(OBScrollingText con)
+    {
+        con.setProperty("last_action",System.currentTimeMillis());
+        con.setProperty("last_drag",OBMisc.copyPoint(con.position()));
+        con.setProperty("last_offset",con.yOffset());
         con.setProperty("speedx",0.0f);
         con.setProperty("speedy",0.0f);
         con.setProperty("collide",true);
@@ -608,6 +674,7 @@ public class OC_PlayZoneMenu extends OC_Menu
 
     public void startFloatLoop(boolean reloadMoves)
     {
+        prepareForSpeedMeasure(mediaIconsGroup);
         animateFloat= true;
         lastFloatLoopTick =  System.currentTimeMillis();
         OBAnimationGroup ag = new OBAnimationGroup();
@@ -631,6 +698,12 @@ public class OC_PlayZoneMenu extends OC_Menu
         }
         ag.applyAnimations(Arrays.asList(anim),100,false,OBAnim.ANIM_LINEAR,-1,null, this);
         registerAnimationGroup(ag, "floatloop");
+    }
+
+    public void stopFloatLoop()
+    {
+        animateFloat= false;
+        deregisterAnimationGroupWithName("floatloop");
     }
 
     public void floatLoop()
@@ -937,11 +1010,11 @@ public class OC_PlayZoneMenu extends OC_Menu
         String params = (String)icon.attributes().get("params");
         if(target != null)
         {
-            animateFloat = false;
 
             if(config != null)
                 MainActivity.mainActivity.updateConfigPaths(config, false, "en_GB");
-            if(MainViewController().pushViewControllerWithNameConfig(target,config,true,true,params))
+
+            if(MainViewController().pushViewControllerWithNameConfig(target,config != null ? config :"oc-playzone",true,true,params))
             {
                 return true;
             }
@@ -1028,8 +1101,8 @@ public class OC_PlayZoneMenu extends OC_Menu
         }
         else if(asset.type == OC_PlayZoneAsset.ASSET_DOODLE)
         {
-            Map<String,String> dataDict = asset.paramsDictionary();
             mbg.setFillColor(Color.BLUE);
+            Map<String,String> dataDict = asset.paramsDictionary();
             OBImage doodleThumb  = OBImageManager.sharedImageManager().imageForPath(OC_PlayZoneAsset.pathToAsset(asset.thumbnail));
             OBImage gradBg = OBImageManager.sharedImageManager().imageForName("thumbnail_doodle_gradient");
             OBImage overlay = OBImageManager.sharedImageManager().imageForName(String.format("thumbnail_doodle_%s",dataDict.get("theme")));
@@ -1039,7 +1112,6 @@ public class OC_PlayZoneMenu extends OC_Menu
             gradBg.setZPosition(2);
             doodleThumb.setPosition(OB_Maths.locationForRect(new PointF(0.5f, 0.5f), gradBg.bounds()));
             gradBg.setMaskControl(doodleThumb);
-            //gradBg.texturise(false,this);
             thumbnail = new OBGroup((List<OBControl>)(Object)Arrays.asList(overlay,gradBg));
         }
         else if(asset.type == OC_PlayZoneAsset.ASSET_TEXT)
@@ -1051,12 +1123,10 @@ public class OC_PlayZoneMenu extends OC_Menu
             String text = dataDict.get("text");
             Typeface currentFont =  OBUtils.TypefaceForFile(dataDict.get("font"));
             float fontSize = applyGraphicScale(12);
-            OBLabel thumbnailText = new OBLabel(text,currentFont,fontSize);
+            OBLabel thumbnailText = new OBLabel("",currentFont,fontSize);
             thumbnailText.setFrame(0,0,overlay.width()*0.7f, overlay.height()*0.9f);
             thumbnailText.setPosition(OB_Maths.locationForRect(0.5f,0.5f,overlay.frame()));
             thumbnailText.setTop(overlay.top() + applyGraphicScale(10));
-            //(CATextLayer*)thumbnailText.layer.setWrapped(true);
-            // (CATextLayer*)thumbnailText.layer.setAlignmentMode(kCAAlignmentLeft);
             thumbnailText.setZPosition(2);
             thumbnailText.setColour(Color.BLACK);
             String trimmedString = text.replace("\t","");
@@ -1073,8 +1143,6 @@ public class OC_PlayZoneMenu extends OC_Menu
         thumbnail.setZPosition(2);
         OBMisc.scaleControlToControl(thumbnail,mrect,true);
         OBControl crossCopy = objectDict.get("media_delete_cross").copy();
-        crossCopy.setRight(mrect.right());
-        crossCopy.setTop(mrect.top());
         crossCopy.hide();
         grad1.setZPosition(4);
         grad2.setZPosition(4);
@@ -1086,15 +1154,17 @@ public class OC_PlayZoneMenu extends OC_Menu
         RectF rect = new RectF(frameGroup.bounds());
         rect.inset((frameGroup.bounds.width() - mrect.bounds.width())/2.0f,(frameGroup.bounds.height() - mrect.bounds.height())/2.0f );
         frameGroup.setBounds(rect);
-      //  frameGroup.setMasksToBounds(true);
+        frameGroup.setMasksToBounds(true);
         frameGroup.setZPosition(2);
         PointF loc = frameGroup.position();
         mbg.setPosition(loc.x + frameGroup.bounds().left, loc.y + frameGroup.bounds().top);
+        crossCopy.setRight(frameGroup.right());
+        crossCopy.setTop(frameGroup.top());
         OBGroup iconGroup = new OBGroup(Arrays.asList(mbg,frameGroup,crossCopy));
         crossCopy.setZPosition(10);
         iconGroup.objectDict.put("cross",crossCopy);
         iconGroup.setProperty("asset",asset);
-       // iconGroup.setRasterScale(1.0f);
+        // iconGroup.setRasterScale(1.0f);
         return iconGroup;
     }
 
@@ -1119,7 +1189,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         setMediaIconsGroupLoc(OB_Maths.locationForRect(0.5f,0.5f,objectDict.get("bottom_bar").frame()));
         attachControl(mediaIconsGroup);
         //RectF frame = mediaIconsGroup.frame();
-       // mediaIconsGroup.setFrame(frame);
+        // mediaIconsGroup.setFrame(frame);
         mediaIconsGroup.setShouldTexturise(false);
         mediaIconsGroup.setZPosition ( 30);
     }
@@ -1158,7 +1228,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         OBPath blackboard = (OBPath)objectDict.get("blackboard");
         // gradientManager = [OC_DoodleGradientManager.alloc()initWithPath:blackboard controller:;
         OBMisc.scaleControlToControl(currentImage,blackboard,true);
-        currentImage.setPosition ( OB_Maths.locationForRect(new PointF(0.5f, 0.5f), blackboard.bounds));
+        currentImage.setPosition ( OB_Maths.locationForRect(new PointF(0.5f, 0.5f), this.bounds()));
         currentImage.setColourOverlay(Color.BLACK);
         // gradientManager.control.setMaskControl ( currentImage);
         // controls.add(gradientManager.control);
@@ -1166,6 +1236,8 @@ public class OC_PlayZoneMenu extends OC_Menu
         topborder.setFillColor(-1);
         topborder.setZPosition(100);
         controls.add(topborder);
+        controls.add(currentImage);
+        currentImage.setZPosition(101);
         OBGroup imageGroup = new OBGroup(controls);
         imageGroup.setBounds(objectDict.get("obj_background").frame());
         RectF iconFrame = icon.getWorldFrame();
@@ -1189,47 +1261,70 @@ public class OC_PlayZoneMenu extends OC_Menu
         final Map<String,String> params = asset.paramsDictionary();
         if(videoPlayer == null)
         {
-            videoPlayer = new OBVideoPlayer(playBackLayer.frame(),this);
+            videoPlayer = new OBVideoPlayer(this.boundsf(),this,false,false);
             attachControl(videoPlayer);
             videoPlayer.setZPosition(100);
         }
-
+        videoPlayer.setDisplayMirrored(Boolean.valueOf(params.get("mirrored")));
         RectF videoIconFrame = icon.getWorldFrame();
         float targetScale = videoIconFrame.height()/videoPlayer.height();
         PointF videoIconLoc = icon.getWorldPosition();
+        String videoFilePath = OC_PlayZoneAsset.pathToAsset(params.get("video"));
+
+        AssetFileDescriptor afd = OBUtils.getAssetFileDescriptorForPath(videoFilePath);
         videoPlayer.setPosition(videoIconLoc);
         videoPlayer.setScale(targetScale);
-        videoPlayer.setProperty("parent_icon",icon);
-        videoPlayer.show();
 
-        animateMedia(videoPlayer, true);
-        currentMediaLayer = videoPlayer;
-        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        videoPlayer.setProperty("parent_icon",icon);
+        videoPlayer.prepareForPlaying(afd, 0, new OBUtils.RunLambda()
         {
             @Override
             public void run() throws Exception
             {
-                AssetFileDescriptor afd = OBUtils.getAssetFileDescriptorForPath(params.get("video"));
-
-                videoPlayer.startPlayingAtTime(afd, 0, new OBUtils.RunLambda()
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
                     @Override
                     public void run() throws Exception
                     {
-                        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                        videoPlayer.show();
+                        animateMedia(videoPlayer, true);
+                        currentMediaLayer = videoPlayer;
+                        OBUtils.runOnMainThread(new OBUtils.RunLambda()
                         {
+                            @Override
                             public void run() throws Exception
                             {
-                                setStatus(STATUS_BUSY);
-                                animateMedia(videoPlayer, false);
-                                videoPlayer.setScale(1);
-                                finishMediaPlaying();
+                                videoPlayer.start(new OBUtils.RunLambda()
+                                {
+                                    @Override
+                                    public void run() throws Exception
+                                    {
+                                        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                                        {
+                                            public void run() throws Exception
+                                            {
+                                                finishVideoPlaying(videoPlayer);
+                                            }
+                                        });
+                                    }
+                                });
                             }
                         });
                     }
                 });
+
             }
         });
+
+
+    }
+
+    public void finishVideoPlaying(OBVideoPlayer videoPlayer)
+    {
+        setStatus(STATUS_BUSY);
+        animateMedia(videoPlayer, false);
+        videoPlayer.setScale(1);
+        finishMediaPlaying();
     }
 
     public void loadTextForAsset(OC_PlayZoneAsset asset,OBControl icon)
@@ -1238,69 +1333,53 @@ public class OC_PlayZoneMenu extends OC_Menu
         String theme = params.get("theme");
         String font = params.get("font");
         String text = params.get("text");
+
         lockScreen();
         Typeface currentFont =  OBUtils.TypefaceForFile(font);
         OBGroup fullGroup = null;
-        if(mediaTextThemes.get(theme) == null)
-        {
-            List<OBControl> controls = loadEvent(String.format("typewrite_%s",theme));
-            /*for(OBControl con : controls)
-            {
-                con.setRasterScale(con.scale());
-            }*/
-            OBControl bg = objectDict.get("text_box_bg");
-            float zPosition = bg.zPosition();
-            float fontSize = applyGraphicScale(60);
 
-            OBLabel textBox = new OBLabel(text,currentFont,fontSize);
-            textBox.setProperty("start_width",bg.width() - applyGraphicScale(40));
-            // (CATextLayer*)textBox.layer.setWrapped(true);
-            // (CATextLayer*)textBox.layer.setAlignmentMode(kCAAlignmentLeft);
-            textBox.setZPosition ( 5);
-            textBox.setColour(Color.BLACK);
-            // textBox.setFrame ( [frameForTextBox:textBox attributedString:currentText]);
-            OBControl gradientTop = objectDict.get("text_box_gradient_top");
-            OBControl gradientBottom = objectDict.get("text_box_gradient_bottom");
-            gradientTop.setWidth(bg.width()-bg.lineWidth());
-            gradientBottom.setWidth(bg.width()-bg.lineWidth());
-            OBGroup group = new OBGroup((List<OBControl>)(Object)Arrays.asList(textBox));
-            group.setBounds(new RectF(0, 0, bg.bounds.width(), gradientBottom.bottom()-gradientTop.top()));
-            textBox.setPosition(OB_Maths.locationForRect(new PointF(0.5f, 0.5f), textBox.parent.bounds));
-            textBox.setTop(objectDict.get("text_box_gradient_top").height());
-            group.setMasksToBounds(true);
-            group.setZPosition(zPosition+0.0001f);
-            group.setPosition(bg.position());
-            group.setTop(gradientTop.top());
-            textBox.setProperty("top_limit",textBox.top());
-            textBox.setProperty("bottom_limit",group.height()/2.0f);
-            controls.add(group);
-            fullGroup = new OBGroup(controls);
-            RectF frame = fullGroup.frame();
-            fullGroup.setBounds(new RectF(-frame.left,-frame.top,this.bounds().width(),this.bounds().height()));
-            fullGroup.setMasksToBounds(true);
-            fullGroup.setPosition(OB_Maths.locationForRect(0.5f,0.5f,this.bounds()));
-            fullGroup.setProperty("text_box",textBox);
-            attachControl(fullGroup);
-            mediaTextThemes.put(theme,fullGroup);
-            fullGroup.setZPosition(100);
-            fullGroup.setScale(icon.height()/fullGroup.height());
+        List<OBControl> controls = loadEvent(String.format("typewrite_%s",theme));
+           /* for(OBControl con : controls)
+                con.setRasterScale(con.scale());*/
+        OBControl bg = objectDict.get("text_box_bg");
+        float zPosition = bg.zPosition();
+        float fontSize = applyGraphicScale(60);
+        RectF textFrame = new RectF(bg.getWorldFrame());
+        textFrame.inset(applyGraphicScale(40), 0);
+        OBScrollingText textBox = new OBScrollingText(text,currentFont,fontSize,textFrame);
+        textBox.setProperty("start_width",textFrame.width());
+        textBox.setZPosition(5);
+        textBox.setColour(Color.BLACK);
+        textBox.setProperty("bottom_offset",-textBox.topOffsetOfLastLine() + textBox.height()/2.0f);
+        OBControl gradientTop = objectDict.get("text_box_gradient_top");
+        OBControl gradientBottom = objectDict.get("text_box_gradient_bottom");
+        gradientTop.setWidth(bg.width()-bg.lineWidth());
+        gradientBottom.setWidth(bg.width()-bg.lineWidth());
+        OBGroup group = new OBGroup((List<OBControl>)(Object)Arrays.asList(textBox));
+        group.setBounds(new RectF(0, 0, bg.bounds.width(), gradientBottom.bottom()-gradientTop.top()));
+        textBox.setPosition(OB_Maths.locationForRect(new PointF(0.5f, 0.5f), textBox.parent.bounds));
+        textBox.setTop(objectDict.get("text_box_gradient_top").height());
+        group.setMasksToBounds(true);
+        group.setZPosition(zPosition+0.0001f);
+        group.setPosition(bg.position());
+        group.setTop(gradientTop.top());
+        controls.add(group);
+        fullGroup = new OBGroup(controls);
+        RectF frame = fullGroup.frame();
+        fullGroup.setBounds(new RectF(frame.left,frame.top,this.bounds().width()-frame.left,this.bounds().height()-frame.top));
+        fullGroup.setMasksToBounds(true);
+        fullGroup.setPosition(OB_Maths.locationForRect(0.5f,0.5f,this.bounds()));
+        fullGroup.setProperty("text_box",textBox);
+        fullGroup.setProperty("delete_after",true);
+        attachControl(fullGroup);
 
-        }
-        else
-        {
-            fullGroup = mediaTextThemes.get(theme);
-            OBLabel textBox = (OBLabel)fullGroup.propertyValue("text_box");
-            textBox.setTypeFace(currentFont);
-            // textBox.setFrame  ( [frameForTextBox:textBox attributedString:currentText]);
-            textBox.setString(text);
-            textBox.setPosition(OB_Maths.locationForRect(new PointF(0.5f, 0.5f), textBox.parent.bounds));
-            textBox.setTop((float)textBox.propertyValue("top_limit"));
+        fullGroup.setZPosition(100);
+        fullGroup.setScale(icon.height()/fullGroup.height());
 
-        }
         fullGroup.setPosition(icon.getWorldPosition());
         currentMediaLayer = fullGroup;
         unlockScreen();
-        currentMediaLayer.setProperty("scrollable_control",currentMediaLayer.propertyValue("text_box"));
+        currentMediaLayer.setProperty("scrollable_text",currentMediaLayer.propertyValue("text_box"));
         currentMediaLayer.setProperty("parent_icon",icon);
         animateMedia(currentMediaLayer,true);
     }
@@ -1314,7 +1393,7 @@ public class OC_PlayZoneMenu extends OC_Menu
 
     public void finishMediaPlaying()
     {
-        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             @Override
             public void run() throws Exception
@@ -1341,53 +1420,68 @@ public class OC_PlayZoneMenu extends OC_Menu
     public void animateMedia(OBControl mediaLayer,boolean zoomIn)
     {
         mediaLayer.show();
+
+        mediaLayer.setShouldTexturise(true);
         OBControl icon = (OBControl)mediaLayer.propertyValue("parent_icon");
-        float targetScale = mediaLayer.propertyValue("target_scale") != null ? (float)mediaLayer.propertyValue("target_scale")  : 1;
-        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.scaleAnim(zoomIn ? targetScale : icon.height()/(mediaLayer.height()/targetScale),mediaLayer),
+        float zoomScale = mediaLayer.propertyValue("target_scale") != null ? (float)mediaLayer.propertyValue("target_scale")  : 1;
+        float targetScale = zoomIn ? zoomScale : icon.height()/(mediaLayer.height()/zoomScale);
+        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.scaleAnim(targetScale,mediaLayer),
                 OBAnim.moveAnim(zoomIn ? OB_Maths.locationForRect(0.5f,0.5f, this.bounds()) : icon.getWorldPosition() ,mediaLayer))
                 ,0.3,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
-        if(!zoomIn)
+        if(zoomIn)
+        {
+            mediaLayer.invalidate();
+            mediaLayer.setShouldTexturise(false);
+        }
+        else
+        {
             mediaLayer.hide();
+        }
     }
 
-    public boolean setMediaScrollableBoxLoc(PointF loc)
+    public boolean setScrollableTextBoxOffset(OBScrollingText scrollingText, float offset)
     {
-        if(currentMediaLayer == null || currentMediaLayer.propertyValue("scrollable_control") == null)
+        if(offset == 0)
             return true;
-        OBControl scrollableControl = (OBControl)currentMediaLayer.propertyValue("scrollable_control");
+
         boolean endReached = false;
-        if(scrollableControl.parent.bounds.height() > scrollableControl.height())
+
+        float scrollTopLimit = 0;
+        float scrollBottomLimit = (float)scrollingText.propertyValue("bottom_offset");
+
+        if(scrollBottomLimit > -scrollingText.height())
             return true;
-        loc.x = scrollableControl.position().x;
-        float scrollTopLimit = (float)scrollableControl.propertyValue("top_limit") ;
-        float scrollBottomLimit = (float)scrollableControl.propertyValue("bottom_limit") ;
+
         lockScreen();
-        scrollableControl.setPosition(loc);
-        if(scrollableControl.top() > scrollTopLimit)
+        if(offset < scrollBottomLimit)
         {
             endReached = true;
-            scrollableControl.setTop ( scrollTopLimit);
+            scrollingText.setYOffset(scrollBottomLimit);
         }
-        else if(scrollableControl.bottom() < scrollBottomLimit)
+        else if(offset > scrollTopLimit)
         {
             endReached = true;
-            scrollableControl.setBottom ( scrollBottomLimit);
+            scrollingText.setYOffset(scrollTopLimit);
+        }
+        else
+        {
+            scrollingText.setYOffset(offset);
         }
         unlockScreen();
         return endReached;
     }
 
-    public void moveScrollableBox(OBControl scrollable,float frameFrac)
+    public void moveScrollableText(OBScrollingText scrollable,float frameFrac)
     {
         float speedY = (float)scrollable.propertyValue("speedy");
-        PointF loc = scrollable.position();
-        loc.y += speedY * frameFrac;
+        float offsetY = scrollable.yOffset();
+        offsetY += speedY * frameFrac;
         float decay = (float)Math.pow(0.99f,frameFrac);
         if(Math.abs(speedY) > applyGraphicScale(0.01f))
             speedY *= decay;
         else
             speedY = 0;
-        if(setMediaScrollableBoxLoc(loc))
+        if(setScrollableTextBoxOffset(scrollable,offsetY))
         {
             setControlSpeed(scrollable,0.0f,0.0f);
         }
