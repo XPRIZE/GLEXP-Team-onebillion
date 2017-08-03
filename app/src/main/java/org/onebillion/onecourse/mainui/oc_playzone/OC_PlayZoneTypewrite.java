@@ -184,7 +184,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
             public void run() throws Exception
             {
                 setStatus(STATUS_AWAITING_CLICK);
-                startCursorFlash();
+              //  startCursorFlash();
             }
         });
     }
