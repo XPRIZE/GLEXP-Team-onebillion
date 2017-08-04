@@ -15,9 +15,6 @@ import org.onebillion.onecourse.mainui.MainActivity;
  */
 public class OBAlarmManager
 {
-    public static final int REQUEST_SESSION_CHECK =1,
-            REQUEST_SESSION_CHECK2=2,
-            REQUEST_OTHER =100;
 
     public static PendingIntent scheduleRepeatingAlarm(long triggerAtMillis, long intervalMillis, int requestCode)
     {

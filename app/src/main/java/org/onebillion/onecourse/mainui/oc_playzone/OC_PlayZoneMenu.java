@@ -35,7 +35,7 @@ import org.onebillion.onecourse.utils.OBImageManager;
 import org.onebillion.onecourse.utils.OBMisc;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
-import org.onebillion.onecourse.utils.OC_FatController;
+import org.onebillion.onecourse.utils.OCM_FatController;
 
 import java.io.File;
 import java.io.InputStream;
@@ -62,14 +62,14 @@ public class OC_PlayZoneMenu extends OC_Menu
     Map<String, OBGroup> mediaTextThemes;
     List<OC_PlayZoneAsset> mediaAssets;
     OBControl currentMediaLayer;
-    OBGroup mediaIconsGroup, buttonsMaskGroup;
+    OBGroup mediaIconsGroup;
     long dragStartTime, lastFloatLoopTick, lastTouchTime, iconShakeStartTime;
     PointF lastTouchPoint;
     OBVideoPlayer videoPlayer;
     RectF scrollHitBox;
     float dragTravelDistance;
     float leftLimit, rightLimit, topLimit, bottomLimit;
-    OC_FatController fatController;
+    OCM_FatController fatController;
 
     public String sectionName()
     {
@@ -83,23 +83,28 @@ public class OC_PlayZoneMenu extends OC_Menu
 
     public void prepare()
     {
-        fatController = (OC_FatController) MainActivity.mainActivity.fatController;
+        fatController = (OCM_FatController) MainActivity.mainActivity.fatController;
         mediaTextThemes = new ArrayMap<>();
         setStatus(STATUS_BUSY);
         super.prepare();
         loadFingers();
+        loadAudioXML(getConfigPath("pzdefaultaudio.xml"));
 
         OBControl btmLeft = objectDict.get("bottom_bar_left");
         OBControl btmRight = objectDict.get("bottom_bar_right");
         scrollHitBox = new RectF(btmLeft.right(), btmLeft.top(), btmRight.left() , btmLeft.bottom());
+
+        OBControl backButton = objectDict.get("button_back");
+        backButton.setZPosition(50);
+        backButton.show();
+        backButton.setProperty("activated",false);
 
         menuButtons = new ArrayList<>();
         OBGroup menuButton = (OBGroup)objectDict.get("menu_button");
         List<String> colours = OBUtils.randomlySortedArray(Arrays.asList(eventAttributes.get("button_colours").split(";")));
         int index = 0;
         List<Float> scaleOptions = OBUtils.randomlySortedArray(Arrays.asList(0.95f,0.975f,1.0f,1.025f,1.05f));
-        // boxTouchMode = parameters.get("intro") != null;
-        boxTouchMode = false;
+        boxTouchMode = OBUtils.getBooleanValue(parameters.get("intro"));
 
         for(OBControl iconCont : filterControls("menu_icon_.*"))
         {
@@ -154,7 +159,18 @@ public class OC_PlayZoneMenu extends OC_Menu
         if(boxTouchMode)
         {
             loadEvent("box");
-            loadBoxAndButtonGroup();
+            OBGroup box = (OBGroup)this.objectDict.get("box");
+           // box.setScale(applyGraphicScale(0.9f));
+            box.show();
+            //box.setRasterScale(1.4f*box.scale());
+            for(OBControl gemControl : box.filterMembers("gem_.*"))
+            {
+                OBGroup gemGroup = (OBGroup)gemControl;
+                for(OBControl cont : gemGroup.filterMembers("glow.*"))
+                {
+                    cont.setOpacity(1);
+                }
+            }
         }
         else
         {
@@ -184,34 +200,34 @@ public class OC_PlayZoneMenu extends OC_Menu
                 }
             }
 
-                Map<String, String> params = new ArrayMap<>();
-                params.put("doodle", "doodle_car.png");
-                params.put("theme", "transport");
-                fatController.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_DOODLE, "thumb_doodle_car.png", params);
+            Map<String, String> params = new ArrayMap<>();
+            params.put("doodle", "doodle_car.png");
+            params.put("theme", "transport");
+            fatController.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_DOODLE, "thumb_doodle_car.png", params);
 
 
-                params = new ArrayMap<>();
-                params.put("theme", "beach");
-                params.put("font", "AklatanicTSO.ttf");
-                params.put("text", "\t\tDada anasona kitabu kizuli kuhusu wanyama wa pori");
-                fatController.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_TEXT,
-                        null, params);
+            params = new ArrayMap<>();
+            params.put("theme", "beach");
+            params.put("font", "AklatanicTSO.ttf");
+            params.put("text", "\t\tDada anasona kitabu kizuli kuhusu wanyama wa pori");
+            fatController.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_TEXT,
+                    null, params);
 
-                params = new ArrayMap<>();
-                params.put("doodle", "doodle_butterfly.png");
-                params.put("theme", "animals");
-                fatController.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_DOODLE,
-                        "thumb_doodle_butterfly.png", params);
+            params = new ArrayMap<>();
+            params.put("doodle", "doodle_butterfly.png");
+            params.put("theme", "animals");
+            fatController.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_DOODLE,
+                    "thumb_doodle_butterfly.png", params);
 
-                params = new ArrayMap<>();
-                params.put("video", "plane_throw.mp4");
-                fatController.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_VIDEO, "thumb_plane_throw.jpg", params);
+            params = new ArrayMap<>();
+            params.put("video", "plane_throw.mp4");
+            fatController.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_VIDEO, "thumb_plane_throw.jpg", params);
 
-                params = new ArrayMap<>();
-                params.put("theme", "sea");
-                params.put("font", "AnotherTypewriter.ttf");
-                params.put("text", "\t\tJana mama yanku alienda kasini, yeye ni mwalimu");
-                fatController.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_TEXT, null, params);
+            params = new ArrayMap<>();
+            params.put("theme", "sea");
+            params.put("font", "AnotherTypewriter.ttf");
+            params.put("text", "\t\tJana mama yanku alienda kasini, yeye ni mwalimu");
+            fatController.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_TEXT, null, params);
 
             mediaAssets = fatController.getPlayZoneAssetForCurrentUser();
 
@@ -263,6 +279,11 @@ public class OC_PlayZoneMenu extends OC_Menu
         //setButtons();
     }
 
+    @Override
+    public int buttonFlags()
+    {
+        return 0;
+    }
 
     public void touchDownAtPoint(PointF pt, View v)
     {
@@ -275,7 +296,8 @@ public class OC_PlayZoneMenu extends OC_Menu
             else
             {
                 dragTravelDistance = 0;
-                if(mediaIcons.size() > 0 && scrollHitBox.contains( pt.x, pt.y))
+                if(checkBackButtonDown(pt) &&
+                        mediaIcons.size() > 0 && scrollHitBox.contains( pt.x, pt.y))
                 {
                     startMediaIconsDrag(pt);
                 }
@@ -320,6 +342,9 @@ public class OC_PlayZoneMenu extends OC_Menu
 
     public void touchUpAtPoint(final PointF pt, View v)
     {
+        if(checkBackButtonUp(pt))
+            return;
+
         if(status() == STATUS_AWAITING_CLICK && mediaIsPlaying)
         {
             long time =  System.currentTimeMillis();
@@ -471,6 +496,45 @@ public class OC_PlayZoneMenu extends OC_Menu
         });
     }
 
+    public boolean checkBackButtonDown(PointF pt)
+    {
+        OBControl backButton = objectDict.get("button_back");
+        if(finger(0,1,Arrays.asList(backButton),pt) != null)
+        {
+            backButton.highlight();
+            backButton.setProperty("activated",true);
+            return true;
+
+        }
+        return false;
+
+    }
+    public boolean checkBackButtonUp(PointF pt)
+    {
+        OBControl backButton = objectDict.get("button_back");
+        if(backButton.propertyValue("activated") != null &&
+                (boolean)backButton.propertyValue("activated"))
+        {
+            backButton.lowlight();
+            if(finger(0,1,Arrays.asList(backButton),pt) != null)
+            {
+                playAudio(null);
+                goBack();
+                return true;
+
+            }
+            else
+            {
+                backButton.setProperty("activated",false);
+
+            }
+
+        }
+        return false;
+
+    }
+
+
     public void startMediaIconsDrag(PointF pt)
     {
         setStatus(STATUS_BUSY);
@@ -564,8 +628,8 @@ public class OC_PlayZoneMenu extends OC_Menu
         waitForSecs(0.5f);
         targ.enable();
         highlight.hide();
-      //  if(!started)
-           // setStatus(STATUS_AWAITING_CLICK);
+        //  if(!started)
+        // setStatus(STATUS_AWAITING_CLICK);
 
     }
 
@@ -1592,118 +1656,130 @@ public class OC_PlayZoneMenu extends OC_Menu
         setStatus(STATUS_AWAITING_CLICK);
     }
 
-    public void loadBoxAndButtonGroup()
+
+    public void doButtonDemo(List<String> audio,long time) throws Exception
+    {
+        OBControl backButton = objectDict.get("button_back");
+        playAudio(audio.get(0));
+        for(int i=0; i<3; i++)
+        {
+            if(statusChanged(time))
+                break;
+            backButton.highlight();
+            waitForSecs(0.3f);
+            if(statusChanged(time))
+                break;
+            backButton.lowlight();
+            waitForSecs(0.3f);
+        }
+        if(statusChanged(time))
+            return;
+        waitAudio();
+        backButton.lowlight();
+        if(statusChanged(time))
+            return;
+        playAudio(audio.get(1));
+        waitAudio();
+    }
+
+
+    public void setupBoxMask()
     {
         OBGroup box = (OBGroup)objectDict.get("box");
-        box.setBottom(bounds().height());
-        RectF maskFrame = box.objectDict.get("mask_frame").getWorldFrame();
-        OBControl maskPart1 = new OBControl();
-        maskPart1.setFrame(new RectF(0, 0, maskFrame.left, bounds().height()));
-        maskPart1.setBackgroundColor(Color.BLUE);
-        OBControl maskPart2 = maskPart1.copy();
-        maskPart2.setFrame(new RectF(0, 0,  bounds().width(), maskFrame.right));
-        OBControl maskPart3 = maskPart1.copy();
-        maskPart3.setFrame(new RectF(maskFrame.right, 0,  bounds().width() - maskFrame.right, bounds().height()));
-        PointF centrePoint = box.objectDict.get("mask_frame").getWorldPosition();
-        OBGroup mask = new OBGroup(Arrays.asList(maskPart1,maskPart2,maskPart3));
-        OBControl frameCont = new OBControl();
-        frameCont.setFrame(new RectF(bounds()));
-        List<OBControl> controls = new ArrayList<>((List<OBControl>)(Object)menuButtons);
-        controls.add(frameCont);
-        buttonsMaskGroup=  new OBGroup(controls);
-        buttonsMaskGroup.setZPosition(10);
-        attachControl(buttonsMaskGroup);
-        buttonsMaskGroup.setMaskControl(mask);
+
+        OBControl maskFrame =  box.objectDict.get("mask_frame");
+        RectF maskRect = maskFrame.getWorldFrame();
+        OBControl mask = new OBControl();
+        mask.setFrame(maskRect);
+        mask.setBackgroundColor(Color.WHITE);
+        mask.texturise(false,this);
+        PointF centrePoint = maskFrame.getWorldPosition();
         lockScreen();
         for(OBControl menuButton : menuButtons)
         {
             menuButton.hide();
-            menuButton.setPosition ( centrePoint);
+            menuButton.setPosition(centrePoint);
+            menuButton.setReversedScreenMaskControl(mask);
         }
-        box.setPosition ( OB_Maths.locationForRect(0.5f,0.4f,this.bounds()));
         box.show();
         unlockScreen();
     }
 
     public void demoPlayZoneIntro() throws Exception
     {
-        playAudio("box_drop");
+
+        boolean firstEnter = OBUtils.getBooleanValue(parameters.get("first"));
+        String scene = firstEnter ? "playzone_1" : "playzone_default";
+
         final OBGroup box = (OBGroup)objectDict.get("box");
-        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("bottom",bounds().height(),box),
-                OBAnim.rotationAnim((float)Math.toRadians(-15),box))
-                ,0.3,true,OBAnim.ANIM_EASE_IN,this);
-        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("bottom",bounds().height(),box),
-                OBAnim.rotationAnim((float)Math.toRadians(0),box))
-                ,0.1,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
-
-        final OBSectionController sectionController = this;
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        box.setZPosition(9);
+        List<OBAnim> cloudAnim = new ArrayList<>();
+        for (OBControl cloud : filterControls("cloud_.*"))
         {
-            public void run() throws Exception
+            PointF loc = OBMisc.copyPoint(cloud.position());
+            int repos = Integer.valueOf((String) cloud.attributes().get("repos"));
+
+            if (repos == 1)
             {
-                waitSFX();
-                List<OBAnim> cloudAnim = new ArrayList<>();
-                for (OBControl cloud : filterControls("cloud_.*"))
-                {
-                    PointF loc = cloud.position();
-                    int repos = Integer.valueOf((String) cloud.attributes().get("repos"));
-
-                    if (repos == 1)
-                    {
-                        cloud.setLeft(bounds().width());
-                    } else
-                    {
-                        cloud.setRight(0);
-                    }
-                    cloudAnim.add(OBAnim.moveAnim(loc, cloud));
-                    cloud.show();
-                }
-                OBAnimationGroup.runAnims(cloudAnim, 1, true, OBAnim
-                        .ANIM_EASE_IN_EASE_OUT, sectionController);
-                playSfxAudio("lid_open", false);
-                animateFrames(OBUtils.getFramesList("lid_", 0, 4),
-                        0.05f, box);
-                waitSFX();
-                OBAnimationGroup.runAnims(Arrays.asList(OBAnim.opacityAnim(1, box.objectDict.get("glow")))
-                        , 0.2, true, OBAnim.ANIM_LINEAR,
-                        sectionController);
-                for (OBControl menuButton : menuButtons)
-                {
-                    menuButton.setScale(0.15f);
-                    menuButton.disable();
-                    menuButton.show();
-                    menuButton.setProperty("collide", false);
-
-                }
-                startFloatLoop(false);
-                playAudio("pop_combined");
-                for (int i = 0; i < menuButtons.size(); i++)
-                {
-                    final OBControl menuButton = menuButtons.get(i);
-                    float currentAngle = -125.0f + (90.0f / menuButtons
-                            .size()) * i;
-                    setControlSpeed(menuButton, applyGraphicScale(5) * (float) Math.cos((float) Math.toRadians(currentAngle)),
-                            applyGraphicScale(5) * (float) Math.sin((float) Math.toRadians(currentAngle)));
-                    menuButton.enable();
-                    OBAnimationGroup.runAnims(Arrays.asList(OBAnim.scaleAnim((float) menuButton.propertyValue("start_scale"), menuButton)),
-                            0.5, false,
-                            OBAnim.ANIM_EASE_IN, new OBUtils.RunLambda()
-                            {
-                                @Override
-                                public void run() throws Exception
-                                {
-                                    menuButton.setProperty("collide", true);
-                                }
-                            }, sectionController);
-                }
-                waitForSecs(0.2f);
+                cloud.setLeft(bounds().width());
+            } else
+            {
+                cloud.setRight(0);
             }
-        });
+            cloudAnim.add(OBAnim.moveAnim(loc, cloud));
+            cloud.show();
+        }
+        cloudAnim.add(OBAnim.scaleAnim(box.scale()*2.0f,box));
+        cloudAnim.add(OBAnim.propertyAnim("bottom",this.bounds().height(),box));
+
+        OBAnimationGroup.runAnims(cloudAnim, 1, true, OBAnim
+                .ANIM_EASE_IN_EASE_OUT, this);
+        playAudioQueued((List<Object>)(Object)getAudioForScene(scene,"DEMO"),true);
+
+        playSfxAudio("lid_open", false);
+        animateFrames(OBUtils.getFramesList("lid_", 0, 4),
+                0.05f, box);
+        waitSFX();
+        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.opacityAnim(1, box.objectDict.get("glow")))
+                , 0.2, true, OBAnim.ANIM_LINEAR,
+                this);
+        setupBoxMask();
+        for (OBControl menuButton : menuButtons)
+        {
+            menuButton.setScale(0.15f);
+            menuButton.disable();
+            menuButton.show();
+            menuButton.setProperty("collide", false);
+
+        }
+        startFloatLoop(false);
+        playAudio("pop_combined");
+        for (int i = 0; i < menuButtons.size(); i++)
+        {
+            final OBControl menuButton = menuButtons.get(i);
+            float currentAngle = -125.0f + (90.0f / menuButtons
+                    .size()) * i;
+            setControlSpeed(menuButton, applyGraphicScale(5) * (float) Math.cos((float) Math.toRadians(currentAngle)),
+                    applyGraphicScale(5) * (float) Math.sin((float) Math.toRadians(currentAngle)));
+            menuButton.enable();
+            OBAnimationGroup.runAnims(Arrays.asList(OBAnim.scaleAnim((float) menuButton.propertyValue("start_scale"), menuButton)),
+                    0.5, false,
+                    OBAnim.ANIM_EASE_IN, new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run() throws Exception
+                        {
+                            menuButton.setProperty("collide", true);
+                        }
+                    }, this);
+            waitForSecs(0.2f);
+        }
+
         waitForSecs(0.5f);
         OBAnimationGroup.runAnims(Arrays.asList(OBAnim.opacityAnim(0,box.objectDict.get("glow")))
                 ,0.2,true,OBAnim.ANIM_LINEAR,this);
         animateFrames(OBUtils.getFramesList("lid_", 4, 0),0.05f,box);
-        buttonsMaskGroup.setMaskControl ( null);
+
         waitForSecs(0.3f);
         boolean animateMediaIcons = mediaIcons.size() > 0;
         PointF loc = OBMisc.copyPoint(mediaIconsGroup.position());
@@ -1718,32 +1794,36 @@ public class OC_PlayZoneMenu extends OC_Menu
         lockScreen();
         for(OBControl con : filterControls("bottom_bar.*"))
         {
-            con.setOpacity ( 0);
+            con.setOpacity(0);
             con.show();
             anims.add(OBAnim.opacityAnim(1,con));
         }
         showControls("bottom_bar.*");
         if(animateMediaIcons)
         {
-            mediaIconsGroup.setOpacity ( 0);
+            for(OBControl icon : mediaIcons)
+            {
+                icon.setOpacity(0);
+                anims.add(OBAnim.opacityAnim(1,icon));
+            }
             mediaIconsGroup.show();
+            anims.add(OBAnim.moveAnim(loc,mediaIconsGroup));
         }
 
         unlockScreen();
         anims.add(OBAnim.opacityAnim(0,box));
         anims.add(OBAnim.propertyAnim("top",bounds().height(),box));
-        if(animateMediaIcons)
-        {
-            anims.add(OBAnim.opacityAnim(1,mediaIconsGroup));
-            anims.add(OBAnim.moveAnim(loc,mediaIconsGroup));
 
-        }
         waitForSecs(0.3f);
         OBAnimationGroup.runAnims(anims,0.5
                 ,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
-        boxTouchMode = false;
-        setStatus(STATUS_AWAITING_CLICK);
 
+        box.hide();
+        boxTouchMode = false;
+
+        long time = setStatus(STATUS_AWAITING_CLICK);
+        List<String> audio = getAudioForScene(scene,"PROMPT");
+        doButtonDemo(audio,time);
     }
 
 }

@@ -7,6 +7,7 @@ import android.util.ArrayMap;
 import android.os.Handler;
 import android.widget.Toast;
 
+import org.onebillion.onecourse.R;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OBSectionController;
@@ -46,6 +47,8 @@ public class OC_FatController extends OBFatController
             OFC_NEW_SESSION = 5,
             OFC_SESSION_LOCKED = 6;
 
+    public static final int REQUEST_SESSION_CHECK =1,
+            REQUEST_SESSION_CHECK2=2;
 
     private long sessionTimeout;
     private int unitAttemptsCount, disallowStartHour,disallowEndHour;
@@ -59,6 +62,12 @@ public class OC_FatController extends OBFatController
 
     private Handler timeoutHandler;
     private Runnable timeoutRunnable;
+
+    @Override
+    public int databaseResource()
+    {
+        return R.raw.tables;
+    }
 
     @Override
     public int buttonFlags()
@@ -373,10 +382,10 @@ public class OC_FatController extends OBFatController
         calendar.set(Calendar.HOUR_OF_DAY, disallowStartHour);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
-        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, OBAlarmManager.REQUEST_SESSION_CHECK);
+        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, REQUEST_SESSION_CHECK);
 
         calendar.set(Calendar.HOUR_OF_DAY, disallowEndHour);
-        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, OBAlarmManager.REQUEST_SESSION_CHECK2);
+        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, REQUEST_SESSION_CHECK2);
     }
 
     public boolean checkAndPrepareNewSession()
@@ -1310,6 +1319,9 @@ public class OC_FatController extends OBFatController
     public boolean checkTimeout(MlUnitInstance unitInstance)
     {
         if (!allowsTimeOuts)
+            return false;
+
+        if(unitInstance == null)
             return false;
 
         if(unitInstance != currentUnitInstance)

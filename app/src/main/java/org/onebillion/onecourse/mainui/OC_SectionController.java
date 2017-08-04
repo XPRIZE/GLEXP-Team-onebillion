@@ -1,5 +1,6 @@
 package org.onebillion.onecourse.mainui;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Path;
@@ -206,6 +207,60 @@ public class OC_SectionController extends OBSectionController {
         waitForSecs(duration);
         emitter.stop();
         waitForSecs(0.4f);
+
+    }
+
+    public void displayAward2(int colour) throws Exception
+    {
+        if (_aborting)
+            return;
+        OBPath star = StarWithScale(bounds().height() * 0.4f,true);
+        star.setPosition(bounds().width() / 2, bounds().height() / 2);
+        star.setScale(0.04f);
+        star.setStrokeColor(Color.TRANSPARENT);
+        star.setFillColor(colour);
+        attachControl(star);
+        miscObjects.put("star", star);
+        String audioFile = (String) Config().get(MainActivity.CONFIG_AWARDAUDIO);
+        playAudio(audioFile);
+        double duration = OBAudioManager.audioManager.duration();
+        completeDisplay2((duration < 1.0) ? 1.0 : duration, colour);
+    }
+
+    public void completeDisplay2(double duration, int colour) throws Exception
+    {
+        float scale = MainActivity.mainActivity.applyGraphicScale(1);
+        OBEmitter emitter = new OBEmitter();
+        emitter.setFrame(0,0,bounds().width(),bounds().height());
+        OBEmitterCell cell = new OBEmitterCell();
+        cell.birthRate = 40;
+        cell.velocity = 400 * scale;
+        cell.velocityRange = 80 * scale;
+        cell.lifeTime = 5;
+        cell.emissionRange = (float)(2 * Math.PI);
+        cell.scale = 0.7f;
+        cell.scaleSpeed = -0.1f;
+        //cell.spin = (float)(Math.PI / 12);
+        cell.spinRange = (float)(2 * Math.PI / 2);
+        cell.position = OB_Maths.locationForRect(0.5f,0.5f,emitter.bounds());
+        cell.alphaSpeed = -0.2f;
+        OBPath star = StarWithScale(bounds().height() * 0.1f,true);
+        star.setLineWidth(0);
+        star.setFillColor(colour);
+        star.setStrokeColor(Color.TRANSPARENT);
+        star.enCache();
+        cell.contents = star.cache;
+        emitter.cells.add(cell);
+        emitter.setZPosition(90);
+        attachControl(emitter);
+        emitter.run();
+        OBControl bigStar = miscObjects.get("star");
+        OBAnimationGroup.runAnims(Collections.singletonList(OBAnim.scaleAnim(1.0f, bigStar)), 0.6, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+        waitForSecs(duration-1.0f);
+        emitter.stop();
+        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.moveAnim(new PointF(-star.width(), bigStar.position().y),bigStar),
+                OBAnim.rotationAnim((float)Math.toRadians(360),bigStar),
+                OBAnim.scaleAnim(0.5f*bigStar.scale(),bigStar)),0.5,true,OBAnim.ANIM_EASE_IN,this);
 
     }
 
@@ -534,7 +589,13 @@ public class OC_SectionController extends OBSectionController {
     {
         super.exitEvent();
         MainActivity.mainActivity.fatController.onExitSection(this);
+    }
+
+    @Override
+    public void cleanUp()
+    {
         killAnimations();
+        super.cleanUp();
     }
 
     public void moveScenePointer(PointF point, float time, String audio, int index, float wait) throws Exception
@@ -591,4 +652,10 @@ public class OC_SectionController extends OBSectionController {
     }
 
 
+    @Override
+    public void onAlarmReceived(Intent intent)
+    {
+        super.onAlarmReceived(intent);
+        MainActivity.mainActivity.fatController.onAlamReceived(intent,this);
+    }
 }

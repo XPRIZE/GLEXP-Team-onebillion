@@ -261,10 +261,10 @@ public class OC_MakeSylWord extends OC_SectionController
     }
 
     @Override
-    public void exitEvent()
+    public void cleanUp()
     {
         box.stopGemsGlowPulse(false);
-        super.exitEvent();
+        super.cleanUp();
     }
 
 

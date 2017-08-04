@@ -135,13 +135,13 @@ public class OC_VideoPlayback extends OC_SectionController
     }
 
 
-    public void exitEvent ()
+    public void cleanUp ()
     {
-        MainActivity.log("OC_VideoPlayback:exitEvent");
-        //
-        super.exitEvent();
+        MainActivity.log("OC_VideoPlayback:cleanUp");
         //
         videoPlayer.stop();
+        //
+        super.cleanUp();
     }
 
 

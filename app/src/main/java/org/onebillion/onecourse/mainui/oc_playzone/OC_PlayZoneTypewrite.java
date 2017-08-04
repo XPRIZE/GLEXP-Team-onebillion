@@ -184,7 +184,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
             public void run() throws Exception
             {
                 setStatus(STATUS_AWAITING_CLICK);
-              //  startCursorFlash();
+                startCursorFlash();
             }
         });
     }
@@ -269,10 +269,21 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
             List<OBControl> themeFiles = loadEvent(name);
             for(OBControl con : themeFiles)
             {
-                con.setRasterScale(con.scale());
+              //  con.setRasterScale(0.75f);
                 //con.setShouldRasterize(true);
             }
-            dictData.put("controls",themeFiles);
+            OBGroup group = new OBGroup(themeFiles);
+
+            RectF frame = group.frame();
+            RectF targetFrame = this.boundsf();
+            group.setBounds(frame.left, frame.top, targetFrame.width()-frame.left, targetFrame.height() - frame.top);
+            group.setMasksToBounds(true);
+            group.setPosition(OB_Maths.locationForRect(0.5f,0.5f,this.boundsf()));
+            group.setRasterScale(0.9f);
+            attachControl(group);
+
+            group.setZPosition(1);
+            dictData.put("controls",Arrays.asList(group));
             dictData.put("font",eventAttributes.get("fontfile"));
             themesData.put(name,dictData);
             themeData = dictData;

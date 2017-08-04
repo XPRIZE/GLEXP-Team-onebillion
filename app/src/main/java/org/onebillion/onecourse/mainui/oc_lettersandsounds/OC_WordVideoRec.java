@@ -120,7 +120,7 @@ public class OC_WordVideoRec extends OC_SectionController
     }
 
     @Override
-    public void exitEvent()
+    public void cleanUp()
     {
         try
         {
@@ -133,7 +133,7 @@ public class OC_WordVideoRec extends OC_SectionController
         }
         OBUtils.cleanUpTempFiles(this);
 
-        super.exitEvent();
+        super.cleanUp();
     }
 
 

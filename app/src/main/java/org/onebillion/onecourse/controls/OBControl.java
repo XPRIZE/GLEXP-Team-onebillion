@@ -1402,7 +1402,7 @@ public class OBControl
         if (!hidden)
         {
             canvas.save();
-            boolean shadowrequired = (shadowColour != 0 && shadowRadius > 0);
+            boolean shadowrequired = shadowOpacity > 0;
             if (cache != null)
             {
                 Matrix m = matrixForDraw();
@@ -1442,7 +1442,14 @@ public class OBControl
                     canvas.saveLayer(bounds(), p, Canvas.ALL_SAVE_FLAG);*/
                     if (shadowCache == null)
                         createShadowCache(drawn());
+
+                    Matrix m = new Matrix();
+                    float rs = 1 / rasterScale;
+                    m.preScale(rs, rs);
+                    canvas.save();
+                    canvas.concat(m);
                     canvas.drawBitmap(shadowCache, shadowOffsetX, shadowOffsetY, new Paint());
+                    canvas.restore();
                 }
                 drawBorderAndBackground(canvas);
                 drawLayer(canvas,APPLY_EFFECTS);
@@ -1847,6 +1854,11 @@ public class OBControl
 
     }
 
+    public void setShadowOpacity(float opacity)
+    {
+        setShadow(shadowRadius,opacity,shadowOffsetX,shadowOffsetY,shadowColour);
+    }
+
     private boolean shouldRenderShadow()
     {
         return parent == null && shadowOpacity > 0;
@@ -2132,4 +2144,12 @@ public class OBControl
             canvas.restore();
         }
     }
+
+    public void sizeBoundsToShadow()
+    {
+        RectF bounds = bounds();
+        bounds.inset(-Math.abs(shadowOffsetX), -Math.abs(shadowOffsetY));
+        setBounds(bounds);
+    }
+
 }

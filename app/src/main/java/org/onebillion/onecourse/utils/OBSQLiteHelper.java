@@ -52,7 +52,7 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
     @Override
     public void onCreate (SQLiteDatabase database)
     {
-        InputStream inputStream = cont.getResources().openRawResource(R.raw.tables);
+        InputStream inputStream = cont.getResources().openRawResource(MainActivity.mainActivity.fatController.databaseResource());
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         String line;

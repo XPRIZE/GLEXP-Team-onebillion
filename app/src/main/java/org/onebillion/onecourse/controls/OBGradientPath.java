@@ -145,16 +145,22 @@ public class OBGradientPath extends OBPath
     {
         if (gradientLayer != null)
         {
+            boolean needsRestore = false;
             canvas.save();
             if (highlightColour != 0)
             {
                 gradientLayer.setColourFilter(new PorterDuffColorFilter(highlightColour, PorterDuff.Mode.SRC_ATOP));
             }
+            if (needsRestore = (opacity() != 1.0f))
+                canvas.saveLayerAlpha(bounds(), (int) (opacity() * 255));
             if (maskLayer != null)
                 canvas.clipPath(maskLayer.path);
             gradientLayer.draw(canvas);
             if (strokeLayer != null)
                 strokeLayer.draw(canvas);
+
+            if (needsRestore)
+                canvas.restore();
             canvas.restore();
         }
     }

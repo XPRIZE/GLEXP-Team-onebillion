@@ -24,6 +24,7 @@ import android.os.Build;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -157,7 +158,9 @@ public class MainActivity extends Activity
             CONFIG_MAX_SCREEN_TIMEOUT = "screenMaxTimeout",
             CONFIG_CHARGE_BATTERY_REMINDER = "chargeBatteryReminder",
             CONFIG_CHARGE_BATTERY_REMINDER_INTERVAL = "chargeBatteryReminderInterval",
-            CONFIG_SHOW_BATTERY_LOCK_SCREEN = "showBatteryLockScreen"
+            CONFIG_SHOW_BATTERY_LOCK_SCREEN = "showBatteryLockScreen",
+            CONFIG_PLAYZONE_ACTIVE_HOUR = "playzoneActiveHour",
+            CONFIG_SHOW_UNIT_ID = "showUnitID"
     ;
     public static String TAG = "onecourse";
     //
@@ -279,6 +282,7 @@ public class MainActivity extends Activity
             //glSurfaceView.controller = mainViewController;
 
             ((ThreadPoolExecutor) AsyncTask.THREAD_POOL_EXECUTOR).setCorePoolSize(20);
+            log("onCreate ended");
         }
         catch (Exception e)
         {
@@ -816,8 +820,13 @@ public class MainActivity extends Activity
         config = (Map<String, Object>) xmlManager.parsePlist(pis);
         getSfxVolumes();
         //
-        float h = getResources().getDisplayMetrics().heightPixels;
-        float w = getResources().getDisplayMetrics().widthPixels;
+
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
+        int w = metrics.widthPixels;
+        int h = metrics.heightPixels;
+        //float h = getResources().getDisplayMetrics().heightPixels;
+      //  float w = getResources().getDisplayMetrics().widthPixels;
         updateGraphicScale(w, h);
         //
 //        config.put(CONFIG_DEFAULT_LANGUAGE, configStringForKey(CONFIG_LANGUAGE)); // original
@@ -868,6 +877,7 @@ public class MainActivity extends Activity
 
     public void updateGraphicScale(float newWidth, float newHeight)
     {
+        log(String.format("updateGraphicScale called: %f %f",newWidth,newHeight));
         if (newHeight > newWidth)
         {
             float temp = newWidth;

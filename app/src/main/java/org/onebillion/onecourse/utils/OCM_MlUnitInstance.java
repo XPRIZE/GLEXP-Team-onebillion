@@ -25,7 +25,7 @@ public class OCM_MlUnitInstance extends DBObject
     public long startTime, endTime;
 
     public OBSectionController sectionController;
-    public MlUnit mlUnit;
+    public OCM_MlUnit mlUnit;
 
     private static final String[] intFields = {"userid","sessionid","seqNo","elapsedTime","type","starColour"};
     private static final String[] floatFields = {"score"};
@@ -41,12 +41,12 @@ public class OCM_MlUnitInstance extends DBObject
     }
 
 
-    public static OCM_MlUnitInstance initWithMlUnit(MlUnit unit, int userid, int sessionid, long starttime, int type)
+    public static OCM_MlUnitInstance initWithMlUnit(OCM_MlUnit unit, int userid, int sessionid, long starttime, int type)
     {
         return initInDBWithMlUnit(unit,userid,sessionid,starttime,type);
     }
 
-    private static OCM_MlUnitInstance initInDBWithMlUnit(MlUnit unit, int userid, int sessionid, long starttime, int type)
+    private static OCM_MlUnitInstance initInDBWithMlUnit(OCM_MlUnit unit, int userid, int sessionid, long starttime, int type)
     {
         OCM_MlUnitInstance mlui = new OCM_MlUnitInstance();
         mlui.userid = userid;

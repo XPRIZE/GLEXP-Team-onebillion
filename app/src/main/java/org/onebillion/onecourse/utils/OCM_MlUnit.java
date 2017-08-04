@@ -44,7 +44,7 @@ public class OCM_MlUnit extends DBObject
         return result;
     }
 
-    private static OCM_MlUnit mlUnitFromCursor(Cursor cursor)
+    public static OCM_MlUnit mlUnitFromCursor(Cursor cursor)
     {
         OCM_MlUnit unit = new OCM_MlUnit();
         unit.cursorToObject(cursor,stringFields,intFields,null,floatFields);

@@ -25,6 +25,7 @@ import android.text.Layout;
 import android.text.SpannableString;
 import android.text.StaticLayout;
 import android.text.TextPaint;
+import android.util.ArrayMap;
 
 import org.onebillion.onecourse.controls.*;
 import org.onebillion.onecourse.glstuff.*;
@@ -74,7 +75,7 @@ public class OBSectionController extends OBViewController
     public List<String> events;
     public Map<String, Object> audioScenes, eventsDict;
     public Map<String, OBControl> miscObjects, objectDict;
-    public Map<String, String> eventAttributes, parameters;
+    public Map<String, String> eventAttributes, parameters, localisations;
     Map<String,Float> sectionSfxVolumes = null;
     public int targetNo, currNo;
     public Object params;
@@ -1977,15 +1978,20 @@ public class OBSectionController extends OBViewController
         if (!_aborting)
         {
             _aborting = true;
+            cleanUp();
             new OBRunnableUI()
             {
                 public void ex ()
                 {
-                    stopAllAudio();
                     MainActivity.mainViewController.popViewController();
                 }
             }.run();
         }
+    }
+
+    public void cleanUp ()
+    {
+        stopAllAudio();
     }
 
     public void goBack ()
@@ -2303,6 +2309,31 @@ public class OBSectionController extends OBViewController
         glBindTexture(GL_TEXTURE_2D, MainActivity.mainActivity.renderer.textureObjectId(id));
         texImage2D(GL_TEXTURE_2D,0,c.drawn(),0);
     }
+
+    public Map<String,String> loadLocalisations(String xmlPath)
+    {
+        Map<String, String> dict = new ArrayMap<>();
+        if (xmlPath != null)
+        {
+            try
+            {
+                OBXMLManager xmlManager = new OBXMLManager();
+                List<OBXMLNode> xml = xmlManager.parseFile(OBUtils.getInputStreamForPath(xmlPath));
+                OBXMLNode localisationNode = xml.get(0);
+                for (OBXMLNode phraseNode : localisationNode.childrenOfType("phrase"))
+                {
+                    String name = phraseNode.attributeStringValue("id");
+                    String contents = phraseNode.contents;
+                    dict.put(name, contents);
+                }
+            } catch (Exception e)
+            {
+
+            }
+        }
+        return dict;
+    }
+
 
     public void onResume()
     {

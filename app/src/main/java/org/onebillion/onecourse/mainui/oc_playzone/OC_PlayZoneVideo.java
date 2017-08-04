@@ -96,8 +96,8 @@ public class OC_PlayZoneVideo extends OC_SectionController
 
     }
 
-
-    public void exitEvent()
+    @Override
+    public void cleanUp()
     {
         try
         {
@@ -110,7 +110,7 @@ public class OC_PlayZoneVideo extends OC_SectionController
             e.printStackTrace();
         }
 
-        super.exitEvent();
+        super.cleanUp();
     }
 
 
