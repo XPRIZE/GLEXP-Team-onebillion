@@ -1,6 +1,7 @@
 package org.onebillion.onecourse.glstuff;
 
 import android.graphics.Bitmap;
+import android.graphics.RectF;
 import android.opengl.GLES11Ext;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
@@ -46,6 +47,10 @@ public class OBRenderer implements GLSurfaceView.Renderer
     public int w,h;
     public OBSectionController transitionScreenL,transitionScreenR;
     public float transitionFrac;
+    public int transitionType;
+    public RectF zoomRect;
+
+    public static int TRANSITION_SLIDE =1, TRANSITION_ZOOM = 2;
 
     public class TextureUnit
     {
@@ -64,7 +69,7 @@ public class OBRenderer implements GLSurfaceView.Renderer
         maskProgram = new MaskShaderProgram();
         surfaceProgram = new SurfaceShaderProgram();
         shadowProgram = new ShadowShaderProgram();
-
+        transitionType = TRANSITION_SLIDE;
         glGenTextures(4, textureObjectIds, 0);
 
         if (textureObjectIds[0] == 0) {
@@ -128,7 +133,10 @@ public class OBRenderer implements GLSurfaceView.Renderer
         colourProgram.useProgram();
         if (transitionScreenR != null && transitionScreenL != null)
         {
-            renderTwoScreens(transitionScreenL,transitionScreenR,transitionFrac);
+            if(transitionType == TRANSITION_SLIDE)
+                renderTwoScreensSlide(transitionScreenL,transitionScreenR,transitionFrac);
+            else if(transitionType == TRANSITION_ZOOM)
+                renderTwoScreensZoom(transitionScreenL,transitionScreenR,transitionFrac);
             return;
         }
         resetViewport();
@@ -148,7 +156,7 @@ public class OBRenderer implements GLSurfaceView.Renderer
         return textureUnits.get(i).textureID;
     }
 
-    public void renderTwoScreens(OBSectionController screenl,OBSectionController screenr,float frac)
+    public void renderTwoScreensSlide(OBSectionController screenl,OBSectionController screenr,float frac)
     {
         int fw = (int)(frac * w);
         if (fw > 0)
@@ -171,5 +179,30 @@ public class OBRenderer implements GLSurfaceView.Renderer
             glUniformMatrix4fv(uMatrixLocation, 1, false, projectionMatrix, 0);
             screenr.render(this);
         }
+    }
+
+    public void renderTwoScreensZoom(OBSectionController screenl, OBSectionController screenr, float frac)
+    {
+
+        screenl.setViewPort(0,0,w,h);
+        glViewport(0, 0, w, h);
+        int uMatrixLocation = glGetUniformLocation(colourProgram.program, colourProgram.U_MATRIX);
+        orthoM(projectionMatrix, 0, 0, w, h, 0, -1024f, 1024f);
+        glUniformMatrix4fv(uMatrixLocation, 1, false, projectionMatrix, 0);
+        screenl.render(this);
+
+        int x = (int)(zoomRect.left *(frac));
+        int y = (int)((h-zoomRect.bottom) *(frac));
+        int width = (int)(zoomRect.width() + (w-zoomRect.width())*(1.0-frac));
+        int height = (int)(zoomRect.height() + (h-zoomRect.height())*(1.0-frac));
+
+        screenr.setViewPort(x,y,width,height);
+        glViewport(x, y, width, height);
+        colourProgram.useProgram();
+        orthoM(projectionMatrix,0,0, w, h, 0, -1024f, 1024f);
+        int uMatrixLocation2 = glGetUniformLocation(colourProgram.program, colourProgram.U_MATRIX);
+        glUniformMatrix4fv(uMatrixLocation2, 1, false, projectionMatrix, 0);
+        screenr.render(this);
+
     }
 }

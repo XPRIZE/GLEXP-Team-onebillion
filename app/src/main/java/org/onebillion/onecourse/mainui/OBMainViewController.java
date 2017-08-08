@@ -352,6 +352,11 @@ public class OBMainViewController extends OBViewController
 
     public void pushViewController (Class<?> vcClass, Boolean animate, boolean fromRight, Object _params, boolean pop)
     {
+        pushViewController(vcClass,animate,fromRight,_params,pop,false,null);
+    }
+
+    public void pushViewController (Class<?> vcClass, Boolean animate, boolean fromRight, Object _params, boolean pop, boolean zoom, RectF zoomRect)
+    {
         Constructor<?> cons;
         OBSectionController controller;
         try
@@ -376,9 +381,19 @@ public class OBMainViewController extends OBViewController
         if (viewControllers.size() >= 1 && animate)
         {
             if (fromRight)
-                transition(topController(), controller, fromRight, 0.6);
+            {
+                if (!zoom)
+                    transition(topController(), controller, fromRight, 0.6);
+                else
+                    transitionZoom(topController(), controller, fromRight, zoomRect,0.4);
+            }
             else
-                transition(controller, topController(), fromRight, 0.6);
+            {
+                if (!zoom)
+                    transition(controller, topController(), fromRight, 0.6);
+                else
+                    transitionZoom(controller, topController(), fromRight, zoomRect, 0.4);
+            }
         }
         viewControllers.add(controller);
         if (pop)
@@ -410,12 +425,53 @@ public class OBMainViewController extends OBViewController
         });
     }
 
+
     public void transition (OBSectionController l, OBSectionController r, boolean fromRight, double duration)
     {
         OBRenderer renderer = MainActivity.mainActivity.renderer;
         renderer.transitionFrac = 0;
         renderer.transitionScreenL = l;
         renderer.transitionScreenR = r;
+        renderer.transitionType = OBRenderer.TRANSITION_SLIDE;
+        GLSurfaceView glv = glView();
+
+        long startms = SystemClock.uptimeMillis();
+        double frac = 0;
+        while (frac <= 1.0)
+        {
+            long currtime = SystemClock.uptimeMillis();
+            frac = (currtime - startms) / (duration * 1000);
+            float f = (float) OB_Maths.clamp01(frac);
+            if (fromRight)
+                f = 1 - f;
+            renderer.transitionFrac = f;
+            glv.requestRender();
+            if (l == null)
+                try
+                {
+                    Thread.sleep(10);
+                }
+                catch (InterruptedException e)
+                {
+                }
+            else
+                l.waitForSecsNoThrow(0.01);
+        }
+        renderer.transitionScreenR.setViewPort(0,0,renderer.w,renderer.h);
+        renderer.transitionScreenL.setViewPort(0,0,renderer.w,renderer.h);
+        glv.requestRender();
+        renderer.transitionScreenR = renderer.transitionScreenL = null;
+        renderer.resetViewport();
+    }
+
+    public void transitionZoom (OBSectionController l, OBSectionController r, boolean fromRight, RectF zoomRect, double duration)
+    {
+        OBRenderer renderer = MainActivity.mainActivity.renderer;
+        renderer.transitionFrac = 0;
+        renderer.transitionScreenL = l;
+        renderer.transitionScreenR = r;
+        renderer.transitionType = OBRenderer.TRANSITION_ZOOM;
+        renderer.zoomRect = zoomRect;
         GLSurfaceView glv = glView();
 
         long startms = SystemClock.uptimeMillis();

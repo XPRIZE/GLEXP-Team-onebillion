@@ -25,6 +25,7 @@ import org.onebillion.onecourse.controls.OBRadialGradientPath;
 import org.onebillion.onecourse.controls.OBScrollingText;
 import org.onebillion.onecourse.controls.OBShaderControl;
 import org.onebillion.onecourse.controls.OBVideoPlayer;
+import org.onebillion.onecourse.glstuff.OBRenderer;
 import org.onebillion.onecourse.glstuff.PixelShaderProgram;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
@@ -109,6 +110,12 @@ public class OC_PlayZoneMenu extends OC_Menu
     public String sectionAudioName()
     {
         return "menu";
+    }
+
+    @Override
+    public void render(OBRenderer renderer)
+    {
+        super.render(renderer);
     }
 
     public void prepare()
@@ -1301,13 +1308,24 @@ public class OC_PlayZoneMenu extends OC_Menu
                     loadVideoForAsset(asset, icon);
                 } else if (asset.type == OC_PlayZoneAsset.ASSET_TEXT)
                 {
-                    loadTextForAsset(asset, icon);
+                   // loadTextForAsset(asset, icon);
+                    MainViewController().pushViewController(OC_PlayZoneTypewrite.class,true,true,"typewrite/keyboard=q,w,e,r,t,y,u,i,o,p,s_back;a,s,d,f,g,h,j,k,l,s_enter;z,x,c,v,b,n,m,#44,#39,#34;s_shift,s_space,#46,#63,#33",false,true, icon.getWorldFrame());
                 } else if (asset.type == OC_PlayZoneAsset.ASSET_DOODLE)
                 {
-                    loadDoodleForAsset(asset, icon);
+                    //loadDoodleForAsset(asset, icon);
+                    OBUtils.runOnMainThread(
+                            new OBUtils.RunLambda()
+                            {
+                                @Override
+                                public void run() throws Exception
+                                {
+                                    MainViewController().pushViewController(OC_Doodle.class,true,true,"doodle",false,true, icon.getWorldFrame());
+                                }
+                            }
+                    );
 
                 }
-                mediaIsPlaying = true;
+               // mediaIsPlaying = true;
                 setStatus(STATUS_AWAITING_CLICK);
             }
         });
