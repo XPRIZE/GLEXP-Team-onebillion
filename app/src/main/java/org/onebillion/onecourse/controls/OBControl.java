@@ -1706,6 +1706,17 @@ public class OBControl
         invalidate();
     }
 
+
+    public void setScreenMaskControl(OBControl m, OBViewController cont)
+    {
+        m.texturise(false,cont);
+        dynamicMask = true;
+        maskControlReversed = false;
+        maskControl = m;
+        invalidate();
+    }
+
+
     public void setReversedScreenMaskControl(OBControl m)
     {
         m.texturise(false,controller);
@@ -1714,6 +1725,16 @@ public class OBControl
         maskControl = m;
         invalidate();
     }
+
+    public void setReversedScreenMaskControl(OBControl m, OBViewController cont)
+    {
+        m.texturise(false,cont);
+        dynamicMask = true;
+        maskControlReversed = true;
+        maskControl = m;
+        invalidate();
+    }
+
 
     public float rotation ()
     {

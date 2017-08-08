@@ -323,7 +323,13 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
         walkPresenterOut();
         animateNightSkyOn();
         animateNightSky();
-        OBSystemsManager.sharedManager.screenLock();
+        try
+        {
+            OBSystemsManager.sharedManager.screenLock();
+        }catch (Exception e)
+        {
+
+        }
         setStatus(STATUS_IDLE);
     }
 
@@ -331,7 +337,13 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
     {
         setStatus(STATUS_BUSY);
         animateNightSky();
+        try
+        {
         OBSystemsManager.sharedManager.screenLock();
+        }catch (Exception e)
+        {
+
+        }
         setStatus(STATUS_IDLE);
     }
 

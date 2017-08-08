@@ -125,6 +125,6 @@ public class DBSQL
 
     public void close()
     {
-        //database.close();
+        database.close();
     }
 }

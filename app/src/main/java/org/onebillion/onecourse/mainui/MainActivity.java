@@ -573,7 +573,7 @@ public class MainActivity extends Activity
     void doGLStuff ()
     {
         glSurfaceView = new OBGLView(this);
-
+        glSurfaceView.setPreserveEGLContextOnPause(true);
         // Check if the system supports OpenGL ES 2.0.
         final ActivityManager activityManager =
                 (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);

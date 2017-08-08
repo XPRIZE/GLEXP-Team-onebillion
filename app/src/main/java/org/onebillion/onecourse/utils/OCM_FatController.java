@@ -69,6 +69,7 @@ public class OCM_FatController extends OBFatController
             ALARM_DAY_UNLOCK = 2,
             ALARM_PLAYZONE_UNLOCK = 3;
 
+
     public void userActivityOccurred(long systime)
     {
         sessionSegmentLastActive = systime;
@@ -91,8 +92,9 @@ public class OCM_FatController extends OBFatController
 
     private boolean showBackButton()
     {
-        String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SHOW_BACK_BUTTON);
-        return (value != null && value.equalsIgnoreCase("true"));
+       // String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SHOW_BACK_BUTTON);
+       // return (value != null && value.equalsIgnoreCase("true"));
+        return currentUnitInstance == null;
     }
 
     public void loadMasterListIntoDB()
@@ -105,7 +107,7 @@ public class OCM_FatController extends OBFatController
             String mlname = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_MASTER_LIST);
             if (mlname.length() == 0)
             {
-                MainActivity.log("OC_FatController:loadMasterListIntoDB:no masterlist in the settings file. skipping");
+                MainActivity.log("OCM_FatController:loadMasterListIntoDB:no masterlist in the settings file. skipping");
                 return;
             }
             OBXMLManager xmlManager = new OBXMLManager();
@@ -283,6 +285,7 @@ public class OCM_FatController extends OBFatController
                 signalBatteryLow();
             else if(currentSessionReadyToStart())
                 signalNewSession();
+
             quitToTopMenu();
         }
     }
@@ -359,7 +362,7 @@ public class OCM_FatController extends OBFatController
                 unitInstance.updateDataInDB(db);
             }catch(Exception e)
             {
-
+                MainActivity.log("OCM_FatController: database access error: " + e.getMessage());
             }
             finally
             {
@@ -683,7 +686,7 @@ public class OCM_FatController extends OBFatController
         }
         catch(Exception e)
         {
-
+            MainActivity.log("OCM_FatController: database access error: " + e.getMessage());
         }
         finally
         {
@@ -770,7 +773,7 @@ public class OCM_FatController extends OBFatController
 
         }catch (Exception e)
         {
-            MainActivity.log(e.getMessage());
+            MainActivity.log("OCM_FatController: database access error: " + e.getMessage());
         }
         finally
         {
@@ -1246,7 +1249,7 @@ public class OCM_FatController extends OBFatController
         }
         catch(Exception e)
         {
-
+            MainActivity.log("OCM_FatController: database access error: " + e.getMessage());
         }
         finally
         {
@@ -1287,7 +1290,7 @@ public class OCM_FatController extends OBFatController
         }
         catch(Exception e)
         {
-
+            MainActivity.log("OCM_FatController: database access error: " + e.getMessage());
         }
         finally
         {
@@ -1384,7 +1387,18 @@ public class OCM_FatController extends OBFatController
      */
     public List<OC_PlayZoneAsset> getPlayZoneAssetForCurrentUser()
     {
-        return OC_PlayZoneAsset.assetsFromDBForUserId(currentUser.userid);
+        List<OC_PlayZoneAsset> assets = OC_PlayZoneAsset.assetsFromDBForUserId(currentUser.userid);
+        if(assets.size() > MAX_PZ_ASSETS)
+        {
+            for(int i=MAX_PZ_ASSETS; i<assets.size(); i++)
+            {
+                OC_PlayZoneAsset asset = assets.get(i);
+                asset.deleteAssetData();
+            }
+            assets = assets.subList(0,MAX_PZ_ASSETS);
+        }
+
+        return assets;
     }
 
     public boolean savePlayZoneAssetForCurrentUserType(int type,String thumbnail,Map<String,String> params)
@@ -1398,7 +1412,7 @@ public class OCM_FatController extends OBFatController
         }
         catch(Exception e)
         {
-
+            MainActivity.log("OCM_FatController: database access error: " + e.getMessage());
         }
         finally
         {

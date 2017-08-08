@@ -15,6 +15,7 @@ import android.util.ArrayMap;
 import android.view.View;
 
 import org.apache.commons.io.FileUtils;
+import org.onebillion.onecourse.R;
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBImage;
@@ -22,7 +23,9 @@ import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.controls.OBRadialGradientPath;
 import org.onebillion.onecourse.controls.OBScrollingText;
+import org.onebillion.onecourse.controls.OBShaderControl;
 import org.onebillion.onecourse.controls.OBVideoPlayer;
+import org.onebillion.onecourse.glstuff.PixelShaderProgram;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OC_Menu;
@@ -59,7 +62,6 @@ public class OC_PlayZoneMenu extends OC_Menu
 
     boolean newMediaAdded, mediaIsPlaying, animateFloat, iconsScrollMode, iconsDeleteMode, boxTouchMode;
     List<OBGroup> mediaIcons, menuButtons;
-    Map<String, OBGroup> mediaTextThemes;
     List<OC_PlayZoneAsset> mediaAssets;
     OBControl currentMediaLayer;
     OBGroup mediaIconsGroup;
@@ -70,6 +72,34 @@ public class OC_PlayZoneMenu extends OC_Menu
     float dragTravelDistance;
     float leftLimit, rightLimit, topLimit, bottomLimit;
     OCM_FatController fatController;
+    OBShaderControl gradientShaderControl;
+
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+        if(currentMediaLayer != null)
+        {
+            if(currentMediaLayer.propertyValue("gradient_manager") != null)
+                ((OBShaderControl)currentMediaLayer.propertyValue("gradient_manager")).stopAnimation();
+            else if(currentMediaLayer == videoPlayer)
+                    videoPlayer.pause();
+
+        }
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+        if(currentMediaLayer != null)
+        {
+            if(currentMediaLayer.propertyValue("gradient_manager") != null)
+                ((OBShaderControl)currentMediaLayer.propertyValue("gradient_manager")).startAnimation(this);
+            else if(currentMediaLayer == videoPlayer)
+                    videoPlayer.start();
+        }
+    }
 
     public String sectionName()
     {
@@ -84,7 +114,6 @@ public class OC_PlayZoneMenu extends OC_Menu
     public void prepare()
     {
         fatController = (OCM_FatController) MainActivity.mainActivity.fatController;
-        mediaTextThemes = new ArrayMap<>();
         setStatus(STATUS_BUSY);
         super.prepare();
         loadFingers();
@@ -104,7 +133,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         List<String> colours = OBUtils.randomlySortedArray(Arrays.asList(eventAttributes.get("button_colours").split(";")));
         int index = 0;
         List<Float> scaleOptions = OBUtils.randomlySortedArray(Arrays.asList(0.95f,0.975f,1.0f,1.025f,1.05f));
-        boxTouchMode = OBUtils.getBooleanValue(parameters.get("intro"));
+        boxTouchMode = false;//OBUtils.getBooleanValue(parameters.get("intro"));
 
         for(OBControl iconCont : filterControls("menu_icon_.*"))
         {
@@ -244,10 +273,12 @@ public class OC_PlayZoneMenu extends OC_Menu
         rightLimit = this.bounds().width();
         topLimit = 0;
         bottomLimit = objectDict.get("bottom_bar").top();
+
     }
 
     public void start()
     {
+
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             public void run() throws Exception
@@ -296,7 +327,7 @@ public class OC_PlayZoneMenu extends OC_Menu
             else
             {
                 dragTravelDistance = 0;
-                if(checkBackButtonDown(pt) &&
+                if(!checkBackButtonDown(pt) &&
                         mediaIcons.size() > 0 && scrollHitBox.contains( pt.x, pt.y))
                 {
                     startMediaIconsDrag(pt);
@@ -1282,41 +1313,82 @@ public class OC_PlayZoneMenu extends OC_Menu
         });
     }
 
+public void prepareShader()
+{
+    if(gradientShaderControl == null)
+    {
+        gradientShaderControl = new OBShaderControl();
+        gradientShaderControl.setFrame(this.boundsf());
+        gradientShaderControl.hide();
+        OBUtils.runOnRendererThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                gradientShaderControl.shaderProgram = new PixelShaderProgram(R.raw.threegradientsfragmentshadermask, gradientShaderControl.width(), gradientShaderControl.height(), true);
+
+            }
+        });
+
+
+        attachControl(gradientShaderControl);
+    }
+}
+
     public void loadDoodleForAsset(OC_PlayZoneAsset asset,OBControl icon)
     {
+
         Map<String,String> params = asset.paramsDictionary();
         //  OC_DoodleGradientManager gradientManager = null;
         lockScreen();
+        prepareShader();
         OBImage currentImage = OBImageManager.sharedImageManager().imageForPath(OC_PlayZoneAsset.pathToAsset(params.get("doodle")));
-        List<OBControl> controls = loadEvent(String.format("doodle_%s",params.get("theme")));
+        List<OBControl> controls = new ArrayList<>(loadEvent(String.format("doodle_%s",params.get("theme"))));
         OBPath blackboard = (OBPath)objectDict.get("blackboard");
-        // gradientManager = [OC_DoodleGradientManager.alloc()initWithPath:blackboard controller:;
-        OBMisc.scaleControlToControl(currentImage,blackboard,true);
+
+
+
         currentImage.setPosition ( OB_Maths.locationForRect(new PointF(0.5f, 0.5f), this.bounds()));
-        currentImage.setColourOverlay(Color.BLACK);
-        // gradientManager.control.setMaskControl ( currentImage);
-        // controls.add(gradientManager.control);
+        OBMisc.scaleControlToControl(currentImage,blackboard,false);
+
         OBPath topborder = (OBPath)blackboard.copy();
         topborder.setFillColor(-1);
-        topborder.setZPosition(100);
+       // topborder.setZPosition(4);
         controls.add(topborder);
-        controls.add(currentImage);
-        currentImage.setZPosition(101);
-        OBGroup imageGroup = new OBGroup(controls);
-        imageGroup.setBounds(objectDict.get("obj_background").frame());
+        topborder.sizeToBoundingBoxIncludingStroke();
+      //  controls.add(currentImage);
+
+        OBGroup bgGroup = new OBGroup(controls);
+        bgGroup.setBounds(objectDict.get("obj_background").frame());
+
+        bgGroup.show();
+        bgGroup.setZPosition(1);
+
+        OBGroup fullGroup = new OBGroup(Arrays.asList((OBControl)bgGroup, currentImage));
+        fullGroup.setShouldTexturise(false);
+        currentImage.hide();
+        gradientShaderControl.setScreenMaskControl(currentImage, this);
+        //currentImage.setScreenMaskControl(blackboard, this);
+        gradientShaderControl.show();
+        attachControl(fullGroup);
+        gradientShaderControl.setZPosition(101);
+        currentImage.setZPosition(3);
+
         RectF iconFrame = icon.getWorldFrame();
-        imageGroup.setPosition(icon.getWorldPosition());
-        imageGroup.setScale(iconFrame.height()/imageGroup.height());
-        imageGroup.setProperty("parent_icon",icon);
-        imageGroup.setProperty("delete_after",true);
-        //imageGroup.setProperty("gradient_manager",gradientManager);
-        imageGroup.setProperty("target_scale",1.0f);
-        imageGroup.setZPosition(100);
-        imageGroup.show();
-        attachControl(imageGroup);
-        currentMediaLayer = imageGroup;
+        fullGroup.setPosition(icon.getWorldPosition());
+        fullGroup.setScale(iconFrame.height()/bgGroup.height());
+        fullGroup.setZPosition(100);
+
+        fullGroup.setProperty("parent_icon",icon);
+        fullGroup.setProperty("delete_after",true);
+        fullGroup.setProperty("gradient_manager",gradientShaderControl);
+        fullGroup.setProperty("target_scale",1.0f);
+        fullGroup.setProperty("skip_texturise",true);
+        currentMediaLayer = fullGroup;
         unlockScreen();
+        gradientShaderControl.startAnimation(this);
         animateMedia(currentMediaLayer,true);
+
         // gradientManager.startGradientAnimation();
     }
 
@@ -1464,6 +1536,11 @@ public class OC_PlayZoneMenu extends OC_Menu
             {
                 if(currentMediaLayer.propertyValue("gradient_manager") != null)
                 {
+                    //((OBControl)currentMediaLayer.propertyValue("gradient_manager")).hide();
+                    OBShaderControl gradientManager = (OBShaderControl)currentMediaLayer.propertyValue("gradient_manager");
+                    gradientManager.stopAnimation();
+                    gradientManager.hide();
+
                    /* OC_DoodleGradientManager *gradManager = currentMediaLayer.propertyValue("gradient_manager");
                     gradManager.stopGradientAnimation();
                     gradManager.cleanUp();
@@ -1485,7 +1562,8 @@ public class OC_PlayZoneMenu extends OC_Menu
     {
         mediaLayer.show();
 
-        mediaLayer.setShouldTexturise(true);
+        if(mediaLayer.propertyValue("skip_texturise") == null )
+            mediaLayer.setShouldTexturise(true);
         OBControl icon = (OBControl)mediaLayer.propertyValue("parent_icon");
         float zoomScale = mediaLayer.propertyValue("target_scale") != null ? (float)mediaLayer.propertyValue("target_scale")  : 1;
         float targetScale = zoomIn ? zoomScale : icon.height()/(mediaLayer.height()/zoomScale);
@@ -1495,7 +1573,8 @@ public class OC_PlayZoneMenu extends OC_Menu
         if(zoomIn)
         {
             mediaLayer.invalidate();
-            mediaLayer.setShouldTexturise(false);
+            if(mediaLayer.propertyValue("skip_texturise") == null )
+                mediaLayer.setShouldTexturise(false);
         }
         else
         {
@@ -1672,9 +1751,8 @@ public class OC_PlayZoneMenu extends OC_Menu
             backButton.lowlight();
             waitForSecs(0.3f);
         }
-        if(statusChanged(time))
-            return;
-        waitAudio();
+        if(!statusChanged(time))
+            waitAudio();
         backButton.lowlight();
         if(statusChanged(time))
             return;

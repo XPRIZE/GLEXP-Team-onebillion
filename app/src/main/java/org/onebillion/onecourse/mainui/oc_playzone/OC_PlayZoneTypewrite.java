@@ -31,7 +31,7 @@ import org.onebillion.onecourse.utils.OBAudioManager;
 import org.onebillion.onecourse.utils.OBFatController;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
-import org.onebillion.onecourse.utils.OC_FatController;
+import org.onebillion.onecourse.utils.OCM_FatController;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -815,8 +815,8 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         params.put("font", (String) (themesData.get(currentTheme)).get("font"));
         params.put("text",textBox.textBuffer().toString());
         OBFatController fatController = (MainActivity.mainActivity.fatController);
-        if (OC_FatController.class.isInstance(fatController))
-            ((OC_FatController)fatController).savePlayZoneAssetForCurrentUserType(ASSET_TEXT,null,params);
+        if (OCM_FatController.class.isInstance(fatController))
+            ((OCM_FatController)fatController).savePlayZoneAssetForCurrentUserType(ASSET_TEXT,null,params);
 
         try
         {

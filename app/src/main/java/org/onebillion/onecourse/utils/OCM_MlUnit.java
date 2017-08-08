@@ -80,7 +80,7 @@ public class OCM_MlUnit extends DBObject
         }
         catch(Exception e)
         {
-
+            MainActivity.log("OCM_MlUnit: database access error: " + e.getMessage());
         }
         finally
         {
@@ -103,7 +103,7 @@ public class OCM_MlUnit extends DBObject
         }
         catch(Exception e)
         {
-
+            MainActivity.log("OCM_MlUnit: database access error: " + e.getMessage());
         }
         finally
         {

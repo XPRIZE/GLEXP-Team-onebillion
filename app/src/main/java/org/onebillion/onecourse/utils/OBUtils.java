@@ -18,6 +18,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -824,6 +826,31 @@ public class OBUtils
                 return null;
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
+    }
+
+    public static void runOnRendererThread(final RunLambda runLambda)
+    {
+
+        try
+        {
+            FutureTask<Integer> futureTask = new FutureTask<Integer>(new Callable<Integer>()
+            {
+                @Override
+                public Integer call() throws Exception
+                {
+                    runLambda.run();
+                    return 0;
+                }
+            });
+            MainActivity.mainActivity.glSurfaceView.queueEvent(futureTask);
+         //   Integer result = futureTask.get();
+        }
+        catch (Exception exception)
+        {
+            Logger logger = Logger.getAnonymousLogger();
+            logger.log(Level.SEVERE, "Error in runOnRendererThread", exception);
+        }
+
     }
 
     public static Path SimplePath (PointF from, PointF to, float offset)

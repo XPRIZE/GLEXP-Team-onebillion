@@ -56,7 +56,7 @@ public class PixelRect
     }
 
 
-    public void draw(OBRenderer renderer, float l, float t, float r, float b)
+    public void draw(OBRenderer renderer, float l, float t, float r, float b, Bitmap mask)
     {
         fillOutRectVertexData(vertices,l,t,r,b,POSITION_COMPONENT_COUNT);
         if (vertexArray == null)
@@ -68,6 +68,12 @@ public class PixelRect
         bindData(shaderProgram);
         GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
         GLES20.glEnable(GLES20.GL_BLEND);
+
+        glBindTexture(GL_TEXTURE_2D, renderer.textureObjectId(1));
+        GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+        GLES20.glEnable(GLES20.GL_BLEND);
+        texImage2D(GL_TEXTURE_2D,0,mask,0);
+
         glDrawArrays(GL_TRIANGLE_STRIP,0,4);
     }
 

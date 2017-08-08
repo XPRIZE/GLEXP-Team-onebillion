@@ -5,6 +5,7 @@ package org.onebillion.onecourse.controls;
  */
 
 import android.opengl.GLES20;
+import android.os.Handler;
 import android.os.SystemClock;
 
 import org.onebillion.onecourse.glstuff.ColorShaderProgram;
@@ -15,6 +16,7 @@ import org.onebillion.onecourse.glstuff.PixelRect;
 import org.onebillion.onecourse.glstuff.PixelShaderProgram;
 import org.onebillion.onecourse.glstuff.ShadowShaderProgram;
 import org.onebillion.onecourse.glstuff.TextureShaderProgram;
+import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OBViewController;
 import org.onebillion.onecourse.utils.OBUtils;
 
@@ -24,10 +26,13 @@ public class OBShaderControl extends OBControl
     public PixelRect pixelRect;
     long starttm = SystemClock.uptimeMillis();
 
+    private boolean animate = false;
+    private Runnable animationRunnable;
+    private Handler animationHandler;
 
     public void render (OBRenderer renderer, OBViewController vc, float[] modelViewMatrix)
     {
-        if (!hidden && bounds().width() > 0 && bounds().height() > 0)
+        if (!hidden && bounds().width() > 0 && bounds().height() > 0 && shaderProgram != null)
         {
             matrix3dForDraw();
             if (doubleSided)
@@ -43,23 +48,79 @@ public class OBShaderControl extends OBControl
             //
             shaderProgram.useProgram();
             long tm = SystemClock.uptimeMillis();
-            float secs = (tm - starttm) / 1000f;
+            float secs = ((tm - starttm) / 1000f);
             if (dynamicMask && maskControl != null)
             {
                 float[] maskFrame = new float[4];
-                maskFrame[0] = maskControl.frame().left+vc.viewPortLeft;
-                maskFrame[1] = maskControl.frame().top+vc.viewPortTop;
-                maskFrame[2] = maskControl.frame().right+vc.viewPortLeft;
-                maskFrame[3] = maskControl.frame().bottom+vc.viewPortTop;
+                maskFrame[0] = maskControl.getWorldFrame().left+vc.viewPortLeft;
+                maskFrame[1] = maskControl.getWorldFrame().top+vc.viewPortTop;
+                maskFrame[2] = maskControl.getWorldFrame().right+vc.viewPortLeft;
+                maskFrame[3] = maskControl.getWorldFrame().bottom+vc.viewPortTop;
                 shaderProgram.setUniforms(tempMatrix,secs,renderer.textureObjectId(1),maskControlReversed ? 1.0f : 0.0f,renderer.h, maskFrame);
             }
             else
                 shaderProgram.setUniforms(tempMatrix,secs);
             if (pixelRect == null)
                 pixelRect = new PixelRect(shaderProgram);
-            pixelRect.draw(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top);
+            pixelRect.draw(renderer, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, maskControl.texture.bitmap());
 
         }
+    }
+
+    private boolean shouldAnimate(OBSectionController cont)
+    {
+        return animate && (cont != null && !cont._aborting && cont.status() != OBSectionController.STATUS_EXITING);
+    }
+
+    public void startAnimation(final OBSectionController cont)
+    {
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                if(animationHandler == null)
+                    animationHandler = new Handler();
+                animate = true;
+                scheduleTimerEvent(cont);
+            }
+        });
+
+    }
+
+    public void stopAnimation()
+    {
+        animate = false;
+        animationHandler.removeCallbacks(animationRunnable);
+    }
+
+    private void timerEvent(OBSectionController cont)
+    {
+        if (shouldAnimate(cont))
+        {
+            this.invalidate();
+            scheduleTimerEvent(cont);
+        }
+    }
+
+
+    private void scheduleTimerEvent(final OBSectionController cont)
+    {
+        if (!shouldAnimate(cont))
+            return;
+        if (animationRunnable == null)
+        {
+            animationRunnable = new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    timerEvent(cont);
+                }
+            };
+        }
+        animationHandler.removeCallbacks(animationRunnable);
+        animationHandler.postDelayed(animationRunnable,100);
     }
 
 }

@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.util.ArrayMap;
 
+import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
 
 import java.util.Arrays;
@@ -82,7 +83,7 @@ public class OCM_MlUnitInstance extends DBObject
         }
         catch(Exception e)
         {
-
+            MainActivity.log("OCM_MlUnitInstance: database access error: " + e.getMessage());
         }
         finally
         {

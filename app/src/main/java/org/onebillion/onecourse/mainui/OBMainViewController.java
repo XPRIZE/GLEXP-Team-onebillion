@@ -461,14 +461,17 @@ public class OBMainViewController extends OBViewController
 
     public void popViewControllerToBottom(boolean animate)
     {
-        OBSectionController topvc = viewControllers.get(viewControllers.size() - 1);
-        OBSectionController bottomvc = viewControllers.get(0);
-        bottomvc.viewWillAppear(false);
-        transition(bottomvc, topvc, false, 0.5);
-        viewControllers.remove(viewControllers.size() - 1);
-        showButtons(bottomvc.buttonFlagsWithFatController());
-        showHideButtons(bottomvc.buttonFlagsWithFatController());
-        bottomvc.start();
+        if(viewControllers.size() > 1)
+        {
+            OBSectionController topvc = viewControllers.get(viewControllers.size() - 1);
+            OBSectionController bottomvc = viewControllers.get(0);
+            bottomvc.viewWillAppear(false);
+            transition(bottomvc, topvc, false, 0.5);
+            viewControllers.remove(viewControllers.size() - 1);
+            showButtons(bottomvc.buttonFlagsWithFatController());
+            showHideButtons(bottomvc.buttonFlagsWithFatController());
+            bottomvc.start();
+        }
     }
 
     public OBSectionController topController ()

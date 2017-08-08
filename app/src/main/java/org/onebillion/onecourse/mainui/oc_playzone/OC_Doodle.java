@@ -1,3 +1,7 @@
+
+
+
+
 package org.onebillion.onecourse.mainui.oc_playzone;
 
 import android.graphics.Bitmap;
@@ -254,7 +258,8 @@ public class OC_Doodle extends OC_SectionController
     {
         if (shc != null)
         {
-            shaderProgram = null;
+            //shaderProgram = null;
+            shc.stopAnimation();
             //creShc();
         }
     }
@@ -340,7 +345,8 @@ public class OC_Doodle extends OC_SectionController
     public void start()
     {
         setStatus(0);
-        scheduleTimerEvent();
+        //scheduleTimerEvent();
+        shc.startAnimation(this);
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             public void run() throws Exception
@@ -357,6 +363,15 @@ public class OC_Doodle extends OC_SectionController
             }
         });
     }
+
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+        if(shc != null)
+            shc.stopAnimation();
+    }
+
 
     public long switchStatus (String scene)
     {
@@ -450,7 +465,7 @@ public class OC_Doodle extends OC_SectionController
             PointF p0 = points.get(0);
             PointF pt0 = this.convertPointToControl(p0, board);
             path.moveTo(pt0.x,pt0.y);
-           // MainActivity.log(String.format("drawPath moveto %g %g %g %g",p0.x, p0.y,pt0.x,pt0.y));
+            // MainActivity.log(String.format("drawPath moveto %g %g %g %g",p0.x, p0.y,pt0.x,pt0.y));
             for (int i = 1;i < points.size();i++)
             {
                 PointF p = points.get(i);
@@ -643,3 +658,4 @@ public class OC_Doodle extends OC_SectionController
     }
 
 }
+
