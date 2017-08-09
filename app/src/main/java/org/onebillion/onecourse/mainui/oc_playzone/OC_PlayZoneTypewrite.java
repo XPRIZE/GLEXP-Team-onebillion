@@ -59,7 +59,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
     Map<String,OBGroup> keyboardKeys;
     List<List<OBGroup>> keyboardLayout;
     List<String> themeNames;
-    Map<String,Map> themesData;
+    Map<String,Map> themesData = new HashMap<>();
     OBScrollingText textBox;
     SpannableStringBuilder currentText;
     DynamicLayout layout;
@@ -75,21 +75,15 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
     float dragStartTouchY,dragStartTextOffset;
     float lastAmt;
     double lastAmtTime,dragSpeed;
+    boolean readOnly = false;
 
     public int buttonFlags()
     {
         return OBMainViewController.SHOW_TOP_LEFT_BUTTON;
     }
 
-    public void prepare()
+    void setUpKeyboard()
     {
-        super.prepare();
-        loadFingers();
-        loadEvent("master");
-        themesData = new HashMap();
-        //String[] eva = ((String)eventAttributes.get("scenes")).split(",");
-        events = new ArrayList<>();
-
         List<List<String>> keyboardLetters = new ArrayList<>();
         highlightColour = objectDict.get("button_highlight").fillColor();
 
@@ -105,6 +99,20 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
             keyboardLetters.add(rowLetters);
         }
         loadKeyboard(keyboardLetters);
+    }
+
+    public void prepare()
+    {
+        super.prepare();
+        loadFingers();
+        String p = parameters.get("readonly");
+        if (p != null)
+            readOnly = p.equals("true");
+        loadEvent(readOnly?"master_ro":"master");
+        events = new ArrayList<>();
+
+        if (!readOnly)
+            setUpKeyboard();
 
         String[] themea = ((String)eventAttributes.get("themes")).split(",");;
         themeNames = Arrays.asList(themea);
@@ -130,63 +138,56 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         gradientTop.setTop(textBox.top() - applyGraphicScale(1));
         gradientBottom.setBottom(textBox.bottom() + applyGraphicScale(1));
 
+        List<OBControl>gControls = new ArrayList<>();
+        gControls.add(textBox);
         OBPath cursor = (OBPath) objectDict.get("cursor");
-        float lw = cursor.shapeLayer().stroke.lineWidth;
-        int col = cursor.shapeLayer().stroke.colour;
-        OBControl newc = new OBControl();
-        newc.setBounds(0,0,lw,textBox.capHeight());
-        newc.setBackgroundColor(col);
-        newc.setPosition(textBox.position());
-        newc.setZPosition(textBox.zPosition() + 1);
+        if (cursor != null)
+        {
+            float lw = cursor.shapeLayer().stroke.lineWidth;
+            int col = cursor.shapeLayer().stroke.colour;
+            OBControl newc = new OBControl();
+            newc.setBounds(0,0,lw,textBox.capHeight());
+            newc.setBackgroundColor(col);
+            newc.setPosition(textBox.position());
+            newc.setZPosition(textBox.zPosition() + 1);
 
-        detachControl(cursor);
-        attachControl(newc);
-        objectDict.put("cursor",newc);
+            detachControl(cursor);
+            attachControl(newc);
+            objectDict.put("cursor",newc);
+            gControls.add(newc);
+        }
 
-        textBoxGroup = new OBGroup(Arrays.asList(textBox,newc),textBox.frame());
+        textBoxGroup = new OBGroup(gControls,textBox.frame());
         textBoxGroup.setZPosition(50);
         textBoxGroup.setPosition(objectDict.get("text_box_bg").position());
         attachControl(textBoxGroup);
 
-        refreshCursorAndTextBox();
-        cursorShouldShow = true;
+        if (!readOnly)
+        {
+            refreshCursorAndTextBox();
+            cursorShouldShow = true;
 
-        objectDict.get("button").setZPosition(48);
-        objectDict.get("button_save").setZPosition(48);
-        objectDict.get("text_box_bg").setZPosition(49);
+            objectDict.get("button").setZPosition(48);
+            objectDict.get("button_save").setZPosition(48);
+            objectDict.get("text_box_bg").setZPosition(49);
+        }
 
-       /* textBoxGroup = OBGroup.alloc().initWithMembers(@textBox,.cursor() );
-        textBoxGroup.setPosition((OBControl*)objectDict.get("text_box_bg").position());
-        textBoxGroup.setBounds(RectFMake(0, 0, textBoxGroup.bounds.width() + applyGraphicScale(6), textBoxGroup.bounds.height()));
-        textBoxGroup.width += applyGraphicScale(6);
-        attachControl(textBoxGroup);
-        textBoxGroup.setZPosition(50);
-        textBoxGroup.setMasksToBounds(true);
-        textBoxTopLimit = gradientTop.height();
-        textBoxBottomLimit =textBox.bottom() - gradientBottom.height();
-        textBox.setTop(textBoxTopLimit);
-        refreshCursorAndTextBox();
-
-        textBox.setString((String*)currentText);
-        cursor.setProperty("start_loc",new PointF(cursor.position().x,cursor.position().y));
-
-        currentTextBoxHeight = textBox.height();*/
         capitalMode = false;
-        //setSceneXX(currentEvent());
         currentTapIndex = 0;
     }
 
     public void start()
     {
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-        {
-            @Override
-            public void run() throws Exception
+        if (!readOnly)
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
-                setStatus(STATUS_AWAITING_CLICK);
-                startCursorFlash();
-            }
-        });
+                @Override
+                public void run() throws Exception
+                {
+                    setStatus(STATUS_AWAITING_CLICK);
+                    startCursorFlash();
+                }
+            });
     }
 
     public void startCursorFlash()
@@ -305,7 +306,6 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         currentTheme = name;
         String fontPath = String.format("fonts/%s",(String)themeData.get("font"));
         currentTypeface = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), fontPath);
-        //currentTypeface = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/AklatanicTSO.ttf");
         currentTypeSize = applyGraphicScale(60f);
 
         textBox.setTypeFace(currentTypeface);
@@ -324,16 +324,6 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         currentFont = UIFont.fontWithName(themeData"font".()  size:applyGraphicScale(60));*/
         OBControl cursor = objectDict.get("cursor");
         cursor.setHeight(currentTypeSize * 1.2f);
-
-        /*displayStringAttributes = @{NSFontAttributeName:currentFont,
-            NSForegroundColorAttributeName:(Object)[int.blackColor() CGColor],
-        NSParagraphStyleAttributeName:parStyle
-    };
-
-        currentText = NSMutableAttributedString.alloc().initWithString(currentText == null ? "\t\t" : currentText.mutableString attributes:displayStringAttributes);
-        textBox.setString((String*)currentText);
-        textBox.setTop(textBoxTopLimit);*/
-        //refreshCursorAndTextBox();
 
         unlockScreen();
     }
@@ -612,21 +602,6 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         unlockScreen();
         textBox.scrollCursorToVisible();
 
-/*        float textBoxGroupHeight = textBoxBottomLimit;
-        if(currentTextBoxHeight != textBox.height ||(textBox.height > textBoxGroupHeight && textBox.bottom !=textBoxGroupHeight))
-        {
-            OBControl cursor = objectDict.get("cursor");
-            if(textBoxGroupHeight <= textBox.height)
-                OBAnimationGroup.runAnims(@[[OBAnim propertyAnim:"bottom" val:textBoxGroupHeight obj:textBox) ,
-            OBAnim.propertyAnim("bottom" val:cursor.bottom -(textBox.bottom - textBoxGroupHeight) obj:cursor) ]
-            duration:0.2 wait:true timingFunction:OBAnim.ANIM_EASE_IN_EASE_OUT completionBlock:null];
-        else if(textBox.top != textBoxTopLimit)
-            OBAnimationGroup.runAnims(@[[OBAnim propertyAnim:"top" val:textBoxTopLimit obj:textBox) ,
-            OBAnim.propertyAnim("bottom" val:cursor.bottom -(textBox.bottom -textBoxGroupHeight) obj:cursor) ]
-            duration:0.2 wait:true timingFunction:OBAnim.ANIM_EASE_IN_EASE_OUT completionBlock:null];
-        }
-
-        currentTextBoxHeight = textBox.height;*/
         refreshCursorAndTextBox();
 
     }
@@ -635,58 +610,19 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
     public void refreshCursorAndTextBox()
     {
         OBControl cursor = objectDict.get("cursor");
-        float x = textBox.xOfLastLine();
-        float y = textBox.midYOfLastLine();
-        PointF pt = textBoxGroup.convertPointFromControl(new PointF(x,y),textBox);
-        cursor.setPosition(pt);
-
+        if (cursor != null)
+        {
+            float x = textBox.xOfLastLine();
+            float y = textBox.midYOfLastLine();
+            PointF pt = textBoxGroup.convertPointFromControl(new PointF(x,y),textBox);
+            cursor.setPosition(pt);
+        }
     }
     public void touchDownAtPoint(PointF pt,View v)
     {
         if(status() == STATUS_AWAITING_CLICK  && !keyboardLocked)
         {
-            List<OBGroup>keys = new ArrayList<>(keyboardKeys.values());
-            final OBGroup key = (OBGroup) finger(-1,-1, (List<OBControl>)(Object) keys,pt);
-            if(key != null && key.isEnabled() )
-            {
-                lockKeyboard();
-                lastKey = key;
-                OBControl flastKey = lastKey;
-                dragMode = false;
-                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-                {
-                    @Override
-                    public void run() throws Exception
-                    {
-                        touchDownKeyWithSound(key,true);
-                        final long time = unlockKeyboard();
-                        OBUtils.runOnOtherThreadDelayed(1,new OBUtils.RunLambda()
-                        {
-                            public void run() throws Exception
-                            {
-                                try
-                                {
-                                    if(time == statusTime  && !keyboardLocked && lastKey != null
-                                            && !key.propertyValue("value").equals(KEY_SHIFT))
-                                    {
-                                        while(time == statusTime  && lastKey != null)
-                                        {
-                                            triggerKeyValue(key);
-                                            waitForSecs(0.02f);
-                                        }
-                                    }
-                                }
-                                catch(Exception exception)
-                                {
-
-                                }
-                            }
-                        });
-                    }
-                });
-
-             }
-            else if(textBoxGroup.frame().contains(pt.x, pt.y))
+            if(textBoxGroup.frame().contains(pt.x, pt.y))
             {
                 setStatus(STATUS_DOING_DEMO);
                 dragMode = true;
@@ -698,39 +634,84 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
                 objectDict.get("cursor").hide();
                 cursorShouldShow = false;
                 setStatus(STATUS_DRAGGING);
+                return;
             }
-            else if(finger(-1,-1,Arrays.asList(objectDict.get("button")),pt)  != null)
-            {
-                final OBGroup themeButton = (OBGroup) objectDict.get("button");
-                setStatus(STATUS_DOING_DEMO);
-                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-                {
-                    public void run() throws Exception
-                    {
-                        themeButton.highlight();
-                        int index = themeNames.indexOf(currentTheme);
-                        loadTheme(themeNames.get((index+1)%themeNames.size()));
-                        refreshCursorAndTextBox();
-                        themeButton.lowlight();
-                        setStatus(STATUS_AWAITING_CLICK);
-                    }
-                });
-            }
-            else if(finger(-1,-1,Arrays.asList(objectDict.get("button_save")),pt)  != null && textBox.charLength() > 4)
-            {
-                final OBGroup saveButton = (OBGroup) objectDict.get("button_save");
-                setStatus(STATUS_DOING_DEMO);
-                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-                                         {
-                                             @Override
-                                             public void run() throws Exception
-                                             {
-                                                 saveButton.highlight();
-                                                 saveCurrentText();
-                                             }
-                                         }
-                );
 
+            if (!readOnly)
+            {
+                List<OBGroup>keys = new ArrayList<>(keyboardKeys.values());
+                final OBGroup key = (OBGroup) finger(-1,-1, (List<OBControl>)(Object) keys,pt);
+                if(key != null && key.isEnabled() )
+                {
+                    lockKeyboard();
+                    lastKey = key;
+                    dragMode = false;
+                    OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run() throws Exception
+                        {
+                            touchDownKeyWithSound(key,true);
+                            final long time = unlockKeyboard();
+                            OBUtils.runOnOtherThreadDelayed(1,new OBUtils.RunLambda()
+                            {
+                                public void run() throws Exception
+                                {
+                                    try
+                                    {
+                                        if(time == statusTime  && !keyboardLocked && lastKey != null
+                                                && !key.propertyValue("value").equals(KEY_SHIFT))
+                                        {
+                                            while(time == statusTime  && lastKey != null)
+                                            {
+                                                triggerKeyValue(key);
+                                                waitForSecs(0.02f);
+                                            }
+                                        }
+                                    }
+                                    catch(Exception exception)
+                                    {
+
+                                    }
+                                }
+                            });
+                        }
+                    });
+
+                }
+                else if(finger(-1,-1,Arrays.asList(objectDict.get("button")),pt)  != null)
+                {
+                    final OBGroup themeButton = (OBGroup) objectDict.get("button");
+                    setStatus(STATUS_DOING_DEMO);
+                    OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                    {
+                        public void run() throws Exception
+                        {
+                            themeButton.highlight();
+                            int index = themeNames.indexOf(currentTheme);
+                            loadTheme(themeNames.get((index+1)%themeNames.size()));
+                            refreshCursorAndTextBox();
+                            themeButton.lowlight();
+                            setStatus(STATUS_AWAITING_CLICK);
+                        }
+                    });
+                }
+                else if(finger(-1,-1,Arrays.asList(objectDict.get("button_save")),pt)  != null && textBox.charLength() > 4)
+                {
+                    final OBGroup saveButton = (OBGroup) objectDict.get("button_save");
+                    setStatus(STATUS_DOING_DEMO);
+                    OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                                             {
+                                                 @Override
+                                                 public void run() throws Exception
+                                                 {
+                                                     saveButton.highlight();
+                                                     saveCurrentText();
+                                                 }
+                                             }
+                    );
+
+                }
             }
         }
     }
@@ -910,7 +891,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         lastKey = null;
     }
 
-    public void render (OBRenderer renderer)
+/*    public void render (OBRenderer renderer)
     {
         renderLock.lock();
         renderBackground(renderer);
@@ -936,5 +917,5 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         renderLock.unlock();
 
 
-    }
+    }*/
 }
