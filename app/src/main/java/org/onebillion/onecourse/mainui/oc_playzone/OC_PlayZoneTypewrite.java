@@ -120,11 +120,22 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         textBox = new OBScrollingText(objectDict.get("text_box").frame());
         textBox.setZPosition(5);
         textBox.setFillColor(Color.WHITE);
-        textBox.setZPosition(100);
+        textBox.setZPosition(50);
         attachControl(textBox);
-        textBox.setString("");
 
-        loadTheme(themeNames.get(1));
+        p = parameters.get("text");
+        textBox.setString(p == null?"":p);
+
+        int themeIdx = 1;
+        p = parameters.get("theme");
+        if (p != null)
+        {
+            int idx = themeNames.indexOf(p);
+            if (idx >= 0)
+                themeIdx = idx;
+        }
+
+        loadTheme(themeNames.get(themeIdx));
 
 
         OBControl gradientTop = objectDict.get("text_box_gradient_top");
@@ -159,7 +170,9 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
 
         textBoxGroup = new OBGroup(gControls,textBox.frame());
         textBoxGroup.setZPosition(50);
-        textBoxGroup.setPosition(objectDict.get("text_box_bg").position());
+        OBControl tbb = objectDict.get("text_box_bg");
+        tbb.setZPosition(49);
+        textBoxGroup.setPosition(tbb.position());
         attachControl(textBoxGroup);
 
         if (!readOnly)
@@ -262,6 +275,8 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
 
     public void loadTheme(String name)
     {
+        if (readOnly)
+            name = name + "_ro";
         lockScreen();
         Map themeData = themesData.get(name);
         if(themeData == null)
@@ -273,7 +288,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
               //  con.setRasterScale(0.75f);
                 //con.setShouldRasterize(true);
             }
-            OBGroup group = new OBGroup(themeFiles);
+            /*OBGroup group = new OBGroup(themeFiles);
 
             RectF frame = group.frame();
             RectF targetFrame = this.boundsf();
@@ -284,7 +299,9 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
             attachControl(group);
 
             group.setZPosition(1);
-            dictData.put("controls",Arrays.asList(group));
+            dictData.put("controls",Arrays.asList(group));*/
+
+            dictData.put("controls",themeFiles);
             dictData.put("font",eventAttributes.get("fontfile"));
             themesData.put(name,dictData);
             themeData = dictData;
@@ -323,7 +340,8 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
 
         currentFont = UIFont.fontWithName(themeData"font".()  size:applyGraphicScale(60));*/
         OBControl cursor = objectDict.get("cursor");
-        cursor.setHeight(currentTypeSize * 1.2f);
+        if (cursor != null)
+            cursor.setHeight(currentTypeSize * 1.2f);
 
         unlockScreen();
     }
