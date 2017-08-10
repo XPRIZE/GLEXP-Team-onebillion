@@ -2,11 +2,13 @@ package org.onebillion.onecourse.mainui.oc_community;
 
 import android.content.Intent;
 import android.graphics.PointF;
+import android.support.v4.app.NotificationCompatSideChannelService;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBPresenter;
 import org.onebillion.onecourse.mainui.MainActivity;
+import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OC_Menu;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
@@ -31,6 +33,7 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
     OCM_FatController fatController;
     OBPresenter presenter;
     int lastCommand;
+    boolean isCharging;
 
     @Override
     public String sectionName()
@@ -60,17 +63,51 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
 
     public void prepare()
     {
+        fatController = (OCM_FatController) MainActivity.mainActivity.fatController;
+        fatController.menu = this;
+
         setStatus(STATUS_BUSY);
         super.prepare();
         loadFingers();
+        lastCommand = (int)fatController.getCurrentCommand().get("code");
         loadEvent("master");
-        fatController = (OCM_FatController) MainActivity.mainActivity.fatController;
-        fatController.menu = this;
+
+        isCharging = OBSystemsManager.sharedManager.isBatteryCharging();
+
+        if(lastCommand == OCM_FatController.OFC_BATTERY_LOW)
+        {
+            loadEvent("battery");
+            OBControl cable = objectDict.get("cable");
+            cable.setProperty("dest_loc", OBMisc.copyPoint(cable.position()));
+
+            if(isCharging)
+            {
+                setTabletStatus(0);
+            }
+            else
+            {
+                cable.setRight(0);
+                setTabletStatus(1);
+            }
+        }
+        else
+        {
+            loadEvent("locked");
+        }
+
+
         presenter = OBPresenter.characterWithGroup((OBGroup)objectDict.get("presenter"));
         presenter.control.setZPosition(200);
         presenter.control.setProperty("start_loc", OBMisc.copyPoint(presenter.control.position()));
         presenter.faceFront();
-        presenter.control.setRight ( 0);
+        if(lastCommand == OCM_FatController.OFC_BATTERY_LOW)
+        {
+            presenter.control.setLeft(this.boundsf().right);
+        }
+        else
+        {
+            presenter.control.setRight(0);
+        }
         presenter.control.setProperty("end_loc",OBMisc.copyPoint(presenter.control.position()));
 
     }
@@ -80,13 +117,19 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
         {
             public void run() throws Exception
             {
-                if (!checkCurrentCommand())
-                {
+                     waitForSecs(1);
                     if (lastCommand == OCM_FatController.OFC_SESSION_LOCKED)
                     {
-                        demo_presenter_timeout();
+                        demo_presenter_locked();
+                    } else if((lastCommand == OCM_FatController.OFC_BATTERY_LOW))
+                    {
+                        if(isCharging)
+                            demo_battery();
+                        else
+                            demo_presenter_battery();
                     }
-                }
+
+
             }
         });
     }
@@ -94,14 +137,21 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
 
     public boolean checkCurrentCommand()
     {
-        lastCommand = (int)fatController.getCurrentCommand().get("code") ;
-        if(lastCommand == OCM_FatController.OFC_BATTERY_LOW )
+        int curCommand = (int)fatController.getCurrentCommand().get("code") ;
+        if(curCommand == OCM_FatController.OFC_BATTERY_LOW)
         {
+            if(lastCommand == OCM_FatController.OFC_SESSION_LOCKED)
+            {
+                closeThisMenuAndOpen(OCM_LockScreen.class);
+                return true;
+            }
+            lastCommand=curCommand;
             return false;
 
         }
-        else if(lastCommand == OCM_FatController.OFC_SESSION_LOCKED)
+        else if(curCommand == OCM_FatController.OFC_SESSION_LOCKED)
         {
+            lastCommand=curCommand;
             return false;
         }
         else
@@ -116,7 +166,6 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
     public void onResume()
     {
         super.onResume();
-        objectDict.get("foreground_night").hide();
         if (!checkCurrentCommand())
         {
             if (status() == STATUS_IDLE)
@@ -126,7 +175,11 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
                 {
                     public void run() throws Exception
                     {
-                        demo_locked();
+                        waitForSecs(1);
+                        if(lastCommand == OCM_FatController.OFC_SESSION_LOCKED)
+                            demo_locked();
+                        else if(lastCommand == OCM_FatController.OFC_BATTERY_LOW)
+                            demo_battery();
                     }
                 });
             }
@@ -134,11 +187,31 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
     }
 
     @Override
+    public void onPause()
+    {
+        super.onPause();
+        if (status() == STATUS_BUSY)
+        {
+
+        }
+    }
+
+    @Override
     public void onAlarmReceived(Intent intent)
     {
+        super.onAlarmReceived(intent);
         checkCurrentCommand();
     }
 
+    @Override
+    public void onBatteryStatusReceived(float level, boolean charging)
+    {
+        super.onBatteryStatusReceived(level, charging);
+        if(lastCommand == OCM_FatController.OFC_BATTERY_LOW && charging != isCharging)
+        {
+            closeThisMenuAndOpen(OCM_LockScreen.class);
+        }
+    }
 
     public void closeThisMenuAndOpen(final Class<?> vcClass)
     {
@@ -285,7 +358,7 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
     }
 
 
-    public void walkPresenterIn(PointF pt)
+    public void walkPresenterIn(PointF pt, boolean flipped)
     {
         if(Math.abs(pt.x- presenter.control.position().x) < applyGraphicScale(10))
             return;
@@ -295,7 +368,11 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
             presenter.control.show();
         }
         presenter.walk(pt);
-        presenter.faceFront();
+
+        if(flipped)
+            presenter.faceFrontReflected();
+        else
+            presenter.faceFront();
     }
 
     public void walkPresenterOut()
@@ -312,13 +389,13 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
         presenter.control.hide();
     }
 
-    public void demo_presenter_timeout() throws Exception
+    public void demo_presenter_locked() throws Exception
     {
         setStatus(STATUS_BUSY);
         playSfxAudio("chime",true);
-        walkPresenterIn((PointF)presenter.control.propertyValue("start_loc"));
+        walkPresenterIn((PointF)presenter.control.propertyValue("start_loc"), false);
         waitForSecs(0.3f);
-        presenter.speak((List<Object>)(Object)getAudioForScene("timeout","DEMO"),this);
+        presenter.speak((List<Object>)(Object)getAudioForScene("locked","DEMO"),this);
         waitForSecs(0.3f);
         walkPresenterOut();
         animateNightSkyOn();
@@ -345,6 +422,107 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
 
         }
         setStatus(STATUS_IDLE);
+    }
+
+
+    public void demo_presenter_battery() throws Exception
+    {
+        long time = setStatus(STATUS_BUSY);
+        //playSfxAudio("chime",true);
+        walkPresenterIn((PointF)presenter.control.propertyValue("start_loc"), true);
+        waitForSecs(0.3f);
+        presenter.speak((List<Object>)(Object)getAudioForScene("battery","DEMO"),this);
+        waitForSecs(0.3f);
+        presenter.moveHandfromIndex(0,4,0.5);
+        final OBSectionController controller = this;
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                presenter.speak((List<Object>)(Object)getAudioForScene("battery","DEMO2"),controller);
+            }
+        });
+
+        animateCable();
+
+        walkPresenterOut();
+        try
+        {
+            OBSystemsManager.sharedManager.screenLock();
+        }catch (Exception e)
+        {
+
+        }
+        setTabletStatus(-1);
+        setStatus(STATUS_IDLE);
+    }
+
+    public void demo_battery() throws Exception
+    {
+        setStatus(STATUS_BUSY);
+        if(isCharging)
+        {
+            setTabletStatus(0);
+            animateCharging();
+        }
+        else
+        {
+            setTabletStatus(1);
+            animateCable();
+        }
+
+        try
+        {
+            OBSystemsManager.sharedManager.screenLock();
+        }catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        setTabletStatus(-1);
+        setStatus(STATUS_IDLE);
+    }
+
+    public void animateCable() throws Exception
+    {
+        OBControl cable = objectDict.get("cable");
+        for (int i = 0; i < 3; i++)
+        {
+            cable.setRight(0);
+            cable.show();
+            PointF targetLoc = (PointF) cable.propertyValue("dest_loc");
+            OBAnimationGroup.runAnims(Arrays.asList(OBAnim.moveAnim(targetLoc, cable)), 2f, true, OBAnim.ANIM_EASE_OUT, this);
+            waitForSecs(1);
+        }
+    }
+
+    public void animateCharging() throws Exception
+    {
+        OBControl cable = objectDict.get("cable");
+        cable.setPosition((PointF) cable.propertyValue("dest_loc"));
+        cable.show();
+        OBGroup tablet = (OBGroup)objectDict.get("tablet");
+        OBControl chargingLight = tablet.objectDict.get("level_0");
+        for (int i = 0; i < 3; i++)
+        {
+            chargingLight.hide();
+            waitForSecs(0.5);
+            chargingLight.show();
+            waitForSecs(0.5);
+        }
+    }
+
+    public void setTabletStatus(int status)
+    {
+        if(objectDict.containsKey("tablet"))
+        {
+            lockScreen();
+            OBGroup tablet = (OBGroup)objectDict.get("tablet");
+            tablet.hideMembers("level_.*");
+            if(status >= 0)
+                tablet.objectDict.get(String.format("level_%d",status)).show();
+            unlockScreen();
+        }
     }
 
 

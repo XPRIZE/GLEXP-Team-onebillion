@@ -87,11 +87,11 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     private OBUtils.RunLambda dateSetCompletionBlock, timeSetCompletionBlock;
 
 
-    public OBSystemsManager ()
+    public OBSystemsManager (Activity activity)
     {
         batteryReceiver = new OBBatteryReceiver();
         //
-        settingsContentObserver = new OBSettingsContentObserver(MainActivity.mainActivity, new Handler());
+        settingsContentObserver = new OBSettingsContentObserver(activity, new Handler());
         //
         brightnessManager = new OBBrightnessManager();
         expansionManager = new OBExpansionManager();
@@ -400,7 +400,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         //
         if (batteryReceiver != null)
         {
-            MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            registerBatteryReceiver();
         }
         //
         if (settingsContentObserver != null)
@@ -507,6 +507,17 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         statusLabel = label;
         refreshStatus();
     }
+
+    public void registerBatteryReceiver()
+    {
+        Intent intent = MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_LOW));
+        MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_OKAY));
+        MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_POWER_CONNECTED));
+        MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_POWER_DISCONNECTED));
+        batteryReceiver.onReceive(null,intent);
+    }
+
 
 
     private void runChecksumComparisonTest ()
@@ -1558,6 +1569,30 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         {
             return settings.get(MainActivity.CONFIG_SHOW_BATTERY_LOCK_SCREEN).equals("true");
         }
+    }
+
+    /**
+     * @return battery level on 0.0-100.0 scale, -1 if no battery data
+     */
+    public float getBatteryLevel ()
+    {
+       if(batteryReceiver != null)
+       {
+           return batteryReceiver.getBatteryLevel();
+       }
+       return -1;
+    }
+
+    /**
+     * @return true is battery is charging(cable is plugged in)
+     */
+    public boolean isBatteryCharging ()
+    {
+        if(batteryReceiver != null)
+        {
+            return batteryReceiver.cablePluggedIn();
+        }
+        return false;
     }
 
 }

@@ -2349,5 +2349,11 @@ public class OBSectionController extends OBViewController
     {
 
     }
+
+    public void onBatteryStatusReceived(float level, boolean charging)
+    {
+
+    }
+
 }
 

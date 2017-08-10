@@ -579,4 +579,14 @@ public class OBMainViewController extends OBViewController
                 controller.onAlarmReceived(intent);
         }
     }
+
+    public void onBatteryStatusReceived(float level, boolean charging)
+    {
+        if(viewControllers != null && viewControllers.size() > 0)
+        {
+            OBSectionController controller = viewControllers.get(viewControllers.size()-1);
+            if(controller != null)
+                controller.onBatteryStatusReceived(level,charging);
+        }
+    }
 }

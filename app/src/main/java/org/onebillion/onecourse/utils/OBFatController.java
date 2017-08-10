@@ -91,6 +91,11 @@ public class OBFatController
 
     }
 
+    public void onBatteryStatusReceived(float level, boolean charging)
+    {
+
+    }
+
     public int databaseResource()
     {
         return -1;

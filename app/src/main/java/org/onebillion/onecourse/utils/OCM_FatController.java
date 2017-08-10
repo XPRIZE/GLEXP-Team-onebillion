@@ -5,16 +5,21 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.CursorIndexOutOfBoundsException;
+import android.graphics.PointF;
+import android.graphics.RectF;
 import android.os.Handler;
 import android.util.ArrayMap;
 import android.widget.Toast;
 
 import org.onebillion.onecourse.R;
+import org.onebillion.onecourse.controls.OBControl;
+import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset;
+import org.onebillion.onecourse.receivers.OBBatteryReceiver;
 
 import java.io.InputStream;
 import java.sql.Date;
@@ -273,7 +278,7 @@ public class OCM_FatController extends OBFatController
         OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, ALARM_PLAYZONE_UNLOCK);
     }
 
-    public void checkTimeStatus()
+    public void checkCurrentStatus()
     {
         if(batteryStatusLow() ||
                 currentSessionLocked() ||
@@ -345,8 +350,6 @@ public class OCM_FatController extends OBFatController
 
     public void timeOutUnit(OCM_MlUnitInstance unitInstance)
     {
-
-
         if(currentSessionLocked())
         {
             signalSessionLocked();
@@ -388,7 +391,7 @@ public class OCM_FatController extends OBFatController
     @Override
     public void onAlamReceived(Intent intent, OBSectionController cont)
     {
-        checkTimeStatus();
+        checkCurrentStatus();
     }
 
     @Override
@@ -399,7 +402,7 @@ public class OCM_FatController extends OBFatController
     @Override
     public void onResume(OBSectionController cont)
     {
-        checkTimeStatus();
+        checkCurrentStatus();
         checkTimeout(currentUnitInstance);
     }
 
@@ -852,11 +855,6 @@ public class OCM_FatController extends OBFatController
         Map<String,Object> command = new ArrayMap<>();
         command.put("code", code);
         return command;
-    }
-
-    public boolean batteryStatusLow()
-    {
-        return false;
     }
 
     public boolean playZoneActive()
@@ -1421,6 +1419,69 @@ public class OCM_FatController extends OBFatController
         }
         return result;
     }
+
+
+    /*
+    Battery actions
+     */
+
+    @Override
+    public void onBatteryStatusReceived(float level, boolean charging)
+    {
+        checkCurrentStatus();
+    }
+
+    public void loadBatteryIcon(OBSectionController controller)
+    {
+        OBControl batteryIcon = null;
+        if(!controller.objectDict.containsKey("battery_icon"))
+        {
+            batteryIcon = controller.loadVectorWithName("battery_icon", new PointF(0.9f, 0.9f), controller.boundsf());
+            batteryIcon.setScale(controller.applyGraphicScale(25)/batteryIcon.height());
+            batteryIcon.setRight(controller.boundsf().right - controller.applyGraphicScale(10));
+            batteryIcon.setBottom(controller.boundsf().bottom - controller.applyGraphicScale(10));
+            batteryIcon.setZPosition(100);
+            controller.objectDict.put("battery_icon", batteryIcon);
+            refreshBatteryStatus(controller);
+        }
+
+    }
+
+    public void refreshBatteryStatus(OBSectionController controller)
+    {
+        float batteryLevel = OBSystemsManager.sharedManager.getBatteryLevel();
+        boolean charging = OBSystemsManager.sharedManager.isBatteryCharging();
+        refreshBatteryStatus(batteryLevel,charging,controller);
+    }
+
+    public void refreshBatteryStatus(float batteryLevel, boolean charging, OBSectionController controller)
+    {
+        if(charging)
+            setBatteryLevel(controller,0);
+        else if(batteryLevel > 60.0)
+            setBatteryLevel(controller,3);
+        else if(batteryLevel > 20.0)
+            setBatteryLevel(controller,2);
+        else
+            setBatteryLevel(controller,1);
+    }
+
+    private void setBatteryLevel(OBSectionController controller, int level)
+    {
+        if(controller.objectDict.containsKey("battery_icon"))
+        {
+            OBGroup batteryIcon = (OBGroup)controller.objectDict.get("battery_icon");
+            batteryIcon.hideMembers("level_.*");
+            batteryIcon.objectDict.get(String.format("level_%d",level)).show();
+        }
+    }
+
+    public boolean batteryStatusLow()
+    {
+        float batteryLevel = OBSystemsManager.sharedManager.getBatteryLevel();
+        return batteryLevel <= 10;
+    }
+
 
 
 }

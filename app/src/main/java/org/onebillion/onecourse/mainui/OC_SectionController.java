@@ -658,4 +658,11 @@ public class OC_SectionController extends OBSectionController {
         super.onAlarmReceived(intent);
         MainActivity.mainActivity.fatController.onAlamReceived(intent,this);
     }
+
+    @Override
+    public void onBatteryStatusReceived(float level, boolean charging)
+    {
+        super.onBatteryStatusReceived(level, charging);
+        MainActivity.mainActivity.fatController.onBatteryStatusReceived(level,charging);
+    }
 }

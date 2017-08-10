@@ -164,7 +164,7 @@ public class MainActivity extends Activity
     ;
     public static String TAG = "onecourse";
     //
-    public static OBSystemsManager systemsManager = new OBSystemsManager();
+    public static OBSystemsManager systemsManager;
     public static MainActivity mainActivity;
     public static OBMainViewController mainViewController;
     public static Typeface standardTypeFace;
@@ -237,7 +237,7 @@ public class MainActivity extends Activity
         //
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
-
+        systemsManager = new OBSystemsManager(this);
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler()
         {
             @Override
@@ -925,6 +925,7 @@ public class MainActivity extends Activity
     @Override
     protected void onResume ()
     {
+        OBSystemsManager.sharedManager.onResume();
         super.onResume();
         //
         if (mainViewController != null)
@@ -944,7 +945,7 @@ public class MainActivity extends Activity
         {
 
         }
-        OBSystemsManager.sharedManager.onResume();
+
     }
 
 
@@ -959,6 +960,12 @@ public class MainActivity extends Activity
     {
         if (mainViewController != null)
             mainViewController.onAlarmReceived(intent);
+    }
+
+    public void onBatteryStatusReceived(float level, boolean charging)
+    {
+        if (mainViewController != null)
+            mainViewController.onBatteryStatusReceived(level,charging);
     }
 
 

@@ -128,6 +128,8 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         coloursDict = OBMisc.loadEventColours(this);
         fatController = (OCM_FatController)MainActivity.mainActivity.fatController;
         fatController.menu = this;
+
+        fatController.loadBatteryIcon(this);
         fatController.colourDict = coloursDict;
         presenter = OBPresenter.characterWithGroup((OBGroup)objectDict.get("presenter"));
         presenter.control.setZPosition(200);
@@ -359,9 +361,24 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
     @Override
     public void onAlarmReceived(Intent intent)
     {
+        super.onAlarmReceived(intent);
         checkCurrentCommand();
     }
 
+    @Override
+    public void onBatteryStatusReceived(final float level, final boolean charging)
+    {
+        super.onBatteryStatusReceived(level,charging);
+        final OBSectionController controller = this;
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                fatController.refreshBatteryStatus(level,charging,controller);
+            }
+        });
+    }
 
     /*
     Event functions

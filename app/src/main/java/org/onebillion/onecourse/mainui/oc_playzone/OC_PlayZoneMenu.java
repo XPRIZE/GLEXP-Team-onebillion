@@ -66,7 +66,7 @@ public class OC_PlayZoneMenu extends OC_Menu
     List<OC_PlayZoneAsset> mediaAssets;
     OBControl currentMediaLayer;
     OBGroup mediaIconsGroup;
-    long dragStartTime, lastFloatLoopTick, lastTouchTime, iconShakeStartTime;
+    long lastFloatLoopTick, lastTouchTime, iconShakeStartTime;
     PointF lastTouchPoint;
     OBVideoPlayer videoPlayer;
     RectF scrollHitBox;
@@ -102,6 +102,21 @@ public class OC_PlayZoneMenu extends OC_Menu
         }
     }
 
+    @Override
+    public void onBatteryStatusReceived(final float level, final boolean charging)
+    {
+        super.onBatteryStatusReceived(level,charging);
+        final OBSectionController controller = this;
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                fatController.refreshBatteryStatus(level,charging,controller);
+            }
+        });
+    }
+
     public String sectionName()
     {
         return "menu";
@@ -125,7 +140,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         super.prepare();
         loadFingers();
         loadAudioXML(getConfigPath("pzdefaultaudio.xml"));
-
+        fatController.loadBatteryIcon(this);
         OBControl btmLeft = objectDict.get("bottom_bar_left");
         OBControl btmRight = objectDict.get("bottom_bar_right");
         scrollHitBox = new RectF(btmLeft.right(), btmLeft.top(), btmRight.left() , btmLeft.bottom());
@@ -140,7 +155,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         List<String> colours = OBUtils.randomlySortedArray(Arrays.asList(eventAttributes.get("button_colours").split(";")));
         int index = 0;
         List<Float> scaleOptions = OBUtils.randomlySortedArray(Arrays.asList(0.95f,0.975f,1.0f,1.025f,1.05f));
-        boxTouchMode = false;//OBUtils.getBooleanValue(parameters.get("intro"));
+        boxTouchMode = OBUtils.getBooleanValue(parameters.get("intro"));
 
         for(OBControl iconCont : filterControls("menu_icon_.*"))
         {

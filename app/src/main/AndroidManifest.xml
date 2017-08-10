@@ -104,6 +104,7 @@
             </intent-filter>
         </activity>
 
+        <!--
         <receiver android:name="org.onebillion.onecourse.receivers.OBBatteryReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_BATTERY_LOW"/>
@@ -112,7 +113,7 @@
                 <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
             </intent-filter>
         </receiver>
-
+-->
         <receiver android:name="org.onebillion.onecourse.utils.OBAlarmReceiver"></receiver>
     </application>
 
