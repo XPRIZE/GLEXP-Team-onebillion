@@ -26,6 +26,7 @@ import android.text.SpannableString;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.util.ArrayMap;
+import android.util.Log;
 
 import org.onebillion.onecourse.controls.*;
 import org.onebillion.onecourse.glstuff.*;
@@ -1281,6 +1282,34 @@ public class OBSectionController extends OBViewController
             if (control.frame().intersects(clipb.left, clipb.top, clipb.right, clipb.bottom))
                 control.draw(canvas);
         }
+    }
+
+    public Bitmap drawn (Bitmap oldBitmap,boolean withBackground)
+    {
+        Bitmap bitmap = null;
+        int width = (bounds().right - bounds().left);
+        int height = (bounds().bottom - bounds().top);
+        if (width == 0 || height == 0)
+            Log.i("error", "drawn");
+        try
+        {
+            if (oldBitmap != null && oldBitmap.getWidth() == width && oldBitmap.getHeight() == height)
+            {
+                bitmap = oldBitmap;
+                bitmap.eraseColor(0);
+            }
+            else
+                bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            if (withBackground)
+                bitmap.eraseColor(Color.argb((int)(topColour[0]*255),(int)(topColour[1]*255),(int)(topColour[2]*255),(int)(topColour[3]*255)));
+        }
+        catch (Exception exception)
+        {
+            exception.printStackTrace();
+        }
+        Canvas canvas = new Canvas(bitmap);
+        drawControls(canvas);
+        return bitmap;
     }
 
     public void renderBackground (OBRenderer renderer)

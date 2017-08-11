@@ -1,5 +1,6 @@
 package org.onebillion.onecourse.mainui.oc_playzone;
 
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -818,6 +819,9 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         params.put("theme",currentTheme);
         params.put("font", (String) (themesData.get(currentTheme)).get("font"));
         params.put("text",textBox.textBuffer().toString());
+        Bitmap bm = drawn(null,true);
+
+
         OBFatController fatController = (MainActivity.mainActivity.fatController);
         if (OCM_FatController.class.isInstance(fatController))
             ((OCM_FatController)fatController).savePlayZoneAssetForCurrentUserType(ASSET_TEXT,null,params);
