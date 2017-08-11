@@ -112,7 +112,10 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         events = new ArrayList<>();
 
         if (!readOnly)
+        {
             setUpKeyboard();
+        }
+
 
         String[] themea = ((String)eventAttributes.get("themes")).split(",");;
         themeNames = Arrays.asList(themea);

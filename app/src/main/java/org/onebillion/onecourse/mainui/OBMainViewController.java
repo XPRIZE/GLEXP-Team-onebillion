@@ -376,6 +376,8 @@ public class OBMainViewController extends OBViewController
         }
 
         controller.params = _params;
+        if(zoom)
+            controller.setPopAnimationZoom(zoomRect);
         controller.viewWillAppear(animate);
         controller.prepare();
         if (viewControllers.size() >= 1 && animate)
@@ -509,6 +511,18 @@ public class OBMainViewController extends OBViewController
         OBSectionController nextvc = viewControllers.get(viewControllers.size() - 2);
         nextvc.viewWillAppear(false);
         transition(nextvc, topvc, false, 0.5);
+        viewControllers.remove(viewControllers.size() - 1);
+        showButtons(nextvc.buttonFlagsWithFatController());
+        showHideButtons(nextvc.buttonFlagsWithFatController());
+        nextvc.start();
+    }
+
+    public void popViewControllerZoom (RectF zoomRect)
+    {
+        OBSectionController topvc = viewControllers.get(viewControllers.size() - 1);
+        OBSectionController nextvc = viewControllers.get(viewControllers.size() - 2);
+        nextvc.viewWillAppear(false);
+        transitionZoom(nextvc, topvc, false, zoomRect, 0.4);
         viewControllers.remove(viewControllers.size() - 1);
         showButtons(nextvc.buttonFlagsWithFatController());
         showHideButtons(nextvc.buttonFlagsWithFatController());

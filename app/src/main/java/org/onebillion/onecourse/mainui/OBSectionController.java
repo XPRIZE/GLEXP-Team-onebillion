@@ -87,6 +87,9 @@ public class OBSectionController extends OBViewController
     protected long audioQueueToken, sequenceToken, statusTime;
     protected ReentrantLock sequenceLock;
 
+    private boolean popAnimationZoom;
+    private RectF popAnimationZoomRect;
+
     float topColour[] = {1, 1, 1, 1};
     float bottomColour[] = {1, 1, 1, 1};
     protected List<Integer> busyStatuses =Arrays.asList(STATUS_BUSY,STATUS_DOING_DEMO,STATUS_DRAGGING,STATUS_CHECKING);
@@ -113,6 +116,7 @@ public class OBSectionController extends OBViewController
         sequenceLock = new ReentrantLock();
         sortedAttachedControlsValid = true;
         this.requiresOpenGL = requiresOpenGL;
+        popAnimationZoom = false;
     }
 
 
@@ -1983,7 +1987,15 @@ public class OBSectionController extends OBViewController
             {
                 public void ex ()
                 {
-                    MainActivity.mainViewController.popViewController();
+                    if(popAnimationZoom == true)
+                    {
+                        MainActivity.mainViewController.popViewControllerZoom(popAnimationZoomRect);
+                    }
+                    else
+                    {
+                        MainActivity.mainViewController.popViewController();
+                    }
+
                 }
             }.run();
         }
@@ -2332,6 +2344,19 @@ public class OBSectionController extends OBViewController
             }
         }
         return dict;
+    }
+
+    public void setPopAnimationZoom(RectF zoomRect)
+    {
+        if(zoomRect != null)
+        {
+            popAnimationZoom = true;
+            popAnimationZoomRect = zoomRect;
+        }
+        else
+        {
+            popAnimationZoom = false;
+        }
     }
 
 

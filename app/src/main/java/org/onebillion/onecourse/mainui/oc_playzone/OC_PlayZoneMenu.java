@@ -73,7 +73,6 @@ public class OC_PlayZoneMenu extends OC_Menu
     float dragTravelDistance;
     float leftLimit, rightLimit, topLimit, bottomLimit;
     OCM_FatController fatController;
-    OBShaderControl gradientShaderControl;
 
     @Override
     public void onPause()
@@ -1317,17 +1316,39 @@ public class OC_PlayZoneMenu extends OC_Menu
         {
             public void run() throws Exception
             {
-                OC_PlayZoneAsset asset = (OC_PlayZoneAsset)icon.propertyValue("asset");
+                final OC_PlayZoneAsset asset = (OC_PlayZoneAsset)icon.propertyValue("asset");
                 if (asset.type == OC_PlayZoneAsset.ASSET_VIDEO)
                 {
                     loadVideoForAsset(asset, icon);
+                    mediaIsPlaying = true;
+                    setStatus(STATUS_AWAITING_CLICK);
                 } else if (asset.type == OC_PlayZoneAsset.ASSET_TEXT)
                 {
-                   // loadTextForAsset(asset, icon);
-                    MainViewController().pushViewController(OC_PlayZoneTypewrite.class,true,true,"typewrite/keyboard=q,w,e,r,t,y,u,i,o,p,s_back;a,s,d,f,g,h,j,k,l,s_enter;z,x,c,v,b,n,m,#44,#39,#34;s_shift,s_space,#46,#63,#33",false,true, icon.getWorldFrame());
+                    OBUtils.runOnMainThread(
+                            new OBUtils.RunLambda()
+                            {
+                                @Override
+                                public void run() throws Exception
+                                {
+                                    Map<String,String> par = asset.paramsDictionary();
+                                    if(par.containsKey("theme") && par.containsKey("text"))
+                                    {
+                                        String params = "typewrite/readonly=true";
+                                        params += "/theme=" + par.get("theme");
+                                        params += "/text=" + par.get("text");
+                                        MainViewController().pushViewController(OC_PlayZoneTypewrite.class, true, true, params, false, true, new RectF(icon.getWorldFrame()));
+
+                                    }
+                                    else
+                                    {
+                                        setStatus(STATUS_AWAITING_CLICK);
+                                    }
+                                }
+                            }
+                    );
+
                 } else if (asset.type == OC_PlayZoneAsset.ASSET_DOODLE)
                 {
-                    //loadDoodleForAsset(asset, icon);
                     OBUtils.runOnMainThread(
                             new OBUtils.RunLambda()
                             {
@@ -1340,90 +1361,11 @@ public class OC_PlayZoneMenu extends OC_Menu
                     );
 
                 }
-               // mediaIsPlaying = true;
-                setStatus(STATUS_AWAITING_CLICK);
-            }
-        });
-    }
-
-public void prepareShader()
-{
-    if(gradientShaderControl == null)
-    {
-        gradientShaderControl = new OBShaderControl();
-        gradientShaderControl.setFrame(this.boundsf());
-        gradientShaderControl.hide();
-        OBUtils.runOnRendererThread(new OBUtils.RunLambda()
-        {
-            @Override
-            public void run() throws Exception
-            {
-                gradientShaderControl.shaderProgram = new PixelShaderProgram(R.raw.threegradientsfragmentshadermask, gradientShaderControl.width(), gradientShaderControl.height(), true);
 
             }
         });
-
-
-        attachControl(gradientShaderControl);
     }
-}
 
-    public void loadDoodleForAsset(OC_PlayZoneAsset asset,OBControl icon)
-    {
-
-        Map<String,String> params = asset.paramsDictionary();
-        //  OC_DoodleGradientManager gradientManager = null;
-        lockScreen();
-        prepareShader();
-        OBImage currentImage = OBImageManager.sharedImageManager().imageForPath(OC_PlayZoneAsset.pathToAsset(params.get("doodle")));
-        List<OBControl> controls = new ArrayList<>(loadEvent(String.format("doodle_%s",params.get("theme"))));
-        OBPath blackboard = (OBPath)objectDict.get("blackboard");
-
-
-
-        currentImage.setPosition ( OB_Maths.locationForRect(new PointF(0.5f, 0.5f), this.bounds()));
-        OBMisc.scaleControlToControl(currentImage,blackboard,false);
-
-        OBPath topborder = (OBPath)blackboard.copy();
-        topborder.setFillColor(-1);
-       // topborder.setZPosition(4);
-        controls.add(topborder);
-        topborder.sizeToBoundingBoxIncludingStroke();
-      //  controls.add(currentImage);
-
-        OBGroup bgGroup = new OBGroup(controls);
-        bgGroup.setBounds(objectDict.get("obj_background").frame());
-
-        bgGroup.show();
-        bgGroup.setZPosition(1);
-
-        OBGroup fullGroup = new OBGroup(Arrays.asList((OBControl)bgGroup, currentImage));
-        fullGroup.setShouldTexturise(false);
-        currentImage.hide();
-        gradientShaderControl.setScreenMaskControl(currentImage, this);
-        //currentImage.setScreenMaskControl(blackboard, this);
-        gradientShaderControl.show();
-        attachControl(fullGroup);
-        gradientShaderControl.setZPosition(101);
-        currentImage.setZPosition(3);
-
-        RectF iconFrame = icon.getWorldFrame();
-        fullGroup.setPosition(icon.getWorldPosition());
-        fullGroup.setScale(iconFrame.height()/bgGroup.height());
-        fullGroup.setZPosition(100);
-
-        fullGroup.setProperty("parent_icon",icon);
-        fullGroup.setProperty("delete_after",true);
-        fullGroup.setProperty("gradient_manager",gradientShaderControl);
-        fullGroup.setProperty("target_scale",1.0f);
-        fullGroup.setProperty("skip_texturise",true);
-        currentMediaLayer = fullGroup;
-        unlockScreen();
-        gradientShaderControl.startAnimation(this);
-        animateMedia(currentMediaLayer,true);
-
-        // gradientManager.startGradientAnimation();
-    }
 
     public void loadVideoForAsset(OC_PlayZoneAsset asset,OBControl icon)
     {
@@ -1496,69 +1438,6 @@ public void prepareShader()
         finishMediaPlaying();
     }
 
-    public void loadTextForAsset(OC_PlayZoneAsset asset,OBControl icon)
-    {
-        Map<String,String> params = asset.paramsDictionary();
-        String theme = params.get("theme");
-        String font = params.get("font");
-        String text = params.get("text");
-
-        lockScreen();
-        Typeface currentFont =  OBUtils.TypefaceForFile(font);
-        OBGroup fullGroup = null;
-
-        List<OBControl> controls = loadEvent(String.format("typewrite_%s",theme));
-           /* for(OBControl con : controls)
-                con.setRasterScale(con.scale());*/
-        OBControl bg = objectDict.get("text_box_bg");
-        float zPosition = bg.zPosition();
-        float fontSize = applyGraphicScale(60);
-        RectF textFrame = new RectF(bg.getWorldFrame());
-        textFrame.inset(applyGraphicScale(40), 0);
-        OBScrollingText textBox = new OBScrollingText(text,currentFont,fontSize,textFrame);
-        textBox.setProperty("start_width",textFrame.width());
-        textBox.setZPosition(5);
-        textBox.setColour(Color.BLACK);
-        textBox.setProperty("bottom_offset",-textBox.topOffsetOfLastLine() + textBox.height()/2.0f);
-        OBControl gradientTop = objectDict.get("text_box_gradient_top");
-        OBControl gradientBottom = objectDict.get("text_box_gradient_bottom");
-        gradientTop.setWidth(bg.width()-bg.lineWidth());
-        gradientBottom.setWidth(bg.width()-bg.lineWidth());
-        OBGroup group = new OBGroup((List<OBControl>)(Object)Arrays.asList(textBox));
-        group.setBounds(new RectF(0, 0, bg.bounds.width(), gradientBottom.bottom()-gradientTop.top()));
-        textBox.setPosition(OB_Maths.locationForRect(new PointF(0.5f, 0.5f), textBox.parent.bounds));
-        textBox.setTop(objectDict.get("text_box_gradient_top").height());
-        group.setMasksToBounds(true);
-        group.setZPosition(zPosition+0.0001f);
-        group.setPosition(bg.position());
-        group.setTop(gradientTop.top());
-        controls.add(group);
-        fullGroup = new OBGroup(controls);
-        RectF frame = fullGroup.frame();
-        fullGroup.setBounds(new RectF(frame.left,frame.top,this.bounds().width()-frame.left,this.bounds().height()-frame.top));
-        fullGroup.setMasksToBounds(true);
-        fullGroup.setPosition(OB_Maths.locationForRect(0.5f,0.5f,this.bounds()));
-        fullGroup.setProperty("text_box",textBox);
-        fullGroup.setProperty("delete_after",true);
-        attachControl(fullGroup);
-
-        fullGroup.setZPosition(100);
-        fullGroup.setScale(icon.height()/fullGroup.height());
-
-        fullGroup.setPosition(icon.getWorldPosition());
-        currentMediaLayer = fullGroup;
-        unlockScreen();
-        currentMediaLayer.setProperty("scrollable_text",currentMediaLayer.propertyValue("text_box"));
-        currentMediaLayer.setProperty("parent_icon",icon);
-        animateMedia(currentMediaLayer,true);
-    }
-
-    /*public RectF frameForTextBox(OBControl textBox, String string)
-    {
-        CGRect textBoxSize = (float)string boundingRectWithSize:CGSizeMake([textBox.propertyValue("start_width"),  CGFLOAT_MAX)
-        options:(StringDrawingUsesLineFragmentOrigin|StringDrawingUsesFontLeading) context:null];
-        return CGRectMake(textBoxSize.origin.x, textBoxSize.origin.y, (float)textBox.propertyValue("start_width"), textBoxSize.size.height + applyGraphicScale(10));
-    }*/
 
     public void finishMediaPlaying()
     {
@@ -1567,19 +1446,7 @@ public void prepareShader()
             @Override
             public void run() throws Exception
             {
-                if(currentMediaLayer.propertyValue("gradient_manager") != null)
-                {
-                    //((OBControl)currentMediaLayer.propertyValue("gradient_manager")).hide();
-                    OBShaderControl gradientManager = (OBShaderControl)currentMediaLayer.propertyValue("gradient_manager");
-                    gradientManager.stopAnimation();
-                    gradientManager.hide();
 
-                   /* OC_DoodleGradientManager *gradManager = currentMediaLayer.propertyValue("gradient_manager");
-                    gradManager.stopGradientAnimation();
-                    gradManager.cleanUp();
-                    currentMediaLayer.setProperty("gradient_manager",null);*/
-
-                }
                 if(currentMediaLayer.propertyValue("delete_after") != null &&
                         (boolean)currentMediaLayer.propertyValue("delete_after"))
                     detachControl(currentMediaLayer);
