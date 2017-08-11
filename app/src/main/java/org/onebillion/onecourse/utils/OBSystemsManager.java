@@ -515,7 +515,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_OKAY));
         MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_POWER_CONNECTED));
         MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_POWER_DISCONNECTED));
-        batteryReceiver.onReceive(null,intent);
+       // batteryReceiver.onReceive(null,intent);
     }
 
 

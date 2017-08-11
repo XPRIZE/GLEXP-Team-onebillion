@@ -92,7 +92,7 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
         }
         else
         {
-            loadEvent("locked");
+            loadEvent("lock");
         }
 
 
@@ -395,7 +395,7 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
         playSfxAudio("chime",true);
         walkPresenterIn((PointF)presenter.control.propertyValue("start_loc"), false);
         waitForSecs(0.3f);
-        presenter.speak((List<Object>)(Object)getAudioForScene("locked","DEMO"),this);
+        presenter.speak((List<Object>)(Object)getAudioForScene("lock","DEMO"),this);
         waitForSecs(0.3f);
         walkPresenterOut();
         animateNightSkyOn();
