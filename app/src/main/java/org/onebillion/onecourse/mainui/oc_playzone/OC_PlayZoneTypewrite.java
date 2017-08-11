@@ -194,13 +194,13 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
 
     public void start()
     {
+        setStatus(STATUS_AWAITING_CLICK);
         if (!readOnly)
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
                 @Override
                 public void run() throws Exception
                 {
-                    setStatus(STATUS_AWAITING_CLICK);
                     startCursorFlash();
                 }
             });
@@ -652,7 +652,9 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
                 lastAmt = dragStartTextOffset;
                 lastAmtTime = System.currentTimeMillis() / 1000f;
                 dragSpeed = 0;
-                objectDict.get("cursor").hide();
+                OBControl cursor = objectDict.get("cursor");
+                if (cursor != null)
+                    cursor.hide();
                 cursorShouldShow = false;
                 setStatus(STATUS_DRAGGING);
                 return;
