@@ -49,6 +49,7 @@ import org.onebillion.onecourse.utils.OBAudioManager;
 import org.onebillion.onecourse.utils.OBExpansionManager;
 import org.onebillion.onecourse.utils.OBFatController;
 import org.onebillion.onecourse.utils.OBImageManager;
+import org.onebillion.onecourse.utils.OBPreferenceManager;
 import org.onebillion.onecourse.utils.OBSystemsManager;
 import org.onebillion.onecourse.utils.OBUser;
 import org.onebillion.onecourse.utils.OBXMLManager;
@@ -294,7 +295,8 @@ public class MainActivity extends Activity
     {
         if (requestCode == REQUEST_FIRST_SETUP_DATE_TIME)
         {
-            addToPreferences("dateTimeSetupComplete", "true");
+            OBPreferenceManager.setPreference("dateTimeSetupComplete", true);
+//            addToPreferences("dateTimeSetupComplete", "true");
             checkForFirstSetupAndRun();
         }
         else if (requestCode == REQUEST_FIRST_SETUP_PERMISSIONS)
@@ -436,7 +438,8 @@ public class MainActivity extends Activity
                 if (OBSystemsManager.sharedManager.shouldShowDateTimeSettings())
                 {
                     MainActivity.log("MainActivity.checkForFirstSetupAndRun.will show date and time settings");
-                    boolean dateTimeSetupComplete = getPreferences("dateTimeSetupComplete") != null;
+                    boolean dateTimeSetupComplete = OBPreferenceManager.getBooleanPreference("dateTimeSetupComplete");
+//                    boolean dateTimeSetupComplete = getPreferences("dateTimeSetupComplete") != null;
                     if (!dateTimeSetupComplete)
                     {
                         OBSystemsManager.sharedManager.setDateAndTimeDialog(new OBUtils.RunLambda()
@@ -444,7 +447,8 @@ public class MainActivity extends Activity
                             @Override
                             public void run () throws Exception
                             {
-                                addToPreferences("dateTimeSetupComplete", "true");
+                                OBPreferenceManager.setPreference("dateTimeSetupComplete", true);
+//                                addToPreferences("dateTimeSetupComplete", "true");
                                 checkForFirstSetupAndRun();
                             }
                         });
@@ -454,7 +458,8 @@ public class MainActivity extends Activity
                 else
                 {
                     MainActivity.log("MainActivity.checkForFirstSetupAndRun. will NOT show date and time settings");
-                    addToPreferences("dateTimeSetupComplete", "true");
+                    OBPreferenceManager.setPreference("dateTimeSetupComplete", true);
+//                    addToPreferences("dateTimeSetupComplete", "true");
                 }
                 //
                 boolean administratorServices = OBSystemsManager.sharedManager.usesAdministratorServices();
@@ -499,7 +504,8 @@ public class MainActivity extends Activity
                 //
                 log("First Setup complete. Loading Main View Controller");
                 //
-                addToPreferences("firstSetupComplete", "true");
+                OBPreferenceManager.setPreference("firstSetupComplete", true);
+//                addToPreferences("firstSetupComplete", "true");
                 //
                 checkForUpdatesAndLoadMainViewController();
 

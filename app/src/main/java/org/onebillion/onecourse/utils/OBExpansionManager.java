@@ -125,10 +125,12 @@ public class OBExpansionManager
                             MainActivity.log("Copying assets to " + destination.getAbsolutePath());
                             FileUtils.copyDirectory(source, destination, counterFileFilter, false);
                             //
-                            String currentExternalAssets = MainActivity.mainActivity.getPreferences("externalAssets");
+                            String currentExternalAssets = OBPreferenceManager.getStringPreference("externalAssets");
+//                            String currentExternalAssets = MainActivity.mainActivity.getPreferences("externalAssets");
                             if (currentExternalAssets == null)
                             {
-                                MainActivity.mainActivity.addToPreferences("externalAssets", folderName);
+                                OBPreferenceManager.setPreference("externalAssets", folderName);
+//                                MainActivity.mainActivity.addToPreferences("externalAssets", folderName);
                                 addExpansionAssetsFolder(folderName);
                             }
                             else
@@ -143,7 +145,9 @@ public class OBExpansionManager
                                     {
                                         newExternalAssets.append(folder + ",");
                                     }
-                                    MainActivity.mainActivity.addToPreferences("externalAssets", newExternalAssets.toString());
+                                    OBPreferenceManager.setPreference("externalAssets", newExternalAssets.toString());
+                                    OBPreferenceManager.setPreference("externalAssets", newExternalAssets.toString());
+//                                    MainActivity.mainActivity.addToPreferences("externalAssets", newExternalAssets.toString());
                                     addExpansionAssetsFolder(folderName);
                                 }
                             }
@@ -283,7 +287,8 @@ public class OBExpansionManager
     private void mountAvailableExpansionFolders ()
     {
         MainActivity.log("OBExpansionManager.mountAvailableExpansionFolders");
-        String currentExternalAssets = MainActivity.mainActivity.getPreferences("externalAssets");
+        String currentExternalAssets = OBPreferenceManager.getStringPreference("externalAssets");
+//        String currentExternalAssets = MainActivity.mainActivity.getPreferences("externalAssets");
         if (currentExternalAssets != null)
         {
             List<String> externalAssets = new ArrayList(Arrays.asList(currentExternalAssets.split(",")));

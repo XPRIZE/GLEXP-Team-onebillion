@@ -73,7 +73,8 @@ public class OC_FatController extends OBFatController
     public int buttonFlags()
     {
         int result = OBMainViewController.SHOW_TOP_RIGHT_BUTTON | OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON | OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON;
-        boolean runningExampleUnit = MainActivity.mainActivity.getPreferences(MainActivity.PREFERENCES_RUNNING_EXAMPLE_UNIT).equals("true");
+        boolean runningExampleUnit = OBPreferenceManager.getBooleanPreference(MainActivity.PREFERENCES_RUNNING_EXAMPLE_UNIT);
+//        boolean runningExampleUnit = MainActivity.mainActivity.getPreferences(MainActivity.PREFERENCES_RUNNING_EXAMPLE_UNIT).equals("true");
         if (showBackButton() || runningExampleUnit) result = result | OBMainViewController.SHOW_TOP_LEFT_BUTTON;
         return result;
     }
@@ -273,7 +274,8 @@ public class OC_FatController extends OBFatController
     public void startUp()
     {
         // disabling the flag for running example unit from the setup menu
-        MainActivity.mainActivity.addToPreferences(MainActivity.PREFERENCES_RUNNING_EXAMPLE_UNIT, "false");
+        OBPreferenceManager.setPreference(MainActivity.PREFERENCES_RUNNING_EXAMPLE_UNIT, "false");
+//        MainActivity.mainActivity.addToPreferences(MainActivity.PREFERENCES_RUNNING_EXAMPLE_UNIT, "false");
         //
         // initial setup
         try
@@ -304,12 +306,13 @@ public class OC_FatController extends OBFatController
         //
         // Setup screen
         Boolean usesSetupMenu = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_USES_SETUP_MENU);
-        String isSetupComplete = MainActivity.mainActivity.getPreferences(MainActivity.PREFERENCES_SETUP_COMPLETE);
+        Boolean isSetupComplete = OBPreferenceManager.getBooleanPreference(MainActivity.PREFERENCES_SETUP_COMPLETE);
         //
-        if (usesSetupMenu && (isSetupComplete == null || !isSetupComplete.equals("true")))
+        if (usesSetupMenu && !isSetupComplete)
         {
             // before overriding the app_code save it in the preferences to restore after setup is complete
-            MainActivity.mainActivity.addToPreferences("originalAppCode", MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_APP_CODE));
+            OBPreferenceManager.setPreference("originalAppCode", MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_APP_CODE));
+//            MainActivity.mainActivity.addToPreferences("originalAppCode", MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_APP_CODE));
             MainActivity.mainActivity.updateConfigPaths(MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SETUP_FOLDER), true, null);
             //
             String setupClassName = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SETUP_CLASS);
@@ -330,7 +333,8 @@ public class OC_FatController extends OBFatController
             else
             {
                 // restore app_code is it's coming from setup
-                String originalAppCode = MainActivity.mainActivity.getPreferences("originalAppCode");
+                String originalAppCode = OBPreferenceManager.getStringPreference("originalAppCode");
+//                String originalAppCode = MainActivity.mainActivity.getPreferences("originalAppCode");
                 if (originalAppCode != null)
                 {
                     MainActivity.mainActivity.updateConfigPaths(originalAppCode, true, null);

@@ -237,8 +237,9 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 
     public static boolean isFirstSetupComplete ()
     {
-        String result = MainActivity.mainActivity.getPreferences("firstSetupComplete");
-        return result != null && result.equals("true");
+        return OBPreferenceManager.getBooleanPreference("firstSetupComplete");
+//        String result = MainActivity.mainActivity.getPreferences("firstSetupComplete");
+//        return result != null && result.equals("true");
     }
 
 
@@ -1130,7 +1131,8 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     public boolean backup_isRequired ()
     {
         MainActivity.log("OBSystemsManager.backup_isRequired");
-        String value_string = MainActivity.mainActivity.getPreferences("lastBackupTimeStamp");
+        String value_string = OBPreferenceManager.getStringPreference("lastBackupTimeStamp");
+//        String value_string = MainActivity.mainActivity.getPreferences("lastBackupTimeStamp");
         if (value_string == null) return true;
         long value = Long.parseLong(value_string);
         long currentTime = System.currentTimeMillis() / 1000;
@@ -1244,7 +1246,8 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 //
                 MainActivity.log("OBSystemsManager.backup_uploadDatabase updating lastBackupTimeStamp");
                 long currentTime = System.currentTimeMillis() / 1000;
-                MainActivity.mainActivity.addToPreferences("lastBackupTimeStamp", String.format("%d", currentTime));
+                OBPreferenceManager.setPreference("lastBackupTimeStamp", String.format("%d", currentTime));
+//                MainActivity.mainActivity.addToPreferences("lastBackupTimeStamp", String.format("%d", currentTime));
                 //
                 MainActivity.log("OBSystemsManager.backup_uploadDatabase disconnecting from wifi");
                 connectionManager.disconnectWifi();
