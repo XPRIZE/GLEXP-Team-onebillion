@@ -3,6 +3,7 @@ package org.onebillion.onecourse.mainui.oc_playzone;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.opengl.GLSurfaceView;
 import android.os.SystemClock;
 import android.util.ArrayMap;
 
@@ -47,7 +48,7 @@ public class OC_PlayZoneAsset extends DBObject
 
         String prefix = "thumb";
         String extension1 = "jpg";
-        String extension2 = null;
+        String extension2 = "png";
         if(type == ASSET_VIDEO)
         {
             prefix = "video";
@@ -57,15 +58,12 @@ public class OC_PlayZoneAsset extends DBObject
         else if(type == ASSET_DOODLE)
         {
             prefix = "doodle";
-            extension1 = "png";
             extension2 = "png";
-
         }
         List<String> paths = new ArrayList<>();
         String currentFileName  = String.format("%s_%s", prefix, dateString);
         paths.add(String.format("thumb_%s.%s", currentFileName, extension1));
-        if(extension2 != null)
-            paths.add(String.format("%s.%s", currentFileName, extension2));
+        paths.add(String.format("%s.%s", currentFileName, extension2));
         return paths;
     }
 
@@ -217,6 +215,11 @@ public class OC_PlayZoneAsset extends DBObject
         }
     }
 
+    public static int[] thumbnalSize()
+    {
+        GLSurfaceView gls = MainActivity.mainViewController.glView();
+        return new int[]{(int)(gls.getRight()*0.15),(int)(gls.getBottom()*0.15)};
+    }
 
 
 }
