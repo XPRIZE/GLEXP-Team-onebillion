@@ -219,7 +219,7 @@ public class OC_Doodle extends OC_SectionController
                 String filepath = pathToAsset(dood);
                 BitmapFactory.Options opt = new BitmapFactory.Options();
                 opt.inScaled = false;
-                drawBitmap = BitmapFactory.decodeStream(OBUtils.getInputStreamForPath(filepath+"/"+dood), null, opt);
+                drawBitmap = BitmapFactory.decodeStream(OBUtils.getInputStreamForPath(filepath), null, opt);
                 drawOn = new OBImage();
                 drawOn.setFrame(blackboard.frame());
                 drawOn.setZPosition(blackboard.zPosition() + 0.1f);
@@ -627,13 +627,13 @@ public class OC_Doodle extends OC_SectionController
 
         try
         {
-            FileOutputStream out = new FileOutputStream(path + "/" + name);
+            FileOutputStream out = new FileOutputStream(path);
             cont.compress(Bitmap.CompressFormat.PNG, 90, out);
             out.close();
             OBFatController fc = MainActivity.mainActivity.fatController;
-            if (fc instanceof OC_FatController)
+            if (fc instanceof OCM_FatController)
             {
-                OC_FatController ocf = (OC_FatController)fc;
+                OCM_FatController ocf = (OCM_FatController)fc;
                 Map<String,String> map = new ArrayMap<>();
                 map.put("theme", currentEvent());
                 map.put("doodle", name);

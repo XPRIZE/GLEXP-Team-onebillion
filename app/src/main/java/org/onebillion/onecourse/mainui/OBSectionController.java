@@ -1312,6 +1312,23 @@ public class OBSectionController extends OBViewController
         return bitmap;
     }
 
+    public Bitmap thumbnail(int width,int height,boolean withBackground)
+    {
+        Bitmap bitmap = null;
+        int swidth = (bounds().right - bounds().left);
+        int sheight = (bounds().bottom - bounds().top);
+        float scale = width * 1f / swidth;
+        bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        if (withBackground)
+            bitmap.eraseColor(Color.argb((int)(topColour[0]*255),(int)(topColour[1]*255),(int)(topColour[2]*255),(int)(topColour[3]*255)));
+        else
+            bitmap.eraseColor(0);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.scale(scale,scale);
+        drawControls(canvas);
+        return bitmap;
+    }
+
     public void renderBackground (OBRenderer renderer)
     {
 
