@@ -37,13 +37,20 @@ import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBFatController;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
+import org.onebillion.onecourse.utils.OCM_FatController;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset.ASSET_DOODLE;
+import static org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset.ASSET_TEXT;
 
 /**
  * Created by alan on 02/03/2017.
@@ -145,6 +152,7 @@ public class OC_Doodle extends OC_SectionController
     OBImage eraserShadow;
     Boolean gradMode = false;
 
+
     public void setUpGradients()
     {
         OBPath blackboard = (OBPath) objectDict.get("blackboard");
@@ -197,9 +205,17 @@ public class OC_Doodle extends OC_SectionController
             setUpShader();
         }
 
-        drawOn = new OBImage();
-        drawOn.setFrame(blackboard.frame());
-        drawOn.setZPosition(blackboard.zPosition() + 0.1f);
+        if (readOnly)
+        {
+            Map<String, Object> conf = MainActivity.Config();
+            drawOn = (OBImage) conf.get("oc_doodle");
+        }
+        if (drawOn == null)
+        {
+            drawOn = new OBImage();
+            drawOn.setFrame(blackboard.frame());
+            drawOn.setZPosition(blackboard.zPosition() + 0.1f);
+        }
         attachControl(drawOn);
         Color.colorToHSV(Color.RED,HSV);
 
@@ -294,10 +310,15 @@ public class OC_Doodle extends OC_SectionController
     }
     public void setupCanvas()
     {
-        drawBitmap = Bitmap.createBitmap((int)board.width(), (int)board.height(), Bitmap.Config.ARGB_8888);
-        drawOn.setContents(drawBitmap);
-        canvas = new Canvas(drawBitmap);
-        clearCanvas();
+        if (readOnly && drawOn != null)
+            drawBitmap = drawOn.layer.getContents();
+        else
+        {
+            drawBitmap = Bitmap.createBitmap((int)board.width(), (int)board.height(), Bitmap.Config.ARGB_8888);
+            drawOn.setContents(drawBitmap);
+            canvas = new Canvas(drawBitmap);
+            clearCanvas();
+        }
     }
 
     public void preparePaintForDrawing()
@@ -402,9 +423,10 @@ public class OC_Doodle extends OC_SectionController
         return setStatus(STATUS_WAITING_FOR_DRAG);
     }
 
-    public int buttonFlags ()
+    public int buttonFlags()
     {
-        return OBMainViewController.SHOW_TOP_LEFT_BUTTON;
+        int tlflag = readOnly? 0:OBMainViewController.SHOW_TOP_LEFT_BUTTON;
+        return tlflag;
     }
 
     public void setSceneXX (String scene)
@@ -576,6 +598,21 @@ public class OC_Doodle extends OC_SectionController
         }
     }
 
+    public void saveDoodle()
+    {
+        Map<String,String> params = new HashMap<>();
+        params.put("theme",currentEvent());
+        Bitmap bm = drawn(null,true);
+        Map<String,Object> conf = MainActivity.Config();
+        conf.put("oc_doodle",drawOn);
+        OBFatController fatController = (MainActivity.mainActivity.fatController);
+        if (OCM_FatController.class.isInstance(fatController))
+            ((OCM_FatController)fatController).savePlayZoneAssetForCurrentUserType(ASSET_DOODLE,null,params);
+
+        if(!_aborting)
+            exitEvent();
+
+    }
     public void touchDownAtPoint(PointF pt,View v)
     {
         if (readOnly)
@@ -624,6 +661,22 @@ public class OC_Doodle extends OC_SectionController
                 eraserMode = true;
                 startPoint = pt;
                 setStatus(STATUS_DRAGGING);
+            }
+            else if(finger(-1,-1,Arrays.asList(objectDict.get("button_save")),pt)  != null)
+            {
+                final OBGroup saveButton = (OBGroup) objectDict.get("button_save");
+                setStatus(STATUS_DOING_DEMO);
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                                         {
+                                             @Override
+                                             public void run() throws Exception
+                                             {
+                                                 saveButton.highlight();
+                                                 saveDoodle();
+                                             }
+                                         }
+                );
+
             }
         }
 
