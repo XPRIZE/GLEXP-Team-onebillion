@@ -154,7 +154,10 @@ public class OC_PlayZoneMenu extends OC_Menu
         List<String> colours = OBUtils.randomlySortedArray(Arrays.asList(eventAttributes.get("button_colours").split(";")));
         int index = 0;
         List<Float> scaleOptions = OBUtils.randomlySortedArray(Arrays.asList(0.95f,0.975f,1.0f,1.025f,1.05f));
-        boxTouchMode = OBUtils.getBooleanValue(parameters.get("intro"));
+        if(parameters != null)
+            boxTouchMode = OBUtils.getBooleanValue(parameters.get("intro"));
+        else
+            boxTouchMode = false;
 
         for(OBControl iconCont : filterControls("menu_icon_.*"))
         {
@@ -1355,7 +1358,19 @@ public class OC_PlayZoneMenu extends OC_Menu
                                 @Override
                                 public void run() throws Exception
                                 {
-                                    MainViewController().pushViewController(OC_Doodle.class,true,true,"doodle",false,true, icon.getWorldFrame());
+                                    Map<String,String> par = asset.paramsDictionary();
+                                    if(par.containsKey("theme") && par.containsKey("text"))
+                                    {
+                                        String params = "doodle/readonly=true";
+                                        params += "/theme=" + par.get("theme");
+                                        params += "/doodle=" + par.get("doodle");
+                                        MainViewController().pushViewController(OC_Doodle.class, true, true, params, false, true, new RectF(icon.getWorldFrame()));
+
+                                    }
+                                    else
+                                    {
+                                        setStatus(STATUS_AWAITING_CLICK);
+                                    }
                                 }
                             }
                     );
