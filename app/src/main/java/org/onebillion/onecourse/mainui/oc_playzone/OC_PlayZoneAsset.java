@@ -48,7 +48,7 @@ public class OC_PlayZoneAsset extends DBObject
 
         String prefix = "thumb";
         String extension1 = "jpg";
-        String extension2 = "png";
+        String extension2 = null;
         if(type == ASSET_VIDEO)
         {
             prefix = "video";
@@ -63,7 +63,8 @@ public class OC_PlayZoneAsset extends DBObject
         List<String> paths = new ArrayList<>();
         String currentFileName  = String.format("%s_%s", prefix, dateString);
         paths.add(String.format("thumb_%s.%s", currentFileName, extension1));
-        paths.add(String.format("%s.%s", currentFileName, extension2));
+        if(extension2 != null)
+            paths.add(String.format("%s.%s", currentFileName, extension2));
         return paths;
     }
 
@@ -215,7 +216,7 @@ public class OC_PlayZoneAsset extends DBObject
         }
     }
 
-    public static int[] thumbnalSize()
+    public static int[] thumbnailSize()
     {
         GLSurfaceView gls = MainActivity.mainViewController.glView();
         return new int[]{(int)(gls.getRight()*0.15),(int)(gls.getBottom()*0.15)};

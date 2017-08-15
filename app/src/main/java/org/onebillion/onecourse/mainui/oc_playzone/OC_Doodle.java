@@ -5,6 +5,7 @@
 package org.onebillion.onecourse.mainui.oc_playzone;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
@@ -18,6 +19,7 @@ import android.graphics.RectF;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.util.ArrayMap;
 import android.view.View;
 
 import org.onebillion.onecourse.R;
@@ -41,7 +43,9 @@ import org.onebillion.onecourse.utils.OBFatController;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OCM_FatController;
+import org.onebillion.onecourse.utils.OC_FatController;
 
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -51,6 +55,8 @@ import java.util.Map;
 
 import static org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset.ASSET_DOODLE;
 import static org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset.ASSET_TEXT;
+import static org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset.assetsNamesForNewFile;
+import static org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset.pathToAsset;
 
 /**
  * Created by alan on 02/03/2017.
@@ -207,8 +213,22 @@ public class OC_Doodle extends OC_SectionController
 
         if (readOnly)
         {
-            Map<String, Object> conf = MainActivity.Config();
-            drawOn = (OBImage) conf.get("oc_doodle");
+            String dood = parameters.get("doodle");
+            if (dood != null)
+            {
+                String filepath = pathToAsset(dood);
+                BitmapFactory.Options opt = new BitmapFactory.Options();
+                opt.inScaled = false;
+                drawBitmap = BitmapFactory.decodeStream(OBUtils.getInputStreamForPath(filepath+"/"+dood), null, opt);
+                drawOn = new OBImage();
+                drawOn.setFrame(blackboard.frame());
+                drawOn.setZPosition(blackboard.zPosition() + 0.1f);
+            }
+            if (drawOn == null)
+            {
+                Map<String, Object> conf = MainActivity.Config();
+                drawOn = (OBImage) conf.get("oc_doodle");
+            }
         }
         if (drawOn == null)
         {
@@ -598,6 +618,34 @@ public class OC_Doodle extends OC_SectionController
         }
     }
 
+    void saveContentsToDisk()
+    {
+        Bitmap cont = drawOn.layer.getContents();
+        List<String> names = assetsNamesForNewFile(ASSET_DOODLE);
+        String name = names.get(0);
+        String path = pathToAsset(name);
+
+        try
+        {
+            FileOutputStream out = new FileOutputStream(path + "/" + name);
+            cont.compress(Bitmap.CompressFormat.PNG, 90, out);
+            out.close();
+            OBFatController fc = MainActivity.mainActivity.fatController;
+            if (fc instanceof OC_FatController)
+            {
+                OC_FatController ocf = (OC_FatController)fc;
+                Map<String,String> map = new ArrayMap<>();
+                map.put("theme", currentEvent());
+                map.put("doodle", name);
+                ocf.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_DOODLE,null,map);
+            }
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
     public void saveDoodle()
     {
         Map<String,String> params = new HashMap<>();
@@ -605,9 +653,7 @@ public class OC_Doodle extends OC_SectionController
         Bitmap bm = drawn(null,true);
         Map<String,Object> conf = MainActivity.Config();
         conf.put("oc_doodle",drawOn);
-        OBFatController fatController = (MainActivity.mainActivity.fatController);
-        if (OCM_FatController.class.isInstance(fatController))
-            ((OCM_FatController)fatController).savePlayZoneAssetForCurrentUserType(ASSET_DOODLE,null,params);
+        saveContentsToDisk();
 
         if(!_aborting)
             exitEvent();
