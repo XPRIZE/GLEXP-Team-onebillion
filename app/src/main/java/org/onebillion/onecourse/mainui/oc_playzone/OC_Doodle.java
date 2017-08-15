@@ -118,6 +118,7 @@ public class OC_Doodle extends OC_SectionController
     List<DoodleGradient> gradients = new ArrayList();
     public PixelShaderProgram shaderProgram;
     OBShaderControl shc;
+    boolean readOnly;
 
     private Runnable messageCheckRunnable;
     private Handler messageCheckHandler = new Handler();
@@ -203,23 +204,26 @@ public class OC_Doodle extends OC_SectionController
         Color.colorToHSV(Color.RED,HSV);
 
         eraser = objectDict.get("eraser");
-        OBControl eraser2old = objectDict.get("eraser_2");
+        if (eraser != null)
+        {
+            OBControl eraser2old = objectDict.get("eraser_2");
 
-        eraser2old.show();
-        OBControl copy = eraser2old.copy();
-        attachControl(copy);
-        eraser2 = new OBGroup(Collections.singletonList(copy));
-        attachControl(eraser2);
+            eraser2old.show();
+            OBControl copy = eraser2old.copy();
+            attachControl(copy);
+            eraser2 = new OBGroup(Collections.singletonList(copy));
+            attachControl(eraser2);
 
-        eraser2old.hide();
-        eraser2.setZPosition(20);
-        eraser2.hide();
-        eraserShadow = (OBImage) objectDict.get("eraser_shadow");
-        eraserShadow.show();
-        detachControl(eraserShadow);
-        arrowButtonHidden = true;
+            eraser2old.hide();
+            eraser2.setZPosition(20);
+            eraser2.hide();
+            eraserShadow = (OBImage) objectDict.get("eraser_shadow");
+            eraserShadow.show();
+            detachControl(eraserShadow);
+            arrowButtonHidden = true;
 
-        eraser.show();
+            eraser.show();
+        }
 
         boardMask = blackboard.copy();
         boardMask.setFillColor(Color.BLACK);
@@ -238,7 +242,8 @@ public class OC_Doodle extends OC_SectionController
 
 
         preparePaintForDrawing();
-        preparePaintForErasing();
+        if (!readOnly)
+            preparePaintForErasing();
         refreshGradient();
         refreshDrawingBoard();
     }
@@ -335,10 +340,29 @@ public class OC_Doodle extends OC_SectionController
     {
         super.prepare();
         loadFingers();
-        loadEvent("mastera");
+        String p = parameters.get("readonly");
+        if (p != null)
+            readOnly = p.equals("true");
+        loadEvent(readOnly?"master_ro":"master");
         miscSetUp();
-        events = new ArrayList<>();
-        events.addAll(Arrays.asList("toys","food","animals","transport"));
+
+        List<String> themes = Arrays.asList("toys","food","animals","transport");
+        p = parameters.get("theme");
+        if (p != null)
+        {
+            int idx = themes.indexOf(p);
+            if (idx >= 0)
+                eventIndex = idx;
+        }
+
+        if (readOnly)
+        {
+            String suffix = "_ro";
+            for (String theme : themes)
+                events.add(theme + suffix);
+        }
+        else
+            events = themes;
         doVisual(currentEvent());
     }
 
@@ -394,7 +418,7 @@ public class OC_Doodle extends OC_SectionController
         blackborder.setStrokeColor(col);
         blackborder.setLineWidth(lw);
         boardMaskColour = swatch.fillColor();
-        clearCanvas();
+        //clearCanvas();
         refreshDrawingBoard();
     }
 
@@ -554,6 +578,11 @@ public class OC_Doodle extends OC_SectionController
 
     public void touchDownAtPoint(PointF pt,View v)
     {
+        if (readOnly)
+        {
+            exitEvent();
+            return;
+        }
         if(status() == STATUS_WAITING_FOR_DRAG)
         {
             if(finger(0,1,Collections.singletonList(objectDict.get("doodleredbutton")),pt) != null)
