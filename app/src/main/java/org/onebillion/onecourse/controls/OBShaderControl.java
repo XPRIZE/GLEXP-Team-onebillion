@@ -4,6 +4,7 @@ package org.onebillion.onecourse.controls;
  * Created by alan on 16/03/2017.
  */
 
+import android.graphics.Canvas;
 import android.opengl.GLES20;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -123,4 +124,8 @@ public class OBShaderControl extends OBControl
         animationHandler.postDelayed(animationRunnable,100);
     }
 
+    public void draw (Canvas canvas, int flags)
+    {
+
+    }
 }

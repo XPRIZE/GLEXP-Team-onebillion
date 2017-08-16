@@ -1213,7 +1213,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         mbg.show();
         mbg.setZPosition(0.5f);
         OBControl thumbnail = null;
-        if(asset.type == OC_PlayZoneAsset.ASSET_VIDEO)
+        if(asset.type == OC_PlayZoneAsset.ASSET_VIDEO || asset.type == OC_PlayZoneAsset.ASSET_DOODLE)
         {
             mbg.setFillColor(Color.RED);
             thumbnail = OBImageManager.sharedImageManager().imageForPath(OC_PlayZoneAsset.pathToAsset(asset.thumbnail));
@@ -1359,7 +1359,7 @@ public class OC_PlayZoneMenu extends OC_Menu
                                 public void run() throws Exception
                                 {
                                     Map<String,String> par = asset.paramsDictionary();
-                                    if(par.containsKey("theme") && par.containsKey("text"))
+                                    if(par.containsKey("theme") && par.containsKey("doodle"))
                                     {
                                         String params = "doodle/readonly=true";
                                         params += "/theme=" + par.get("theme");

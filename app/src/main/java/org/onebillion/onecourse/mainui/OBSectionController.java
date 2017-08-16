@@ -1273,14 +1273,14 @@ public class OBSectionController extends OBViewController
         }
     }
 
-    public void drawControls (Canvas canvas)
+    public void drawControls (Canvas canvas)        // This is a non-opengl draw
     {
         Rect clipb = canvas.getClipBounds();
         populateSortedAttachedControls();
         for (OBControl control : sortedAttachedControls)
         {
             if (control.frame().intersects(clipb.left, clipb.top, clipb.right, clipb.bottom))
-                control.draw(canvas);
+                control.draw(canvas,OBControl.IGNORE_DYNAMIC_MASK);
         }
     }
 
@@ -1320,7 +1320,7 @@ public class OBSectionController extends OBViewController
         float scale = width * 1f / swidth;
         bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         if (withBackground)
-            bitmap.eraseColor(Color.argb((int)(topColour[0]*255),(int)(topColour[1]*255),(int)(topColour[2]*255),(int)(topColour[3]*255)));
+            bitmap.eraseColor(Color.argb((int)(topColour[3]*255),(int)(topColour[0]*255),(int)(topColour[1]*255),(int)(topColour[2]*255)));
         else
             bitmap.eraseColor(0);
         Canvas canvas = new Canvas(bitmap);
