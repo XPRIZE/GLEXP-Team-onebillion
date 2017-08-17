@@ -150,13 +150,17 @@ public class MainActivity extends Activity
             CONFIG_BATTERY_LEVEL_LOW = "low",
             CONFIG_BATTERY_LEVEL_CRITICAL = "critical",
             CONFIG_MINIMUM_BATTERY_VALUE = "minBatteryValue",
+            CONFIG_MAXIMUM_BATTERY_VALUE = "maxBatteryValue",
             CONFIG_MAX_BRIGHTNESS = "maxBrightness",
             CONFIG_MAX_SCREEN_TIMEOUT = "screenMaxTimeout",
             CONFIG_CHARGE_BATTERY_REMINDER = "chargeBatteryReminder",
             CONFIG_CHARGE_BATTERY_REMINDER_INTERVAL = "chargeBatteryReminderInterval",
             CONFIG_SHOW_BATTERY_LOCK_SCREEN = "showBatteryLockScreen",
             CONFIG_PLAYZONE_ACTIVE_HOUR = "playzoneActiveHour",
-            CONFIG_SHOW_UNIT_ID = "showUnitID"
+            CONFIG_SHOW_UNIT_ID = "showUnitID",
+            CONFIG_TIME_SERVER_WIFI_SSID = "timeServerWifiSSID",
+            CONFIG_TIME_SERVER_WIFI_PASSWORD = "timeServerWifiPassword",
+            CONFIG_TIME_SERVER_URL = "timeServerURL"
     ;
     public static String TAG = "onecourse";
     //

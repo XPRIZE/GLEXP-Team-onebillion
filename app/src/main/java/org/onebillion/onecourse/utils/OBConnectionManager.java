@@ -126,6 +126,27 @@ public class OBConnectionManager
     }
 
 
+    public String getCurrentWifiSSID()
+    {
+        WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(MainActivity.WIFI_SERVICE);
+        WifiInfo info = wifiManager.getConnectionInfo ();
+        String ssid = info.getSSID();
+        if (info.getSupplicantState() != SupplicantState.COMPLETED)
+        {
+            MainActivity.log("OBConnectionManager:getCurrentWifiSSID. not connected to current wifi. returning null");
+            return null;
+        }
+        if (ssid.charAt(0) == '"' && ssid.charAt(ssid.length() - 1) == '"')
+        {
+            return ssid.substring(1, ssid.length() - 1);
+        }
+        else
+        {
+            return ssid;
+        }
+    }
+
+
     public boolean isScanningDisabled ()
     {
         WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(MainActivity.WIFI_SERVICE);
@@ -498,7 +519,7 @@ public class OBConnectionManager
     }
 
 
-    public void connectToNetwork_scanForWifi (final String ssid, final String password, final OBUtils.RunLambda block)
+    void connectToNetwork_scanForWifi (final String ssid, final String password, final OBUtils.RunLambda block)
     {
         final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         //
@@ -564,6 +585,7 @@ public class OBConnectionManager
                                 wfc.allowedAuthAlgorithms.clear();
                                 wfc.allowedGroupCiphers.clear();
                                 wfc.allowedKeyManagement.clear();
+                                wfc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
                                 wfc.allowedPairwiseCiphers.clear();
                                 wfc.allowedProtocols.clear();
                             }

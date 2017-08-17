@@ -39,7 +39,7 @@ public class OBControl
     public static int LCC_NORMAL = 0,
             LCC_DISABLED = 1,
             LCC_SELECTED = 2;
-    public static int APPLY_EFFECTS = 1;
+    public static int APPLY_EFFECTS = 1,IGNORE_DYNAMIC_MASK = 2;
     public int state;
     public Map<String, Object> settings;
     public OBLayer layer;
@@ -73,7 +73,7 @@ public class OBControl
     float rasterScale, zPosition;
     OBStroke stroke;
     boolean frameValid, masksToBounds,displayBoundsValid=false;
-    boolean maskControlReversed = false, dynamicMask = false;
+    public boolean maskControlReversed = false, dynamicMask = false;
     private int shadowColour;
     float shadowOffsetX, shadowOffsetY, shadowOpacity, shadowRadius;
     float shadowPad = 0f;
@@ -599,7 +599,7 @@ public class OBControl
                     canvas.saveLayerAlpha(bounds(), (int) (opacity() * 255));
             }
             layer.draw(canvas);
-            applyMask(canvas);
+            applyMask(canvas,flags);
             if (needsRestore)
                 canvas.restore();
         }
@@ -1399,6 +1399,11 @@ public class OBControl
 
     public void draw (Canvas canvas)
     {
+        draw(canvas,0);
+    }
+
+    public void draw (Canvas canvas,int flags)
+    {
         if (!hidden)
         {
             canvas.save();
@@ -1452,7 +1457,7 @@ public class OBControl
                     canvas.restore();
                 }
                 drawBorderAndBackground(canvas);
-                drawLayer(canvas,APPLY_EFFECTS);
+                drawLayer(canvas,flags | APPLY_EFFECTS);
 
             }
             canvas.restore();
@@ -2150,9 +2155,9 @@ public class OBControl
         return (int) (this.position.y - other.position.y);
     }
 
-    protected void applyMask(Canvas canvas)
+    protected void applyMask(Canvas canvas,int flags)
     {
-        if (maskControl != null && dynamicMask == false)
+        if (maskControl != null && (dynamicMask == false || (flags & IGNORE_DYNAMIC_MASK) != 0))
         {
             Paint p = new Paint();
             p.setXfermode(new PorterDuffXfermode(maskControlReversed ? PorterDuff.Mode.DST_OUT : PorterDuff.Mode.DST_IN));
@@ -2160,9 +2165,19 @@ public class OBControl
             float fh = (bounds().bottom - bounds().top) * Math.abs(rasterScale);
             int width = (int) Math.ceil(fw);
             int height = (int) Math.ceil(fh);
+            boolean needs2ndrestore = false;
             canvas.saveLayer(0, 0, width, height, p, Canvas.ALL_SAVE_FLAG);
+            if (dynamicMask)
+            {
+                canvas.save();
+                needs2ndrestore = true;
+                RectF f = frame();
+                canvas.translate(-f.left,-f.top);
+            }
             maskControl.draw(canvas);
             canvas.restore();
+            if (needs2ndrestore)
+                canvas.restore();
         }
     }
 

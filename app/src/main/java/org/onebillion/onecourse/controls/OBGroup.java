@@ -819,7 +819,7 @@ public class OBGroup extends OBControl
             canvas.saveLayerAlpha(bounds(), (int) (opacity() * 255));
         for (OBControl c : sortedAttachedControls)
             c.draw(canvas);
-        applyMask(canvas);
+        applyMask(canvas,flags);
 
         if (needsRestore)
             canvas.restore();

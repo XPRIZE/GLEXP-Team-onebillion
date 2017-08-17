@@ -104,7 +104,7 @@ android {
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - Child"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_child_sw.plist"'
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_child_sw_prototype.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/icon_child"
             ]

@@ -91,7 +91,7 @@ public class OBSectionController extends OBViewController
     private boolean popAnimationZoom;
     private RectF popAnimationZoomRect;
 
-    float topColour[] = {1, 1, 1, 1};
+    public float topColour[] = {1, 1, 1, 1};
     float bottomColour[] = {1, 1, 1, 1};
     protected List<Integer> busyStatuses =Arrays.asList(STATUS_BUSY,STATUS_DOING_DEMO,STATUS_DRAGGING,STATUS_CHECKING);
 
@@ -1273,14 +1273,14 @@ public class OBSectionController extends OBViewController
         }
     }
 
-    public void drawControls (Canvas canvas)
+    public void drawControls (Canvas canvas)        // This is a non-opengl draw
     {
         Rect clipb = canvas.getClipBounds();
         populateSortedAttachedControls();
         for (OBControl control : sortedAttachedControls)
         {
             if (control.frame().intersects(clipb.left, clipb.top, clipb.right, clipb.bottom))
-                control.draw(canvas);
+                control.draw(canvas,OBControl.IGNORE_DYNAMIC_MASK);
         }
     }
 
@@ -1308,6 +1308,23 @@ public class OBSectionController extends OBViewController
             exception.printStackTrace();
         }
         Canvas canvas = new Canvas(bitmap);
+        drawControls(canvas);
+        return bitmap;
+    }
+
+    public Bitmap thumbnail(int width,int height,boolean withBackground)
+    {
+        Bitmap bitmap = null;
+        int swidth = (bounds().right - bounds().left);
+        int sheight = (bounds().bottom - bounds().top);
+        float scale = width * 1f / swidth;
+        bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        if (withBackground)
+            bitmap.eraseColor(Color.argb((int)(topColour[3]*255),(int)(topColour[0]*255),(int)(topColour[1]*255),(int)(topColour[2]*255)));
+        else
+            bitmap.eraseColor(0);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.scale(scale,scale);
         drawControls(canvas);
         return bitmap;
     }

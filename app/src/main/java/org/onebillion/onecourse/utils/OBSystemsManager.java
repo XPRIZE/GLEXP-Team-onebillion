@@ -1449,20 +1449,29 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     {
         Map<String, Object> dictionary = (Map<String, Object>) MainActivity.Config().get(MainActivity.CONFIG_BATTERY_LEVELS);
         if (dictionary == null)
+        {
+            MainActivity.log("OBSystemsManager:getBatterySettingKeyForCurrentLevel: unable to find battery dictionary in settings");
             return null;
+        }
         float batteryLevel = batteryReceiver.getBatteryLevel();
+        //
+        MainActivity.log("OBSystemsManager:getBatterySettingKeyForCurrentLevel: " + batteryLevel + "%");
         //
         for (String levelKey : dictionary.keySet())
         {
             Map<String, Object> dictionaryForLevel = (Map<String, Object>) dictionary.get(levelKey);
             //
-            float thresholdLevel = Float.parseFloat((String) dictionaryForLevel.get(MainActivity.CONFIG_MINIMUM_BATTERY_VALUE));
-            if (batteryLevel > thresholdLevel)
+            float maxLevel = Float.parseFloat((String) dictionaryForLevel.get(MainActivity.CONFIG_MAXIMUM_BATTERY_VALUE));
+            float minLevel = Float.parseFloat((String) dictionaryForLevel.get(MainActivity.CONFIG_MINIMUM_BATTERY_VALUE));
+            //
+            if (batteryLevel > minLevel && batteryLevel <= maxLevel)
             {
+                MainActivity.log("OBSystemsManager:getBatterySettingKeyForCurrentLevel: " + levelKey);
                 return levelKey;
             }
         }
         //
+        MainActivity.log("OBSystemsManager:getBatterySettingKeyForCurrentLevel: unable to find level key for battery");
         return null;
     }
 

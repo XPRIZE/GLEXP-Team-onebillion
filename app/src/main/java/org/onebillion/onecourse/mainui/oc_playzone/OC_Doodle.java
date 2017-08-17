@@ -200,7 +200,7 @@ public class OC_Doodle extends OC_SectionController
         attachControl(blackborder);
 
         board = blackboard;
-
+        blackboard.setLineWidth(0);
         boardMask = blackboard.copy();
         boardMask.setFillColor(Color.BLACK);
 
@@ -219,10 +219,11 @@ public class OC_Doodle extends OC_SectionController
                 String filepath = pathToAsset(dood);
                 BitmapFactory.Options opt = new BitmapFactory.Options();
                 opt.inScaled = false;
-                drawBitmap = BitmapFactory.decodeStream(OBUtils.getInputStreamForPath(filepath+"/"+dood), null, opt);
+                drawBitmap = BitmapFactory.decodeStream(OBUtils.getInputStreamForPath(filepath), null, opt);
                 drawOn = new OBImage();
                 drawOn.setFrame(blackboard.frame());
                 drawOn.setZPosition(blackboard.zPosition() + 0.1f);
+                drawOn.setContents(drawBitmap);
             }
             if (drawOn == null)
             {
@@ -618,26 +619,47 @@ public class OC_Doodle extends OC_SectionController
         }
     }
 
+    Bitmap thumbnail(String assetname)
+    {
+        int[] wh = OC_PlayZoneAsset.thumbnailSize();
+        OC_Doodle dood = new OC_Doodle();
+        dood.params = "doodle/readonly=true/theme="+currentEvent()+"/doodle="+assetname;
+        dood.prepare();
+        Bitmap bm = dood.thumbnail(wh[0],wh[1],true);
+
+        //frig because of masking problems.
+
+        Bitmap b2 = Bitmap.createBitmap(wh[0],wh[1], Bitmap.Config.ARGB_8888);
+        b2.eraseColor(Color.argb((int)(topColour[3]*255),(int)(topColour[0]*255),(int)(topColour[1]*255),(int)(topColour[2]*255)));
+        Canvas canvas = new Canvas(b2);
+        canvas.drawBitmap(bm,0,0,null);
+        return b2;
+    }
     void saveContentsToDisk()
     {
         Bitmap cont = drawOn.layer.getContents();
         List<String> names = assetsNamesForNewFile(ASSET_DOODLE);
-        String name = names.get(0);
+        String name = names.get(1);
         String path = pathToAsset(name);
+        String thumbname = names.get(0);
+        String thumbpath = pathToAsset(thumbname);
 
         try
         {
-            FileOutputStream out = new FileOutputStream(path + "/" + name);
+            FileOutputStream out = new FileOutputStream(path);
             cont.compress(Bitmap.CompressFormat.PNG, 90, out);
             out.close();
+            out = new FileOutputStream(thumbpath);
+            thumbnail(name).compress(Bitmap.CompressFormat.PNG, 90, out);
+            out.close();
             OBFatController fc = MainActivity.mainActivity.fatController;
-            if (fc instanceof OC_FatController)
+            if (fc instanceof OCM_FatController)
             {
-                OC_FatController ocf = (OC_FatController)fc;
+                OCM_FatController ocf = (OCM_FatController)fc;
                 Map<String,String> map = new ArrayMap<>();
                 map.put("theme", currentEvent());
                 map.put("doodle", name);
-                ocf.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_DOODLE,null,map);
+                ocf.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_DOODLE,thumbname,map);
             }
         }
         catch(Exception e)
@@ -656,7 +678,16 @@ public class OC_Doodle extends OC_SectionController
         saveContentsToDisk();
 
         if(!_aborting)
-            exitEvent();
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                                     {
+                                         @Override
+                                         public void run() throws Exception
+                                         {
+                                             exitEvent();
+                                         }
+                                     }
+            );
+
 
     }
     public void touchDownAtPoint(PointF pt,View v)
@@ -712,16 +743,9 @@ public class OC_Doodle extends OC_SectionController
             {
                 final OBGroup saveButton = (OBGroup) objectDict.get("button_save");
                 setStatus(STATUS_DOING_DEMO);
-                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-                                         {
-                                             @Override
-                                             public void run() throws Exception
-                                             {
-                                                 saveButton.highlight();
-                                                 saveDoodle();
-                                             }
-                                         }
-                );
+
+                saveButton.highlight();
+                saveDoodle();
 
             }
         }

@@ -304,7 +304,7 @@ public class OCM_FatController extends OBFatController
             else if(currentSessionReadyToStart())
                 signalNewSession();
 
-            quitToTopMenu();
+           // quitToTopMenu();
         }
     }
 

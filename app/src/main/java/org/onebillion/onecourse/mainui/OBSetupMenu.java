@@ -81,9 +81,11 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
     //
     private int selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute;
     //
-    private List homeScreenControls, setDateScreenControls, setTrialStartDateScreenControls, confirmationScreenControls, videoScreenControls, batteryScreenControls;
+    private List homeScreenControls, setDateScreenControls, setTrialStartDateScreenControls, confirmationScreenControls, videoScreenControls;
     //
     OBVideoPlayer videoPlayer;
+
+
 
     public void prepare ()
     {
@@ -99,6 +101,8 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
         saveConfig = (String) Config().get(MainActivity.CONFIG_APP_CODE);
         //
         loadHomeScreen();
+        //
+        OBBrightnessManager.sharedManager.onSuspend();
     }
 
     public int buttonFlags ()
@@ -130,12 +134,51 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
     {
         super.start();
         setStatus(STATUS_AWAITING_CLICK);
-        getServerTime();
+        //
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run () throws Exception
+            {
+                getServerTime();
+            }
+        });
     }
 
 
     public void getServerTime ()
     {
+        final String wifiSSID = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_TIME_SERVER_WIFI_SSID);
+        final String wifiPassword = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_TIME_SERVER_WIFI_PASSWORD);
+        final String timeServerURL = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_TIME_SERVER_URL);
+        //
+        String currentWifiSSID = OBConnectionManager.sharedManager.getCurrentWifiSSID();
+        if (currentWifiSSID == null || !wifiSSID.equalsIgnoreCase(currentWifiSSID))
+        {
+            MainActivity.log("OBSetupMenu:getServerTime:connected to the wrong wifi [" + currentWifiSSID + "]");
+            MainActivity.log("OBSetupMenu:getServerTime:attempting to connect to time server wifi [" + wifiSSID + "]");
+            //
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                                     {
+                                         @Override
+                                         public void run () throws Exception
+                                         {
+                                             OBConnectionManager.sharedManager.connectToNetwork_connectToWifi(wifiSSID, wifiPassword, new OBUtils.RunLambda()
+                                             {
+                                                 @Override
+                                                 public void run () throws Exception
+                                                 {
+                                                     getServerTime();
+                                                 }
+                                             });
+                                         }
+                                     }
+            );
+            //
+            // dont continue any further until we have connected to the correct wifi
+            return;
+        }
+        //
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             @Override
@@ -147,7 +190,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                 try
                 {
                     client.open();
-                    InetAddress hostAddr = InetAddress.getByName("10.0.1.1");
+                    InetAddress hostAddr = InetAddress.getByName(timeServerURL);
                     //
                     TimeInfo info = client.getTime(hostAddr);
                     info.computeDetails();
@@ -156,21 +199,25 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                     serverDate = new Date(info.getMessage().getReceiveTimeStamp().getTime());
                     //
                     homeScreen_refreshDate();
-                    //
-                    // CONTINUE WORK HERE
-                    // set tablet time to received value
                 }
                 catch (SocketException e)
                 {
-                    MainActivity.log("OBSetupMenu:unable to reach wifi. Attempting to connect to wifi in settings.plist");
-                    String wifiSSID = OBConnectionManager.sharedManager.wifiSSID();
-                    String wifiPassword = OBConnectionManager.sharedManager.wifiPassword();
-                    OBConnectionManager.sharedManager.connectToNetwork_scanForWifi(wifiSSID, wifiPassword, new OBUtils.RunLambda()
+                    e.printStackTrace();
+                    //
+                    MainActivity.log("OBSetupMenu:unable to reach wifi. Attempting to connect to time server wifi in settings.plist");
+                    OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                     {
                         @Override
                         public void run () throws Exception
                         {
-                            getServerTime();
+                            OBConnectionManager.sharedManager.connectToNetwork_connectToWifi(wifiSSID, wifiPassword, new OBUtils.RunLambda()
+                            {
+                                @Override
+                                public void run () throws Exception
+                                {
+                                    getServerTime();
+                                }
+                            });
                         }
                     });
                     //
@@ -561,6 +608,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                 //
                 Date currentDate = serverDate;
                 if (currentDate == null) currentDate = userSetDate;
+                if (currentDate == null) currentDate = new Date(System.currentTimeMillis());
                 //
                 SimpleDateFormat currentDateFormat = new SimpleDateFormat("HH:mm   dd MMMM yyyy");
                 OBPath boxForLabel = (OBPath) currentDateField.propertyValue("box");
@@ -888,12 +936,9 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
 
     void completeSetup()
     {
-
         OBPreferenceManager.setPreference(OBPreferenceManager.PREFERENCES_SETUP_START_TIMESTAMP, Long.toString(OBUtils.timestampForDateOnly(trialDate.getTime())));
         OBPreferenceManager.setPreference(OBPreferenceManager.PREFERENCES_SETUP_COMPLETE, "true");
-//        MainActivity.mainActivity.addToPreferences(MainActivity.PREFERENCES_TRIAL_START_DATE, Long.toString(trialDate.getTime()));
-//        MainActivity.mainActivity.addToPreferences(MainActivity.PREFERENCES_SETUP_COMPLETE, "true");
-        //
+        OBBrightnessManager.sharedManager.onContinue();
         MainActivity.mainActivity.fatController.startUp();
     }
 
