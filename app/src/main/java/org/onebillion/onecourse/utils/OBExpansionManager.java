@@ -397,61 +397,72 @@ public class OBExpansionManager
 
     public boolean checkForBundledOBB()
     {
-        if (internalOBBFile() == null) return false;
+        String obbFilePath = internalOBBFile();
+        if (obbFilePath == null) return false;
         //
-        final PackageManager pm = MainActivity.mainActivity.getPackageManager();
-        List<ApplicationInfo> packages =  pm.getInstalledApplications(PackageManager.GET_META_DATA);
-        for (ApplicationInfo packageInfo : packages)
+        File obbFile = new File(obbFilePath);
+        //
+        if (obbFile.exists())
         {
-            if (packageInfo.packageName.equals(MainActivity.mainActivity.getPackageName()))
+            MainActivity.log("OBExpansionManager. OBB file exists at path [" + obbFilePath + "]");
+            unpackOBB(obbFile.getAbsolutePath());
+            return true;
+        }
+        else
+        {
+            MainActivity.log("OBExpansionManager. OBB file does NOT exists at path [" + obbFilePath + "]. Looking in the APK");
+            final PackageManager pm = MainActivity.mainActivity.getPackageManager();
+            List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+            for (ApplicationInfo packageInfo : packages)
             {
-                MainActivity.log("OBExpansionManager.checkForBundledOBB.package found: " + packageInfo.sourceDir);
-                final File possibleFile = new File(new File(packageInfo.sourceDir).getParentFile(), internalOBBFile());
-                if (possibleFile.exists())
+                if (packageInfo.packageName.equals(MainActivity.mainActivity.getPackageName()))
                 {
-                    MainActivity.log("OBExpansionManager. internal file exists.");
-
-                    final File externalFile = new File(Environment.getExternalStorageDirectory(), "onebillion/" + internalOBBFile());
-                    if (internalOBBFile().length() == 0 || !externalFile.exists() || !externalFile.isFile())
+                    MainActivity.log("OBExpansionManager.checkForBundledOBB.package found: " + packageInfo.sourceDir);
+                    final File possibleFile = new File(new File(packageInfo.sourceDir).getParentFile(), obbFilePath);
+                    if (possibleFile.exists())
                     {
-                        MainActivity.log("OBExpansionManager. external file does NOT exist. moving internal to external");
-                        updateProgressDialogWithSpinner("First run detected. Please wait.", false);
-                        //
-                        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                        MainActivity.log("OBExpansionManager. internal file exists.");
+                        if (possibleFile.length() == 0 || !possibleFile.exists() || !possibleFile.isFile())
                         {
-                            @Override
-                            public void run () throws Exception
+                            MainActivity.log("OBExpansionManager. external file does NOT exist. moving internal to external");
+                            updateProgressDialogWithSpinner("First run detected. Please wait.", false);
+                            //
+                            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                             {
-                                try
+                                @Override
+                                public void run () throws Exception
                                 {
-                                    MainActivity.log("OBExpansionManager.copying internal file to external location");
-                                    FileUtils.copyFile(possibleFile, externalFile);
-                                    //
-                                    MainActivity.log("OBExpansionManager.unpacking bundled OBB file in external location");
-                                    unpackOBB(externalFile.getAbsolutePath());
+                                    try
+                                    {
+                                        MainActivity.log("OBExpansionManager.copying internal file to external location");
+                                        FileUtils.copyFile(possibleFile, possibleFile);
+                                        //
+                                        MainActivity.log("OBExpansionManager.unpacking bundled OBB file in external location");
+                                        unpackOBB(possibleFile.getAbsolutePath());
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        MainActivity.log("OBExpansionManager.exception caught while copying OBB file from internal to external storage");
+                                        e.printStackTrace();
+                                    }
                                 }
-                                catch (Exception e)
-                                {
-                                    MainActivity.log("OBExpansionManager.exception caught while copying OBB file from internal to external storage");
-                                    e.printStackTrace();
-                                }
-                            }
-                        });
+                            });
+                            return true;
+                        }
+                        else
+                        {
+                            MainActivity.log("OBExpansionManager.copy not needed. File already exists");
+                        }
+                        //
+                        MainActivity.log("OBExpansionManager.checkForBundledOBB: file found");
+                        unpackOBB(possibleFile.getAbsolutePath());
                         return true;
                     }
-                    else
-                    {
-                        MainActivity.log("OBExpansionManager.copy not needed. File already exists");
-                    }
-                    //
-                    MainActivity.log("OBExpansionManager.checkForBundledOBB: file found");
-                    unpackOBB(externalFile.getAbsolutePath());
-                    return true;
                 }
             }
+            MainActivity.log("OBExpansionManager.checkForBundledOBB: nothing found");
+            return false;
         }
-        MainActivity.log("OBExpansionManager.checkForBundledOBB: nothing found");
-        return false;
     }
 
 
