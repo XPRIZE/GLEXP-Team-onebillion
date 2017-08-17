@@ -1,6 +1,7 @@
 package org.onebillion.onecourse.mainui.oc_playzone;
 
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -34,13 +35,17 @@ import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OCM_FatController;
 
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset.ASSET_DOODLE;
 import static org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset.ASSET_TEXT;
+import static org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset.assetsNamesForNewFile;
+import static org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset.pathToAsset;
 
 /**
  * Created by alan on 07/07/2017.
@@ -69,6 +74,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
     Map displayStringAttributes;
     OBGroup textBoxGroup;
     float currentTextBoxHeight;
+    float textScale = 1f;
     float textBoxTopLimit, textBoxBottomLimit;
     PointF lastTextBoxLoc;
     boolean dragMode, capitalMode,cursorShouldShow;
@@ -117,6 +123,9 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
             setUpKeyboard();
         }
 
+        p = parameters.get("textscale");
+        if (p != null)
+            textScale = Float.valueOf(p);
 
         String[] themea = ((String)eventAttributes.get("themes")).split(",");;
         themeNames = Arrays.asList(themea);
@@ -327,7 +336,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         currentTheme = name;
         String fontPath = String.format("fonts/%s",(String)themeData.get("font"));
         currentTypeface = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), fontPath);
-        currentTypeSize = applyGraphicScale(60f);
+        currentTypeSize = applyGraphicScale(60f) * textScale;
 
         textBox.setTypeFace(currentTypeface);
         textBox.setFontSize(currentTypeSize);
@@ -813,18 +822,41 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         }
     }
 
+    Bitmap thumbnail(String assetname,String text)
+    {
+        int[] wh = OC_PlayZoneAsset.thumbnailSize();
+        OC_PlayZoneTypewrite twro = new OC_PlayZoneTypewrite();
+        twro.params = "typewrite/readonly=true/theme="+currentEvent()+"/text="+text+"/textscale=1.5";
+        twro.prepare();
+        Bitmap bm = twro.thumbnail(wh[0],wh[1],true);
+        return bm;
+    }
+
     public void saveCurrentText()
     {
         Map<String,String>params = new HashMap<>();
         params.put("theme",currentTheme);
         params.put("font", (String) (themesData.get(currentTheme)).get("font"));
-        params.put("text",textBox.textBuffer().toString());
-        Bitmap bm = drawn(null,true);
+        String txt = textBox.textBuffer().toString();
+        params.put("text",txt);
 
+        List<String> names = assetsNamesForNewFile(ASSET_TEXT);
+        String thumbname = names.get(0);
+        String thumbpath = pathToAsset(thumbname);
 
-        OBFatController fatController = (MainActivity.mainActivity.fatController);
-        if (OCM_FatController.class.isInstance(fatController))
-            ((OCM_FatController)fatController).savePlayZoneAssetForCurrentUserType(ASSET_TEXT,null,params);
+        try
+        {
+            FileOutputStream out = new FileOutputStream(thumbpath);
+            thumbnail(thumbname,txt).compress(Bitmap.CompressFormat.PNG, 90, out);
+            out.close();
+            OBFatController fatController = (MainActivity.mainActivity.fatController);
+            if (OCM_FatController.class.isInstance(fatController))
+                ((OCM_FatController)fatController).savePlayZoneAssetForCurrentUserType(ASSET_TEXT,thumbname,params);
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
 
         try
         {
@@ -846,7 +878,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         }
         catch(Exception e)
         {
-
+            e.printStackTrace();
         }
         if(!_aborting)
             exitEvent();

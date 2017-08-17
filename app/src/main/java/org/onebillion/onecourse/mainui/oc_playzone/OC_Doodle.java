@@ -626,7 +626,14 @@ public class OC_Doodle extends OC_SectionController
         dood.params = "doodle/readonly=true/theme="+currentEvent()+"/doodle="+assetname;
         dood.prepare();
         Bitmap bm = dood.thumbnail(wh[0],wh[1],true);
-        return bm;
+
+        //frig because of masking problems.
+
+        Bitmap b2 = Bitmap.createBitmap(wh[0],wh[1], Bitmap.Config.ARGB_8888);
+        b2.eraseColor(Color.argb((int)(topColour[3]*255),(int)(topColour[0]*255),(int)(topColour[1]*255),(int)(topColour[2]*255)));
+        Canvas canvas = new Canvas(b2);
+        canvas.drawBitmap(bm,0,0,null);
+        return b2;
     }
     void saveContentsToDisk()
     {

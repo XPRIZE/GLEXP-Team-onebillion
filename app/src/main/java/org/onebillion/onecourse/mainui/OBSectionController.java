@@ -91,7 +91,7 @@ public class OBSectionController extends OBViewController
     private boolean popAnimationZoom;
     private RectF popAnimationZoomRect;
 
-    float topColour[] = {1, 1, 1, 1};
+    public float topColour[] = {1, 1, 1, 1};
     float bottomColour[] = {1, 1, 1, 1};
     protected List<Integer> busyStatuses =Arrays.asList(STATUS_BUSY,STATUS_DOING_DEMO,STATUS_DRAGGING,STATUS_CHECKING);
 

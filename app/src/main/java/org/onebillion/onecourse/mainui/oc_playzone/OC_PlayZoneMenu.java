@@ -1213,7 +1213,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         mbg.show();
         mbg.setZPosition(0.5f);
         OBControl thumbnail = null;
-        if(asset.type == OC_PlayZoneAsset.ASSET_VIDEO || asset.type == OC_PlayZoneAsset.ASSET_DOODLE)
+        if(asset.type == OC_PlayZoneAsset.ASSET_VIDEO)
         {
             mbg.setFillColor(Color.RED);
             thumbnail = OBImageManager.sharedImageManager().imageForPath(OC_PlayZoneAsset.pathToAsset(asset.thumbnail));
@@ -1221,41 +1221,36 @@ public class OC_PlayZoneMenu extends OC_Menu
         else if(asset.type == OC_PlayZoneAsset.ASSET_DOODLE)
         {
             mbg.setFillColor(Color.BLUE);
-            Map<String,String> dataDict = asset.paramsDictionary();
-            OBImage doodleThumb  = OBImageManager.sharedImageManager().imageForPath(OC_PlayZoneAsset.pathToAsset(asset.thumbnail));
-            OBImage gradBg = OBImageManager.sharedImageManager().imageForName("thumbnail_doodle_gradient");
-            OBImage overlay = OBImageManager.sharedImageManager().imageForName(String.format("thumbnail_doodle_%s",dataDict.get("theme")));
-            overlay.setZPosition(1);
-            OBMisc.scaleControlToControl(doodleThumb,gradBg,false);
-            gradBg.setPosition(OB_Maths.locationForRect(0.5f,0.5f,overlay.frame()));
-            gradBg.setZPosition(2);
-            doodleThumb.setPosition(OB_Maths.locationForRect(new PointF(0.5f, 0.5f), gradBg.bounds()));
-            gradBg.setMaskControl(doodleThumb);
-            thumbnail = new OBGroup((List<OBControl>)(Object)Arrays.asList(overlay,gradBg));
+            thumbnail = OBImageManager.sharedImageManager().imageForPath(OC_PlayZoneAsset.pathToAsset(asset.thumbnail));
         }
         else if(asset.type == OC_PlayZoneAsset.ASSET_TEXT)
         {
             mbg.setFillColor(Color.GREEN);
-            Map<String,String> dataDict = asset.paramsDictionary();
-            OBImage overlay = loadImageWithName(String.format("thumbnail_type_%s",dataDict.get("theme")),new PointF(0.5f, 0.5f),new RectF(this.bounds()));
-            overlay.setZPosition(3);
-            String text = dataDict.get("text");
-            Typeface currentFont =  OBUtils.TypefaceForFile(dataDict.get("font"));
-            float fontSize = applyGraphicScale(12);
-            OBLabel thumbnailText = new OBLabel("",currentFont,fontSize);
-            thumbnailText.setFrame(0,0,overlay.width()*0.7f, overlay.height()*0.9f);
-            thumbnailText.setPosition(OB_Maths.locationForRect(0.5f,0.5f,overlay.frame()));
-            thumbnailText.setTop(overlay.top() + applyGraphicScale(10));
-            thumbnailText.setZPosition(2);
-            thumbnailText.setColour(Color.BLACK);
-            String trimmedString = text.replace("\t","");
-            String shortString = trimmedString.length() > 50 ? trimmedString.substring(0,49) : trimmedString;
-            thumbnailText.setString(shortString);
-            OBControl background = new OBControl();
-            background.setFrame(overlay.frame());
-            background.setBackgroundColor(Color.WHITE);
-            background.setZPosition (1);
-            thumbnail = new OBGroup(Arrays.asList(background,thumbnailText,overlay));
+            thumbnail = OBImageManager.sharedImageManager().imageForPath(OC_PlayZoneAsset.pathToAsset(asset.thumbnail));
+
+            if (thumbnail == null)
+            {
+                Map<String,String> dataDict = asset.paramsDictionary();
+                OBImage overlay = loadImageWithName(String.format("thumbnail_type_%s",dataDict.get("theme")),new PointF(0.5f, 0.5f),new RectF(this.bounds()));
+                overlay.setZPosition(3);
+                String text = dataDict.get("text");
+                Typeface currentFont =  OBUtils.TypefaceForFile(dataDict.get("font"));
+                float fontSize = applyGraphicScale(12);
+                OBLabel thumbnailText = new OBLabel("",currentFont,fontSize);
+                thumbnailText.setFrame(0,0,overlay.width()*0.7f, overlay.height()*0.9f);
+                thumbnailText.setPosition(OB_Maths.locationForRect(0.5f,0.5f,overlay.frame()));
+                thumbnailText.setTop(overlay.top() + applyGraphicScale(10));
+                thumbnailText.setZPosition(2);
+                thumbnailText.setColour(Color.BLACK);
+                String trimmedString = text.replace("\t","");
+                String shortString = trimmedString.length() > 50 ? trimmedString.substring(0,49) : trimmedString;
+                thumbnailText.setString(shortString);
+                OBControl background = new OBControl();
+                background.setFrame(overlay.frame());
+                background.setBackgroundColor(Color.WHITE);
+                background.setZPosition (1);
+                thumbnail = new OBGroup(Arrays.asList(background,thumbnailText,overlay));
+            }
         }
         mrect.setPosition(thumbnail.position());
         mrect.setZPosition(1);
