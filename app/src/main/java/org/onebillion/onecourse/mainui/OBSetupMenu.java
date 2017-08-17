@@ -608,6 +608,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                 //
                 Date currentDate = serverDate;
                 if (currentDate == null) currentDate = userSetDate;
+                if (currentDate == null) currentDate = new Date(System.currentTimeMillis());
                 //
                 SimpleDateFormat currentDateFormat = new SimpleDateFormat("HH:mm   dd MMMM yyyy");
                 OBPath boxForLabel = (OBPath) currentDateField.propertyValue("box");
