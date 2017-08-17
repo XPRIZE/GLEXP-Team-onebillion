@@ -139,9 +139,8 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         presenter.control.setProperty("end_loc",OBMisc.copyPoint(presenter.control.position()));
         lastUnitOrder = -1;
         lastUnitInstance = null;
-        currentDay = fatController.getCurrentDay();
+        refreshCurrentDayAndAudio();
         receiveCommand(fatController.getCurrentCommand());
-        loadAudioForDay(currentDay);
         communityModeActive = fatController.communityModeActive();
         playZoneOpened = false;
         initScreen();
@@ -154,6 +153,12 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         OBControl lidOverlay = box.objectDict.get("lid_glow_overlay");
         lidOverlay.setProperty("start_height",lidOverlay.height());
         lidOverlay.setProperty("start_top",lidOverlay.top());
+    }
+
+    public void refreshCurrentDayAndAudio()
+    {
+        currentDay = fatController.getCurrentDay();
+        loadAudioForDay(currentDay);
     }
 
     public void initScreen()
@@ -228,7 +233,8 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                         {
                             playAudio(null);
                             button.highlight();
-                            fatController.startCurrentSession();
+                            if(fatController.startCurrentSession())
+                                refreshCurrentDayAndAudio();
                             waitForSecs(0.5f);
                             hideNewDayScreen();
                             button.lowlight();

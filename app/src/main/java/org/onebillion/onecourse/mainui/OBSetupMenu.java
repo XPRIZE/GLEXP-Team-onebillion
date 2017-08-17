@@ -31,7 +31,7 @@ import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.controls.OBVideoPlayer;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.utils.DBSQL;
-import org.onebillion.onecourse.utils.MlUnit;
+import org.onebillion.onecourse.utils.OCM_MlUnit;
 import org.onebillion.onecourse.utils.OBBrightnessManager;
 import org.onebillion.onecourse.utils.OBConnectionManager;
 import org.onebillion.onecourse.utils.OBImageManager;
@@ -53,8 +53,8 @@ import java.util.Random;
 import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
 import org.onebillion.onecourse.utils.OB_Maths;
-import org.onebillion.onecourse.utils.OC_FatController;
-import org.onebillion.onecourse.utils.OC_User;
+import org.onebillion.onecourse.utils.OCM_FatController;
+import org.onebillion.onecourse.utils.OCM_User;
 
 
 /**
@@ -585,22 +585,21 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
 
     public void loadRandomUnit()
     {
-        OC_FatController fatController = (OC_FatController)MainActivity.mainActivity.fatController;
+        OCM_FatController fatController = (OCM_FatController)MainActivity.mainActivity.fatController;
         DBSQL db = null;
         //
         try
         {
             db = new DBSQL(false);
             //
-            int unitCount = MlUnit.unitCountForMasterlist(db, 1);
+            int unitCount = OCM_MlUnit.unitCountForMasterlist(db, 1);
             int randomUnitIndex = OB_Maths.randomInt(0, unitCount);
             //
             MainActivity.log("OBSetupMenu:loadRandomUnit:unit count [%d]", unitCount);
             MainActivity.log("OBSetupMenu:loadRandomUnit:random unit [%d]", randomUnitIndex);
             //
-            MlUnit randomUnit = MlUnit.mlUnitforMasterlistIDFromDB(db, 1, randomUnitIndex);
+            OCM_MlUnit randomUnit = OCM_MlUnit.mlUnitforMasterlistIDFromDB(db, 1, randomUnitIndex);
             //
-            OBPreferenceManager.setPreference(MainActivity.PREFERENCES_RUNNING_EXAMPLE_UNIT, "true");
 //            MainActivity.mainActivity.addToPreferences(MainActivity.PREFERENCES_RUNNING_EXAMPLE_UNIT, "true");
             fatController.startSectionByUnitNoUser(randomUnit);
         }
@@ -889,8 +888,9 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
 
     void completeSetup()
     {
-        OBPreferenceManager.setPreference(MainActivity.PREFERENCES_TRIAL_START_DATE, Long.toString(trialDate.getTime()));
-        OBPreferenceManager.setPreference(MainActivity.PREFERENCES_SETUP_COMPLETE, "true");
+
+        OBPreferenceManager.setPreference(OBPreferenceManager.PREFERENCES_SETUP_START_TIMESTAMP, Long.toString(OBUtils.timestampForDateOnly(trialDate.getTime())));
+        OBPreferenceManager.setPreference(OBPreferenceManager.PREFERENCES_SETUP_COMPLETE, "true");
 //        MainActivity.mainActivity.addToPreferences(MainActivity.PREFERENCES_TRIAL_START_DATE, Long.toString(trialDate.getTime()));
 //        MainActivity.mainActivity.addToPreferences(MainActivity.PREFERENCES_SETUP_COMPLETE, "true");
         //

@@ -73,9 +73,8 @@ public class OC_FatController extends OBFatController
     public int buttonFlags()
     {
         int result = OBMainViewController.SHOW_TOP_RIGHT_BUTTON | OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON | OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON;
-        boolean runningExampleUnit = OBPreferenceManager.getBooleanPreference(MainActivity.PREFERENCES_RUNNING_EXAMPLE_UNIT);
-//        boolean runningExampleUnit = MainActivity.mainActivity.getPreferences(MainActivity.PREFERENCES_RUNNING_EXAMPLE_UNIT).equals("true");
-        if (showBackButton() || runningExampleUnit) result = result | OBMainViewController.SHOW_TOP_LEFT_BUTTON;
+        if (showBackButton())
+            result = result | OBMainViewController.SHOW_TOP_LEFT_BUTTON;
         return result;
     }
 
@@ -273,8 +272,6 @@ public class OC_FatController extends OBFatController
     @Override
     public void startUp()
     {
-        // disabling the flag for running example unit from the setup menu
-        OBPreferenceManager.setPreference(MainActivity.PREFERENCES_RUNNING_EXAMPLE_UNIT, "false");
 //        MainActivity.mainActivity.addToPreferences(MainActivity.PREFERENCES_RUNNING_EXAMPLE_UNIT, "false");
         //
         // initial setup
@@ -306,7 +303,7 @@ public class OC_FatController extends OBFatController
         //
         // Setup screen
         Boolean usesSetupMenu = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_USES_SETUP_MENU);
-        Boolean isSetupComplete = OBPreferenceManager.getBooleanPreference(MainActivity.PREFERENCES_SETUP_COMPLETE);
+        Boolean isSetupComplete = OBPreferenceManager.getBooleanPreference(OBPreferenceManager.PREFERENCES_SETUP_COMPLETE);
         //
         if (usesSetupMenu && !isSetupComplete)
         {

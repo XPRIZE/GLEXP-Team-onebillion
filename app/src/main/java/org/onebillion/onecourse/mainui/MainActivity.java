@@ -78,11 +78,6 @@ public class MainActivity extends Activity
                     REQUEST_FIRST_SETUP_PROVISION_MANAGED_PROFILE = 8,
                     REQUEST_FIRST_SETUP_WIFI_BT_SCANNING = 9;
     //
-    public static String    PREFERENCES_SETUP_COMPLETE = "setupComplete",
-                            PREFERENCES_TRIAL_START_DATE = "trialStartDate",
-                            PREFERENCES_CURRENT_BATTERY_SETTING = "currentBatterySetting",
-                            PREFERENCES_RUNNING_EXAMPLE_UNIT = "runningExampleUnit";
-    //
     public static String CONFIG_IMAGE_SUFFIX = "image_suffix",
             CONFIG_AUDIO_SUFFIX = "audio_suffix",
             CONFIG_AUDIO_SEARCH_PATH = "audioSearchPath",

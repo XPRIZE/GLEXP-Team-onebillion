@@ -54,6 +54,9 @@ public class OCM_FatController extends OBFatController
     private long currentSessionStartTime, currentSessionEndTime;
     private boolean allowsTimeOuts, showUserName;
     private Date startDate;
+    private boolean showBackButton;
+
+    private String menuAppCode;
 
     private Handler timeoutHandler;
     private Runnable timeoutRunnable;
@@ -90,16 +93,14 @@ public class OCM_FatController extends OBFatController
     public int buttonFlags()
     {
         int result = OBMainViewController.SHOW_TOP_RIGHT_BUTTON | OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON | OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON;
-        boolean runningExampleUnit = OBPreferenceManager.getBooleanPreference(MainActivity.PREFERENCES_RUNNING_EXAMPLE_UNIT);
-//        boolean runningExampleUnit = MainActivity.mainActivity.getPreferences(MainActivity.PREFERENCES_RUNNING_EXAMPLE_UNIT).equals("true");
-        if (showBackButton() || runningExampleUnit) result = result | OBMainViewController.SHOW_TOP_LEFT_BUTTON;
+
+        if (showBackButton())
+            result = result | OBMainViewController.SHOW_TOP_LEFT_BUTTON;
         return result;
     }
 
     private boolean showBackButton()
     {
-       // String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SHOW_BACK_BUTTON);
-       // return (value != null && value.equalsIgnoreCase("true"));
         return currentUnitInstance == null;
     }
 
@@ -232,11 +233,22 @@ public class OCM_FatController extends OBFatController
 
     public int getCurrentDay()
     {
+        if(startDate == null)
+            return 1;
+
+        int currentDay = getDaysSinceTimestamp(startDate.getTime());
+        if(currentDay > 0 )
+            return currentDay + 1;
+        else
+            return 1;
+    }
+
+    private int getDaysSinceTimestamp(long timestamp)
+    {
         Date date = new Date(System.currentTimeMillis());
         long dayLengthMillisec = 1000 * 60 * 60 * 24;
-        int dayDif = (int)Math.floor((date.getTime() - startDate.getTime()) / dayLengthMillisec);
-
-        return dayDif + 1;
+        int dayDif = (int)Math.floor((date.getTime() - timestamp) / dayLengthMillisec);
+        return dayDif;
     }
 
     public int getCurrentWeek()
@@ -468,11 +480,8 @@ public class OCM_FatController extends OBFatController
     @Override
     public void startUp()
     {
-        // disabling the flag for running example unit from the setup menu
-        OBPreferenceManager.setPreference(MainActivity.PREFERENCES_RUNNING_EXAMPLE_UNIT, "false");
-//        MainActivity.mainActivity.addToPreferences(MainActivity.PREFERENCES_RUNNING_EXAMPLE_UNIT, "false");
-        //
         // initial setup
+        //DBSQL.deleteDB();
         try
         {
             unitAttemptsCount = MainActivity.mainActivity.configIntForKey(MainActivity.CONFIG_UNIT_TIMEOUT_COUNT);
@@ -495,20 +504,19 @@ public class OCM_FatController extends OBFatController
         }
         initDB();
         //
-        startDate = Date.valueOf("2017-08-01");
+        loadStartDate();
         //
         timeoutHandler = new Handler();
         // Setup screen
         Boolean usesSetupMenu = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_USES_SETUP_MENU);
-        Boolean isSetupComplete = OBPreferenceManager.getBooleanPreference(MainActivity.PREFERENCES_SETUP_COMPLETE);
+        Boolean isSetupComplete = OBPreferenceManager.getBooleanPreference(OBPreferenceManager.PREFERENCES_SETUP_COMPLETE);
         //
         if (usesSetupMenu && !isSetupComplete)
         {
             // before overriding the app_code save it in the preferences to restore after setup is complete
-            OBPreferenceManager.setPreference("originalAppCode", MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_APP_CODE));
-//            MainActivity.mainActivity.addToPreferences("originalAppCode", MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_APP_CODE));
+            menuAppCode = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_APP_CODE);
             MainActivity.mainActivity.updateConfigPaths(MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SETUP_FOLDER), true, null);
-            //
+
             String setupClassName = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SETUP_CLASS);
             if (setupClassName != null)
             {
@@ -522,11 +530,9 @@ public class OCM_FatController extends OBFatController
             //
             resetTempData();
             // restore app_code is it's coming from setup
-            String originalAppCode = OBPreferenceManager.getStringPreference("originalAppCode");
-//            String originalAppCode = MainActivity.mainActivity.getPreferences("originalAppCode");
-            if (originalAppCode != null)
+            if (menuAppCode != null)
             {
-                MainActivity.mainActivity.updateConfigPaths(originalAppCode, true, null);
+                MainActivity.mainActivity.updateConfigPaths(menuAppCode, true, null);
             }
             //
             String menuClassName = MainActivity.mainActivity.configStringForKey (MainActivity.CONFIG_MENU_CLASS);
@@ -537,7 +543,7 @@ public class OCM_FatController extends OBFatController
             if (menuClassName != null && appCode != null)
             {
                 OBBrightnessManager.sharedManager.onContinue();
-                if (!MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null))
+                if (!MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, true, null, true))
                 {
                     MainActivity.log("OC_FatController:startUp:unable to load view controller [%s] [%s]", menuClassName, appCode);
                 }
@@ -567,52 +573,6 @@ public class OCM_FatController extends OBFatController
             sectionController.cleanUp();
         }
     }
-
-
-    /*
-    Session functions
-     */
-
-    public boolean checkAndPrepareNewSession()
-    {
-        if(currentSessionLocked())
-            return false;
-
-        if(currentSessionStartTime == 0)
-            return true;
-
-        if(disallowEndHour == disallowStartHour)
-            return false;
-
-        Calendar currentCalendar = Calendar.getInstance();
-        Calendar calendarLastSession = Calendar.getInstance();
-
-        currentCalendar.setTimeInMillis(getCurrentTime()*1000);
-        calendarLastSession.setTimeInMillis(currentSessionStartTime*1000);
-
-        if(currentCalendar.get(Calendar.DAY_OF_YEAR) != calendarLastSession.get(Calendar.DAY_OF_YEAR)
-                || currentCalendar.get(Calendar.YEAR) != calendarLastSession.get(Calendar.YEAR))
-        {
-            prepareNewSession();
-            return true;
-        }
-        return false;
-    }
-
-    public boolean currentSessionLocked()
-    {
-        if(disallowEndHour == disallowStartHour)
-            return false;
-
-        Calendar currentCalendar = Calendar.getInstance();
-        currentCalendar.setTimeInMillis(getCurrentTime()*1000);
-        int hourNow = currentCalendar.get(Calendar.HOUR_OF_DAY);
-
-        boolean hourIsBetween = (disallowEndHour > disallowStartHour && hourNow >= disallowStartHour && hourNow < disallowEndHour)
-                || (disallowEndHour < disallowStartHour && (hourNow >= disallowStartHour || hourNow < disallowEndHour));
-        return hourIsBetween;
-    }
-
 
     /*
     Section functions
@@ -1202,6 +1162,48 @@ public class OCM_FatController extends OBFatController
     /*
      Sessions functions
      */
+
+    public boolean checkAndPrepareNewSession()
+    {
+        if(currentSessionLocked())
+            return false;
+
+        if(currentSessionStartTime == 0)
+            return true;
+
+        if(disallowEndHour == disallowStartHour)
+            return false;
+
+        Calendar currentCalendar = Calendar.getInstance();
+        Calendar calendarLastSession = Calendar.getInstance();
+
+        currentCalendar.setTimeInMillis(getCurrentTime()*1000);
+        calendarLastSession.setTimeInMillis(currentSessionStartTime*1000);
+
+        if(currentCalendar.get(Calendar.DAY_OF_YEAR) != calendarLastSession.get(Calendar.DAY_OF_YEAR)
+                || currentCalendar.get(Calendar.YEAR) != calendarLastSession.get(Calendar.YEAR))
+        {
+            prepareNewSession();
+            return true;
+        }
+        return false;
+    }
+
+    public boolean currentSessionLocked()
+    {
+        if(disallowEndHour == disallowStartHour)
+            return false;
+
+        Calendar currentCalendar = Calendar.getInstance();
+        currentCalendar.setTimeInMillis(getCurrentTime()*1000);
+        int hourNow = currentCalendar.get(Calendar.HOUR_OF_DAY);
+
+        boolean hourIsBetween = (disallowEndHour > disallowStartHour && hourNow >= disallowStartHour && hourNow < disallowEndHour)
+                || (disallowEndHour < disallowStartHour && (hourNow >= disallowStartHour || hourNow < disallowEndHour));
+        return hourIsBetween;
+    }
+
+
     public boolean currentSessionFinished()
     {
         if(currentSessionId < 0)
@@ -1338,11 +1340,12 @@ public class OCM_FatController extends OBFatController
         return currentSessionStartTime == 0;
     }
 
-    public void startCurrentSession()
+    public boolean startCurrentSession()
     {
         if(!currentSessionReadyToStart())
-            return;
+            return false;
 
+        boolean needRefresh = checkAndSetupStartDay();
         currentSessionStartTime = getCurrentTime();
         DBSQL db = null;
         try
@@ -1357,7 +1360,7 @@ public class OCM_FatController extends OBFatController
             if(db != null)
                 db.close();
         }
-
+        return needRefresh;
     }
 
     public void finishCurrentSessionInDB(DBSQL db)
@@ -1380,6 +1383,53 @@ public class OCM_FatController extends OBFatController
         ContentValues contentValues = new ContentValues();
         contentValues.put(fieldName,value);
         return  db.doUpdateOnTable(DBSQL.TABLE_SESSIONS,whereMap, contentValues) > 0;
+    }
+
+    public boolean checkAndSetupStartDay()
+    {
+        if(startDate == null)
+        {
+            long trialTimestamp = OBPreferenceManager.getLongPreference(OBPreferenceManager.PREFERENCES_TRIAL_START_TIMESTAMP);
+
+            if (trialTimestamp < 0)
+            {
+                long setupTimestamp = getSetupStartTimestamp();
+                int days = getDaysSinceTimestamp(setupTimestamp);
+                if (Math.abs(days) < 14)
+                {
+                    trialTimestamp = OBUtils.timestampForDateOnly(System.currentTimeMillis());
+                }
+                else
+                {
+                    trialTimestamp = setupTimestamp;
+                }
+                OBPreferenceManager.setPreference(OBPreferenceManager.PREFERENCES_TRIAL_START_TIMESTAMP, trialTimestamp);
+                startDate = new Date(trialTimestamp);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void loadStartDate()
+    {
+        long trialTimestamp = OBPreferenceManager.getLongPreference(OBPreferenceManager.PREFERENCES_TRIAL_START_TIMESTAMP);
+        if (trialTimestamp > 0)
+        {
+            startDate = new Date(trialTimestamp);
+        }
+    }
+
+
+    public long getSetupStartTimestamp()
+    {
+        long setupTimestamp = OBPreferenceManager.getLongPreference(OBPreferenceManager.PREFERENCES_SETUP_START_TIMESTAMP);
+        if (setupTimestamp < 0)
+        {
+            Date date = Date.valueOf("2017-10-01");
+            setupTimestamp = date.getTime();
+        }
+        return setupTimestamp;
     }
 
 

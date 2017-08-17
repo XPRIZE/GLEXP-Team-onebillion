@@ -327,11 +327,17 @@ public class OBMainViewController extends OBViewController
 
     public boolean pushViewControllerWithNameConfig (String nm, String configPath, boolean animate, boolean fromRight, Object _params)
     {
+        return pushViewControllerWithNameConfig(nm, configPath,animate,fromRight,_params,false);
+    }
+
+
+    public boolean pushViewControllerWithNameConfig (String nm, String configPath, boolean animate, boolean fromRight, Object _params, boolean pop)
+    {
         Class cnm = controllerClass(nm, configPath);
         if (cnm == null)
             return false;
 
-        pushViewController(cnm, animate, fromRight, _params, false);
+        pushViewController(cnm, animate, fromRight, _params, pop);
         return true;
     }
 
@@ -398,7 +404,7 @@ public class OBMainViewController extends OBViewController
             }
         }
         viewControllers.add(controller);
-        if (pop)
+        if (pop && viewControllers.size() > 1)
         {
             viewControllers.remove(viewControllers.size() - 2);
         }

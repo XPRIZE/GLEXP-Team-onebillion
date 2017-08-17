@@ -8,9 +8,7 @@ import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OBSectionController;
 
 import java.lang.ref.SoftReference;
-import java.util.Map;
-
-import static org.onebillion.onecourse.mainui.MainActivity.PREFERENCES_SETUP_COMPLETE;
+import java.util.Map;;
 
 /**
  * Created by alan on 27/02/16.
