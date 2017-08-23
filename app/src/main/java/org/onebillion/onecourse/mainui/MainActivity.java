@@ -141,6 +141,7 @@ public class MainActivity extends Activity
             CONFIG_BACKUP_INTERVAL = "backupInterval",
             CONFIG_DISALLOW_HOURS = "disallowHours",
             CONFIG_BUNDLED_OBB_FILENAME = "bundledOBBFilename",
+            CONFIG_EXTERNAL_ASSETS = "externalAssets",
             CONFIG_CHECK_FOR_DISABLED_LOCATION_SERVICES = "checkForDisabledLocationServices",
             CONFIG_CHECK_FOR_DISABLED_SCANNING = "checkForDisabledScanning",
             CONFIG_BUILD_NUMBER = "buildNumber",

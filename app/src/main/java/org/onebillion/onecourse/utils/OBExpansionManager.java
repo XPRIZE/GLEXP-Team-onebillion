@@ -335,6 +335,18 @@ public class OBExpansionManager
     public List<File> getExternalExpansionFolders ()
     {
         List<File> result = new ArrayList();
+        //
+        String externalAssetsFolderPath = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_EXTERNAL_ASSETS);
+        if (externalAssetsFolderPath != null)
+        {
+            File externalAssets = new File(externalAssetsFolderPath);
+            if (externalAssets.exists())
+            {
+                result.add(externalAssets);
+                return result;
+            }
+        }
+        //
         if (internalExpansionFiles != null)
         {
             for (OBExpansionFile file : internalExpansionFiles.values())
