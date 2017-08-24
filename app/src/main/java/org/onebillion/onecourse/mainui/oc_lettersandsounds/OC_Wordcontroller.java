@@ -91,6 +91,23 @@ public class OC_Wordcontroller extends OC_SectionController
         });
     }
 
+    public void playLetterName(final String s)
+    {
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                String fn;
+                if (s.startsWith("alph_"))
+                    fn = s;
+                else
+                    fn = String.format("alph_%s",s);
+                playAudio(fn);
+            }
+        });
+    }
+
     public boolean itemsInSameDirectory(String item1,String item2)
     {
         String path1 = getLocalPath(String.format("%s.m4a",item1));
