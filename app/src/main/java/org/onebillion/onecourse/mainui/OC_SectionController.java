@@ -175,7 +175,7 @@ public class OC_SectionController extends OBSectionController {
         miscObjects.put("star", star);
         String audioFile = (String) Config().get(MainActivity.CONFIG_AWARDAUDIO);
         playSFX(audioFile);
-        double duration = OBAudioManager.audioManager.duration();
+        double duration = OBAudioManager.audioManager.durationForChannel(OBAudioManager.AM_SFX_CHANNEL);
         completeDisplay((duration < 1.0) ? 1.0 : duration);
     }
 

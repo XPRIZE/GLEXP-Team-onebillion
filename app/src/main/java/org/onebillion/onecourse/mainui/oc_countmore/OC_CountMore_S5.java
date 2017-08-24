@@ -41,7 +41,7 @@ public class OC_CountMore_S5 extends OC_SectionController
         loadFingers();
         loadEvent("master");
         events = Arrays.asList(eventAttributes.get("scenes").split(","));
-        topLabel = new OBLabel("99", OBUtils.standardTypeFace(), 50.0f * objectDict.get("loop").height() / 250.0f);
+        topLabel = new OBLabel("888", OBUtils.standardTypeFace(), 50.0f * objectDict.get("loop").height() / 250.0f);
         topLabel.setColour(Color.BLACK);
         topLabel.setPosition(OB_Maths.locationForRect(0.5f, 1.1f, objectDict.get("loop").frame()));
         topLabel.setBottom(objectDict.get("loop").top() - topLabel.height() * 0.1f);
@@ -69,8 +69,7 @@ public class OC_CountMore_S5 extends OC_SectionController
         {
             public void run() throws Exception
             {
-               // demo5a();
-                nextScene();
+                demo5a();
             }
         });
     }
