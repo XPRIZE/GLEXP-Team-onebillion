@@ -519,9 +519,6 @@ public class OC_LTrace extends OC_Wordcontroller
 
     public void nextPath() throws Exception
     {
-        lockScreen();
-        greyPaths.get(currPathIdx).hide();
-        unlockScreen();
         if(++currPathIdx >= paths.size() )
         {
             waitForSecs(0.3f);
@@ -554,6 +551,9 @@ public class OC_LTrace extends OC_Wordcontroller
     }
     public void nextTracePath() throws Exception
     {
+        lockScreen();
+        greyPaths.get(currPathIdx).hide();
+        unlockScreen();
         if(++currPathIdx >= paths.size() )
         {
             playFeedback(letter);
