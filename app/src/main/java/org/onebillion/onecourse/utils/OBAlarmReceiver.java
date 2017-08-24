@@ -6,6 +6,9 @@ import android.content.Intent;
 
 import org.onebillion.onecourse.mainui.MainActivity;
 
+import java.util.Calendar;
+import java.util.Currency;
+
 /**
  * OBAlarmReceiver
  *
@@ -29,10 +32,18 @@ public class OBAlarmReceiver extends BroadcastReceiver
         long starttime = intent.getLongExtra(EXTRA_ALARMTIME, 0);
         long interval = intent.getLongExtra(EXTRA_INTERVAL, 0);
         int requestCode = intent.getIntExtra(EXTRA_REQUESTCODE, 0);
+
+        Calendar startCalendar = Calendar.getInstance();
+        startCalendar.setTimeInMillis(starttime);
+
+        Calendar currentCalendar = Calendar.getInstance();
+        currentCalendar.set(Calendar.HOUR, startCalendar.get(Calendar.HOUR));
+        currentCalendar.set(Calendar.MINUTE, startCalendar.get(Calendar.MINUTE));
+        currentCalendar.set(Calendar.SECOND, startCalendar.get(Calendar.SECOND));
         //
         if (interval > 0)
         {
-            OBAlarmManager.scheduleRepeatingAlarm(starttime + interval, interval, requestCode);
+            OBAlarmManager.scheduleRepeatingAlarm(currentCalendar.getTimeInMillis() + interval, interval, requestCode);
         }
     }
 }

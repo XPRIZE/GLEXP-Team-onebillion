@@ -133,18 +133,22 @@ public class OCM_FatController extends OBFatController
                     db.doDeleteOnTable(DBSQL.TABLE_UNITS, null);
                     int unitIndex = 0;
                     int nextStar = 0;
-                    for (OBXMLNode levelNode : rootNode.childrenOfType("level"))
+                    for(int j=0; j<8; j++)
                     {
-                        int week = levelNode.attributeIntValue("id");
-
-                        List<OBXMLNode> nodes = levelNode.childrenOfType("unit");
-                        masterList.addAll(nodes);
-
-                        for (int i=0; i<nodes.size(); i++)
+                        for (OBXMLNode levelNode : rootNode.childrenOfType("level"))
                         {
-                            OBXMLNode node = nodes.get(i);
-                            OCM_MlUnit.insertUnitFromXMLNodeintoDB(db, node, 1, unitIndex,week);
-                            unitIndex++;
+                            int week = levelNode.attributeIntValue("id") + j*9;
+
+                            List<OBXMLNode> nodes = levelNode.childrenOfType("unit");
+                            masterList.addAll(nodes);
+
+                            for (int i = 0; i < nodes.size(); i++)
+                            {
+                                OBXMLNode node = nodes.get(i);
+                                OCM_MlUnit.insertUnitFromXMLNodeintoDB(db, node, 1, unitIndex, week);
+
+                                unitIndex++;
+                            }
                         }
                     }
                     OBPreferenceManager.setPreference(OBPreferenceManager.PREFERENCE_ML_TOKEN,masterListToken, db);
@@ -226,6 +230,14 @@ public class OCM_FatController extends OBFatController
 
     /* Date/Time functions
     */
+
+    public boolean currentTimeIsDirty()
+    {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(System.currentTimeMillis());
+        return calendar.get(Calendar.YEAR) < 2017;
+    }
+
     public long getCurrentTime()
     {
         return  System.currentTimeMillis()/1000;
@@ -236,11 +248,18 @@ public class OCM_FatController extends OBFatController
         if(startDate == null)
             return 1;
 
-        int currentDay = getDaysSinceTimestamp(startDate.getTime());
-        if(currentDay > 0 )
-            return currentDay + 1;
+        if(!currentTimeIsDirty())
+        {
+            int currentDay = getDaysSinceTimestamp(startDate.getTime());
+            if (currentDay > 0)
+                return currentDay + 1;
+            else
+                return 1;
+        }
         else
+        {
             return 1;
+        }
     }
 
     private int getDaysSinceTimestamp(long timestamp)
@@ -304,7 +323,7 @@ public class OCM_FatController extends OBFatController
             else if(currentSessionReadyToStart())
                 signalNewSession();
 
-           // quitToTopMenu();
+            quitToTopMenu();
         }
     }
 
@@ -316,6 +335,7 @@ public class OCM_FatController extends OBFatController
     {
         cancelTimeout();
 
+        unitInstance.mlUnit.targetDuration = 5;
         timeoutRunnable = new Runnable()
         {
             @Override
@@ -326,7 +346,7 @@ public class OCM_FatController extends OBFatController
             }
         };
 
-        timeoutHandler.postDelayed(timeoutRunnable,(int)(unitInstance.mlUnit.targetDuration)*1000); //currentInstance.mlUnit.targetDurationstance.)
+        timeoutHandler.postDelayed(timeoutRunnable,(int)(unitInstance.mlUnit.targetDuration)*1000);
 
     }
 
@@ -822,6 +842,9 @@ public class OCM_FatController extends OBFatController
 
     public boolean playZoneActive()
     {
+        if(currentTimeIsDirty())
+            return true;
+
         Calendar currentCalendar = Calendar.getInstance();
         currentCalendar.setTimeInMillis(getCurrentTime()*1000);
         int hourNow = currentCalendar.get(Calendar.HOUR_OF_DAY);
@@ -1194,6 +1217,9 @@ public class OCM_FatController extends OBFatController
         if(disallowEndHour == disallowStartHour)
             return false;
 
+        if(currentTimeIsDirty())
+            return false;
+
         Calendar currentCalendar = Calendar.getInstance();
         currentCalendar.setTimeInMillis(getCurrentTime()*1000);
         int hourNow = currentCalendar.get(Calendar.HOUR_OF_DAY);
@@ -1321,6 +1347,7 @@ public class OCM_FatController extends OBFatController
         contentValues.put("userid", userid);
         contentValues.put("sessionid", sessionid);
         contentValues.put("startTime",currentSessionStartTime);
+        contentValues.put("day",getCurrentDay());
         db.doInsertOnTable(DBSQL.TABLE_SESSIONS,contentValues);
         currentSessionId = sessionid;
 

@@ -30,9 +30,7 @@ public class OBAlarmManager
             AlarmManager alarmManager = (AlarmManager) MainActivity.mainActivity.getSystemService(Context.ALARM_SERVICE);
             cancelAlarm(pendingIntent);
 
-
             alarmManager.setExact(AlarmManager.RTC, triggerAtMillis, pendingIntent);
-
             return pendingIntent;
         }
         return null;

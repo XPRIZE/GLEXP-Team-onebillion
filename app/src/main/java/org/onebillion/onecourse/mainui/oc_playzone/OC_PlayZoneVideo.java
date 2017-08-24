@@ -24,7 +24,7 @@ import org.onebillion.onecourse.utils.OBImageManager;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OBVideoRecorder;
 import org.onebillion.onecourse.utils.OB_Maths;
-import org.onebillion.onecourse.utils.OC_FatController;
+import org.onebillion.onecourse.utils.OCM_FatController;
 
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
@@ -49,6 +49,7 @@ public class OC_PlayZoneVideo extends OC_SectionController
     boolean recording;
     String currentFileName, videoFilePath, thumbnailFilePath, videoFileName, thumbnalFileName;
 
+    static int VIDEO_DURATION = 10;
 
     @Override
     public void prepare()
@@ -164,7 +165,7 @@ public class OC_PlayZoneVideo extends OC_SectionController
                         button.hide();
                         animateRecordingPulse();
                         videoRecorder.startMediaRecorderAndTimer(-1);
-                        OBUtils.runOnOtherThreadDelayed(2, new OBUtils.RunLambda()
+                        OBUtils.runOnOtherThreadDelayed(VIDEO_DURATION, new OBUtils.RunLambda()
                         {
                             public void run() throws Exception
                             {
@@ -211,7 +212,7 @@ public class OC_PlayZoneVideo extends OC_SectionController
                 dst.compress(Bitmap.CompressFormat.JPEG, 90, out);
                 out.close();
 
-                OC_FatController fatController = (OC_FatController)MainActivity.mainActivity.fatController;
+                OCM_FatController fatController = (OCM_FatController)MainActivity.mainActivity.fatController;
                 Map<String,String> map = new ArrayMap<>();
                 map.put("video", videoFileName);
                 map.put("mirrored",String.valueOf(videoOrientationFront));

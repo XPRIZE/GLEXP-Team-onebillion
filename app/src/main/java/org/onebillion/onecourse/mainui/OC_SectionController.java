@@ -174,7 +174,7 @@ public class OC_SectionController extends OBSectionController {
         attachControl(star);
         miscObjects.put("star", star);
         String audioFile = (String) Config().get(MainActivity.CONFIG_AWARDAUDIO);
-        playAudio(audioFile);
+        playSFX(audioFile);
         double duration = OBAudioManager.audioManager.duration();
         completeDisplay((duration < 1.0) ? 1.0 : duration);
     }
@@ -222,8 +222,8 @@ public class OC_SectionController extends OBSectionController {
         attachControl(star);
         miscObjects.put("star", star);
         String audioFile = (String) Config().get(MainActivity.CONFIG_AWARDAUDIO);
-        playAudio(audioFile);
-        double duration = OBAudioManager.audioManager.duration();
+        playSFX(audioFile);
+        double duration = OBAudioManager.audioManager.durationForChannel(OBAudioManager.AM_SFX_CHANNEL);
         completeDisplay2((duration < 1.0) ? 1.0 : duration, colour);
     }
 

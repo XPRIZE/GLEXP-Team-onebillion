@@ -61,6 +61,7 @@ public class OC_TestEvent extends OC_SectionController
                     OBControl targ = finger(0, 1, filterControls("button_.*"), pt);
                     if (targ != null)
                     {
+                        setStatus(STATUS_BUSY);
                         targ.setFillColor(OBUtils.highlightedColour(targ.fillColor()));
                         OCM_FatController fatController = (OCM_FatController) MainActivity.mainActivity.fatController;
 
@@ -69,7 +70,7 @@ public class OC_TestEvent extends OC_SectionController
                             gotItRight();
                             fatController.completeEvent(controller);
                         }
-                        else if (targ == objectDict.get("button_timeout"))
+                        else
                         {
                             fatController.triggerTimeoutUnit();
 

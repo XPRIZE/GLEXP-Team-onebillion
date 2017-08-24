@@ -233,58 +233,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         newMediaAdded = false;
         mediaIcons = new ArrayList<>();
         mediaAssets = fatController.getPlayZoneAssetForCurrentUser();
-        if(mediaAssets.size() == 0)
-        {
 
-            File copyDir = MainActivity.mainActivity.getDir(OC_PlayZoneAsset.ASSET_FOLDER, Context.MODE_PRIVATE);
-
-            for(String assetFile : OBUtils.filesAtPath("oc-playzone/preload"))
-            {
-                try
-                {
-                    InputStream inputStream =  OBUtils.getInputStreamForPath("oc-playzone/preload/"+assetFile);
-                    File file =  new File(copyDir.getPath() + "/" + assetFile);
-                    OBUtils.copyInputStreamToFile(inputStream, file);
-
-                }
-                catch (Exception e)
-                {
-                    MainActivity.log(e.getMessage());
-                }
-            }
-
-            Map<String, String> params = new ArrayMap<>();
-            params.put("doodle", "doodle_car.png");
-            params.put("theme", "transport");
-            fatController.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_DOODLE, "thumb_doodle_car.png", params);
-
-
-            params = new ArrayMap<>();
-            params.put("theme", "beach");
-            params.put("font", "AklatanicTSO.ttf");
-            params.put("text", "\t\tDada anasona kitabu kizuli kuhusu wanyama wa pori");
-            fatController.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_TEXT,
-                    null, params);
-
-            params = new ArrayMap<>();
-            params.put("doodle", "doodle_butterfly.png");
-            params.put("theme", "animals");
-            fatController.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_DOODLE,
-                    "thumb_doodle_butterfly.png", params);
-
-            params = new ArrayMap<>();
-            params.put("video", "plane_throw.mp4");
-            fatController.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_VIDEO, "thumb_plane_throw.jpg", params);
-
-            params = new ArrayMap<>();
-            params.put("theme", "sea");
-            params.put("font", "AnotherTypewriter.ttf");
-            params.put("text", "\t\tJana mama yanku alienda kasini, yeye ni mwalimu");
-            fatController.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_TEXT, null, params);
-
-            mediaAssets = fatController.getPlayZoneAssetForCurrentUser();
-
-        }
         videoPlayer = null;
 
         loadAllMediaIcons(mediaAssets);

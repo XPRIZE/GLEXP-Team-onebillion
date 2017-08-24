@@ -37,6 +37,7 @@ create table sessions
     sessionid integer not null,
     startTime big unsigned int not null,
     endTime big unsigned int default 0,
+    day int not null,
     constraint pkey primary key (userid,sessionid) on conflict fail
 );
 

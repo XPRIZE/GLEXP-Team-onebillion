@@ -114,7 +114,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
 
         this.localisations = loadLocalisations(getLocalPath("_localisations.xml"));
         currentBigIcon = null;
-        currentLevelLabel = new OBLabel("88888888888888",OBUtils.standardTypeFace(),applyGraphicScale(30));
+        currentLevelLabel = new OBLabel("88888888888888888888",OBUtils.standardTypeFace(),applyGraphicScale(30));
         currentLevelLabel.show();
         currentLevelLabel.setString("1");
         currentLevelLabel.setPosition(OB_Maths.locationForRect(0.97f,0.9f,this.bounds()));
