@@ -113,7 +113,13 @@ public class OC_FatController extends OBFatController
             OBXMLManager xmlManager = new OBXMLManager();
 //            InputStream is = OBUtils.getInputStreamForPath(String.format("config/%s", mlname));
             InputStream is = OBUtils.getInputStreamForPath(String.format("masterlists/%s/units.xml", mlname));
+            //
+            if (is == null)
+            {
+                MainActivity.log("OC_FatController:loadMasterListIntoDB:unable to find XML for masterlist");
+            }
             List<OBXMLNode> xml = xmlManager.parseFile(is);
+            //
             OBXMLNode rootNode = xml.get(0);
             List<OBXMLNode> masterList = new ArrayList<>();
             String masterListToken = rootNode.attributeStringValue("token");

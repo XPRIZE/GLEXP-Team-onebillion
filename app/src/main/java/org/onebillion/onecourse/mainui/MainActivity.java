@@ -217,6 +217,7 @@ public class MainActivity extends Activity
         else
             arm.anchorPoint = new PointF(0.64f, 0);
 
+
         int skincol = OBUtils.SkinColour(0);
         arm.substituteFillForAllMembers("skin.*", skincol);
         arm.setRasterScale((Float) Config().get(CONFIG_GRAPHIC_SCALE));
