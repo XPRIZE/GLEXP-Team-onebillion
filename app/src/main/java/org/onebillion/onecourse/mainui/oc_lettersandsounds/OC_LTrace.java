@@ -98,8 +98,11 @@ public class OC_LTrace extends OC_Wordcontroller
             List<OBPath>lpaths = (List<OBPath>)(Object)sortedFilteredControls("Path.*");
             letterPaths.add(lpaths);
             OBControl xbox = objectDict.get("xbox");
-            xboxes.add(xbox);
-            xbox.hide();
+            if (xbox != null)
+            {
+                xboxes.add(xbox);
+                xbox.hide();
+            }
         }
         if(letter.length()  > 1)
         {
@@ -182,9 +185,7 @@ public class OC_LTrace extends OC_Wordcontroller
         x *= ratio;
         y *= ratio;
         PointF pos = thePointer.position();
-        pos.x += x;
-        pos.y += y;
-        return pos;
+        return new PointF(pos.x + x,pos.y + y);
     }
 
     public PointF outerPointForPoint(PointF pt,float dist)
