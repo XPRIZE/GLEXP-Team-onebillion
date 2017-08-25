@@ -479,6 +479,8 @@ public class OCM_FatController extends OBFatController
             }
             cursor.close();
         }
+        if(mlUnit.week != currentWeek)
+            return null;
         return mlUnit;
     }
 
@@ -748,12 +750,19 @@ public class OCM_FatController extends OBFatController
             }
             else
             {
-                dict.put("community",false);
+
                 count++;
                 dict.put("unitOrder",count);
                 OCM_MlUnit currentUnit = getNextUnitFromDB(db);
                 if(currentUnit != null)
-                    dict.put("unit",currentUnit);
+                {
+                    dict.put("community",false);
+                    dict.put("unit", currentUnit);
+                }
+                else
+                {
+                    dict.put("community",true);
+                }
 
             }
 
@@ -783,6 +792,16 @@ public class OCM_FatController extends OBFatController
                             "WHERE userid = ? AND sessionid = ?) "+
                             "GROUP BY unitid ORDER BY unitIndex ASC",DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES),
                     Arrays.asList(String.valueOf(currentUser.userid),String.valueOf(currentSessionId)));
+
+            if(cursor.getCount() != SESSION_UNIT_COUNT)
+            {
+                cursor.close();
+                cursor = db.prepareRawQuery(String.format("SELECT * FROM %s "+
+                                "WHERE unitid IN (SELECT unitid FROM %s "+
+                                "WHERE week = ? ORDER BY unitIndex DESC LIMIT %d) "+
+                                "GROUP BY unitid ORDER BY unitIndex ASC",DBSQL.TABLE_UNITS,DBSQL.TABLE_UNITS,SESSION_UNIT_COUNT),
+                        Arrays.asList(String.valueOf(getCurrentWeek())));
+            }
 
             if(cursor.moveToFirst())
             {
@@ -854,7 +873,43 @@ public class OCM_FatController extends OBFatController
 
     public boolean communityModeActive()
     {
-        return currentSessionUnitCount() >= SESSION_UNIT_COUNT;
+        if(currentSessionUnitCount() >= SESSION_UNIT_COUNT)
+        {
+            return true;
+        }
+        else
+        {
+
+            //Check if last unit for the week was already reached, if so show community mode
+            boolean listWeekEndReached = false;
+            DBSQL db = new DBSQL(false);
+            try
+            {
+                int unitIndex = -1;
+                Cursor cursor = db.prepareRawQuery(String.format("SELECT unitIndex FROM %s " +
+                                "WHERE week = ? AND masterlistid = ? ORDER BY unitIndex DESC LIMIT 1",DBSQL.TABLE_UNITS)
+                        ,Arrays.asList(String.valueOf(getCurrentWeek()),String.valueOf(currentUser.masterlistid)));
+
+                if(cursor.moveToFirst())
+                {
+                    unitIndex = cursor.getInt(cursor.getColumnIndex("unitIndex"));
+                }
+                cursor.close();
+
+                if(unitIndex >= 0)
+                    listWeekEndReached = unitCompletedByUser(db, currentUser.userid, currentUser.masterlistid, unitIndex);
+
+            }
+            catch (Exception e)
+            {}
+            finally
+            {
+                if(db!=null)
+                    db.close();
+            }
+
+            return listWeekEndReached;
+        }
     }
 
     /*

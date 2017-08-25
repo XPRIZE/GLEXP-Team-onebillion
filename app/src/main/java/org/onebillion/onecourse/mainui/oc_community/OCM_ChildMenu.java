@@ -169,7 +169,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
             return;
 
         }
-        if(lastCommand == OCM_FatController.OFC_SESSION_NEW)
+        if(lastCommand == OCM_FatController.OFC_SESSION_NEW && !communityModeActive)
         {
             showNewDayScreen();
             loadEmptyStarBar(false);
@@ -182,7 +182,15 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
             loadTopBar(true,true);
             loadIconsGridForUnits(fatController.getUnitsForGrid(),true);
             loadPlayZoneBox(true);
-            currentTarget = TARGET_COMMUNITY;
+            if(lastCommand == OCM_FatController.OFC_SESSION_NEW)
+            {
+                showNewDayScreen();
+                currentTarget = TARGET_BUTTON;
+            }
+            else
+            {
+                currentTarget = TARGET_COMMUNITY;
+            }
         }
         else
         {
@@ -238,7 +246,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                             waitForSecs(0.5f);
                             hideNewDayScreen();
                             button.lowlight();
-                            currentTarget = TARGET_STUDY;
+                            currentTarget = communityModeActive ? TARGET_COMMUNITY : TARGET_STUDY;
                             startNextEvent();
                         }
                     });
