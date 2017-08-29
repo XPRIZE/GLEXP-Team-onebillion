@@ -205,7 +205,6 @@ public class OC_CapitalTrace extends OC_LTrace
         playAudioQueuedSceneIndex(currentEvent(),"DEMO",1,true);
         waitForSecs(0.6f);
         thePointer.hide();
-        waitForSecs(0.4f);
         nextScene();
     }
 
@@ -276,6 +275,28 @@ public class OC_CapitalTrace extends OC_LTrace
         nextScene();
     }
 
+    public void demog() throws Exception
+    {
+        showLetter();
+        waitAudio();
+        waitForSecs(0.5f);
+        PointF destpt = paths.get(0).sAlongPath(0,null);
+        destpt = convertPointFromControl(destpt,paths.get(0));
+        PointF startpt = pointForDestPoint(destpt,25);
+        loadPointerStartPoint(startpt,destpt);
+        movePointerToPoint(OB_Maths.tPointAlongLine(0.4f, startpt, destpt),-1,true);
+        waitForSecs(0.3f);
+        playAudioQueuedSceneIndex(currentEvent(),"DEMO",0,true);
+        waitForSecs(0.3f);
+        preTrace(0);
+        waitForSecs(0.3f);
+        movePointerToPoint(OB_Maths.tPointAlongLine(0.8f, startpt, destpt),-1,true);
+        waitForSecs(0.3f);
+        playAudioQueuedSceneIndex(currentEvent(),"DEMO",1,true);
+        waitForSecs(0.3f);
+        thePointer.hide();
+        nextScene();
+    }
     public void playFeedback(String l)
     {
         playLetterName(l.toLowerCase());
