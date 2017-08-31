@@ -4,6 +4,7 @@ import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBPresenter;
 import org.onebillion.onecourse.controls.OBVideoPlayer;
+import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBUtils;
@@ -45,6 +46,7 @@ public class OC_VideoPlaybackStudy extends OC_SectionController
         loadEvent("master");
         //masterObjects = objectDict.copy();
         doVisual(currentEvent());
+        setUpPlayer();
     }
 
     public void start()
@@ -61,16 +63,20 @@ public class OC_VideoPlaybackStudy extends OC_SectionController
             }});
     }
 
-    public void  action_startScene() throws Exception
+    void setUpPlayer()
     {
         String videoFile = parameters.get("video");
         String videoFilePath = OBVideoPlayer.getVideoPath(videoFile);
         videoPlayer = new OBVideoPlayer(video.frame(),this,false,true);
-        videoPlayer.setZPosition(190);
+        videoPlayer.setZPosition(video.zPosition()+1);
         videoPlayer.setFillType(OBVideoPlayer.VP_FILL_TYPE_ASPECT_FILL);
         attachControl(videoPlayer);
         videoPlayer.prepareForPlaying(OBUtils.getAssetFileDescriptorForPath(videoFilePath),0,null);
-        videoPlayer.playAfterPrepare = true;
+        videoPlayer.playAfterPrepare = false;
+    }
+
+    public void action_startScene() throws Exception
+    {
         //
         String presenterIntro = parameters.get("presenterIntro");
         boolean usesPresenter = presenterIntro != null;
@@ -157,7 +163,7 @@ public class OC_VideoPlaybackStudy extends OC_SectionController
         super.cleanUp();
         //
         videoPlayer.stop();
-        //videoPlayer.tearDown();
+        videoPlayer.cleanUp(MainActivity.mainActivity.renderer);
     }
 
     public void setSceneXX(String scene)
