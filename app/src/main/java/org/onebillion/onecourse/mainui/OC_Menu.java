@@ -91,6 +91,7 @@ public class OC_Menu extends OC_SectionController
             if (target != null)
             {
                 final String parm = (String)attrs.get("parm");
+                final String lang = (String)attrs.get("lang");
                 setStatus(STATUS_BUSY);
                 c.highlight();
                 String configName = (String)attrs.get("config");
@@ -101,7 +102,12 @@ public class OC_Menu extends OC_SectionController
                     configName = comps[0];
                 }
                 else
-                    MainActivity.mainActivity.updateConfigPaths(configName,false);
+                {
+                    if (lang == null)
+                        MainActivity.mainActivity.updateConfigPaths(configName, false);
+                    else
+                        MainActivity.mainActivity.updateConfigPaths(configName, false,lang);
+                }
                 if (!MainActivity.mainViewController.pushViewControllerWithNameConfig(target,configName,true,true,parm))
                     setStatus(STATUS_IDLE);
                 c.lowlight();

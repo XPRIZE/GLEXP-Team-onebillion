@@ -48,7 +48,7 @@ public class OC_Sm3 extends OC_Sm2
             String wordlist[] = c[c.length-1].split(",");
             if(c.length  > 1)
                 dict.put(SM3_PREFIX,c[0]);
-            dict.put(SM3_WORDLIST,wordlist);
+            dict.put(SM3_WORDLIST,Arrays.asList(wordlist));
             wordSets.add(dict);
         }
         return wordSets;
@@ -154,6 +154,7 @@ public class OC_Sm3 extends OC_Sm2
         label = new OBLabel(tx,tf,textSize);
         label.setColour(Color.BLACK);
         label.setPosition(textBox.position());
+        label.hide();
     }
 
     public void clearOffOldThings()
@@ -248,7 +249,8 @@ public class OC_Sm3 extends OC_Sm2
         });
 
         lockScreen();
-        PointF temppos = pics.get(0).position();
+        PointF temppos = new PointF();
+        temppos.set(pics.get(0).position());
         pics.get(0).setPosition(xorderedpics.get(2).position());
         xorderedpics.get(2).setPosition(temppos);
         unlockScreen();

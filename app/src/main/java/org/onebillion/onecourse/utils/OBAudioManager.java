@@ -46,6 +46,7 @@ public class OBAudioManager
             if (xmlobj != null)
             {
                 Map<String, Float> sfxvols = new HashMap<>();
+                List<String> evts = new ArrayList<>();
                 audioDict.put("__sfxvols", sfxvols);
 
                 List<OBXMLNode> children;
@@ -58,6 +59,7 @@ public class OBAudioManager
                 for (OBXMLNode xmlevent : children)
                 {
                     String ekey = xmlevent.attributeStringValue("id");
+                    evts.add(ekey);
                     Map<String, List<Object>> phrasegroups = new HashMap<String, List<Object>>();
                     List<String> groupList = new ArrayList<>();
                     for (OBXMLNode xmlphrasegroup : xmlevent.childrenOfType("phrasegroup"))
@@ -86,6 +88,7 @@ public class OBAudioManager
                     phrasegroups.put("__keys", (List<Object>) (Object) groupList);
                     audioDict.put(ekey, phrasegroups);
                 }
+                audioDict.put("__events",evts);
             }
         }
         return audioDict;
