@@ -421,11 +421,13 @@ public class OC_Reading extends OC_SectionController
         {
             MainViewController().topRightButton.setOpacity(1.0f);
             MainViewController().topRightButton.setHidden(false);
+            RAOK = true;
         }
         else
         {
             MainViewController().topRightButton.setOpacity(0.0f);
             MainViewController().topRightButton.setHidden(true);
+            RAOK = true;
         }
         invalidateView(0,0,bounds().width(),bounds().height());
         unlockScreen();
