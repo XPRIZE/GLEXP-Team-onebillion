@@ -211,18 +211,17 @@ public class OC_CountMore_S4h extends OC_SectionController
         for(OBControl balloon2 : targets)
         {
             if(balloon2 == balloon) continue;
+            PointF n = OB_Maths.DiffPoints(balloon.position(), balloon2.position());
+            PointF v1 = new PointF((float)balloon.propertyValue("speedX"), (float)balloon.propertyValue("speedY"));
+            PointF v2 = new PointF((float)balloon2.propertyValue("speedX"), (float)balloon2.propertyValue("speedY"));
+            float colTr = n.x*(v2.x - v1.x) + n.y*(v2.y - v1.y);
+            if(colTr <= 0) //if they are not on collision trajectory, no worries
+                continue;
             if(balloon.intersectsWithn(balloon2))
             {
-                PointF n = OB_Maths.DiffPoints(balloon.position(), balloon2.position());
                 n = OB_Maths.NormalisedVector(n);
                 applySpeed(balloon, n.x, n.y);
                 applySpeed(balloon2, -n.x, -n.y);
-
-                while(balloon.intersectsWithn(balloon2))
-                {
-                    moveBalloonBySpeed(balloon);
-                    moveBalloonBySpeed(balloon2);
-                }
             }
         }
     }
@@ -253,21 +252,26 @@ public class OC_CountMore_S4h extends OC_SectionController
             clickedBalloon.hide();
             targets.remove(clickedBalloon);
             final int count = targets.size();
+            long stime = statusTime;
             if(targets.size()>0)
             {
-                setStatus(STATUS_AWAITING_CLICK);
-
+                stime = setStatus(STATUS_AWAITING_CLICK);
             }
+            final long time = stime;
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
                 public void run() throws Exception
                 {
                     try
                     {
-                        playSFX(String.format("note%d", 10 - targets.size()));
-                        waitSFX();
-                        playSFX(getAudioForScene(currentEvent(), "FINAL").get(9 - targets.size()));
-                        waitSFX();
+                        if(!statusChanged(time))
+                            playSFX(String.format("note%d", 10 - targets.size()));
+                        if(!statusChanged(time))
+                            waitSFX();
+                        if(!statusChanged(time))
+                            playSFX(getAudioForScene(currentEvent(), "FINAL").get(9 - targets.size()));
+                        if(!statusChanged(time))
+                            waitSFX();
                         if (count == 0)
                         {
                             waitForSecs(0.3f);

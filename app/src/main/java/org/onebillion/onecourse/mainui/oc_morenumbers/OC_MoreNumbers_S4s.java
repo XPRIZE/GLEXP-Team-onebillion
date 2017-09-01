@@ -58,16 +58,16 @@ public class OC_MoreNumbers_S4s extends OC_SectionController
         underline1 = new OBLabel("–",OBUtils.standardTypeFace(),fontSize);
         underline1.setPosition(underline.position());
         underline1.setLeft(bb.left);
+        underline1.hide();
         attachControl(underline1);
 
         counter.hide();
-        underline1.hide();
-        underline2.hide();
 
         bb = OBUtils.getBoundsForSelectionInLabel(1,2,underline);
         underline2 = new OBLabel("–",OBUtils.standardTypeFace(),fontSize);
         underline2.setPosition(underline.position());
         underline2.setLeft(bb.left);
+        underline2.hide();
         attachControl(underline2);
 
         counter.hide();
