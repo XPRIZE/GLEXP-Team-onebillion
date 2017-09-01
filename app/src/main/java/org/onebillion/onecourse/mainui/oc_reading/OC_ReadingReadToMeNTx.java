@@ -451,6 +451,22 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
         bringUpNextButton();
     }
 
+    public void readingFinished()
+    {
+        try
+        {
+            waitForSecs(0.8f);
+            if(status()  != STATUS_FINISHING && !_aborting)
+            {
+                if (!considerComprehensionQuestions())
+                    bringUpNextButton();
+            }
+        }
+        catch(Exception exception)
+        {
+        }
+    }
+
     public void deployFlashAnim(final OBPath c)
     {
         OBAnim blockAnim = new OBAnimBlock()
