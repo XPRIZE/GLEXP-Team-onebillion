@@ -1,7 +1,3 @@
-
-
-
-
 package org.onebillion.onecourse.mainui.oc_playzone;
 
 import android.graphics.Bitmap;
@@ -156,7 +152,7 @@ public class OC_Doodle extends OC_SectionController
     Bitmap gradBitmap;
     Canvas gradCanvas;
     OBImage eraserShadow;
-    Boolean gradMode = false;
+    Boolean gradMode = true;
 
 
     public void setUpGradients()
@@ -287,7 +283,7 @@ public class OC_Doodle extends OC_SectionController
 
     public void render (OBRenderer renderer)
     {
-        if (shaderProgram == null)
+        if (!gradMode && shaderProgram == null)
         {
             shaderProgram = new PixelShaderProgram(R.raw.threegradientsfragmentshadermask,shc.width(),shc.height(),true);
             shc.shaderProgram = shaderProgram;
@@ -411,8 +407,10 @@ public class OC_Doodle extends OC_SectionController
     public void start()
     {
         setStatus(0);
-        //scheduleTimerEvent();
-        shc.startAnimation(this);
+        if (gradMode)
+            scheduleTimerEvent();
+        else
+            shc.startAnimation(this);
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             public void run() throws Exception

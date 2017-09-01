@@ -80,7 +80,9 @@ public class MainActivity extends Activity
     //
     public static String CONFIG_IMAGE_SUFFIX = "image_suffix",
             CONFIG_AUDIO_SUFFIX = "audio_suffix",
+            CONFIG_VIDEO_SUFFIX = "video_suffix",
             CONFIG_AUDIO_SEARCH_PATH = "audioSearchPath",
+            CONFIG_VIDEO_SEARCH_PATH = "videoSearchPath",
             CONFIG_IMAGE_SEARCH_PATH = "imageSearchPath",
             CONFIG_CONFIG_SEARCH_PATH = "configSearchPath",
             CONFIG_LEFT_BUTTON_POS = "lbuttonpos",
@@ -736,6 +738,21 @@ public class MainActivity extends Activity
         return imageSearchPath;
     }
 
+    public List<String> videoSearchPath (String appDir, String genDir)
+    {
+        List<String> videoSearchPath = new ArrayList<>();
+        //
+        if(appDir != null)
+        {
+            videoSearchPath.add(appDir + "/img/movies");
+        }
+        //
+        videoSearchPath.add(genDir+"/img/movies");
+        //
+        return videoSearchPath;
+    }
+
+
     public List<String> configSearchPath (String appDir, String genDir)
     {
         List configSearchPath = new ArrayList(4);
@@ -790,6 +807,7 @@ public class MainActivity extends Activity
             config.put(CONFIG_LANGUAGE, config.get(CONFIG_DEFAULT_LANGUAGE));
         config.put(CONFIG_AUDIO_SEARCH_PATH, audioSearchPath(appDir, genDir));
         config.put(CONFIG_IMAGE_SEARCH_PATH, imageSearchPath(appDir, genDir));
+        config.put(CONFIG_VIDEO_SEARCH_PATH, videoSearchPath(appDir, genDir));
         config.put(CONFIG_VECTOR_SEARCH_PATH, vectorSearchPath(appDir, genDir));
         config.put(CONFIG_CONFIG_SEARCH_PATH, configSearchPath(appDir, genDir));
         //

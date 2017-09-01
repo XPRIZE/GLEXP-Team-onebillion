@@ -23,6 +23,10 @@ import org.onebillion.onecourse.mainui.OBViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -32,6 +36,9 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.egl.EGLSurface;
+
+import static org.onebillion.onecourse.mainui.MainActivity.CONFIG_VIDEO_SEARCH_PATH;
+import static org.onebillion.onecourse.mainui.MainActivity.CONFIG_VIDEO_SUFFIX;
 
 
 /**
@@ -83,6 +90,40 @@ public class OBVideoPlayer extends OBControl
     {
         this(frame,sectionController,true,true);
     }
+
+    public static String getVideoPath(String videoName)
+    {
+        Map config = MainActivity.Config();
+        List<String> videoSuffixes;
+        Object obj = config.get(CONFIG_VIDEO_SUFFIX);
+        if(obj instanceof String)
+        {
+            videoSuffixes = Arrays.asList((String)obj);
+        }
+    else
+        {
+            videoSuffixes = (List<String>) obj;
+        }
+        for(String videoSuffix : videoSuffixes)
+        {
+            String fullPath = videoName + "." + videoSuffix;
+            if(OBUtils.fileExistsAtPath(fullPath))
+            {
+                return fullPath;
+            }
+            List<String> sparr = (List<String>)config.get(CONFIG_VIDEO_SEARCH_PATH);
+            for(String path : sparr)
+            {
+                fullPath = path + "/" + videoName + "." + videoSuffix;
+                if(OBUtils.fileExistsAtPath(fullPath))
+                {
+                    return fullPath;
+                }
+            }
+        }
+        return null;
+    }
+
 
     public boolean isPlaying()
     {
