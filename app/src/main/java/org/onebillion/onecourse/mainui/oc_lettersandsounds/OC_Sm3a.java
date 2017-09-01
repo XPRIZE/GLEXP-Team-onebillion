@@ -44,7 +44,7 @@ public class OC_Sm3a extends OC_Sm3
     else
         {
             OBWord rw =(OBWord )wordDict.get(currWordID);
-            initialText = rw.phonemes.get(0).text;
+            initialText = rw.phonemes().get(0).text;
             initialSoundId = null;
         }
         pics = new ArrayList<>();
@@ -130,7 +130,7 @@ public class OC_Sm3a extends OC_Sm3
         waitForSecs(0.3f);
         RectF f = new RectF(picrects.get(2).frame());
         float boty = f.bottom;
-        RectF pic2f = f;
+        RectF pic2f = new RectF(f);
         f.bottom = (bounds().height());
         f.top = (boty);
         PointF destpt = OB_Maths.locationForRect(0.5f,0.5f, f);
