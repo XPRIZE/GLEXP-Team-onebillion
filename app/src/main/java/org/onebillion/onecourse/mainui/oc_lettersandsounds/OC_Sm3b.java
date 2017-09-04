@@ -7,6 +7,7 @@ import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBImage;
 import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.utils.OBImageManager;
+import org.onebillion.onecourse.utils.OBReadingWord;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OBWord;
 import org.onebillion.onecourse.utils.OB_Maths;
@@ -55,7 +56,9 @@ public class OC_Sm3b extends OC_Sm3
         }
         chosenWords = screenWords;
         hideControls("picr.*");
-        setUpLabel(wordDict.get(currWordID).text);
+        OBWord w = (OBWord)wordDict.get(currWordID);
+        setUpLabel(w.text);
+        w.properties.put("label",label);
         attachControl(label);
     }
 
