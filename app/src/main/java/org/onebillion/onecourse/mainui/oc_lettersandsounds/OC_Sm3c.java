@@ -57,7 +57,9 @@ public class OC_Sm3c extends OC_Sm3
         }
         chosenWords = screenWords;
         hideControls("picr.*");
-        setUpLabel(wordDict.get(currWordID).text);
+        OBWord w = (OBWord)wordDict.get(currWordID);
+        setUpLabel(w.text);
+        w.properties.put("label",label);
         attachControl(label);
     }
 
