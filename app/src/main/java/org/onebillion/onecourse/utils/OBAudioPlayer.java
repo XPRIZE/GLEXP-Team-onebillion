@@ -314,8 +314,11 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
                 @Override
                 public void run()
                 {
-                    cpplayer.reset();
-                    cpplayer.release();
+                    if(cpplayer != null)
+                        cpplayer.reset();
+
+                    if(cpplayer != null)
+                        cpplayer.release();
                 }
             };
             Handler handler = new Handler();

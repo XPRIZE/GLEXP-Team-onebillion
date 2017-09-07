@@ -1596,7 +1596,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
     /**
-     * @return true is battery is charging(cable is plugged in)
+     * @return true if battery is charging(cable is plugged in)
      */
     public boolean isBatteryCharging ()
     {

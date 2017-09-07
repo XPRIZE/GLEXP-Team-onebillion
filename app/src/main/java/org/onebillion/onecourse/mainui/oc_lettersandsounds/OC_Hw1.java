@@ -25,12 +25,18 @@ public class OC_Hw1 extends OC_Hw
     OBPhoneme targetPhoneme;
     OBGroup exampleGroup, guideGroup, demoGuideGroup;
 
+    @Override
+    public String sectionAudioName()
+    {
+        return "hw1";
+    }
+
     public void prepare()
     {
         super.prepare();
         eraser.show();
         events = Arrays.asList("a1", "a2", "a3", "b1", "b2", "b3");
-        this.loadAudioXML(getConfigPath("hw1audio.xml"));
+     //   this.loadAudioXML(getConfigPath("hw1audio.xml"));
 
         targetPhoneme = componentDict.get(parameters.get("target"));
 
