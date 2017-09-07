@@ -28,6 +28,12 @@ public class OC_Hw2 extends OC_Hw
     OBControl picture, picturebg, picturepin;
     List<OBWord> words;
 
+    @Override
+    public String sectionAudioName()
+    {
+        return "hw2";
+    }
+
     public void prepare()
     {
         super.prepare();
@@ -38,7 +44,7 @@ public class OC_Hw2 extends OC_Hw
 
         picturepin.setZPosition(40);
         picturebg.setZPosition(38);
-        loadAudioXML(getConfigPath("hw2audio.xml"));
+       // loadAudioXML(getConfigPath("hw2audio.xml"));
 
         words = new ArrayList<>();
         String[] wordIds = parameters.get("words").split(",");

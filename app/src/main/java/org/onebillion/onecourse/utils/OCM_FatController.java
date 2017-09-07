@@ -128,11 +128,8 @@ public class OCM_FatController extends OBFatController
                 db.beginTransaction();
                 try
                 {
-                    int startAudio = 0;
-                    int nextAudio = OB_Maths.randomInt(3,5);
                     db.doDeleteOnTable(DBSQL.TABLE_UNITS, null);
                     int unitIndex = 0;
-                    int nextStar = 0;
                     for(int j=0; j<8; j++)
                     {
                         for (OBXMLNode levelNode : rootNode.childrenOfType("level"))
@@ -1172,7 +1169,8 @@ public class OCM_FatController extends OBFatController
                     if(first)
                         stringBuffer.append("/first=true");
 
-                    MainActivity.mainActivity.updateConfigPaths("oc-playzone", false,"en_GB");
+                    String lang = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_LANGUAGE);
+                    MainActivity.mainActivity.updateConfigPaths("oc-playzone", false,lang != null ? lang : "en_GB");
                     if(MainViewController().pushViewControllerWithNameConfig("OC_PlayZoneMenu","oc-playzone",false,true,stringBuffer.toString()))
                     {
 
