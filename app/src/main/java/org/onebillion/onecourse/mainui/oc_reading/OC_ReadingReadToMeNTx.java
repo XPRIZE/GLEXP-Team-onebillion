@@ -348,7 +348,7 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
             if (token == sequenceToken)
             {
                 List<Object>audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("PROMPT");
-                audl = OBUtils.insertAudioInterval(audl,300);
+                //audl = OBUtils.insertAudioInterval(audl,300);
                 presenter.speakWithToken(audl,token,this);
                 waitForSecs(0.4f);
                 OBPath answer1 = (OBPath) objectDict.get("answer1");
