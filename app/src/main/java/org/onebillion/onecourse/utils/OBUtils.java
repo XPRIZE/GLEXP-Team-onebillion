@@ -1449,6 +1449,13 @@ public class OBUtils
        return Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), String.format("fonts/%s",file));
     }
 
+    public static <T> T coalesce(T t1,T t2)
+    {
+        if (t1 == null)
+            return t2;
+        return t1;
+    }
+
     public static void copyInputStreamToFile(InputStream in, File file)
     {
         OutputStream out = null;
