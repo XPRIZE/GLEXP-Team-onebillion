@@ -43,6 +43,9 @@ import org.onebillion.onecourse.controls.OBTextLayer;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
 
+import static org.onebillion.onecourse.mainui.MainActivity.CONFIG_GRAPHIC_SCALE;
+import static org.onebillion.onecourse.mainui.MainActivity.Config;
+
 public class OBUtils
 {
     public static String lastPathComponent (String path)
@@ -464,7 +467,7 @@ public class OBUtils
     public static OBImage buttonFromImageName (String imageName)
     {
         OBImage im = OBImageManager.sharedImageManager().imageForName(imageName);
-        float imageScale = MainActivity.mainActivity.configFloatForKey(MainActivity.CONFIG_GRAPHIC_SCALE);
+        float imageScale = MainActivity.mainActivity.configFloatForKey(CONFIG_GRAPHIC_SCALE);
         im.setScale(imageScale);
         return im;
     }
@@ -472,7 +475,7 @@ public class OBUtils
     public static OBControl buttonFromSVGName (String imageName)
     {
         OBGroup im = OBImageManager.sharedImageManager().vectorForName(imageName);
-        float imageScale = MainActivity.mainActivity.configFloatForKey(MainActivity.CONFIG_GRAPHIC_SCALE);
+        float imageScale = MainActivity.mainActivity.configFloatForKey(CONFIG_GRAPHIC_SCALE);
         im.setScale(imageScale);
         im.setRasterScale(imageScale);
         im.textureKey = imageName;
@@ -481,7 +484,7 @@ public class OBUtils
 
     public static int PresenterColourIndex ()
     {
-        return (Integer) MainActivity.Config().get(MainActivity.CONFIG_SKINCOLOUR);
+        return (Integer) Config().get(MainActivity.CONFIG_SKINCOLOUR);
     }
 
     public static int SkinColour (int offset)
@@ -601,6 +604,19 @@ public class OBUtils
 
         //        MainActivity.standardTypeFace = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/Heinemann Collection - HeinemannSpecial-Roman.otf");
         return MainActivity.standardTypeFace;
+    }
+
+    public static OBFont StandardReadingFontOfSize(float size)
+    {
+        float graphicScale = (Float) (Config().get(MainActivity.mainActivity.CONFIG_GRAPHIC_SCALE));
+        OBFont font = new OBFont(standardTypeFace(),size * graphicScale);
+        return font;
+    }
+
+    public static OBFont UnscaledReadingFontOfSize(float size)
+    {
+        OBFont font = new OBFont(standardTypeFace(),size);
+        return font;
     }
 
     public static int setColourOpacity (int colour, float opacity)
@@ -903,7 +919,7 @@ public class OBUtils
 
     static String getConfigFile (String fileName)
     {
-        Map<String, Object> config = MainActivity.mainActivity.Config();
+        Map<String, Object> config = Config();
         for (String path : (List<String>) config.get(MainActivity.CONFIG_CONFIG_SEARCH_PATH))
         {
             String fullPath = stringByAppendingPathComponent(path, fileName);
@@ -917,7 +933,7 @@ public class OBUtils
 
     static String getLocalFile (String fileName)
     {
-        Map<String, Object> config = MainActivity.mainActivity.Config();
+        Map<String, Object> config = Config();
         for (String path : (List<String>) config.get(MainActivity.CONFIG_AUDIO_SEARCH_PATH))
         {
             String fullPath = stringByAppendingPathComponent(path, fileName);
@@ -1451,6 +1467,12 @@ public class OBUtils
         if (t1 == null)
             return t2;
         return t1;
+    }
+
+    public static <T> T RandomObjectFromArray(List<T> arr)
+    {
+        int i = OB_Maths.randomInt(0,(int)arr.size()  - 1);
+        return arr.get(i);
     }
 
     public static void copyInputStreamToFile(InputStream in, File file)

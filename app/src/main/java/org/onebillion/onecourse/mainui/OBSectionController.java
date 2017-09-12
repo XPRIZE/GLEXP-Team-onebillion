@@ -2206,6 +2206,23 @@ public class OBSectionController extends OBViewController
         }.run();
     }
 
+    public void displayCross() throws Exception
+    {
+        List<OBControl>arr = new ArrayList<>();
+        lockScreen();
+        float graphicScale = applyGraphicScale(1.0f);
+        OBControl cross = loadVectorWithName("cross",new PointF(0.5f,0.5f),boundsf());
+        cross.setScale(graphicScale);
+        cross.setZPosition(100);
+        arr.add(cross);
+        unlockScreen();
+        playSFX("wrong");
+        waitForSecs(1);
+        lockScreen();
+        detachControl(arr.get(0));
+        unlockScreen();
+    }
+
     public void invalidateControl (OBControl c)
     {
         RectF f = c.frame();

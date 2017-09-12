@@ -76,6 +76,12 @@ public class OC_SectionController extends OBSectionController {
         return new OBConditionLock(PROCESS_DONE);
     }
 
+    public void waitAudioQueue(OBConditionLock lock)
+    {
+        lock.lockWhenCondition(PROCESS_DONE);
+        lock.unlock();
+    }
+
     public void playAudioQueuedScene(String scene,String event, float interval,boolean wait) throws Exception
     {
         if (audioScenes == null)
