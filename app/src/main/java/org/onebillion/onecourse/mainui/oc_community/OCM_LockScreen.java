@@ -93,6 +93,7 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
         else
         {
             loadEvent("lock");
+            loadNightSky(false);
         }
 
 
@@ -232,16 +233,6 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
         });
     }
 
-    public void initScreen()
-    {
-        if(lastCommand == OCM_FatController.OFC_SESSION_LOCKED)
-        {
-            loadNightSky(false);
-            return;
-
-        }
-
-    }
     public void loadNightSky(boolean show)
     {
         if(show)
@@ -250,7 +241,6 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
             hideControls("night_.*");
 
         lockScreen();
-        showControls("night_.*");
         int moonPhase = fatController.getCurrentMoonPhase();
         OBGroup moon = (OBGroup)objectDict.get("night_moon");
         moon.setRotation((float)Math.toRadians(70));
@@ -261,16 +251,18 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
         moon.showMembers("cover_.*");
         cover3.setScaleX(1);
         cover2.setScaleX(1);
+        cover3.setOpacity(1);
+        cover2.setOpacity(1);
 
         if(moonPhase == 0)
         {
-            moon.hide();
+            moon.setOpacity(0);
             unlockScreen();
             return;
         }
         else
         {
-            moon.show();
+            moon.setOpacity(1);
         }
 
         if(moonPhase == 15)
@@ -282,9 +274,9 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
             if(moonPhase < 15)
             {
                 if(moonPhase < 8)
-                    cover3.hide();
+                    cover3.setOpacity(0);
                 else
-                    cover2.hide();
+                    cover2.setOpacity(0);
 
                 cover1.setRight(moonDisc.position().x);
 
@@ -296,9 +288,9 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
             else
             {
                 if(moonPhase > 22)
-                    cover3.hide();
+                    cover3.setOpacity(0);
                 else
-                    cover2.hide();
+                    cover2.setOpacity(0);
 
                 cover1.setLeft(moonDisc.position().x);
 

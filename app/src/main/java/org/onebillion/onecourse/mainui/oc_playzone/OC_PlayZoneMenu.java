@@ -1079,8 +1079,9 @@ public class OC_PlayZoneMenu extends OC_Menu
         if(target != null)
         {
 
+            String lang = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_LANGUAGE);
             if(config != null)
-                MainActivity.mainActivity.updateConfigPaths(config, false, "en_GB");
+                MainActivity.mainActivity.updateConfigPaths(config, false, lang != null ? lang : "en_GB");
 
             if(MainViewController().pushViewControllerWithNameConfig(target,config != null ? config :"oc-playzone",true,true,params))
             {

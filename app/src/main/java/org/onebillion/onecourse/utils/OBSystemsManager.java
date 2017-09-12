@@ -31,6 +31,8 @@ import android.widget.LinearLayout;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import org.apache.commons.net.ntp.NTPUDPClient;
+import org.apache.commons.net.ntp.TimeInfo;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.receivers.OBBatteryReceiver;
@@ -47,7 +49,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -1142,7 +1147,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         return result;
     }
 
-    public void backup_connectToWifiAndUploadDatabase ()
+    public void connectToWifiAndSynchronizeData ()
     {
         MainActivity.log("OBSystemsManager.backup_connectToWifiAndUploadDatabase");
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
@@ -1155,7 +1160,9 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                     @Override
                     public void run () throws Exception
                     {
+                        time_synchronizeAndUpdate();
                         backup_uploadDatabase();
+                        connectionManager.disconnectWifi();
                     }
                 });
             }
@@ -1250,7 +1257,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 //                MainActivity.mainActivity.addToPreferences("lastBackupTimeStamp", String.format("%d", currentTime));
                 //
                 MainActivity.log("OBSystemsManager.backup_uploadDatabase disconnecting from wifi");
-                connectionManager.disconnectWifi();
+
                 //
                 OBUtils.runOnMainThread(new OBUtils.RunLambda()
                 {
@@ -1264,7 +1271,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             catch (Exception e)
             {
                 MainActivity.log("OBSystemsManager.backup_uploadDatabase exception caught");
-//                e.printStackTrace();
+                e.printStackTrace();
             }
             MainActivity.log("OBSystemsManager.backup_uploadDatabase releasing lock");
             backup_getLock().unlock();
@@ -1606,5 +1613,79 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         }
         return false;
     }
+
+
+    public long getNTPTimestamp(String timeServerURL)
+    {
+        long timestamp = -1;
+        NTPUDPClient client = new NTPUDPClient();
+        client.setDefaultTimeout(1000);
+        //
+        try
+        {
+            client.open();
+            InetAddress hostAddr = InetAddress.getByName(timeServerURL);
+            //
+            TimeInfo info = client.getTime(hostAddr);
+            info.computeDetails();
+            client.close();
+            //
+            timestamp = info.getMessage().getReceiveTimeStamp().getTime();
+        }
+        catch (SocketException e)
+        {
+            e.printStackTrace();
+
+        }
+        catch (SocketTimeoutException e)
+        {
+
+
+        }
+        catch (Exception e)
+        {
+
+        }
+
+        return timestamp;
+    }
+
+    public void setSystemTime(long timestamp)
+    {
+        try
+        {
+            ((AlarmManager) MainActivity.mainActivity.getSystemService(Context.ALARM_SERVICE)).setTime(timestamp);
+        }
+        catch (Exception e)
+        {
+            MainActivity.log("OBSystemManager:setSystemTime: Exception caught while trying to set the Date");
+            e.printStackTrace();
+        }
+    }
+
+    public void time_synchronizeAndUpdate()
+    {
+        final String timeServerURL = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_TIME_SERVER_URL);
+        if(timeServerURL != null)
+        {
+            long timestampMillisec = getNTPTimestamp(timeServerURL);
+            MainActivity.log("OBSystemManager:synchronizeAndUpdate: Timestamp received from server: "+timestampMillisec);
+            if(timestampMillisec > 0)
+            {
+                OBFatController fatController = MainActivity.mainActivity.fatController;
+                if(fatController != null &&
+                        TimeSynchronizationReceiver.class.isAssignableFrom(fatController.getClass()))
+                {
+                    ((TimeSynchronizationReceiver)fatController).timeReceived(timestampMillisec);
+                }
+            }
+        }
+    }
+
+    public interface TimeSynchronizationReceiver
+    {
+        void timeReceived(long timestampMillisec);
+    }
+
 
 }

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import org.onebillion.onecourse.mainui.MainActivity;
+import org.onebillion.onecourse.receivers.OBAlarmReceiver;
 
 /**
  * OBAlarmManager
