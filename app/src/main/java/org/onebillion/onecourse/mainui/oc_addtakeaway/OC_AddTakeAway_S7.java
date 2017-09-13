@@ -440,6 +440,17 @@ public class OC_AddTakeAway_S7 extends OC_Generic_Event
 
     public void checkDragAtPoint (PointF pt)
     {
+        if (status() != STATUS_DRAGGING)
+        {
+            lockScreen();
+            for (OBControl cell : filterControls("cell.*"))
+            {
+                cell.lowlight();
+            }
+            unlockScreen();
+            return;
+        }
+        //
         try
         {
             OBControl closestCell = finger(-1, 2, filterControls("cell.*"), pt);
@@ -468,19 +479,19 @@ public class OC_AddTakeAway_S7 extends OC_Generic_Event
     {
         saveStatusClearReplayAudioSetChecking();
         //
+        lockScreen();
+        for (OBControl cell : filterControls("cell.*"))
+        {
+            cell.lowlight();
+        }
+        unlockScreen();
+        //
         try
         {
             OBControl closestCell = finger(-1, 2, filterControls("cell.*"), pt);
             OBControl counter = target;
             if (closestCell != null)
             {
-                lockScreen();
-                for (OBControl cell : filterControls("cell.*"))
-                {
-                    cell.lowlight();
-                }
-                unlockScreen();
-                //
                 target = null;
                 //
                 if (closestCell == correctCell)
@@ -551,7 +562,7 @@ public class OC_AddTakeAway_S7 extends OC_Generic_Event
                     currentCell = objectDict.get(String.format("cell_%d", currentPosition));
                     OBAnim moveAnim = OBAnim.moveAnim(currentCell.position(), counter);
                     if (counterMovementAnimation != null) counterMovementAnimation.flags = OBAnimationGroup.ANIM_CANCEL;
-                    counterMovementAnimation = OBAnimationGroup.runAnims(Arrays.asList(moveAnim), 0.2, false, OBAnim.ANIM_EASE_IN, this);
+                    counterMovementAnimation = OBAnimationGroup.runAnims(Arrays.asList(moveAnim), 0.2, true, OBAnim.ANIM_EASE_IN, this);
                     waitForSecs(0.3);
                     //
                     playSceneAudio("INCORRECT", false);
@@ -560,21 +571,10 @@ public class OC_AddTakeAway_S7 extends OC_Generic_Event
             }
             else
             {
-                lockScreen();
-                for (OBControl cell : filterControls("cell.*"))
-                {
-                    cell.lowlight();
-                }
-                if (closestCell != null)
-                {
-                    closestCell.highlight();
-                }
-                unlockScreen();
-                //
                 currentCell = objectDict.get(String.format("cell_%d", currentPosition));
                 OBAnim moveAnim = OBAnim.moveAnim(currentCell.position(), counter);
                 if (counterMovementAnimation != null) counterMovementAnimation.flags = OBAnimationGroup.ANIM_CANCEL;
-                counterMovementAnimation = OBAnimationGroup.runAnims(Arrays.asList(moveAnim), 0.2, false, OBAnim.ANIM_EASE_IN, this);
+                counterMovementAnimation = OBAnimationGroup.runAnims(Arrays.asList(moveAnim), 0.2, true, OBAnim.ANIM_EASE_IN, this);
             }
         }
         catch (Exception e)
