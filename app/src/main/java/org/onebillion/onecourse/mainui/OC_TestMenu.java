@@ -47,8 +47,8 @@ public class OC_TestMenu extends OBSectionController
     {
         OBBrightnessManager.sharedManager.onSuspend();
         db = new DBSQL(false);
-        controller = (OC_FatController)MainActivity.mainActivity.fatController;
-        currentUnitIndex = controller.lastPlayedUnitIndexFromDB(db);
+        //controller = (OC_FatController)MainActivity.mainActivity.fatController;
+        //currentUnitIndex = controller.lastPlayedUnitIndexFromDB(db);
         MainActivity.mainActivity.setContentView(R.layout.list_menu);
         listView = (ListView)MainActivity.mainActivity.findViewById(R.id.listView);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener()
@@ -57,7 +57,7 @@ public class OC_TestMenu extends OBSectionController
             public void onItemClick(AdapterView<?> parent, View view, int position, long id)
             {
                 currentUnitIndex = (int)id;
-                controller.setCurrentUnitIndex(currentUnitIndex);
+               // controller.setCurrentUnitIndex(currentUnitIndex);
             }
         });
 
@@ -105,7 +105,7 @@ public class OC_TestMenu extends OBSectionController
             @Override
             public void onClick(View v)
             {
-                OBSystemsManager.sharedManager.backup_connectToWifiAndUploadDatabase();
+                OBSystemsManager.sharedManager.connectToWifiAndSynchronizeData();
             }
         });
 

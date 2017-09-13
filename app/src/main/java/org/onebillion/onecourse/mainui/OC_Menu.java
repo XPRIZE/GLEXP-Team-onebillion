@@ -15,11 +15,16 @@ import java.util.Map;
 public class OC_Menu extends OC_SectionController
 {
     String saveConfig;
+    String saveLanguage;
 
     public void prepare()
     {
         super.prepare();
         saveConfig = (String)Config().get(MainActivity.CONFIG_APP_CODE);
+        if(Config().get(MainActivity.CONFIG_LANGUAGE) != null)
+            saveLanguage = (String)Config().get(MainActivity.CONFIG_LANGUAGE);
+        else
+            saveLanguage = null;
         loadEvent("main");
         for (OBControl but : filterControls("but.*"))
             if (but instanceof OBGroup)
@@ -58,7 +63,7 @@ public class OC_Menu extends OC_SectionController
         for (OBControl c : filterControls("button.*"))
             c.lowlight();
         if (saveConfig != null)
-            MainActivity.mainActivity.updateConfigPaths(saveConfig,false);
+            MainActivity.mainActivity.updateConfigPaths(saveConfig,false,saveLanguage);
         //setButtons();
     }
 

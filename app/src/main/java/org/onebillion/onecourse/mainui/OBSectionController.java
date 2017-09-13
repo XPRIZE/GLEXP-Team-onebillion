@@ -2027,7 +2027,6 @@ public class OBSectionController extends OBViewController
         playAudio(null);
         if (!_aborting)
         {
-            _aborting = true;
             cleanUp();
             new OBRunnableUI()
             {
@@ -2050,6 +2049,7 @@ public class OBSectionController extends OBViewController
     public void cleanUp ()
     {
         stopAllAudio();
+        _aborting = true;
     }
 
     public void goBack ()

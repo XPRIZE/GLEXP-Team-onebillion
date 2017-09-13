@@ -28,7 +28,7 @@ create table unitinstances
     endTime big unsigned int default 0,
     starColour integer not null default -1,
     foreign key(userid,sessionid) references sessions(userid,sessionid),
-    constraint pkey primary key (userid,unitid,type,seqno) on conflict fail
+    constraint pkey primary key (userid,sessionid,unitid,type,seqno) on conflict fail
 );
 
 create table sessions
@@ -36,8 +36,9 @@ create table sessions
     userid integer not null references users(userid) on delete restrict,
     sessionid integer not null,
     startTime big unsigned int not null,
+    workTime big unsigned int not null,
     endTime big unsigned int default 0,
-    day int not null,
+    day int default -1,
     constraint pkey primary key (userid,sessionid) on conflict fail
 );
 

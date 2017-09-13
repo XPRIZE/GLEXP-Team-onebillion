@@ -42,12 +42,12 @@ public class OCM_MlUnitInstance extends DBObject
     }
 
 
-    public static OCM_MlUnitInstance initWithMlUnit(OCM_MlUnit unit, int userid, int sessionid, long starttime, int type)
+    public static OCM_MlUnitInstance initWithMlUnit(OCM_MlUnit unit, int userid, int sessionid, long starttime, int week, int type)
     {
-        return initInDBWithMlUnit(unit,userid,sessionid,starttime,type);
+        return initInDBWithMlUnit(unit,userid,sessionid,starttime,week,type);
     }
 
-    private static OCM_MlUnitInstance initInDBWithMlUnit(OCM_MlUnit unit, int userid, int sessionid, long starttime, int type)
+    private static OCM_MlUnitInstance initInDBWithMlUnit(OCM_MlUnit unit, int userid, int sessionid, long starttime, int week, int type)
     {
         OCM_MlUnitInstance mlui = new OCM_MlUnitInstance();
         mlui.userid = userid;
@@ -56,16 +56,16 @@ public class OCM_MlUnitInstance extends DBObject
         mlui.mlUnit = unit;
         mlui.type = type;
 
-        Map<String,String> whereMap = new ArrayMap<>();
-        whereMap.put("userid",String.valueOf(userid));
-        whereMap.put("unitid",String.valueOf(unit.unitid));
-        whereMap.put("type",String.valueOf(type));
-
         DBSQL db = null;
         try
         {
             db = new DBSQL(true);
-            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNIT_INSTANCES, Collections.singletonList("MAX(seqNo) as seqNo"),whereMap);
+            Cursor cursor = db.prepareRawQuery(String.format("SELECT MAX(seqNo)as seqNo FROM %s AS UI " +
+                    "JOIN %s AS S ON S.userid = UI.userid AND S.sessionid = UI.sessionid " +
+                            "WHERE UI.userid = ? AND UI.unitid = ? AND UI.type = ? AND S.day > ? AND S.day <= ?",
+                    DBSQL.TABLE_UNIT_INSTANCES, DBSQL.TABLE_SESSIONS),
+                    Arrays.asList(String.valueOf(userid), String.valueOf(unit.unitid),String.valueOf(type)
+                            ,String.valueOf((week-1)*7),String.valueOf(week*7)));
 
             int columnIndex = cursor.getColumnIndex("seqNo");
             if(cursor.moveToFirst() && !cursor.isNull(columnIndex))

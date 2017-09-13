@@ -38,7 +38,7 @@ import static org.onebillion.onecourse.mainui.OBViewController.MainViewControlle
  * Created by michal on 02/08/2017.
  */
 
-public class OCM_FatController extends OBFatController
+public class OCM_FatController extends OBFatController implements OBSystemsManager.TimeSynchronizationReceiver
 {
     public int scoreCorrect,scoreWrong;
     public float finalScore;
@@ -49,9 +49,9 @@ public class OCM_FatController extends OBFatController
     private int unitAttemptsCount, disallowStartHour, disallowEndHour, playzoneActiveHour;
     private OCM_MlUnitInstance currentUnitInstance;
     private OCM_User currentUser;
-    private int currentSessionId;
-    private int currentMode;
-    private long currentSessionStartTime, currentSessionEndTime;
+    private int currentSessionId, currentSessionDay;
+    private int currentMasterlistMaxWeek;
+    private long currentSessionStartTime, currentSessionEndTime, currentSessionWorkTime;
     private boolean allowsTimeOuts, showUserName;
     private Date startDate;
     private boolean showBackButton;
@@ -62,6 +62,7 @@ public class OCM_FatController extends OBFatController
     private Runnable timeoutRunnable;
 
     public static final int SESSION_UNIT_COUNT = 15,
+            SESSION_VALID_COUNT = 10,
             COLOUR_COUNT = 20,
             MAX_WEEK_COUNT = 68,
             MAX_PZ_ASSETS = 30;
@@ -130,11 +131,10 @@ public class OCM_FatController extends OBFatController
                 {
                     db.doDeleteOnTable(DBSQL.TABLE_UNITS, null);
                     int unitIndex = 0;
-                    for(int j=0; j<8; j++)
-                    {
+
                         for (OBXMLNode levelNode : rootNode.childrenOfType("level"))
                         {
-                            int week = levelNode.attributeIntValue("id") + j*9;
+                            int week = levelNode.attributeIntValue("id");
 
                             List<OBXMLNode> nodes = levelNode.childrenOfType("unit");
                             masterList.addAll(nodes);
@@ -147,7 +147,7 @@ public class OCM_FatController extends OBFatController
                                 unitIndex++;
                             }
                         }
-                    }
+
                     OBPreferenceManager.setPreference(OBPreferenceManager.PREFERENCE_ML_TOKEN,masterListToken, db);
                     db.setTransactionSuccessful();
                 }
@@ -169,6 +169,12 @@ public class OCM_FatController extends OBFatController
         }
     }
 
+    private boolean showTestMenu()
+    {
+        return false;
+      /*  String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SHOW_TEST_MENU);
+        return (value != null && value.equalsIgnoreCase("true"));*/
+    }
     /* Functions that manage user
      */
     public void loadUser()
@@ -197,6 +203,21 @@ public class OCM_FatController extends OBFatController
         fixMissingStars(currentSessionId);
     }
 
+    private void reloadCurrentMasterlistMaxWeek(DBSQL db)
+    {
+        Map<String,String> map = new ArrayMap<>();
+        map.put("masterlistid", String.valueOf(currentUser.masterlistid));
+        currentMasterlistMaxWeek = 14;
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("MAX(week) as week"),map);
+        if(cursor.moveToFirst())
+        {
+            int columnIndex = cursor.getColumnIndex("week");
+            if(!cursor.isNull(columnIndex))
+                currentMasterlistMaxWeek = cursor.getInt(columnIndex);
+        }
+        cursor.close();
+    }
+
     public static OCM_User lastUserActiveFromDB(DBSQL db)
     {
         Cursor cursor = db.prepareRawQuery(String.format("SELECT U.userid AS userid FROM %s AS U LEFT JOIN %s AS S ON S.userid = U.userid ORDER BY S.startTime DESC LIMIT 1",
@@ -220,6 +241,7 @@ public class OCM_FatController extends OBFatController
     {
         loadLastSessionFromDB(db, user.userid);
         currentUser = user;
+        reloadCurrentMasterlistMaxWeek(db);
         if(currentSessionId == -1)
             prepareNewSessionInDB(db, user.userid);
 
@@ -228,13 +250,54 @@ public class OCM_FatController extends OBFatController
     /* Date/Time functions
     */
 
-    public boolean currentTimeIsDirty()
+    @Override
+    public void timeReceived(long timestamp)
     {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(System.currentTimeMillis());
-        return calendar.get(Calendar.YEAR) < 2017;
+        MainActivity.log("OCM_FatController.timeReceived "+timestamp);
+        if(startDate != null)
+        {
+            if(getDaysBetweenTimestamps(startDate.getTime(), timestamp) >= 0)
+            {
+                OBSystemsManager.sharedManager.setSystemTime(timestamp);
+            }
+        }
+        else
+        {
+            OBSystemsManager.sharedManager.setSystemTime(timestamp);
+        }
+
     }
 
+    /**
+     * Checks if current system clock provides correct time.
+     * Time is considered incorrect if it's year is lower than 2017
+     * or when current day is before the trial start date.
+     *
+     * @return true if time is incorrect.
+     */
+    public boolean currentTimeIsDirty()
+    {
+        return timestampIsDirty(System.currentTimeMillis());
+    }
+
+    public boolean timestampIsDirty(long timestampMillis)
+    {
+        if(startDate == null)
+        {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(timestampMillis);
+            return calendar.get(Calendar.YEAR) < 2017;
+        }
+        else
+        {
+            return getDaysBetweenTimestamps(startDate.getTime(), timestampMillis) < 0;
+        }
+    }
+
+
+    /**
+     * @return current timestamp in seconds.
+     */
     public long getCurrentTime()
     {
         return  System.currentTimeMillis()/1000;
@@ -247,23 +310,35 @@ public class OCM_FatController extends OBFatController
 
         if(!currentTimeIsDirty())
         {
-            int currentDay = getDaysSinceTimestamp(startDate.getTime());
-            if (currentDay > 0)
-                return currentDay + 1;
-            else
-                return 1;
+            return getDaysSinceStartDate();
         }
         else
         {
-            return 1;
+            return currentSessionDay;
         }
+    }
+
+    public int getDaysSinceStartDate()
+    {
+        if(startDate == null)
+            return 1;
+
+        int currentDay = getDaysSinceTimestamp(startDate.getTime());
+        if (currentDay > 0)
+            return currentDay + 1;
+        else
+            return 1;
     }
 
     private int getDaysSinceTimestamp(long timestamp)
     {
-        Date date = new Date(System.currentTimeMillis());
+        return getDaysBetweenTimestamps(timestamp,getCurrentTime()*1000);
+    }
+
+    private int getDaysBetweenTimestamps(long millisFrom, long millisTo)
+    {
         long dayLengthMillisec = 1000 * 60 * 60 * 24;
-        int dayDif = (int)Math.floor((date.getTime() - timestamp) / dayLengthMillisec);
+        int dayDif = (int)Math.floor((millisTo - millisFrom) / dayLengthMillisec);
         return dayDif;
     }
 
@@ -300,7 +375,6 @@ public class OCM_FatController extends OBFatController
         //day unlock
         calendar.set(Calendar.HOUR_OF_DAY, disallowEndHour);
         OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, ALARM_DAY_UNLOCK);
-
 
         //play zone active
         calendar.set(Calendar.HOUR_OF_DAY, playzoneActiveHour);
@@ -449,11 +523,15 @@ public class OCM_FatController extends OBFatController
     {
         OCM_MlUnit mlUnit = null;
         int currentWeek = getCurrentWeek();
+        int repeatWeek = ((currentWeek-1) % currentMasterlistMaxWeek)+1;
         Cursor cursor = db.prepareRawQuery(String.format("SELECT MAX(unitIndex) AS unitIndex FROM %s AS U "+
                 "JOIN %s AS UI ON UI.unitid = U.unitid "+
-                "WHERE UI.userid = ? AND U.week = ? AND U.masterlistid = ? "+
-                "AND (UI.seqNo >= ? OR UI.endTime > 0)", DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES), Arrays.asList(String .valueOf(currentUser.userid),
-                String.valueOf(currentWeek),String.valueOf(currentUser.masterlistid),String.valueOf(unitAttemptsCount-1)));
+                "JOIN %s AS S ON S.sessionid = UI.sessionid AND S.userid = UI.userid "+
+                "WHERE UI.userid = ? AND U.week = ? AND U.masterlistid = ? AND S.day > ? AND S.day <= ?"+
+                "AND (UI.seqNo >= ? OR UI.endTime > 0)", DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES,DBSQL.TABLE_SESSIONS),
+                Arrays.asList(String .valueOf(currentUser.userid),
+                String.valueOf(repeatWeek),String.valueOf(currentUser.masterlistid),String.valueOf((currentWeek-1)*7),
+                String.valueOf(currentWeek*7),String.valueOf(unitAttemptsCount-1)));
 
         if(cursor.moveToFirst())
         {
@@ -466,7 +544,7 @@ public class OCM_FatController extends OBFatController
         if(mlUnit == null)
         {
             cursor = db.prepareRawQuery(String.format("SELECT MIN(unitIndex) AS unitIndex FROM %s AS U WHERE U.week = ? AND U.masterlistid = ?", DBSQL.TABLE_UNITS),
-                    Arrays.asList(String.valueOf(currentWeek),String.valueOf(currentUser.masterlistid)));
+                    Arrays.asList(String.valueOf(repeatWeek),String.valueOf(currentUser.masterlistid)));
 
             if(cursor.moveToFirst())
             {
@@ -476,7 +554,7 @@ public class OCM_FatController extends OBFatController
             }
             cursor.close();
         }
-        if(mlUnit.week != currentWeek)
+        if(mlUnit.week != repeatWeek)
             return null;
         return mlUnit;
     }
@@ -487,6 +565,7 @@ public class OCM_FatController extends OBFatController
     public void initDB()
     {
         loadMasterListIntoDB();
+        loadStartDate();
         loadUser();
     }
 
@@ -523,12 +602,13 @@ public class OCM_FatController extends OBFatController
         }
         initDB();
         //
-        loadStartDate();
-        //
         timeoutHandler = new Handler();
         // Setup screen
         Boolean usesSetupMenu = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_USES_SETUP_MENU);
         Boolean isSetupComplete = OBPreferenceManager.getBooleanPreference(OBPreferenceManager.PREFERENCES_SETUP_COMPLETE);
+        long trialTimestamp = OBPreferenceManager.getLongPreference(OBPreferenceManager.PREFERENCES_TRIAL_START_TIMESTAMP);
+        if(trialTimestamp < 0 && currentTimeIsDirty())
+            isSetupComplete = false;
         //
         if (usesSetupMenu && !isSetupComplete)
         {
@@ -544,27 +624,36 @@ public class OCM_FatController extends OBFatController
         }
         else
         {
-            // setup is now complete: continue as usual
-            prepareAlarm();
             //
-            resetTempData();
-            // restore app_code is it's coming from setup
-            if (menuAppCode != null)
+            if (showTestMenu())
             {
-                MainActivity.mainActivity.updateConfigPaths(menuAppCode, true, null);
+                MainViewController().pushViewControllerWithName("OC_TestMenu", false, false, "menu");
             }
-            //
-            String menuClassName = MainActivity.mainActivity.configStringForKey (MainActivity.CONFIG_MENU_CLASS);
-            String appCode = MainActivity.mainActivity.configStringForKey (MainActivity.CONFIG_APP_CODE);
-            //
-            MainActivity.log("OC_FatController:startUp: pushing view controller [%s] [%s]", menuClassName, appCode);
-            //
-            if (menuClassName != null && appCode != null)
+            else
             {
-                OBBrightnessManager.sharedManager.onContinue();
-                if (!MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, true, null, true))
+                // setup is now complete: continue as usual
+                prepareAlarm();
+                //
+                resetTempData();
+                // restore app_code is it's coming from setup
+                if (menuAppCode != null)
                 {
-                    MainActivity.log("OC_FatController:startUp:unable to load view controller [%s] [%s]", menuClassName, appCode);
+                    MainActivity.mainActivity.updateConfigPaths(menuAppCode, true, null);
+                }
+                //
+                String menuClassName = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MENU_CLASS);
+
+                String appCode = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_APP_CODE);
+                //
+                MainActivity.log("OC_FatController:startUp: pushing view controller [%s] [%s]", menuClassName, appCode);
+                //
+                if (menuClassName != null && appCode != null)
+                {
+                    OBBrightnessManager.sharedManager.onContinue();
+                    if (!MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, true, null, true))
+                    {
+                        MainActivity.log("OC_FatController:startUp:unable to load view controller [%s] [%s]", menuClassName, appCode);
+                    }
                 }
             }
 
@@ -643,7 +732,8 @@ public class OCM_FatController extends OBFatController
         {
 
         }
-        cont.exitEvent();
+        if(!cont._aborting)
+            cont.exitEvent();
     }
 
     public void triggerTimeoutUnit()
@@ -740,7 +830,7 @@ public class OCM_FatController extends OBFatController
         try
         {
             db = new DBSQL(false);
-            int count = sessionUnitCountFromDB(db,currentSessionId,currentUser.userid);
+            int count = sessionUnitCountDB(db,currentSessionId,currentUser.userid);
             if(count >= SESSION_UNIT_COUNT)
             {
                 dict.put("community",true);
@@ -826,7 +916,7 @@ public class OCM_FatController extends OBFatController
         Calendar calendar = Calendar.getInstance();
         int lp = 2551443; // full moon phase(from full to full) in seconds
         calendar.setTimeInMillis(getCurrentTime()*1000);
-        calendar.set(Calendar.HOUR,20);
+        calendar.set(Calendar.HOUR_OF_DAY,20);
         calendar.set(Calendar.MINUTE,35);
         calendar.set(Calendar.SECOND,0);
         long now = calendar.getTimeInMillis();
@@ -1068,7 +1158,7 @@ public class OCM_FatController extends OBFatController
 
     public void sectionStartedWithUnit(OCM_MlUnit unit,int type)
     {
-        currentUnitInstance =  OCM_MlUnitInstance.initWithMlUnit(unit,currentUser.userid ,currentSessionId,getCurrentTime(),type);
+        currentUnitInstance =  OCM_MlUnitInstance.initWithMlUnit(unit,currentUser.userid ,currentSessionId,getCurrentTime(),getCurrentWeek(),type);
         initScores();
     }
 
@@ -1254,11 +1344,36 @@ public class OCM_FatController extends OBFatController
         Calendar calendarLastSession = Calendar.getInstance();
 
         currentCalendar.setTimeInMillis(getCurrentTime()*1000);
-        calendarLastSession.setTimeInMillis(currentSessionStartTime*1000);
+        calendarLastSession.setTimeInMillis(currentSessionWorkTime*1000);
 
         if(currentCalendar.get(Calendar.DAY_OF_YEAR) != calendarLastSession.get(Calendar.DAY_OF_YEAR)
                 || currentCalendar.get(Calendar.YEAR) != calendarLastSession.get(Calendar.YEAR))
         {
+            if(currentTimeIsDirty())
+            {
+
+                int count = currentSessionUnitCount();
+                if(count < SESSION_VALID_COUNT)
+                {
+                    currentSessionWorkTime = getCurrentTime();
+                    DBSQL db = null;
+                    try
+                    {
+                        db = new DBSQL(true);
+                        updateCurrentSessionTimeInDB(db, "workTime", currentSessionWorkTime);
+                    }
+                    catch (Exception e)
+                    {
+
+                    }
+                    finally
+                    {
+                        if(db != null)
+                            db.close();
+                    }
+                    return false;
+                }
+            }
             prepareNewSession();
             return true;
         }
@@ -1297,15 +1412,18 @@ public class OCM_FatController extends OBFatController
         Map<String,String> whereMap  = new ArrayMap<>();
         whereMap.put("userid",String.valueOf(userid));
         currentSessionId = -1;
-        currentSessionEndTime = currentSessionStartTime = 0;
+        currentSessionEndTime = currentSessionStartTime = currentSessionWorkTime = 0;
+        currentSessionDay = 1;
         try
         {
-            Cursor cursor = db.prepareRawQuery(String.format("SELECT sessionid, startTime, endTime FROM %s WHERE userid = ? ORDER BY sessionid DESC LIMIT 1",DBSQL.TABLE_SESSIONS)
+            Cursor cursor = db.prepareRawQuery(String.format("SELECT sessionid, startTime, endTime, workTime, day FROM %s WHERE userid = ? ORDER BY sessionid DESC LIMIT 1",DBSQL.TABLE_SESSIONS)
                     , Collections.singletonList(String.valueOf(userid)));
             if (cursor.moveToFirst())
             {
+                currentSessionDay = cursor.getInt(cursor.getColumnIndex("day"));
                 currentSessionStartTime = cursor.getLong(cursor.getColumnIndex("startTime"));
                 currentSessionEndTime = cursor.getLong(cursor.getColumnIndex("endTime"));
+                currentSessionWorkTime = cursor.getLong(cursor.getColumnIndex("workTime"));
                 currentSessionId = cursor.getInt(cursor.getColumnIndex("sessionid"));
             }
             cursor.close();
@@ -1327,7 +1445,7 @@ public class OCM_FatController extends OBFatController
         try
         {
             db = new DBSQL(false);
-            result =  sessionUnitCountFromDB(db, currentSessionId, currentUser.userid);
+            result =  sessionUnitCountDB(db, currentSessionId, currentUser.userid);
         }
         catch(Exception e)
         {
@@ -1341,7 +1459,7 @@ public class OCM_FatController extends OBFatController
         return result;
     }
 
-    private int sessionUnitCountFromDB(DBSQL db, int sessionid, int userid)
+    private int sessionUnitCountDB(DBSQL db, int sessionid, int userid)
     {
         if(sessionid < 0)
             return 0;
@@ -1389,6 +1507,7 @@ public class OCM_FatController extends OBFatController
 
         currentSessionStartTime = 0;
         currentSessionEndTime = 0;
+        currentSessionWorkTime = 0;
 
         int sessionid = currentSessionId;
         if(sessionid<0)
@@ -1396,11 +1515,21 @@ public class OCM_FatController extends OBFatController
         else
             sessionid++;
 
+        if(currentTimeIsDirty())
+        {
+            currentSessionDay++;
+        }
+        else
+        {
+            currentSessionDay = getDaysSinceStartDate();
+        }
+
         ContentValues contentValues = new ContentValues();
         contentValues.put("userid", userid);
         contentValues.put("sessionid", sessionid);
         contentValues.put("startTime",currentSessionStartTime);
-        contentValues.put("day",getCurrentDay());
+        contentValues.put("workTime",currentSessionStartTime);
+        contentValues.put("day",currentSessionDay);
         db.doInsertOnTable(DBSQL.TABLE_SESSIONS,contentValues);
         currentSessionId = sessionid;
 
@@ -1426,15 +1555,24 @@ public class OCM_FatController extends OBFatController
             return false;
 
         boolean needRefresh = checkAndSetupStartDay();
-        currentSessionStartTime = getCurrentTime();
+        currentSessionStartTime = currentSessionWorkTime = getCurrentTime();
         DBSQL db = null;
         try
         {
             db = new DBSQL(true);
-            updateCurrentSessionTimeInDB(db,"startTime", currentSessionStartTime);
+            Map <String,String> whereMap = new ArrayMap<>();
+            whereMap.put("userid",String.valueOf(currentUser.userid));
+            whereMap.put("sessionid",String.valueOf(currentSessionId));
+            ContentValues contentValues = new ContentValues();
+            contentValues.put("startTime",currentSessionStartTime);
+            contentValues.put("workTime",currentSessionWorkTime);
+            boolean updated = db.doUpdateOnTable(DBSQL.TABLE_SESSIONS,whereMap, contentValues) > 0;
+            MainActivity.log("test "+updated);
         }
         catch (Exception e)
-        {}
+        {
+            MainActivity.log(e.getMessage());
+        }
         finally
         {
             if(db != null)
@@ -1449,7 +1587,7 @@ public class OCM_FatController extends OBFatController
         if(currentSessionId < 0)
             return;
 
-        currentSessionEndTime =  getCurrentTime();
+        currentSessionEndTime = getCurrentTime();
 
         updateCurrentSessionTimeInDB(db,"endTime", currentSessionEndTime);
     }

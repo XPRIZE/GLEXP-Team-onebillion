@@ -1,10 +1,11 @@
-package org.onebillion.onecourse.utils;
+package org.onebillion.onecourse.receivers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
 import org.onebillion.onecourse.mainui.MainActivity;
+import org.onebillion.onecourse.utils.OBAlarmManager;
 
 import java.util.Calendar;
 import java.util.Currency;
@@ -37,7 +38,7 @@ public class OBAlarmReceiver extends BroadcastReceiver
         startCalendar.setTimeInMillis(starttime);
 
         Calendar currentCalendar = Calendar.getInstance();
-        currentCalendar.set(Calendar.HOUR, startCalendar.get(Calendar.HOUR));
+        currentCalendar.set(Calendar.HOUR_OF_DAY, startCalendar.get(Calendar.HOUR_OF_DAY));
         currentCalendar.set(Calendar.MINUTE, startCalendar.get(Calendar.MINUTE));
         currentCalendar.set(Calendar.SECOND, startCalendar.get(Calendar.SECOND));
         //

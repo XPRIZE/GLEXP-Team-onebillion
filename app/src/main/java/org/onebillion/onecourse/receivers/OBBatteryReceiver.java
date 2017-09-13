@@ -74,7 +74,7 @@ public class OBBatteryReceiver extends BroadcastReceiver
                 if (OBSystemsManager.sharedManager.backup_isRequired())
                 {
                     MainActivity.log("OBBatteryReceiver.Backup is required. Connecting to backup WIFI.");
-                    OBSystemsManager.sharedManager.backup_connectToWifiAndUploadDatabase();
+                    OBSystemsManager.sharedManager.connectToWifiAndSynchronizeData();
                 }
             }
         }

@@ -582,12 +582,18 @@ public class OBConnectionManager
                             {
                                 MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.Other");
                                 wfc.BSSID = network.BSSID;
-                                wfc.allowedAuthAlgorithms.clear();
+                              /*  wfc.allowedAuthAlgorithms.clear();
                                 wfc.allowedGroupCiphers.clear();
-                                wfc.allowedKeyManagement.clear();
+                                wfc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
+                                wfc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
+                                wfc.allowedKeyManagement.clear();*/
                                 wfc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
-                                wfc.allowedPairwiseCiphers.clear();
+                               /* wfc.allowedPairwiseCiphers.clear();
+                                wfc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
+                                wfc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
                                 wfc.allowedProtocols.clear();
+                                wfc.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
+                                wfc.allowedProtocols.set(WifiConfiguration.Protocol.WPA);*/
                             }
                         }
                     }
@@ -659,6 +665,7 @@ public class OBConnectionManager
         MainActivity.mainActivity.registerReceiver(scanResultsReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
         //
         MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.starting scan");
+        wfMgr.setWifiEnabled(true);
         wfMgr.disconnect();
         wfMgr.startScan();
     }

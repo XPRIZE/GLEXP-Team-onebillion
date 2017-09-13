@@ -114,7 +114,7 @@
             </intent-filter>
         </receiver>
 -->
-        <receiver android:name="org.onebillion.onecourse.utils.OBAlarmReceiver"></receiver>
+        <receiver android:name="org.onebillion.onecourse.receivers.OBAlarmReceiver"></receiver>
     </application>
 
 </manifest>

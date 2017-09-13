@@ -1571,14 +1571,19 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         waitForSecs(0.3f);
         presenter.speak((List<Object>)(Object)getAudioForScene("unit_1","DEMO"),this);
         waitForSecs(0.3f);
-        int dayNum = fatController.getCurrentDayOfWeek();
-        OBLabel dayLabel = loadDayOfTheWeekLabel(dayNum);
-        playSfxAudio("dayon",false);
-        dayLabel.show();
-        waitSFX();
-        waitForSecs(0.3f);
-        presenter.speak((List<Object>)(Object)Arrays.asList(getAudioForScene("unit_1","DEMO2").get(dayNum-1)),this);
-        waitForSecs(0.3f);
+        OBLabel dayLabel = null;
+        if(!fatController.currentTimeIsDirty())
+        {
+            int dayNum = fatController.getCurrentDayOfWeek();
+            dayLabel = loadDayOfTheWeekLabel(dayNum);
+            playSfxAudio("dayon", false);
+            dayLabel.show();
+            waitSFX();
+            waitForSecs(0.3f);
+            presenter.speak((List<Object>) (Object) Arrays.asList(getAudioForScene("unit_1", "DEMO2").get(dayNum - 1)), this);
+
+            waitForSecs(0.3f);
+        }
         List<String> audios =  getAudioForScene("unit_1","DEMO3");
         presenter.speak((List<Object>)(Object)Arrays.asList(audios.get(OB_Maths.randomInt(0,audios.size()-1))),this);
         waitForSecs(0.3f);
@@ -1586,7 +1591,8 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         presenter.faceFront();
         waitForSecs(0.3f);
         playSfxAudio("dayoff",false);
-        detachControl(dayLabel);
+        if(dayLabel != null)
+            detachControl(dayLabel);
         waitSFX();
         waitForSecs(0.3f);
         lockScreen();
