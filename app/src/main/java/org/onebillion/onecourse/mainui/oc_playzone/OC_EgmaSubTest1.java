@@ -125,7 +125,7 @@ public class OC_EgmaSubTest1 extends OC_SectionController
         presenter = OBPresenter.characterWithGroup((OBGroup) objectDict.get("presenter"));
         presenter.control.setZPosition(200);
         PointF pt = presenter.control.position();
-        presenter.control.setProperty("restpos",pt);
+        presenter.control.setProperty("restpos",new PointF(pt.x,pt.y));
         presenter.control.setRight(0);
         presenter.control.show();
     }
@@ -518,10 +518,10 @@ public class OC_EgmaSubTest1 extends OC_SectionController
 
     public void showContainers(String side,int n)
     {
-        objectDict.get(String.format("container%@1",side)).show();
+        objectDict.get(String.format("container%s1",side)).show();
         if(n > 9)
         {
-            objectDict.get(String.format("container%@10",side)).show();
+            objectDict.get(String.format("container%s10",side)).show();
         }
     }
 
@@ -553,7 +553,7 @@ public class OC_EgmaSubTest1 extends OC_SectionController
         if(digit > 0)
         {
             mustdo = true;
-            List<OBControl>hundreds = sortedFilteredControls(String.format("count%@100_.",infix));
+            List<OBControl>hundreds = sortedFilteredControls(String.format("count%s100_.",infix));
             PointF av = averageBottomPoint(hundreds.get(0),hundreds.get(1));
             reposition(hundreds,digit);
             movePointerToPoint(av,-1,true);
@@ -569,7 +569,7 @@ public class OC_EgmaSubTest1 extends OC_SectionController
         if(digit > 0 || mustdo)
         {
             mustdo = true;
-            List<OBControl>tens = sortedFilteredControls(String.format("count%@10_.",infix));
+            List<OBControl>tens = sortedFilteredControls(String.format("count%s10_.",infix));
             PointF av = averageBottomPoint(tens.get(0),tens.get(1));
             movePointerToPoint(av,-1,true);
             //playAudioQueued(@spquantities.get(1).() ,true);
@@ -583,7 +583,7 @@ public class OC_EgmaSubTest1 extends OC_SectionController
         if(digit > 0 || mustdo)
         {
             mustdo = true;
-            List<OBControl>units = sortedFilteredControls(String.format("count%@1_.",infix));
+            List<OBControl>units = sortedFilteredControls(String.format("count%s1_.",infix));
             PointF av = averageBottomPoint(units.get(0),units.get(1));
             movePointerToPoint(av,-1,true);
             //playAudioQueued(@spquantities.get(2).() ,true);
@@ -726,8 +726,10 @@ public class OC_EgmaSubTest1 extends OC_SectionController
         OBControl hammer2 = objectDict.get("hammer2");
         float angle1 = hammer.rotation();
         float angle2 = hammer2.rotation();
-        PointF pos1 = hammer.position();
-        PointF pos2 = hammer2.position();
+        PointF pos1 = new PointF();
+        pos1.set(hammer.position());
+        PointF pos2 = new PointF();
+        pos2.set(hammer2.position());
         moveObjects(Arrays.asList(hammer),pos2,-1,OBAnim.ANIM_EASE_IN_EASE_OUT);
         OBAnim rotAnim = OBAnim.rotationAnim(angle2,hammer);
         OBAnimationGroup.runAnims(Arrays.asList(rotAnim),0.1,true,OBAnim.ANIM_EASE_IN,null);
@@ -741,7 +743,7 @@ public class OC_EgmaSubTest1 extends OC_SectionController
     static String CatNameForIdx(String c,int idx)
     {
         if(idx > 1)
-            return String.format("%@%d",c,idx);
+            return String.format("%s%d",c,idx);
         return c;
     }
 
@@ -782,7 +784,7 @@ public class OC_EgmaSubTest1 extends OC_SectionController
         waitForSecs(0.3f);
     }
 
-    public void checkTarget(Object targ)
+    public void checkTarget(OBControl targ)
     {
         try
         {
@@ -793,7 +795,7 @@ public class OC_EgmaSubTest1 extends OC_SectionController
                 score++;
                 gotItRightBigTick(true);
                 waitForSecs(0.2f);
-                playNumber((Integer)((OBControl)targ).propertyValue("number"));
+                playNumber((Integer)targ.propertyValue("number"));
                 highlightLabels(Arrays.asList((OBLabel)targ),false);
                 waitForSecs(0.2f);
                 playSfxAudio("slide",false);
@@ -821,15 +823,15 @@ public class OC_EgmaSubTest1 extends OC_SectionController
     {
         if(status()  == STATUS_AWAITING_CLICK)
         {
-            target = (OBControl) findTarget(pt);
+            final OBControl obj = findTarget(pt);
             setStatus(STATUS_CHECKING);
-            if(target != null)
+            if(obj != null)
             {
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
                     public void run() throws Exception
                     {
-                        checkTarget(target);
+                        checkTarget(obj);
                     }
                 });
             }
