@@ -1113,7 +1113,6 @@ public class OC_PlayZoneMenu extends OC_Menu
         if (xmlPath != null)
         {
             menuButtons = new ArrayList<>();
-            OBGroup menuButton = (OBGroup)objectDict.get("menu_button");
             List<String> colours = OBUtils.randomlySortedArray(Arrays.asList(eventAttributes.get("button_colours").split(";")));
             int index = 0;
             List<Float> scaleOptions = OBUtils.randomlySortedArray(Arrays.asList(0.95f,0.975f,1.0f,1.025f,1.05f));
@@ -1131,12 +1130,14 @@ public class OC_PlayZoneMenu extends OC_Menu
                         List<OBXMLNode> xmlunits = xmlLevel.childrenOfType("unit");
                         for (OBXMLNode n : xmlunits)
                         {
+                            boolean specialIcon = false;
                             Map<String,String> map = new ArrayMap<>();
                             map.put("config", n.attributeStringValue("config"));
                             map.put("target", n.attributeStringValue("target"));
                             map.put("params", n.attributeStringValue("params"));
                             map.put("lang", n.attributeStringValue("lang"));
-
+                            if(n.attributeStringValue("special") != null)
+                                specialIcon = true;
                             String iconsPath = String.format("masterlists/%s/icons", playZoneMasterlist);
                             String completePath = String.format("%s/%s.png",iconsPath,n.attributeStringValue("icon"));
                             OBImage icon = OBImageManager.sharedImageManager().imageForPath(completePath);
@@ -1144,6 +1145,7 @@ public class OC_PlayZoneMenu extends OC_Menu
                             {
                                 continue;
                             }
+                            OBGroup menuButton = (OBGroup)objectDict.get(specialIcon ? "menu_button_special" : "menu_button");
                             OBGroup button = (OBGroup)menuButton.copy();
                             attachControl(button);
                             button.setPosition(menuButton.position());
@@ -1151,17 +1153,24 @@ public class OC_PlayZoneMenu extends OC_Menu
                             button.show();
 
                             //OBMisc.scaleControlToControl(icon, button,true);
+                            //icon.setRasterScale(icon.scale());
                             icon.setPosition(button.position());
 
-                            int colour = OBUtils.colorFromRGBString(colours.get(index%colours.size()));
-                            button.objectDict.get("colour").setFillColor(colour);
-                            OBRadialGradientPath topGradient = (OBRadialGradientPath)button.objectDict.get("top_gradient");
-                            int[] gradientColours = topGradient.gradientLayer.colours;
-                            gradientColours[gradientColours.length - 1] = colour;
-                            topGradient.gradientLayer.colours = gradientColours;
+                            if(!specialIcon)
+                            {
+                                int colour = OBUtils.colorFromRGBString(colours.get(index % colours.size()));
+
+                                button.objectDict.get("colour").setFillColor(colour);
+                                OBRadialGradientPath topGradient = (OBRadialGradientPath) button
+                                        .objectDict.get("top_gradient");
+                                int[] gradientColours = topGradient.gradientLayer.colours;
+                                gradientColours[gradientColours.length - 1] = colour;
+                                topGradient.gradientLayer.colours = gradientColours;
+                            }
                             OBControl iconMask = button.objectDict.get("icon").copy();
                             iconMask.setPosition(menuButton.position());
-                            iconMask.show();
+                            if(!specialIcon)
+                                iconMask.show();
 
                             PointF relativePoint2 = OB_Maths.relativePointInRectForLocation(icon.position(), button.getWorldFrame());
                             button.insertMember(icon,2,"button_icon");
@@ -1172,18 +1181,21 @@ public class OC_PlayZoneMenu extends OC_Menu
                             PointF relativePoint = OB_Maths.relativePointInRectForLocation(iconMask.position(), icon.getWorldFrame());
                             iconMask.setScale(1.0f/icon.scale());
                             iconMask.setPosition(OB_Maths.locationForRect(relativePoint, icon.bounds()));
-                            icon.setMaskControl(iconMask);
+                            if(!specialIcon)
+                                icon.setMaskControl(iconMask);
 
                             button.objectDict.get("top_layer").setZPosition(3);
                             button.setPosition(OB_Maths.locationForRect(0.5f,0.5f,this.bounds()));
                             button.setZPosition(10);
-                            button.setScale(menuButton.scale() * scaleOptions.get(index%scaleOptions.size()));
+                            if(!specialIcon)
+                                button.setScale(menuButton.scale() * scaleOptions.get(index%scaleOptions.size()));
                             menuButtons.add(button);
                             prepareForSpeedMeasure(button);
                             button.setProperty("start_scale",button.scale());
                             button.setProperty("radius",button.width()*0.5f);
                             button.setProperty("data",map);
-                            index++;
+                            if(!specialIcon)
+                                index++;
                             if(boxTouchMode)
                                 button.hide();
 
