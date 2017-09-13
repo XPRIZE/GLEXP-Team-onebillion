@@ -177,6 +177,8 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
     {
         if (getTotalShownObjects() == 0)
         {
+            setStatus(STATUS_CHECKING);
+            //
             waitForSecs(0.7);
             //
             gotItRightBigTick(true);
@@ -196,6 +198,8 @@ public class OC_Generic_AddRemoveObjectsToScene extends OC_Generic_Event
     {
         if (getTotalHiddenObjects() == 0)
         {
+            setStatus(STATUS_CHECKING);
+            //
             waitForSecs(0.7);
             //
             gotItRightBigTick(true);

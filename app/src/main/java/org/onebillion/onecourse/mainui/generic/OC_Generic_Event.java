@@ -239,7 +239,8 @@ public class OC_Generic_Event extends OC_SectionController
     {
         for (OBControl control : filterControls(".*"))
         {
-            control.setProperty("originalPosition", OC_Generic.copyPoint(control.position()));
+            control.setProperty("originalPosition", OC_Generic.copyPoint(control.getWorldPosition()));
+            //control.setProperty("originalPosition", OC_Generic.copyPoint(control.position()));
             //
             if (OBPath.class.isInstance(control))
             {
