@@ -3,6 +3,7 @@ package org.onebillion.onecourse.mainui.oc_playzone;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.os.SystemClock;
+import android.util.ArrayMap;
 import android.util.MutableBoolean;
 import android.view.View;
 import android.widget.Toast;
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -41,14 +43,14 @@ import org.onebillion.onecourse.utils.ScrollingHelper;
 
 public class OC_Library extends OC_SectionController
 {
-    List<List<MlUnit>> bookUnits;
+    List<List<Map<String,String>>> bookUnits;
     List<OBGroup> levelGroups;
     OBGroup currentGroup;
     OBControl currentIcon;
     PointF snapLoc;
     float limitLeft, limitRight, snapDist;
-    final static String LIBRARY_MASTERLIST = "library";
     boolean firstStart;
+    String libraryMasterlist;
 
     public void prepare()
     {
@@ -58,7 +60,8 @@ public class OC_Library extends OC_SectionController
         loadFingers();
         loadEvent("master");
         setSceneXX(currentEvent());
-        String xmlPath = String.format("masterlists/%s/units.xml", LIBRARY_MASTERLIST);
+        libraryMasterlist = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MASTER_LIST_LIBRARY);
+        String xmlPath = String.format("masterlists/%s/units.xml", libraryMasterlist);
         OBGroup border1 = (OBGroup)objectDict.get("border_1");
         OBGroup border2 = (OBGroup)objectDict.get("border_2");
         OBControl icon = objectDict.get("icon");
@@ -216,7 +219,7 @@ public class OC_Library extends OC_SectionController
 
     public void openBookForIcon(OBControl icon)
     {
-        final MlUnit unit = (MlUnit)icon.propertyValue("unit");
+        final Map<String,String> bookData = (Map<String,String>)icon.propertyValue("data");
         final String lastAppCode = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_APP_CODE);
 
         new OBRunnableSyncUI()
@@ -226,8 +229,8 @@ public class OC_Library extends OC_SectionController
             {
                 try
                 {
-                    MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
-                    if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
+                    MainActivity.mainActivity.updateConfigPaths(bookData.get("config"), false, bookData.get("lang"));
+                    if(MainViewController().pushViewControllerWithNameConfig(bookData.get("target"),bookData.get("config"),true,true,bookData.get("params")))
                     {
                         //unit started
                     }
@@ -235,7 +238,7 @@ public class OC_Library extends OC_SectionController
                     {
                         if (MainActivity.mainActivity.isDebugMode())
                         {
-                            Toast.makeText(MainActivity.mainActivity, unit.target + " hasn't been converted to Android yet.", Toast.LENGTH_LONG).show();
+                            Toast.makeText(MainActivity.mainActivity, bookData.get("target") + " hasn't been converted to Android yet.", Toast.LENGTH_LONG).show();
                             MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
                         }
                     }
@@ -390,6 +393,13 @@ public class OC_Library extends OC_SectionController
 
     }
 
+    /*
+                        [levelUnits addObject:@{@"config":[node attributeStringValue:@"config"],
+                                            @"target":[node attributeStringValue:@"target"],
+                                            @"params":[node attributeStringValue:@"params"],
+                                            @"icon":[node attributeStringValue:@"icon"],
+                                            @"lang":[node attributeStringValue:@"lang"]}];
+     */
     public void loadBookUnitsXML(String xmlPath)
     {
         if (xmlPath != null)
@@ -406,14 +416,17 @@ public class OC_Library extends OC_SectionController
                     List<OBXMLNode> xmlLevels = rootNode.childrenOfType("level");
                     for(OBXMLNode xmlLevel : xmlLevels)
                     {
-                        List<MlUnit> levelUnits = new ArrayList<>();
+                        List<Map<String,String>> levelUnits = new ArrayList<>();
                         List<OBXMLNode> xmlunits = xmlLevel.childrenOfType("unit");
                         for (OBXMLNode n : xmlunits)
                         {
-                            MlUnit m = MlUnit.mlUnitFromXMLNode(n);
-                            m.key = n.attributeStringValue("id");
-                            levelUnits.add(m);
-
+                            Map<String,String> map = new ArrayMap<>();
+                            map.put("config", n.attributeStringValue("config"));
+                            map.put("target", n.attributeStringValue("target"));
+                            map.put("params", n.attributeStringValue("params"));
+                            map.put("icon", n.attributeStringValue("icon"));
+                            map.put("lang", n.attributeStringValue("lang"));
+                            levelUnits.add(map);
 
                         }
                         bookUnits.add(levelUnits);
@@ -436,16 +449,16 @@ public class OC_Library extends OC_SectionController
         OBControl icon = objectDict.get("icon");
         int level = 1;
         int locIndex = 0;
-        for(List<MlUnit> booksLevel : bookUnits)
+        for(List<Map<String,String>> booksLevel : bookUnits)
         {
             OBControl levelControl = objectDict.get(String.format("level_%d",level));
             PointF startPoint = OBMisc.copyPoint(levelControl.position());
             startPoint.x = icon.position().x;
             List<OBControl> bookIcons = new ArrayList<>();
             int index = 0;
-            for(MlUnit unit : booksLevel)
+            for(Map<String,String> bookData : booksLevel)
             {
-                OBImage unitIcon = loadIconForUnit(unit);
+                OBImage unitIcon = loadIconForData(bookData);
                 PointF loc = OBMisc.copyPoint(startPoint);
                 loc.x += index*1.2*unitIcon.width();
                 unitIcon.setPosition(loc);
@@ -502,10 +515,10 @@ public class OC_Library extends OC_SectionController
         return loc;
     }
 
-    public OBImage loadIconForUnit(MlUnit unit)
+    public OBImage loadIconForData(Map<String,String> bookData)
     {
-        String iconsPath = String.format("masterlists/%s/icons", LIBRARY_MASTERLIST);
-        String imgName = String.format("%s_small.png",unit.icon);
+        String iconsPath = String.format("masterlists/%s/icons", libraryMasterlist);
+        String imgName = String.format("%s_small.png",bookData.get("icon"));
         OBImage bigic = null;
         String completePath = String.format("%s/%s",iconsPath,imgName);
 
@@ -515,7 +528,7 @@ public class OC_Library extends OC_SectionController
         {
             bigic = loadImageWithName("icon_default", new PointF(0,0), boundsf());
         }
-        bigic.setProperty("unit",unit);
+        bigic.setProperty("data",bookData);
         attachControl(bigic);
         bigic.setZPosition(20);
         OBControl icon = objectDict.get("icon");

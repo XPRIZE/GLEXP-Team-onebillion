@@ -108,6 +108,8 @@ public class MainActivity extends Activity
             CONFIG_OBB_PASSWORD = "obbPassword",
             CONFIG_FAT_CONTROLLER = "fatcontrollerclass",
             CONFIG_MASTER_LIST = "masterlist",
+            CONFIG_MASTER_LIST_PLAYZONE = "masterlist_playzone",
+            CONFIG_MASTER_LIST_LIBRARY = "masterlist_library",
             CONFIG_DEBUG = "debug",
             CONFIG_DEFAULT_AUDIO_VOLUME = "defaultAudioVolume",
             CONFIG_MIN_AUDIO_VOLUME = "minimumAudioVolume",

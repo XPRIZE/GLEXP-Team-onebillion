@@ -38,6 +38,8 @@ import org.onebillion.onecourse.utils.OBExpansionManager;
 import org.onebillion.onecourse.utils.OBImageManager;
 import org.onebillion.onecourse.utils.OBMisc;
 import org.onebillion.onecourse.utils.OBUtils;
+import org.onebillion.onecourse.utils.OBXMLManager;
+import org.onebillion.onecourse.utils.OBXMLNode;
 import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OCM_FatController;
 
@@ -73,6 +75,7 @@ public class OC_PlayZoneMenu extends OC_Menu
     float dragTravelDistance;
     float leftLimit, rightLimit, topLimit, bottomLimit;
     OCM_FatController fatController;
+    String playZoneMasterlist;
 
     @Override
     public void onPause()
@@ -144,66 +147,21 @@ public class OC_PlayZoneMenu extends OC_Menu
         OBControl btmRight = objectDict.get("bottom_bar_right");
         scrollHitBox = new RectF(btmLeft.right(), btmLeft.top(), btmRight.left() , btmLeft.bottom());
 
+        playZoneMasterlist = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MASTER_LIST_PLAYZONE);
+        String xmlPath = String.format("masterlists/%s/units.xml", playZoneMasterlist);
+
         OBControl backButton = objectDict.get("button_back");
         backButton.setZPosition(50);
         backButton.show();
         backButton.setProperty("activated",false);
 
-        menuButtons = new ArrayList<>();
-        OBGroup menuButton = (OBGroup)objectDict.get("menu_button");
-        List<String> colours = OBUtils.randomlySortedArray(Arrays.asList(eventAttributes.get("button_colours").split(";")));
-        int index = 0;
-        List<Float> scaleOptions = OBUtils.randomlySortedArray(Arrays.asList(0.95f,0.975f,1.0f,1.025f,1.05f));
         if(parameters != null)
             boxTouchMode = OBUtils.getBooleanValue(parameters.get("intro"));
         else
             boxTouchMode = false;
 
-        for(OBControl iconCont : filterControls("menu_icon_.*"))
-        {
-            iconCont.show();
-            OBGroup icon = new OBGroup(Arrays.asList(iconCont));
-            OBGroup button = (OBGroup)menuButton.copy();
-            attachControl(button);
-            button.setPosition(menuButton.position());
-            button.setScale(menuButton.scale());
-            button.show();
-            int colour = OBUtils.colorFromRGBString(colours.get(index%colours.size()));
-            button.objectDict.get("colour").setFillColor(colour);
-            OBRadialGradientPath topGradient = (OBRadialGradientPath)button.objectDict.get("top_gradient");
-            int[] gradientColours = topGradient.gradientLayer.colours;
-            gradientColours[gradientColours.length - 1] = colour;
-            topGradient.gradientLayer.colours = gradientColours;
-            OBControl iconMask = button.objectDict.get("icon").copy();
-            iconMask.setPosition(menuButton.position());
-            iconMask.show();
+        loadMenuButtonsForXml(xmlPath);
 
-            PointF relativePoint2 = OB_Maths.relativePointInRectForLocation(icon.position(), button.getWorldFrame());
-            button.insertMember(icon,2,"button_icon");
-            icon.setScale(icon.scale()/button.scale());
-            icon.setPosition(OB_Maths.locationForRect(relativePoint2, button.bounds()));
-            icon.setZPosition(2);
-
-            PointF relativePoint = OB_Maths.relativePointInRectForLocation(iconMask.position(), icon.getWorldFrame());
-            iconMask.setScale(1.0f/icon.scale());
-            iconMask.setPosition(OB_Maths.locationForRect(relativePoint, icon.bounds()));
-            icon.setMaskControl(iconMask);
-
-            button.objectDict.get("top_layer").setZPosition(3);
-            button.setPosition(OB_Maths.locationForRect(0.5f,0.5f,this.bounds()));
-            button.setZPosition(10);
-            button.setScale(menuButton.scale() * scaleOptions.get(index%scaleOptions.size()));
-            menuButtons.add(button);
-            prepareForSpeedMeasure(button);
-            button.setProperty("start_scale",button.scale());
-            button.setProperty("radius",button.width()*0.5f);
-            button.setProperty("icon",iconCont);
-            index++;
-            if(boxTouchMode)
-                button.hide();
-        }
-
-        Collections.reverse(menuButtons);
         objectDict.get("bottom_bar").setZPosition(20);
         objectDict.get("bottom_bar_gradient_left").setZPosition(49);
         objectDict.get("bottom_bar_gradient_right").setZPosition(49);
@@ -1072,14 +1030,13 @@ public class OC_PlayZoneMenu extends OC_Menu
 
     public boolean startSectionButton(OBControl button)
     {
-        OBControl icon = (OBControl)button.propertyValue("icon");
-        String target = (String)icon.attributes().get("target");
-        String config = (String)icon.attributes().get("config");
-        String params = (String)icon.attributes().get("params");
+        Map<String,String> buttonData = (Map<String,String>)button.propertyValue("data");
+        String target = (String)buttonData.get("target");
+        String config = (String)buttonData.get("config");
+        String params = (String)buttonData.get("params");
+        String lang = (String)buttonData.get("lang");
         if(target != null)
         {
-
-            String lang = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_LANGUAGE);
             if(config != null)
                 MainActivity.mainActivity.updateConfigPaths(config, false, lang != null ? lang : "en_GB");
 
@@ -1150,6 +1107,102 @@ public class OC_PlayZoneMenu extends OC_Menu
         }
         unlockScreen();
     }
+
+    public void loadMenuButtonsForXml(String xmlPath)
+    {
+        if (xmlPath != null)
+        {
+            menuButtons = new ArrayList<>();
+            OBGroup menuButton = (OBGroup)objectDict.get("menu_button");
+            List<String> colours = OBUtils.randomlySortedArray(Arrays.asList(eventAttributes.get("button_colours").split(";")));
+            int index = 0;
+            List<Float> scaleOptions = OBUtils.randomlySortedArray(Arrays.asList(0.95f,0.975f,1.0f,1.025f,1.05f));
+            try
+            {
+                OBXMLManager xmlman = new OBXMLManager();
+                InputStream is = OBUtils.getInputStreamForPath(xmlPath);
+                List<OBXMLNode> xml = xmlman.parseFile(is);
+                if(xml.size() > 0)
+                {
+                    OBXMLNode rootNode = xml.get(0);
+                    List<OBXMLNode> xmlLevels = rootNode.childrenOfType("level");
+                    for(OBXMLNode xmlLevel : xmlLevels)
+                    {
+                        List<OBXMLNode> xmlunits = xmlLevel.childrenOfType("unit");
+                        for (OBXMLNode n : xmlunits)
+                        {
+                            Map<String,String> map = new ArrayMap<>();
+                            map.put("config", n.attributeStringValue("config"));
+                            map.put("target", n.attributeStringValue("target"));
+                            map.put("params", n.attributeStringValue("params"));
+                            map.put("lang", n.attributeStringValue("lang"));
+
+                            String iconsPath = String.format("masterlists/%s/icons", playZoneMasterlist);
+                            String completePath = String.format("%s/%s.png",iconsPath,n.attributeStringValue("icon"));
+                            OBImage icon = OBImageManager.sharedImageManager().imageForPath(completePath);
+                            if(icon == null)
+                            {
+                                continue;
+                            }
+                            OBGroup button = (OBGroup)menuButton.copy();
+                            attachControl(button);
+                            button.setPosition(menuButton.position());
+                            button.setScale(menuButton.scale());
+                            button.show();
+
+                            //OBMisc.scaleControlToControl(icon, button,true);
+                            icon.setPosition(button.position());
+
+                            int colour = OBUtils.colorFromRGBString(colours.get(index%colours.size()));
+                            button.objectDict.get("colour").setFillColor(colour);
+                            OBRadialGradientPath topGradient = (OBRadialGradientPath)button.objectDict.get("top_gradient");
+                            int[] gradientColours = topGradient.gradientLayer.colours;
+                            gradientColours[gradientColours.length - 1] = colour;
+                            topGradient.gradientLayer.colours = gradientColours;
+                            OBControl iconMask = button.objectDict.get("icon").copy();
+                            iconMask.setPosition(menuButton.position());
+                            iconMask.show();
+
+                            PointF relativePoint2 = OB_Maths.relativePointInRectForLocation(icon.position(), button.getWorldFrame());
+                            button.insertMember(icon,2,"button_icon");
+                            icon.setScale(icon.scale()/button.scale());
+                            icon.setPosition(OB_Maths.locationForRect(relativePoint2, button.bounds()));
+                            icon.setZPosition(2);
+
+                            PointF relativePoint = OB_Maths.relativePointInRectForLocation(iconMask.position(), icon.getWorldFrame());
+                            iconMask.setScale(1.0f/icon.scale());
+                            iconMask.setPosition(OB_Maths.locationForRect(relativePoint, icon.bounds()));
+                            icon.setMaskControl(iconMask);
+
+                            button.objectDict.get("top_layer").setZPosition(3);
+                            button.setPosition(OB_Maths.locationForRect(0.5f,0.5f,this.bounds()));
+                            button.setZPosition(10);
+                            button.setScale(menuButton.scale() * scaleOptions.get(index%scaleOptions.size()));
+                            menuButtons.add(button);
+                            prepareForSpeedMeasure(button);
+                            button.setProperty("start_scale",button.scale());
+                            button.setProperty("radius",button.width()*0.5f);
+                            button.setProperty("data",map);
+                            index++;
+                            if(boxTouchMode)
+                                button.hide();
+
+                        }
+
+                    }
+
+                }
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+
+        }
+
+        Collections.reverse(menuButtons);
+    }
+
 
     public OBGroup loadAssetIcon(OC_PlayZoneAsset asset)
     {

@@ -157,12 +157,12 @@ public class OC_FlappyWord extends OC_SectionController
         bord.setPosition ( OB_Maths.locationForRect(0.5f,-0.1f,nest.frame()));
         bord.hide();
         eventWords = new ArrayList<>();
-        eventWords.add((OBWord)componentDict.get("fc_fork"));
-        eventWords.add((OBWord)componentDict.get("fc_trot"));
-        eventWords.add((OBWord)componentDict.get("fc_sand"));
-        eventWords.add((OBWord)componentDict.get("fc_spoon"));
-        eventWords.add((OBWord)componentDict.get("fc_sigh"));
-        eventWords.add((OBWord)componentDict.get("fc_salt"));
+        String[] wordList = parameters.get("words").split(",");
+        for(String phoid :wordList)
+        {
+            if(componentDict.get(phoid) != null && componentDict.get(phoid) instanceof OBWord)
+                eventWords.add((OBWord) componentDict.get(phoid));
+        }
         currentWordIndex =0;
         List<Integer> wColours = new ArrayList<>();
         for(String colourString : eventAttributes.get("word_colours").split(";"))
