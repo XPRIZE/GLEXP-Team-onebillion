@@ -461,7 +461,7 @@ public class OC_EgmaSubTest1 extends OC_SectionController
         OBControl faceright = presenter.control.objectDict.get("faceright");
         PointF currPos = presenter.control.position();
         PointF lp = presenter.control.convertPointFromControl(new PointF(0, 0),faceright);
-        PointF destpos = new PointF(bounds().width() + lp.x + 1, currPos.y);
+        PointF destpos = new PointF(bounds().width() + (presenter.control.width()/2f) - lp.x, currPos.y);
         presenter.walk(destpos);
         detachControl(presenter.control);
         presenter = null;
@@ -677,10 +677,13 @@ public class OC_EgmaSubTest1 extends OC_SectionController
         {
             detachControl(leftLabel);
             detachControl(rightLabel);
-            List<OBLabel> temparr = new ArrayList<>(leftLabs);
-            temparr.addAll(rightLabs);
-            for(OBControl c : temparr)
-                detachControl(c);
+            if (leftLabs != null)
+            {
+                List<OBLabel> temparr = new ArrayList<>(leftLabs);
+                temparr.addAll(rightLabs);
+                for(OBControl c : temparr)
+                    detachControl(c);
+            }
         }
         deleteControls("(rect|line|count|cont).*");
         loadEvent("finale");

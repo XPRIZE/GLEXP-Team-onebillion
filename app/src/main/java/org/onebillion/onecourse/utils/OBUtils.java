@@ -209,13 +209,8 @@ public class OBUtils
 
         try
         {
-            //I ADDED IT SO IT DOESNT BLOODY ERRORS OUT SO MUCH IN THE LOGS
-            File file1 = new File(path);
-            if(file1.exists())
-            {
-                InputStream is = MainActivity.mainActivity.getAssets().open(path);
-                return is;
-            }
+            InputStream is = MainActivity.mainActivity.getAssets().open(path);
+            return is;
         }
         catch (Exception e)
         {
