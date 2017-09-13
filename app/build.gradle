@@ -111,12 +111,12 @@ android {
         }
         childMenuTestVersion {
             minSdkVersion 22
-            applicationId 'org.onebillion.onecourse.child'
+            applicationId 'org.onebillion.onecourse.child.test'
             targetSdkVersion 23
             versionCode 1
             versionName '1.0'
-            resValue "string", "app_name", "onecourse - Child"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_child_sw_test.plist"'
+            resValue "string", "app_name", "Dev - Child"
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_test_sw.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/icon_child"
             ]

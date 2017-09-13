@@ -890,7 +890,10 @@ public class OC_Generic_Event extends OC_SectionController
             label.sizeToBoundingBox();
             //
             label.setProperty("originalPosition", OC_Generic.copyPoint(label.getWorldPosition()));
-            attachControl(label);
+            if (!insertIntoGroup)
+            {
+                attachControl(label);
+            }
         }
         return createdLabels;
     }
