@@ -104,6 +104,7 @@ public class OC_Generic_AddRemoveObjects_SelectCorrectNumber extends OC_Generic_
                 detachControl(number);
             }
         }
+        float smallestFontSize = 1000000000;
         numbers = new ArrayList<>();
         for (OBControl number_frame : sortedFilteredControls(getNumberPrefix() + ".*"))
         {
@@ -113,6 +114,14 @@ public class OC_Generic_AddRemoveObjects_SelectCorrectNumber extends OC_Generic_
             number_frame.hide();
             number.setColour(getNumberColor_normal());
             numbers.add(number);
+            //
+            if (number.fontSize() < smallestFontSize) smallestFontSize = number.fontSize();
+        }
+        //
+        for (OBLabel label : numbers)
+        {
+            label.setFontSize(smallestFontSize);
+            label.sizeToBoundingBox();
         }
         //
         if (equation != null && redraw)
