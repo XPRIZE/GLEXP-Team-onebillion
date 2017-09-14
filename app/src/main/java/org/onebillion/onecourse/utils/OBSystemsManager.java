@@ -1499,6 +1499,19 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
     /**
+     *
+     * @return dictionary of settings for the selected battery level
+     */
+    public Map<String, Object> getBatterySettingsForLevel (String settingKey)
+    {
+        Map<String, Object> dictionary = (Map<String, Object>) MainActivity.Config().get(MainActivity.CONFIG_BATTERY_LEVELS);
+        if(dictionary == null) return null;
+        if (settingKey == null) return null;
+        //
+        return (Map<String, Object>) dictionary.get(settingKey);
+    }
+
+    /**
      * @return float (0 to 1), indicating the relative brightness of the screen
      */
     public float getMaxScreenBrightnessForCurrentLevel ()

@@ -46,6 +46,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     public long sessionSegmentLastActive;
     public OCM_FatReceiver menu;
 
+    private float lockBatteryLevel;
     private int unitAttemptsCount, disallowStartHour, disallowEndHour, playzoneActiveHour;
     private OCM_MlUnitInstance currentUnitInstance;
     private OCM_User currentUser;
@@ -60,6 +61,8 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     private Handler timeoutHandler;
     private Runnable timeoutRunnable;
+
+    private boolean testMenuMode;
 
     public static final int SESSION_UNIT_COUNT = 15,
             SESSION_VALID_COUNT = 10,
@@ -383,6 +386,9 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     public void checkCurrentStatus()
     {
+        if(testMenuMode)
+            return;
+
         if(batteryStatusLow() ||
                 currentSessionLocked() ||
                 checkAndPrepareNewSession())
@@ -590,6 +596,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             showUserName = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_SHOW_USER_NAME);
             allowsTimeOuts = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_ALLOWS_TIMEOUT);
             playzoneActiveHour = MainActivity.mainActivity.configIntForKey(MainActivity.CONFIG_PLAYZONE_ACTIVE_HOUR);
+
+            Map<String, Object> criticalBatteryLevels =  OBSystemsManager.sharedManager.getBatterySettingsForLevel(MainActivity.CONFIG_BATTERY_LEVEL_CRITICAL);
+            if(criticalBatteryLevels == null) lockBatteryLevel = 10;
+            lockBatteryLevel = Float.valueOf((String)criticalBatteryLevels.get(MainActivity.CONFIG_MAXIMUM_BATTERY_VALUE));
         }
         catch (Exception e)
         {
@@ -599,6 +609,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             showUserName = false;
             allowsTimeOuts = true;
             playzoneActiveHour = 12;
+            lockBatteryLevel = 10;
         }
         initDB();
         //
@@ -613,6 +624,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         if (usesSetupMenu && !isSetupComplete)
         {
             // before overriding the app_code save it in the preferences to restore after setup is complete
+            testMenuMode = true;
             menuAppCode = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_APP_CODE);
             MainActivity.mainActivity.updateConfigPaths(MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SETUP_FOLDER), true, null);
 
@@ -631,6 +643,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             }
             else
             {
+                testMenuMode = false;
                 // setup is now complete: continue as usual
                 prepareAlarm();
                 //
@@ -1177,11 +1190,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                     MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
                     if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
-                        if (currentUnitInstance != null)
-                        {
-                            currentUnitInstance.sectionController = MainViewController().topController();
-                            startUnitInstanceTimeout(currentUnitInstance);
-                        }
+
                     }
                     else
                     {
@@ -1750,7 +1759,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     public boolean batteryStatusLow()
     {
         float batteryLevel = OBSystemsManager.sharedManager.getBatteryLevel();
-        return batteryLevel <= 10;
+        return batteryLevel <= lockBatteryLevel;
     }
 
 
