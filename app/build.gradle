@@ -135,7 +135,7 @@ android {
         }
         childMenu_enGB_TestVersion {
             minSdkVersion 22
-            applicationId 'org.onebillion.onecourse.child.en_GB'
+            applicationId 'org.onebillion.onecourse.child.en_GB.test'
             targetSdkVersion 23
             versionCode 1
             versionName '1.0'
