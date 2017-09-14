@@ -142,7 +142,7 @@ android {
             resValue "string", "app_name", "Dev - Child enGB"
             buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_test_enGB.plist"'
             manifestPlaceholders = [
-                    appIcon: "@mipmap/icon_child_en_gb"
+                    appIcon: "@mipmap/child_en_gb"
             ]
         }
         childMenu_ny_ {
