@@ -543,7 +543,11 @@ public class OBMainViewController extends OBViewController
             OBSectionController bottomvc = viewControllers.get(0);
             bottomvc.viewWillAppear(false);
             transition(bottomvc, topvc, false, 0.5);
-            viewControllers.remove(viewControllers.size() - 1);
+            List<OBSectionController> toRemove = new ArrayList<>();
+            for(int i=1; i<viewControllers.size(); i++)
+                toRemove.add(viewControllers.get(i));
+            if(toRemove.size() > 0)
+                viewControllers.removeAll(toRemove);
             showButtons(bottomvc.buttonFlagsWithFatController());
             showHideButtons(bottomvc.buttonFlagsWithFatController());
             bottomvc.start();

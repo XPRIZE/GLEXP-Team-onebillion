@@ -578,6 +578,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         OBControl highlight = targ.objectDict.get("highlight");
         highlight.show();
         stopFloatLoop();
+        playAudio(null);
         OBUtils.runOnMainThread(new OBUtils.RunLambda()
         {
             @Override

@@ -138,7 +138,7 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
 
     public boolean checkCurrentCommand()
     {
-        int curCommand = (int)fatController.getCurrentCommand().get("code") ;
+        int curCommand = (int)fatController.getCurrentCommand().get("code");
         if(curCommand == OCM_FatController.OFC_BATTERY_LOW)
         {
             if(lastCommand == OCM_FatController.OFC_SESSION_LOCKED)
@@ -394,7 +394,8 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
         animateNightSky();
         try
         {
-            OBSystemsManager.sharedManager.screenLock();
+            if(!this._aborting)
+                OBSystemsManager.sharedManager.screenLock();
         }catch (Exception e)
         {
 
@@ -408,7 +409,8 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
         animateNightSky();
         try
         {
-        OBSystemsManager.sharedManager.screenLock();
+            if(!this._aborting)
+                OBSystemsManager.sharedManager.screenLock();
         }catch (Exception e)
         {
 
@@ -441,7 +443,8 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
         walkPresenterOut();
         try
         {
-            OBSystemsManager.sharedManager.screenLock();
+            if(!this._aborting)
+                OBSystemsManager.sharedManager.screenLock();
         }catch (Exception e)
         {
 
@@ -466,7 +469,8 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
 
         try
         {
-            OBSystemsManager.sharedManager.screenLock();
+            if(!this._aborting)
+                OBSystemsManager.sharedManager.screenLock();
         }catch (Exception e)
         {
             e.printStackTrace();
