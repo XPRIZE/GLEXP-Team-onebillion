@@ -524,7 +524,7 @@ public class OC_Hw extends OC_SectionController
         {
             OBControl x = xboxes.get(i);
             Map<String, Object> dict = x.attributes();
-            dict.put(String.format("xbox%d",i+1), "id");
+            dict.put("id",String.format("xbox%d",i+1));
             x.setProperty("attrs",dict);
             x.setProperty("name",x.attributes().get("id"));
             letterGrp.objectDict.put((String)x.attributes().get("id"),x);
