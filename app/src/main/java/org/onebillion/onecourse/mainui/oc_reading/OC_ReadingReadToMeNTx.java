@@ -7,6 +7,7 @@ import android.graphics.PathMeasure;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
@@ -789,7 +790,7 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
                 waitAudio();
                 waitForSecs(0.1f);
                 demoCqType2b(false);
-                setStatus(STATUS_WAITING_FOR_ANSWER);
+                //setStatus(STATUS_WAITING_FOR_ANSWER);
             }
         }
         catch (Exception exception)
@@ -807,10 +808,11 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
     {
         if (status() == STATUS_WAITING_FOR_ANSWER)
         {
-            target = (OBControl) findTarget(pt);
-            if (cqType == 1 || target != null)
+            final OBControl obj = (OBControl) findTarget(pt);
+            if (cqType == 1 || obj != null)
             {
                 setStatus(STATUS_CHECKING);
+                target = obj;
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
                     @Override
                     public void run() throws Exception {
