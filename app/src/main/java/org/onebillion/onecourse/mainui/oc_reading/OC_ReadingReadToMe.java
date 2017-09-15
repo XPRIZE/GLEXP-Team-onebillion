@@ -118,6 +118,23 @@ public class OC_ReadingReadToMe extends OC_Reading
         return false;
     }
 
+    public void readingReplayAudio()
+    {
+        if (!_aborting && !MainViewController().navigating && status()!= STATUS_FINISHING && status() != STATUS_DOING_DEMO)
+        {
+            new AsyncTask<Void, Void, Void>()
+            {
+                @Override
+                protected Void doInBackground(Void... params)
+                {
+                    currPara = 0;
+                    readPage();
+                    return null;
+                }
+            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
+        }
+    }
+
     public void touchDownAtPoint(final PointF pt,View v)
     {
 
