@@ -209,8 +209,13 @@ public class OBUtils
 
         try
         {
-            InputStream is = MainActivity.mainActivity.getAssets().open(path);
-            return is;
+            File file = new File(path);
+            Boolean fileExists = file.exists();
+            if (fileExists)
+            {
+                InputStream is = MainActivity.mainActivity.getAssets().open(path);
+                return is;
+            }
         }
         catch (Exception e)
         {
