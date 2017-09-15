@@ -31,6 +31,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static org.onebillion.onecourse.utils.OBUtils.coalesce;
+
 /**
  * Created by alan on 07/06/16.
  */
@@ -315,10 +317,14 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
             }
             else if (cqType == 2)
             {
+                OBControl a1 = objectDict.get("answer1");
+                OBControl a2 = objectDict.get("answer2");
                 if (correctFirst())
-                    targets = Arrays.asList(objectDict.get("answer1"),objectDict.get("answer2"));
+                    targets = Arrays.asList(a1,a2);
                 else
-                    targets = Arrays.asList(objectDict.get("answer2"),objectDict.get("answer1"));
+                    targets = Arrays.asList(a2,a1);
+                a1.setProperty("nm","answer1");
+                a2.setProperty("nm","answer2");
                 demoCqType2a();
             }
             else if (cqType == 3)
@@ -496,29 +502,38 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
     }
     void setAnswerButtonActive(OBPath c)
     {
+        if ("act".equals(coalesce(c.propertyValue("st"),"--")))
+            return;
         lockScreen();
         c.setFillColor((Integer)c.propertyValue("fillcolour"));
         c.setStrokeColor((Integer)c.propertyValue("strokecolour"));
         c.lowlight();
         unlockScreen();
+        c.setProperty("st","act");
     }
 
     void setAnswerButtonInActive(OBPath c)
     {
+        if ("inact".equals(coalesce(c.propertyValue("st"),"--")))
+            return;
         lockScreen();
+        c.lowlight();
         c.setFillColor((Integer)c.propertyValue("desatfillcolour"));
         c.setStrokeColor((Integer)c.propertyValue("desatstrokecolour"));
-        c.lowlight();
         unlockScreen();
+        c.setProperty("st","inact");
     }
 
     void setAnswerButtonSelected(OBPath c)
     {
+        if ("sel".equals(coalesce(c.propertyValue("st"),"--")))
+            return;
         lockScreen();
-        c.setFillColor((Integer)c.propertyValue("fillcolour"));
+        c.setFillColor((Integer)c.propertyValue("selcolour"));
         c.setStrokeColor((Integer)c.propertyValue("strokecolour"));
-        c.highlight();
+        //c.highlight();
         unlockScreen();
+        c.setProperty("st","sel");
     }
 
     public void loadCQPage()
@@ -551,7 +566,9 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
                 float l = c.lineWidth();
                 ((OBPath) p).outdent(l);
                 int col = c.fillColor();
+                int selcol = Color.argb(255,Color.red(col)/2,Color.green(col)/2,Color.blue(col)/2);
                 c.setProperty("fillcolour", col);
+                c.setProperty("selcolour", selcol);
                 c.setProperty("desatfillcolour", OBUtils.DesaturatedColour(col, 0.2f));
                 col = c.strokeColor();
                 c.setProperty("strokecolour", col);
