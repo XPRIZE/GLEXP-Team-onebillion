@@ -1126,5 +1126,22 @@ public class MainActivity extends Activity
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && targetSdkVersion >= Build.VERSION_CODES.M;
     }
 
+    public void restartApplication()
+    {
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                Intent i = getBaseContext().getPackageManager()
+                        .getLaunchIntentForPackage(getBaseContext().getPackageName());
+                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                finish();
+                startActivity(i);
+            }
+        });
+
+    }
+
 }
 

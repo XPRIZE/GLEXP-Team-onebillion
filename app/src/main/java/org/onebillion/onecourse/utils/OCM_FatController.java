@@ -412,7 +412,9 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     {
         cancelTimeout();
 
-        unitInstance.mlUnit.targetDuration = 5;
+        if(unitInstance.mlUnit.targetDuration <= 0)
+            return;
+
         timeoutRunnable = new Runnable()
         {
             @Override
@@ -1762,6 +1764,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         return batteryLevel <= lockBatteryLevel;
     }
 
-
+    public void deleteDBProgressAndReboot()
+    {
+        DBSQL.deleteDB();
+        MainActivity.mainActivity.restartApplication();
+    }
 
 }
