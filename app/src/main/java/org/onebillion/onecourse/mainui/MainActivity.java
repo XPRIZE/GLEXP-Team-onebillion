@@ -269,6 +269,7 @@ public class MainActivity extends Activity
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
+        getWindow().addFlags(WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY);
         //
         mainActivity = this;
         doGLStuff();
