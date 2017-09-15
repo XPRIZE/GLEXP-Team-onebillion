@@ -1,13 +1,20 @@
 package org.onebillion.onecourse.mainui.oc_community;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.text.InputType;
 import android.util.ArrayMap;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
+import android.widget.TextView;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
@@ -43,6 +50,8 @@ import java.util.Objects;
 
 public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
 {
+    final static String SETUP_MENU_PASSWORD = "pop";
+
     final static int TARGET_BUTTON = 1,
             TARGET_STUDY = 2,
             TARGET_COMMUNITY = 3;
@@ -59,6 +68,10 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
     OBControl emitter;
     boolean communityModeActive, playZoneOpened;
     List<OBGroup> communityModeIcons;
+
+    RectF secretBoxLeft, secretBoxRight;
+    List<RectF> secretBoxUnlockList;
+    int secretBoxTouchIndex;
 
     /*
     OC_Section functions
@@ -153,6 +166,12 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         OBControl lidOverlay = box.objectDict.get("lid_glow_overlay");
         lidOverlay.setProperty("start_height",lidOverlay.height());
         lidOverlay.setProperty("start_top",lidOverlay.top());
+
+        float boxSize = 0.1f*this.bounds().height();
+        secretBoxLeft = new RectF(0,this.bounds().bottom -boxSize,boxSize,this.bounds().bottom);
+        secretBoxRight = new RectF(this.bounds().right - boxSize,this.bounds().bottom -boxSize,this.bounds().right,this.bounds().bottom);
+        secretBoxUnlockList = Arrays.asList(secretBoxLeft,secretBoxRight,secretBoxLeft,secretBoxLeft,secretBoxRight);
+        secretBoxTouchIndex = 0;
     }
 
     public void refreshCurrentDayAndAudio()
@@ -235,6 +254,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                 if (button != null)
                 {
                     setStatus(STATUS_BUSY);
+                    secretBoxTouchIndex = 0;
                     OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                     {
                         public void run() throws Exception
@@ -254,9 +274,10 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                 }
             }
             else if (currentTarget == TARGET_STUDY &&
-                    currentBigIcon != null && currentBigIcon.frame.contains( pt.x, pt.y))
+                    currentBigIcon != null && currentBigIcon.frame.contains(pt.x, pt.y))
             {
                 setStatus(STATUS_BUSY);
+                secretBoxTouchIndex = 0;
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
                     public void run() throws Exception
@@ -273,7 +294,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                 {
 
                     setStatus(STATUS_BUSY);
-
+                    secretBoxTouchIndex = 0;
                     OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                     {
                         public void run() throws Exception
@@ -290,7 +311,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                     if(checkPlayZoneBoxStatus())
                     {
                         setStatus(STATUS_BUSY);
-
+                        secretBoxTouchIndex = 0;
                         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                         {
                             public void run() throws Exception
@@ -316,8 +337,21 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                     }
                 }
             }
+            checkSecretTouchBox(pt);
         }
+    }
 
+    public void delayedSecretIndexReset(final long time)
+    {
+        OBUtils.runOnOtherThreadDelayed(2, new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                if(time == statusTime)
+                    secretBoxTouchIndex = 0;
+            }
+        });
     }
 
     public void checkBigButton() throws Exception
@@ -1670,7 +1704,127 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
     }
 
 
+    public void checkSecretTouchBox(PointF pt)
+    {
+        if(secretBoxUnlockList.size() > secretBoxTouchIndex)
+        {
 
+            if(secretBoxUnlockList.get(secretBoxTouchIndex).contains(pt.x,pt.y))
+            {
+                setStatus(STATUS_BUSY);
+                secretBoxTouchIndex++;
+                if(secretBoxTouchIndex >= secretBoxUnlockList.size())
+                {
+                    showPasswordCheckDialog();
+                    secretBoxTouchIndex = 0;
+                }
+                long time = setStatus(STATUS_AWAITING_CLICK);
+                delayedSecretIndexReset(time);
+
+            }
+            else if(secretBoxUnlockList.get(0).contains(pt.x,pt.y))
+            {
+                setStatus(STATUS_BUSY);
+                secretBoxTouchIndex = 1;
+                long time = setStatus(STATUS_AWAITING_CLICK);
+                delayedSecretIndexReset(time);
+            }
+            else
+            {
+                secretBoxTouchIndex = 0;
+            }
+
+        }
+    }
+
+
+    public void showPasswordCheckDialog()
+    {
+        final AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.mainActivity);
+        final EditText input = new EditText(MainActivity.mainActivity);
+        input.setInputType(InputType.TYPE_CLASS_TEXT| InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        alert.setView(input);
+        alert.setTitle("Password Required");
+        alert.setPositiveButton("OK", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialog, int which)
+            {
+                String pass = (input.getText()).toString();
+                checkPasswordAndProceed(pass);
+            }
+        });
+        final AlertDialog dialog = alert.show();
+        input.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if ((event != null && (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) || (actionId == EditorInfo.IME_ACTION_DONE)) {
+                    String pass = (input.getText()).toString();
+                    checkPasswordAndProceed(pass);
+                    if(dialog != null && dialog.isShowing())
+                    {
+                        dialog.cancel();
+                    }
+
+                }
+                return false;
+            }
+        });
+
+        OBUtils.runOnOtherThreadDelayed(10, new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                if(dialog != null && dialog.isShowing())
+                {
+                    dialog.cancel();
+                }
+            }
+        });
+
+    }
+
+    public void checkPasswordAndProceed(String pass)
+    {
+        if(pass.equals(SETUP_MENU_PASSWORD))
+        {
+            final AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.mainActivity);
+            final EditText input = new EditText(MainActivity.mainActivity);
+            input.setInputType(InputType.TYPE_CLASS_TEXT| InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            alert.setTitle("Data Deletion Warning");
+            alert.setMessage("This action will RESET progress on this device and resturn to setup menu. Do you wish to continue?");
+            alert.setPositiveButton("YES", new DialogInterface.OnClickListener()
+            {
+                @Override
+                public void onClick(DialogInterface dialog, int which)
+                {
+                    fatController.deleteDBProgressAndReboot();
+                }
+            });
+
+            alert.setNegativeButton("NO", new DialogInterface.OnClickListener()
+            {
+                @Override
+                public void onClick(DialogInterface dialog, int which)
+                {
+                    dialog.cancel();
+                }
+            });
+
+            final AlertDialog dialog = alert.show();
+            OBUtils.runOnOtherThreadDelayed(10, new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    if(dialog != null && dialog.isShowing())
+                    {
+                        dialog.cancel();
+                    }
+                }
+            });
+        }
+    }
 
 
 }
