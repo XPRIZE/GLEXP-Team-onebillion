@@ -83,6 +83,8 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
     float lastAmt;
     double lastAmtTime,dragSpeed;
     boolean readOnly = false;
+    float touchDownX,touchDownY;
+    long touchDownTime;
 
     public int buttonFlags()
     {
@@ -112,6 +114,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
     public void prepare()
     {
         super.prepare();
+        setStatus(0);
         loadFingers();
         String p = parameters.get("readonly");
         if (p != null)
@@ -650,8 +653,12 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
             cursor.setPosition(pt);
         }
     }
+
     public void touchDownAtPoint(PointF pt,View v)
     {
+        touchDownX = pt.x;
+        touchDownY = pt.y;
+        touchDownTime = System.currentTimeMillis();
         if(status() == STATUS_AWAITING_CLICK  && !keyboardLocked)
         {
             if(textBoxGroup.frame().contains(pt.x, pt.y))
@@ -786,8 +793,27 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         }
     }
 
+    boolean shouldExit(PointF pt)
+    {
+        if ((status() == 0))
+            return false;
+        if(textBoxGroup.frame().contains(pt.x, pt.y))
+        {
+            if (System.currentTimeMillis() - touchDownTime > 500)
+                return false;
+            if (OB_Maths.PointDistance(pt.x,pt.y,touchDownX,touchDownY) > applyGraphicScale(25))
+                return false;
+            return true;
+        }
+        return true;
+    }
     public void touchUpAtPoint(PointF pt,View v)
     {
+        if (readOnly && shouldExit(pt))
+        {
+            exitEvent();
+            return;
+        }
         if(!dragMode && lastKey != null)
         {
             OBGroup temp = lastKey;

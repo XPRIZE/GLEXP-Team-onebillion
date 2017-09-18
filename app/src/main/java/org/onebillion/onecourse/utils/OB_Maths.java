@@ -289,6 +289,13 @@ public class OB_Maths
         return od;
     }
 
+    public static float SquaredDistance(float p0x,float p0y,float p1x,float p1y)
+    {
+        float dpx = p1x - p0x;
+        float dpy = p1y - p0y;
+        return (dpx * dpx + dpy * dpy);
+    }
+
     public static float SquaredDistance(PointF p0,PointF p1)
     {
         PointF dp = DiffPoints(p0,p1);
@@ -299,6 +306,12 @@ public class OB_Maths
     {
         return (float)Math.sqrt(SquaredDistance(p0,p1));
     }
+
+    public static float PointDistance(float p0x,float p0y,float p1x,float p1y)
+    {
+        return (float)Math.sqrt(SquaredDistance(p0x,p0y,p1x,p1y));
+    }
+
 
     public static PointF NormalisedVector(PointF v)
     {
