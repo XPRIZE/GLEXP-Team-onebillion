@@ -26,7 +26,9 @@ import org.onebillion.onecourse.utils.OB_Maths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -355,7 +357,10 @@ public class OC_Reading extends OC_SectionController
             else
                 loadEvent("normal");
         }
+        Map<String,String> dict = new HashMap(eventAttributes);
         loadEvent("lines");
+        dict.putAll(eventAttributes);
+        eventAttributes = dict;
     }
 
     public boolean showBackButton()

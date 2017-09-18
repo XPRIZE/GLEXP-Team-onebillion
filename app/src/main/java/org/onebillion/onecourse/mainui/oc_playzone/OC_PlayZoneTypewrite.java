@@ -86,7 +86,8 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
 
     public int buttonFlags()
     {
-        return OBMainViewController.SHOW_TOP_LEFT_BUTTON;
+        int tlflag = readOnly? 0:OBMainViewController.SHOW_TOP_LEFT_BUTTON;
+        return tlflag;
     }
 
     void setUpKeyboard()
