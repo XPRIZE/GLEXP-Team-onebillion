@@ -209,18 +209,11 @@ public class OBUtils
 
         try
         {
-            File file = new File(path);
-            Boolean fileExists = file.exists();
-            if (fileExists)
-            {
-                InputStream is = MainActivity.mainActivity.getAssets().open(path);
-                return is;
-            }
+            InputStream is = MainActivity.mainActivity.getAssets().open(path);
+            return is;
         }
         catch (Exception e)
         {
-            MainActivity.log("OBUtils:getInputStreamPath:unable to find bundled asset: " + path);
-            e.printStackTrace();
         }
 
         //
@@ -248,7 +241,7 @@ public class OBUtils
             catch (Exception e)
             {
                 MainActivity.log("OBUtils:getInputStreamPath:unable to find external/expansion asset: " + extendedPath);
-                e.printStackTrace();
+                //e.printStackTrace();
             }
         }
         //
@@ -265,7 +258,7 @@ public class OBUtils
         catch (Exception e)
         {
             MainActivity.log("OBUtils:getInputStreamPath:unable to find literal path asset: " + path);
-            e.printStackTrace();
+            //e.printStackTrace();
         }
         //
         MainActivity.log("OBUtils:getInputStreamForPath:unable to find file [" + path + "]");
