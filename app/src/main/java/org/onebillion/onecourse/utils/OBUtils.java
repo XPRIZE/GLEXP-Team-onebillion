@@ -205,8 +205,6 @@ public class OBUtils
     {
         if (path == null) return null;
         //
-
-
         try
         {
             InputStream is = MainActivity.mainActivity.getAssets().open(path);
@@ -214,14 +212,14 @@ public class OBUtils
         }
         catch (Exception e)
         {
+            // Do nothing
         }
-
         //
         for (File mounted : OBExpansionManager.sharedManager.getExternalExpansionFolders())
         {
             String extendedPath = mounted.getAbsolutePath() + "/" + path;
             //
-            MainActivity.log("OBUtils:getInputStreamForPath:looking for [" + extendedPath + "]");
+            //MainActivity.log("OBUtils:getInputStreamForPath:looking for [" + extendedPath + "]");
             //
             try
             {
@@ -229,18 +227,18 @@ public class OBUtils
                 Boolean fileExists = file.exists();
                 if (fileExists)
                 {
-                    MainActivity.log("OBUtils:getInputStreamPath:found external/expansion asset: " + extendedPath);
+                    //MainActivity.log("OBUtils:getInputStreamPath:found external/expansion asset: " + extendedPath);
                     InputStream is = new FileInputStream(file);
                     return is;
                 }
                 else
                 {
-                    MainActivity.log("OBUtils:getInputStreamPath:unable to find external/expansion asset: " + extendedPath);
+                    //MainActivity.log("OBUtils:getInputStreamPath:unable to find external/expansion asset: " + extendedPath);
                 }
             }
             catch (Exception e)
             {
-                MainActivity.log("OBUtils:getInputStreamPath:unable to find external/expansion asset: " + extendedPath);
+                //MainActivity.log("OBUtils:getInputStreamPath:unable to find external/expansion asset: " + extendedPath);
                 //e.printStackTrace();
             }
         }
@@ -257,7 +255,7 @@ public class OBUtils
         }
         catch (Exception e)
         {
-            MainActivity.log("OBUtils:getInputStreamPath:unable to find literal path asset: " + path);
+            //MainActivity.log("OBUtils:getInputStreamPath:unable to find literal path asset: " + path);
             //e.printStackTrace();
         }
         //
