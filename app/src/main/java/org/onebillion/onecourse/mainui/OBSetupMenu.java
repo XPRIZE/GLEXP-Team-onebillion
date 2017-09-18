@@ -12,6 +12,8 @@ import android.content.res.AssetFileDescriptor;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.os.PowerManager;
+import android.os.RemoteException;
 import android.text.format.DateFormat;
 import android.view.View;
 import android.view.Window;
@@ -669,7 +671,8 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                     public void run () throws Exception
                     {
                         Intent i = new Intent("android.intent.action.ACTION_REQUEST_SHUTDOWN");
-                        i.putExtra("android.intent.extra.KEY_CONFIRM", true);
+                        i.putExtra("android.intent.extra.KEY_CONFIRM", false);
+                        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         MainActivity.mainActivity.startActivity(i);
                     }
                 });
