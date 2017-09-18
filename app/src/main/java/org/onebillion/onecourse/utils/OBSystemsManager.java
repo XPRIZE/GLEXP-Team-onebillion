@@ -91,6 +91,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 
     private OBUtils.RunLambda dateSetCompletionBlock, timeSetCompletionBlock;
 
+    private String currentUnit = null;
 
     public OBSystemsManager (Activity activity)
     {
@@ -499,11 +500,21 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 
     public void refreshStatus ()
     {
-        String info = String.format("Battery [%s]    Brightness[%s]    Volume[%s]", batteryReceiver.printStatus(), brightnessManager.printStatus(), settingsContentObserver.printVolumeStatus());
+        String info = String.format("Bat [%s]    Br[%s]    Vol[%s]    %s", batteryReceiver.printStatus(),
+                brightnessManager.printStatus(), settingsContentObserver.printVolumeStatus(), currentUnit != null ? String.format("U[%s]", currentUnit) : "");
         //
         if (statusLabel != null)
         {
             statusLabel.setString(info);
+        }
+    }
+
+    public void setCurrentUnit(String unit)
+    {
+        if (MainActivity.mainActivity.isDebugMode())
+        {
+            currentUnit = unit;
+            refreshStatus();
         }
     }
 

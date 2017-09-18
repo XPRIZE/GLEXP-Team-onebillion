@@ -73,8 +73,6 @@ public class OC_TestEvent extends OC_SectionController
                         else
                         {
                             fatController.triggerTimeoutUnit();
-
-
                         }
 
 

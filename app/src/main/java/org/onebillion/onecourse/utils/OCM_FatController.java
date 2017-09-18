@@ -108,6 +108,12 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         return currentUnitInstance == null;
     }
 
+    public interface SectionOpeningCallback
+    {
+        public void run (OCM_MlUnitInstance unitInstance, boolean success);
+    }
+
+
     public void loadMasterListIntoDB()
     {
         DBSQL db = null;
@@ -723,6 +729,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     @Override
     public void completeEvent(OBSectionController cont)
     {
+        OBSystemsManager.sharedManager.setCurrentUnit(null);
         cancelTimeout();
         int starColour = -1;
         if(currentUnitInstance != null)
@@ -1205,6 +1212,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                 }
                 catch (Exception exception)
                 {
+                    if (MainActivity.mainActivity.isDebugMode())
+                    {
+                        Toast.makeText(MainActivity.mainActivity, unit.target + " failed to open the unit.", Toast.LENGTH_LONG).show();
+                        MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                    }
                     Logger logger = Logger.getAnonymousLogger();
                     logger.log(Level.SEVERE, "Error in runOnMainThread", exception);
 
@@ -1214,7 +1226,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         }.run();
     }
 
-    public void startSectionByUnit(final OCM_MlUnit unit, boolean study)
+    public void startSectionByUnit(final OCM_MlUnit unit, boolean study, final SectionOpeningCallback openingCallback)
     {
         sectionStartedWithUnit(unit, study ? OCM_MlUnitInstance.INSTANCE_TYPE_STUDY : OCM_MlUnitInstance.INSTANCE_TYPE_REVIEW);
         final String lastAppCode = (String)MainActivity.mainActivity.config.get(MainActivity.CONFIG_APP_CODE);
@@ -1231,24 +1243,38 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                     // if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
                         currentUnitInstance.sectionController = MainViewController().topController();
+                        if (MainActivity.mainActivity.isDebugMode())
+                        {
+                            OBSystemsManager.sharedManager.setCurrentUnit(unit.key);
+                        }
                         startUnitInstanceTimeout(currentUnitInstance);
+                        openingCallback.run(currentUnitInstance, true);
+
                     }
                     else
                     {
                         if (MainActivity.mainActivity.isDebugMode())
                         {
                             Toast.makeText(MainActivity.mainActivity, unit.target + " hasn't been converted to Android yet.", Toast.LENGTH_LONG).show();
-                            MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
                         }
+                        MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                        openingCallback.run(currentUnitInstance, false);
                     }
                 }
-                catch (Exception exception)
+                catch (Exception ex)
                 {
+                    if (MainActivity.mainActivity.isDebugMode())
+                    {
+                        Toast.makeText(MainActivity.mainActivity, unit.target + " failed to open.", Toast.LENGTH_LONG).show();
+                    }
                     Logger logger = Logger.getAnonymousLogger();
-                    logger.log(Level.SEVERE, "Error in runOnMainThread", exception);
+                    logger.log(Level.SEVERE, "Error in runOnMainThread", ex);
 
                     MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                    openingCallback.run(currentUnitInstance, false);
                 }
+
+
             }
         }.run();
 

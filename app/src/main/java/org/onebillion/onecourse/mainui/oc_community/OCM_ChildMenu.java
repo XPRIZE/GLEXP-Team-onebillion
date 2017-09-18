@@ -358,24 +358,61 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
     {
         currentBigIcon.highlight();
         OCM_MlUnit unit = (OCM_MlUnit)currentBigIcon.settings.get("unit");
-        fatController.startSectionByUnit(unit,true);
-        playAudio(null);
-        waitForSecs(0.5f);
-        currentBigIcon.lowlight();
-        resetPresenter();
+        fatController.startSectionByUnit(unit, true, new OCM_FatController.SectionOpeningCallback()
+        {
+            @Override
+            public void run(final OCM_MlUnitInstance unitInstance, final boolean success)
+            {
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run() throws Exception
+                    {
+                        playAudio(null);
+                        waitForSecs(0.5f);
+                        currentBigIcon.lowlight();
+                        resetPresenter();
+                        if(!success)
+                        {
+                            fatController.triggerTimeoutUnit();
+                            start();
+                        }
+                    }
+                });
+            }
+        });
     }
 
 
     public void checkSmallButton(OBGroup button) throws Exception
     {
-        OBControl icon = button.objectDict.get("icon");
+        final OBControl icon = button.objectDict.get("icon");
         icon.setHighlightColour(Color.argb(100,0,0,0));
         OCM_MlUnit unit = (OCM_MlUnit)button.settings.get("unit");
-        fatController.startSectionByUnit(unit,false);
-        playAudio(null);
-        waitForSecs(0.5f);
-        icon.lowlight();
-        resetPresenter();
+        fatController.startSectionByUnit(unit, false, new OCM_FatController.SectionOpeningCallback()
+        {
+            @Override
+            public void run(final OCM_MlUnitInstance unitInstance,final boolean success)
+            {
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run() throws Exception
+                    {
+                        playAudio(null);
+                        waitForSecs(0.5f);
+                        icon.lowlight();
+                        resetPresenter();
+                        if(!success)
+                        {
+                            fatController.triggerTimeoutUnit();
+                            start();
+                        }
+                    }
+                });
+            }
+        });
+
     }
 
     @Override
@@ -1770,7 +1807,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
             }
         });
 
-        OBUtils.runOnOtherThreadDelayed(10, new OBUtils.RunLambda()
+        OBUtils.runOnOtherThreadDelayed(15, new OBUtils.RunLambda()
         {
             @Override
             public void run() throws Exception
