@@ -184,18 +184,18 @@ public class OC_PlayZoneAsset extends DBObject
     {
         if (thumbnail != null)
         {
-            File file = new File(thumbnail);
+            File file = new File(pathToAsset(thumbnail));
             file.delete();
         }
 
         Map<String, String> parDict = paramsDictionary();
         if (type == ASSET_VIDEO)
         {
-            File file = new File(parDict.get("video"));
+            File file = new File(pathToAsset(parDict.get("video")));
             file.delete();
         } else if (type == ASSET_DOODLE)
         {
-            File file = new File(parDict.get("doodle"));
+            File file = new File(pathToAsset(parDict.get("doodle")));
             file.delete();
         }
 

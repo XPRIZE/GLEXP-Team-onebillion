@@ -64,11 +64,11 @@ public class OC_Doodle extends OC_SectionController
     {
         float[] HSV = new float[3];
         float[] HSV2 = new float[3];
-        float hInc = 6;
+        float hInc = 2;
         float x,y;
         float vectorx,vectory;
         OBRadialGradientPath gradient;
-        float slowFactor = 0.1f;
+        float slowFactor = 0.05f;
         public DoodleGradient(int col,float px,float py,float vx,float vy,OBPath template)
         {
             Path p = template.path();
@@ -501,7 +501,7 @@ public class OC_Doodle extends OC_SectionController
             };
         }
         messageCheckHandler.removeCallbacks(messageCheckRunnable);
-        messageCheckHandler.postDelayed(messageCheckRunnable,100);
+        messageCheckHandler.postDelayed(messageCheckRunnable,250);
     }
 
     public void drawPoint(PointF point)
