@@ -218,6 +218,8 @@ public class OC_Count20_S1 extends OC_SectionController
         {
             if (!performSel("endOfScene",currentEvent()))
             {
+                waitForSecs(0.2);
+                waitAudio();
                 waitForSecs(0.5);
                 nextScene();
             }

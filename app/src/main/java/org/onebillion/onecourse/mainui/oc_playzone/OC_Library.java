@@ -12,6 +12,7 @@ import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBImage;
 import org.onebillion.onecourse.mainui.MainActivity;
+import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.MlUnit;
 import org.onebillion.onecourse.utils.OBAnim;
@@ -51,6 +52,12 @@ public class OC_Library extends OC_SectionController
     float limitLeft, limitRight, snapDist;
     boolean firstStart;
     String libraryMasterlist;
+
+    @Override
+    public int buttonFlags()
+    {
+        return OBMainViewController.SHOW_TOP_LEFT_BUTTON;
+    }
 
     public void prepare()
     {

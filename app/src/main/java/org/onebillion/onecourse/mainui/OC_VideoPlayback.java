@@ -124,7 +124,8 @@ public class OC_VideoPlayback extends OC_SectionController
         super.prepare();
         loadEvent("mastera");
         subtitleTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("subtitletextsize")));
-        loadPlaylist();
+        String playlist = parameters.get("playlist");
+        loadPlaylist(playlist);
         loadVideoThumbnails();
         //
         hideControls("video_preview.*");
@@ -335,6 +336,12 @@ public class OC_VideoPlayback extends OC_SectionController
         //
         String videoID = videoPlaylist.get(idx);
         String subtitles = videoXMLDict.get(videoID).attributeStringValue("subtitles");
+        if (subtitles == null || subtitles.equalsIgnoreCase(""))
+        {
+            MainActivity.log("OC_VideoPlayback:loadSubtitles: subtitles not set for video " + videoID);
+            return;
+        }
+        //
         String srtPath = getLocalPath(subtitles);
         //
         if (srtPath == null)
@@ -462,11 +469,12 @@ public class OC_VideoPlayback extends OC_SectionController
     }
 
 
-    private void loadPlaylist ()
+    private void loadPlaylist (String playlistName)
     {
+        String playlistxml = String.format("%s.xml",playlistName);
         videoPlaylist = new ArrayList<>();
         videoXMLDict = new HashMap<>();
-        String xmlPath = getConfigPath("playlist.xml");
+        String xmlPath = getConfigPath(playlistxml);
         try
         {
             OBXMLManager xmlManager = new OBXMLManager();
@@ -482,7 +490,7 @@ public class OC_VideoPlayback extends OC_SectionController
         }
         catch (Exception e)
         {
-            MainActivity.log("OC_VideoPlayback:loadPlaylist:exception caught while loading playlist.xml");
+            MainActivity.log("OC_VideoPlayback:loadPlaylist:exception caught while loading "+playlistxml);
             e.printStackTrace();
         }
     }
@@ -547,6 +555,7 @@ public class OC_VideoPlayback extends OC_SectionController
         maximumX = videoPreviewGroup.position().x + gradientNudge;
         minimumX = maximumX - (videoPreviewGroup.right() - mask.right()) - gradientNudge;
         videoPreviewGroup.setPosition(new PointF(maximumX, videoPreviewGroup.position().y));
+        videoPreviewGroup.setShouldTexturise(false);
         selectPreview(videoPreviewIdx);
         mask.setHidden(true);
         //
@@ -704,6 +713,7 @@ public class OC_VideoPlayback extends OC_SectionController
                 currentVideoPlayerVolume = 1;
                 videoPlayer.player.setVolume(currentVideoPlayerVolume, currentVideoPlayerVolume);
                 //
+                setStatus(STATUS_IDLE);
                 OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(syncSubtitlesRunnable);
                 OBSystemsManager.sharedManager.getMainHandler().post(syncSubtitlesRunnable);
             }
@@ -822,12 +832,14 @@ public class OC_VideoPlayback extends OC_SectionController
 //            MainActivity.log("OC_VideoPlayback:touchUpAtPoint:status is waiting for resume: skipping further processing");
 //            return;
 //        }
-        if (status() == 0)
+        if (status() != STATUS_IDLE)
         {
             return;
         }
+        setStatus(STATUS_BUSY);
         if (videoScrollState > 0)
         {
+
             boolean mustSelect = videoScrollState != VIDEO_SCROLL_MOVED;
             videoScrollState = VIDEO_SCROLL_NONE;
             if (mustSelect)
@@ -844,7 +856,7 @@ public class OC_VideoPlayback extends OC_SectionController
                         }
                         selectPreview(i);
                         scrollPreviewToVisible(i, true);
-                        setStatus(STATUS_IDLE);
+
                         setUpVideoPlayerForIndex(i, true);
                         return;
                     }
@@ -964,9 +976,16 @@ public class OC_VideoPlayback extends OC_SectionController
         else
         {
             currentVideoPlayerVolume = 1;
-            videoPlayer.player.setVolume(currentVideoPlayerVolume, currentVideoPlayerVolume);
-            //
-            videoPlayer.start();
+            if(videoPlayer != null && videoPlayer.player != null)
+            {
+                videoPlayer.player.setVolume(currentVideoPlayerVolume, currentVideoPlayerVolume);
+                //
+                videoPlayer.start();
+            }
+            else
+            {
+                setUpVideoPlayerForIndex(currentVideoIndex, true);
+            }
         }
     }
 
