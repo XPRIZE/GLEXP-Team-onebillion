@@ -99,7 +99,7 @@ android {
 //        }
         childMenu {
             minSdkVersion 22
-            applicationId 'org.onebillion.onecourse.child'
+            applicationId 'org.onebillion.onecourse.child.pedro'
             targetSdkVersion 23
             versionCode 1
             versionName '1.0'
