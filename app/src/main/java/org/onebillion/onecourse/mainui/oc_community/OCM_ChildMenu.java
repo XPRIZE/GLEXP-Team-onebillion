@@ -50,7 +50,7 @@ import java.util.Objects;
 
 public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
 {
-    final static String SETUP_MENU_PASSWORD = "pop";
+    final static String SETUP_MENU_PASSWORD = "obxprize";
 
     final static int TARGET_BUTTON = 1,
             TARGET_STUDY = 2,
