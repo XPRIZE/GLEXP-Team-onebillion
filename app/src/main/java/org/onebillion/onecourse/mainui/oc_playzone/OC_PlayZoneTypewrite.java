@@ -853,7 +853,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
     {
         int[] wh = OC_PlayZoneAsset.thumbnailSize();
         OC_PlayZoneTypewrite twro = new OC_PlayZoneTypewrite();
-        twro.params = "typewrite/readonly=true/theme="+currentEvent()+"/text="+text+"/textscale=1.5";
+        twro.params = "typewrite/readonly=true/theme="+currentTheme+"/text="+text+"/textscale=1.5";
         twro.prepare();
         Bitmap bm = twro.thumbnail(wh[0],wh[1],true);
         return bm;
