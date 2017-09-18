@@ -126,6 +126,18 @@ public class OBConnectionManager
     }
 
 
+    public void forgetAllNetworks()
+    {
+        WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(MainActivity.WIFI_SERVICE);
+        List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
+        for( WifiConfiguration i : list )
+        {
+            wifiManager.removeNetwork(i.networkId);
+            wifiManager.saveConfiguration();
+        }
+    }
+
+
     public String getCurrentWifiSSID()
     {
         WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(MainActivity.WIFI_SERVICE);
