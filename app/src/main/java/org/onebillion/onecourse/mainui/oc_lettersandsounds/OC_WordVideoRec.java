@@ -489,8 +489,8 @@ public class OC_WordVideoRec extends OC_SectionController
     public void onResume()
     {
         videoRecorder.onResume();
-        videoPlayer.onResume();
-        cameraManager.onResume();
+        // videoPlayer.onResume();
+       // cameraManager.onResume();
         super.onResume();
     }
 
@@ -500,9 +500,9 @@ public class OC_WordVideoRec extends OC_SectionController
         super.onPause();
         try
         {
-            cameraManager.onPause();
-            videoRecorder.onPause();
-            videoPlayer.onPause();
+         //   cameraManager.onPause();
+           videoRecorder.onPause();
+         //   videoPlayer.onPause();
 
 
         } catch(Exception e)
