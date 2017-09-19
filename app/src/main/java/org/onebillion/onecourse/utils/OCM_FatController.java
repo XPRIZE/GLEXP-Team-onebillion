@@ -890,7 +890,6 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     public List<OCM_MlUnit> getUnitsForGrid()
     {
-
         List<OCM_MlUnit> unitsList = new ArrayList<>();
         DBSQL db = null;
         try
@@ -1156,7 +1155,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                     whereMap.put("unitid",String.valueOf(unitData.get("unitid")));
                     whereMap.put("seqNo",String.valueOf(unitData.get("seqNo")));
                     ContentValues contentValues = new ContentValues();
-                    int starColour = starColour = availableColours.size() > index ? availableColours.get(index) : OB_Maths.randomInt(1, COLOUR_COUNT);
+                    int starColour = availableColours.size() > index ? availableColours.get(index) : OB_Maths.randomInt(1, COLOUR_COUNT);
                     contentValues.put("starColour",starColour);
                     db.doUpdateOnTable(DBSQL.TABLE_UNIT_INSTANCES,whereMap,contentValues);
                     index++;
@@ -1194,6 +1193,9 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             @Override
             public void ex ()
             {
+                String lang = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_LANGUAGE);
+                if(lang == null)
+                    lang = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_DEFAULT_LANGUAGE);
                 try
                 {
                     MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
@@ -1206,7 +1208,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                         if (MainActivity.mainActivity.isDebugMode())
                         {
                             Toast.makeText(MainActivity.mainActivity, unit.target + " hasn't been converted to Android yet.", Toast.LENGTH_LONG).show();
-                            MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                            MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, lang);
                         }
                     }
                 }
@@ -1215,12 +1217,12 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                     if (MainActivity.mainActivity.isDebugMode())
                     {
                         Toast.makeText(MainActivity.mainActivity, unit.target + " failed to open the unit.", Toast.LENGTH_LONG).show();
-                        MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                        MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, lang);
                     }
                     Logger logger = Logger.getAnonymousLogger();
                     logger.log(Level.SEVERE, "Error in runOnMainThread", exception);
 
-                    MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                    MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, lang);
                 }
             }
         }.run();
@@ -1236,11 +1238,15 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             @Override
             public void ex ()
             {
+                String lang = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_LANGUAGE);
+                if(lang == null)
+                    lang = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_DEFAULT_LANGUAGE);
                 try
                 {
-                    //MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
-                    if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OC_TestEvent","oc-childmenu",true,true,"test"))
-                    // if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
+
+                    MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
+                    //if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OC_TestEvent","oc-childmenu",true,true,"test"))
+                     if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
                         currentUnitInstance.sectionController = MainViewController().topController();
                         if (MainActivity.mainActivity.isDebugMode())
@@ -1257,7 +1263,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                         {
                             Toast.makeText(MainActivity.mainActivity, unit.target + " hasn't been converted to Android yet.", Toast.LENGTH_LONG).show();
                         }
-                        MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                        MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, lang);
                         openingCallback.run(currentUnitInstance, false);
                     }
                 }
@@ -1270,7 +1276,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                     Logger logger = Logger.getAnonymousLogger();
                     logger.log(Level.SEVERE, "Error in runOnMainThread", ex);
 
-                    MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                    MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, lang);
                     openingCallback.run(currentUnitInstance, false);
                 }
 
@@ -1296,8 +1302,8 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                     if(first)
                         stringBuffer.append("/first=true");
 
-                    String lang = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_LANGUAGE);
-                    MainActivity.mainActivity.updateConfigPaths("oc-playzone", false,lang != null ? lang : "en_GB");
+                    String lang = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_DEFAULT_LANGUAGE);
+                    MainActivity.mainActivity.updateConfigPaths("oc-playzone", false, lang);
                     if(MainViewController().pushViewControllerWithNameConfig("OC_PlayZoneMenu","oc-playzone",false,true,stringBuffer.toString()))
                     {
 
