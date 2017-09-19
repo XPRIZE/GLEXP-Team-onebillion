@@ -142,6 +142,7 @@ public class MainActivity extends Activity
             CONFIG_BACKUP_SEND_WHEN_CONNECTED = "backupSendWhenConnected",
             CONFIG_BACKUP_WIFI = "backupWifi",
             CONFIG_BACKUP_URL = "backupURL",
+            CONFIG_BACKUP_WORKING_DIRECTORY = "backupWorkingDirectory",
             CONFIG_BACKUP_INTERVAL = "backupInterval",
             CONFIG_DISALLOW_HOURS = "disallowHours",
             CONFIG_BUNDLED_OBB_FILENAME = "bundledOBBFilename",

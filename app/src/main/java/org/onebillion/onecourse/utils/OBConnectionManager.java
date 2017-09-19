@@ -625,7 +625,7 @@ public class OBConnectionManager
                 }
                 //
                 final int networkId = wfMgr.addNetwork(wfc);
-                MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.networkID " + networkId);
+                MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.networkID [" + networkId + "]");
                 //
                 if (networkId != -1)
                 {

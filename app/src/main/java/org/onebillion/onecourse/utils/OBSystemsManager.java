@@ -31,6 +31,7 @@ import android.widget.LinearLayout;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
 import org.onebillion.onecourse.controls.OBLabel;
@@ -1121,16 +1122,24 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         return (value != null && value.equalsIgnoreCase("true"));
     }
 
+
     public String backup_Wifi_SSID ()
     {
         return MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BACKUP_WIFI);
     }
 
-    public URL backup_URL () throws MalformedURLException
+
+    public String backup_URL ()
     {
-        String url = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BACKUP_URL);
-        return new URL("http://" + url);
+        return MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BACKUP_URL);
     }
+
+
+    public String backup_workingDirectory ()
+    {
+        return MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BACKUP_WORKING_DIRECTORY);
+    }
+
 
     public int backup_interval () // MINUTES
     {
@@ -1138,7 +1147,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         if (value_string == null)
         {
             MainActivity.log("OBSystemsManager.backup_interval Please enter a value in settings.plist for " + MainActivity.CONFIG_BACKUP_INTERVAL + ". Using default 120mins");
-            return 120;
+            return 180;
         }
         int value = Integer.parseInt(value_string);
         return value;
@@ -1158,9 +1167,10 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         return result;
     }
 
-    public void connectToWifiAndSynchronizeData ()
+
+    public void connectToWifiAndSynchronizeTime ()
     {
-        MainActivity.log("OBSystemsManager.backup_connectToWifiAndUploadDatabase");
+        MainActivity.log("OBSystemsManager.connectToWifiAndSynchronizeTime");
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             @Override
@@ -1172,8 +1182,31 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                     public void run () throws Exception
                     {
                         time_synchronizeAndUpdate();
-                        backup_uploadDatabase();
                         connectionManager.disconnectWifi();
+                    }
+                });
+            }
+        });
+    }
+
+
+
+
+    public void connectToWifiAndSynchronizeTimeAndData ()
+    {
+        MainActivity.log("OBSystemsManager.connectToWifiAndSynchronizeTimeAndData");
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run () throws Exception
+            {
+                connectionManager.connectToNetwork_scanForWifi(backup_Wifi_SSID(), "", new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run () throws Exception
+                    {
+                        time_synchronizeAndUpdate();
+                        backup_uploadDatabase_ftp(true);
                     }
                 });
             }
@@ -1189,26 +1222,111 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         return backupLock;
     }
 
-    public void backup_uploadDatabase ()
+
+    public void backup_uploadDatabase_ftp (Boolean disconnectAfter)
     {
-        MainActivity.log("OBSystemsManager.backup_uploadDatabase attempting lock");
+        MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp attempting lock");
         if (backup_getLock().tryLock())
         {
             try
             {
-                MainActivity.log("OBSystemsManager.backup_uploadDatabase.generating database backup");
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp.generating database backup");
                 final boolean freshBackup = true;
                 String fileURL = (freshBackup) ? OBSQLiteHelper.getSqlHelper().backupDatabase() : OBSQLiteHelper.getSqlHelper().getLatestDatabaseBackup();
                 if (fileURL == null) fileURL = OBSQLiteHelper.getSqlHelper().backupDatabase();
                 //
                 if (fileURL == null)
                 {
-                    MainActivity.log("OBSystemsManager.backup_uploadDatabase.could not generate a database backup");
+                    MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp.could not generate a database backup");
+                }
+                else
+                {
+                    File file = new File(fileURL);
+                    FTPClient ftpClient = new FTPClient();
+                    //
+                    ftpClient.connect(InetAddress.getByName(backup_URL()));
+                    ftpClient.login("anonymous", "");
+                    ftpClient.changeWorkingDirectory(backup_workingDirectory());
+                    //
+                    String reply = ftpClient.getReplyString();
+                    //
+                    if (reply.contains("250") || reply.contains("230"))
+                    {
+                        ftpClient.setFileType(org.apache.commons.net.ftp.FTP.BINARY_FILE_TYPE);
+                        BufferedInputStream buffIn = null;
+                        buffIn = new BufferedInputStream(new FileInputStream(file));
+                        ftpClient.enterLocalPassiveMode();
+                        boolean result = ftpClient.storeFile(file.getName(), new FileInputStream(file));
+                        buffIn.close();
+                        ftpClient.logout();
+                        ftpClient.disconnect();
+                        //
+                        if (result)
+                        {
+                            MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp updating lastBackupTimeStamp");
+                            long currentTime = System.currentTimeMillis() / 1000;
+                            OBPreferenceManager.setPreference("lastBackupTimeStamp", String.format("%d", currentTime));
+                            //
+                            MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp disconnecting from wifi");
+                            //
+                            OBUtils.runOnMainThread(new OBUtils.RunLambda()
+                            {
+                                @Override
+                                public void run () throws Exception
+                                {
+                                    Toast.makeText(MainActivity.mainActivity, "Database has been uploaded to the server", Toast.LENGTH_LONG).show();
+                                }
+                            });
+                        }
+                        else
+                        {
+                            MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp error while uploading FTP file");
+                        }
+                        //
+                        if (disconnectAfter)
+                        {
+                            connectionManager.disconnectWifi();
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp exception caught");
+                e.printStackTrace();
+            }
+            //
+            MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp releasing lock");
+            backup_getLock().unlock();
+        }
+        else
+        {
+            MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp backup already in progress");
+        }
+    }
+
+
+
+    public void backup_uploadDatabase_php ()
+    {
+        MainActivity.log("OBSystemsManager.backup_uploadDatabase_php attempting lock");
+        if (backup_getLock().tryLock())
+        {
+            try
+            {
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase_php.generating database backup");
+                final boolean freshBackup = true;
+                String fileURL = (freshBackup) ? OBSQLiteHelper.getSqlHelper().backupDatabase() : OBSQLiteHelper.getSqlHelper().getLatestDatabaseBackup();
+                if (fileURL == null) fileURL = OBSQLiteHelper.getSqlHelper().backupDatabase();
+                //
+                if (fileURL == null)
+                {
+                    MainActivity.log("OBSystemsManager.backup_uploadDatabase_php.could not generate a database backup");
                     return;
                 }
                 //
                 File file = new File(fileURL);
-                URL url = backup_URL();
+                URL url = new URL("http://" + backup_URL());
                 //
                 String attachmentName = "file";
                 String attachmentFileName = "database.sql";
@@ -1218,7 +1336,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 //
                 HttpURLConnection httpUrlConnection = null;
 
-                MainActivity.log("OBSystemsManager.backup_uploadDatabase.URL: " + url);
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase_php.URL: " + url);
                 httpUrlConnection = (HttpURLConnection) url.openConnection();
                 httpUrlConnection.setUseCaches(false);
                 httpUrlConnection.setDoOutput(true);
@@ -1257,17 +1375,16 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 //
                 String response = stringBuilder.toString();
                 //
-                MainActivity.log("OBSystemsManager.backup_uploadDatabase response from server: " + response);
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase_php response from server: " + response);
                 //
                 responseStream.close();
                 httpUrlConnection.disconnect();
                 //
-                MainActivity.log("OBSystemsManager.backup_uploadDatabase updating lastBackupTimeStamp");
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase_php updating lastBackupTimeStamp");
                 long currentTime = System.currentTimeMillis() / 1000;
                 OBPreferenceManager.setPreference("lastBackupTimeStamp", String.format("%d", currentTime));
-//                MainActivity.mainActivity.addToPreferences("lastBackupTimeStamp", String.format("%d", currentTime));
                 //
-                MainActivity.log("OBSystemsManager.backup_uploadDatabase disconnecting from wifi");
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase_php disconnecting from wifi");
 
                 //
                 OBUtils.runOnMainThread(new OBUtils.RunLambda()
@@ -1281,15 +1398,15 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             }
             catch (Exception e)
             {
-                MainActivity.log("OBSystemsManager.backup_uploadDatabase exception caught");
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase_php exception caught");
                 e.printStackTrace();
             }
-            MainActivity.log("OBSystemsManager.backup_uploadDatabase releasing lock");
+            MainActivity.log("OBSystemsManager.backup_uploadDatabase_php releasing lock");
             backup_getLock().unlock();
         }
         else
         {
-            MainActivity.log("OBSystemsManager.backup_uploadDatabase backup already in progress");
+            MainActivity.log("OBSystemsManager.backup_uploadDatabase_php backup already in progress");
         }
     }
 

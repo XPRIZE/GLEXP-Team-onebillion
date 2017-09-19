@@ -105,7 +105,7 @@ public class OC_TestMenu extends OBSectionController
             @Override
             public void onClick(View v)
             {
-                OBSystemsManager.sharedManager.connectToWifiAndSynchronizeData();
+                OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTimeAndData();
             }
         });
 
@@ -121,7 +121,7 @@ public class OC_TestMenu extends OBSectionController
                     @Override
                     public void run () throws Exception
                     {
-                        OBSystemsManager.sharedManager.backup_uploadDatabase();
+                        OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTimeAndData();
                     }
                 });
             }
