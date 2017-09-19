@@ -455,6 +455,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     public void onDestroy ()
     {
         MainActivity.log("OBSystemsManager.onDestroy detected");
+        DBSQL.finalise();
     }
 
 
