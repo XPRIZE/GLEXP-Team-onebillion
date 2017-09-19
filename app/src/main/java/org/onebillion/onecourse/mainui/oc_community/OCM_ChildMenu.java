@@ -1049,14 +1049,18 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
 
     public void animateBigIconSlide() throws Exception
     {
-        playSfxAudio("bigbutton",false);
-        List<OBAnim> anims = new ArrayList<>();
-        anims.add(OBAnim.propertyAnim("left",currentBigIcon.left() - this.bounds().width(),currentBigIcon));
-        if(previousBigIcon != null)
-            anims.add(OBAnim.propertyAnim("left",previousBigIcon.left() - this.bounds().width(),previousBigIcon));
-        OBAnimationGroup.runAnims(anims,0.6,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
-        if(previousBigIcon != null)
-            detachControl(previousBigIcon);
+        if(currentBigIcon != null)
+        {
+            playSfxAudio("bigbutton", false);
+            List<OBAnim> anims = new ArrayList<>();
+            anims.add(OBAnim.propertyAnim("left", currentBigIcon.left() - this.bounds().width(), currentBigIcon));
+
+            if (previousBigIcon != null)
+                anims.add(OBAnim.propertyAnim("left", previousBigIcon.left() - this.bounds().width(), previousBigIcon));
+            OBAnimationGroup.runAnims(anims, 0.6, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+            if (previousBigIcon != null)
+                detachControl(previousBigIcon);
+        }
     }
 
     public void animateLogoOn() throws Exception
