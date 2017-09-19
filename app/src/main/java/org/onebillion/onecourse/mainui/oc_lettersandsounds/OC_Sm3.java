@@ -116,7 +116,7 @@ public class OC_Sm3 extends OC_Sm2
     {
         String result = defaultAudio;
         if(label.text().length()  > 1 && currentAudio(String.format("ALT.%s",defaultAudio))!= null)
-            result = String.format("ALT.%",defaultAudio);
+            result = String.format("ALT.%s",defaultAudio);
         return result;
     }
 
