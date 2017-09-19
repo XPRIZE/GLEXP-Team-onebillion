@@ -401,6 +401,7 @@ public class OC_Patterns_S5 extends OC_Generic_Event
                 if (placement.attributes().get("type").equals(control.attributes().get("type")))
                 {
                     control.moveToPoint(placement.getWorldPosition(), 0.1f, false);
+                    control.disable();
                     //
                     gotItRightBigTick(false);
                     //
