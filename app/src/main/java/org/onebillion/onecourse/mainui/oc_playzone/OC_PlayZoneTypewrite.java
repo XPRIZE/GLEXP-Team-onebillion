@@ -138,6 +138,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         textBox.setZPosition(5);
         textBox.setFillColor(Color.WHITE);
         textBox.setZPosition(50);
+        textBox.setMasksToBounds(true);
         attachControl(textBox);
 
         p = parameters.get("text");
@@ -190,6 +191,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         OBControl tbb = objectDict.get("text_box_bg");
         tbb.setZPosition(49);
         textBoxGroup.setPosition(tbb.position());
+        textBoxGroup.setMasksToBounds(true);
         attachControl(textBoxGroup);
 
         if (!readOnly)
