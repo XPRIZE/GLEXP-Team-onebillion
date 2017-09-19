@@ -426,7 +426,8 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
 
                     if (audl == null)
                         break;
-                    presenter.speak(audl,this);
+
+                    presenter.speakWithToken(audl,token,this);
                     checkSequenceToken(token);
                     waitForSecs(1.2f);
                 }
