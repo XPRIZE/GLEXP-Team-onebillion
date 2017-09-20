@@ -536,11 +536,11 @@ public class OBConnectionManager
             @Override
             public void onReceive (Context context, Intent intent)
             {
-                MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.scanResultsReceiver.onReceive");
+//                MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.scanResultsReceiver.onReceive");
                 //
                 final WifiConfiguration wfc = new WifiConfiguration();
                 wfc.SSID = "\"".concat(ssid).concat("\"");
-                wfc.status = WifiConfiguration.Status.DISABLED;
+                wfc.status = WifiConfiguration.Status.ENABLED;
                 wfc.priority = 40;
                 //
                 List<ScanResult> networkList = wfMgr.getScanResults();
@@ -549,7 +549,7 @@ public class OBConnectionManager
                 {
                     for (ScanResult network : networkList)
                     {
-                        MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.available network: " + network.toString());
+                        //MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.available network: " + network.toString());
                         //
                         if (ssid.equals(network.SSID))
                         {
@@ -625,6 +625,7 @@ public class OBConnectionManager
                 }
                 //
                 final int networkId = wfMgr.addNetwork(wfc);
+                //
                 MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.networkID [" + networkId + "]");
                 //
                 if (networkId != -1)
@@ -644,14 +645,6 @@ public class OBConnectionManager
                                 OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(timeoutRunnable);
                                 connectToNetwork_connectToWifi(ssid, password, block);
                             }
-//                            else if (newInfo.getSupplicantState() == SupplicantState.INACTIVE)
-//                            {
-//                                MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi. detected INACTIVE for target Wifi. Attempting to reconnect");
-//                                wfMgr.disconnect();
-//                                wfMgr.enableNetwork(networkId, true);
-//                                wfMgr.reconnect();
-////                                connectToNetwork_connectToWifi(ssid, password, block);
-//                            }
                         }
                     };
                     timeoutRunnable = new Runnable()
@@ -661,14 +654,14 @@ public class OBConnectionManager
                         {
                             MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.timeoutRunnable.timeout occured. Scanning for Wifi again.");
                             connectToNetwork_scanForWifi(ssid, password, block);
-//                            MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.timeoutRunnable.timeout occured. cancelling attempting to backup database");
-//                            connectToNetWork_complete(false, block);
                         }
                     };
                     //
                     boolean result = wfMgr.saveConfiguration();
                     if (!result)
+                    {
                         MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.PROBLEM saving configuration");
+                    }
                     //
                     MainActivity.mainActivity.registerReceiver(scanResultsReceiver, new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION));
                     MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.enabling network");
@@ -686,13 +679,27 @@ public class OBConnectionManager
                 }
             }
         };
-        MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.registering receiver");
+//        MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.registering receiver");
         MainActivity.mainActivity.registerReceiver(scanResultsReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
         //
-        MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.starting scan");
-        wfMgr.setWifiEnabled(true);
-        wfMgr.disconnect();
-        wfMgr.startScan();
+        //MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.starting scan");
+        Boolean wifiWasEnabled = wfMgr.setWifiEnabled(true);
+        if (!wifiWasEnabled)
+        {
+            MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.ERROR occured while enabling wifi");
+        }
+        //
+        Boolean wifiWasDisconnected = wfMgr.disconnect();
+        if (!wifiWasDisconnected)
+        {
+            MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.ERROR occured while disconnecting wifi");
+        }
+        //
+        Boolean scanHasStarted = wfMgr.startScan();
+        if (!scanHasStarted)
+        {
+            MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.ERROR occured while starting scan");
+        }
     }
 
 

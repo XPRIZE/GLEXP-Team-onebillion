@@ -22,6 +22,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.provider.Settings;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.view.Display;
@@ -52,6 +53,7 @@ import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
@@ -60,6 +62,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -1166,6 +1169,40 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         boolean result = elapsed > backup_interval() * 60;
         MainActivity.log("OBSystemsManager.backup_isRequired --> " + result);
         return result;
+    }
+
+
+    public String device_getUUID()
+    {
+        String uuid = "unknown_uuid";
+        //
+        try
+        {
+            List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface nif : all)
+            {
+                if (!nif.getName().equalsIgnoreCase("wlan0")) continue;
+                byte[] macBytes = nif.getHardwareAddress();
+                if (macBytes != null)
+                {
+                    StringBuilder res1 = new StringBuilder();
+                    for (byte b : macBytes)
+                    {
+                        res1.append(Integer.toHexString(b & 0xFF) + ":");
+                    }
+                    if (res1.length() > 0)
+                    {
+                        res1.deleteCharAt(res1.length() - 1);
+                    }
+                    uuid = res1.toString().replace(":", "");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+        }
+        //
+        return uuid;
     }
 
 

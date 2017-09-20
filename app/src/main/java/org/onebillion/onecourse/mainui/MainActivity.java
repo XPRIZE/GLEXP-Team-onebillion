@@ -197,7 +197,8 @@ public class MainActivity extends Activity
             Manifest.permission.CAMERA,
             Manifest.permission.INTERNET,
             Manifest.permission.ACCESS_NETWORK_STATE,
-            Manifest.permission.ACCESS_WIFI_STATE
+            Manifest.permission.ACCESS_WIFI_STATE,
+            Manifest.permission.READ_PHONE_STATE
     };
     public Map<String, Object> config;
     public List<OBUser> users;

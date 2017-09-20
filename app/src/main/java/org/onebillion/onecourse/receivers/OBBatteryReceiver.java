@@ -35,28 +35,27 @@ public class OBBatteryReceiver extends BroadcastReceiver
     {
         if (MainActivity.mainActivity == null) return;
         //
+        Boolean isNowCharging = false;
+        //
         int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-//        isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
         int chargePlug = -1;
         if(status != -1)
         {
-            isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING;
-
             chargePlug = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
-
+            //
+            isNowCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || chargePlug > 0;
+            //
             usbCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_USB;
-
             acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
-
+            //
             batteryLevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
             batteryScale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-
-            MainActivity.log(" battery level : " + batteryLevel + ", battery scale: " + batteryScale);
+            //
+            MainActivity.log("OBBatteryReceiver.onReceive: battery level : " + batteryLevel + ", battery scale: " + batteryScale + " " + (isNowCharging ? "CHARGING " : ""));
         }
-
-
         //
-        MainActivity.log(printStatus());
+        MainActivity.log("OBBatteryReceiver.onReceive: " + printStatus());
+        //
         if(MainActivity.mainActivity != null)
         {
             MainActivity.mainActivity.onBatteryStatusReceived(getBatteryLevel(),cablePluggedIn());
@@ -66,22 +65,42 @@ public class OBBatteryReceiver extends BroadcastReceiver
         {
             OBSystemsManager.sharedManager.refreshStatus();
             //
-            MainActivity.log(" chargePlug flag value: " + chargePlug + ", battery status: " + status);
+            MainActivity.log("OBBatteryReceiver.onReceive: chargePlug flag value: " + chargePlug + ", battery status: " + status);
             //
-            if (chargePlug > 0 && OBSystemsManager.sharedManager.shouldSendBackupWhenConnected())
+            Boolean actionIsRequired = !isCharging && isNowCharging;
+            isCharging = isNowCharging;
+            //
+            if (actionIsRequired)
             {
-                MainActivity.log("OBBatteryReceiver.Device is now connected to a power supply.");
-                if (OBSystemsManager.sharedManager.backup_isRequired())
+                MainActivity.log("OBBatteryReceiver.onReceive: it is now charging and/or plugged in. Action is required");
+                //
+                if (OBSystemsManager.sharedManager.shouldSendBackupWhenConnected())
                 {
-                    MainActivity.log("OBBatteryReceiver.Backup is required. Synchronising time and data.");
-                    OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTimeAndData();
+                    if (OBSystemsManager.sharedManager.backup_isRequired())
+                    {
+                        MainActivity.log("OBBatteryReceiver.onReceive: Backup is required. Synchronising time and data.");
+                        OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTimeAndData();
+                    }
+                    else
+                    {
+                        MainActivity.log("OBBatteryReceiver.onReceive: Backup is NOT required. Synchronising time");
+                        OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTime();
+                    }
                 }
                 else
                 {
-                    MainActivity.log("OBBatteryReceiver.Backup is NOT required. Synchronising time");
+                    MainActivity.log("OBBatteryReceiver.onReceive: Shouldn't send backup when connecting, just synchronising time");
                     OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTime();
                 }
             }
+            else
+            {
+                MainActivity.log("OBBatteryReceiver.onReceive: State hasn't changed, No action is required for now");
+            }
+        }
+        else
+        {
+            MainActivity.log("OBBatteryReceiver:onReceive: OBSystemsManager hasn't been created yet. Aborting");
         }
     }
 

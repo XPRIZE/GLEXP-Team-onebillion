@@ -109,7 +109,6 @@ public class OC_TestMenu extends OBSectionController
             }
         });
 
-
         Button uploadBackupButton = (Button)MainActivity.mainActivity.findViewById(R.id.uploadBackup);
         uploadBackupButton.setOnClickListener(new View.OnClickListener()
         {
@@ -121,6 +120,7 @@ public class OC_TestMenu extends OBSectionController
                     @Override
                     public void run () throws Exception
                     {
+                        MainActivity.log("Device UUID: " + OBSystemsManager.sharedManager.device_getUUID());
                         OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTimeAndData();
                     }
                 });
