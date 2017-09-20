@@ -607,7 +607,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
             Map<String, Object> criticalBatteryLevels =  OBSystemsManager.sharedManager.getBatterySettingsForLevel(MainActivity.CONFIG_BATTERY_LEVEL_CRITICAL);
             if(criticalBatteryLevels == null) lockBatteryLevel = 10;
-            lockBatteryLevel = Float.valueOf((String)criticalBatteryLevels.get(MainActivity.CONFIG_MAXIMUM_BATTERY_VALUE));
+            lockBatteryLevel = Float.parseFloat((String)criticalBatteryLevels.get(MainActivity.CONFIG_MAXIMUM_BATTERY_VALUE));
         }
         catch (Exception e)
         {

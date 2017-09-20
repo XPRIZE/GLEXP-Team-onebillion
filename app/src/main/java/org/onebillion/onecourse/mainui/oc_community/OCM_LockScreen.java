@@ -212,6 +212,10 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
         {
             closeThisMenuAndOpen(OCM_LockScreen.class);
         }
+        else
+        {
+            checkCurrentCommand();
+        }
     }
 
     public void closeThisMenuAndOpen(final Class<?> vcClass)

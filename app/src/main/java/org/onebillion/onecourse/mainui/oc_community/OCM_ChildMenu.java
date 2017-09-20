@@ -443,6 +443,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         }
     }
 
+
     @Override
     public void onAlarmReceived(Intent intent)
     {
@@ -453,17 +454,21 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
     @Override
     public void onBatteryStatusReceived(final float level, final boolean charging)
     {
-        super.onBatteryStatusReceived(level,charging);
-        final OBSectionController controller = this;
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        super.onBatteryStatusReceived(level, charging);
+        if (!checkCurrentCommand())
         {
-            @Override
-            public void run() throws Exception
+            final OBSectionController controller = this;
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
-                fatController.refreshBatteryStatus(level,charging,controller);
-            }
-        });
+                @Override
+                public void run() throws Exception
+                {
+                    fatController.refreshBatteryStatus(level, charging, controller);
+                }
+            });
+        }
     }
+
 
     /*
     Event functions
