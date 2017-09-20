@@ -151,6 +151,8 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
 
     public void getServerTime ()
     {
+        MainActivity.log("OBSetupMenu:getServerTime");
+        //
         final String wifiSSID = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_TIME_SERVER_WIFI_SSID);
         final String wifiPassword = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_TIME_SERVER_WIFI_PASSWORD);
         final String timeServerURL = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_TIME_SERVER_URL);
@@ -162,21 +164,20 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
             MainActivity.log("OBSetupMenu:getServerTime:attempting to connect to time server wifi [" + wifiSSID + "]");
             //
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-                                     {
-                                         @Override
-                                         public void run () throws Exception
-                                         {
-                                             OBConnectionManager.sharedManager.connectToNetwork_connectToWifi(wifiSSID, wifiPassword, new OBUtils.RunLambda()
-                                             {
-                                                 @Override
-                                                 public void run () throws Exception
-                                                 {
-                                                     getServerTime();
-                                                 }
-                                             });
-                                         }
-                                     }
-            );
+             {
+                 @Override
+                 public void run () throws Exception
+                 {
+                     OBConnectionManager.sharedManager.connectToNetwork_connectToWifi(wifiSSID, wifiPassword, new OBUtils.RunLambda()
+                     {
+                         @Override
+                         public void run () throws Exception
+                         {
+                             getServerTime();
+                         }
+                     });
+                 }
+             });
             //
             // dont continue any further until we have connected to the correct wifi
             return;
@@ -653,9 +654,13 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                     finalScreenControls = loadEvent("master_final");
                     //
                     Typeface defaultFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/F37Ginger-Regular.otf");
+                    Typeface boldFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/F37Ginger-Bold.otf");
                     //
-                    // Title, hide box, text colour as stroke colour on box, centred
-                    setupLabelsForScreen("label_.*", true, 0.7f, defaultFont, "centre", true, finalScreenControls, finalSelf);
+                    // top labels: set label, hide placeholder, set boldFont colour to stroke colour of placeholder, centre align
+                    setupLabelsForScreen("final_title.*", true, 0.8f, boldFont, "centre", false, finalScreenControls, finalSelf);
+                    //
+                    // label, hide box, text colour as stroke colour on box, centred
+                    setupLabelsForScreen("final_label.*", true, 0.7f, defaultFont, "centre", true, finalScreenControls, finalSelf);
                 }
                 //
                 for (OBControl control : attachedControls)
