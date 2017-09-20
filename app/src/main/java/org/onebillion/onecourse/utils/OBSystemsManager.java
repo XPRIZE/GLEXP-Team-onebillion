@@ -1214,13 +1214,13 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             @Override
             public void run () throws Exception
             {
-                connectionManager.connectToNetwork_scanForWifi(backup_Wifi_SSID(), "", new OBUtils.RunLambda()
+                connectionManager.connectToNetwork_connectToWifi(backup_Wifi_SSID(), "", new OBUtils.RunLambda()
                 {
                     @Override
                     public void run () throws Exception
                     {
                         time_synchronizeAndUpdate();
-                        connectionManager.disconnectWifi();
+                        //connectionManager.disconnectWifi();
                     }
                 });
             }
@@ -1233,16 +1233,18 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     public void connectToWifiAndSynchronizeTimeAndData ()
     {
         MainActivity.log("OBSystemsManager.connectToWifiAndSynchronizeTimeAndData");
+        //asd
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             @Override
             public void run () throws Exception
             {
-                connectionManager.connectToNetwork_scanForWifi(backup_Wifi_SSID(), "", new OBUtils.RunLambda()
+                connectionManager.connectToNetwork_connectToWifi(backup_Wifi_SSID(), "", new OBUtils.RunLambda()
                 {
                     @Override
                     public void run () throws Exception
                     {
+                        MainActivity.log("OBSystemsManager.connectToWifiAndSynchronizeTimeAndData. now connected to the wifi, running completion block");
                         time_synchronizeAndUpdate();
                         backup_uploadDatabase_ftp(true);
                     }
@@ -1305,8 +1307,6 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                             long currentTime = System.currentTimeMillis() / 1000;
                             OBPreferenceManager.setPreference("lastBackupTimeStamp", String.format("%d", currentTime));
                             //
-                            MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp disconnecting from wifi");
-                            //
                             OBUtils.runOnMainThread(new OBUtils.RunLambda()
                             {
                                 @Override
@@ -1323,6 +1323,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                         //
                         if (disconnectAfter)
                         {
+                            MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp. disconnecting Wifi");
                             connectionManager.disconnectWifi();
                         }
                     }

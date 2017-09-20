@@ -107,6 +107,9 @@ public class OBConnectionManager
     public void disconnectWifi ()
     {
         MainActivity.log("OBConnectionManager.disconnectWifi");
+        //
+        forgetAllNetworks();
+        //
         WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(MainActivity.WIFI_SERVICE);
         MainActivity.log("OBConnectionManager.disconnectWifi. Disconnected network");
         wifiManager.disconnect();
@@ -178,8 +181,7 @@ public class OBConnectionManager
     {
         if (!keepWifiOn())
         {
-            WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(MainActivity.WIFI_SERVICE);
-            wifiManager.setWifiEnabled(false);
+            disconnectWifi();
         }
     }
 
@@ -526,7 +528,7 @@ public class OBConnectionManager
     }
 
 
-    void connectToNetwork_scanForWifi (final String ssid, final String password, final OBUtils.RunLambda block)
+    private void connectToNetwork_scanForWifi (final String ssid, final String password, final OBUtils.RunLambda block)
     {
         final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         //
@@ -682,7 +684,6 @@ public class OBConnectionManager
 //        MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.registering receiver");
         MainActivity.mainActivity.registerReceiver(scanResultsReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
         //
-        //MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.starting scan");
         Boolean wifiWasEnabled = wfMgr.setWifiEnabled(true);
         if (!wifiWasEnabled)
         {
@@ -695,6 +696,7 @@ public class OBConnectionManager
             MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.ERROR occured while disconnecting wifi");
         }
         //
+        MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.starting scan");
         Boolean scanHasStarted = wfMgr.startScan();
         if (!scanHasStarted)
         {

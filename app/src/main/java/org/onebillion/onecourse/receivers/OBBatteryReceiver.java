@@ -70,6 +70,11 @@ public class OBBatteryReceiver extends BroadcastReceiver
             Boolean actionIsRequired = !isCharging && isNowCharging;
             isCharging = isNowCharging;
             //
+            if (!isCharging)
+            {
+                MainActivity.log("OBBatteryReceiver.onReceive: BATTERY IS NOW NO LONGER CHARGING");
+            }
+            //
             if (actionIsRequired)
             {
                 MainActivity.log("OBBatteryReceiver.onReceive: it is now charging and/or plugged in. Action is required");
