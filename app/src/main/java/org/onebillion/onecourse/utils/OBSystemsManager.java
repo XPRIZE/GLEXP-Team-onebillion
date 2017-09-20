@@ -931,6 +931,56 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
+
+    public void unpinApplication ()
+    {
+        MainActivity.log("OBSystemsManager.unpinApplication");
+        //
+        if (shouldPinApplication())
+        {
+            DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
+            ComponentName adminReceiver = OBDeviceAdminReceiver.getComponentName(MainActivity.mainActivity);
+            //
+            if (devicePolicyManager.isDeviceOwnerApp(MainActivity.mainActivity.getPackageName()))
+            {
+                MainActivity.log("OBSystemsManager.unpinApplication: attempting to unpin app");
+                String[] packages = {MainActivity.mainActivity.getPackageName()};
+                devicePolicyManager.setLockTaskPackages(adminReceiver, packages);
+                //
+                if (devicePolicyManager.isLockTaskPermitted(MainActivity.mainActivity.getPackageName()))
+                {
+                    if (isAppIsInForeground())
+                    {
+                        try
+                        {
+                            MainActivity.log("OBSystemsManager.unpinApplication: starting locked task");
+                            MainActivity.mainActivity.stopLockTask();
+                            kioskModeActive = false;
+                        }
+                        catch (Exception e)
+                        {
+                            MainActivity.log("OBSystemsManager.unpinApplication: exception caught");
+                        }
+                    }
+                    else
+                    {
+                        MainActivity.log("OBSystemsManager.unpinApplication:application is not in foreground, cancelling");
+                    }
+                }
+            }
+            else
+            {
+                MainActivity.log("OBSystemsManager.unpinApplication: unable to unpin application, not a device owner");
+            }
+            toggleKeyguardAndStatusBar(false);
+        }
+        else
+        {
+            MainActivity.log("OBSystemsManager.unpinApplication: disabled in settings");
+        }
+    }
+
+
     public void toggleKeyguardAndStatusBar (boolean status)
     {
         if (!MainActivity.isSDKCompatible())
