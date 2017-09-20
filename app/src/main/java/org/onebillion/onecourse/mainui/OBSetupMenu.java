@@ -70,9 +70,9 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
     {
         HOME_SCREEN, SET_DATE_SCREEN, SET_TRIAL_DATE_SCREEN, CONFIRMATION_SCREEN, VIDEO_SCREEN, BATTERY_SCREEN, FINAL_SCREEN;
     }
-
+    //
     private static float clockRefreshInterval = 5.0f;
-    private static String videoFilename = "placeholder.mp4";
+    private static String videoFilename = "tablet_care_sw.mp4";
     //
     private String saveConfig;
     private OBLabel dateTimeField, serverOKField, serverNotFoundField, setDateTimeButtonLabel;
