@@ -690,11 +690,12 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
 
     public void loadRandomUnit()
     {
-        OCM_FatController fatController = (OCM_FatController)MainActivity.mainActivity.fatController;
         DBSQL db = null;
         //
         try
         {
+            OCM_FatController fatController = (OCM_FatController)MainActivity.mainActivity.fatController;
+            //
             db = new DBSQL(false);
             //
             int unitCount = OCM_MlUnit.unitCountForMasterlist(db, 1);

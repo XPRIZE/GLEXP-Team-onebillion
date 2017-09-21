@@ -140,7 +140,10 @@ public class OC_VideoPlayback extends OC_SectionController
     {
         MainActivity.log("OC_VideoPlayback:cleanUp");
         //
-        videoPlayer.stop();
+        if (videoPlayer != null)
+        {
+            videoPlayer.stop();
+        }
         //
         super.cleanUp();
     }
@@ -354,7 +357,7 @@ public class OC_VideoPlayback extends OC_SectionController
         {
             Scanner scanner = new Scanner(OBUtils.getInputStreamForPath(srtPath));
             String line;
-
+            //
             while (scanner.hasNextLine())
             {
                 line = scanner.nextLine();
@@ -638,7 +641,7 @@ public class OC_VideoPlayback extends OC_SectionController
         {
             float originalScale = (float) preview.propertyValue("originalScale");
             float newScale = pim.equals(preview) ? originalScale : originalScale * 0.75f;
-            MainActivity.log("Setting scale for preview " + preview + ":" + newScale + " (" + originalScale + ")");
+            //MainActivity.log("Setting scale for preview " + preview + ":" + newScale + " (" + originalScale + ")");
             preview.setScale(newScale);
 //            preview.setColourOverlay(pim.equals(preview) ? Color.TRANSPARENT : Color.argb(180, 0, 0, 0));
         }
@@ -698,7 +701,7 @@ public class OC_VideoPlayback extends OC_SectionController
             unlockScreen();
         }
         //
-        syncSubtitlesRunnable = new OC_VideoPlaybackRunnable(idx, this);
+        final OC_VideoPlayback finalSelf = this;
         //
         videoPlayer.playAfterPrepare = play;
         videoPlayer.startPlayingAtTime(OBUtils.getAssetFileDescriptorForPath(movieName), 0, new MediaPlayer.OnPreparedListener()
@@ -706,7 +709,7 @@ public class OC_VideoPlayback extends OC_SectionController
             @Override
             public void onPrepared (MediaPlayer mp)
             {
-                MainActivity.log("OC_VideoPlayback:setUpVideoPlayerForIndex:onPrepared");
+                //MainActivity.log("OC_VideoPlayback:setUpVideoPlayerForIndex:onPrepared");
                 //
                 videoPlayer.onPrepared(mp);
                 //
@@ -714,7 +717,12 @@ public class OC_VideoPlayback extends OC_SectionController
                 videoPlayer.player.setVolume(currentVideoPlayerVolume, currentVideoPlayerVolume);
                 //
                 setStatus(STATUS_IDLE);
-                OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(syncSubtitlesRunnable);
+                if (syncSubtitlesRunnable != null)
+                {
+                    OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(syncSubtitlesRunnable);
+                }
+                //
+                syncSubtitlesRunnable = new OC_VideoPlaybackRunnable(idx, finalSelf);
                 OBSystemsManager.sharedManager.getMainHandler().post(syncSubtitlesRunnable);
             }
         }, new MediaPlayer.OnCompletionListener()

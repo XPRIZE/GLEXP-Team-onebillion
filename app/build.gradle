@@ -56,7 +56,7 @@ android {
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Setup Prototype"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_setup.plist"'
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_pedro.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/judges",
             ]
@@ -167,6 +167,18 @@ android {
             buildConfigField 'String', 'SETTINGS_FILE', '"config/settingsas.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/child_ny"
+            ]
+        }
+        wifiTestVersion {
+            minSdkVersion 22
+            applicationId 'org.onebillion.onecourse.wifi.test'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "onecourse - wifi"
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_test_wifi.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/child_en_gb"
             ]
         }
     }
