@@ -398,10 +398,11 @@ public class OC_Patterns_S5 extends OC_Generic_Event
             target = null;
             if (placement != null)
             {
+                MainActivity.log("OC_Patterns_S5.found placement. checking if correct");
                 if (placement.attributes().get("type").equals(control.attributes().get("type")))
                 {
-                    control.moveToPoint(placement.getWorldPosition(), 0.1f, false);
                     control.disable();
+                    control.moveToPoint(placement.getWorldPosition(), 0.1f, false);
                     //
                     gotItRightBigTick(false);
                     //
@@ -439,31 +440,46 @@ public class OC_Patterns_S5 extends OC_Generic_Event
                             playAudioQueuedScene("FINAL", true);
                         }
                         nextScene();
+                    }
+                    else
+                    {
+                        MainActivity.log("OC_Patterns_S5.More placements to be done. Continue as usual");
                         //
-                        return;
+                        revertStatusAndReplayAudio();
+                        setStatus(STATUS_AWAITING_CLICK);
                     }
                 }
                 else
                 {
+                    MainActivity.log("OC_Patterns_S5.Wrong placement. Continue as usual");
+                    //
                     gotItWrongWithSfx();
                     PointF value = (PointF) control.propertyValue("originalPosition");
-                    control.moveToPoint(value, 0.3f, false);
+                    control.moveToPoint(value, 0.1f, true);
+                    //
+                    revertStatusAndReplayAudio();
+                    setStatus(STATUS_AWAITING_CLICK);
                 }
             }
             else
             {
+                MainActivity.log("OC_Patterns_S5.No placement. Continue as usual");
+                //
                 PointF value = (PointF) control.propertyValue("originalPosition");
-                control.moveToPoint(value, 0.3f, false);
+                control.moveToPoint(value, 0.1f, true);
+                //
+                revertStatusAndReplayAudio();
+                setStatus(STATUS_AWAITING_CLICK);
             }
         }
         catch (Exception e)
         {
-            MainActivity.log("OC_Patterns_S5:checkDragAtPoint:exception caught");
+            MainActivity.log("OC_Patterns_S5:checkDragAtPoint:exception caught. Attempting to recover");
             e.printStackTrace();
+            //
+            revertStatusAndReplayAudio();
+            setStatus(STATUS_AWAITING_CLICK);
         }
-        //
-        revertStatusAndReplayAudio();
-        setStatus(STATUS_AWAITING_CLICK);
     }
 
 
