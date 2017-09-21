@@ -181,13 +181,13 @@ public class OC_Patterns_S6 extends OC_Generic_Event
                 {
                     gotItWrongWithSfx();
                     PointF value = (PointF) control.propertyValue("originalPosition");
-                    control.moveToPoint(value, 0.3f, false);
+                    control.moveToPoint(value, 0.1f, true);
                 }
             }
             else
             {
                 PointF value = (PointF) control.propertyValue("originalPosition");
-                control.moveToPoint(value, 0.3f, false);
+                control.moveToPoint(value, 0.1f, true);
             }
         }
         catch (Exception e)
