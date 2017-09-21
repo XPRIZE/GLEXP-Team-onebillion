@@ -520,6 +520,8 @@ public class OBConnectionManager
 
     public void connectToNetwork_connectToWifi (final String ssid, final String password, final OBUtils.RunLambdaWithSuccess block)
     {
+        if (ssid == null)
+            return;
         //forgetAllNetworks();
         //
         final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);

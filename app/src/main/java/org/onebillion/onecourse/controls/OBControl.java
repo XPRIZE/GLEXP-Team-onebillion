@@ -250,14 +250,17 @@ public class OBControl
 
     public RectF frame ()
     {
-        if (!frameValid)
+        synchronized (frame)
         {
-            frame.set(bounds());
-            Matrix m = matrixForBackwardConvert();
-            m.mapRect(frame);
-            frameValid = true;
+            if (!frameValid)
+            {
+                frame.set(bounds());
+                Matrix m = matrixForBackwardConvert();
+                m.mapRect(frame);
+                frameValid = true;
+            }
+            return frame;
         }
-        return frame;
     }
 
     public void setFrame (RectF f)
