@@ -596,6 +596,7 @@ public class OC_Reading extends OC_SectionController
         detachControl(tb);
         textBox = new OBGroup(Collections.singletonList(tb));
         tb.hide();
+        textBox.setShouldTexturise(false);
         attachControl(textBox);
         mainPic = loadImageWithName(String.format("p%d",pageNo),new PointF(0.5f, 0.5f),new RectF(bounds()));
         objectDict.put("mainpic",mainPic);
