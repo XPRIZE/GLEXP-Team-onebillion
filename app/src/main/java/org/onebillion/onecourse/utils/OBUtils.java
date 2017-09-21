@@ -1434,6 +1434,12 @@ public class OBUtils
     }
 
 
+    public interface RunLambdaWithSuccess
+    {
+        public void run (boolean success) throws Exception;
+    }
+
+
     public interface RunLambda
     {
         public void run () throws Exception;

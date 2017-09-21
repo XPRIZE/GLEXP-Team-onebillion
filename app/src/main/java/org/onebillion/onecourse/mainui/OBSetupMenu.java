@@ -168,10 +168,10 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                  @Override
                  public void run () throws Exception
                  {
-                     OBConnectionManager.sharedManager.connectToNetwork_connectToWifi(wifiSSID, wifiPassword, new OBUtils.RunLambda()
+                     OBConnectionManager.sharedManager.connectToNetwork_connectToWifi(wifiSSID, wifiPassword, new OBUtils.RunLambdaWithSuccess()
                      {
                          @Override
-                         public void run () throws Exception
+                         public void run (boolean success) throws Exception
                          {
                              getServerTime();
                          }
@@ -214,10 +214,10 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                         @Override
                         public void run () throws Exception
                         {
-                            OBConnectionManager.sharedManager.connectToNetwork_connectToWifi(wifiSSID, wifiPassword, new OBUtils.RunLambda()
+                            OBConnectionManager.sharedManager.connectToNetwork_connectToWifi(wifiSSID, wifiPassword, new OBUtils.RunLambdaWithSuccess()
                             {
                                 @Override
-                                public void run () throws Exception
+                                public void run (boolean success) throws Exception
                                 {
                                     getServerTime();
                                 }

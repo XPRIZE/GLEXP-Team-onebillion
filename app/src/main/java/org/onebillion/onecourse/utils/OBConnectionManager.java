@@ -56,7 +56,7 @@ public class OBConnectionManager
         return MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_WIFI_PASSWORD);
     }
 
-    public void startupConnection (final OBUtils.RunLambda block)
+    public void startupConnection (final OBUtils.RunLambdaWithSuccess block)
     {
         MainActivity.log("OBConnectionManager.checkForConnection");
         ConnectivityManager connManager = (ConnectivityManager) MainActivity.mainActivity.getSystemService(MainActivity.CONNECTIVITY_SERVICE);
@@ -93,7 +93,14 @@ public class OBConnectionManager
                 try
                 {
                     MainActivity.log("OBConnectionManager.startupConnection. running completion block");
-                    OBUtils.runOnOtherThreadDelayed(1.0f, block);
+                    OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run () throws Exception
+                        {
+                            block.run(true);
+                        }
+                    });
                 }
                 catch (Exception e)
                 {
@@ -350,7 +357,7 @@ public class OBConnectionManager
     */
 
 
-    public void connectToNetwork_disableAirplaneMode (final String ssid, final String password, final OBUtils.RunLambda block)
+    public void connectToNetwork_disableAirplaneMode (final String ssid, final String password, final OBUtils.RunLambdaWithSuccess block)
     {
         if (airplaneChangedReceiver != null)
         {
@@ -406,7 +413,7 @@ public class OBConnectionManager
     }
 
 
-    public void connectToNetwork_enableWifi (final String ssid, final String password, final OBUtils.RunLambda block)
+    public void connectToNetwork_enableWifi (final String ssid, final String password, final OBUtils.RunLambdaWithSuccess block)
     {
         final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 //        wifiLock = wfMgr.createWifiLock("LockTag");
@@ -441,7 +448,7 @@ public class OBConnectionManager
     }
 
 
-    public void connectToNetWork_complete (boolean success, final OBUtils.RunLambda block)
+    public void connectToNetWork_complete (boolean success, final OBUtils.RunLambdaWithSuccess block)
     {
         final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         //
@@ -452,7 +459,14 @@ public class OBConnectionManager
                 try
                 {
                     MainActivity.log("OBConnectionManager.connectToNetWork_complete. running completion block");
-                    OBUtils.runOnOtherThreadDelayed(1.0f, block);
+                    OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run () throws Exception
+                        {
+                            block.run(true);
+                        }
+                    });
                 }
                 catch (Exception e)
                 {
@@ -504,7 +518,7 @@ public class OBConnectionManager
     }
 
 
-    public void connectToNetwork_connectToWifi (final String ssid, final String password, final OBUtils.RunLambda block)
+    public void connectToNetwork_connectToWifi (final String ssid, final String password, final OBUtils.RunLambdaWithSuccess block)
     {
         //forgetAllNetworks();
         //
@@ -534,7 +548,7 @@ public class OBConnectionManager
     }
 
 
-    private void connectToNetwork_scanForWifi (final String ssid, final String password, final OBUtils.RunLambda block)
+    private void connectToNetwork_scanForWifi (final String ssid, final String password, final OBUtils.RunLambdaWithSuccess block)
     {
         final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         //

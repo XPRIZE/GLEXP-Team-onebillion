@@ -114,7 +114,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         sharedManager = this;
     }
 
-    public void checkForConnectivity (final OBUtils.RunLambda block)
+    public void checkForConnectivity (final OBUtils.RunLambdaWithSuccess block)
     {
         if (shouldConnectToWifiOnStartup() && this.connectionManager.wifiSSID() != null && this.connectionManager.wifiPassword() != null)
         {
@@ -132,7 +132,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                         @Override
                         public void run () throws Exception
                         {
-                            block.run();
+                            block.run(true);
                         }
                     });
                 }
@@ -1264,13 +1264,16 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             @Override
             public void run () throws Exception
             {
-                connectionManager.connectToNetwork_connectToWifi(backup_Wifi_SSID(), "", new OBUtils.RunLambda()
+                connectionManager.connectToNetwork_connectToWifi(backup_Wifi_SSID(), "", new OBUtils.RunLambdaWithSuccess()
                 {
                     @Override
-                    public void run () throws Exception
+                    public void run (boolean success) throws Exception
                     {
-                        time_synchronizeAndUpdate();
-                        //connectionManager.disconnectWifi();
+                        if (success)
+                        {
+                            time_synchronizeAndUpdate();
+                            //connectionManager.disconnectWifi();
+                        }
                     }
                 });
             }
@@ -1289,14 +1292,17 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             @Override
             public void run () throws Exception
             {
-                connectionManager.connectToNetwork_connectToWifi(backup_Wifi_SSID(), "", new OBUtils.RunLambda()
+                connectionManager.connectToNetwork_connectToWifi(backup_Wifi_SSID(), "", new OBUtils.RunLambdaWithSuccess()
                 {
                     @Override
-                    public void run () throws Exception
+                    public void run (boolean success) throws Exception
                     {
-                        MainActivity.log("OBSystemsManager.connectToWifiAndSynchronizeTimeAndData. now connected to the wifi, running completion block");
-                        time_synchronizeAndUpdate();
-                        backup_uploadDatabase_ftp(true);
+                        if (success)
+                        {
+                            MainActivity.log("OBSystemsManager.connectToWifiAndSynchronizeTimeAndData. now connected to the wifi, running completion block");
+                            time_synchronizeAndUpdate();
+                            backup_uploadDatabase_ftp(true);
+                        }
                     }
                 });
             }

@@ -524,11 +524,13 @@ public class MainActivity extends Activity
     public void checkForUpdatesAndLoadMainViewController()
     {
         MainActivity.log("MainActivity.checkForUpdatesAndLoadMainViewController");
-        OBSystemsManager.sharedManager.checkForConnectivity(new OBUtils.RunLambda()
+        OBSystemsManager.sharedManager.checkForConnectivity(new OBUtils.RunLambdaWithSuccess()
         {
             @Override
-            public void run () throws Exception
+            public void run (boolean success) throws Exception
             {
+                if (!success) return;
+                //
                 MainActivity.log("MainActivity.checkForUpdatesAndLoadMainViewController.checking for updates in the ExpansionManager");
                 OBExpansionManager.sharedManager.checkForUpdates(new OBUtils.RunLambda()
                 {
