@@ -467,6 +467,9 @@ public class OBConnectionManager
                 connectToNetwork_disconnect();
             }
         }
+        {
+            MainActivity.log("OBConnectionManager.connectToNetwork_complete.FAILED. NOT CALLING COMPLETION BLOCK");
+        }
 //        if (wifiLock != null)
 //        {
 //            wifiLock.release();
@@ -514,6 +517,9 @@ public class OBConnectionManager
         }
         //
         SupplicantState connectionState = wfMgr.getConnectionInfo().getSupplicantState();
+        //
+        MainActivity.log("OBConnectionManager.connectToNetwork_connectToWifi. [" + connectionSSID + "] - [" + connectionState.toString() + "]");
+        //
         if (connectionSSID.equals(ssid) && connectionState == SupplicantState.COMPLETED)
         {
             MainActivity.log("OBConnectionManager.connectToNetwork_connectToWifi. already connected to the network");
