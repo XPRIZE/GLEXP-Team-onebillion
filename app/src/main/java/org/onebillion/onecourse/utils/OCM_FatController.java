@@ -1232,12 +1232,12 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     {
         sectionStartedWithUnit(unit, study ? OCM_MlUnitInstance.INSTANCE_TYPE_STUDY : OCM_MlUnitInstance.INSTANCE_TYPE_REVIEW);
         final String lastAppCode = (String)MainActivity.mainActivity.config.get(MainActivity.CONFIG_APP_CODE);
-
         new OBRunnableSyncUI()
         {
             @Override
             public void ex ()
             {
+
                 String lang = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_LANGUAGE);
                 if(lang == null)
                     lang = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_DEFAULT_LANGUAGE);
@@ -1246,7 +1246,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
                     MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
                     //if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OC_TestEvent","oc-childmenu",true,true,"test"))
-                     if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
+                    if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
                         currentUnitInstance.sectionController = MainViewController().topController();
                         if (MainActivity.mainActivity.isDebugMode())
@@ -1609,8 +1609,13 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             ContentValues contentValues = new ContentValues();
             contentValues.put("startTime",currentSessionStartTime);
             contentValues.put("workTime",currentSessionWorkTime);
+            if(!currentTimeIsDirty() && currentSessionDay != getCurrentDay())
+            {
+                currentSessionDay = getCurrentDay();
+                contentValues.put("day", currentSessionDay);
+                needRefresh = true;
+            }
             boolean updated = db.doUpdateOnTable(DBSQL.TABLE_SESSIONS,whereMap, contentValues) > 0;
-            MainActivity.log("test "+updated);
         }
         catch (Exception e)
         {

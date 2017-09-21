@@ -262,12 +262,18 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                             playAudio(null);
                             button.highlight();
                             if(fatController.startCurrentSession())
-                                refreshCurrentDayAndAudio();
-                            waitForSecs(0.5f);
-                            hideNewDayScreen();
-                            button.lowlight();
-                            currentTarget = communityModeActive ? TARGET_COMMUNITY : TARGET_STUDY;
-                            startNextEvent();
+                            {
+                                closeThisMenuAndOpen(OCM_ChildMenu.class);
+                            }
+                            else
+                            {
+                                waitForSecs(0.5f);
+                                hideNewDayScreen();
+                                button.lowlight();
+                                currentTarget = communityModeActive ? TARGET_COMMUNITY : TARGET_STUDY;
+
+                                startNextEvent();
+                            }
                         }
                     });
 
