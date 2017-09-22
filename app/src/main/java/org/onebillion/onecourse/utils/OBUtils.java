@@ -259,7 +259,7 @@ public class OBUtils
             //e.printStackTrace();
         }
         //
-        MainActivity.log("OBUtils:getInputStreamForPath:unable to find file [" + path + "]");
+        //MainActivity.log("OBUtils:getInputStreamForPath:unable to find file [" + path + "]");
         return null;
     }
 
