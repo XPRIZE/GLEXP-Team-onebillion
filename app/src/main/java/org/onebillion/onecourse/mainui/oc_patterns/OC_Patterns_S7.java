@@ -308,7 +308,7 @@ public class OC_Patterns_S7 extends OC_Generic_Event
         OC_Generic.pointer_moveToObjectByName("box_7", -10, 0.3f, EnumSet.of(OC_Generic.Anchor.ANCHOR_BOTTOM), true, this);
         waitForSecs(0.6f);
         action_playNextDemoSentence(false); // Next, a drum for the blue boxes.
-        OC_Generic.pointer_moveToObjectByName("button_2", -15, 0.9f, EnumSet.of(OC_Generic.Anchor.ANCHOR_MIDDLE), true, this);
+        OC_Generic.pointer_moveToObjectByName("button_3", -15, 0.9f, EnumSet.of(OC_Generic.Anchor.ANCHOR_MIDDLE), true, this);
         action_selectButton((OBGroup) objectDict.get("button_3"));
         waitForSecs(0.3f);
         //
