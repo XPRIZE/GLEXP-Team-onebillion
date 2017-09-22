@@ -75,7 +75,7 @@ public class OC_VideoPlaybackRunnable implements Runnable
             else
             {
                 //MainActivity.log("OC_VideoPlaybackRunnable:run:showing subtitle:" + controller.subtitleIndex + " for video: " + controller.currentVideoIndex);
-                //
+                // show subtitle has to be launched in other thread to not hang the app
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
                     @Override

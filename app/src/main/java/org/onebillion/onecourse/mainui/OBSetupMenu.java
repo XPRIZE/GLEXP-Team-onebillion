@@ -994,6 +994,25 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
 
     void completeSetup()
     {
+        Date currentDate = serverDate;
+        if (currentDate == null) currentDate = userSetDate;
+        if (currentDate == null) currentDate = new Date(System.currentTimeMillis());
+        //
+        try
+        {
+            Calendar c = Calendar.getInstance();
+            c.setTime(currentDate);
+            //
+            long timeInMillis = c.getTimeInMillis();
+            //
+            ((AlarmManager) MainActivity.mainActivity.getSystemService(Context.ALARM_SERVICE)).setTime(timeInMillis);
+        }
+        catch (Exception e)
+        {
+            MainActivity.log("OBSetupMenu:completeSetup:Exception caught while trying to set the Date");
+            e.printStackTrace();
+        }
+        //
         OBPreferenceManager.setPreference(OBPreferenceManager.PREFERENCES_SETUP_START_TIMESTAMP, Long.toString(OBUtils.timestampForDateOnly(trialDate.getTime())));
         OBPreferenceManager.setPreference(OBPreferenceManager.PREFERENCES_SETUP_COMPLETE, "true");
         //
