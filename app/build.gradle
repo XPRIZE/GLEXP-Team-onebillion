@@ -128,7 +128,7 @@ android {
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - Child (english)"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_child_en_GB.plist"'
+            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_community_enGB.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/child_en_gb"
             ]
