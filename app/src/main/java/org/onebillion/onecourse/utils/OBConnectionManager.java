@@ -666,20 +666,20 @@ public class OBConnectionManager
                             if (newInfo.getSupplicantState() == SupplicantState.COMPLETED)
                             {
                                 MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi. Wifi is now connected. Go to connectToWifi");
-                                OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(timeoutRunnable);
+                                //OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(timeoutRunnable);
                                 connectToNetwork_connectToWifi(ssid, password, block);
                             }
                         }
                     };
-                    timeoutRunnable = new Runnable()
-                    {
-                        @Override
-                        public void run ()
-                        {
-                            MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.timeoutRunnable.timeout occured. Scanning for Wifi again.");
-                            connectToNetwork_scanForWifi(ssid, password, block);
-                        }
-                    };
+//                    timeoutRunnable = new Runnable()
+//                    {
+//                        @Override
+//                        public void run ()
+//                        {
+//                            MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.timeoutRunnable.timeout occured. Scanning for Wifi again.");
+//                            connectToNetwork_scanForWifi(ssid, password, block);
+//                        }
+//                    };
                     //
                     boolean result = wfMgr.saveConfiguration();
                     if (!result)
@@ -694,7 +694,7 @@ public class OBConnectionManager
                     wfMgr.enableNetwork(networkId, true);
                     wfMgr.reconnect();
                     //
-                    OBSystemsManager.sharedManager.getMainHandler().postDelayed(timeoutRunnable, 60000);
+                    //OBSystemsManager.sharedManager.getMainHandler().postDelayed(timeoutRunnable, 60000);
                 }
                 else
                 {
