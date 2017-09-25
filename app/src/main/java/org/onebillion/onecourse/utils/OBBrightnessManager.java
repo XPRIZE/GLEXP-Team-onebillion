@@ -146,18 +146,14 @@ public class OBBrightnessManager
             lastTouchTimeStamp = System.currentTimeMillis();
             //
 //            MainActivity.log("Updating lastTouchTimeStamp with elapsed " + elapsed);
-            if (elapsed > interval)
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
-//                MainActivity.log("running brightness check on other thread");
-                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                @Override
+                public void run () throws Exception
                 {
-                    @Override
-                    public void run () throws Exception
-                    {
-                        runBrightnessCheck();
-                    }
-                });
-            }
+                    runBrightnessCheck();
+                }
+            });
         }
     }
 
