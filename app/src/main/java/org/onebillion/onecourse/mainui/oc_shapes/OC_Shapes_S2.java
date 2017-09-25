@@ -619,7 +619,7 @@ public class OC_Shapes_S2 extends OC_Generic_SelectCorrectObject
     public OBControl findTarget (PointF pt)
     {
         List invertedControls = zPositionSortedFilteredControls("obj.*");
-        Collections.reverse(invertedControls);
+//        Collections.reverse(invertedControls);
         return finger(-1, 2, invertedControls, pt, true);
     }
 

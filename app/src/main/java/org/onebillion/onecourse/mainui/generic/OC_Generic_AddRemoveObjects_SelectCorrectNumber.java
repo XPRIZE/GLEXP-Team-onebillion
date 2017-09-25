@@ -2,13 +2,18 @@ package org.onebillion.onecourse.mainui.generic;
 
 import android.graphics.Color;
 import android.graphics.PointF;
+import android.graphics.RectF;
 import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBLabel;
+import org.onebillion.onecourse.utils.OBAnim;
+import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBUtils;
+import org.onebillion.onecourse.utils.OB_Maths;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -20,11 +25,11 @@ public class OC_Generic_AddRemoveObjects_SelectCorrectNumber extends OC_Generic_
     public List<OBLabel> numbers;
     public List<OBLabel> equation;
     public int correctAnswer;
+    public int initialShownObjects;
     public int phase;
 
 
-
-    public OC_Generic_AddRemoveObjects_SelectCorrectNumber(boolean isAdd)
+    public OC_Generic_AddRemoveObjects_SelectCorrectNumber (boolean isAdd)
     {
         super(isAdd, false);
     }
@@ -43,45 +48,41 @@ public class OC_Generic_AddRemoveObjects_SelectCorrectNumber extends OC_Generic_
     }
 
 
-    public String getEquationPrefix()
+    public String getEquationPrefix ()
     {
         return "label";
     }
 
 
-    public String getSFX_hideObject()
+    public String getSFX_hideObject ()
     {
         return "remove_object";
     }
 
-    public String getSFX_placeObject()
+    public String getSFX_placeObject ()
     {
         return "add_object";
     }
 
-    public int getEquationColor_normal()
+    public int getEquationColor_normal ()
     {
         return OBUtils.colorFromRGBString("119,201,33");
     }
 
-    public int getEquationColor_highlight()
+    public int getEquationColor_highlight ()
     {
         return Color.RED;
     }
 
-    public int getNumberColor_normal()
+    public int getNumberColor_normal ()
     {
         return Color.BLACK;
     }
 
-    public int getNumberColor_highlight()
+    public int getNumberColor_highlight ()
     {
         return Color.RED;
     }
-
-
-
-
 
 
     public void action_prepareScene (String scene, Boolean redraw)
@@ -89,6 +90,9 @@ public class OC_Generic_AddRemoveObjects_SelectCorrectNumber extends OC_Generic_
         super.action_prepareScene(scene, redraw);
         //
         String correctAnswer_string = eventAttributes.get("correctAnswer");
+        if (correctAnswer_string == null)
+            correctAnswer_string = eventAttributes.get("correct_answer");
+        //
         correctAnswer = Integer.parseInt(correctAnswer_string);
         //
         phase = 0;
@@ -100,14 +104,24 @@ public class OC_Generic_AddRemoveObjects_SelectCorrectNumber extends OC_Generic_
                 detachControl(number);
             }
         }
+        float smallestFontSize = 1000000000;
         numbers = new ArrayList<>();
-        for (OBControl number_frame : sortedFilteredControls(getNumberPrefix()+".*"))
+        for (OBControl number_frame : sortedFilteredControls(getNumberPrefix() + ".*"))
         {
             OBLabel number = action_createLabelForControl(number_frame);
             number.setProperty("number", number_frame.attributes().get("number"));
+            number.setProperty("originalScale", number.scale());
             number_frame.hide();
             number.setColour(getNumberColor_normal());
             numbers.add(number);
+            //
+            if (number.fontSize() < smallestFontSize) smallestFontSize = number.fontSize();
+        }
+        //
+        for (OBLabel label : numbers)
+        {
+            label.setFontSize(smallestFontSize);
+            label.sizeToBoundingBox();
         }
         //
         if (equation != null && redraw)
@@ -118,7 +132,7 @@ public class OC_Generic_AddRemoveObjects_SelectCorrectNumber extends OC_Generic_
             }
         }
         equation = new ArrayList<>();
-        for (OBControl label : sortedFilteredControls(getEquationPrefix()+".*"))
+        for (OBControl label : sortedFilteredControls(getEquationPrefix() + ".*"))
         {
             OBLabel equationElement = action_createLabelForControl(label);
             label.hide();
@@ -128,17 +142,29 @@ public class OC_Generic_AddRemoveObjects_SelectCorrectNumber extends OC_Generic_
         }
         //
         action_showEquationForPhase();
+        initialShownObjects = getTotalShownObjects();
+        //
+        // disabling already visible objects in the scenes where you need to add more objects to the scene
+        for (OBControl object : filterControls(getObjectPrefix() + ".*"))
+        {
+            if (!object.hidden() && !canUndo && isAdd)
+            {
+                object.disable();
+            }
+        }
     }
 
 
-
     @Override
-    public void check_correctNumberObjectsShow_viaHide () throws Exception
+    public void check_correctNumberObjectsShown_viaHide () throws Exception
     {
         if (getTotalShownObjects() == correctAnswer)
         {
             phase = 1;
             action_showEquationForPhase();
+            //
+            waitAudio();
+            waitForSecs(0.3);
             //
             setReplayAudioScene(currentEvent(), "REPEAT2");
             playAudioQueuedScene(currentEvent(), "PROMPT2", false);
@@ -148,14 +174,38 @@ public class OC_Generic_AddRemoveObjects_SelectCorrectNumber extends OC_Generic_
         else
         {
             revertStatusAndReplayAudio();
+            setStatus(STATUS_AWAITING_CLICK);
+        }
+    }
+
+    @Override
+    public void check_correctNumberObjectsShown_viaShow () throws Exception
+    {
+        if (getTotalHiddenObjects() == 0)
+        {
+            phase = 1;
+            action_showEquationForPhase();
+            //
+            waitAudio();
+            waitForSecs(0.3);
+            //
+            setReplayAudioScene(currentEvent(), "REPEAT2");
+            playAudioQueuedScene(currentEvent(), "PROMPT2", false);
+            //
+            setStatus(STATUS_AWAITING_CLICK);
+        }
+        else
+        {
+            revertStatusAndReplayAudio();
+            setStatus(STATUS_AWAITING_CLICK);
         }
     }
 
 
-
-
-    public void action_showEquationForPhase()
+    public void action_showEquationForPhase ()
     {
+        if (equation.size() == 0) return;
+        //
         lockScreen();
         equation.get(0).show();
         if (phase > 0)
@@ -174,15 +224,41 @@ public class OC_Generic_AddRemoveObjects_SelectCorrectNumber extends OC_Generic_
 
 
     @Override
-    public void action_playCorrectAudioAfterHidingObject() throws Exception
+    public void action_playCorrectAudioAfterHidingObject () throws Exception
     {
 
     }
 
 
+    public void action_resizeNumber (OBLabel number, boolean increase, boolean hilited)
+    {
+        lockScreen();
+        float scale = (float) number.propertyValue("originalScale");
+        float resizeFactor = (increase) ? 1.5f : 1.0f;
+        PointF position = OC_Generic.copyPoint(number.position());
+        number.setScale(scale * resizeFactor);
+        number.setPosition(position);
+        number.setColour((hilited) ? Color.RED : Color.BLACK);
+        unlockScreen();
+    }
 
 
-    public void action_selectNumber(OBLabel number)
+    public void action_highlightObject (OBControl selectedObject)
+    {
+        OBLabel label = (OBLabel) selectedObject;
+        label.setColour(OBUtils.colorFromRGBString("225,0,0"));
+
+    }
+
+    public void action_lowlightObject (OBControl selectedObject)
+    {
+        OBLabel label = (OBLabel) selectedObject;
+        label.setColour(OBUtils.colorFromRGBString("0,0,0"));
+
+    }
+
+
+    public void action_selectNumber (OBLabel number)
     {
         saveStatusClearReplayAudioSetChecking();
         //
@@ -208,43 +284,54 @@ public class OC_Generic_AddRemoveObjects_SelectCorrectNumber extends OC_Generic_
     }
 
 
-
-
     public void action_answerIsCorrect (OBLabel target) throws Exception
     {
+        action_resizeNumber(target, true, true);
+        //
         gotItRightBigTick(true);
         waitForSecs(0.3);
         //
         phase = 2;
         action_showEquationForPhase();
         //
-        List<Object> audioList = audioForScene("CORRECT");
-        for (int i = 0; i < audioList.size(); i++)
+        if (equation.size() > 0)
         {
-            OBLabel label = equation.get(i);
+            List<Object> audioList = audioForScene("CORRECT");
+            for (int i = 0; i < audioList.size(); i++)
+            {
+                OBLabel label = equation.get(i);
+                //
+                playSceneAudioIndex("CORRECT", i, false);
+                //
+                lockScreen();
+                label.setColour(getEquationColor_highlight());
+                unlockScreen();
+                //
+                waitAudio();
+                waitForSecs(0.3);
+                //
+                lockScreen();
+                label.setColour(getEquationColor_normal());
+                unlockScreen();
+            }
             //
-            playSceneAudioIndex("CORRECT", i, false);
-            //
-            lockScreen();
-            label.setColour(getEquationColor_highlight());
-            unlockScreen();
-            //
-            waitAudio();
-            waitForSecs(0.3);
-            //
-            lockScreen();
-            label.setColour(getEquationColor_normal());
-            unlockScreen();
+            action_lowlightNumber(target);
         }
-        //
-        action_lowlightNumber(target);
+        else
+        {
+            playSceneAudio("CORRECT", true);
+            waitForSecs(0.3);
+        }
         //
         playAudioQueuedScene(currentEvent(), "FINAL", true);
         //
+        for (OBLabel label : numbers)
+        {
+            action_resizeNumber(label, false, false);
+        }
+        //
         nextScene();
     }
-
-
 
 
     public void action_answerIsWrong (OBLabel target) throws Exception
@@ -257,16 +344,12 @@ public class OC_Generic_AddRemoveObjects_SelectCorrectNumber extends OC_Generic_
     }
 
 
-
-
     public void action_highlightNumber (OBLabel label) throws Exception
     {
         lockScreen();
         label.setColour(getNumberColor_highlight());
         unlockScreen();
     }
-
-
 
 
     public void action_lowlightNumber (OBLabel label) throws Exception
@@ -277,9 +360,46 @@ public class OC_Generic_AddRemoveObjects_SelectCorrectNumber extends OC_Generic_
     }
 
 
+    public void action_revealObject (OBControl control, PointF pt) throws Exception
+    {
+        // no movement into place for events where you need to select the number afterwards
+        playSfxAudio(getSFX_placeObject(), false);
+        //
+        lockScreen();
+        control.show();
+        //
+        // find the closest visible dash to the object that is about to be revealed
+        OBControl bestMatch = null;
+        Float bestDistance = null;
+        //
+        for (OBControl dash : filterControls("dash_.*"))
+        {
+            if (!dash.hidden())
+            {
+                float distance = OB_Maths.PointDistance(dash.getWorldPosition(), control.position());
+                if (bestDistance == null || bestDistance > distance)
+                {
+                    bestMatch = dash;
+                    bestDistance = distance;
+                }
+            }
+        }
+        if (bestMatch != null)
+        {
+            bestMatch.hide();
+        }
+        unlockScreen();
+        //
+        List audio = getAudioForScene(currentEvent(), "CORRECT");
+        if (audio.size() > objectDeltaCount)
+        {
+            playSceneAudioIndex("CORRECT", objectDeltaCount, false);
+        }
+        objectDeltaCount++;
+    }
 
 
-    public Boolean check_isAnswerCorrect(OBLabel label)
+    public Boolean check_isAnswerCorrect (OBLabel label)
     {
         String number_string = (String) label.propertyValue("number");
         int number = Integer.parseInt(number_string);
@@ -288,13 +408,10 @@ public class OC_Generic_AddRemoveObjects_SelectCorrectNumber extends OC_Generic_
     }
 
 
-
-
     public OBLabel findNumber (PointF pt)
     {
         return (OBLabel) finger(-1, 2, (List<OBControl>) (Object) numbers, pt, true);
     }
-
 
 
     @Override

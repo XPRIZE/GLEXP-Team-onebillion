@@ -6,6 +6,7 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.media.ExifInterface;
 import android.media.MediaMetadataRetriever;
+import android.util.ArrayMap;
 import android.util.DisplayMetrics;
 import android.view.View;
 
@@ -23,12 +24,15 @@ import org.onebillion.onecourse.utils.OBImageManager;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OBVideoRecorder;
 import org.onebillion.onecourse.utils.OB_Maths;
+import org.onebillion.onecourse.utils.OCM_FatController;
 
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by michal on 13/04/2017.
@@ -43,8 +47,9 @@ public class OC_PlayZoneVideo extends OC_SectionController
     boolean videoOrientationFront;
     OBControl screenOverlay;
     boolean recording;
-    String currentFileName, videoPath, thumbnailPath;
+    String currentFileName, videoFilePath, thumbnailFilePath, videoFileName, thumbnalFileName;
 
+    static int VIDEO_DURATION = 10;
 
     @Override
     public void prepare()
@@ -62,11 +67,14 @@ public class OC_PlayZoneVideo extends OC_SectionController
         //objectDict.get("camera_icon").setZPosition(10);
         String fileName = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss").format(new Date());
         currentFileName  = String.format("video_%s",fileName);
-        videoPath = OBUtils.getFilePathForFolder((String.format("%s.%s",currentFileName,"m4a")), "pzvideo", this);
-        thumbnailPath = OBUtils.getFilePathForFolder((String.format("%s.%s",currentFileName,"jpg")), "pzvideo", this);
+        List<String> files = OC_PlayZoneAsset.assetsNamesForNewFile(OC_PlayZoneAsset.ASSET_VIDEO);
+        thumbnalFileName = files.get(0);
+        videoFileName = files.get(1);
+        thumbnailFilePath = OC_PlayZoneAsset.pathToAsset(thumbnalFileName);
+        videoFilePath = OC_PlayZoneAsset.pathToAsset(videoFileName);
 
         videoPlayer = new OBVideoPlayer(screenView.frame(),this,true, false);
-        videoRecorder = new OBVideoRecorder(videoPath,this);
+        videoRecorder = new OBVideoRecorder(videoFilePath,this);
         cameraManager = new OBCameraManager(this);
         videoPlayer.setZPosition(screenView.zPosition());
         attachControl(videoPlayer);
@@ -89,8 +97,8 @@ public class OC_PlayZoneVideo extends OC_SectionController
 
     }
 
-
-    public void exitEvent()
+    @Override
+    public void cleanUp()
     {
         try
         {
@@ -103,7 +111,7 @@ public class OC_PlayZoneVideo extends OC_SectionController
             e.printStackTrace();
         }
 
-        super.exitEvent();
+        super.cleanUp();
     }
 
 
@@ -157,7 +165,7 @@ public class OC_PlayZoneVideo extends OC_SectionController
                         button.hide();
                         animateRecordingPulse();
                         videoRecorder.startMediaRecorderAndTimer(-1);
-                        OBUtils.runOnOtherThreadDelayed(2, new OBUtils.RunLambda()
+                        OBUtils.runOnOtherThreadDelayed(VIDEO_DURATION, new OBUtils.RunLambda()
                         {
                             public void run() throws Exception
                             {
@@ -190,22 +198,25 @@ public class OC_PlayZoneVideo extends OC_SectionController
             videoRecorder.stopRecording();
             cameraManager.stopPreview();
             playSFX("click");
-            ExifInterface exifi = new ExifInterface(videoPath);
-            exifi.setAttribute(ExifInterface.TAG_ORIENTATION, String.valueOf(videoOrientationFront ? ExifInterface.ORIENTATION_FLIP_HORIZONTAL : ExifInterface.ORIENTATION_NORMAL));
-            exifi.saveAttributes();
+
             try
             {
-                Bitmap bitmap = getFirstFrameForVideo(videoPath);
+                Bitmap bitmap = getFirstFrameForVideo(videoFilePath);
                 Matrix m = new Matrix();
                 float thumbScale = 0.3f;
                 m.preScale((videoOrientationFront ? -1 : 1) * thumbScale, thumbScale);
                 Bitmap dst = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, false);
 
                 dst.setDensity(DisplayMetrics.DENSITY_DEFAULT);
-                FileOutputStream out = new FileOutputStream(thumbnailPath);
+                FileOutputStream out = new FileOutputStream(thumbnailFilePath);
                 dst.compress(Bitmap.CompressFormat.JPEG, 90, out);
                 out.close();
 
+                OCM_FatController fatController = (OCM_FatController)MainActivity.mainActivity.fatController;
+                Map<String,String> map = new ArrayMap<>();
+                map.put("video", videoFileName);
+                map.put("mirrored",String.valueOf(videoOrientationFront));
+                fatController.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_VIDEO,thumbnalFileName,map);
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
                     public void run() throws Exception

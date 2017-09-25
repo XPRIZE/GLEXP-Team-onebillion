@@ -271,10 +271,10 @@ public class OC_Mgp extends OC_SectionController
         }
     }
 
-    public void exitEvent()
+    public void cleanUp()
     {
         box.stopGemsGlowPulse(false);
-        super.exitEvent();
+        super.cleanUp();
     }
 
     @Override

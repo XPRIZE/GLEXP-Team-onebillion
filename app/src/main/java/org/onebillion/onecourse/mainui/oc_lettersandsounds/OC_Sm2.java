@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.onebillion.onecourse.utils.OBUtils.coalesce;
+
 /**
  * Created by alan on 09/08/16.
  */
@@ -25,7 +27,7 @@ public class OC_Sm2 extends OC_Sm1
     public void miscSetUp()
     {
         super.miscSetUp();
-        demoType = parameters.get("demotype");
+        demoType = coalesce(parameters.get("demotype"),"a2");
         String audioMode = parameters.get("audiomode");
         if(audioMode != null)
         {

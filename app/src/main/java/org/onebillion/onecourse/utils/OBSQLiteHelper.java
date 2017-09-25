@@ -52,7 +52,7 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
     @Override
     public void onCreate (SQLiteDatabase database)
     {
-        InputStream inputStream = cont.getResources().openRawResource(R.raw.tables);
+        InputStream inputStream = cont.getResources().openRawResource(MainActivity.mainActivity.fatController.databaseResource());
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         String line;
@@ -265,14 +265,14 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
             if (sd.canWrite())
             {
                 DateFormat df = new android.text.format.DateFormat();
-                String date = df.format("yyyy.MM.dd.hh.mm.ss", new java.util.Date()).toString();
+                String date = df.format("yyyy_MM_dd_hh_mm_ss", new java.util.Date()).toString();
                 //
                 String currentDBPath = "//data//" + MainActivity.mainActivity.getApplicationContext().getPackageName() + "//databases//" + DATABASE_NAME;
                 //
                 try
                 {
                     File currentDB = new File(data, currentDBPath);
-                    File backupDB = new File(sd, String.format("%s.db", date));
+                    File backupDB = new File(sd, String.format("%s_%s.db", OBSystemsManager.sharedManager.device_getUUID(), date));
                     //
                     FileChannel src = new FileInputStream(currentDB).getChannel();
                     FileChannel dst = new FileOutputStream(backupDB).getChannel();

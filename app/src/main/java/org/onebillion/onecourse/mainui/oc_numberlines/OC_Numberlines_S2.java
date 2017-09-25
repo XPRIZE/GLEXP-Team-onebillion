@@ -215,7 +215,7 @@ public class OC_Numberlines_S2 extends OC_SectionController
         OBGroup peg = (OBGroup)objectDict.get(cont.settings.get("target"));
         RectF hotRect = new RectF(peg.frame());
         hotRect.inset(-1.5f* peg.width(), -0.5f * peg.height());
-        if(eventTargets.contains(cont.propertyValue("value")) && cont.frame().intersect(hotRect))
+        if(eventTargets.contains(cont.propertyValue("value")) && RectF.intersects(cont.frame(),hotRect))
         {
             float left = peg.position().x - (cont.width()/2);
             if(cont.top() < peg.bottom())
@@ -223,15 +223,15 @@ public class OC_Numberlines_S2 extends OC_SectionController
                 OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("left",left,cont),
                         OBAnim.propertyAnim("top",peg.bottom()+peg.height(),cont))
                         ,0.15,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
-                peg.setZPosition ( 11);
-                cont.setZPosition ( 3);
+                peg.setZPosition(11);
+                cont.setZPosition(3);
                 OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("top",objectDict.get("rope").bottom(),cont))
                         ,0.15,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
             }
             else
             {
-                peg.setZPosition ( 11);
-                cont.setZPosition ( 3);
+                peg.setZPosition(11);
+                cont.setZPosition(3);
                 OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("left",left,cont),
                         OBAnim.propertyAnim("top",objectDict.get("rope").bottom(),cont))
                         ,0.2,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
@@ -258,7 +258,7 @@ public class OC_Numberlines_S2 extends OC_SectionController
             OBControl rope = objectDict.get("rope");
             RectF rect = new RectF(cont.frame());
             rect.inset( 0, -4*rope.height());
-            boolean remind = cont.frame().intersect(rect);
+            boolean remind = RectF.intersects(cont.frame(),rect);
             gotItWrongWithSfx();
             OBAnimationGroup.runAnims(Arrays.asList(OBAnim.moveAnim((PointF)cont.propertyValue("startpos"),cont))
                     ,0.2,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
@@ -398,7 +398,7 @@ public class OC_Numberlines_S2 extends OC_SectionController
             Path path = new Path();
             path.moveTo(control.position().x, control.position().y);
             PointF cp1 = OB_Maths.locationForRect(0.5f,-1.8f,objectDict.get("box_front").getWorldFrame());
-            PointF cp2 = OB_Maths.AddPoints(endPoint ,new PointF(5,5));
+            PointF cp2 = OB_Maths.AddPoints(endPoint ,new PointF(applyGraphicScale(5),applyGraphicScale(5)));
             path.cubicTo(cp1.x, cp1.y, cp2.x, cp2.y, endPoint.x, endPoint.y);
             anims.add(OBAnim.pathMoveAnim(control,path,false,0));
             anims.add(OBAnim.rotationAnim((float)Math.toRadians(360),control));

@@ -122,6 +122,7 @@ public class OC_Sorting_S1 extends OC_SectionController
         for (OBControl obj : targets)
         {
             obj.setProperty("origpos",new PointF(obj.position().x,obj.position().y));
+            obj.setProperty("zpos",obj.zPosition());
         }
         objectsLeftToPlace = new ArrayList<>(targets);
 
@@ -520,7 +521,9 @@ public class OC_Sorting_S1 extends OC_SectionController
     {
         if (status() == STATUS_DRAGGING)
         {
-            if (target != null)
+            setStatus(STATUS_CHECKING);
+            final OBControl t = target;
+            if (t != null)
             {
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
@@ -529,7 +532,8 @@ public class OC_Sorting_S1 extends OC_SectionController
                     {
                         checkDragAtPoint(pt);
                         lockScreen();
-                        target.setZPosition(target.zPosition() - 30);
+                        //target.setZPosition(target.zPosition() - 30);
+                        t.setZPosition((Float)(t.propertyValue("zpos")));
                         unlockScreen();
                     }
                 });

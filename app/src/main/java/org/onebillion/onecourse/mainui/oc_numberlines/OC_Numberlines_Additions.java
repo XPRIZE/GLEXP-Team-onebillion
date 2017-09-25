@@ -55,7 +55,7 @@ public class OC_Numberlines_Additions
             controller.attachControl(divLine);
             controller.objectDict.put(String.format("divline_%d", start+i),divLine);
 
-            OBLabel numLabel = new OBLabel("88", OBUtils.standardTypeFace(), fontSize);
+            OBLabel numLabel = new OBLabel("00", OBUtils.standardTypeFace(), fontSize);
             numLabel.setString(String.format("%d",start+i));
             numLabel.setPosition(OB_Maths.worldLocationForControl(i*1.0f/(size-1),0.86f,rect));
             numLabel.setColour(numColour);
@@ -164,7 +164,7 @@ public class OC_Numberlines_Additions
         controller.unlockScreen();
     }
 
-    public static void drawCurveLine(int num,boolean clockwise, boolean label, OC_SectionController controller) throws Exception
+    public static void drawCurveLine(int num,boolean clockwise, boolean label, OC_SectionController controller)
     {
         drawCurveLine(num, clockwise,label,clockwise ? OBUtils.colorFromRGBString("255,252,0") : OBUtils.colorFromRGBString("255,83,0"), controller);
     }

@@ -22,13 +22,19 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.provider.Settings;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.view.Display;
+import android.view.Window;
 import android.widget.DatePicker;
+import android.widget.LinearLayout;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ntp.NTPUDPClient;
+import org.apache.commons.net.ntp.TimeInfo;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.receivers.OBBatteryReceiver;
@@ -45,13 +51,18 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -84,12 +95,13 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 
     private OBUtils.RunLambda dateSetCompletionBlock, timeSetCompletionBlock;
 
+    private String currentUnit = null;
 
-    public OBSystemsManager ()
+    public OBSystemsManager (Activity activity)
     {
         batteryReceiver = new OBBatteryReceiver();
         //
-        settingsContentObserver = new OBSettingsContentObserver(MainActivity.mainActivity, new Handler());
+        settingsContentObserver = new OBSettingsContentObserver(activity, new Handler());
         //
         brightnessManager = new OBBrightnessManager();
         expansionManager = new OBExpansionManager();
@@ -102,7 +114,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         sharedManager = this;
     }
 
-    public void checkForConnectivity(final OBUtils.RunLambda block)
+    public void checkForConnectivity (final OBUtils.RunLambdaWithSuccess block)
     {
         if (shouldConnectToWifiOnStartup() && this.connectionManager.wifiSSID() != null && this.connectionManager.wifiPassword() != null)
         {
@@ -120,7 +132,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                         @Override
                         public void run () throws Exception
                         {
-                            block.run();
+                            block.run(true);
                         }
                     });
                 }
@@ -133,7 +145,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         }
     }
 
-    public boolean hasWriteSettingsPermission()
+    public boolean hasWriteSettingsPermission ()
     {
         if (!MainActivity.isSDKCompatible())
         {
@@ -157,7 +169,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void setDateTime()
+    public void setDateTime ()
     {
 
     }
@@ -235,8 +247,9 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 
     public static boolean isFirstSetupComplete ()
     {
-        String result = MainActivity.mainActivity.getPreferences("firstSetupComplete");
-        return result != null && result.equals("true");
+        return OBPreferenceManager.getBooleanPreference("firstSetupComplete");
+//        String result = MainActivity.mainActivity.getPreferences("firstSetupComplete");
+//        return result != null && result.equals("true");
     }
 
 
@@ -289,7 +302,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public Handler getMainHandler()
+    public Handler getMainHandler ()
     {
         if (mainHandler == null)
         {
@@ -398,7 +411,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         //
         if (batteryReceiver != null)
         {
-            MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            registerBatteryReceiver();
         }
         //
         if (settingsContentObserver != null)
@@ -445,6 +458,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     public void onDestroy ()
     {
         MainActivity.log("OBSystemsManager.onDestroy detected");
+        DBSQL.finalise();
     }
 
 
@@ -491,11 +505,21 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 
     public void refreshStatus ()
     {
-        String info = String.format("Battery [%s]    Brightness[%s]    Volume[%s]", batteryReceiver.printStatus(), brightnessManager.printStatus(), settingsContentObserver.printVolumeStatus());
+        String info = String.format("Bat [%s]    Br[%s]    Vol[%s]    %s", batteryReceiver.printStatus(),
+                brightnessManager.printStatus(), settingsContentObserver.printVolumeStatus(), currentUnit != null ? String.format("U[%s]", currentUnit) : "");
         //
         if (statusLabel != null)
         {
             statusLabel.setString(info);
+        }
+    }
+
+    public void setCurrentUnit(String unit)
+    {
+        if (MainActivity.mainActivity.isDebugMode())
+        {
+            currentUnit = unit;
+            refreshStatus();
         }
     }
 
@@ -505,6 +529,17 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         statusLabel = label;
         refreshStatus();
     }
+
+    public void registerBatteryReceiver()
+    {
+        Intent intent = MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_LOW));
+        MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_OKAY));
+        MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_POWER_CONNECTED));
+        MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_POWER_DISCONNECTED));
+       // batteryReceiver.onReceive(null,intent);
+    }
+
 
 
     private void runChecksumComparisonTest ()
@@ -648,20 +683,20 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public boolean hasAdministratorPrivileges()
+    public boolean hasAdministratorPrivileges ()
     {
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
         return devicePolicyManager.isAdminActive(AdministratorReceiver());
     }
 
 
-    public ComponentName AdministratorReceiver()
+    public ComponentName AdministratorReceiver ()
     {
         return OBDeviceAdminReceiver.getComponentName(MainActivity.mainActivity);
     }
 
 
-    public boolean isDeviceOwner()
+    public boolean isDeviceOwner ()
     {
         MainActivity.log("OBSystemsManager.isDeviceOwner");
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
@@ -671,7 +706,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void requestToRemoveAccounts()
+    public void requestToRemoveAccounts ()
     {
         Toast.makeText(MainActivity.mainActivity, "Please remove all accounts before going back", Toast.LENGTH_LONG).show();
         Intent intent = new Intent(Settings.ACTION_SYNC_SETTINGS);
@@ -679,7 +714,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void requestDeviceOwner()
+    public void requestDeviceOwner ()
     {
         MainActivity.log("OBSystemsManager.requestDeviceOwner");
         //
@@ -896,6 +931,56 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
+
+    public void unpinApplication ()
+    {
+        MainActivity.log("OBSystemsManager.unpinApplication");
+        //
+        if (shouldPinApplication())
+        {
+            DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
+            ComponentName adminReceiver = OBDeviceAdminReceiver.getComponentName(MainActivity.mainActivity);
+            //
+            if (devicePolicyManager.isDeviceOwnerApp(MainActivity.mainActivity.getPackageName()))
+            {
+                MainActivity.log("OBSystemsManager.unpinApplication: attempting to unpin app");
+                String[] packages = {MainActivity.mainActivity.getPackageName()};
+                devicePolicyManager.setLockTaskPackages(adminReceiver, packages);
+                //
+                if (devicePolicyManager.isLockTaskPermitted(MainActivity.mainActivity.getPackageName()))
+                {
+                    if (isAppIsInForeground())
+                    {
+                        try
+                        {
+                            MainActivity.log("OBSystemsManager.unpinApplication: starting locked task");
+                            MainActivity.mainActivity.stopLockTask();
+                            kioskModeActive = false;
+                        }
+                        catch (Exception e)
+                        {
+                            MainActivity.log("OBSystemsManager.unpinApplication: exception caught");
+                        }
+                    }
+                    else
+                    {
+                        MainActivity.log("OBSystemsManager.unpinApplication:application is not in foreground, cancelling");
+                    }
+                }
+            }
+            else
+            {
+                MainActivity.log("OBSystemsManager.unpinApplication: unable to unpin application, not a device owner");
+            }
+            toggleKeyguardAndStatusBar(false);
+        }
+        else
+        {
+            MainActivity.log("OBSystemsManager.unpinApplication: disabled in settings");
+        }
+    }
+
+
     public void toggleKeyguardAndStatusBar (boolean status)
     {
         if (!MainActivity.isSDKCompatible())
@@ -920,7 +1005,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void screenLock()
+    public void screenLock ()
     {
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
         devicePolicyManager.lockNow();
@@ -1045,80 +1130,88 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-
-    public boolean usesAdministratorServices()
+    public boolean usesAdministratorServices ()
     {
         String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_USE_ADMINISTRATOR_SERVICES);
         return (value != null && value.equalsIgnoreCase("true"));
     }
 
-    public boolean shouldRequestDeviceOwner()
+    public boolean shouldRequestDeviceOwner ()
     {
         String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_REQUEST_DEVICE_OWNER);
         return (value != null && value.equalsIgnoreCase("true"));
     }
 
 
-    public boolean shouldPinApplication()
+    public boolean shouldPinApplication ()
     {
         String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_PIN_APPLICATION);
         return (value != null && value.equalsIgnoreCase("true"));
     }
 
 
-    public boolean shouldShowDateTimeSettings()
+    public boolean shouldShowDateTimeSettings ()
     {
         String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SHOW_DATE_TIME_SETTINGS);
         return (value != null && value.equalsIgnoreCase("true"));
     }
 
 
-    public boolean shouldRunChecksumVerification()
+    public boolean shouldRunChecksumVerification ()
     {
         String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_CHECKSUM_VERIFICATION);
         return (value != null && value.equalsIgnoreCase("true"));
     }
 
-    public boolean shouldConnectToWifiOnStartup()
+    public boolean shouldConnectToWifiOnStartup ()
     {
         String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_WIFI_CONNECT_ON_STARTUP);
         return (value != null && value.equalsIgnoreCase("true"));
     }
 
 
-    public boolean shouldSendBackupWhenConnected()
+    public boolean shouldSendBackupWhenConnected ()
     {
         String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BACKUP_SEND_WHEN_CONNECTED);
         return (value != null && value.equalsIgnoreCase("true"));
     }
 
-    public String backup_Wifi_SSID()
+
+    public String backup_Wifi_SSID ()
     {
         return MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BACKUP_WIFI);
     }
 
-    public URL backup_URL() throws MalformedURLException
+
+    public String backup_URL ()
     {
-        String url = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BACKUP_URL);
-        return new URL("http://" + url);
+        return MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BACKUP_URL);
     }
 
-    public int backup_interval() // MINUTES
+
+    public String backup_workingDirectory ()
+    {
+        return MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BACKUP_WORKING_DIRECTORY);
+    }
+
+
+    public int backup_interval () // MINUTES
     {
         String value_string = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BACKUP_INTERVAL);
         if (value_string == null)
         {
             MainActivity.log("OBSystemsManager.backup_interval Please enter a value in settings.plist for " + MainActivity.CONFIG_BACKUP_INTERVAL + ". Using default 120mins");
-            return 120;
+            return 180;
         }
         int value = Integer.parseInt(value_string);
         return value;
     }
 
-    public boolean backup_isRequired()
+    public boolean backup_isRequired ()
     {
         MainActivity.log("OBSystemsManager.backup_isRequired");
-        String value_string = MainActivity.mainActivity.getPreferences("lastBackupTimeStamp");
+        String value_string = OBPreferenceManager.getStringPreference("lastBackupTimeStamp");
+//        String value_string = MainActivity.mainActivity.getPreferences("lastBackupTimeStamp");
         if (value_string == null) return true;
         long value = Long.parseLong(value_string);
         long currentTime = System.currentTimeMillis() / 1000;
@@ -1128,27 +1221,95 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         return result;
     }
 
-    public void backup_connectToWifiAndUploadDatabase ()
+
+    public String device_getUUID()
     {
-        MainActivity.log("OBSystemsManager.backup_connectToWifiAndUploadDatabase");
+        String uuid = "unknown_uuid";
+        //
+        try
+        {
+            List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface nif : all)
+            {
+                if (!nif.getName().equalsIgnoreCase("wlan0")) continue;
+                byte[] macBytes = nif.getHardwareAddress();
+                if (macBytes != null)
+                {
+                    StringBuilder res1 = new StringBuilder();
+                    for (byte b : macBytes)
+                    {
+                        res1.append(Integer.toHexString(b & 0xFF) + ":");
+                    }
+                    if (res1.length() > 0)
+                    {
+                        res1.deleteCharAt(res1.length() - 1);
+                    }
+                    uuid = res1.toString().replace(":", "");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+        }
+        //
+        return uuid;
+    }
+
+
+    public void connectToWifiAndSynchronizeTime ()
+    {
+        MainActivity.log("OBSystemsManager.connectToWifiAndSynchronizeTime");
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             @Override
             public void run () throws Exception
             {
-                connectionManager.connectToNetwork(backup_Wifi_SSID(), "", new OBUtils.RunLambda()
+                connectionManager.connectToNetwork_connectToWifi(backup_Wifi_SSID(), "", new OBUtils.RunLambdaWithSuccess()
                 {
                     @Override
-                    public void run () throws Exception
+                    public void run (boolean success) throws Exception
                     {
-                        backup_uploadDatabase();
+                        if (success)
+                        {
+                            time_synchronizeAndUpdate();
+                            //connectionManager.disconnectWifi();
+                        }
                     }
                 });
             }
         });
     }
 
-    public Lock backup_getLock()
+
+
+
+    public void connectToWifiAndSynchronizeTimeAndData ()
+    {
+        MainActivity.log("OBSystemsManager.connectToWifiAndSynchronizeTimeAndData");
+        //asd
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run () throws Exception
+            {
+                connectionManager.connectToNetwork_connectToWifi(backup_Wifi_SSID(), "", new OBUtils.RunLambdaWithSuccess()
+                {
+                    @Override
+                    public void run (boolean success) throws Exception
+                    {
+                        if (success)
+                        {
+                            MainActivity.log("OBSystemsManager.connectToWifiAndSynchronizeTimeAndData. now connected to the wifi, running completion block");
+                            time_synchronizeAndUpdate();
+                            backup_uploadDatabase_ftp(true);
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    public Lock backup_getLock ()
     {
         if (backupLock == null)
         {
@@ -1157,26 +1318,110 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         return backupLock;
     }
 
-    public void backup_uploadDatabase()
+
+    public void backup_uploadDatabase_ftp (Boolean disconnectAfter)
     {
-        MainActivity.log("OBSystemsManager.backup_uploadDatabase attempting lock");
+        MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp attempting lock");
         if (backup_getLock().tryLock())
         {
             try
             {
-                MainActivity.log("OBSystemsManager.backup_uploadDatabase.generating database backup");
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp.generating database backup");
                 final boolean freshBackup = true;
                 String fileURL = (freshBackup) ? OBSQLiteHelper.getSqlHelper().backupDatabase() : OBSQLiteHelper.getSqlHelper().getLatestDatabaseBackup();
                 if (fileURL == null) fileURL = OBSQLiteHelper.getSqlHelper().backupDatabase();
                 //
                 if (fileURL == null)
                 {
-                    MainActivity.log("OBSystemsManager.backup_uploadDatabase.could not generate a database backup");
+                    MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp.could not generate a database backup");
+                }
+                else
+                {
+                    File file = new File(fileURL);
+                    FTPClient ftpClient = new FTPClient();
+                    //
+                    ftpClient.connect(InetAddress.getByName(backup_URL()));
+                    ftpClient.login("anonymous", "");
+                    ftpClient.changeWorkingDirectory(backup_workingDirectory());
+                    //
+                    String reply = ftpClient.getReplyString();
+                    //
+                    if (reply.contains("250") || reply.contains("230"))
+                    {
+                        ftpClient.setFileType(org.apache.commons.net.ftp.FTP.BINARY_FILE_TYPE);
+                        BufferedInputStream buffIn = null;
+                        buffIn = new BufferedInputStream(new FileInputStream(file));
+                        ftpClient.enterLocalPassiveMode();
+                        boolean result = ftpClient.storeFile(file.getName(), new FileInputStream(file));
+                        buffIn.close();
+                        ftpClient.logout();
+                        ftpClient.disconnect();
+                        //
+                        if (result)
+                        {
+                            MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp updating lastBackupTimeStamp");
+                            long currentTime = System.currentTimeMillis() / 1000;
+                            OBPreferenceManager.setPreference("lastBackupTimeStamp", String.format("%d", currentTime));
+                            //
+                            OBUtils.runOnMainThread(new OBUtils.RunLambda()
+                            {
+                                @Override
+                                public void run () throws Exception
+                                {
+                                    Toast.makeText(MainActivity.mainActivity, "Database has been uploaded to the server", Toast.LENGTH_LONG).show();
+                                }
+                            });
+                        }
+                        else
+                        {
+                            MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp error while uploading FTP file");
+                        }
+                        //
+                        if (disconnectAfter)
+                        {
+                            MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp. disconnecting Wifi");
+                            connectionManager.disconnectWifi();
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp exception caught");
+                e.printStackTrace();
+            }
+            //
+            MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp releasing lock");
+            backup_getLock().unlock();
+        }
+        else
+        {
+            MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp backup already in progress");
+        }
+    }
+
+
+
+    public void backup_uploadDatabase_php ()
+    {
+        MainActivity.log("OBSystemsManager.backup_uploadDatabase_php attempting lock");
+        if (backup_getLock().tryLock())
+        {
+            try
+            {
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase_php.generating database backup");
+                final boolean freshBackup = true;
+                String fileURL = (freshBackup) ? OBSQLiteHelper.getSqlHelper().backupDatabase() : OBSQLiteHelper.getSqlHelper().getLatestDatabaseBackup();
+                if (fileURL == null) fileURL = OBSQLiteHelper.getSqlHelper().backupDatabase();
+                //
+                if (fileURL == null)
+                {
+                    MainActivity.log("OBSystemsManager.backup_uploadDatabase_php.could not generate a database backup");
                     return;
                 }
                 //
                 File file = new File(fileURL);
-                URL url = backup_URL();
+                URL url = new URL("http://" + backup_URL());
                 //
                 String attachmentName = "file";
                 String attachmentFileName = "database.sql";
@@ -1186,7 +1431,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 //
                 HttpURLConnection httpUrlConnection = null;
 
-                MainActivity.log("OBSystemsManager.backup_uploadDatabase.URL: " + url);
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase_php.URL: " + url);
                 httpUrlConnection = (HttpURLConnection) url.openConnection();
                 httpUrlConnection.setUseCaches(false);
                 httpUrlConnection.setDoOutput(true);
@@ -1225,17 +1470,17 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 //
                 String response = stringBuilder.toString();
                 //
-                MainActivity.log("OBSystemsManager.backup_uploadDatabase response from server: " + response);
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase_php response from server: " + response);
                 //
                 responseStream.close();
                 httpUrlConnection.disconnect();
                 //
-                MainActivity.log("OBSystemsManager.backup_uploadDatabase updating lastBackupTimeStamp");
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase_php updating lastBackupTimeStamp");
                 long currentTime = System.currentTimeMillis() / 1000;
-                MainActivity.mainActivity.addToPreferences("lastBackupTimeStamp", String.format("%d", currentTime));
+                OBPreferenceManager.setPreference("lastBackupTimeStamp", String.format("%d", currentTime));
                 //
-                MainActivity.log("OBSystemsManager.backup_uploadDatabase disconnecting from wifi");
-                connectionManager.disconnectWifi();
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase_php disconnecting from wifi");
+
                 //
                 OBUtils.runOnMainThread(new OBUtils.RunLambda()
                 {
@@ -1248,20 +1493,20 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             }
             catch (Exception e)
             {
-                MainActivity.log("OBSystemsManager.backup_uploadDatabase exception caught");
-//                e.printStackTrace();
+                MainActivity.log("OBSystemsManager.backup_uploadDatabase_php exception caught");
+                e.printStackTrace();
             }
-            MainActivity.log("OBSystemsManager.backup_uploadDatabase releasing lock");
+            MainActivity.log("OBSystemsManager.backup_uploadDatabase_php releasing lock");
             backup_getLock().unlock();
         }
         else
         {
-            MainActivity.log("OBSystemsManager.backup_uploadDatabase backup already in progress");
+            MainActivity.log("OBSystemsManager.backup_uploadDatabase_php backup already in progress");
         }
     }
 
 
-    public static void unregisterReceiver(BroadcastReceiver receiver)
+    public static void unregisterReceiver (BroadcastReceiver receiver)
     {
         if (receiver != null)
         {
@@ -1281,15 +1526,27 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         }
     }
 
-    public Dialog createDateSetDialog(OBUtils.RunLambda completionBlock)
+    public Dialog createDateSetDialog (String message, Boolean cancelable, OBUtils.RunLambda completionBlock)
     {
         dateSetCompletionBlock = completionBlock;
         final Calendar calendar = Calendar.getInstance();
         DatePickerDialog d = new DatePickerDialog(MainActivity.mainActivity, this, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
-        d.setCancelable(false);
-        d.setCanceledOnTouchOutside(false);
+        //
+        d.setCancelable(cancelable);
+        d.setCanceledOnTouchOutside(cancelable);
+        //
+        if (message == null)
+        {
+            LinearLayout linearLayout = new LinearLayout(MainActivity.mainActivity.getApplicationContext());
+            d.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            d.setCustomTitle(linearLayout);
+        }
+        else
+        {
+            d.setMessage(message + "\n");
+        }
+        //
         d.setButton(DatePickerDialog.BUTTON_NEGATIVE, null, (DialogInterface.OnClickListener) null);
-        d.setMessage("Please set the current date.\n");
         //
         DatePicker datePicker = d.getDatePicker();
         calendar.clear();
@@ -1301,7 +1558,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         return d;
     }
 
-    public Dialog createTimeSetDialog(OBUtils.RunLambda completionBlock, final OBUtils.RunLambda cancelCompletionBlock)
+    public Dialog createTimeSetDialog (OBUtils.RunLambda completionBlock, final OBUtils.RunLambda cancelCompletionBlock)
     {
         timeSetCompletionBlock = completionBlock;
         final Calendar calendar = Calendar.getInstance();
@@ -1325,7 +1582,8 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     public void onDateSet (DatePicker view, int year, int monthOfYear, int dayOfMonth)
     {
         final Activity activity = MainActivity.mainActivity;
-        if (activity != null) {
+        if (activity != null)
+        {
             setDate(activity, year, monthOfYear, dayOfMonth);
         }
         if (dateSetCompletionBlock != null)
@@ -1337,8 +1595,10 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     @Override
     public void onTimeSet (TimePicker view, int hourOfDay, int minute)
     {
-        final Activity activity = MainActivity.mainActivity;;
-        if (activity != null) {
+        final Activity activity = MainActivity.mainActivity;
+        ;
+        if (activity != null)
+        {
             setTime(activity, hourOfDay, minute);
         }
         if (timeSetCompletionBlock != null)
@@ -1347,7 +1607,8 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         }
     }
 
-    static void setDate(Context context, int year, int month, int day) {
+    public static void setDate (Context context, int year, int month, int day)
+    {
         Calendar c = Calendar.getInstance();
         //
         c.set(Calendar.YEAR, year);
@@ -1369,7 +1630,8 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         }
     }
 
-    static void setTime(Context context, int hourOfDay, int minute) {
+    public static void setTime (Context context, int hourOfDay, int minute)
+    {
         Calendar c = Calendar.getInstance();
         //
         c.set(Calendar.HOUR_OF_DAY, hourOfDay);
@@ -1393,9 +1655,9 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void setDateAndTimeDialog(final OBUtils.RunLambda completionBlock)
+    public void setDateAndTimeDialog (final OBUtils.RunLambda completionBlock)
     {
-        createDateSetDialog(new OBUtils.RunLambda()
+        createDateSetDialog("Please set the current date.", false, new OBUtils.RunLambda()
         {
             @Override
             public void run () throws Exception
@@ -1411,4 +1673,255 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             }
         }).show();
     }
+
+
+    public String getBatterySettingKeyForCurrentLevel ()
+    {
+        Map<String, Object> dictionary = (Map<String, Object>) MainActivity.Config().get(MainActivity.CONFIG_BATTERY_LEVELS);
+        if (dictionary == null)
+        {
+            MainActivity.log("OBSystemsManager:getBatterySettingKeyForCurrentLevel: unable to find battery dictionary in settings");
+            return null;
+        }
+        float batteryLevel = batteryReceiver.getBatteryLevel();
+        //
+        MainActivity.log("OBSystemsManager:getBatterySettingKeyForCurrentLevel: " + batteryLevel + "%");
+        //
+        for (String levelKey : dictionary.keySet())
+        {
+            Map<String, Object> dictionaryForLevel = (Map<String, Object>) dictionary.get(levelKey);
+            //
+            float maxLevel = Float.parseFloat((String) dictionaryForLevel.get(MainActivity.CONFIG_MAXIMUM_BATTERY_VALUE));
+            float minLevel = Float.parseFloat((String) dictionaryForLevel.get(MainActivity.CONFIG_MINIMUM_BATTERY_VALUE));
+            //
+            if (batteryLevel > minLevel && batteryLevel <= maxLevel)
+            {
+                MainActivity.log("OBSystemsManager:getBatterySettingKeyForCurrentLevel: " + levelKey);
+                return levelKey;
+            }
+        }
+        //
+        MainActivity.log("OBSystemsManager:getBatterySettingKeyForCurrentLevel: unable to find level key for battery");
+        return null;
+    }
+
+
+    /**
+     *
+     * @return dictionary of settings for the current battery level
+     */
+    public Map<String, Object> getBatterySettingsForCurrentLevel ()
+    {
+        Map<String, Object> dictionary = (Map<String, Object>) MainActivity.Config().get(MainActivity.CONFIG_BATTERY_LEVELS);
+        if(dictionary == null) return null;
+        String settingKey = getBatterySettingKeyForCurrentLevel();
+        //
+        if (settingKey == null) return null;
+        //
+        return (Map<String, Object>) dictionary.get(settingKey);
+    }
+
+    /**
+     *
+     * @return dictionary of settings for the selected battery level
+     */
+    public Map<String, Object> getBatterySettingsForLevel (String settingKey)
+    {
+        Map<String, Object> dictionary = (Map<String, Object>) MainActivity.Config().get(MainActivity.CONFIG_BATTERY_LEVELS);
+        if(dictionary == null) return null;
+        if (settingKey == null) return null;
+        //
+        return (Map<String, Object>) dictionary.get(settingKey);
+    }
+
+    /**
+     * @return float (0 to 1), indicating the relative brightness of the screen
+     */
+    public float getMaxScreenBrightnessForCurrentLevel ()
+    {
+        Map<String, Object> settings = getBatterySettingsForCurrentLevel();
+        if (settings == null)
+        {
+            String value = (String) MainActivity.Config().get(MainActivity.CONFIG_DEFAULT_MAX_BRIGHTNESS);
+            if (value == null)
+            {
+                return 1.0f;
+            }
+            return Float.parseFloat(value);
+        }
+        else
+        {
+            return Float.parseFloat((String) settings.get(MainActivity.CONFIG_MAX_BRIGHTNESS));
+        }
+    }
+
+    /**
+     * @return minutes it takes to lock the screen due to inactivity
+     */
+    public int getMaxScreenTimeoutForCurrentLevel ()
+    {
+        Map<String, Object> settings = getBatterySettingsForCurrentLevel();
+        if (settings == null)
+        {
+            String value = (String) MainActivity.Config().get(MainActivity.CONFIG_DEFAULT_MAX_SCREEN_TIMEOUT);
+            if (value == null)
+            {
+                return 1;
+            }
+            return Integer.parseInt(value);
+        }
+        else
+        {
+            return Integer.parseInt((String) settings.get(MainActivity.CONFIG_MAX_SCREEN_TIMEOUT));
+        }
+    }
+
+    /**
+     * @return boolean value indicating if it should blink the battery indicator red and/or show Presenter audio to charge device
+     */
+    public boolean shouldShowBatterReminderForCurrentLevel ()
+    {
+        Map<String, Object> settings = getBatterySettingsForCurrentLevel();
+        if (settings == null)
+        {
+            return false;
+        }
+        else
+        {
+            return settings.get(MainActivity.CONFIG_CHARGE_BATTERY_REMINDER).equals("true");
+        }
+    }
+
+
+    /**
+     *
+     * @return minutes between reminders to charge the device
+     */
+    public int getBatteryReminderIntervalForCurrentLevel()
+    {
+        Map<String, Object> settings = getBatterySettingsForCurrentLevel();
+        if (settings == null)
+        {
+            return 0;
+        }
+        else
+        {
+            return Integer.parseInt((String)settings.get(MainActivity.CONFIG_CHARGE_BATTERY_REMINDER_INTERVAL));
+        }
+    }
+
+    /**
+     * @return boolean value indicating if the application should lock any further activity pending charging
+     */
+    public boolean shouldShowBatteryLockScreenForCurrentLevel ()
+    {
+        Map<String, Object> settings = getBatterySettingsForCurrentLevel();
+        if (settings == null)
+        {
+            return false;
+        }
+        else
+        {
+            return settings.get(MainActivity.CONFIG_SHOW_BATTERY_LOCK_SCREEN).equals("true");
+        }
+    }
+
+    /**
+     * @return battery level on 0.0-100.0 scale, -1 if no battery data
+     */
+    public float getBatteryLevel ()
+    {
+       if(batteryReceiver != null)
+       {
+           return batteryReceiver.getBatteryLevel();
+       }
+       return -1;
+    }
+
+    /**
+     * @return true if battery is charging(cable is plugged in)
+     */
+    public boolean isBatteryCharging ()
+    {
+        if(batteryReceiver != null)
+        {
+            return batteryReceiver.cablePluggedIn();
+        }
+        return false;
+    }
+
+
+    public long getNTPTimestamp(String timeServerURL)
+    {
+        long timestamp = -1;
+        NTPUDPClient client = new NTPUDPClient();
+        client.setDefaultTimeout(1000);
+        //
+        try
+        {
+            client.open();
+            InetAddress hostAddr = InetAddress.getByName(timeServerURL);
+            //
+            TimeInfo info = client.getTime(hostAddr);
+            info.computeDetails();
+            client.close();
+            //
+            timestamp = info.getMessage().getReceiveTimeStamp().getTime();
+        }
+        catch (SocketException e)
+        {
+            e.printStackTrace();
+
+        }
+        catch (SocketTimeoutException e)
+        {
+
+
+        }
+        catch (Exception e)
+        {
+
+        }
+
+        return timestamp;
+    }
+
+    public void setSystemTime(long timestamp)
+    {
+        try
+        {
+            ((AlarmManager) MainActivity.mainActivity.getSystemService(Context.ALARM_SERVICE)).setTime(timestamp);
+        }
+        catch (Exception e)
+        {
+            MainActivity.log("OBSystemManager:setSystemTime: Exception caught while trying to set the Date");
+            e.printStackTrace();
+        }
+    }
+
+    public void time_synchronizeAndUpdate()
+    {
+        final String timeServerURL = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_TIME_SERVER_URL);
+        if(timeServerURL != null)
+        {
+            long timestampMillisec = getNTPTimestamp(timeServerURL);
+            MainActivity.log("OBSystemManager:synchronizeAndUpdate: Timestamp received from server: "+timestampMillisec);
+            if(timestampMillisec > 0)
+            {
+                OBFatController fatController = MainActivity.mainActivity.fatController;
+                if(fatController != null &&
+                        TimeSynchronizationReceiver.class.isAssignableFrom(fatController.getClass()))
+                {
+                    ((TimeSynchronizationReceiver)fatController).timeReceived(timestampMillisec);
+                }
+            }
+        }
+    }
+
+    public interface TimeSynchronizationReceiver
+    {
+        void timeReceived(long timestampMillisec);
+    }
+
+
 }

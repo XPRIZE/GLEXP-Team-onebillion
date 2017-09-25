@@ -289,11 +289,11 @@ public class OC_WordAudioRec extends OC_SectionController
 
     }
 
-    public void exitEvent()
+    public void cleanUp()
     {
         onPause();
         OBUtils.cleanUpTempFiles(this);
-        super.exitEvent();
+        super.cleanUp();
     }
 
     public void replayAudio()

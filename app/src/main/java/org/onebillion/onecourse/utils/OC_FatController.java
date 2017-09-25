@@ -7,9 +7,11 @@ import android.util.ArrayMap;
 import android.os.Handler;
 import android.widget.Toast;
 
+import org.onebillion.onecourse.R;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OBSectionController;
+import org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -45,6 +47,8 @@ public class OC_FatController extends OBFatController
             OFC_NEW_SESSION = 5,
             OFC_SESSION_LOCKED = 6;
 
+    public static final int REQUEST_SESSION_CHECK =1,
+            REQUEST_SESSION_CHECK2=2;
 
     private long sessionTimeout;
     private int unitAttemptsCount, disallowStartHour,disallowEndHour;
@@ -60,10 +64,17 @@ public class OC_FatController extends OBFatController
     private Runnable timeoutRunnable;
 
     @Override
+    public int databaseResource()
+    {
+        return R.raw.tables;
+    }
+
+    @Override
     public int buttonFlags()
     {
         int result = OBMainViewController.SHOW_TOP_RIGHT_BUTTON | OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON | OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON;
-        if (showBackButton()) result = result | OBMainViewController.SHOW_TOP_LEFT_BUTTON;
+        if (showBackButton())
+            result = result | OBMainViewController.SHOW_TOP_LEFT_BUTTON;
         return result;
     }
 
@@ -94,6 +105,9 @@ public class OC_FatController extends OBFatController
             db = new DBSQL(true);
             String token = OBPreferenceManager.getStringPreference(OBPreferenceManager.PREFERENCE_ML_TOKEN, db);
             String mlname = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_MASTER_LIST);
+            //
+            MainActivity.log("OC_FatController:loadMasterListIntoDB:masterlist name [" + mlname + "]");
+            //
             if (mlname.length() == 0)
             {
                 MainActivity.log("OC_FatController:loadMasterListIntoDB:no masterlist in the settings file. skipping");
@@ -101,8 +115,19 @@ public class OC_FatController extends OBFatController
             }
             OBXMLManager xmlManager = new OBXMLManager();
 //            InputStream is = OBUtils.getInputStreamForPath(String.format("config/%s", mlname));
-            InputStream is = OBUtils.getInputStreamForPath(String.format("masterlists/%s/units.xml", mlname));
+            //
+            String masterlistXMLPath = String.format("masterlists/%s/units.xml", mlname);
+            //
+            MainActivity.log("OC_FatController:loadMasterListIntoDB:masterlist XML path [" + masterlistXMLPath + "]");
+            //
+            InputStream is = OBUtils.getInputStreamForPath(masterlistXMLPath);
+            //
+            if (is == null)
+            {
+                MainActivity.log("OC_FatController:loadMasterListIntoDB:unable to find XML for masterlist");
+            }
             List<OBXMLNode> xml = xmlManager.parseFile(is);
+            //
             OBXMLNode rootNode = xml.get(0);
             List<OBXMLNode> masterList = new ArrayList<>();
             String masterListToken = rootNode.attributeStringValue("token");
@@ -261,6 +286,9 @@ public class OC_FatController extends OBFatController
     @Override
     public void startUp()
     {
+//        MainActivity.mainActivity.addToPreferences(MainActivity.PREFERENCES_RUNNING_EXAMPLE_UNIT, "false");
+        //
+        // initial setup
         try
         {
             sessionTimeout = MainActivity.mainActivity.configIntForKey(MainActivity.CONFIG_SESSION_TIMEOUT);
@@ -269,39 +297,73 @@ public class OC_FatController extends OBFatController
             String[] disallowArray = disallowHours.split(",");
             disallowStartHour = Integer.valueOf(disallowArray[0]);
             disallowEndHour = Integer.valueOf(disallowArray[1]);
-            allowsTimeOuts =  MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_ALLOWS_TIMEOUT);
-            showUserName =  MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_SHOW_USER_NAME);
-        } catch (Exception e)
+            allowsTimeOuts = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_ALLOWS_TIMEOUT);
+            showUserName = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_SHOW_USER_NAME);
+        }
+        catch (Exception e)
         {
-            sessionTimeout =0;
+            sessionTimeout = 0;
             unitAttemptsCount = 3;
             disallowStartHour = 0;
             disallowEndHour = 0;
             allowsTimeOuts = true;
             showUserName = false;
         }
-
         initDB();
-
+        //
         timeoutHandler = new Handler();
-
+        //
         prepareAlarm();
-
-        continueFromLastUnit();
-
-        if (showTestMenu())
+        //
+        // Setup screen
+        Boolean usesSetupMenu = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_USES_SETUP_MENU);
+        Boolean isSetupComplete = OBPreferenceManager.getBooleanPreference(OBPreferenceManager.PREFERENCES_SETUP_COMPLETE);
+        //
+        if (usesSetupMenu && !isSetupComplete)
         {
-            MainViewController().pushViewControllerWithName("OC_TestMenu", false, false, "menu");
+            // before overriding the app_code save it in the preferences to restore after setup is complete
+            OBPreferenceManager.setPreference("originalAppCode", MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_APP_CODE));
+//            MainActivity.mainActivity.addToPreferences("originalAppCode", MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_APP_CODE));
+            MainActivity.mainActivity.updateConfigPaths(MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SETUP_FOLDER), true, null);
+            //
+            String setupClassName = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SETUP_CLASS);
+            if (setupClassName != null)
+            {
+                MainActivity.mainViewController.pushViewControllerWithName(setupClassName, false, true, "menu");
+            }
         }
         else
         {
-            String menuClassName = (String) Config().get(MainActivity.CONFIG_MENU_CLASS);
-            String appCode = (String) Config().get(MainActivity.CONFIG_APP_CODE);
-            if (menuClassName != null && appCode != null)
+            // setup is now complete: continue as usual
+            continueFromLastUnit();
+            //
+            if (showTestMenu())
             {
-                OBBrightnessManager.sharedManager.onContinue();
-                MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
-
+                MainViewController().pushViewControllerWithName("OC_TestMenu", false, false, "menu");
+            }
+            else
+            {
+                // restore app_code is it's coming from setup
+                String originalAppCode = OBPreferenceManager.getStringPreference("originalAppCode");
+//                String originalAppCode = MainActivity.mainActivity.getPreferences("originalAppCode");
+                if (originalAppCode != null)
+                {
+                    MainActivity.mainActivity.updateConfigPaths(originalAppCode, true, null);
+                }
+                //
+                String menuClassName = MainActivity.mainActivity.configStringForKey (MainActivity.CONFIG_MENU_CLASS);
+                String appCode = MainActivity.mainActivity.configStringForKey (MainActivity.CONFIG_APP_CODE);
+                //
+                MainActivity.log("OC_FatController:startUp: pushing view controller [%s] [%s]", menuClassName, appCode);
+                //
+                if (menuClassName != null && appCode != null)
+                {
+                    OBBrightnessManager.sharedManager.onContinue();
+                    if (!MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null))
+                    {
+                        MainActivity.log("OC_FatController:startUp:unable to load view controller [%s] [%s]", menuClassName, appCode);
+                    }
+                }
             }
         }
     }
@@ -335,10 +397,10 @@ public class OC_FatController extends OBFatController
         calendar.set(Calendar.HOUR_OF_DAY, disallowStartHour);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
-        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, OBAlarmManager.REQUEST_SESSION_CHECK);
+        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, REQUEST_SESSION_CHECK);
 
         calendar.set(Calendar.HOUR_OF_DAY, disallowEndHour);
-        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, OBAlarmManager.REQUEST_SESSION_CHECK2);
+        OBAlarmManager.scheduleRepeatingAlarm(calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, REQUEST_SESSION_CHECK2);
     }
 
     public boolean checkAndPrepareNewSession()
@@ -430,17 +492,18 @@ public class OC_FatController extends OBFatController
     public void completeEvent(OBSectionController cont)
     {
         cancelTimeout();
-        updateScores();
+        if(currentUnitInstance != null)
+        {
+            updateScores();
+            if (currentSessionLocked())
+                signalSessionLocked();
+            else if (finalScore >= currentUnit().passThreshold)
+                signalSectionSucceeded();
+            else
+                signalSectionFailed();
 
-        if(currentSessionLocked())
-            signalSessionLocked();
-        else if (finalScore >= currentUnit().passThreshold)
-            signalSectionSucceeded();
-        else
-            signalSectionFailed();
-
-        currentUnitInstance = null;
-
+            currentUnitInstance = null;
+        }
         try
         {
             cont.displayAward();
@@ -696,6 +759,51 @@ public class OC_FatController extends OBFatController
         currentUnitInstance = MlUnitInstance.initWithMlUnit(unit,currentUser.userid,currentSessionId,getCurrentTime());
         initScores();
     }
+
+
+
+    public void startSectionByUnitNoUser(final MlUnit unit)
+    {
+        final String lastAppCode = (String)MainActivity.mainActivity.config.get(MainActivity.CONFIG_APP_CODE);
+        currentUnitInstance = null;
+        //
+        new OBRunnableSyncUI()
+        {
+            @Override
+            public void ex ()
+            {
+                try
+                {
+                    MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
+                    if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
+                    {
+                        if (currentUnitInstance != null)
+                        {
+                            currentUnitInstance.sectionController = MainViewController().topController();
+                            startUnitInstanceTimeout(currentUnitInstance);
+                        }
+                    }
+                    else
+                    {
+                        if (MainActivity.mainActivity.isDebugMode())
+                        {
+                            Toast.makeText(MainActivity.mainActivity, unit.target + " hasn't been converted to Android yet.", Toast.LENGTH_LONG).show();
+                            MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Logger logger = Logger.getAnonymousLogger();
+                    logger.log(Level.SEVERE, "Error in runOnMainThread", exception);
+
+                    MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                }
+            }
+        }.run();
+    }
+
+
 
     public void startSectionByUnit(final MlUnit unit)
     {
@@ -1228,6 +1336,9 @@ public class OC_FatController extends OBFatController
         if (!allowsTimeOuts)
             return false;
 
+        if(unitInstance == null)
+            return false;
+
         if(unitInstance != currentUnitInstance)
             return false;
 
@@ -1299,8 +1410,6 @@ public class OC_FatController extends OBFatController
         }
     }
 
-
-    //borrowed from http://www.ben-daglish.net/moon.shtml
     public int getCurrentMoonPhase()
     {
         Calendar calendar = Calendar.getInstance();
@@ -1317,6 +1426,32 @@ public class OC_FatController extends OBFatController
         long new_moon = calendar.getTimeInMillis();
         long phase = ((now - new_moon)/1000) % lp;
         return (int)(Math.floor(phase /(24*3600)) + 1);
+    }
+
+    public List<OC_PlayZoneAsset> getPlayZoneAssetForCurrentUser()
+    {
+        return OC_PlayZoneAsset.assetsFromDBForUserId(currentUser.userid);
+    }
+
+    public boolean savePlayZoneAssetForCurrentUserType(int type,String thumbnail,Map<String,String> params)
+    {
+        boolean result = false;
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(true);
+            result = OC_PlayZoneAsset.saveAssetInDBForUserId(db,currentUser.userid,type,thumbnail,params);
+        }
+        catch(Exception e)
+        {
+
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+        return result;
     }
 
 }

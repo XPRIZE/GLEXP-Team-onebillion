@@ -39,7 +39,7 @@ public class OBControl
     public static int LCC_NORMAL = 0,
             LCC_DISABLED = 1,
             LCC_SELECTED = 2;
-    public static int APPLY_EFFECTS = 1;
+    public static int APPLY_EFFECTS = 1,IGNORE_DYNAMIC_MASK = 2;
     public int state;
     public Map<String, Object> settings;
     public OBLayer layer;
@@ -59,6 +59,7 @@ public class OBControl
     public String textureKey;
     public Texture texture;
     public float[] modelMatrix = new float[16];
+    public float[] multiplyMatrix = new float[16];
     public float[] tempMatrix = new float[16];
     public float[] shadMatrix = new float[16];
     public float blendColour[] = {1, 1, 1, 1};
@@ -72,7 +73,7 @@ public class OBControl
     float rasterScale, zPosition;
     OBStroke stroke;
     boolean frameValid, masksToBounds,displayBoundsValid=false;
-    boolean maskControlReversed = false, dynamicMask = false;
+    public boolean maskControlReversed = false, dynamicMask = false;
     private int shadowColour;
     float shadowOffsetX, shadowOffsetY, shadowOpacity, shadowRadius;
     float shadowPad = 0f;
@@ -106,6 +107,7 @@ public class OBControl
         rasterScale = 1;
         blendMode = 1;
         layer = new OBLayer();
+        android.opengl.Matrix.setIdentityM(multiplyMatrix, 0);
     }
 
     public static List<OBControl> controlsSortedFrontToBack (List<OBControl> controls)
@@ -248,14 +250,17 @@ public class OBControl
 
     public RectF frame ()
     {
-        if (!frameValid)
+        synchronized (frame)
         {
-            frame.set(bounds());
-            Matrix m = matrixForBackwardConvert();
-            m.mapRect(frame);
-            frameValid = true;
+            if (!frameValid)
+            {
+                frame.set(bounds());
+                Matrix m = matrixForBackwardConvert();
+                m.mapRect(frame);
+                frameValid = true;
+            }
+            return frame;
         }
-        return frame;
     }
 
     public void setFrame (RectF f)
@@ -597,6 +602,7 @@ public class OBControl
                     canvas.saveLayerAlpha(bounds(), (int) (opacity() * 255));
             }
             layer.draw(canvas);
+            applyMask(canvas,flags);
             if (needsRestore)
                 canvas.restore();
         }
@@ -1202,7 +1208,11 @@ public class OBControl
             android.opengl.Matrix.rotateM(modelMatrix, 0, (float) Math.toDegrees(yRotation), 1, 0, 0);
         if (scaleX != 1 || scaleY != 1)
             android.opengl.Matrix.scaleM(modelMatrix, 0, scaleX, scaleY, 1);
+
+
+        android.opengl.Matrix.multiplyMM(modelMatrix,0,modelMatrix,0,multiplyMatrix,0);
         android.opengl.Matrix.translateM(modelMatrix, 0, -ax, -ay, 0);
+
         return modelMatrix;
 
     }
@@ -1392,10 +1402,15 @@ public class OBControl
 
     public void draw (Canvas canvas)
     {
+        draw(canvas,0);
+    }
+
+    public void draw (Canvas canvas,int flags)
+    {
         if (!hidden)
         {
             canvas.save();
-            boolean shadowrequired = (shadowColour != 0 && shadowRadius > 0);
+            boolean shadowrequired = shadowOpacity > 0;
             if (cache != null)
             {
                 Matrix m = matrixForDraw();
@@ -1435,10 +1450,17 @@ public class OBControl
                     canvas.saveLayer(bounds(), p, Canvas.ALL_SAVE_FLAG);*/
                     if (shadowCache == null)
                         createShadowCache(drawn());
+
+                    Matrix m = new Matrix();
+                    float rs = 1 / rasterScale;
+                    m.preScale(rs, rs);
+                    canvas.save();
+                    canvas.concat(m);
                     canvas.drawBitmap(shadowCache, shadowOffsetX, shadowOffsetY, new Paint());
+                    canvas.restore();
                 }
                 drawBorderAndBackground(canvas);
-                drawLayer(canvas,APPLY_EFFECTS);
+                drawLayer(canvas,flags | APPLY_EFFECTS);
 
             }
             canvas.restore();
@@ -1692,6 +1714,17 @@ public class OBControl
         invalidate();
     }
 
+
+    public void setScreenMaskControl(OBControl m, OBViewController cont)
+    {
+        m.texturise(false,cont);
+        dynamicMask = true;
+        maskControlReversed = false;
+        maskControl = m;
+        invalidate();
+    }
+
+
     public void setReversedScreenMaskControl(OBControl m)
     {
         m.texturise(false,controller);
@@ -1700,6 +1733,16 @@ public class OBControl
         maskControl = m;
         invalidate();
     }
+
+    public void setReversedScreenMaskControl(OBControl m, OBViewController cont)
+    {
+        m.texturise(false,cont);
+        dynamicMask = true;
+        maskControlReversed = true;
+        maskControl = m;
+        invalidate();
+    }
+
 
     public float rotation ()
     {
@@ -1838,6 +1881,11 @@ public class OBControl
             shadowBlendColour[i] *= sopacity;
         invalidate();
 
+    }
+
+    public void setShadowOpacity(float opacity)
+    {
+        setShadow(shadowRadius,opacity,shadowOffsetX,shadowOffsetY,shadowColour);
     }
 
     private boolean shouldRenderShadow()
@@ -2103,4 +2151,44 @@ public class OBControl
         }
         return displayBounds;
     }
+
+
+    public int YPositionCompare(OBControl other)
+    {
+        return (int) (this.position.y - other.position.y);
+    }
+
+    protected void applyMask(Canvas canvas,int flags)
+    {
+        if (maskControl != null && (dynamicMask == false || (flags & IGNORE_DYNAMIC_MASK) != 0))
+        {
+            Paint p = new Paint();
+            p.setXfermode(new PorterDuffXfermode(maskControlReversed ? PorterDuff.Mode.DST_OUT : PorterDuff.Mode.DST_IN));
+            float fw = (bounds().right - bounds().left) * Math.abs(rasterScale);
+            float fh = (bounds().bottom - bounds().top) * Math.abs(rasterScale);
+            int width = (int) Math.ceil(fw);
+            int height = (int) Math.ceil(fh);
+            boolean needs2ndrestore = false;
+            canvas.saveLayer(0, 0, width, height, p, Canvas.ALL_SAVE_FLAG);
+            if (dynamicMask)
+            {
+                canvas.save();
+                needs2ndrestore = true;
+                RectF f = frame();
+                canvas.translate(-f.left,-f.top);
+            }
+            maskControl.draw(canvas);
+            canvas.restore();
+            if (needs2ndrestore)
+                canvas.restore();
+        }
+    }
+
+    public void sizeBoundsToShadow()
+    {
+        RectF bounds = bounds();
+        bounds.inset(-Math.abs(shadowOffsetX), -Math.abs(shadowOffsetY));
+        setBounds(bounds);
+    }
+
 }

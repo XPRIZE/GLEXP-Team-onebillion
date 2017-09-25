@@ -120,7 +120,7 @@ public class OC_WordVideoRec extends OC_SectionController
     }
 
     @Override
-    public void exitEvent()
+    public void cleanUp()
     {
         try
         {
@@ -133,7 +133,7 @@ public class OC_WordVideoRec extends OC_SectionController
         }
         OBUtils.cleanUpTempFiles(this);
 
-        super.exitEvent();
+        super.cleanUp();
     }
 
 
@@ -489,8 +489,8 @@ public class OC_WordVideoRec extends OC_SectionController
     public void onResume()
     {
         videoRecorder.onResume();
-        videoPlayer.onResume();
-        cameraManager.onResume();
+        // videoPlayer.onResume();
+       // cameraManager.onResume();
         super.onResume();
     }
 
@@ -500,9 +500,9 @@ public class OC_WordVideoRec extends OC_SectionController
         super.onPause();
         try
         {
-            cameraManager.onPause();
-            videoRecorder.onPause();
-            videoPlayer.onPause();
+         //   cameraManager.onPause();
+           videoRecorder.onPause();
+         //   videoPlayer.onPause();
 
 
         } catch(Exception e)

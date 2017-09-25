@@ -12,8 +12,11 @@ import java.util.Map;
  */
 public class OBPreferenceManager
 {
-    public final static String PREFERENCE_ML_TOKEN = "mltoken";
-
+    public static String  PREFERENCE_ML_TOKEN = "mltoken",
+            PREFERENCES_SETUP_COMPLETE = "setupComplete",
+            PREFERENCES_SETUP_START_TIMESTAMP = "setupStartDate",
+            PREFERENCES_TRIAL_START_TIMESTAMP = "trialStartDate",
+            PREFERENCES_CURRENT_BATTERY_SETTING = "currentBatterySetting";
     private final static String COLUMN_NAME = "name";
     private final static String COLUMN_VAL = "val";
 
@@ -51,6 +54,11 @@ public class OBPreferenceManager
     }
 
     public static boolean setPreference(String name, int val)
+    {
+        return setPreference(name, String.valueOf(val));
+    }
+
+    public static boolean setPreference(String name, long val)
     {
         return setPreference(name, String.valueOf(val));
     }
@@ -117,11 +125,29 @@ public class OBPreferenceManager
         }
     }
 
+    public static long getLongPreference(String name)
+    {
+        String result = getStringPreference(name);
+        if(result == null)
+            return -1;
+
+        try
+        {
+            long val = Long.valueOf(result);
+            return val;
+        }
+        catch (Exception e)
+        {
+            return -1;
+        }
+    }
+
     public static float getFloatPreference(String name)
     {
         String result = getStringPreference(name);
         if(result == null)
             return -1;
+
 
         try
         {

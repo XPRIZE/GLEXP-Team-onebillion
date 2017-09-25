@@ -26,7 +26,9 @@ import org.onebillion.onecourse.utils.OB_Maths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -53,20 +55,20 @@ public class OC_Reading extends OC_SectionController
 
     public Lock sharedLock;
     public Condition sharedCondition;
-    int currPara,level;
-    float jumpOffset,lineHeightMultiplier,paraMultiplier,letterSpacing,fontSize,spaceExtra,playRate;
-    boolean reading,questionsAvailable,slowWordsAvailable,paragraphlessMode;
-    int picJustify,textJustification;
+    protected int currPara,level;
+    public float jumpOffset,lineHeightMultiplier,paraMultiplier,letterSpacing,fontSize,spaceExtra,playRate;
+    public boolean reading,questionsAvailable,slowWordsAvailable,paragraphlessMode,nextOK,RAOK;
+    public int picJustify,textJustification;
     String indentString;
     int demoType,introNo,numberOfTextLines;
     int pageNo,maxPageNo,readingMode;
-    List<OBReadingPara> paragraphs;
-    OBGroup textBox;
-    OBImage mainPic;
+    public List<OBReadingPara> paragraphs;
+    public OBGroup textBox;
+    protected OBImage mainPic;
     OBReadingWord highlightedWord;
-    int highlightColour,backgroundColour;
+    public int highlightColour,backgroundColour;
 
-    static String CrunchedString(String s)
+    protected static String CrunchedString(String s)
     {
         String t = s;
         String[] l = t.toLowerCase().split("[^[a-z][A-Z]]*");
@@ -126,6 +128,94 @@ public class OC_Reading extends OC_SectionController
         }
     }
 
+    public List<List> syllableTimingsForWord(OBReadingWord w,String xmlPath)
+    {
+        List timings = new ArrayList<>();
+        try
+        {
+            if(xmlPath != null && OBUtils.fileExistsAtPath(xmlPath) )
+            {
+                OBXMLNode xmlNode = null;
+                OBXMLManager xmlman = new OBXMLManager();
+                List<OBXMLNode> nodes = xmlman.parseFile(OBUtils.getInputStreamForPath(xmlPath));
+                xmlNode = nodes.get(0);
+                List<OBXMLNode>arr = xmlNode.childrenOfType("timings");
+                if(arr.size()  > 0)
+                {
+                    OBXMLNode elem = arr.get(0);
+                    for(OBXMLNode xtiming : elem.childrenOfType("timing"))
+                    {
+                        double start = xtiming.attributeFloatValue("start");
+                        double end = xtiming.attributeFloatValue("end");
+                        timings.add(Arrays.asList(start,end));
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+
+        }
+        return timings;
+    }
+
+    public void speakSyllablesForWord(OBReadingWord w,String fileName) throws Exception
+    {
+        long token = sequenceToken;
+        List<List> timings = syllableTimingsForWord(w,getLocalPath(fileName+"etpa"));
+        playAudio(fileName);
+        long startTime = SystemClock.uptimeMillis();
+        int i = 0;
+        int rangelocation = 0,rangelength = 0;
+        for(String syllable : w.syllables)
+        {
+            double currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
+            List<Double> timing = timings.get(i);
+            double timeStart = timing.get(0);
+            double timeEnd = timing.get(1);
+            double waitTime = timeStart - currTime;
+            if (waitTime > 0.0)
+                waitForSecs(waitTime);
+            checkSequenceToken(token);
+            rangelength = syllable.length();
+            highlightWord(w,rangelocation,rangelocation+rangelength,true,false);
+            currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
+            waitTime = timeEnd - currTime;
+            if(waitTime > 0.0 && token == sequenceToken)
+                waitForSecs(waitTime);
+            highlightWord(w,rangelocation,rangelocation+rangelength,false,false);
+            checkSequenceToken(token);
+
+            rangelocation += rangelength;
+            rangelength = 0;
+            i++;
+        }
+        if(timings.size()  > w.syllables.size() )
+        {
+            double currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
+            List<Double> timing = timings.get(i);
+            double timeStart = timing.get(0);
+            double timeEnd = timing.get(1);
+            double waitTime = timeStart - currTime;
+            if (waitTime > 0.0)
+                waitForSecs(waitTime);
+            checkSequenceToken(token);
+            highlightWord(w,rangelocation,rangelocation+rangelength,true,false);
+            currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
+            waitTime = timeEnd - currTime;
+            if(waitTime > 0.0 && token == sequenceToken)
+                waitForSecs(waitTime);
+            highlightWord(w,rangelocation,rangelocation+rangelength,false,false);
+        }
+        else
+        {
+            checkSequenceToken(token);
+            highlightWord(w,rangelocation,rangelocation+rangelength,true,false);
+            speakWordAsPartial(w);
+            highlightWord(w,rangelocation,rangelocation+rangelength,false,false);
+        }
+        waitForSecs(0.3f);
+    }
 
     public List<List<Double>> loadSyllableTimingsForWord(OBReadingWord word,String xmlPath)
     {
@@ -267,7 +357,10 @@ public class OC_Reading extends OC_SectionController
             else
                 loadEvent("normal");
         }
+        Map<String,String> dict = new HashMap(eventAttributes);
         loadEvent("lines");
+        dict.putAll(eventAttributes);
+        eventAttributes = dict;
     }
 
     public boolean showBackButton()
@@ -333,11 +426,13 @@ public class OC_Reading extends OC_SectionController
         {
             MainViewController().topRightButton.setOpacity(1.0f);
             MainViewController().topRightButton.setHidden(false);
+            RAOK = true;
         }
         else
         {
             MainViewController().topRightButton.setOpacity(0.0f);
             MainViewController().topRightButton.setHidden(true);
+            RAOK = true;
         }
         invalidateView(0,0,bounds().width(),bounds().height());
         unlockScreen();
@@ -501,6 +596,7 @@ public class OC_Reading extends OC_SectionController
         detachControl(tb);
         textBox = new OBGroup(Collections.singletonList(tb));
         tb.hide();
+        textBox.setShouldTexturise(false);
         attachControl(textBox);
         mainPic = loadImageWithName(String.format("p%d",pageNo),new PointF(0.5f, 0.5f),new RectF(bounds()));
         objectDict.put("mainpic",mainPic);
@@ -724,8 +820,14 @@ public class OC_Reading extends OC_SectionController
 
     public void readParagraph(int pidx,long token,boolean canInterrupt) throws Exception
     {
+        String fn = String.format("p%d_%d",pageNo,pidx+1);
+        readParagraph(pidx,fn,token,canInterrupt);
+    }
+
+    public void readParagraph(int pidx,String fileName,long token,boolean canInterrupt) throws Exception
+    {
         OBReadingPara para = paragraphs.get(pidx);
-        playAudio(String.format("p%d_%d",pageNo,pidx+1));
+        playAudio(fileName);
         long startTime = SystemClock.uptimeMillis();
         for(OBReadingWord w : para.words)
         {
@@ -783,7 +885,7 @@ public class OC_Reading extends OC_SectionController
         return (sequenceToken == token);
     }
 
-    public void replayAudio()
+    public void readingReplayAudio()
     {
         if (!_aborting && !MainViewController().navigating && status()!= STATUS_FINISHING && status() != STATUS_DOING_DEMO)
         {
@@ -797,6 +899,14 @@ public class OC_Reading extends OC_SectionController
                     return null;
                 }
             }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
+        }
+    }
+
+    public void replayAudio()
+    {
+        if (status() != STATUS_DOING_DEMO  && RAOK)
+        {
+		    readingReplayAudio();
         }
     }
 
@@ -915,5 +1025,16 @@ public class OC_Reading extends OC_SectionController
 
     }
 
+    public void waitAndCheck(long sttime,double secs,int count) throws Exception
+    {
+        for (int i = 0;i < count;i++)
+        {
+            if (statusChanged(sttime))
+                throw new Exception("flashline");
+            waitForSecs(secs);
+        }
+        if (statusChanged(sttime))
+            throw new Exception("flashline");
+    }
 
 }

@@ -341,7 +341,6 @@ public class OC_MoreNumbers_S6 extends OC_SectionController
         if(eventTargets.size() > currentIndex)
         {
             setStatus(STATUS_AWAITING_CLICK);
-
         }
         else
         {
@@ -362,10 +361,8 @@ public class OC_MoreNumbers_S6 extends OC_SectionController
             lockScreen();
             circle.objectDict.get("label").show();
             colourCircle(circle,Color.WHITE);
-
             unlockScreen();
             playAudioScene("FINAL",i+1,true);
-
         }
         waitForSecs(0.5f);
         nextScene();
@@ -379,16 +376,13 @@ public class OC_MoreNumbers_S6 extends OC_SectionController
         if(eventTargets.size() > currentIndex)
         {
             setStatus(STATUS_AWAITING_CLICK);
-
         }
         else
         {
             waitForAudio();
             waitForSecs(0.3f);
             nextScene();
-
         }
-
     }
 
     public void checkNum(OBGroup targ) throws Exception
@@ -463,7 +457,7 @@ public class OC_MoreNumbers_S6 extends OC_SectionController
                 }
                 colourAllCircles(eventTargets,Color.WHITE);
                 for(OBControl obj : eventTargets)
-                    obj.setZPosition ( 2);
+                    obj.setZPosition(2);
             }
             waitForSecs(0.3f);
             nextScene();
@@ -500,6 +494,7 @@ public class OC_MoreNumbers_S6 extends OC_SectionController
             OBGroup prevCircle = (OBGroup)dropTargets.get(dropIndex);
             if(prevCircle != null)
             {
+                prevCircle.setZPosition(prevCircle.zPosition()+10);
                 OBAnimationGroup.runAnims(Arrays.asList(OBAnim.moveAnim((PointF)prevCircle.propertyValue("startloc"),prevCircle))
                         ,0.3,false,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
             }
@@ -507,10 +502,11 @@ public class OC_MoreNumbers_S6 extends OC_SectionController
             OBAnimationGroup.runAnims(Arrays.asList(OBAnim.moveAnim(dropLocs.get(dropIndex),circle))
                     ,0.2,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
             playSfxAudio("number_click",false);
+            circle.setZPosition(circle.zPosition()-10);
             if(prevCircle != null)
             {
                 waitForSecs(0.15f);
-                prevCircle.setZPosition(4);
+                prevCircle.setZPosition(prevCircle.zPosition()-10);
             }
             setStatus(STATUS_WAITING_FOR_DRAG);
 
@@ -519,7 +515,7 @@ public class OC_MoreNumbers_S6 extends OC_SectionController
         {
             OBAnimationGroup.runAnims(Arrays.asList(OBAnim.moveAnim((PointF)circle.propertyValue("startloc"),circle))
                     ,0.3,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
-            circle.setZPosition ( 4);
+            circle.setZPosition(circle.zPosition()-10);
             setStatus(STATUS_WAITING_FOR_DRAG);
 
         }

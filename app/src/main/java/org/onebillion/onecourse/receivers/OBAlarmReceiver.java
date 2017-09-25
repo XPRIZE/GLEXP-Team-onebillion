@@ -1,10 +1,14 @@
-package org.onebillion.onecourse.utils;
+package org.onebillion.onecourse.receivers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
 import org.onebillion.onecourse.mainui.MainActivity;
+import org.onebillion.onecourse.utils.OBAlarmManager;
+
+import java.util.Calendar;
+import java.util.Currency;
 
 /**
  * OBAlarmReceiver
@@ -29,10 +33,18 @@ public class OBAlarmReceiver extends BroadcastReceiver
         long starttime = intent.getLongExtra(EXTRA_ALARMTIME, 0);
         long interval = intent.getLongExtra(EXTRA_INTERVAL, 0);
         int requestCode = intent.getIntExtra(EXTRA_REQUESTCODE, 0);
+
+        Calendar startCalendar = Calendar.getInstance();
+        startCalendar.setTimeInMillis(starttime);
+
+        Calendar currentCalendar = Calendar.getInstance();
+        currentCalendar.set(Calendar.HOUR_OF_DAY, startCalendar.get(Calendar.HOUR_OF_DAY));
+        currentCalendar.set(Calendar.MINUTE, startCalendar.get(Calendar.MINUTE));
+        currentCalendar.set(Calendar.SECOND, startCalendar.get(Calendar.SECOND));
         //
         if (interval > 0)
         {
-            OBAlarmManager.scheduleRepeatingAlarm(starttime + interval, interval, requestCode);
+            OBAlarmManager.scheduleRepeatingAlarm(currentCalendar.getTimeInMillis() + interval, interval, requestCode);
         }
     }
 }

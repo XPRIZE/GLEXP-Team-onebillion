@@ -2,6 +2,9 @@ package org.onebillion.onecourse.mainui.oc_playzone;
 
 import android.graphics.Color;
 import android.graphics.PointF;
+import android.os.SystemClock;
+import android.util.ArrayMap;
+import android.util.MutableBoolean;
 import android.view.View;
 import android.widget.Toast;
 
@@ -9,6 +12,7 @@ import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBImage;
 import org.onebillion.onecourse.mainui.MainActivity;
+import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.MlUnit;
 import org.onebillion.onecourse.utils.OBAnim;
@@ -27,10 +31,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.onebillion.onecourse.utils.ScrollingHelper;
 
 /**
  * Created by michal on 13/03/2017.
@@ -38,14 +44,20 @@ import java.util.logging.Logger;
 
 public class OC_Library extends OC_SectionController
 {
-    List<List<MlUnit>> bookUnits;
+    List<List<Map<String,String>>> bookUnits;
     List<OBGroup> levelGroups;
     OBGroup currentGroup;
     OBControl currentIcon;
     PointF snapLoc;
     float limitLeft, limitRight, snapDist;
-    final static String LIBRARY_MASTERLIST = "library";
     boolean firstStart;
+    String libraryMasterlist;
+
+    @Override
+    public int buttonFlags()
+    {
+        return OBMainViewController.SHOW_TOP_LEFT_BUTTON;
+    }
 
     public void prepare()
     {
@@ -55,7 +67,8 @@ public class OC_Library extends OC_SectionController
         loadFingers();
         loadEvent("master");
         setSceneXX(currentEvent());
-        String xmlPath = String.format("masterlists/%s/units.xml", LIBRARY_MASTERLIST);
+        libraryMasterlist = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MASTER_LIST_LIBRARY);
+        String xmlPath = String.format("masterlists/%s/units.xml", libraryMasterlist);
         OBGroup border1 = (OBGroup)objectDict.get("border_1");
         OBGroup border2 = (OBGroup)objectDict.get("border_2");
         OBControl icon = objectDict.get("icon");
@@ -77,11 +90,8 @@ public class OC_Library extends OC_SectionController
             {
                 setBookLine(bookLine, lineLocation(bookLine,1).x);
                 index++;
-
             }
-
         }
-
     }
 
     public void start()
@@ -95,9 +105,7 @@ public class OC_Library extends OC_SectionController
                     animateBooksOn();
                     firstStart = false;
                 }
-
                 setStatus(STATUS_WAITING_FOR_DRAG);
-
             }
         });
     }
@@ -119,25 +127,24 @@ public class OC_Library extends OC_SectionController
             final OBControl level = finger(-1, -1, filterControls("level_.*"), pt);
             if (level != null)
             {
+                setStatus(STATUS_BUSY);
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
                     public void run() throws Exception
                     {
-
                         OBGroup group = (OBGroup) level.propertyValue("books");
                         currentIcon = finger(-1, -1, group.members, pt);
-                        setStatus(STATUS_BUSY);
                         dragOffset = OB_Maths.DiffPoints(group.position(), pt);
                         currentGroup = group;
-                        currentGroup.setProperty("scrollSpeed", 0.0f);
                         currentGroup.setProperty("touch_loc", pt);
-                        currentGroup.setProperty("last_loc", OBMisc.copyPoint(currentGroup.position()));
+                        if(currentGroup.isEnabled())
+                        {
+                            ScrollingHelper.prepareForScrollMeasureTickValue(currentGroup, 0.0025f, 0.99f,
+                                    applyGraphicScale(0.08f), applyGraphicScale(0.08f));
+
+                        }
                         long time = setStatus(STATUS_DRAGGING);
                         currentGroup.setProperty("time", time);
-                        currentGroup.setProperty("last_scroll", System.currentTimeMillis());
-                       /* if (group.isEnabled())
-                            startSpeedMeasure(time, currentGroup);*/
-
                     }
 
                 });
@@ -152,7 +159,7 @@ public class OC_Library extends OC_SectionController
         {
             float x = OB_Maths.AddPoints(pt, dragOffset).x;
             setBookLine(currentGroup,x);
-            measureGroupSpeed(currentGroup);
+            ScrollingHelper.measureScrollSpeed(currentGroup);
         }
 
     }
@@ -161,68 +168,65 @@ public class OC_Library extends OC_SectionController
     {
         if (status() == STATUS_DRAGGING && currentGroup != null)
         {
+            setStatus(STATUS_BUSY);
+            final OBGroup curGroup = currentGroup;
+            final OBControl curIcon = currentIcon;
+            currentGroup = null;
+            currentIcon = null;
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    checkGroupIcon(pt, curGroup, curIcon);
+
+                }
+            });
+
+        }
+
+    }
+
+    public  void checkGroupIcon(PointF pt, final OBGroup curGroup, final OBControl curIcon) throws Exception
+    {
+        long currTime = SystemClock.currentThreadTimeMillis();
+        PointF lastPosition = (PointF) curGroup.propertyValue("touch_loc");
+        if (curIcon != null && (currTime - (long) curGroup.propertyValue("time")) < 1
+                && Math.abs(lastPosition.x - pt.x) < snapDist)
+        {
+            curIcon.highlight();
+            openBookForIcon(curIcon);
+            OBUtils.runOnOtherThreadDelayed(1, new OBUtils.RunLambda()
             {
                 public void run() throws Exception
                 {
-                    final OBGroup curGroup = currentGroup;
-                    final OBControl curIcon = currentIcon;
-                    currentGroup = null;
-                    currentIcon = null;
-                    long startTime = System.currentTimeMillis();
-                    PointF lastPosition = (PointF)curGroup.propertyValue("touch_loc");
-                    float scrollSpeed = (float) curGroup.propertyValue("scrollSpeed");
-                    boolean bookStarted = false;
-                    if (curIcon != null && (startTime - (long) curGroup.propertyValue("time")) < 1000
-                            && Math.abs(lastPosition.x - pt.x) < snapDist && scrollSpeed < applyGraphicScale(1))
-                    {
-                        bookStarted= true;
-                        curIcon.highlight();
-                        //curIcon.setHighlightColour(Color.argb(125,0,0,0));
-                        MlUnit unit = (MlUnit)curIcon.propertyValue("unit");
-                       // startSectionByUnit(unit);
-                        setStatus(STATUS_WAITING_FOR_DRAG);
-                        OBUtils.runOnOtherThreadDelayed(0.5f, new OBUtils.RunLambda()
-                        {
-                            public void run() throws Exception
-                            {
-                                curIcon.lowlight();
-                                snapClosest(0, curGroup, true);
-                            }
-                        });
-
-                    }
-                    if(!bookStarted)
-                    {
-                        long time = setStatus(STATUS_WAITING_FOR_DRAG);
-                        if (!curGroup.isEnabled()) return;
-                        curGroup.setProperty("time", time);
-                        float distance = scrollSpeed * 1000 * 0.5f;
-                        float targetX = Math.round(curGroup.position().x - distance );
-                        while (Math.abs(scrollSpeed) > applyGraphicScale(0.5f) && time == (long) curGroup.propertyValue("time"))
-                        {
-                            waitForSecs(0.005f);
-                            long currTime = System.currentTimeMillis();
-                            float  delta = distance * (float)Math.exp(-(currTime - startTime) / 325.0f);
-                            if (Math.abs(delta) > applyGraphicScale(10f) && time == (long) curGroup.propertyValue("time"))
-                            {
-                                if (!setBookLine(curGroup, targetX + delta))
-                                    scrollSpeed = 0;
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-                        snapClosest(time, curGroup, false);
-                    }
+                    curIcon.lowlight();
                 }
             });
         }
+        long time = setStatus(STATUS_WAITING_FOR_DRAG);
+        if (!curGroup.isEnabled())
+            return;
+        curGroup.setProperty("time", time);
+        MutableBoolean finished = new MutableBoolean(false);
+        while (!this._aborting && !finished.value && time == (long)curGroup.propertyValue("time"))
+        {
+            if (time == (long)curGroup.propertyValue("time"))
+            {
+                PointF pos = ScrollingHelper.nextScrollingLocation(curGroup, finished);
+                if (!setBookLine(curGroup, pos.x))
+                    finished.value = true;
+
+            }
+            waitForSecs(0.001f);
+        }
+        if (!this._aborting)
+            snapClosest(time, curGroup, false);
     }
 
-    public void startSectionByUnit(final MlUnit unit)
+    public void openBookForIcon(OBControl icon)
     {
+        final Map<String,String> bookData = (Map<String,String>)icon.propertyValue("data");
         final String lastAppCode = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_APP_CODE);
 
         new OBRunnableSyncUI()
@@ -232,8 +236,8 @@ public class OC_Library extends OC_SectionController
             {
                 try
                 {
-                    MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
-                    if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
+                    MainActivity.mainActivity.updateConfigPaths(bookData.get("config"), false, bookData.get("lang"));
+                    if(MainViewController().pushViewControllerWithNameConfig(bookData.get("target"),bookData.get("config"),true,true,bookData.get("params")))
                     {
                         //unit started
                     }
@@ -241,7 +245,7 @@ public class OC_Library extends OC_SectionController
                     {
                         if (MainActivity.mainActivity.isDebugMode())
                         {
-                            Toast.makeText(MainActivity.mainActivity, unit.target + " hasn't been converted to Android yet.", Toast.LENGTH_LONG).show();
+                            Toast.makeText(MainActivity.mainActivity, bookData.get("target") + " hasn't been converted to Android yet.", Toast.LENGTH_LONG).show();
                             MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
                         }
                     }
@@ -396,6 +400,13 @@ public class OC_Library extends OC_SectionController
 
     }
 
+    /*
+                        [levelUnits addObject:@{@"config":[node attributeStringValue:@"config"],
+                                            @"target":[node attributeStringValue:@"target"],
+                                            @"params":[node attributeStringValue:@"params"],
+                                            @"icon":[node attributeStringValue:@"icon"],
+                                            @"lang":[node attributeStringValue:@"lang"]}];
+     */
     public void loadBookUnitsXML(String xmlPath)
     {
         if (xmlPath != null)
@@ -412,14 +423,17 @@ public class OC_Library extends OC_SectionController
                     List<OBXMLNode> xmlLevels = rootNode.childrenOfType("level");
                     for(OBXMLNode xmlLevel : xmlLevels)
                     {
-                        List<MlUnit> levelUnits = new ArrayList<>();
+                        List<Map<String,String>> levelUnits = new ArrayList<>();
                         List<OBXMLNode> xmlunits = xmlLevel.childrenOfType("unit");
                         for (OBXMLNode n : xmlunits)
                         {
-                            MlUnit m = MlUnit.mlUnitFromXMLNode(n);
-                            m.key = n.attributeStringValue("id");
-                            levelUnits.add(m);
-
+                            Map<String,String> map = new ArrayMap<>();
+                            map.put("config", n.attributeStringValue("config"));
+                            map.put("target", n.attributeStringValue("target"));
+                            map.put("params", n.attributeStringValue("params"));
+                            map.put("icon", n.attributeStringValue("icon"));
+                            map.put("lang", n.attributeStringValue("lang"));
+                            levelUnits.add(map);
 
                         }
                         bookUnits.add(levelUnits);
@@ -442,16 +456,16 @@ public class OC_Library extends OC_SectionController
         OBControl icon = objectDict.get("icon");
         int level = 1;
         int locIndex = 0;
-        for(List<MlUnit> booksLevel : bookUnits)
+        for(List<Map<String,String>> booksLevel : bookUnits)
         {
             OBControl levelControl = objectDict.get(String.format("level_%d",level));
             PointF startPoint = OBMisc.copyPoint(levelControl.position());
             startPoint.x = icon.position().x;
             List<OBControl> bookIcons = new ArrayList<>();
             int index = 0;
-            for(MlUnit unit : booksLevel)
+            for(Map<String,String> bookData : booksLevel)
             {
-                OBImage unitIcon = loadIconForUnit(unit);
+                OBImage unitIcon = loadIconForData(bookData);
                 PointF loc = OBMisc.copyPoint(startPoint);
                 loc.x += index*1.2*unitIcon.width();
                 unitIcon.setPosition(loc);
@@ -508,10 +522,10 @@ public class OC_Library extends OC_SectionController
         return loc;
     }
 
-    public OBImage loadIconForUnit(MlUnit unit)
+    public OBImage loadIconForData(Map<String,String> bookData)
     {
-        String iconsPath = String.format("masterlists/%s/icons", LIBRARY_MASTERLIST);
-        String imgName = String.format("%s_small.png",unit.icon);
+        String iconsPath = String.format("masterlists/%s/icons", libraryMasterlist);
+        String imgName = String.format("%s_small.png",bookData.get("icon"));
         OBImage bigic = null;
         String completePath = String.format("%s/%s",iconsPath,imgName);
 
@@ -521,7 +535,7 @@ public class OC_Library extends OC_SectionController
         {
             bigic = loadImageWithName("icon_default", new PointF(0,0), boundsf());
         }
-        bigic.setProperty("unit",unit);
+        bigic.setProperty("data",bookData);
         attachControl(bigic);
         bigic.setZPosition(20);
         OBControl icon = objectDict.get("icon");

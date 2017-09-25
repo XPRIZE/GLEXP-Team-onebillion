@@ -25,6 +25,8 @@ import android.text.Layout;
 import android.text.SpannableString;
 import android.text.StaticLayout;
 import android.text.TextPaint;
+import android.util.ArrayMap;
+import android.util.Log;
 
 import org.onebillion.onecourse.controls.*;
 import org.onebillion.onecourse.glstuff.*;
@@ -74,7 +76,7 @@ public class OBSectionController extends OBViewController
     public List<String> events;
     public Map<String, Object> audioScenes, eventsDict;
     public Map<String, OBControl> miscObjects, objectDict;
-    public Map<String, String> eventAttributes, parameters;
+    public Map<String, String> eventAttributes, parameters, localisations;
     Map<String,Float> sectionSfxVolumes = null;
     public int targetNo, currNo;
     public Object params;
@@ -86,9 +88,12 @@ public class OBSectionController extends OBViewController
     protected long audioQueueToken, sequenceToken, statusTime;
     protected ReentrantLock sequenceLock;
 
-    float topColour[] = {1, 1, 1, 1};
+    private boolean popAnimationZoom;
+    private RectF popAnimationZoomRect;
+
+    public float topColour[] = {1, 1, 1, 1};
     float bottomColour[] = {1, 1, 1, 1};
-    List<Integer> busyStatuses =Arrays.asList(STATUS_BUSY,STATUS_DOING_DEMO,STATUS_DRAGGING,STATUS_CHECKING);
+    protected List<Integer> busyStatuses =Arrays.asList(STATUS_BUSY,STATUS_DOING_DEMO,STATUS_DRAGGING,STATUS_CHECKING);
 
     public OBSectionController (Activity a)
     {
@@ -112,6 +117,7 @@ public class OBSectionController extends OBViewController
         sequenceLock = new ReentrantLock();
         sortedAttachedControlsValid = true;
         this.requiresOpenGL = requiresOpenGL;
+        popAnimationZoom = false;
     }
 
 
@@ -604,6 +610,10 @@ public class OBSectionController extends OBViewController
             if (attrs.get("skinoffset") != null)
                 skinOffset = Integer.parseInt((String) attrs.get("skinoffset"));
             int skincol = OBUtils.SkinColour(OBUtils.SkinColourIndex() + skinOffset);
+            if (im == null)
+            {
+                MainActivity.log("ERROR --> null object with name " + srcname);
+            }
             ((OBGroup) im).substituteFillForAllMembers("skin.*", skincol);
             if (attrs.get("fill") != null)
             {
@@ -870,8 +880,9 @@ public class OBSectionController extends OBViewController
         return (Float) (Config().get(MainActivity.mainActivity.CONFIG_GRAPHIC_SCALE));
     }
 
-    public void loadEvent (String eventID)
+    public List<OBControl> loadEvent (String eventID)
     {
+        List<OBControl> loadedControls = new ArrayList<>();
         float graphicScale = graphicScale();
         Map<String, Object> event = (Map<String, Object>) eventsDict.get(eventID);
         if (event == null)
@@ -895,6 +906,7 @@ public class OBSectionController extends OBViewController
         Map<String, Object> defs = new HashMap<String, Object>();
         List<Map<String, Object>> imageList = (List<Map<String, Object>>) event.get("objects");
         if (imageList != null)
+        {
             for (Map<String, Object> image : imageList)
             {
                 Object im = loadImageFromDictionary(image, graphicScale, defs);
@@ -906,11 +918,13 @@ public class OBSectionController extends OBViewController
                     {
                         objectDict.put(objID, (OBControl) im);
                         attachControl((OBControl) im);
-                    }
-                    else
+                        loadedControls.add((OBControl) im);
+                    } else
                         defs.put(objID, im);
                 }
             }
+        }
+        return loadedControls;
     }
 
     public void processParams ()
@@ -1199,11 +1213,12 @@ public class OBSectionController extends OBViewController
                 OBControl c2 = objectDict.get(o2);
                 float z1 = c1.zPosition();
                 float z2 = c2.zPosition();
-                if (z1 < z2)
-                    return -1;
-                if (z1 > z2)
-                    return 1;
-                return 0;
+                return Float.compare(z2, z1);
+//                if (z1 < z2)
+//                    return -1;
+//                if (z1 > z2)
+//                    return 1;
+//                return 0;
             }
         });
         List<OBControl> carr = new ArrayList<OBControl>();
@@ -1258,15 +1273,60 @@ public class OBSectionController extends OBViewController
         }
     }
 
-    public void drawControls (Canvas canvas)
+    public void drawControls (Canvas canvas)        // This is a non-opengl draw
     {
         Rect clipb = canvas.getClipBounds();
         populateSortedAttachedControls();
         for (OBControl control : sortedAttachedControls)
         {
             if (control.frame().intersects(clipb.left, clipb.top, clipb.right, clipb.bottom))
-                control.draw(canvas);
+                control.draw(canvas,OBControl.IGNORE_DYNAMIC_MASK);
         }
+    }
+
+    public Bitmap drawn (Bitmap oldBitmap,boolean withBackground)
+    {
+        Bitmap bitmap = null;
+        int width = (bounds().right - bounds().left);
+        int height = (bounds().bottom - bounds().top);
+        if (width == 0 || height == 0)
+            Log.i("error", "drawn");
+        try
+        {
+            if (oldBitmap != null && oldBitmap.getWidth() == width && oldBitmap.getHeight() == height)
+            {
+                bitmap = oldBitmap;
+                bitmap.eraseColor(0);
+            }
+            else
+                bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            if (withBackground)
+                bitmap.eraseColor(Color.argb((int)(topColour[0]*255),(int)(topColour[1]*255),(int)(topColour[2]*255),(int)(topColour[3]*255)));
+        }
+        catch (Exception exception)
+        {
+            exception.printStackTrace();
+        }
+        Canvas canvas = new Canvas(bitmap);
+        drawControls(canvas);
+        return bitmap;
+    }
+
+    public Bitmap thumbnail(int width,int height,boolean withBackground)
+    {
+        Bitmap bitmap = null;
+        int swidth = (bounds().right - bounds().left);
+        int sheight = (bounds().bottom - bounds().top);
+        float scale = width * 1f / swidth;
+        bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        if (withBackground)
+            bitmap.eraseColor(Color.argb((int)(topColour[3]*255),(int)(topColour[0]*255),(int)(topColour[1]*255),(int)(topColour[2]*255)));
+        else
+            bitmap.eraseColor(0);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.scale(scale,scale);
+        drawControls(canvas);
+        return bitmap;
     }
 
     public void renderBackground (OBRenderer renderer)
@@ -1967,16 +2027,29 @@ public class OBSectionController extends OBViewController
         playAudio(null);
         if (!_aborting)
         {
-            _aborting = true;
+            cleanUp();
             new OBRunnableUI()
             {
                 public void ex ()
                 {
-                    stopAllAudio();
-                    MainActivity.mainViewController.popViewController();
+                    if(popAnimationZoom == true)
+                    {
+                        MainActivity.mainViewController.popViewControllerZoom(popAnimationZoomRect);
+                    }
+                    else
+                    {
+                        MainActivity.mainViewController.popViewController();
+                    }
+
                 }
             }.run();
         }
+    }
+
+    public void cleanUp ()
+    {
+        stopAllAudio();
+        _aborting = true;
     }
 
     public void goBack ()
@@ -2133,6 +2206,23 @@ public class OBSectionController extends OBViewController
         }.run();
     }
 
+    public void displayCross() throws Exception
+    {
+        List<OBControl>arr = new ArrayList<>();
+        lockScreen();
+        float graphicScale = applyGraphicScale(1.0f);
+        OBControl cross = loadVectorWithName("cross",new PointF(0.5f,0.5f),boundsf());
+        cross.setScale(graphicScale);
+        cross.setZPosition(100);
+        arr.add(cross);
+        unlockScreen();
+        playSFX("wrong");
+        waitForSecs(1);
+        lockScreen();
+        detachControl(arr.get(0));
+        unlockScreen();
+    }
+
     public void invalidateControl (OBControl c)
     {
         RectF f = c.frame();
@@ -2276,6 +2366,9 @@ public class OBSectionController extends OBViewController
         mergePrefix = mergePrefix +".";
         for(String ksc : audioScenes.keySet())
         {
+            if(ksc.startsWith("_"))
+                continue;
+
             Map<String,List> scene = (Map<String, List>) audioScenes.get(ksc);
             for(String kac : scene.keySet() )
                 if(kac.startsWith(mergePrefix))
@@ -2295,6 +2388,44 @@ public class OBSectionController extends OBViewController
         texImage2D(GL_TEXTURE_2D,0,c.drawn(),0);
     }
 
+    public Map<String,String> loadLocalisations(String xmlPath)
+    {
+        Map<String, String> dict = new ArrayMap<>();
+        if (xmlPath != null)
+        {
+            try
+            {
+                OBXMLManager xmlManager = new OBXMLManager();
+                List<OBXMLNode> xml = xmlManager.parseFile(OBUtils.getInputStreamForPath(xmlPath));
+                OBXMLNode localisationNode = xml.get(0);
+                for (OBXMLNode phraseNode : localisationNode.childrenOfType("phrase"))
+                {
+                    String name = phraseNode.attributeStringValue("id");
+                    String contents = phraseNode.contents;
+                    dict.put(name, contents);
+                }
+            } catch (Exception e)
+            {
+
+            }
+        }
+        return dict;
+    }
+
+    public void setPopAnimationZoom(RectF zoomRect)
+    {
+        if(zoomRect != null)
+        {
+            popAnimationZoom = true;
+            popAnimationZoomRect = zoomRect;
+        }
+        else
+        {
+            popAnimationZoom = false;
+        }
+    }
+
+
     public void onResume()
     {
 
@@ -2309,5 +2440,11 @@ public class OBSectionController extends OBViewController
     {
 
     }
+
+    public void onBatteryStatusReceived(float level, boolean charging)
+    {
+
+    }
+
 }
 

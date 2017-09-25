@@ -23,6 +23,10 @@ import org.onebillion.onecourse.mainui.OBViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -32,6 +36,9 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.egl.EGLSurface;
+
+import static org.onebillion.onecourse.mainui.MainActivity.CONFIG_VIDEO_SEARCH_PATH;
+import static org.onebillion.onecourse.mainui.MainActivity.CONFIG_VIDEO_SUFFIX;
 
 
 /**
@@ -48,6 +55,7 @@ public class OBVideoPlayer extends OBControl
     public static int VP_FILL_TYPE_STRETCH = 0,
     VP_FILL_TYPE_ASPECT_FIT = 1,
     VP_FILL_TYPE_ASPECT_FILL = 2;
+    private OBUtils.RunLambda playCompletionBlock, seekCompletionBlock;
 
 
     int fillType = VP_FILL_TYPE_ASPECT_FILL;
@@ -64,6 +72,7 @@ public class OBVideoPlayer extends OBControl
 
     public OBVideoPlayer(RectF frame, OC_SectionController sectionController, boolean mirrored, boolean _playAfterPrepare)
     {
+        seekCompletionBlock = null;
         activityPaused = true;
         setFrame(frame.left, frame.top, frame.right, frame.bottom);
         this.mirrored = mirrored;
@@ -81,6 +90,40 @@ public class OBVideoPlayer extends OBControl
     {
         this(frame,sectionController,true,true);
     }
+
+    public static String getVideoPath(String videoName)
+    {
+        Map config = MainActivity.Config();
+        List<String> videoSuffixes;
+        Object obj = config.get(CONFIG_VIDEO_SUFFIX);
+        if(obj instanceof String)
+        {
+            videoSuffixes = Arrays.asList((String)obj);
+        }
+    else
+        {
+            videoSuffixes = (List<String>) obj;
+        }
+        for(String videoSuffix : videoSuffixes)
+        {
+            String fullPath = videoName + "." + videoSuffix;
+            if(OBUtils.fileExistsAtPath(fullPath))
+            {
+                return fullPath;
+            }
+            List<String> sparr = (List<String>)config.get(CONFIG_VIDEO_SEARCH_PATH);
+            for(String path : sparr)
+            {
+                fullPath = path + "/" + videoName + "." + videoSuffix;
+                if(OBUtils.fileExistsAtPath(fullPath))
+                {
+                    return fullPath;
+                }
+            }
+        }
+        return null;
+    }
+
 
     public boolean isPlaying()
     {
@@ -265,6 +308,12 @@ public class OBVideoPlayer extends OBControl
         startPlayingAtTime(afd, fr, this, this);
     }
 
+    public void startPlayingAtTime(AssetFileDescriptor afd, long fr, OBUtils.RunLambda completionBlock)
+    {
+        this.playCompletionBlock = completionBlock;
+        startPlayingAtTime(afd, fr, this, this);
+    }
+
 
     public void startPlayingAtTime(AssetFileDescriptor afd, long fr, MediaPlayer.OnPreparedListener preparedListener, MediaPlayer.OnCompletionListener completionListener)
     {
@@ -296,9 +345,52 @@ public class OBVideoPlayer extends OBControl
         }
     }
 
+    public void prepareForPlaying(AssetFileDescriptor afd, long atTime, OBUtils.RunLambda seekCompletion)
+    {
+        if(afd == null || activityPaused )
+            return;
+
+        playAfterPrepare = false;
+        condition = playerLock.newCondition();
+        fromTime = atTime;
+
+        if(seekCompletion != null)
+            this.seekCompletionBlock = seekCompletion;
+
+        player = new MediaPlayer();
+        player.setSurface(surface);
+        //surface.release();
+        player.setOnPreparedListener(this);
+        player.setOnCompletionListener(this);
+        player.setOnSeekCompleteListener(this);
+        player.setOnErrorListener(this);
+        player.setOnVideoSizeChangedListener(this);
+
+        try
+        {
+            player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            player.prepareAsync();
+
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return;
+        }
+    }
+
     @Override
     public void onCompletion(MediaPlayer mp)
     {
+        try
+        {
+            if (playCompletionBlock != null)
+                playCompletionBlock.run();
+        } catch (Exception e)
+        {
+
+        }
+
         if (stopOnCompletion)
             stop();
     }
@@ -316,6 +408,18 @@ public class OBVideoPlayer extends OBControl
 
     public void start()
     {
+        try
+        {
+            player.start();
+        }
+        catch (Exception e)
+        {
+        }
+    }
+
+    public void start(OBUtils.RunLambda completionBlock)
+    {
+        this.playCompletionBlock = completionBlock;
         try
         {
             player.start();
@@ -361,8 +465,14 @@ public class OBVideoPlayer extends OBControl
             start();
         else
         {
-            //start();
-            //pause();
+            try
+            {
+                if (this.seekCompletionBlock != null)
+                    seekCompletionBlock.run();
+            }catch (Exception e)
+            {
+                MainActivity.log("Seek complete error " + e.getMessage());
+            }
         }
 
     }
@@ -459,7 +569,7 @@ public class OBVideoPlayer extends OBControl
 
     }
 
-    // stolen from https://gist.github.com/HugoGresse/5ca05821444353a823bb
+    // source from https://gist.github.com/HugoGresse/5ca05821444353a823bb
     private void clearSurface(SurfaceTexture texture)
     {
         if(texture == null){
@@ -526,6 +636,19 @@ public class OBVideoPlayer extends OBControl
         {
             return -1;
         }
+    }
+
+    @Override
+    public void setScale(float sc)
+    {
+        setScaleX((this.mirrored ? -1 : 1)* Math.abs(sc));
+        setScaleY(sc);
+    }
+
+    @Override
+    public float scale()
+    {
+        return scaleY();
     }
 }
 

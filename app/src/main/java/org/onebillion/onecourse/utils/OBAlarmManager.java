@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import org.onebillion.onecourse.mainui.MainActivity;
+import org.onebillion.onecourse.receivers.OBAlarmReceiver;
 
 /**
  * OBAlarmManager
@@ -15,9 +16,6 @@ import org.onebillion.onecourse.mainui.MainActivity;
  */
 public class OBAlarmManager
 {
-    public static final int REQUEST_SESSION_CHECK =1,
-            REQUEST_SESSION_CHECK2=2,
-            REQUEST_OTHER =100;
 
     public static PendingIntent scheduleRepeatingAlarm(long triggerAtMillis, long intervalMillis, int requestCode)
     {
@@ -33,9 +31,7 @@ public class OBAlarmManager
             AlarmManager alarmManager = (AlarmManager) MainActivity.mainActivity.getSystemService(Context.ALARM_SERVICE);
             cancelAlarm(pendingIntent);
 
-
             alarmManager.setExact(AlarmManager.RTC, triggerAtMillis, pendingIntent);
-
             return pendingIntent;
         }
         return null;

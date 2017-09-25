@@ -365,7 +365,6 @@ public class OC_Count100_S2j extends OC_SectionController
         };
 
         OBAnimationGroup.runAnims(numAnims,0.5,true,OBAnim.ANIM_LINEAR,this);
-        cont.setZPosition(cont.zPosition()-10);
     }
 
     public void clearDragNum(OBControl cont)
@@ -375,7 +374,9 @@ public class OC_Count100_S2j extends OC_SectionController
         List<OBControl> objs = ((OBGroup)cont).ungroup();
         for (OBControl obj : objs)
         {
+            obj.show();
             attachControl(obj);
+
         }
         unlockScreen();
         dragTargets.remove(cont);

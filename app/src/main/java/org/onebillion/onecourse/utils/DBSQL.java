@@ -3,6 +3,7 @@ package org.onebillion.onecourse.utils;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.provider.SyncStateContract;
 
 import org.onebillion.onecourse.mainui.MainActivity;
 
@@ -20,13 +21,23 @@ public class DBSQL
     public final static String TABLE_SESSIONS = "sessions";
     public final static String TABLE_USERS = "users";
     public final static String TABLE_STARS = "stars";
+    public final static String TABLE_PLAYZONE_ASSETS = "playzoneassets";
 
-    private SQLiteDatabase database;
+    private static SQLiteDatabase database = null;
+
 
     public DBSQL(boolean writable)
     {
-        OBSQLiteHelper helper =  OBSQLiteHelper.getSqlHelper();
+        /*
+
         database =  writable ? helper.getWritableDatabase() : helper.getReadableDatabase();
+        */
+        if(database == null)
+        {
+            OBSQLiteHelper helper =  OBSQLiteHelper.getSqlHelper();
+            database = helper.getWritableDatabase();
+        }
+
     }
 
     private static String mapToWhereStatement(Map<String,String> whereMap)
@@ -124,6 +135,15 @@ public class DBSQL
 
     public void close()
     {
-        database.close();
+        //database.close();
+    }
+
+    public static void finalise()
+    {
+        if(database != null)
+        {
+            database.close();
+            database = null;
+        }
     }
 }

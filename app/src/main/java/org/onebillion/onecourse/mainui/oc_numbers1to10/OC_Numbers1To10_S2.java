@@ -7,8 +7,10 @@ import org.onebillion.onecourse.mainui.generic.OC_Generic_CompleteSequence;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.List;
 
 /**
  * Created by pedroloureiro on 12/07/16.
@@ -26,6 +28,8 @@ public class OC_Numbers1To10_S2 extends OC_Generic_CompleteSequence
     public void action_prepareScene (String scene, Boolean redraw)
     {
         super.action_prepareScene(scene, redraw);
+        List<OBLabel> createdLabels = new ArrayList<>();
+        float smallestFontSize = 1000000000;
         //
         for (OBControl number : filterControls("obj.*"))
         {
@@ -46,6 +50,15 @@ public class OC_Numbers1To10_S2 extends OC_Generic_CompleteSequence
             }
             objectDict.put((String) number.attributes().get("id"), label);
             detachControl(number);
+            //
+            if (label.fontSize() < smallestFontSize) smallestFontSize = label.fontSize();
+            createdLabels.add(label);
+        }
+        //
+        for (OBLabel label : createdLabels)
+        {
+            label.setFontSize(smallestFontSize);
+            label.sizeToBoundingBox();
         }
     }
 

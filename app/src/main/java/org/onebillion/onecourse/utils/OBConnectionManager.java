@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Handler;
+import java.util.regex.Pattern;
 
 /**
  * Created by pedroloureiro on 30/08/16.
@@ -55,7 +56,7 @@ public class OBConnectionManager
         return MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_WIFI_PASSWORD);
     }
 
-    public void startupConnection (final OBUtils.RunLambda block)
+    public void startupConnection (final OBUtils.RunLambdaWithSuccess block)
     {
         MainActivity.log("OBConnectionManager.checkForConnection");
         ConnectivityManager connManager = (ConnectivityManager) MainActivity.mainActivity.getSystemService(MainActivity.CONNECTIVITY_SERVICE);
@@ -80,7 +81,7 @@ public class OBConnectionManager
                 {
                     MainActivity.log("Wifi not connected. Attempting to activate and connect");
                     // attempt to connect to wifi
-                    connectToNetwork(wifiSSID(), wifiPassword(), block);
+                    connectToNetwork_scanForWifi(wifiSSID(), wifiPassword(), block);
                 }
             });
         }
@@ -92,7 +93,14 @@ public class OBConnectionManager
                 try
                 {
                     MainActivity.log("OBConnectionManager.startupConnection. running completion block");
-                    OBUtils.runOnOtherThreadDelayed(1.0f, block);
+                    OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run () throws Exception
+                        {
+                            block.run(true);
+                        }
+                    });
                 }
                 catch (Exception e)
                 {
@@ -103,9 +111,12 @@ public class OBConnectionManager
         }
     }
 
-    public void disconnectWifi()
+    public void disconnectWifi ()
     {
         MainActivity.log("OBConnectionManager.disconnectWifi");
+        //
+        forgetAllNetworks();
+        //
         WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(MainActivity.WIFI_SERVICE);
         MainActivity.log("OBConnectionManager.disconnectWifi. Disconnected network");
         wifiManager.disconnect();
@@ -125,7 +136,43 @@ public class OBConnectionManager
     }
 
 
-    public boolean isScanningDisabled()
+    public void forgetAllNetworks()
+    {
+        WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(MainActivity.WIFI_SERVICE);
+        List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
+        //
+        for( WifiConfiguration i : list )
+        {
+            // Please Note: the app cannot make the system forget wifi configurations that were placed by the user or other apps.
+            // Just the ones that this app has set.
+            wifiManager.removeNetwork(i.networkId);
+            wifiManager.saveConfiguration();
+        }
+    }
+
+
+    public String getCurrentWifiSSID()
+    {
+        WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(MainActivity.WIFI_SERVICE);
+        WifiInfo info = wifiManager.getConnectionInfo ();
+        String ssid = info.getSSID();
+        if (info.getSupplicantState() != SupplicantState.COMPLETED)
+        {
+            MainActivity.log("OBConnectionManager:getCurrentWifiSSID. not connected to current wifi. returning null");
+            return null;
+        }
+        if (ssid.charAt(0) == '"' && ssid.charAt(ssid.length() - 1) == '"')
+        {
+            return ssid.substring(1, ssid.length() - 1);
+        }
+        else
+        {
+            return ssid;
+        }
+    }
+
+
+    public boolean isScanningDisabled ()
     {
         WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(MainActivity.WIFI_SERVICE);
         if (wifiManager.isScanAlwaysAvailable()) return false;
@@ -141,8 +188,7 @@ public class OBConnectionManager
     {
         if (!keepWifiOn())
         {
-            WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(MainActivity.WIFI_SERVICE);
-            wifiManager.setWifiEnabled(false);
+            disconnectWifi();
         }
     }
 
@@ -165,14 +211,14 @@ public class OBConnectionManager
         return false;
     }
 
-
-    public void connectToNetwork(final String ssid, final String password, final OBUtils.RunLambda block)
+    /*
+    public void connectToNetwork (final String ssid, final String password, final Boolean disconnectAfterBlock, final OBUtils.RunLambda block)
     {
         final WifiManager wifiManager = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         //
         try
         {
-            MainActivity.log("OBConnectionManager.connectToNetwork.disable airplane mode");
+            MainActivity.log("OBConnectionManager:connectToNetwork.disable airplane mode");
             Settings.Global.putInt(MainActivity.mainActivity.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0);
             Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
             intent.putExtra("state", false);
@@ -180,7 +226,7 @@ public class OBConnectionManager
         }
         catch (Exception e)
         {
-            MainActivity.log("Exception Caught while trying to disable airplane mode");
+            MainActivity.log("OBConnectionManager:connectToNetwork:Exception Caught while trying to disable airplane mode");
 //            e.printStackTrace();
         }
         //
@@ -208,7 +254,10 @@ public class OBConnectionManager
                             {
                                 MainActivity.log("OBConnectionManager.connectToNetwork. WITH the completion lock. running block");
                                 block.run();
-                                connectToNetwork_disconnect();
+                                if (disconnectAfterBlock)
+                                {
+                                    connectToNetwork_disconnect();
+                                }
                                 getCompletionLock().unlock();
                             }
                             else
@@ -221,76 +270,122 @@ public class OBConnectionManager
             }
         };
         //
-        MainActivity.mainActivity.registerReceiver(scanResultsReceiver, new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION));
-        //
         WifiConfiguration wc = new WifiConfiguration();
-        wc.SSID = "\"" + ssid + "\"";
-        wc.hiddenSSID = true;
-        wc.priority = 0xBADBAD;
+        //
+        wc.allowedAuthAlgorithms.clear();
+        wc.allowedGroupCiphers.clear();
+        wc.allowedKeyManagement.clear();
+        wc.allowedPairwiseCiphers.clear();
+        wc.allowedProtocols.clear();
+        wc.SSID = quoteNonHex(ssid);
+        wc.hiddenSSID = false;
+        //
+        if (password != null)
+        {
+            wc.preSharedKey = quoteNonHex(password, 64);
+            wc.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.OPEN);
+            wc.allowedProtocols.set(WifiConfiguration.Protocol.WPA); // For WPA
+            wc.allowedProtocols.set(WifiConfiguration.Protocol.RSN); // For WPA2
+            wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+            wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_EAP);
+            wc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
+            wc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
+            wc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
+            wc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
+        }
+        else
+        {
+            wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+        }
         wc.status = WifiConfiguration.Status.ENABLED;
-        wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
         //
-        int id = wifiManager.addNetwork(wc);
+        int id = wifiManager.updateNetwork(wc);
+        if (id == -1)
+        {
+            MainActivity.log("OBConnectionManager:connectToNetwork: error while updating wifi network");
+            id = wifiManager.addNetwork(wc);
+            if (id == -1)
+            {
+                MainActivity.log("OBConnectionManager:connectToNetwork: error while adding wifi network");
+            }
+        }
         //
-        wifiManager.disconnect();
-        wifiManager.enableNetwork(id, true);
-        wifiManager.reconnect();
+        if (id != -1)
+        {
+            MainActivity.mainActivity.registerReceiver(scanResultsReceiver, new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION));
+            //
+            wifiManager.saveConfiguration();
+            //
+            List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
+            for (WifiConfiguration i : list)
+            {
+                if (i.SSID != null && i.SSID.equals("\"" + ssid + "\""))
+                {
+                    MainActivity.log("OBConnectionManager:connectToNetwork:found SSID " + i.SSID + ". Connecting");
+                    wifiManager.disconnect();
+                    wifiManager.enableNetwork(i.networkId, true);
+                    wifiManager.reconnect();
+                    break;
+                }
+            }
+        }
+        else
+        {
+            try
+            {
+                if (getCompletionLock().tryLock())
+                {
+                    MainActivity.log("OBConnectionManager.connectToNetwork. WITH the completion lock. running block");
+                    block.run();
+                    if (disconnectAfterBlock)
+                    {
+                        connectToNetwork_disconnect();
+                    }
+                    getCompletionLock().unlock();
+                }
+            }
+            catch (Exception e)
+            {
+                MainActivity.log("OBConnectionManager:connectToNetwork:exception caught while calling completion block after failing to connect to wifi");
+                e.printStackTrace();
+            }
+        }
+//        wifiManager.disconnect();
+//        wifiManager.enableNetwork(id, true);
+//        wifiManager.reconnect();
     }
+    */
 
 
-
-
-    public void connectToNetwork_unused(final String ssid, final String password, final OBUtils.RunLambda block)
+    public void connectToNetwork_disableAirplaneMode (final String ssid, final String password, final OBUtils.RunLambdaWithSuccess block)
     {
-        if (timeStampForConnectionAttempt != -1)
+        if (airplaneChangedReceiver != null)
         {
-            MainActivity.log("OBConnectionManager.connectToNetwork an attempt is already in progress. Aborting");
-            return;
+            OBSystemsManager.unregisterReceiver(airplaneChangedReceiver);
         }
         //
-        timeStampForConnectionAttempt = OC_Generic.currentTime();
-        MainActivity.log("OBConnectionManager.connectToNetwork [" + ssid + "] [" + password + "]");
-        if (ssid == null)
-        {
-            MainActivity.log("OBConnectionManager.connectToNetwork SSID is null. Aborting and not running completion block");
-            connectToNetWork_complete(false, block);
-            return;
-        }
-        //
-        MainActivity.log("OBConnectionManager.connectToNetwork. disabling captive_portal_detection_enabled");
-        Settings.Global.putInt(MainActivity.mainActivity.getContentResolver(), "captive_portal_detection_enabled", 0);
-        try
-        {
-            MainActivity.log("OBConnectionManager.connectToNetwork. captive_portal_detection_enabled value " + Settings.Global.getInt(MainActivity.mainActivity.getContentResolver(), "captive_portal_detection_enabled"));
-        }
-        catch (Exception e)
-        {
-            MainActivity.log("OBConnectionManager.connectToNetwork. captive_portal_detection_enabled value NOT FOUND");
-        }
-        //
-        OBSystemsManager.unregisterReceiver(airplaneChangedReceiver);
         airplaneChangedReceiver = new BroadcastReceiver()
         {
             @Override
             public void onReceive (Context context, Intent intent)
             {
-                MainActivity.log("OBConnectionManager.connectToNetwork.airplaneChangedReceiver " + intent.getAction());
+                MainActivity.log("OBConnectionManager.connectToNetwork_disableAirplaneMode.airplaneChangedReceiver " + intent.getAction());
                 //
                 if (intent.getAction().equals(Intent.ACTION_AIRPLANE_MODE_CHANGED))
                 {
-                    MainActivity.log("OBConnectionManager.connectToNetwork.airplaneChangedReceiver it's related to AIRPLANE_MODE");
+                    MainActivity.log("OBConnectionManager.connectToNetwork_disableAirplaneMode.airplaneChangedReceiver it's related to AIRPLANE_MODE");
                     //
                     boolean isAirplaneModeOn = intent.getBooleanExtra("state", false);
                     //
                     MainActivity.mainActivity.unregisterReceiver(airplaneChangedReceiver);
-                    if(isAirplaneModeOn)
+                    if (isAirplaneModeOn)
                     {
-                        MainActivity.log("OBConnectionManager.connectToNetwork.airplaneChangedReceiver.AIRPLANE_MODE is now ON. Unlocking everything.");
+                        MainActivity.log("OBConnectionManager.connectToNetwork_disableAirplaneMode.airplaneChangedReceiver.AIRPLANE_MODE is now ON. Unlocking everything.");
                         connectToNetWork_complete(false, block);
                     }
                     else
                     {
-                        MainActivity.log("OBConnectionManager.connectToNetwork.airplaneChangedReceiver.AIRPLANE_MODE is now OFF");
+                        MainActivity.log("OBConnectionManager.connectToNetwork_disableAirplaneMode.airplaneChangedReceiver.AIRPLANE_MODE is now OFF");
                         connectToNetwork_enableWifi(ssid, password, block);
                     }
                 }
@@ -300,20 +395,29 @@ public class OBConnectionManager
         MainActivity.mainActivity.registerReceiver(airplaneChangedReceiver, new IntentFilter(Intent.ACTION_AIRPLANE_MODE_CHANGED));
         //
         MainActivity.log("OBConnectionManager.connectToNetwork.disable airplane mode");
-        Settings.Global.putInt(MainActivity.mainActivity.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0);
-        Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
-        intent.putExtra("state", false);
-        MainActivity.mainActivity.sendBroadcast(intent);
+        try
+        {
+            Settings.Global.putInt(MainActivity.mainActivity.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0);
+            Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+            intent.putExtra("state", false);
+            MainActivity.mainActivity.sendBroadcast(intent);
+        }
+        catch (Exception e)
+        {
+            MainActivity.log("OBConnectionManager:connectToNetwork:disableAirplaneMode:Exception was caught while trying to disable the airplane mode");
+            e.printStackTrace();
+            //
+            MainActivity.log("OBConnectionManager:connectToNetwork:disableAirplaneMode:Attempting to continue with process");
+            connectToNetwork_enableWifi(ssid, password, block);
+        }
     }
 
 
-
-
-    public void connectToNetwork_enableWifi(final String ssid, final String password, final OBUtils.RunLambda block)
+    public void connectToNetwork_enableWifi (final String ssid, final String password, final OBUtils.RunLambdaWithSuccess block)
     {
         final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        wifiLock = wfMgr.createWifiLock("LockTag");
-        wifiLock.acquire();
+//        wifiLock = wfMgr.createWifiLock("LockTag");
+//        wifiLock.acquire();
         //
         if (!wfMgr.isWifiEnabled())
         {
@@ -339,13 +443,12 @@ public class OBConnectionManager
         }
         else
         {
-            connectToNetwork_connectToWifi(ssid, password, block);
+            connectToNetwork_scanForWifi(ssid, password, block);
         }
     }
 
 
-
-    public void connectToNetWork_complete(boolean success, final OBUtils.RunLambda block)
+    public void connectToNetWork_complete (boolean success, final OBUtils.RunLambdaWithSuccess block)
     {
         final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         //
@@ -356,7 +459,14 @@ public class OBConnectionManager
                 try
                 {
                     MainActivity.log("OBConnectionManager.connectToNetWork_complete. running completion block");
-                    OBUtils.runOnOtherThreadDelayed(1.0f, block);
+                    OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run () throws Exception
+                        {
+                            block.run(true);
+                        }
+                    });
                 }
                 catch (Exception e)
                 {
@@ -371,16 +481,19 @@ public class OBConnectionManager
                 connectToNetwork_disconnect();
             }
         }
-        if (wifiLock != null)
         {
-            wifiLock.release();
+            MainActivity.log("OBConnectionManager.connectToNetwork_complete.FAILED. NOT CALLING COMPLETION BLOCK");
         }
+//        if (wifiLock != null)
+//        {
+//            wifiLock.release();
+//        }
         //
         timeStampForConnectionAttempt = -1;
     }
 
 
-    public void connectToNetwork_disconnect()
+    public void connectToNetwork_disconnect ()
     {
         final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         //
@@ -405,28 +518,39 @@ public class OBConnectionManager
     }
 
 
-
-
-    public void connectToNetwork_connectToWifi(final String ssid, final String password, final OBUtils.RunLambda block)
+    public void connectToNetwork_connectToWifi (final String ssid, final String password, final OBUtils.RunLambdaWithSuccess block)
     {
+        if (ssid == null)
+            return;
+        //forgetAllNetworks();
+        //
         final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-
-        WifiInfo newInfo = wfMgr.getConnectionInfo();
-        if (newInfo.getSSID().equals(ssid) && newInfo.getSupplicantState() == SupplicantState.COMPLETED)
+        //
+        String connectionSSID = wfMgr.getConnectionInfo().getSSID();
+        if (connectionSSID.startsWith("\"") && connectionSSID.endsWith("\""))
+        {
+            connectionSSID = connectionSSID.substring(1, connectionSSID.length() - 1);
+        }
+        //
+        SupplicantState connectionState = wfMgr.getConnectionInfo().getSupplicantState();
+        //
+        MainActivity.log("OBConnectionManager.connectToNetwork_connectToWifi. [" + connectionSSID + "] - [" + connectionState.toString() + "]");
+        //
+        if (connectionSSID.equals(ssid) && connectionState == SupplicantState.COMPLETED)
         {
             MainActivity.log("OBConnectionManager.connectToNetwork_connectToWifi. already connected to the network");
             connectToNetWork_complete(true, block);
         }
         else
         {
-            MainActivity.log("OBConnectionManager.connectToNetwork_connectToWifi. Wifi not connected. Go to scan for wifi");
-            connectToNetwork_scanForWifi(ssid, password, block);
+            MainActivity.log("OBConnectionManager.connectToNetwork_connectToWifi. Wifi not connected. Go to check airplane, enable wifi and scan");
+            connectToNetwork_disableAirplaneMode(ssid, password, block);
+            //connectToNetwork_scanForWifi(ssid, password, block);
         }
     }
 
 
-
-    public void connectToNetwork_scanForWifi(final String ssid, final String password, final OBUtils.RunLambda block)
+    private void connectToNetwork_scanForWifi (final String ssid, final String password, final OBUtils.RunLambdaWithSuccess block)
     {
         final WifiManager wfMgr = (WifiManager) MainActivity.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         //
@@ -436,20 +560,20 @@ public class OBConnectionManager
             @Override
             public void onReceive (Context context, Intent intent)
             {
-                MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.scanResultsReceiver.onReceive");
+//                MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.scanResultsReceiver.onReceive");
                 //
                 final WifiConfiguration wfc = new WifiConfiguration();
                 wfc.SSID = "\"".concat(ssid).concat("\"");
-                wfc.status = WifiConfiguration.Status.DISABLED;
+                wfc.status = WifiConfiguration.Status.ENABLED;
                 wfc.priority = 40;
                 //
                 List<ScanResult> networkList = wfMgr.getScanResults();
                 //
-                if (networkList != null)
+                if (networkList != null && networkList.size() > 0)
                 {
                     for (ScanResult network : networkList)
                     {
-                        MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.available network: " + network.toString());
+                        //MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.available network: " + network.toString());
                         //
                         if (ssid.equals(network.SSID))
                         {
@@ -491,16 +615,42 @@ public class OBConnectionManager
                                 wfc.BSSID = network.BSSID;
                                 wfc.allowedAuthAlgorithms.clear();
                                 wfc.allowedGroupCiphers.clear();
+                                wfc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
+                                wfc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
                                 wfc.allowedKeyManagement.clear();
+                                wfc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
                                 wfc.allowedPairwiseCiphers.clear();
+                                wfc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
+                                wfc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
                                 wfc.allowedProtocols.clear();
+                                wfc.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
+                                wfc.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
                             }
                         }
                     }
                 }
+                else
+                {
+                    MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi. scan resulted in EMPTY results.");
+                    MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi. Attempting to connect to open Wifi");
+                    //
+                    wfc.allowedAuthAlgorithms.clear();
+                    wfc.allowedGroupCiphers.clear();
+                    wfc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
+                    wfc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
+                    wfc.allowedKeyManagement.clear();
+                    wfc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+                    wfc.allowedPairwiseCiphers.clear();
+                    wfc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
+                    wfc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
+                    wfc.allowedProtocols.clear();
+                    wfc.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
+                    wfc.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
+                }
                 //
                 final int networkId = wfMgr.addNetwork(wfc);
-                MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.networkID " + networkId);
+                //
+                MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.networkID [" + networkId + "]");
                 //
                 if (networkId != -1)
                 {
@@ -519,14 +669,6 @@ public class OBConnectionManager
                                 OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(timeoutRunnable);
                                 connectToNetwork_connectToWifi(ssid, password, block);
                             }
-//                            else if (newInfo.getSupplicantState() == SupplicantState.INACTIVE)
-//                            {
-//                                MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi. detected INACTIVE for target Wifi. Attempting to reconnect");
-//                                wfMgr.disconnect();
-//                                wfMgr.enableNetwork(networkId, true);
-//                                wfMgr.reconnect();
-////                                connectToNetwork_connectToWifi(ssid, password, block);
-//                            }
                         }
                     };
                     timeoutRunnable = new Runnable()
@@ -536,13 +678,14 @@ public class OBConnectionManager
                         {
                             MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.timeoutRunnable.timeout occured. Scanning for Wifi again.");
                             connectToNetwork_scanForWifi(ssid, password, block);
-//                            MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.timeoutRunnable.timeout occured. cancelling attempting to backup database");
-//                            connectToNetWork_complete(false, block);
                         }
                     };
                     //
                     boolean result = wfMgr.saveConfiguration();
-                    if (!result) MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.PROBLEM saving configuration");
+                    if (!result)
+                    {
+                        MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.PROBLEM saving configuration");
+                    }
                     //
                     MainActivity.mainActivity.registerReceiver(scanResultsReceiver, new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION));
                     MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.enabling network");
@@ -560,16 +703,31 @@ public class OBConnectionManager
                 }
             }
         };
-        MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.registering receiver");
+//        MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.registering receiver");
         MainActivity.mainActivity.registerReceiver(scanResultsReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
         //
+        Boolean wifiWasEnabled = wfMgr.setWifiEnabled(true);
+        if (!wifiWasEnabled)
+        {
+            MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.ERROR occured while enabling wifi");
+        }
+        //
+        Boolean wifiWasDisconnected = wfMgr.disconnect();
+        if (!wifiWasDisconnected)
+        {
+            MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.ERROR occured while disconnecting wifi");
+        }
+        //
         MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.starting scan");
-        wfMgr.disconnect();
-        wfMgr.startScan();
+        Boolean scanHasStarted = wfMgr.startScan();
+        if (!scanHasStarted)
+        {
+            MainActivity.log("OBConnectionManager.connectToNetwork_scanForWifi.ERROR occured while starting scan");
+        }
     }
 
 
-    public Lock getCompletionLock()
+    public Lock getCompletionLock ()
     {
         if (completionLock == null)
         {
@@ -577,7 +735,6 @@ public class OBConnectionManager
         }
         return completionLock;
     }
-
 
 
 //    public void connectToNetwork(final String ssid, final String password, final OBUtils.RunLambda block)
@@ -785,4 +942,48 @@ public class OBConnectionManager
 //        MainActivity.mainActivity.sendBroadcast(intent);
 //    }
 
+
+
+    private static String convertToQuotedString (String s)
+    {
+        if (s == null || s.isEmpty())
+        {
+            return null;
+        }
+        // If already quoted, return as-is
+        if (s.charAt(0) == '"' && s.charAt(s.length() - 1) == '"')
+        {
+            return s;
+        }
+        return '\"' + s + '\"';
+    }
+
+    private static String quoteNonHex (String value, int... allowedLengths)
+    {
+        return isHexOfLength(value, allowedLengths) ? value : convertToQuotedString(value);
+    }
+
+
+
+    private static boolean isHexOfLength (CharSequence value, int... allowedLengths)
+    {
+        final Pattern HEX_DIGITS = Pattern.compile("[0-9A-Fa-f]+");
+        //
+        if (value == null || !HEX_DIGITS.matcher(value).matches())
+        {
+            return false;
+        }
+        if (allowedLengths.length == 0)
+        {
+            return true;
+        }
+        for (int length : allowedLengths)
+        {
+            if (value.length() == length)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 }

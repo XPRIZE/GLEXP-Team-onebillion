@@ -105,10 +105,9 @@ public class OC_TestMenu extends OBSectionController
             @Override
             public void onClick(View v)
             {
-                OBSystemsManager.sharedManager.backup_connectToWifiAndUploadDatabase();
+                OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTimeAndData();
             }
         });
-
 
         Button uploadBackupButton = (Button)MainActivity.mainActivity.findViewById(R.id.uploadBackup);
         uploadBackupButton.setOnClickListener(new View.OnClickListener()
@@ -121,7 +120,8 @@ public class OC_TestMenu extends OBSectionController
                     @Override
                     public void run () throws Exception
                     {
-                        OBSystemsManager.sharedManager.backup_uploadDatabase();
+                        MainActivity.log("Device UUID: " + OBSystemsManager.sharedManager.device_getUUID());
+                        OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTimeAndData();
                     }
                 });
             }

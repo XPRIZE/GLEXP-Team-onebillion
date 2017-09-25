@@ -1,6 +1,7 @@
 package org.onebillion.onecourse.mainui.oc_playzone;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
@@ -14,6 +15,7 @@ import android.graphics.RectF;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.util.ArrayMap;
 import android.view.View;
 
 import org.onebillion.onecourse.R;
@@ -33,13 +35,24 @@ import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBFatController;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
+import org.onebillion.onecourse.utils.OCM_FatController;
+import org.onebillion.onecourse.utils.OC_FatController;
 
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset.ASSET_DOODLE;
+import static org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset.ASSET_TEXT;
+import static org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset.assetsNamesForNewFile;
+import static org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset.pathToAsset;
 
 /**
  * Created by alan on 02/03/2017.
@@ -51,11 +64,11 @@ public class OC_Doodle extends OC_SectionController
     {
         float[] HSV = new float[3];
         float[] HSV2 = new float[3];
-        float hInc = 6;
+        float hInc = 2;
         float x,y;
         float vectorx,vectory;
         OBRadialGradientPath gradient;
-        float slowFactor = 0.1f;
+        float slowFactor = 0.05f;
         public DoodleGradient(int col,float px,float py,float vx,float vy,OBPath template)
         {
             Path p = template.path();
@@ -114,6 +127,7 @@ public class OC_Doodle extends OC_SectionController
     List<DoodleGradient> gradients = new ArrayList();
     public PixelShaderProgram shaderProgram;
     OBShaderControl shc;
+    boolean readOnly;
 
     private Runnable messageCheckRunnable;
     private Handler messageCheckHandler = new Handler();
@@ -138,7 +152,8 @@ public class OC_Doodle extends OC_SectionController
     Bitmap gradBitmap;
     Canvas gradCanvas;
     OBImage eraserShadow;
-    Boolean gradMode = false;
+    Boolean gradMode = true;
+
 
     public void setUpGradients()
     {
@@ -181,7 +196,7 @@ public class OC_Doodle extends OC_SectionController
         attachControl(blackborder);
 
         board = blackboard;
-
+        blackboard.setLineWidth(0);
         boardMask = blackboard.copy();
         boardMask.setFillColor(Color.BLACK);
 
@@ -192,30 +207,56 @@ public class OC_Doodle extends OC_SectionController
             setUpShader();
         }
 
-        drawOn = new OBImage();
-        drawOn.setFrame(blackboard.frame());
-        drawOn.setZPosition(blackboard.zPosition() + 0.1f);
+        if (readOnly)
+        {
+            String dood = parameters.get("doodle");
+            if (dood != null)
+            {
+                String filepath = pathToAsset(dood);
+                BitmapFactory.Options opt = new BitmapFactory.Options();
+                opt.inScaled = false;
+                drawBitmap = BitmapFactory.decodeStream(OBUtils.getInputStreamForPath(filepath), null, opt);
+                drawOn = new OBImage();
+                drawOn.setFrame(blackboard.frame());
+                drawOn.setZPosition(blackboard.zPosition() + 0.1f);
+                drawOn.setContents(drawBitmap);
+            }
+            if (drawOn == null)
+            {
+                Map<String, Object> conf = MainActivity.Config();
+                drawOn = (OBImage) conf.get("oc_doodle");
+            }
+        }
+        if (drawOn == null)
+        {
+            drawOn = new OBImage();
+            drawOn.setFrame(blackboard.frame());
+            drawOn.setZPosition(blackboard.zPosition() + 0.1f);
+        }
         attachControl(drawOn);
         Color.colorToHSV(Color.RED,HSV);
 
         eraser = objectDict.get("eraser");
-        OBControl eraser2old = objectDict.get("eraser_2");
+        if (eraser != null)
+        {
+            OBControl eraser2old = objectDict.get("eraser_2");
 
-        eraser2old.show();
-        OBControl copy = eraser2old.copy();
-        attachControl(copy);
-        eraser2 = new OBGroup(Collections.singletonList(copy));
-        attachControl(eraser2);
+            eraser2old.show();
+            OBControl copy = eraser2old.copy();
+            attachControl(copy);
+            eraser2 = new OBGroup(Collections.singletonList(copy));
+            attachControl(eraser2);
 
-        eraser2old.hide();
-        eraser2.setZPosition(20);
-        eraser2.hide();
-        eraserShadow = (OBImage) objectDict.get("eraser_shadow");
-        eraserShadow.show();
-        detachControl(eraserShadow);
-        arrowButtonHidden = true;
+            eraser2old.hide();
+            eraser2.setZPosition(20);
+            eraser2.hide();
+            eraserShadow = (OBImage) objectDict.get("eraser_shadow");
+            eraserShadow.show();
+            detachControl(eraserShadow);
+            arrowButtonHidden = true;
 
-        eraser.show();
+            eraser.show();
+        }
 
         boardMask = blackboard.copy();
         boardMask.setFillColor(Color.BLACK);
@@ -234,14 +275,15 @@ public class OC_Doodle extends OC_SectionController
 
 
         preparePaintForDrawing();
-        preparePaintForErasing();
+        if (!readOnly)
+            preparePaintForErasing();
         refreshGradient();
         refreshDrawingBoard();
     }
 
     public void render (OBRenderer renderer)
     {
-        if (shaderProgram == null)
+        if (!gradMode && shaderProgram == null)
         {
             shaderProgram = new PixelShaderProgram(R.raw.threegradientsfragmentshadermask,shc.width(),shc.height(),true);
             shc.shaderProgram = shaderProgram;
@@ -254,7 +296,8 @@ public class OC_Doodle extends OC_SectionController
     {
         if (shc != null)
         {
-            shaderProgram = null;
+            //shaderProgram = null;
+            shc.stopAnimation();
             //creShc();
         }
     }
@@ -284,10 +327,15 @@ public class OC_Doodle extends OC_SectionController
     }
     public void setupCanvas()
     {
-        drawBitmap = Bitmap.createBitmap((int)board.width(), (int)board.height(), Bitmap.Config.ARGB_8888);
-        drawOn.setContents(drawBitmap);
-        canvas = new Canvas(drawBitmap);
-        clearCanvas();
+        if (readOnly && drawOn != null)
+            drawBitmap = drawOn.layer.getContents();
+        else
+        {
+            drawBitmap = Bitmap.createBitmap((int)board.width(), (int)board.height(), Bitmap.Config.ARGB_8888);
+            drawOn.setContents(drawBitmap);
+            canvas = new Canvas(drawBitmap);
+            clearCanvas();
+        }
     }
 
     public void preparePaintForDrawing()
@@ -330,17 +378,39 @@ public class OC_Doodle extends OC_SectionController
     {
         super.prepare();
         loadFingers();
-        loadEvent("mastera");
+        String p = parameters.get("readonly");
+        if (p != null)
+            readOnly = p.equals("true");
+        loadEvent(readOnly?"master_ro":"master");
         miscSetUp();
-        events = new ArrayList<>();
-        events.addAll(Arrays.asList("toys","food","animals","transport"));
+
+        List<String> themes = Arrays.asList("toys","food","animals","transport");
+        p = parameters.get("theme");
+        if (p != null)
+        {
+            int idx = themes.indexOf(p);
+            if (idx >= 0)
+                eventIndex = idx;
+        }
+
+        if (readOnly)
+        {
+            String suffix = "_ro";
+            for (String theme : themes)
+                events.add(theme + suffix);
+        }
+        else
+            events = themes;
         doVisual(currentEvent());
     }
 
     public void start()
     {
         setStatus(0);
-        scheduleTimerEvent();
+        if (gradMode)
+            scheduleTimerEvent();
+        else
+            shc.startAnimation(this);
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             public void run() throws Exception
@@ -358,14 +428,24 @@ public class OC_Doodle extends OC_SectionController
         });
     }
 
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+        if(shc != null)
+            shc.stopAnimation();
+    }
+
+
     public long switchStatus (String scene)
     {
         return setStatus(STATUS_WAITING_FOR_DRAG);
     }
 
-    public int buttonFlags ()
+    public int buttonFlags()
     {
-        return OBMainViewController.SHOW_TOP_LEFT_BUTTON;
+        int tlflag = readOnly? 0:OBMainViewController.SHOW_TOP_LEFT_BUTTON;
+        return tlflag;
     }
 
     public void setSceneXX (String scene)
@@ -379,7 +459,7 @@ public class OC_Doodle extends OC_SectionController
         blackborder.setStrokeColor(col);
         blackborder.setLineWidth(lw);
         boardMaskColour = swatch.fillColor();
-        clearCanvas();
+        //clearCanvas();
         refreshDrawingBoard();
     }
 
@@ -421,7 +501,7 @@ public class OC_Doodle extends OC_SectionController
             };
         }
         messageCheckHandler.removeCallbacks(messageCheckRunnable);
-        messageCheckHandler.postDelayed(messageCheckRunnable,100);
+        messageCheckHandler.postDelayed(messageCheckRunnable,250);
     }
 
     public void drawPoint(PointF point)
@@ -450,7 +530,7 @@ public class OC_Doodle extends OC_SectionController
             PointF p0 = points.get(0);
             PointF pt0 = this.convertPointToControl(p0, board);
             path.moveTo(pt0.x,pt0.y);
-           // MainActivity.log(String.format("drawPath moveto %g %g %g %g",p0.x, p0.y,pt0.x,pt0.y));
+            // MainActivity.log(String.format("drawPath moveto %g %g %g %g",p0.x, p0.y,pt0.x,pt0.y));
             for (int i = 1;i < points.size();i++)
             {
                 PointF p = points.get(i);
@@ -537,8 +617,84 @@ public class OC_Doodle extends OC_SectionController
         }
     }
 
+    Bitmap thumbnail(String assetname)
+    {
+        int[] wh = OC_PlayZoneAsset.thumbnailSize();
+        OC_Doodle dood = new OC_Doodle();
+        dood.params = "doodle/readonly=true/theme="+currentEvent()+"/doodle="+assetname;
+        dood.prepare();
+        Bitmap bm = dood.thumbnail(wh[0],wh[1],true);
+
+        //frig because of masking problems.
+
+        Bitmap b2 = Bitmap.createBitmap(wh[0],wh[1], Bitmap.Config.ARGB_8888);
+        b2.eraseColor(Color.argb((int)(topColour[3]*255),(int)(topColour[0]*255),(int)(topColour[1]*255),(int)(topColour[2]*255)));
+        Canvas canvas = new Canvas(b2);
+        canvas.drawBitmap(bm,0,0,null);
+        return b2;
+    }
+    void saveContentsToDisk()
+    {
+        Bitmap cont = drawOn.layer.getContents();
+        List<String> names = assetsNamesForNewFile(ASSET_DOODLE);
+        String name = names.get(1);
+        String path = pathToAsset(name);
+        String thumbname = names.get(0);
+        String thumbpath = pathToAsset(thumbname);
+
+        try
+        {
+            FileOutputStream out = new FileOutputStream(path);
+            cont.compress(Bitmap.CompressFormat.PNG, 90, out);
+            out.close();
+            out = new FileOutputStream(thumbpath);
+            thumbnail(name).compress(Bitmap.CompressFormat.PNG, 90, out);
+            out.close();
+            OBFatController fc = MainActivity.mainActivity.fatController;
+            if (fc instanceof OCM_FatController)
+            {
+                OCM_FatController ocf = (OCM_FatController)fc;
+                Map<String,String> map = new ArrayMap<>();
+                map.put("theme", currentEvent());
+                map.put("doodle", name);
+                ocf.savePlayZoneAssetForCurrentUserType(OC_PlayZoneAsset.ASSET_DOODLE,thumbname,map);
+            }
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public void saveDoodle()
+    {
+        Map<String,String> params = new HashMap<>();
+        params.put("theme",currentEvent());
+        Bitmap bm = drawn(null,true);
+        Map<String,Object> conf = MainActivity.Config();
+        conf.put("oc_doodle",drawOn);
+        saveContentsToDisk();
+
+        if(!_aborting)
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                                     {
+                                         @Override
+                                         public void run() throws Exception
+                                         {
+                                             exitEvent();
+                                         }
+                                     }
+            );
+
+
+    }
     public void touchDownAtPoint(PointF pt,View v)
     {
+        if (readOnly)
+        {
+            exitEvent();
+            return;
+        }
         if(status() == STATUS_WAITING_FOR_DRAG)
         {
             if(finger(0,1,Collections.singletonList(objectDict.get("doodleredbutton")),pt) != null)
@@ -580,6 +736,15 @@ public class OC_Doodle extends OC_SectionController
                 eraserMode = true;
                 startPoint = pt;
                 setStatus(STATUS_DRAGGING);
+            }
+            else if(finger(-1,-1,Arrays.asList(objectDict.get("button_save")),pt)  != null)
+            {
+                final OBGroup saveButton = (OBGroup) objectDict.get("button_save");
+                setStatus(STATUS_DOING_DEMO);
+
+                saveButton.highlight();
+                saveDoodle();
+
             }
         }
 
@@ -643,3 +808,4 @@ public class OC_Doodle extends OC_SectionController
     }
 
 }
+

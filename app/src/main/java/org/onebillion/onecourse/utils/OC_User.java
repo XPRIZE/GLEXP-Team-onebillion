@@ -5,8 +5,6 @@ import android.database.Cursor;
 import android.util.ArrayMap;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 
@@ -14,7 +12,7 @@ import java.util.Map;
  * Created by michal on 18/01/2017.
  */
 
-public class OC_User extends MlObject
+public class OC_User extends DBObject
 {
     public int masterlistid, userid;
     public String name;

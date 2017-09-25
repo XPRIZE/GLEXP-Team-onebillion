@@ -61,7 +61,7 @@ public class OC_Numberlines_S3 extends OC_SectionController
         frogJump.show();
         OBGroup groupFrog = new OBGroup(Collections.singletonList((OBControl)frogJump));
         attachControl(groupFrog);
-        groupFrog.setZPosition ( 2);
+        groupFrog.setZPosition(2);
         groupFrog.hide();
         groupFrog.objectDict.put("frog",frogJump);
         objectDict.put("frog_jump",groupFrog);

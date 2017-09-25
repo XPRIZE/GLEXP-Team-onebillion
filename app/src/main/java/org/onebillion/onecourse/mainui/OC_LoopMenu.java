@@ -186,12 +186,14 @@ public class OC_LoopMenu extends OC_Menu implements OC_FatReceiver
     public void loadBigIconForUnit(MlUnit unit)
     {
         lockScreen();
-        String imgName = String.format("%s_big",unit.icon);
 
-        if(OBImageManager.sharedImageManager().getImgPath(imgName) != null)
-            bigIcon = loadImageWithName(imgName,new PointF(0,0), new RectF(bounds()));
+        String imgName = String.format("%s", unit.icon);
+        String mlname = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_MASTER_LIST);
+        //
+        if (OBImageManager.sharedImageManager().getImgPath(imgName) != null)
+            bigIcon = loadImageWithName(imgName, new PointF(0, 0), new RectF(bounds()));
         else
-            bigIcon = loadImageWithName("icon_default_big",new PointF(0,0), new RectF(bounds()));
+            bigIcon = loadImageWithName("icon_default_big", new PointF(0, 0), new RectF(bounds()));
 
         bigIcon.setScale(applyGraphicScale(1));
         bigIcon.setRasterScale(applyGraphicScale(1));

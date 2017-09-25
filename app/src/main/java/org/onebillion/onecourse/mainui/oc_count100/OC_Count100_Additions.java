@@ -30,8 +30,8 @@ public class OC_Count100_Additions
     {
 
         OBMainViewController mainViewController = OBMainViewController.MainViewController();
-        while(rect.frame().intersect(mainViewController.topRightButton.frame())||
-                rect.frame().intersect(mainViewController.topLeftButton.frame()))
+        while(RectF.intersects(rect.frame(),mainViewController.topRightButton.frame())||
+                    RectF.intersects(rect.frame(),mainViewController.topLeftButton.frame()))
             rect.setScale(rect.scale() * 0.99f);
 
         List<OBControl> boxes = new ArrayList<OBControl>();
@@ -83,6 +83,7 @@ public class OC_Count100_Additions
             for (int j = 0;j < 10;j++)
             {
                 RectF boxf = new RectF(0,0,width,height);
+
                 OBControl box = new OBControl();
                 box.setFrame(boxf);
                 box.setLeft(curX);
@@ -93,19 +94,21 @@ public class OC_Count100_Additions
                 box.setBackgroundColor(Color.WHITE);
                 box.setZPosition(1);
                 boxes.add(box);
+
                 int n = i * 10 + j + 1;
+
                 OBLabel txt = new OBLabel(Integer.toString(n),font,fontSize);
-
                 txt.setColour(textColour);
-
                 txt.setPosition(box.position());
-
-                numbers.add(txt);
-                curX = box.right() - (float)(lineSize/2.0) ;
-                box.setMasksToBounds(true);
-                box.setProperty("num_value", n);
                 txt.setProperty("num_value", n);
                 txt.setZPosition(2);
+                numbers.add(txt);
+
+                curX = box.right() - (float)(lineSize/2.0);
+
+                box.setMasksToBounds(true);
+                box.setProperty("num_value", n);
+
                 controller.objectDict.put(String.format("box_%d",n), box);
                 controller.objectDict.put(String.format("num_%d",n), txt);
 
@@ -126,7 +129,14 @@ public class OC_Count100_Additions
             if(single)
             {
                 OBLabel number = (OBLabel)numbers.get(i);
-                number.setRight(boxes.get(i).right() - 0.17f*boxes.get(i).width());
+                if(number.width() > boxes.get(i).width()*0.8)
+                {
+                    number.setPosition(boxes.get(i).position().x, number.position().y);
+                }
+                else
+                {
+                    number.setRight(boxes.get(i).right() - 0.17f * boxes.get(i).width());
+                }
 
             }
             else

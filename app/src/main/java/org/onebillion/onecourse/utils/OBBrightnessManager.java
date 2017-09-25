@@ -60,9 +60,7 @@ public class OBBrightnessManager
 
     public float maxBrightness ()
     {
-        String maxBrightnessString = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MAX_BRIGHTNESS);
-        float value = 1.0f;
-        if (maxBrightnessString != null) value = Float.parseFloat(maxBrightnessString);
+        float value = OBSystemsManager.sharedManager.getMaxScreenBrightnessForCurrentLevel();
         return value;
     }
 
@@ -79,7 +77,6 @@ public class OBBrightnessManager
 
     public void runBrightnessCheck ()
     {
-//        MainActivity.log("OBBrightnessManager.runBrightnessCheck");
         if (suspended) return;
         //
         if (!usesBrightnessAdjustment())
@@ -339,12 +336,14 @@ public class OBBrightnessManager
     }
 
 
+    /**
+     *
+     * @return milliseconds of inactivity to turn the screen off
+     */
     public int getScreenMaxTimeout ()
     {
-        String maxTimeString = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SCREEN_MAX_TIMEOUT);
-        int maxTime = 60000; // 1 minute
-        if (maxTimeString != null) maxTime = Integer.parseInt(maxTimeString) * 1000;
-        return maxTime;
+        int minutesToScreenLock = OBSystemsManager.sharedManager.getMaxScreenTimeoutForCurrentLevel();
+        return minutesToScreenLock * 1000 * 60;
     }
 
 

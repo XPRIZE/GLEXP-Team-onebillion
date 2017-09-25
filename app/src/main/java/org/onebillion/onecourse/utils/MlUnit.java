@@ -4,13 +4,14 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.util.ArrayMap;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Created by michal on 09/08/16.
  */
-public class MlUnit extends MlObject
+public class MlUnit extends DBObject
 {
     public String key, icon, params, config, target, lang;
     public float passThreshold;
@@ -132,6 +133,22 @@ public class MlUnit extends MlObject
         }
         cursor.close();
         return unit;
+    }
+
+
+    public static int unitCountForMasterlist(DBSQL db, int masterlistid)
+    {
+        int result = 0;
+        Map<String,String> whereMap = new ArrayMap<>();
+        whereMap.put("masterlistid",String.valueOf(masterlistid));
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("MAX(unitindex) as unitindex"),whereMap);
+        if(cursor.moveToFirst())
+        {
+            result = cursor.getInt(cursor.getColumnIndex("unitindex"));
+        }
+        cursor.close();
+        //
+        return result;
     }
 
 }

@@ -24,6 +24,7 @@ import android.os.Build;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -48,6 +49,7 @@ import org.onebillion.onecourse.utils.OBAudioManager;
 import org.onebillion.onecourse.utils.OBExpansionManager;
 import org.onebillion.onecourse.utils.OBFatController;
 import org.onebillion.onecourse.utils.OBImageManager;
+import org.onebillion.onecourse.utils.OBPreferenceManager;
 import org.onebillion.onecourse.utils.OBSystemsManager;
 import org.onebillion.onecourse.utils.OBUser;
 import org.onebillion.onecourse.utils.OBXMLManager;
@@ -75,9 +77,12 @@ public class MainActivity extends Activity
                     REQUEST_FIRST_SETUP_ADMINISTRATOR_PRIVILEGES = 7,
                     REQUEST_FIRST_SETUP_PROVISION_MANAGED_PROFILE = 8,
                     REQUEST_FIRST_SETUP_WIFI_BT_SCANNING = 9;
+    //
     public static String CONFIG_IMAGE_SUFFIX = "image_suffix",
             CONFIG_AUDIO_SUFFIX = "audio_suffix",
+            CONFIG_VIDEO_SUFFIX = "video_suffix",
             CONFIG_AUDIO_SEARCH_PATH = "audioSearchPath",
+            CONFIG_VIDEO_SEARCH_PATH = "videoSearchPath",
             CONFIG_IMAGE_SEARCH_PATH = "imageSearchPath",
             CONFIG_CONFIG_SEARCH_PATH = "configSearchPath",
             CONFIG_LEFT_BUTTON_POS = "lbuttonpos",
@@ -103,6 +108,8 @@ public class MainActivity extends Activity
             CONFIG_OBB_PASSWORD = "obbPassword",
             CONFIG_FAT_CONTROLLER = "fatcontrollerclass",
             CONFIG_MASTER_LIST = "masterlist",
+            CONFIG_MASTER_LIST_PLAYZONE = "masterlist_playzone",
+            CONFIG_MASTER_LIST_LIBRARY = "masterlist_library",
             CONFIG_DEBUG = "debug",
             CONFIG_DEFAULT_AUDIO_VOLUME = "defaultAudioVolume",
             CONFIG_MIN_AUDIO_VOLUME = "minimumAudioVolume",
@@ -110,7 +117,8 @@ public class MainActivity extends Activity
             CONFIG_WIFI_SSID = "wifiSSID",
             CONFIG_WIFI_PASSWORD = "wifiPassword",
             CONFIG_USES_BRIGHTNESS_ADJUSTMENT = "usesBrightnessAdjustment",
-            CONFIG_MAX_BRIGHTNESS = "maxBrightness",
+            CONFIG_DEFAULT_MAX_BRIGHTNESS = "defaultMaxBrightness",
+            CONFIG_DEFAULT_MAX_SCREEN_TIMEOUT = "defaultScreenMaxTimeout",
             CONFIG_BRIGHTNESS_CHECK_INTERVAL = "brightnessCheckInterval",
             CONFIG_KEEP_WIFI_ON = "keepWifiOn",
             CONFIG_RESTART_AFTER_CRASH = "restartAfterCrash",
@@ -121,6 +129,9 @@ public class MainActivity extends Activity
             CONFIG_USE_ADMINISTRATOR_SERVICES = "enableAdministratorServices",
             CONFIG_REQUEST_DEVICE_OWNER = "requestDeviceOwner",
             CONFIG_MENU_CLASS = "menuclass",
+            CONFIG_USES_SETUP_MENU = "usesSetupMenu",
+            CONFIG_SETUP_CLASS = "setupClass",
+            CONFIG_SETUP_FOLDER = "setupFolder",
             CONFIG_SESSION_TIMEOUT = "sessionTimeout",
             CONFIG_UNIT_TIMEOUT_COUNT = "unitAttemptsCount",
             CONFIG_SHOW_TEST_MENU = "showTestMenu",
@@ -131,15 +142,35 @@ public class MainActivity extends Activity
             CONFIG_BACKUP_SEND_WHEN_CONNECTED = "backupSendWhenConnected",
             CONFIG_BACKUP_WIFI = "backupWifi",
             CONFIG_BACKUP_URL = "backupURL",
+            CONFIG_BACKUP_WORKING_DIRECTORY = "backupWorkingDirectory",
             CONFIG_BACKUP_INTERVAL = "backupInterval",
             CONFIG_DISALLOW_HOURS = "disallowHours",
             CONFIG_BUNDLED_OBB_FILENAME = "bundledOBBFilename",
+            CONFIG_EXTERNAL_ASSETS = "externalAssets",
             CONFIG_CHECK_FOR_DISABLED_LOCATION_SERVICES = "checkForDisabledLocationServices",
             CONFIG_CHECK_FOR_DISABLED_SCANNING = "checkForDisabledScanning",
-            CONFIG_BUILD_NUMBER = "buildNumber";
+            CONFIG_BUILD_NUMBER = "buildNumber",
+            CONFIG_USES_BATTERY_MANAGEMENT = "usesBatteryManagement",
+            CONFIG_BATTERY_LEVELS = "batteryLevels",
+            CONFIG_BATTERY_LEVEL_NORMAL = "normal",
+            CONFIG_BATTERY_LEVEL_LOW = "low",
+            CONFIG_BATTERY_LEVEL_CRITICAL = "critical",
+            CONFIG_MINIMUM_BATTERY_VALUE = "minBatteryValue",
+            CONFIG_MAXIMUM_BATTERY_VALUE = "maxBatteryValue",
+            CONFIG_MAX_BRIGHTNESS = "maxBrightness",
+            CONFIG_MAX_SCREEN_TIMEOUT = "screenMaxTimeout",
+            CONFIG_CHARGE_BATTERY_REMINDER = "chargeBatteryReminder",
+            CONFIG_CHARGE_BATTERY_REMINDER_INTERVAL = "chargeBatteryReminderInterval",
+            CONFIG_SHOW_BATTERY_LOCK_SCREEN = "showBatteryLockScreen",
+            CONFIG_PLAYZONE_ACTIVE_HOUR = "playzoneActiveHour",
+            CONFIG_SHOW_UNIT_ID = "showUnitID",
+            CONFIG_TIME_SERVER_WIFI_SSID = "timeServerWifiSSID",
+            CONFIG_TIME_SERVER_WIFI_PASSWORD = "timeServerWifiPassword",
+            CONFIG_TIME_SERVER_URL = "timeServerURL"
+    ;
     public static String TAG = "onecourse";
     //
-    public static OBSystemsManager systemsManager = new OBSystemsManager();
+    public static OBSystemsManager systemsManager;
     public static MainActivity mainActivity;
     public static OBMainViewController mainViewController;
     public static Typeface standardTypeFace;
@@ -163,7 +194,10 @@ public class MainActivity extends Activity
             Manifest.permission.ACCESS_WIFI_STATE,
             Manifest.permission.CHANGE_WIFI_STATE,
             Manifest.permission.RECORD_AUDIO,
-            Manifest.permission.CAMERA
+            Manifest.permission.CAMERA,
+            Manifest.permission.INTERNET,
+            Manifest.permission.ACCESS_NETWORK_STATE,
+            Manifest.permission.ACCESS_WIFI_STATE
     };
     public Map<String, Object> config;
     public List<OBUser> users;
@@ -188,6 +222,7 @@ public class MainActivity extends Activity
         else
             arm.anchorPoint = new PointF(0.64f, 0);
 
+
         int skincol = OBUtils.SkinColour(0);
         arm.substituteFillForAllMembers("skin.*", skincol);
         arm.setRasterScale((Float) Config().get(CONFIG_GRAPHIC_SCALE));
@@ -209,7 +244,7 @@ public class MainActivity extends Activity
         //
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
-
+        systemsManager = new OBSystemsManager(this);
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler()
         {
             @Override
@@ -234,6 +269,7 @@ public class MainActivity extends Activity
         //
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         //
         mainActivity = this;
         doGLStuff();
@@ -254,6 +290,7 @@ public class MainActivity extends Activity
             //glSurfaceView.controller = mainViewController;
 
             ((ThreadPoolExecutor) AsyncTask.THREAD_POOL_EXECUTOR).setCorePoolSize(20);
+            log("onCreate ended");
         }
         catch (Exception e)
         {
@@ -265,7 +302,8 @@ public class MainActivity extends Activity
     {
         if (requestCode == REQUEST_FIRST_SETUP_DATE_TIME)
         {
-            addToPreferences("dateTimeSetupComplete", "true");
+            OBPreferenceManager.setPreference("dateTimeSetupComplete", true);
+//            addToPreferences("dateTimeSetupComplete", "true");
             checkForFirstSetupAndRun();
         }
         else if (requestCode == REQUEST_FIRST_SETUP_PERMISSIONS)
@@ -407,7 +445,8 @@ public class MainActivity extends Activity
                 if (OBSystemsManager.sharedManager.shouldShowDateTimeSettings())
                 {
                     MainActivity.log("MainActivity.checkForFirstSetupAndRun.will show date and time settings");
-                    boolean dateTimeSetupComplete = getPreferences("dateTimeSetupComplete") != null;
+                    boolean dateTimeSetupComplete = OBPreferenceManager.getBooleanPreference("dateTimeSetupComplete");
+//                    boolean dateTimeSetupComplete = getPreferences("dateTimeSetupComplete") != null;
                     if (!dateTimeSetupComplete)
                     {
                         OBSystemsManager.sharedManager.setDateAndTimeDialog(new OBUtils.RunLambda()
@@ -415,7 +454,8 @@ public class MainActivity extends Activity
                             @Override
                             public void run () throws Exception
                             {
-                                addToPreferences("dateTimeSetupComplete", "true");
+                                OBPreferenceManager.setPreference("dateTimeSetupComplete", true);
+//                                addToPreferences("dateTimeSetupComplete", "true");
                                 checkForFirstSetupAndRun();
                             }
                         });
@@ -425,7 +465,8 @@ public class MainActivity extends Activity
                 else
                 {
                     MainActivity.log("MainActivity.checkForFirstSetupAndRun. will NOT show date and time settings");
-                    addToPreferences("dateTimeSetupComplete", "true");
+                    OBPreferenceManager.setPreference("dateTimeSetupComplete", true);
+//                    addToPreferences("dateTimeSetupComplete", "true");
                 }
                 //
                 boolean administratorServices = OBSystemsManager.sharedManager.usesAdministratorServices();
@@ -470,7 +511,8 @@ public class MainActivity extends Activity
                 //
                 log("First Setup complete. Loading Main View Controller");
                 //
-                addToPreferences("firstSetupComplete", "true");
+                OBPreferenceManager.setPreference("firstSetupComplete", true);
+//                addToPreferences("firstSetupComplete", "true");
                 //
                 checkForUpdatesAndLoadMainViewController();
 
@@ -482,11 +524,13 @@ public class MainActivity extends Activity
     public void checkForUpdatesAndLoadMainViewController()
     {
         MainActivity.log("MainActivity.checkForUpdatesAndLoadMainViewController");
-        OBSystemsManager.sharedManager.checkForConnectivity(new OBUtils.RunLambda()
+        OBSystemsManager.sharedManager.checkForConnectivity(new OBUtils.RunLambdaWithSuccess()
         {
             @Override
-            public void run () throws Exception
+            public void run (boolean success) throws Exception
             {
+                if (!success) return;
+                //
                 MainActivity.log("MainActivity.checkForUpdatesAndLoadMainViewController.checking for updates in the ExpansionManager");
                 OBExpansionManager.sharedManager.checkForUpdates(new OBUtils.RunLambda()
                 {
@@ -544,7 +588,7 @@ public class MainActivity extends Activity
     void doGLStuff ()
     {
         glSurfaceView = new OBGLView(this);
-
+        glSurfaceView.setPreserveEGLContextOnPause(true);
         // Check if the system supports OpenGL ES 2.0.
         final ActivityManager activityManager =
                 (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
@@ -700,6 +744,21 @@ public class MainActivity extends Activity
         return imageSearchPath;
     }
 
+    public List<String> videoSearchPath (String appDir, String genDir)
+    {
+        List<String> videoSearchPath = new ArrayList<>();
+        //
+        if(appDir != null)
+        {
+            videoSearchPath.add(appDir + "/img/movies");
+        }
+        //
+        videoSearchPath.add(genDir+"/img/movies");
+        //
+        return videoSearchPath;
+    }
+
+
     public List<String> configSearchPath (String appDir, String genDir)
     {
         List configSearchPath = new ArrayList(4);
@@ -754,6 +813,7 @@ public class MainActivity extends Activity
             config.put(CONFIG_LANGUAGE, config.get(CONFIG_DEFAULT_LANGUAGE));
         config.put(CONFIG_AUDIO_SEARCH_PATH, audioSearchPath(appDir, genDir));
         config.put(CONFIG_IMAGE_SEARCH_PATH, imageSearchPath(appDir, genDir));
+        config.put(CONFIG_VIDEO_SEARCH_PATH, videoSearchPath(appDir, genDir));
         config.put(CONFIG_VECTOR_SEARCH_PATH, vectorSearchPath(appDir, genDir));
         config.put(CONFIG_CONFIG_SEARCH_PATH, configSearchPath(appDir, genDir));
         //
@@ -791,8 +851,13 @@ public class MainActivity extends Activity
         config = (Map<String, Object>) xmlManager.parsePlist(pis);
         getSfxVolumes();
         //
-        float h = getResources().getDisplayMetrics().heightPixels;
-        float w = getResources().getDisplayMetrics().widthPixels;
+
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
+        int w = metrics.widthPixels;
+        int h = metrics.heightPixels;
+        //float h = getResources().getDisplayMetrics().heightPixels;
+      //  float w = getResources().getDisplayMetrics().widthPixels;
         updateGraphicScale(w, h);
         //
 //        config.put(CONFIG_DEFAULT_LANGUAGE, configStringForKey(CONFIG_LANGUAGE)); // original
@@ -843,6 +908,7 @@ public class MainActivity extends Activity
 
     public void updateGraphicScale(float newWidth, float newHeight)
     {
+        log(String.format("updateGraphicScale called: %f %f",newWidth,newHeight));
         if (newHeight > newWidth)
         {
             float temp = newWidth;
@@ -890,6 +956,7 @@ public class MainActivity extends Activity
     @Override
     protected void onResume ()
     {
+        OBSystemsManager.sharedManager.onResume();
         super.onResume();
         //
         if (mainViewController != null)
@@ -909,7 +976,7 @@ public class MainActivity extends Activity
         {
 
         }
-        OBSystemsManager.sharedManager.onResume();
+
     }
 
 
@@ -924,6 +991,12 @@ public class MainActivity extends Activity
     {
         if (mainViewController != null)
             mainViewController.onAlarmReceived(intent);
+    }
+
+    public void onBatteryStatusReceived(float level, boolean charging)
+    {
+        if (mainViewController != null)
+            mainViewController.onBatteryStatusReceived(level,charging);
     }
 
 
@@ -1021,6 +1094,11 @@ public class MainActivity extends Activity
         Log.v(TAG, message);
     }
 
+    public static void log(String format, Object... args)
+    {
+        log(String.format(format, args));
+    }
+
 
     public boolean onKeyDown (int keyCode, KeyEvent event)
     {
@@ -1049,6 +1127,24 @@ public class MainActivity extends Activity
     public static boolean isSDKCompatible()
     {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && targetSdkVersion >= Build.VERSION_CODES.M;
+    }
+
+    public void restartApplication()
+    {
+        OBSystemsManager.sharedManager.unpinApplication();
+        //
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                Intent i = getBaseContext().getPackageManager().getLaunchIntentForPackage(getBaseContext().getPackageName());
+                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                finish();
+                startActivity(i);
+            }
+        });
+
     }
 
 }

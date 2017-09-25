@@ -63,7 +63,7 @@ public class OC_Count100_S6 extends OC_SectionController
         correctNums = new ArrayList<>();
         setSceneXX(currentEvent());
         showRow(Integer.valueOf(rows.get(0)));
-        OBLabel label = (OBLabel)filterControls("num_.*").get(0);
+        OBLabel label = (OBLabel)this.objectDict.get("num_6");
         label.hide();
         numFont = label.typeface();
         numFontSize = label.fontSize();

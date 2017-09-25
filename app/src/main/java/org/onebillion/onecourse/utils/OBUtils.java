@@ -3,18 +3,24 @@ package org.onebillion.onecourse.utils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,6 +42,9 @@ import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.controls.OBTextLayer;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
+
+import static org.onebillion.onecourse.mainui.MainActivity.CONFIG_GRAPHIC_SCALE;
+import static org.onebillion.onecourse.mainui.MainActivity.Config;
 
 public class OBUtils
 {
@@ -191,6 +200,7 @@ public class OBUtils
     }
 
 
+
     public static InputStream getInputStreamForPath (String path)
     {
         if (path == null) return null;
@@ -202,27 +212,34 @@ public class OBUtils
         }
         catch (Exception e)
         {
-//            MainActivity.log("OBUtils.getInputStreamPath.unable to find bundled asset: " + path);
-//            e.printStackTrace();
+            // Do nothing
         }
         //
         for (File mounted : OBExpansionManager.sharedManager.getExternalExpansionFolders())
         {
             String extendedPath = mounted.getAbsolutePath() + "/" + path;
+            //
+            //MainActivity.log("OBUtils:getInputStreamForPath:looking for [" + extendedPath + "]");
+            //
             try
             {
                 File file = new File(extendedPath);
                 Boolean fileExists = file.exists();
                 if (fileExists)
                 {
+                    //MainActivity.log("OBUtils:getInputStreamPath:found external/expansion asset: " + extendedPath);
                     InputStream is = new FileInputStream(file);
                     return is;
+                }
+                else
+                {
+                    //MainActivity.log("OBUtils:getInputStreamPath:unable to find external/expansion asset: " + extendedPath);
                 }
             }
             catch (Exception e)
             {
-//                Log.v("getInputStream", "unable to find downloaded asset: " + extendedPath);
-//                e.printStackTrace();
+                //MainActivity.log("OBUtils:getInputStreamPath:unable to find external/expansion asset: " + extendedPath);
+                //e.printStackTrace();
             }
         }
         //
@@ -238,31 +255,11 @@ public class OBUtils
         }
         catch (Exception e)
         {
-            // do nothing
-        }
-        try
-        {
-            File file = new File (path);
-            Boolean fileExists = file.exists();
-            if (fileExists)
-            {
-                try
-                {
-                    InputStream is = new FileInputStream(file);
-                    return is;
-                }
-                catch (Exception ef)
-                {
-                    // do nothing
-                }
-            }
-        }
-        catch (Exception eg)
-        {
-//                Log.v("getInputStream", "unable to find downloaded asset: " + extendedPath);
-//                e.printStackTrace();
+            //MainActivity.log("OBUtils:getInputStreamPath:unable to find literal path asset: " + path);
+            //e.printStackTrace();
         }
         //
+        //MainActivity.log("OBUtils:getInputStreamForPath:unable to find file [" + path + "]");
         return null;
     }
 
@@ -461,7 +458,7 @@ public class OBUtils
     public static OBImage buttonFromImageName (String imageName)
     {
         OBImage im = OBImageManager.sharedImageManager().imageForName(imageName);
-        float imageScale = MainActivity.mainActivity.configFloatForKey(MainActivity.CONFIG_GRAPHIC_SCALE);
+        float imageScale = MainActivity.mainActivity.configFloatForKey(CONFIG_GRAPHIC_SCALE);
         im.setScale(imageScale);
         return im;
     }
@@ -469,7 +466,7 @@ public class OBUtils
     public static OBControl buttonFromSVGName (String imageName)
     {
         OBGroup im = OBImageManager.sharedImageManager().vectorForName(imageName);
-        float imageScale = MainActivity.mainActivity.configFloatForKey(MainActivity.CONFIG_GRAPHIC_SCALE);
+        float imageScale = MainActivity.mainActivity.configFloatForKey(CONFIG_GRAPHIC_SCALE);
         im.setScale(imageScale);
         im.setRasterScale(imageScale);
         im.textureKey = imageName;
@@ -478,7 +475,7 @@ public class OBUtils
 
     public static int PresenterColourIndex ()
     {
-        return (Integer) MainActivity.Config().get(MainActivity.CONFIG_SKINCOLOUR);
+        return (Integer) Config().get(MainActivity.CONFIG_SKINCOLOUR);
     }
 
     public static int SkinColour (int offset)
@@ -598,6 +595,19 @@ public class OBUtils
 
         //        MainActivity.standardTypeFace = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/Heinemann Collection - HeinemannSpecial-Roman.otf");
         return MainActivity.standardTypeFace;
+    }
+
+    public static OBFont StandardReadingFontOfSize(float size)
+    {
+        float graphicScale = (Float) (Config().get(MainActivity.mainActivity.CONFIG_GRAPHIC_SCALE));
+        OBFont font = new OBFont(standardTypeFace(),size * graphicScale);
+        return font;
+    }
+
+    public static OBFont UnscaledReadingFontOfSize(float size)
+    {
+        OBFont font = new OBFont(standardTypeFace(),size);
+        return font;
     }
 
     public static int setColourOpacity (int colour, float opacity)
@@ -823,6 +833,31 @@ public class OBUtils
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
     }
 
+    public static void runOnRendererThread(final RunLambda runLambda)
+    {
+
+        try
+        {
+            FutureTask<Integer> futureTask = new FutureTask<Integer>(new Callable<Integer>()
+            {
+                @Override
+                public Integer call() throws Exception
+                {
+                    runLambda.run();
+                    return 0;
+                }
+            });
+            MainActivity.mainActivity.glSurfaceView.queueEvent(futureTask);
+         //   Integer result = futureTask.get();
+        }
+        catch (Exception exception)
+        {
+            Logger logger = Logger.getAnonymousLogger();
+            logger.log(Level.SEVERE, "Error in runOnRendererThread", exception);
+        }
+
+    }
+
     public static Path SimplePath (PointF from, PointF to, float offset)
     {
         Path path = new Path();
@@ -875,7 +910,7 @@ public class OBUtils
 
     static String getConfigFile (String fileName)
     {
-        Map<String, Object> config = MainActivity.mainActivity.Config();
+        Map<String, Object> config = Config();
         for (String path : (List<String>) config.get(MainActivity.CONFIG_CONFIG_SEARCH_PATH))
         {
             String fullPath = stringByAppendingPathComponent(path, fileName);
@@ -889,7 +924,7 @@ public class OBUtils
 
     static String getLocalFile (String fileName)
     {
-        Map<String, Object> config = MainActivity.mainActivity.Config();
+        Map<String, Object> config = Config();
         for (String path : (List<String>) config.get(MainActivity.CONFIG_AUDIO_SEARCH_PATH))
         {
             String fullPath = stringByAppendingPathComponent(path, fileName);
@@ -1377,13 +1412,10 @@ public class OBUtils
 
     private static RectF RectIntersection(RectF r1, RectF r2)
     {
-        if (r1.intersect(r2))
+        RectF r1copy = new RectF(r1);
+        if (r1copy.intersect(r2))
         {
-            float xMin = Math.max(r1.left, r2.left);
-            float xMax = Math.min(r1.right, r2.right);
-            float yMin = Math.max(r1.top, r2.top);
-            float yMax = Math.min(r1.bottom, r2.bottom);
-            return new RectF(xMin, yMin, xMax, yMax);
+            return r1copy;
         }
         else
         {
@@ -1402,6 +1434,12 @@ public class OBUtils
     }
 
 
+    public interface RunLambdaWithSuccess
+    {
+        public void run (boolean success) throws Exception;
+    }
+
+
     public interface RunLambda
     {
         public void run () throws Exception;
@@ -1414,5 +1452,68 @@ public class OBUtils
             indexes.add(i);
 
         return randomlySortedArray(indexes);
+    }
+
+    public static Typeface TypefaceForFile(String file)
+    {
+       return Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), String.format("fonts/%s",file));
+    }
+
+    public static <T> T coalesce(T t1,T t2)
+    {
+        if (t1 == null)
+            return t2;
+        return t1;
+    }
+
+    public static <T> T RandomObjectFromArray(List<T> arr)
+    {
+        int i = OB_Maths.randomInt(0,(int)arr.size()  - 1);
+        return arr.get(i);
+    }
+
+    public static void copyInputStreamToFile(InputStream in, File file)
+    {
+        OutputStream out = null;
+        try
+        {
+            out = new FileOutputStream(file);
+            byte[] buf = new byte[1024];
+            int len;
+            while((len=in.read(buf))>0)
+            {
+                out.write(buf,0,len);
+            }
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
+            try
+            {
+                if(out != null)
+                {
+                    out.close();
+                }
+                in.close();
+            }
+            catch(IOException e)
+            {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static long timestampForDateOnly(long timestamp)
+    {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(timestamp);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTimeInMillis();
     }
 }

@@ -24,6 +24,7 @@ import org.onebillion.onecourse.utils.OB_Maths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -511,7 +512,8 @@ public class OC_Hw extends OC_SectionController
             for(int j=0; j<paths.size(); j++)
             {
                 OBPath p = paths.get(j);
-                Map<String, Object> dict = p.attributes();
+
+                Map<String, Object> dict = new HashMap<String,Object>(p.attributes());
                 dict.put("id", String.format("Path%d_%d",i+1,j+1));
                 p.setProperty("attrs",dict);
                 p.setProperty("name",p.attributes().get("id"));
@@ -523,8 +525,8 @@ public class OC_Hw extends OC_SectionController
         for(int i=0; i<xboxes.size(); i++)
         {
             OBControl x = xboxes.get(i);
-            Map<String, Object> dict = x.attributes();
-            dict.put(String.format("xbox%d",i+1), "id");
+            Map<String, Object> dict = new HashMap<String,Object>(x.attributes());
+            dict.put("id",String.format("xbox%d",i+1));
             x.setProperty("attrs",dict);
             x.setProperty("name",x.attributes().get("id"));
             letterGrp.objectDict.put((String)x.attributes().get("id"),x);

@@ -25,7 +25,7 @@ public class OC_Counting4To6_S4 extends OC_Generic_DragNumbersToSlots
     @Override
     public void fin ()
     {
-        //goToCard(OC_Counting4To6_S4e.class, "event4");
+        goToCard(OC_Counting4To6_S4e.class, "event4");
     }
 
 

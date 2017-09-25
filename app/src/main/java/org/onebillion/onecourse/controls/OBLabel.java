@@ -3,6 +3,8 @@ package org.onebillion.onecourse.controls;
 import android.graphics.Color;
 import android.graphics.Typeface;
 
+import org.onebillion.onecourse.utils.OBFont;
+
 /**
  * Created by alan on 12/12/15.
  */
@@ -19,6 +21,11 @@ public class OBLabel extends OBControl
         this();
         layer = new OBTextLayer(tf,sz, Color.BLACK,s);
         ((OBTextLayer)layer).sizeToBoundingBox();
+    }
+
+    public OBLabel(String s, OBFont font)
+    {
+        this(s,font.typeFace,font.size);
     }
 
     @Override
@@ -59,10 +66,10 @@ public class OBLabel extends OBControl
             synchronized (this)
             {
                 tl.setText(s);
-                if (texture != null)
-                {
-                    setNeedsRetexture();
-                }
+                //if (texture != null)
+                //{
+                setNeedsRetexture();
+                //}
             }
             invalidate();
         }
@@ -104,8 +111,7 @@ public class OBLabel extends OBControl
     public void setTypeFace(Typeface tf)
     {
         OBTextLayer tl = (OBTextLayer)layer;
-        tl.typeFace = tf;
-        tl.displayObjectsValid = false;
+        tl.setTypeFace(tf);
     }
     public float fontSize()
     {

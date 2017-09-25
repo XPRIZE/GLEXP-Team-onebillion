@@ -7,6 +7,7 @@ import android.graphics.PathMeasure;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
@@ -29,6 +30,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static org.onebillion.onecourse.utils.OBUtils.coalesce;
 
 /**
  * Created by alan on 07/06/16.
@@ -150,31 +153,6 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
             throw ex;
     }
 
-    public void readingFinished()
-    {
-        try
-    {
-        waitForSecs(0.8);
-        if (status() != STATUS_FINISHING && !_aborting)
-        {
-            if (!considerComprehensionQuestions())
-                bringUpNextButton();
-        }
-    }
-        catch (Exception exception)
-        {
-        }
-
-    }
-    public boolean readPage()
-    {
-        if (super.readPage())
-        {
-            readingFinished();
-            return true;
-        }
-        return false;
-    }
     public boolean showNextButton()
     {
         return false;
@@ -339,10 +317,14 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
             }
             else if (cqType == 2)
             {
+                OBControl a1 = objectDict.get("answer1");
+                OBControl a2 = objectDict.get("answer2");
                 if (correctFirst())
-                    targets = Arrays.asList(objectDict.get("answer1"),objectDict.get("answer2"));
+                    targets = Arrays.asList(a1,a2);
                 else
-                    targets = Arrays.asList(objectDict.get("answer2"),objectDict.get("answer1"));
+                    targets = Arrays.asList(a2,a1);
+                a1.setProperty("nm","answer1");
+                a2.setProperty("nm","answer2");
                 demoCqType2a();
             }
             else if (cqType == 3)
@@ -373,7 +355,7 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
             if (token == sequenceToken)
             {
                 List<Object>audl = (List<Object>) ((Map<String,Object>)audioScenes.get(pageName)).get("PROMPT");
-                audl = OBUtils.insertAudioInterval(audl,300);
+                //audl = OBUtils.insertAudioInterval(audl,300);
                 presenter.speakWithToken(audl,token,this);
                 waitForSecs(0.4f);
                 OBPath answer1 = (OBPath) objectDict.get("answer1");
@@ -444,7 +426,8 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
 
                     if (audl == null)
                         break;
-                    presenter.speak(audl,this);
+
+                    presenter.speakWithToken(audl,token,this);
                     checkSequenceToken(token);
                     waitForSecs(1.2f);
                 }
@@ -476,6 +459,22 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
         bringUpNextButton();
     }
 
+    public void readingFinished()
+    {
+        try
+        {
+            waitForSecs(0.8f);
+            if(status()  != STATUS_FINISHING && !_aborting)
+            {
+                if (!considerComprehensionQuestions())
+                    bringUpNextButton();
+            }
+        }
+        catch(Exception exception)
+        {
+        }
+    }
+
     public void deployFlashAnim(final OBPath c)
     {
         OBAnim blockAnim = new OBAnimBlock()
@@ -504,29 +503,38 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
     }
     void setAnswerButtonActive(OBPath c)
     {
+        if ("act".equals(coalesce(c.propertyValue("st"),"--")))
+            return;
         lockScreen();
         c.setFillColor((Integer)c.propertyValue("fillcolour"));
         c.setStrokeColor((Integer)c.propertyValue("strokecolour"));
         c.lowlight();
         unlockScreen();
+        c.setProperty("st","act");
     }
 
     void setAnswerButtonInActive(OBPath c)
     {
+        if ("inact".equals(coalesce(c.propertyValue("st"),"--")))
+            return;
         lockScreen();
+        c.lowlight();
         c.setFillColor((Integer)c.propertyValue("desatfillcolour"));
         c.setStrokeColor((Integer)c.propertyValue("desatstrokecolour"));
-        c.lowlight();
         unlockScreen();
+        c.setProperty("st","inact");
     }
 
     void setAnswerButtonSelected(OBPath c)
     {
+        if ("sel".equals(coalesce(c.propertyValue("st"),"--")))
+            return;
         lockScreen();
-        c.setFillColor((Integer)c.propertyValue("fillcolour"));
+        c.setFillColor((Integer)c.propertyValue("selcolour"));
         c.setStrokeColor((Integer)c.propertyValue("strokecolour"));
-        c.highlight();
+        //c.highlight();
         unlockScreen();
+        c.setProperty("st","sel");
     }
 
     public void loadCQPage()
@@ -559,7 +567,9 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
                 float l = c.lineWidth();
                 ((OBPath) p).outdent(l);
                 int col = c.fillColor();
+                int selcol = Color.argb(255,Color.red(col)/2,Color.green(col)/2,Color.blue(col)/2);
                 c.setProperty("fillcolour", col);
+                c.setProperty("selcolour", selcol);
                 c.setProperty("desatfillcolour", OBUtils.DesaturatedColour(col, 0.2f));
                 col = c.strokeColor();
                 c.setProperty("strokecolour", col);
@@ -798,7 +808,7 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
                 waitAudio();
                 waitForSecs(0.1f);
                 demoCqType2b(false);
-                setStatus(STATUS_WAITING_FOR_ANSWER);
+                //setStatus(STATUS_WAITING_FOR_ANSWER);
             }
         }
         catch (Exception exception)
@@ -816,10 +826,11 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
     {
         if (status() == STATUS_WAITING_FOR_ANSWER)
         {
-            target = (OBControl) findTarget(pt);
-            if (cqType == 1 || target != null)
+            final OBControl obj = (OBControl) findTarget(pt);
+            if (cqType == 1 || obj != null)
             {
                 setStatus(STATUS_CHECKING);
+                target = obj;
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
                     @Override
                     public void run() throws Exception {

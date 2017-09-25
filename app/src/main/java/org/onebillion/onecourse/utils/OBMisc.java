@@ -1,6 +1,7 @@
 package org.onebillion.onecourse.utils;
 
 import android.graphics.Color;
+import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
@@ -284,6 +285,30 @@ public class OBMisc
                 }
             }
         }
+    }
+
+    public static void scaleControlToControl(OBControl con1,OBControl con2, boolean widthOnly)
+    {
+        boolean scaleHeight = con1.width()/con1.height() < con2.width()/con2.height();
+        if(widthOnly != scaleHeight)
+            con1.setScale(con2.height()/con1.height());
+        else
+            con1.setScale(con2.width()/con1.width());
+
+    }
+
+    public static List<Integer> integerList(int from, int to)
+    {
+        List<Integer> list = new ArrayList<>();
+        for(int i=from; i <= to; i++)
+            list.add(i);
+
+        return list;
+    }
+
+    public static void pathAddCurveToPoint(Path path, PointF toPoint, PointF controlPoint1, PointF controlPoint2)
+    {
+        path.cubicTo(controlPoint1.x, controlPoint1.y, controlPoint2.x, controlPoint2.y, toPoint.x, toPoint.y);
     }
 
 }

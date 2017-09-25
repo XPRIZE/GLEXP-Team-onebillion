@@ -17,7 +17,6 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES"/>
     <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
-    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.ACCESS_SUPERUSER"/>
@@ -28,7 +27,9 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.MANAGE_PROFILE_AND_DEVICE_OWNERS" />
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
     <uses-permission android:name="android.permission.SET_TIME" />
+    <uses-permission android:name="android.permission.DEVICE_POWER" />
 
     <uses-feature android:name="android.hardware.camera"/>
     <uses-feature android:name="android.hardware.camera.autofocus"/>
@@ -104,6 +105,7 @@
             </intent-filter>
         </activity>
 
+        <!--
         <receiver android:name="org.onebillion.onecourse.receivers.OBBatteryReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_BATTERY_LOW"/>
@@ -112,8 +114,8 @@
                 <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
             </intent-filter>
         </receiver>
-
-        <receiver android:name="org.onebillion.onecourse.utils.OBAlarmReceiver"></receiver>
+-->
+        <receiver android:name="org.onebillion.onecourse.receivers.OBAlarmReceiver"></receiver>
     </application>
 
 </manifest>

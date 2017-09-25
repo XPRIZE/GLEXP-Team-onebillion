@@ -40,13 +40,13 @@ public class OC_Sorting_S2 extends OC_SectionController
     {
         return setStatus(STATUS_AWAITING_CLICK);
     }
-
+/*
     public void exitEvent()
     {
         killAnimations();
         super.exitEvent();
     }
-
+*/
     public void start()
     {
         setStatus(0);
