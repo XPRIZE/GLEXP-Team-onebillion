@@ -78,4 +78,4 @@ Each of the three versions of **onecourse** has as a set of Android filesytem im
         fastboot reboot
 
 
-6. After flashing is complete, the device will boot into **onecourse** setup. Follow the instructions.
+6. After flashing is complete, the device will boot into **onecourse** setup. Follow the [setup instructions](SETUP.md).
