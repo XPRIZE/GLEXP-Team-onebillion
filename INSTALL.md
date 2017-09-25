@@ -53,9 +53,8 @@ Each of the three versions of **onecourse** has as a set of Android filesytem im
 ## Flash filesystem images
 
 1. Download the set of filesystem images for the version of onecourse you wish to install:
- - [onecourse demo for XPRIZE judges](releases/download/v1.1.0/onecourse-demo-v1.0.0.tar.gz)
- - [onecourse Swahili](releases/download/v1.1.0/onecourse-swahili-v1.1.0.tar.gz)
- - [onecourse English](releases/download/v1.1.0/onecourse-english-v1.0.0.tar.gz)
+ - onecourse Swahili [part 1](releases/download/v1.5.0/onecourse-swahili-v1.5.0.tar.gz), [part 2](releases/download/v1.5.0/onecourse-swahili-v1.5.0.tar.gz)
+ - onecourse English [part 1](releases/download/v1.5.0/onecourse-english-v1.5.0.tar.gz), [part 2](releases/download/v1.5.0/onecourse-english-v1.5.0.tar.gz)
 
 2. Reboot the device into the bootloader by running:
  
@@ -70,6 +69,13 @@ Each of the three versions of **onecourse** has as a set of Android filesytem im
 
 5. Flash the device with the filesystem images by running:
 
-        fastboot flashall -w
+        fastboot flash boot boot.img
+        fastboot flash recovery recovery.img
+        fastboot flash vendor vendor.img
+        fastboot flash system system.img
+        fastboot flash userdata userdata.img
+        fastboot format cache
+        fastboot reboot
 
-6. After flashing is complete, the device will boot into **onecourse**.
+
+6. After flashing is complete, the device will boot into **onecourse** setup. Follow the instructions.
