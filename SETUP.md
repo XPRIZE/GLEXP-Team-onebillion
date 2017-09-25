@@ -1,6 +1,6 @@
-#onecourse installation and setup
+# onecourse installation and setup
 
-##Installation
+## Installation
 To flash a device with the onecourse filesystem images, run the following commands from the directory with the images:
 
 ```
