@@ -197,7 +197,7 @@ public class OBBrightnessManager
         long elapsed = currentTimeStamp - lastTouchTimeStamp;
         float percentage = (elapsed < checkIntervalMS) ? maxBrightness() : (elapsed < checkIntervalMS * 2) ? maxBrightness() / 2.0f : (elapsed < checkIntervalMS * 3) ? maxBrightness() / 4.0f : 0.0f;
         //
-//        MainActivity.log("updateBrightness : " + elapsed + " " + percentage);
+        MainActivity.log("updateBrightness : " + elapsed + " " + percentage);
         //
         if (lastBrightness != percentage)
         {

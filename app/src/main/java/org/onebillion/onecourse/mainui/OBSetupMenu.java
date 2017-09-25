@@ -138,6 +138,8 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
         super.start();
         setStatus(STATUS_AWAITING_CLICK);
         //
+        OBBrightnessManager.sharedManager.setScreenSleepTimeToMax();
+        //
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             @Override
