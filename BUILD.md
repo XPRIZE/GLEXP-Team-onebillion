@@ -20,7 +20,7 @@ Building **onecourse** is a two-step process:
         
         git clone https://github.com/XPRIZE/GLEXP-Team-onebillion.git $ROOT_FOLDER/
 
-3. Configure the `ASSETS_FOLDER` environment variable, download and extract the [`assets.tar.gz`](https://xprizefoundation.box.com/s/xwqy6595mvxlmtluof5z50m87lhqe7c1) file from onebillion's Box account `One Billion - 16/Supplemental/Content/assets.tar.gz`:
+3. Configure the `ASSETS_FOLDER` environment variable, download and extract the [`assets.tar.gz`](https://xprizefoundation.box.com/s/240794c4dzcibmd8cpma7t7jii5v8hn7) file from onebillion's Box account `onebillion - 16/Field Trial Submission 1/Supplemental/Content/assets.tar.gz`:
 
         export ASSETS_FOLDER=$ROOT_FOLDER/app/src/main/assets
         
@@ -37,9 +37,6 @@ Building **onecourse** is a two-step process:
         ./gradlew tasks
 
 6. Build the desired **onecourse** `.apk`:
- - onecourse demo for XPRIZE judges:
-
-          ./gradlew assembleJudgeMenu
 
  - onecourse Swahili:
 
@@ -84,10 +81,6 @@ Building **onecourse** is a two-step process:
           cp $ROOT_FOLDER/AOSP/bootanimation.zip out/target/product/dragon/system/media/
  
 7. Copy the desired **onecourse** `.apk` and makefile from the **onecourse source** repository to your AOSP folder:
- - onecourse demo for XPRIZE judges:
-
-          cp $ROOT_FOLDER/app/build/outputs/apk/app-judgeMenu-release.apk packages/apps/onebillion/
-          cp $ROOT_FOLDER/AOSP/judgeMenu-Android.mk packages/apps/onebillion/Android.mk
 
  - onecourse Swahili:
 
