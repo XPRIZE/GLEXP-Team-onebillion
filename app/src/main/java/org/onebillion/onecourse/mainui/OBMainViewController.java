@@ -248,22 +248,17 @@ public class OBMainViewController extends OBViewController
                 {
                     currentTouchID = pointerID;
                     touchDownAtPoint(event.getX(), event.getY(), (OBGLView) v);
-                    OBBrightnessManager.sharedManager.registeredTouchOnScreen();
-//                    MainActivity.log("DOWN --> " + event.getPointerId(pointerIndex));
+                    OBBrightnessManager.sharedManager.registeredTouchOnScreen(false);
                 }
                 else if (action == MotionEvent.ACTION_MOVE && currentTouchID != null && currentTouchID == pointerID)
                 {
                     OBGLView ov = (OBGLView) v;
                     topController().touchMovedToPoint(new PointF(event.getX(), event.getY()), ov);
-//                    OBBrightnessManager.sharedManager.registeredTouchOnScreen();
-//                    MainActivity.log("MOVE --> " + event.getPointerId(pointerIndex));
                 }
                 else if (currentTouchID != null && currentTouchID == pointerID && (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_POINTER_UP))
                 {
                     currentTouchID = null;
                     touchUpAtPoint(event.getX(), event.getY(), (OBGLView) v);
-//                    OBBrightnessManager.sharedManager.registeredTouchOnScreen();
-//                    MainActivity.log("UP   --> " + event.getPointerId(pointerIndex));
                 }
                 return true;
             }

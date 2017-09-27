@@ -100,6 +100,7 @@ public class OBBrightnessManager
                         {
                             if (updateBrightness(true))
                             {
+                                MainActivity.log("OBBrightnessManager:runBrightnessCheck:posting brightnessCheckRunnable delayed [" + interval + "]");
                                 OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(brightnessCheckRunnable);
                                 OBSystemsManager.sharedManager.getMainHandler().postDelayed(this, interval);
                             }
@@ -117,6 +118,7 @@ public class OBBrightnessManager
                 };
             }
             //
+            MainActivity.log("OBBrightnessManager:runBrightnessCheck:posting brightnessCheckRunnable");
             OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(brightnessCheckRunnable);
             OBSystemsManager.sharedManager.getMainHandler().post(brightnessCheckRunnable);
         }
@@ -132,9 +134,8 @@ public class OBBrightnessManager
     }
 
 
-    public void registeredTouchOnScreen ()
+    public void registeredTouchOnScreen (boolean forceRefresh)
     {
-//        MainActivity.log("registeredTouchOnScreen");
         if (usesBrightnessAdjustment())
         {
             long interval = getBrightnessCheckInterval();
@@ -142,18 +143,19 @@ public class OBBrightnessManager
             long currentTime = System.currentTimeMillis();
             long elapsed = currentTime - lastTouchTimeStamp;
             //
-            //MainActivity.mainViewController.lastTouchActivity
             lastTouchTimeStamp = System.currentTimeMillis();
             //
-//            MainActivity.log("Updating lastTouchTimeStamp with elapsed " + elapsed);
-            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            if (elapsed > interval || forceRefresh)
             {
-                @Override
-                public void run () throws Exception
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
-                    runBrightnessCheck();
-                }
-            });
+                    @Override
+                    public void run () throws Exception
+                    {
+                        runBrightnessCheck();
+                    }
+                });
+            }
         }
     }
 
@@ -169,6 +171,8 @@ public class OBBrightnessManager
         }
         if (suspended) return false;
         //
+        if (MainActivity.mainViewController == null) return false;
+        //
         if (MainActivity.mainViewController.topController() == null) return false;
         //
         int status = MainActivity.mainViewController.topController().status();
@@ -182,6 +186,7 @@ public class OBBrightnessManager
             long duration = (long) (OBAudioManager.audioManager.duration() * 1000);
             MainActivity.log("OBBrightnessManager.brightnessCheckRunnable.audio is playing file with " + duration + "ms. ignoring brightness update");
             //
+            MainActivity.log("OBBrightnessManager:runBrightnessCheck:posting brightnessCheckRunnable delayed [" + duration + "]");
             OBSystemsManager.sharedManager.getMainHandler().removeCallbacks(brightnessCheckRunnable);
             OBSystemsManager.sharedManager.getMainHandler().postDelayed(brightnessCheckRunnable, duration);
             //
@@ -226,9 +231,7 @@ public class OBBrightnessManager
         MainActivity.log("OBBrightnessManager.onContinue detected");
         suspended = false;
         //
-        registeredTouchOnScreen();
-//        lastTouchTimeStamp = System.currentTimeMillis();
-//        runBrightnessCheck();
+        registeredTouchOnScreen(true);
     }
 
 
@@ -236,7 +239,7 @@ public class OBBrightnessManager
     {
         MainActivity.log("OBBrightnessManager.onResume detected");
         paused = false;
-        registeredTouchOnScreen();
+        registeredTouchOnScreen(true);
     }
 
 

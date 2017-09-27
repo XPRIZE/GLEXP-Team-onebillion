@@ -338,15 +338,30 @@ public class OBExpansionManager
         List<File> result = new ArrayList();
         //
         String externalAssetsFolderPath = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_EXTERNAL_ASSETS);
-        //MainActivity.log("OBExpansionManager.getExternalExpansionFolders.externalAssetsFolderPath:[" + externalAssetsFolderPath + "]");
         if (externalAssetsFolderPath != null)
         {
             File externalAssets = new File(externalAssetsFolderPath);
+            //
             if (externalAssets.exists())
             {
-                //MainActivity.log("OBExpansionManager.getExternalExpansionFolders.externalAssetsFolderPath exists.");
                 result.add(externalAssets);
                 return result;
+            }
+            else
+            {
+                // trying to find path in external storage directories
+                File[] externalMediaFolders = MainActivity.mainActivity.getBaseContext().getExternalMediaDirs();
+                for (File externalMediaFolder : externalMediaFolders)
+                {
+                    File parentFolder = externalMediaFolder.getParentFile().getParentFile().getParentFile();
+                    externalAssets = new File(parentFolder + "/" + externalAssetsFolderPath);
+                    //
+                    if (externalAssets.exists())
+                    {
+                        result.add(externalAssets);
+                        return result;
+                    }
+                }
             }
         }
         //
@@ -413,7 +428,7 @@ public class OBExpansionManager
     public boolean checkForBundledOBB()
     {
         String obbFilePath = internalOBBFile();
-        if (obbFilePath == null) return false;
+        if (obbFilePath == null || obbFilePath.length() == 0) return false;
         //
         File obbFile = new File(obbFilePath);
         //

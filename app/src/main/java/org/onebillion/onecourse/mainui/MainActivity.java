@@ -890,7 +890,7 @@ public class MainActivity extends Activity
         }
         updateConfigPaths((String) config.get(CONFIG_APP_CODE), true);
         String fcname = (String) config.get(CONFIG_FAT_CONTROLLER);
-        if (fcname == null)
+        if (fcname == null || fcname.length() == 0)
             fcname = "OBFatController";
         Class aClass = Class.forName("org.onebillion.onecourse.utils." + fcname);
         Constructor<?> cons = aClass.getConstructor();

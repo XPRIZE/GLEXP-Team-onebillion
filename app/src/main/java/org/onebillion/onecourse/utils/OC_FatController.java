@@ -108,7 +108,7 @@ public class OC_FatController extends OBFatController
             //
             MainActivity.log("OC_FatController:loadMasterListIntoDB:masterlist name [" + mlname + "]");
             //
-            if (mlname.length() == 0)
+            if (mlname == null || mlname.length() == 0)
             {
                 MainActivity.log("OC_FatController:loadMasterListIntoDB:no masterlist in the settings file. skipping");
                 return;

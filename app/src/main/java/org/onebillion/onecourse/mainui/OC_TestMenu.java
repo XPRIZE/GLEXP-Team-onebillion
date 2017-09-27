@@ -81,33 +81,39 @@ public class OC_TestMenu extends OBSectionController
         });
 
         Button loopButton = (Button)MainActivity.mainActivity.findViewById(R.id.loopButton);
-        loopButton.setOnClickListener(new View.OnClickListener()
+        if (loopButton != null)
         {
-            @Override
-            public void onClick(View v)
+            loopButton.setOnClickListener(new View.OnClickListener()
             {
-                OBSystemsManager.sharedManager.onSuspend();
-                String menuClassName = "OC_LoopMenu";
-                String appCode = "oc-gen";
-                if (menuClassName != null && appCode != null)
+                @Override
+                public void onClick (View v)
                 {
-                    OBBrightnessManager.sharedManager.onContinue();
-                    db.close();
-                    MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
-                }
+                    OBSystemsManager.sharedManager.onSuspend();
+                    String menuClassName = "OC_LoopMenu";
+                    String appCode = "oc-gen";
+                    if (menuClassName != null && appCode != null)
+                    {
+                        OBBrightnessManager.sharedManager.onContinue();
+                        db.close();
+                        MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
+                    }
 
-            }
-        });
+                }
+            });
+        }
 
         Button connectToWifiButton = (Button)MainActivity.mainActivity.findViewById(R.id.connectWifiButton);
-        connectToWifiButton.setOnClickListener(new View.OnClickListener()
+        if (connectToWifiButton != null)
         {
-            @Override
-            public void onClick(View v)
+            connectToWifiButton.setOnClickListener(new View.OnClickListener()
             {
-                OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTimeAndData();
-            }
-        });
+                @Override
+                public void onClick (View v)
+                {
+                    OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTimeAndData();
+                }
+            });
+        }
 
         Button uploadBackupButton = (Button)MainActivity.mainActivity.findViewById(R.id.uploadBackup);
         uploadBackupButton.setOnClickListener(new View.OnClickListener()
@@ -170,34 +176,35 @@ public class OC_TestMenu extends OBSectionController
         });
 
         Button newDayButton = (Button)MainActivity.mainActivity.findViewById(R.id.newdDayButton);
-        newDayButton.setOnClickListener(new View.OnClickListener()
+        if (newDayButton != null)
         {
-            @Override
-            public void onClick(View v)
+            newDayButton.setOnClickListener(new View.OnClickListener()
             {
-                final AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.mainActivity).create();
-                alertDialog.setTitle("Start new day");
-                alertDialog.setMessage("Do you want to start a new day?");
-                alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "NO", new DialogInterface.OnClickListener()
+                @Override
+                public void onClick (View v)
                 {
-                    public void onClick (DialogInterface dialog, int which)
+                    final AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.mainActivity).create();
+                    alertDialog.setTitle("Start new day");
+                    alertDialog.setMessage("Do you want to start a new day?");
+                    alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "NO", new DialogInterface.OnClickListener()
                     {
-                        alertDialog.cancel();
-                    }
-                });
-                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "YES", new DialogInterface.OnClickListener()
-                {
-                    public void onClick (DialogInterface dialog, int which)
+                        public void onClick (DialogInterface dialog, int which)
+                        {
+                            alertDialog.cancel();
+                        }
+                    });
+                    alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "YES", new DialogInterface.OnClickListener()
                     {
-                        alertDialog.cancel();
-                        controller.prepareNewSession();
-                    }
-                });
-                alertDialog.show();
-
-
-            }
-        });
+                        public void onClick (DialogInterface dialog, int which)
+                        {
+                            alertDialog.cancel();
+                            controller.prepareNewSession();
+                        }
+                    });
+                    alertDialog.show();
+                }
+            });
+        }
 
 
         Button shutdownButton = (Button)MainActivity.mainActivity.findViewById(R.id.shutdownButton);
@@ -212,14 +219,17 @@ public class OC_TestMenu extends OBSectionController
 
 
         Button causeCrashButton = (Button)MainActivity.mainActivity.findViewById(R.id.crashButton);
-        causeCrashButton.setOnClickListener(new View.OnClickListener()
+        if (causeCrashButton != null)
         {
-            @Override
-            public void onClick(View v)
+            causeCrashButton.setOnClickListener(new View.OnClickListener()
             {
-                int timeToCrash = 1000 / (1 - 1);
-            }
-        });
+                @Override
+                public void onClick (View v)
+                {
+                    int timeToCrash = 1000 / (1 - 1);
+                }
+            });
+        }
 
 
         Button killButton = (Button)MainActivity.mainActivity.findViewById(R.id.killButton);
@@ -244,31 +254,37 @@ public class OC_TestMenu extends OBSectionController
         });
 
         Button skipButton = (Button) MainActivity.mainActivity.findViewById(R.id.skipButton);
-        skipButton.setOnClickListener(new View.OnClickListener()
+        if (skipButton != null)
         {
-            @Override
-            public void onClick (View v)
+            skipButton.setOnClickListener(new View.OnClickListener()
             {
-                String menuClassName = (String)Config().get(MainActivity.CONFIG_MENU_CLASS);
-                String appCode = (String)Config().get(MainActivity.CONFIG_APP_CODE);
-                if (menuClassName != null && appCode != null)
+                @Override
+                public void onClick (View v)
                 {
-                    OBBrightnessManager.sharedManager.onContinue();
-                    db.close();
-                    controller.continueFromLastUnit();
-                    MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
+                    String menuClassName = (String) Config().get(MainActivity.CONFIG_MENU_CLASS);
+                    String appCode = (String) Config().get(MainActivity.CONFIG_APP_CODE);
+                    if (menuClassName != null && appCode != null)
+                    {
+                        OBBrightnessManager.sharedManager.onContinue();
+                        db.close();
+                        controller.continueFromLastUnit();
+                        MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
+                    }
                 }
-            }
-        });
-
-        TextView buildNumber = (TextView) MainActivity.mainActivity.findViewById(R.id.buildNumber);
-        String buildNumberValue = (String) MainActivity.Config().get(MainActivity.CONFIG_BUILD_NUMBER);
-        if (buildNumberValue == null)
-        {
-            buildNumberValue = "Missing BuildNo";
+            });
         }
-        buildNumber.setText(buildNumberValue);
-
+        //
+        TextView buildNumber = (TextView) MainActivity.mainActivity.findViewById(R.id.buildNumber);
+        if (buildNumber != null)
+        {
+            String buildNumberValue = (String) MainActivity.Config().get(MainActivity.CONFIG_BUILD_NUMBER);
+            if (buildNumberValue == null)
+            {
+                buildNumberValue = "Missing BuildNo";
+            }
+            buildNumber.setText(buildNumberValue);
+        }
+        //
         Cursor cursor = getCursorForList(db);
         if(cursor.moveToFirst())
         {
