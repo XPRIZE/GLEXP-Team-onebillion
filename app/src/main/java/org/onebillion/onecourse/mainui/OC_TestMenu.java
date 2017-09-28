@@ -21,6 +21,7 @@ import org.onebillion.onecourse.utils.MlUnit;
 import org.onebillion.onecourse.utils.OBBrightnessManager;
 import org.onebillion.onecourse.utils.OBSystemsManager;
 import org.onebillion.onecourse.utils.OBUtils;
+import org.onebillion.onecourse.utils.OCM_FatController;
 import org.onebillion.onecourse.utils.OC_FatController;
 
 
@@ -36,6 +37,7 @@ public class OC_TestMenu extends OBSectionController
     private OBCursorAdapter cursorAdapter;
     private DBSQL db;
     private int currentUnitIndex;
+    private String originalAppCode;
     OC_FatController controller;
 
     public OC_TestMenu ()
@@ -45,9 +47,14 @@ public class OC_TestMenu extends OBSectionController
 
     public void initScreen()
     {
+        if (originalAppCode == null)
+        {
+            originalAppCode = (String) Config().get(MainActivity.CONFIG_APP_CODE);
+        }
         OBBrightnessManager.sharedManager.onSuspend();
         db = new DBSQL(false);
-        controller = (OC_FatController)MainActivity.mainActivity.fatController;
+        controller = (OC_FatController) MainActivity.mainActivity.fatController;
+        //
         currentUnitIndex = controller.lastPlayedUnitIndexFromDB(db);
         MainActivity.mainActivity.setContentView(R.layout.list_menu);
         listView = (ListView)MainActivity.mainActivity.findViewById(R.id.listView);
@@ -67,16 +74,22 @@ public class OC_TestMenu extends OBSectionController
             @Override
             public void onClick(View v)
             {
-
-                String menuClassName = (String)Config().get(MainActivity.CONFIG_MENU_CLASS);
-                String appCode = (String)Config().get(MainActivity.CONFIG_APP_CODE);
-                if (menuClassName != null && appCode != null)
+                OBUtils.runOnMainThread(new OBUtils.RunLambda()
                 {
-                    OBBrightnessManager.sharedManager.onContinue();
-                    db.close();
-                    MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
-                }
-
+                    @Override
+                    public void run () throws Exception
+                    {
+                        String menuClassName = (String)Config().get(MainActivity.CONFIG_MENU_CLASS);
+                        MainActivity.mainActivity.updateConfigPaths(originalAppCode, true, null);
+                        //
+                        if (menuClassName != null)
+                        {
+                            OBBrightnessManager.sharedManager.onContinue();
+                            db.close();
+                            MainViewController().pushViewControllerWithNameConfig(menuClassName, originalAppCode, false, false, null);
+                        }
+                    }
+                });
             }
         });
 
@@ -98,19 +111,6 @@ public class OC_TestMenu extends OBSectionController
                         MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
                     }
 
-                }
-            });
-        }
-
-        Button connectToWifiButton = (Button)MainActivity.mainActivity.findViewById(R.id.connectWifiButton);
-        if (connectToWifiButton != null)
-        {
-            connectToWifiButton.setOnClickListener(new View.OnClickListener()
-            {
-                @Override
-                public void onClick (View v)
-                {
-                    OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTimeAndData();
                 }
             });
         }
@@ -274,6 +274,30 @@ public class OC_TestMenu extends OBSectionController
             });
         }
         //
+        Button playzoneButton = (Button) MainActivity.mainActivity.findViewById(R.id.playzone);
+        if (playzoneButton != null)
+        {
+            playzoneButton.setOnClickListener(new View.OnClickListener()
+            {
+                @Override
+                public void onClick (View v)
+                {
+                    OBUtils.runOnMainThread(new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run () throws Exception
+                        {
+                            OBBrightnessManager.sharedManager.onContinue();
+                            //
+                            String lang = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_DEFAULT_LANGUAGE);
+                            MainActivity.mainActivity.updateConfigPaths("oc-playzone", false, lang);
+                            MainViewController().pushViewControllerWithNameConfig("OC_PlayZoneMenu","oc-playzone",false,true, null);
+                        }
+                    });
+                }
+            });
+        }
+        //
         TextView buildNumber = (TextView) MainActivity.mainActivity.findViewById(R.id.buildNumber);
         if (buildNumber != null)
         {
@@ -286,7 +310,7 @@ public class OC_TestMenu extends OBSectionController
         }
         //
         Cursor cursor = getCursorForList(db);
-        if(cursor.moveToFirst())
+        if(cursor != null && cursor.moveToFirst())
         {
             cursorAdapter = new OBCursorAdapter(MainActivity.mainActivity, cursor);
             listView.setAdapter(cursorAdapter);
@@ -297,7 +321,16 @@ public class OC_TestMenu extends OBSectionController
 
     public Cursor getCursorForList(DBSQL db)
     {
-        return db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("key", "unitIndex as _id", "level", "awardStar", "startAudio"),null,"unitid ASC");
+        Cursor currentUnitCursor;
+        try
+        {
+            currentUnitCursor = db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("key", "unitIndex as _id", "level", "awardStar", "startAudio"),null,"unitid ASC");
+        }
+        catch (Exception e)
+        {
+            currentUnitCursor = null;
+        }
+        return currentUnitCursor;
     }
 
     public void selectCurrentUnit()

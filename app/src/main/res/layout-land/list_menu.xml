@@ -13,6 +13,7 @@
             <Button android:id="@+id/shutdownButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_centerInParent="true" android:layout_weight="1" android:text="Shutdown"/>
             <Button android:id="@+id/uploadBackup" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_centerInParent="true" android:layout_weight="1" android:enabled="true" android:singleLine="true" android:text="Upload Backup"/>
             <Button android:id="@+id/refreshButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_centerInParent="true" android:layout_weight="1" android:enabled="true" android:singleLine="true" android:text="RESET"/>
+            <Button android:id="@+id/playzone" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_centerInParent="true" android:layout_weight="1" android:enabled="true" android:singleLine="true" android:text="Playzone"/>
         </LinearLayout>
     </LinearLayout>
 

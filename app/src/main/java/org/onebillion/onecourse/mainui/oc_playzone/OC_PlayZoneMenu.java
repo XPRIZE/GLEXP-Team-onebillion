@@ -108,15 +108,18 @@ public class OC_PlayZoneMenu extends OC_Menu
     public void onBatteryStatusReceived(final float level, final boolean charging)
     {
         super.onBatteryStatusReceived(level,charging);
-        final OBSectionController controller = this;
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        if (fatController != null)
         {
-            @Override
-            public void run() throws Exception
+            final OBSectionController controller = this;
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
-                fatController.refreshBatteryStatus(level,charging,controller);
-            }
-        });
+                @Override
+                public void run () throws Exception
+                {
+                    fatController.refreshBatteryStatus(level, charging, controller);
+                }
+            });
+        }
     }
 
     public String sectionName()
@@ -137,12 +140,21 @@ public class OC_PlayZoneMenu extends OC_Menu
 
     public void prepare()
     {
-        fatController = (OCM_FatController) MainActivity.mainActivity.fatController;
+        if (OCM_FatController.class.isInstance(MainActivity.mainActivity.fatController))
+        {
+            fatController = (OCM_FatController) MainActivity.mainActivity.fatController;
+        }
+        else
+        {
+            MainActivity.log("OC_PlayZoneMenu:prepare:WARNING --> current FatController setup in MainActivity IS NOT a OCM_FatController.");
+            fatController = null;
+        }
+        //
         setStatus(STATUS_BUSY);
         super.prepare();
         loadFingers();
         loadAudioXML(getConfigPath("pzdefaultaudio.xml"));
-        fatController.loadBatteryIcon(this);
+        if (fatController != null) fatController.loadBatteryIcon(this);
         OBControl btmLeft = objectDict.get("bottom_bar_left");
         OBControl btmRight = objectDict.get("bottom_bar_right");
         scrollHitBox = new RectF(btmLeft.right(), btmLeft.top(), btmRight.left() , btmLeft.bottom());
@@ -190,7 +202,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         }
         newMediaAdded = false;
         mediaIcons = new ArrayList<>();
-        mediaAssets = fatController.getPlayZoneAssetForCurrentUser();
+        mediaAssets = (fatController != null) ? fatController.getPlayZoneAssetForCurrentUser() : new ArrayList<OC_PlayZoneAsset>();
 
         videoPlayer = null;
 
@@ -1564,7 +1576,7 @@ public class OC_PlayZoneMenu extends OC_Menu
     {
         if(mediaAssets.size() ==0 || !mediaAssets.get(0).isLatestAsset())
         {
-            List<OC_PlayZoneAsset> newMediaAssets = fatController.getPlayZoneAssetForCurrentUser();
+            List<OC_PlayZoneAsset> newMediaAssets = (fatController != null) ? fatController.getPlayZoneAssetForCurrentUser() : new ArrayList<OC_PlayZoneAsset>();
             if(newMediaAssets.size() > 0)
             {
                 loadAllMediaIcons(newMediaAssets);

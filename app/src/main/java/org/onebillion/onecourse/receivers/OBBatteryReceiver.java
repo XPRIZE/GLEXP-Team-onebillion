@@ -26,7 +26,6 @@ public class OBBatteryReceiver extends BroadcastReceiver
         isCharging = false;
         batteryScale = -1;
         batteryLevel= -1;
-        MainActivity.log(" BATTERY RECEIVER CREATED ");
     }
 
 
@@ -70,11 +69,6 @@ public class OBBatteryReceiver extends BroadcastReceiver
             //
             Boolean actionIsRequired = !isCharging && isNowCharging;
             isCharging = isNowCharging;
-            //
-            if (!isCharging)
-            {
-                MainActivity.log("OBBatteryReceiver.onReceive: BATTERY IS NOW NO LONGER CHARGING");
-            }
             //
             if (actionIsRequired)
             {

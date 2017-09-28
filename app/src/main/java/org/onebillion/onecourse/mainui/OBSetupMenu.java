@@ -679,9 +679,17 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                     {
                         MainActivity.log("OBSetupMenu.delayedThread:SHUTTING DOWN");
                         //
-                        Intent i = new Intent("android.intent.action.ACTION_REQUEST_SHUTDOWN");
-                        i.putExtra("android.intent.extra.KEY_CONFIRM", false);
-                        MainActivity.mainActivity.startActivity(i);
+                        try
+                        {
+                            Intent i = new Intent("android.intent.action.ACTION_REQUEST_SHUTDOWN");
+                            i.putExtra("android.intent.extra.KEY_CONFIRM", false);
+                            MainActivity.mainActivity.startActivity(i);
+                        }
+                        catch (Exception e)
+                        {
+                            MainActivity.log("OBSetupMenu:loadFinalScreen:exception caught while trying to shutdown device. Exiting App");
+                            System.exit(0);
+                        }
                     }
                 });
             }

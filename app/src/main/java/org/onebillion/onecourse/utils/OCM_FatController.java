@@ -1704,6 +1704,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
      */
     public List<OC_PlayZoneAsset> getPlayZoneAssetForCurrentUser()
     {
+        if (currentUser == null)
+        {
+            return new ArrayList<>();
+        }
+        //
         List<OC_PlayZoneAsset> assets = OC_PlayZoneAsset.assetsFromDBForUserId(currentUser.userid);
         if(assets.size() > MAX_PZ_ASSETS)
         {
