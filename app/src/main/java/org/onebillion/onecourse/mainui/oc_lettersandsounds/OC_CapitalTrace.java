@@ -38,11 +38,11 @@ public class OC_CapitalTrace extends OC_LTrace
             int noTraces = Integer.parseInt(s);
             if(noTraces > 3)
             {
-                int i = events.indexOf("n");
+                int i = events.indexOf("k");
                 if(i >= 0)
                 {
                     for(int j = 0;j < noTraces - 3;j++)
-                        events.add(i,"m");
+                        events.add(i,"j");
                 }
             }
         }
@@ -203,14 +203,16 @@ public class OC_CapitalTrace extends OC_LTrace
         waitForSecs(0.3f);
         movePointerToPoint(destpt,-1,true);
         playAudioQueuedSceneIndex(currentEvent(),"DEMO",1,true);
-        waitForSecs(0.6f);
+        waitForSecs(0.2f);
         thePointer.hide();
         nextScene();
     }
 
     public void doStrokeDemo() throws Exception
     {
-        PointF destpt = OB_Maths.locationForRect(1.1f, 0.7f, hotPath.frame());
+        float rt = hotPath.right() + paths.get(0).lineWidth();
+        PointF destpt = OB_Maths.locationForRect(0, 0.6f, bounds());
+        destpt.set(rt, destpt.y);
         PointF startpt = pointForDestPoint(destpt,35);
         loadPointerStartPoint(startpt,destpt);
         movePointerToPoint(destpt,-1,true);
@@ -232,12 +234,20 @@ public class OC_CapitalTrace extends OC_LTrace
 
     public void demod() throws Exception
     {
-        doStrokeDemo();
+        playAudioQueuedScene("DEMO",true);
+        waitForSecs(0.3f);
+        demoStroke();
+        waitForSecs(0.3f);
+        nextScene();
     }
 
     public void demoe() throws Exception
     {
-        doStrokeDemo();
+        playAudioQueuedScene("DEMO",true);
+        waitForSecs(0.3f);
+        demoStroke();
+        waitForSecs(0.3f);
+        nextScene();
     }
 
     public void demof() throws Exception
@@ -245,7 +255,9 @@ public class OC_CapitalTrace extends OC_LTrace
         showLetter();
         waitAudio();
         waitForSecs(0.3f);
-        PointF destpt = OB_Maths.locationForRect(1.1f, 0.7f,hotPath.frame());
+        float rt = hotPath.right() + paths.get(0).lineWidth();
+        PointF destpt = OB_Maths.locationForRect(0, 0.6f, bounds());
+        destpt.set(rt, destpt.y);
 
         PointF startpt = pointForDestPoint(destpt,25);
         loadPointerStartPoint(startpt,destpt);
@@ -253,7 +265,6 @@ public class OC_CapitalTrace extends OC_LTrace
         waitForSecs(0.3f);
         playAudioQueuedSceneIndex(currentEvent(),"DEMO",0,true);
         waitForSecs(0.3f);
-        //movePointerToPoint(TPointAlongLine(0.8, startpt, destpt),-1,true);
         waitForSecs(0.3f);
         playAudioQueuedSceneIndex(currentEvent(),"DEMO",1,true);
         waitForSecs(0.3f);
@@ -261,7 +272,6 @@ public class OC_CapitalTrace extends OC_LTrace
         {
             waitForSecs(0.3f);
             demoSubPathStroke(i);
-            //waitForSecs(0.4f);
             waitAudio();
         }
         waitForSecs(0.3f);
@@ -284,7 +294,12 @@ public class OC_CapitalTrace extends OC_LTrace
         destpt = convertPointFromControl(destpt,paths.get(0));
         PointF startpt = pointForDestPoint(destpt,25);
         loadPointerStartPoint(startpt,destpt);
-        movePointerToPoint(OB_Maths.tPointAlongLine(0.4f, startpt, destpt),-1,true);
+
+        float rt = hotPath.right() + paths.get(0).lineWidth();
+        PointF dpt = OB_Maths.locationForRect(0, 0.6f, bounds());
+        dpt.set(rt, dpt.y);
+
+        movePointerToPoint(dpt,-1,true);
         waitForSecs(0.3f);
         playAudioQueuedSceneIndex(currentEvent(),"DEMO",0,true);
         waitForSecs(0.3f);
