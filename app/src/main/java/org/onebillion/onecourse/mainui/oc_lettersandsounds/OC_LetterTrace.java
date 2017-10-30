@@ -411,13 +411,13 @@ public class OC_LetterTrace extends OC_LTrace
         loadPointerStartPoint(startpt,destpt);
         movePointerToPoint(OB_Maths.tPointAlongLine(0.4f, startpt, destpt),-1,true);
         waitForSecs(0.3f);
-        playAudioQueuedSceneIndex(currentEvent(),"DEMO",0,true);
+        playAudioQueuedScene("DEMO",true);
         waitForSecs(0.3f);
         preTrace(0);
         waitForSecs(0.3f);
         movePointerToPoint(OB_Maths.tPointAlongLine(0.8f, startpt, destpt),-1,true);
         waitForSecs(0.3f);
-        playAudioQueuedSceneIndex(currentEvent(),"DEMO",1,true);
+        playAudioQueuedScene("DEMO2",true);
         waitForSecs(0.3f);
         thePointer.hide();
         nextScene();
