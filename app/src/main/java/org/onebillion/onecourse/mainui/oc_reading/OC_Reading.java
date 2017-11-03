@@ -16,6 +16,7 @@ import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
+import org.onebillion.onecourse.utils.OBFont;
 import org.onebillion.onecourse.utils.OBReadingPara;
 import org.onebillion.onecourse.utils.OBReadingWord;
 import org.onebillion.onecourse.utils.OBXMLManager;
@@ -60,7 +61,7 @@ public class OC_Reading extends OC_SectionController
     public boolean reading,questionsAvailable,slowWordsAvailable,paragraphlessMode,nextOK,RAOK;
     public int picJustify,textJustification;
     String indentString;
-    int demoType,introNo,numberOfTextLines;
+    protected int demoType,introNo,numberOfTextLines;
     int pageNo,maxPageNo,readingMode;
     public List<OBReadingPara> paragraphs;
     public OBGroup textBox;
@@ -76,7 +77,7 @@ public class OC_Reading extends OC_SectionController
         return t;
     }
 
-    static boolean IsLeftHanger(String ch)
+    public static boolean IsLeftHanger(String ch)
     {
         for (String ap : Arrays.asList("“","‘"))
             if (ap.equals(ch))
@@ -638,6 +639,25 @@ public class OC_Reading extends OC_SectionController
                     w.frame = convertRectFromControl(w.frame,textBox);
     }
 
+    public static float WidthOfText(String txt,Map attrs,float spaceExtraSpace)
+    {
+        OBFont font = (OBFont) attrs.get("font");
+        Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        textPaint.setTextSize(font.size);
+        textPaint.setTypeface(font.typeFace);
+        float lspacing = OBUtils.coalesce((Float)attrs.get(""),0f);
+        if (lspacing > 0)
+            textPaint.setLetterSpacing(lspacing / font.size);
+        float textWidth = textPaint.measureText(txt);
+
+        if(spaceExtraSpace != 0.0)
+        {
+            int noSpaces = txt.split(".").length - 1;
+            if (noSpaces > 0)
+                textWidth +=(noSpaces * spaceExtraSpace);
+        }
+        return textWidth;
+    }
 
     public void layOutLine(List<OBReadingWord>wordarr, float leftEdge, float rightEdge, float y, int justification, Typeface typeFace,float typeSize, String paraText)
     {
@@ -697,6 +717,15 @@ public class OC_Reading extends OC_SectionController
             else
                 lab.setZPosition(LABEL_ZPOS - 3);
         }
+    }
+
+    public Map lineAttributes(OBFont font)
+    {
+        Map attributes = new HashMap();
+        attributes.put("font",font);
+        if (letterSpacing != 0f)
+            attributes.put("letterspacing",letterSpacing);
+        return attributes;
     }
 
     public float layOutText()
