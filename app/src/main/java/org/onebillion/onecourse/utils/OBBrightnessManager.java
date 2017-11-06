@@ -11,8 +11,6 @@ import org.onebillion.onecourse.mainui.OBSectionController;
  */
 public class OBBrightnessManager
 {
-    private long checkInterval;
-    //
     public static OBBrightnessManager sharedManager;
     private long lastTouchTimeStamp;
     private float lastBrightness;
@@ -60,18 +58,14 @@ public class OBBrightnessManager
 
     public float maxBrightness ()
     {
-        float value = OBSystemsManager.sharedManager.getMaxScreenBrightnessForCurrentLevel();
+        float value = OBConfigManager.sharedManager.getBatteryMaxBrightnessForLevel(OBSystemsManager.sharedManager.getBatterySettingKeyForCurrentLevel());
         return value;
     }
 
 
     public long getBrightnessCheckInterval ()
     {
-        String brightnessInterval = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_BRIGHTNESS_CHECK_INTERVAL);
-        checkInterval = 5;
-        if (brightnessInterval != null) checkInterval = Long.parseLong(brightnessInterval);
-        //
-        return checkInterval * 1000;
+        return OBConfigManager.sharedManager.getBrightnessCheckIntervalInSeconds() * 1000;
     }
 
 
@@ -79,7 +73,7 @@ public class OBBrightnessManager
     {
         if (suspended) return;
         //
-        if (!usesBrightnessAdjustment())
+        if (!OBConfigManager.sharedManager.isBrightnessManagerEnabled())
         {
             disableBrightnessAdjustment();
         }
@@ -136,7 +130,7 @@ public class OBBrightnessManager
 
     public void registeredTouchOnScreen (boolean forceRefresh)
     {
-        if (usesBrightnessAdjustment())
+        if (OBConfigManager.sharedManager.isBrightnessManagerEnabled())
         {
             long interval = getBrightnessCheckInterval();
             //
@@ -162,11 +156,9 @@ public class OBBrightnessManager
 
     public boolean updateBrightness (boolean loop)
     {
-        if (!usesBrightnessAdjustment())
+        if (!OBConfigManager.sharedManager.isBrightnessManagerEnabled())
         {
             disableBrightnessAdjustment();
-//            setScreenSleepTimeToMax();
-//            setBrightness(maxBrightness());
             return false;
         }
         if (suspended) return false;
@@ -193,28 +185,34 @@ public class OBBrightnessManager
             return loop && !paused;
         }
         //
-        long checkIntervalMS = checkInterval * 1000;
+        long checkIntervalMS = OBConfigManager.sharedManager.getBrightnessCheckIntervalInSeconds() * 1000;
         long currentTimeStamp = System.currentTimeMillis();
         long elapsed = currentTimeStamp - lastTouchTimeStamp;
-        float percentage = (elapsed < checkIntervalMS) ? maxBrightness() : (elapsed < checkIntervalMS * 2) ? maxBrightness() / 2.0f : (elapsed < checkIntervalMS * 3) ? maxBrightness() / 4.0f : 0.0f;
+        String batteryLevelKey = OBSystemsManager.sharedManager.getBatterySettingKeyForCurrentLevel();
+        float maxBrightness = OBConfigManager.sharedManager.getBatteryMaxBrightnessForLevel(batteryLevelKey);
+        float minBrightness = OBConfigManager.sharedManager.getBrightnessTurnOffThresholdValue();
         //
-        MainActivity.log("updateBrightness : " + elapsed + " " + percentage);
+        float percentage = maxBrightness * Math.min(checkIntervalMS / (float) (elapsed * 2), 1.0f);
+        //float percentage = (elapsed < checkIntervalMS) ? maxBrightness : (elapsed < checkIntervalMS * 2) ? maxBrightness / 2.0f : (elapsed < checkIntervalMS * 3) ? maxBrightness / 4.0f : 0.0f;
+        //
+        MainActivity.log("OBBrightnessManager.updateBrightness : " + Math.round(elapsed / 1000) + "s -->" + Math.round(percentage * 100) + "%");
         //
         if (lastBrightness != percentage)
         {
             lastBrightness = percentage;
             setBrightness(percentage);
             //
-            if (percentage == maxBrightness())
+            if (percentage <= minBrightness)
+            {
+                MainActivity.log("OBBrightnessManager.updateBrightness: Threshold reached. Turning off screen");
+                setScreenSleepTimeToMin();
+            }
+            else
             {
                 setScreenSleepTimeToMax();
             }
-            else if (percentage == 0.0f)
-            {
-                setScreenSleepTimeToMin();
-            }
         }
-        return loop && !paused && percentage > 0.0f;
+        return loop && !paused && percentage > minBrightness;
     }
 
 
@@ -341,15 +339,8 @@ public class OBBrightnessManager
      */
     public int getScreenMaxTimeout ()
     {
-        int minutesToScreenLock = OBSystemsManager.sharedManager.getMaxScreenTimeoutForCurrentLevel();
-        return minutesToScreenLock * 1000 * 60;
-    }
-
-
-    public boolean usesBrightnessAdjustment ()
-    {
-        String usesBrightnessAdjustmentString = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_USES_BRIGHTNESS_ADJUSTMENT);
-        return (usesBrightnessAdjustmentString != null && usesBrightnessAdjustmentString.equals("true"));
+        int secondsToScreenLock = OBConfigManager.sharedManager.getBatteryMaxScreenTimeoutInSecondsForLevel(OBSystemsManager.sharedManager.getBatterySettingKeyForCurrentLevel());
+        return secondsToScreenLock * 1000;
     }
 
 }

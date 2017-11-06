@@ -19,6 +19,7 @@ import org.onebillion.onecourse.R;
 import org.onebillion.onecourse.utils.DBSQL;
 import org.onebillion.onecourse.utils.MlUnit;
 import org.onebillion.onecourse.utils.OBBrightnessManager;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBSystemsManager;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OCM_FatController;
@@ -49,7 +50,7 @@ public class OC_TestMenu extends OBSectionController
     {
         if (originalAppCode == null)
         {
-            originalAppCode = (String) Config().get(MainActivity.CONFIG_APP_CODE);
+            originalAppCode = OBConfigManager.sharedManager.getMainFolder();
         }
         OBBrightnessManager.sharedManager.onSuspend();
         db = new DBSQL(false);
@@ -79,8 +80,8 @@ public class OC_TestMenu extends OBSectionController
                     @Override
                     public void run () throws Exception
                     {
-                        String menuClassName = (String)Config().get(MainActivity.CONFIG_MENU_CLASS);
-                        MainActivity.mainActivity.updateConfigPaths(originalAppCode, true, null);
+                        String menuClassName = OBConfigManager.sharedManager.getMenuClassName();
+                        OBConfigManager.sharedManager.updateConfigPaths(originalAppCode, true);
                         //
                         if (menuClassName != null)
                         {
@@ -261,8 +262,8 @@ public class OC_TestMenu extends OBSectionController
                 @Override
                 public void onClick (View v)
                 {
-                    String menuClassName = (String) Config().get(MainActivity.CONFIG_MENU_CLASS);
-                    String appCode = (String) Config().get(MainActivity.CONFIG_APP_CODE);
+                    String menuClassName = OBConfigManager.sharedManager.getMenuClassName();
+                    String appCode = OBConfigManager.sharedManager.getMainFolder();
                     if (menuClassName != null && appCode != null)
                     {
                         OBBrightnessManager.sharedManager.onContinue();
@@ -289,8 +290,8 @@ public class OC_TestMenu extends OBSectionController
                         {
                             OBBrightnessManager.sharedManager.onContinue();
                             //
-                            String lang = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_DEFAULT_LANGUAGE);
-                            MainActivity.mainActivity.updateConfigPaths("oc-playzone", false, lang);
+                            String lang = OBConfigManager.sharedManager.getCurrentLanguage();
+                            OBConfigManager.sharedManager.updateConfigPaths("oc-playzone", false, lang);
                             MainViewController().pushViewControllerWithNameConfig("OC_PlayZoneMenu","oc-playzone",false,true, null);
                         }
                     });
@@ -301,7 +302,7 @@ public class OC_TestMenu extends OBSectionController
         TextView buildNumber = (TextView) MainActivity.mainActivity.findViewById(R.id.buildNumber);
         if (buildNumber != null)
         {
-            String buildNumberValue = (String) MainActivity.Config().get(MainActivity.CONFIG_BUILD_NUMBER);
+            String buildNumberValue = OBConfigManager.sharedManager.getBuildNumber();
             if (buildNumberValue == null)
             {
                 buildNumberValue = "Missing BuildNo";

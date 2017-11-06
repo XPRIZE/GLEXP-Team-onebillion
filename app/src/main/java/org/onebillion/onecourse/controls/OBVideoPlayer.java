@@ -21,6 +21,7 @@ import org.onebillion.onecourse.glstuff.TextureRect;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBUtils;
 
 import java.util.ArrayList;
@@ -37,8 +38,6 @@ import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.egl.EGLSurface;
 
-import static org.onebillion.onecourse.mainui.MainActivity.CONFIG_VIDEO_SEARCH_PATH;
-import static org.onebillion.onecourse.mainui.MainActivity.CONFIG_VIDEO_SUFFIX;
 
 
 /**
@@ -93,29 +92,17 @@ public class OBVideoPlayer extends OBControl
 
     public static String getVideoPath(String videoName)
     {
-        Map config = MainActivity.Config();
-        List<String> videoSuffixes;
-        Object obj = config.get(CONFIG_VIDEO_SUFFIX);
-        if(obj instanceof String)
-        {
-            videoSuffixes = Arrays.asList((String)obj);
-        }
-    else
-        {
-            videoSuffixes = (List<String>) obj;
-        }
-        for(String videoSuffix : videoSuffixes)
+        for (String videoSuffix : OBConfigManager.sharedManager.getVideoExtensions())
         {
             String fullPath = videoName + "." + videoSuffix;
-            if(OBUtils.fileExistsAtPath(fullPath))
+            if (OBUtils.fileExistsAtPath(fullPath))
             {
                 return fullPath;
             }
-            List<String> sparr = (List<String>)config.get(CONFIG_VIDEO_SEARCH_PATH);
-            for(String path : sparr)
+            for (String path : OBConfigManager.sharedManager.getVideoSearchPaths())
             {
                 fullPath = path + "/" + videoName + "." + videoSuffix;
-                if(OBUtils.fileExistsAtPath(fullPath))
+                if (OBUtils.fileExistsAtPath(fullPath))
                 {
                     return fullPath;
                 }

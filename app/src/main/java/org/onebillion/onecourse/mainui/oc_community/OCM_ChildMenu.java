@@ -28,6 +28,7 @@ import org.onebillion.onecourse.mainui.OC_Menu;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimBlock;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBImageManager;
 import org.onebillion.onecourse.utils.OBMisc;
 import org.onebillion.onecourse.utils.OBUtils;
@@ -133,8 +134,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         currentLevelLabel.setPosition(OB_Maths.locationForRect(0.97f,0.9f,this.bounds()));
         currentLevelLabel.setRight(this.bounds().width() - applyGraphicScale(10));
         currentLevelLabel.setColour(Color.BLACK);
-        boolean showUnitID = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_SHOW_UNIT_ID);
-        if (showUnitID)
+        if (OBConfigManager.sharedManager.shouldShowUnitID())
         {
             attachControl(currentLevelLabel);
         }

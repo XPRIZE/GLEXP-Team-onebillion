@@ -123,37 +123,47 @@ public class OBAudioManager
 
     public String getAudioPath(String fileName)
     {
-        Map<String, Object> config = MainActivity.mainActivity.config;
-        String suffix = (String) config.get(MainActivity.CONFIG_AUDIO_SUFFIX);
-        List<String> searchPaths = (List<String>) config.get(MainActivity.CONFIG_AUDIO_SEARCH_PATH);
-        for (String path : searchPaths)
+        for (String suffix : OBConfigManager.sharedManager.getAudioExtensions())
         {
-            String fullPath = path + "/" + fileName + "." + suffix;
-            AssetFileDescriptor fd = OBUtils.getAssetFileDescriptorForPath(fullPath);
-            if (fd != null)
-                return fullPath;
+            for (String path : OBConfigManager.sharedManager.getAudioSearchPaths())
+            {
+                String fullPath = path + "/" + fileName + "." + suffix;
+                AssetFileDescriptor fd = OBUtils.getAssetFileDescriptorForPath(fullPath);
+                if (fd != null)
+                {
+                    return fullPath;
+                }
+            }
         }
         return null;
     }
+
+
     public AssetFileDescriptor getAudioPathFD (String fileName)
     {
         AssetFileDescriptor fd = pathCacheDict.get(fileName);
         if (fd == null)
         {
-            Map<String, Object> config = MainActivity.mainActivity.config;
-            String suffix = (String) config.get(MainActivity.CONFIG_AUDIO_SUFFIX);
-            List<String> searchPaths = (List<String>) config.get(MainActivity.CONFIG_AUDIO_SEARCH_PATH);
-            for (String path : searchPaths)
+            for (String suffix : OBConfigManager.sharedManager.getAudioExtensions())
             {
-                String fullPath = path + "/" + fileName + "." + suffix;
-                fd = OBUtils.getAssetFileDescriptorForPath(fullPath);
-                if (fd != null)
-                    break;
-                else
-                    fd = null;
+                for (String path : OBConfigManager.sharedManager.getAudioSearchPaths())
+                {
+                    String fullPath = path + "/" + fileName + "." + suffix;
+                    fd = OBUtils.getAssetFileDescriptorForPath(fullPath);
+                    if (fd != null)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        fd = null;
+                    }
+                }
             }
             if (fd == null)
+            {
                 return null;
+            }
         }
         pathCacheList.remove(fileName);
         pathCacheList.add(fileName);
@@ -165,21 +175,6 @@ public class OBAudioManager
             pathCacheDict.remove(firstobj);
         }
         return fd;
-
-//        AssetManager am = MainActivity.mainActivity.getAssets();
-//        for (String path : searchPaths)
-//        {
-//            String fullpath = path+"/"+fileName+"."+suffix;
-//            try
-//            {
-//                AssetFileDescriptor fd = am.openFd(fullpath);
-//                return fd;
-//            }
-//            catch (IOException e)
-//            {
-//            }
-//        }
-//        return null;
     }
 
     public void startPlaying (String fileName, String channel)

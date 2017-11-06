@@ -15,6 +15,7 @@ import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBAnim;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
 
@@ -41,7 +42,7 @@ public class OC_Count20_S6 extends OC_SectionController
         int col1 = OBUtils.colorFromRGBString(eventAttributes.get("col1"));
         int colline = OBUtils.colorFromRGBString(eventAttributes.get("colline"));
         float textSize = Float.parseFloat(eventAttributes.get("textsize"));
-        textSize = MainActivity.mainActivity.applyGraphicScale(textSize);
+        textSize = OBConfigManager.sharedManager.applyGraphicScale(textSize);
         Typeface tf = OBUtils.standardTypeFace();
         RectF frame = numberBox.frame();
         float minX = frame.left;

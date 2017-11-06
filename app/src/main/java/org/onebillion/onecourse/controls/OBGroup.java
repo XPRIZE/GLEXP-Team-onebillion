@@ -13,6 +13,7 @@ import org.onebillion.onecourse.glstuff.OBRenderer;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OBViewController;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBRunnableSyncUI;
 import org.onebillion.onecourse.utils.OBXMLManager;
 import org.onebillion.onecourse.utils.OBXMLNode;
@@ -601,9 +602,9 @@ public class OBGroup extends OBControl
                     {
                         int col = (Integer) of;
                         if (idstr.startsWith("skin"))
-                            col = OBUtils.SkinColour(OBUtils.SkinColourIndex());
+                            col = OBConfigManager.sharedManager.getSkinColour(0);
                         else if (idstr.startsWith("cloth"))
-                            col = ((Integer) MainActivity.mainActivity.configIntForKey(MainActivity.CONFIG_CLOTHCOLOUR)).intValue();
+                            col = OBConfigManager.sharedManager.getClothColour();
                         ((OBShapeLayer) (p.layer)).fillColour = col;
                     }
                 }

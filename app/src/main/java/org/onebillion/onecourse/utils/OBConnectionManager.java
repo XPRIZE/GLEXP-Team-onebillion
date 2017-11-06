@@ -46,71 +46,6 @@ public class OBConnectionManager
         timeStampForConnectionAttempt = -1;
     }
 
-    public String wifiSSID ()
-    {
-        return MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_WIFI_SSID);
-    }
-
-    public String wifiPassword ()
-    {
-        return MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_WIFI_PASSWORD);
-    }
-
-    public void startupConnection (final OBUtils.RunLambdaWithSuccess block)
-    {
-        MainActivity.log("OBConnectionManager.checkForConnection");
-        ConnectivityManager connManager = (ConnectivityManager) MainActivity.mainActivity.getSystemService(MainActivity.CONNECTIVITY_SERVICE);
-        Network networks[] = connManager.getAllNetworks();
-        boolean wifiFoundAndConnected = false;
-        for (Network network : networks)
-        {
-            NetworkInfo info = connManager.getNetworkInfo(network);
-            if (info.getType() == ConnectivityManager.TYPE_WIFI && info.isConnected())
-            {
-                wifiFoundAndConnected = true;
-            }
-        }
-        if (!wifiFoundAndConnected)
-        {
-            OBExpansionManager.sharedManager.connectToWifiDialog();
-            //
-            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-            {
-                @Override
-                public void run () throws Exception
-                {
-                    MainActivity.log("Wifi not connected. Attempting to activate and connect");
-                    // attempt to connect to wifi
-                    connectToNetwork_scanForWifi(wifiSSID(), wifiPassword(), block);
-                }
-            });
-        }
-        else
-        {
-            MainActivity.log("OBConnectionManager.wifi is already setup, continuing.");
-            if (block != null)
-            {
-                try
-                {
-                    MainActivity.log("OBConnectionManager.startupConnection. running completion block");
-                    OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
-                    {
-                        @Override
-                        public void run () throws Exception
-                        {
-                            block.run(true);
-                        }
-                    });
-                }
-                catch (Exception e)
-                {
-                    MainActivity.log("OBConnectionManager.startupConnection.exception caught while running completion block");
-//                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
     public void disconnectWifi ()
     {
         MainActivity.log("OBConnectionManager.disconnectWifi");
@@ -122,17 +57,6 @@ public class OBConnectionManager
         wifiManager.disconnect();
         MainActivity.log("OBConnectionManager.disconnectWifi. Disabling wifi");
         wifiManager.setWifiEnabled(false);
-    }
-
-
-    public Boolean keepWifiOn ()
-    {
-        String keepWifiOn = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_KEEP_WIFI_ON);
-        if (keepWifiOn != null && keepWifiOn.equals("false"))
-        {
-            return false;
-        }
-        return true;
     }
 
 
@@ -183,14 +107,6 @@ public class OBConnectionManager
         return true;
     }
 
-
-    public void disconnectWifiIfAllowed ()
-    {
-        if (!keepWifiOn())
-        {
-            disconnectWifi();
-        }
-    }
 
     public boolean setBluetooth (boolean enable)
     {

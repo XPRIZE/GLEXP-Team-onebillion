@@ -8,6 +8,7 @@ import android.os.BatteryManager;
 
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.oc_numberlines.OC_Numberlines_Additions;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBSystemsManager;
 import org.onebillion.onecourse.utils.OCM_FatController;
 
@@ -74,9 +75,9 @@ public class OBBatteryReceiver extends BroadcastReceiver
             {
                 MainActivity.log("OBBatteryReceiver.onReceive: it is now charging and/or plugged in. Action is required");
                 //
-                if (OBSystemsManager.sharedManager.shouldSendBackupWhenConnected())
+                if (OBConfigManager.sharedManager.isBackupWhenChargingEnabled())
                 {
-                    if (OBSystemsManager.sharedManager.backup_isRequired())
+                    if (OBSystemsManager.sharedManager.isBackupRequired())
                     {
                         MainActivity.log("OBBatteryReceiver.onReceive: Backup is required. Synchronising time and data.");
                         OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTimeAndData();

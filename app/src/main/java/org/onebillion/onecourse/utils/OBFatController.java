@@ -60,9 +60,9 @@ public class OBFatController
 
     public void startUp()
     {
-        MainActivity.mainActivity.updateConfigPaths(MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_APP_CODE), true, null);
+        OBConfigManager.sharedManager.updateConfigPaths(OBConfigManager.sharedManager.getMainFolder(), true);
         //
-        String menuClassName = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MENU_CLASS);
+        String menuClassName = OBConfigManager.sharedManager.getMenuClassName();
         if (menuClassName != null)
         {
             MainActivity.mainViewController.pushViewControllerWithName(menuClassName, false, true, "menu");

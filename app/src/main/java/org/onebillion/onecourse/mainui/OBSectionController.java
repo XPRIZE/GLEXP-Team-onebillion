@@ -146,12 +146,6 @@ public class OBSectionController extends OBViewController
         return objectDict;
     }
 
-
-    static Map<String, Object> Config ()
-    {
-        return MainActivity.mainActivity.Config();
-    }
-
     static float floatOrZero (Map<String, Object> attrs, String s)
     {
         if (attrs.get(s) != null)
@@ -242,12 +236,10 @@ public class OBSectionController extends OBViewController
 
     public static String getLocalPath (String fileName)
     {
-        for (String path : (List<String>) Config().get(MainActivity.CONFIG_AUDIO_SEARCH_PATH))
+        for (String path :OBConfigManager.sharedManager.getAudioSearchPaths())
         {
             String fullPath = OBUtils.stringByAppendingPathComponent(path, fileName);
             if (OBUtils.fileExistsAtPath(fullPath)) return fullPath;
-//            if (OBUtils.fileExistsAtPath(fullPath))
-//                return fullPath;
         }
         return null;
     }
@@ -331,7 +323,7 @@ public class OBSectionController extends OBViewController
 
     public String getConfigPath (String cfgName)
     {
-        for (String path : (List<String>) Config().get(MainActivity.CONFIG_CONFIG_SEARCH_PATH))
+        for (String path : OBConfigManager.sharedManager.getConfigSearchPaths())
         {
             String fullPath = OBUtils.stringByAppendingPathComponent(path, cfgName);
             Boolean fileExists = OBUtils.fileExistsAtPath(fullPath);
@@ -339,8 +331,6 @@ public class OBSectionController extends OBViewController
             {
                 return fullPath;
             }
-//            if (OBUtils.fileExistsAtPath(fullPath))
-//                return fullPath;
         }
         return null;
     }
@@ -609,7 +599,7 @@ public class OBSectionController extends OBViewController
             int skinOffset = 0;
             if (attrs.get("skinoffset") != null)
                 skinOffset = Integer.parseInt((String) attrs.get("skinoffset"));
-            int skincol = OBUtils.SkinColour(OBUtils.SkinColourIndex() + skinOffset);
+            int skincol = OBConfigManager.sharedManager.getSkinColour(skinOffset);
             if (im == null)
             {
                 MainActivity.log("ERROR --> null object with name " + srcname);
@@ -877,7 +867,7 @@ public class OBSectionController extends OBViewController
 
     public float graphicScale ()
     {
-        return (Float) (Config().get(MainActivity.mainActivity.CONFIG_GRAPHIC_SCALE));
+        return OBConfigManager.sharedManager.getGraphicScale();
     }
 
     public List<OBControl> loadEvent (String eventID)
@@ -1498,7 +1488,7 @@ public class OBSectionController extends OBViewController
                 {
                     OBGroup arm = MainActivity.mainActivity.armPointer();
                     arm.setZPosition(POINTER_ZPOS);
-                    float graphicScale = MainActivity.mainActivity.applyGraphicScale(1);
+                    float graphicScale = OBConfigManager.sharedManager.getGraphicScale();
                     arm.scaleX = arm.scaleY = graphicScale;
                     arm.texturise(false, vc);
                     thePointer = arm;

@@ -18,6 +18,7 @@ import org.onebillion.onecourse.utils.MlUnit;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimBlock;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBImageManager;
 import org.onebillion.onecourse.utils.OBSystemsManager;
 import org.onebillion.onecourse.utils.OBUtils;
@@ -188,7 +189,7 @@ public class OC_LoopMenu extends OC_Menu implements OC_FatReceiver
         lockScreen();
 
         String imgName = String.format("%s", unit.icon);
-        String mlname = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_MASTER_LIST);
+        String mlname = OBConfigManager.sharedManager.getMasterlist();
         //
         if (OBImageManager.sharedImageManager().getImgPath(imgName) != null)
             bigIcon = loadImageWithName(imgName, new PointF(0, 0), new RectF(bounds()));

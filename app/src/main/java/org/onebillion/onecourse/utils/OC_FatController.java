@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.onebillion.onecourse.mainui.MainActivity.Config;
 import static org.onebillion.onecourse.mainui.OBViewController.MainViewController;
 
 /**
@@ -73,23 +72,9 @@ public class OC_FatController extends OBFatController
     public int buttonFlags()
     {
         int result = OBMainViewController.SHOW_TOP_RIGHT_BUTTON | OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON | OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON;
-        if (showBackButton())
+        if (OBConfigManager.sharedManager.shouldShowBackArrow())
             result = result | OBMainViewController.SHOW_TOP_LEFT_BUTTON;
         return result;
-    }
-
-
-    private boolean showTestMenu()
-    {
-        String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SHOW_TEST_MENU);
-        return (value != null && value.equalsIgnoreCase("true"));
-    }
-
-
-    private boolean showBackButton()
-    {
-        String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SHOW_BACK_BUTTON);
-        return (value != null && value.equalsIgnoreCase("true"));
     }
 
     public long getCurrentTime()
@@ -104,7 +89,7 @@ public class OC_FatController extends OBFatController
         {
             db = new DBSQL(true);
             String token = OBPreferenceManager.getStringPreference(OBPreferenceManager.PREFERENCE_ML_TOKEN, db);
-            String mlname = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_MASTER_LIST);
+            String mlname = OBConfigManager.sharedManager.getMasterlist();
             //
             MainActivity.log("OC_FatController:loadMasterListIntoDB:masterlist name [" + mlname + "]");
             //
@@ -291,14 +276,14 @@ public class OC_FatController extends OBFatController
         // initial setup
         try
         {
-            sessionTimeout = MainActivity.mainActivity.configIntForKey(MainActivity.CONFIG_SESSION_TIMEOUT);
-            unitAttemptsCount = MainActivity.mainActivity.configIntForKey(MainActivity.CONFIG_UNIT_TIMEOUT_COUNT);
-            String disallowHours = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_DISALLOW_HOURS);
+            sessionTimeout = OBConfigManager.sharedManager.getFatControllerSessionTimeoutInSeconds();
+            unitAttemptsCount = OBConfigManager.sharedManager.getFatControllerMaxUnitAttempts();
+            String disallowHours = OBConfigManager.sharedManager.getFatControllerNightModeHours();
             String[] disallowArray = disallowHours.split(",");
             disallowStartHour = Integer.valueOf(disallowArray[0]);
             disallowEndHour = Integer.valueOf(disallowArray[1]);
-            allowsTimeOuts = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_ALLOWS_TIMEOUT);
-            showUserName = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_SHOW_USER_NAME);
+            allowsTimeOuts = OBConfigManager.sharedManager.isFatControllerSessionTimeoutEnabled();
+            showUserName = OBConfigManager.sharedManager.shouldFatControllerShowUserName();
         }
         catch (Exception e)
         {
@@ -316,17 +301,16 @@ public class OC_FatController extends OBFatController
         prepareAlarm();
         //
         // Setup screen
-        Boolean usesSetupMenu = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_USES_SETUP_MENU);
+        Boolean usesSetupMenu = OBConfigManager.sharedManager.isSetupMenuEnabled();
         Boolean isSetupComplete = OBPreferenceManager.getBooleanPreference(OBPreferenceManager.PREFERENCES_SETUP_COMPLETE);
         //
         if (usesSetupMenu && !isSetupComplete)
         {
             // before overriding the app_code save it in the preferences to restore after setup is complete
-            OBPreferenceManager.setPreference("originalAppCode", MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_APP_CODE));
-//            MainActivity.mainActivity.addToPreferences("originalAppCode", MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_APP_CODE));
-            MainActivity.mainActivity.updateConfigPaths(MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SETUP_FOLDER), true, null);
+            OBPreferenceManager.setPreference("originalAppCode", OBConfigManager.sharedManager.getMainFolder());
+            OBConfigManager.sharedManager.updateConfigPaths(OBConfigManager.sharedManager.getSetupMenuFolder(), true);
             //
-            String setupClassName = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SETUP_CLASS);
+            String setupClassName = OBConfigManager.sharedManager.getSetupMenuClassName();
             if (setupClassName != null)
             {
                 MainActivity.mainViewController.pushViewControllerWithName(setupClassName, false, true, "menu");
@@ -337,7 +321,7 @@ public class OC_FatController extends OBFatController
             // setup is now complete: continue as usual
             continueFromLastUnit();
             //
-            if (showTestMenu())
+            if (OBConfigManager.sharedManager.shouldShowTestMenu())
             {
                 MainViewController().pushViewControllerWithName("OC_TestMenu", false, false, "menu");
             }
@@ -348,11 +332,11 @@ public class OC_FatController extends OBFatController
 //                String originalAppCode = MainActivity.mainActivity.getPreferences("originalAppCode");
                 if (originalAppCode != null)
                 {
-                    MainActivity.mainActivity.updateConfigPaths(originalAppCode, true, null);
+                    OBConfigManager.sharedManager.updateConfigPaths(originalAppCode, true);
                 }
                 //
-                String menuClassName = MainActivity.mainActivity.configStringForKey (MainActivity.CONFIG_MENU_CLASS);
-                String appCode = MainActivity.mainActivity.configStringForKey (MainActivity.CONFIG_APP_CODE);
+                String menuClassName = OBConfigManager.sharedManager.getMenuClassName();
+                String appCode = OBConfigManager.sharedManager.getMainFolder();
                 //
                 MainActivity.log("OC_FatController:startUp: pushing view controller [%s] [%s]", menuClassName, appCode);
                 //
@@ -764,7 +748,7 @@ public class OC_FatController extends OBFatController
 
     public void startSectionByUnitNoUser(final MlUnit unit)
     {
-        final String lastAppCode = (String)MainActivity.mainActivity.config.get(MainActivity.CONFIG_APP_CODE);
+        final String lastAppCode = OBConfigManager.sharedManager.getMainFolder();
         currentUnitInstance = null;
         //
         new OBRunnableSyncUI()
@@ -774,7 +758,7 @@ public class OC_FatController extends OBFatController
             {
                 try
                 {
-                    MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
+                    OBConfigManager.sharedManager.updateConfigPaths(unit.config, false, unit.lang);
                     if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
                         if (currentUnitInstance != null)
@@ -785,10 +769,10 @@ public class OC_FatController extends OBFatController
                     }
                     else
                     {
-                        if (MainActivity.mainActivity.isDebugMode())
+                        if (OBConfigManager.sharedManager.isDebugEnabled())
                         {
                             Toast.makeText(MainActivity.mainActivity, unit.target + " hasn't been converted to Android yet.", Toast.LENGTH_LONG).show();
-                            MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                            OBConfigManager.sharedManager.updateConfigPaths(lastAppCode, false);
                         }
                     }
                 }
@@ -797,7 +781,7 @@ public class OC_FatController extends OBFatController
                     Logger logger = Logger.getAnonymousLogger();
                     logger.log(Level.SEVERE, "Error in runOnMainThread", exception);
 
-                    MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                    OBConfigManager.sharedManager.updateConfigPaths(lastAppCode, false);
                 }
             }
         }.run();
@@ -808,7 +792,7 @@ public class OC_FatController extends OBFatController
     public void startSectionByUnit(final MlUnit unit)
     {
         sectionStartedWithUnit(unit);
-        final String lastAppCode = (String)MainActivity.mainActivity.config.get(MainActivity.CONFIG_APP_CODE);
+        final String lastAppCode = OBConfigManager.sharedManager.getMainFolder();
 
         new OBRunnableSyncUI()
         {
@@ -817,8 +801,7 @@ public class OC_FatController extends OBFatController
             {
                 try
                 {
-                    MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
-                    //if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OC_TestEvent","oc-childmenu",true,true,"test"))
+                    OBConfigManager.sharedManager.updateConfigPaths(unit.config, false, unit.lang);
                     if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
                         currentUnitInstance.sectionController = MainViewController().topController();
@@ -826,10 +809,10 @@ public class OC_FatController extends OBFatController
                     }
                     else
                     {
-                        if (MainActivity.mainActivity.isDebugMode())
+                        if (OBConfigManager.sharedManager.isDebugEnabled())
                         {
                             Toast.makeText(MainActivity.mainActivity, unit.target + " hasn't been converted to Android yet.", Toast.LENGTH_LONG).show();
-                            MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                            OBConfigManager.sharedManager.updateConfigPaths(lastAppCode, false);
                         }
                     }
                 }
@@ -838,7 +821,7 @@ public class OC_FatController extends OBFatController
                     Logger logger = Logger.getAnonymousLogger();
                     logger.log(Level.SEVERE, "Error in runOnMainThread", exception);
 
-                    MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                    OBConfigManager.sharedManager.updateConfigPaths(lastAppCode, false);
                 }
             }
         }.run();

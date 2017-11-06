@@ -6,6 +6,7 @@ import android.view.View;
 
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBViewController;
+import org.onebillion.onecourse.utils.OBConfigManager;
 
 /**
  * Created by alan on 02/05/16.
@@ -23,7 +24,7 @@ public class OBGLView extends GLSurfaceView
             public void onLayoutChange(View v, int left, int top, int right, int bottom, int
                     oldLeft, int oldTop, int oldRight, int oldBottom)
             {
-                MainActivity.mainActivity.updateGraphicScale(right-left,bottom-top);
+                OBConfigManager.sharedManager.updateGraphicScale(right-left,bottom-top);
             }
         });
     }

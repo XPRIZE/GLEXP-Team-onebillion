@@ -198,7 +198,7 @@ public class OC_Sorting_S6 extends OC_SectionController
     void animateSelected(OBControl targ)
     {
         OBAnimationGroup grp = new OBAnimationGroup();
-        float amt = MainActivity.mainActivity.applyGraphicScale(10);
+        float amt = applyGraphicScale(10);
         PointF pt = new PointF(targ.position().x,targ.position().y);
         PointF rpt = OB_Maths.OffsetPoint(targ.position(),amt,0);
         PointF lpt = OB_Maths.OffsetPoint(targ.position(),-amt,0);

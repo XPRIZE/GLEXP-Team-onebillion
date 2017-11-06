@@ -7,14 +7,13 @@ import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.mainui.generic.OC_Generic_Event;
+import org.onebillion.onecourse.utils.OBConfigManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 
-import static org.onebillion.onecourse.utils.OBUtils.PresenterColourIndex;
-import static org.onebillion.onecourse.utils.OBUtils.SkinColour;
 
 /**
  * Created by pedroloureiro on 09/05/2017.
@@ -71,7 +70,7 @@ public class OC_Sharing_S4 extends OC_Generic_Event
         int skinColourOffset = 0;
         for (OBGroup control : (List<OBGroup>) (Object) filterControls("object.*"))
         {
-            int childColour = SkinColour(PresenterColourIndex() + skinColourOffset++);
+            int childColour = OBConfigManager.sharedManager.getSkinColour(skinColourOffset++);
             control.substituteFillForAllMembers("colour.*", childColour);
         }
     }

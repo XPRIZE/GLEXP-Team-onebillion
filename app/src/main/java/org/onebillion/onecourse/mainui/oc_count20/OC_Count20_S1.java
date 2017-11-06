@@ -9,6 +9,7 @@ import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OC_SectionController;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OBUtils;
 
@@ -35,7 +36,7 @@ public class OC_Count20_S1 extends OC_SectionController
         String[] eva = ((String)eventAttributes.get("scenes")).split(",");
         events = Arrays.asList(eva);
         float textSize = Float.parseFloat(eventAttributes.get("textsize"));
-        textSize = MainActivity.mainActivity.applyGraphicScale(textSize);
+        textSize = OBConfigManager.sharedManager.applyGraphicScale(textSize);
         Typeface tf = OBUtils.standardTypeFace();
         OBLabel txt = new OBLabel("20",tf,textSize);
         txt.setColour(Color.BLACK);

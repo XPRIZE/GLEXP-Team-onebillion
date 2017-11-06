@@ -8,6 +8,7 @@ import android.util.Log;
 
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
+import org.onebillion.onecourse.utils.OBConfigManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -119,7 +120,7 @@ public class OBRenderer implements GLSurfaceView.Renderer
         glViewport(0, 0, width, height);
         w = width;
         h = height;
-        MainActivity.mainActivity.updateGraphicScale(w, h);
+        OBConfigManager.sharedManager.updateGraphicScale(w, h);
     }
 
     /**

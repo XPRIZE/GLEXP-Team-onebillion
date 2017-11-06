@@ -5,6 +5,7 @@ import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
+import org.onebillion.onecourse.utils.OBConfigManager;
 
 import java.util.List;
 import java.util.Map;
@@ -20,11 +21,9 @@ public class OC_Menu extends OC_SectionController
     public void prepare()
     {
         super.prepare();
-        saveConfig = (String)Config().get(MainActivity.CONFIG_APP_CODE);
-        if(Config().get(MainActivity.CONFIG_LANGUAGE) != null)
-            saveLanguage = (String)Config().get(MainActivity.CONFIG_LANGUAGE);
-        else
-            saveLanguage = null;
+        saveConfig = OBConfigManager.sharedManager.getMainFolder();
+        saveLanguage = OBConfigManager.sharedManager.getCurrentLanguage();
+        //
         loadEvent("main");
         for (OBControl but : filterControls("but.*"))
             if (but instanceof OBGroup)
@@ -63,7 +62,9 @@ public class OC_Menu extends OC_SectionController
         for (OBControl c : filterControls("button.*"))
             c.lowlight();
         if (saveConfig != null)
-            MainActivity.mainActivity.updateConfigPaths(saveConfig,false,saveLanguage);
+        {
+            OBConfigManager.sharedManager.updateConfigPaths(saveConfig, false, saveLanguage);
+        }
         //setButtons();
     }
 
@@ -102,16 +103,13 @@ public class OC_Menu extends OC_SectionController
                 String configName = (String)attrs.get("config");
                 if (configName == null)
                 {
-                    String appDir = (String) Config().get("app_code");
+                    String appDir = OBConfigManager.sharedManager.getMainFolder();
                     String[] comps = appDir.split("/");
                     configName = comps[0];
                 }
                 else
                 {
-                    if (lang == null)
-                        MainActivity.mainActivity.updateConfigPaths(configName, false);
-                    else
-                        MainActivity.mainActivity.updateConfigPaths(configName, false,lang);
+                    OBConfigManager.sharedManager.updateConfigPaths(configName, false,lang);
                 }
                 if (!MainActivity.mainViewController.pushViewControllerWithNameConfig(target,configName,true,true,parm))
                     setStatus(STATUS_IDLE);

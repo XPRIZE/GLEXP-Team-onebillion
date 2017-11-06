@@ -20,6 +20,7 @@ import org.onebillion.onecourse.controls.OBVideoPlayer;
 import org.onebillion.onecourse.glstuff.OBRenderer;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBImageManager;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OBXMLManager;
@@ -213,10 +214,10 @@ public class OC_JMenu extends OC_Menu
     public void prepare()
     {
         super.prepare();
-        languages = (List<String>)Config().get("languages");
-        languageNames = (List<String>)Config().get("languagenames");
+        languages = OBConfigManager.sharedManager.getArrayValue("languages");
+        languageNames = OBConfigManager.sharedManager.getArrayValue("languagenames");
         loadMasterList(languages.get(0));
-        saveConfig = (String)Config().get(MainActivity.CONFIG_APP_CODE);
+        saveConfig = OBConfigManager.sharedManager.getMainFolder();
         loadEvent("mastera");
         tabTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("tabtextsize")));
         subheadtextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("subheadtextsize")));
@@ -1307,12 +1308,12 @@ public class OC_JMenu extends OC_Menu
             String configName = (String) c.propertyValue("config");
             if (configName == null)
             {
-                String appDir = (String) Config().get("app_code");
+                String appDir = OBConfigManager.sharedManager.getMainFolder();
                 String[] comps = appDir.split("/");
                 configName = comps[0];
             }
             else
-                MainActivity.mainActivity.updateConfigPaths(configName, false,languageName);
+                OBConfigManager.sharedManager.updateConfigPaths(configName, false,languageName);
             if (!MainActivity.mainViewController.pushViewControllerWithNameConfig(target, configName, true, true, parm))
                 setStatus(STATUS_IDLE);
 

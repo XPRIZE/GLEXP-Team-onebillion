@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import org.onebillion.onecourse.R;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBXMLNode;
 
 /**
@@ -46,7 +47,7 @@ public class OBUnitAdapter extends ArrayAdapter<OBXMLNode>
                     String target = xmlNode.attributeStringValue("target");
                     String parameters = xmlNode.attributeStringValue("params");
                     String config = xmlNode.attributeStringValue("config");
-                    MainActivity.mainActivity.updateConfigPaths(config, false);
+                    OBConfigManager.sharedManager.updateConfigPaths(config, false);
                     String className = config.replace("-", "_") + "." + target;
                     sectionController.MainViewController().pushViewControllerWithName(className, true, false, parameters);
                 }

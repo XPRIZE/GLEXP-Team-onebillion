@@ -142,12 +142,13 @@ public class OBWord extends OBSyllable
 
     public static String locationInSameDirectory(String item1,String item2)
     {
-        String p1 = OBSectionController.getLocalPath(String.format("%s.%s", item1,  MainActivity.Config().get(MainActivity.CONFIG_AUDIO_SUFFIX)));
+        List<String> audioExtensions = OBConfigManager.sharedManager.getAudioExtensions();
+        String p1 = OBSectionController.getLocalPath(String.format("%s.%s", item1,  audioExtensions.get(0)));
         if (p1 == null)
         {
             return null;
         }
-        String p2 = OBSectionController.getLocalPath(String.format("%s.%s",item2,  MainActivity.Config().get(MainActivity.CONFIG_AUDIO_SUFFIX)));
+        String p2 = OBSectionController.getLocalPath(String.format("%s.%s",item2,  audioExtensions.get(0)));
         if (p2 == null)
         {
             return null;

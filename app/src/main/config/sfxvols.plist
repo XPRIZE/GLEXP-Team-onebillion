@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>trumpet</key>
+	<string>0.3</string>
+	<key>wrong</key>
+	<string>0.7</string>
+	<key>cf_bigsplash</key>
+	<string>0.3</string>
+	<key>cf_short_slide_2</key>
+	<string>1.25</string>
+	<key>ripple_click_1</key>
+	<string>0.4</string>
+</dict>
+</plist>

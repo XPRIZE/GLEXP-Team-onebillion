@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>image_suffix</key>
+	<array>
+		<string>png</string>
+		<string>jpg</string>
+	</array>
+	<key>audio_suffix</key>
+	<string>m4a</string>
+	<key>gen_code</key>
+	<string>oc-gen</string>
+	<key>pointers</key>
+	<array>
+		<string>pointer1BotLeft</string>
+		<string>pointer1BotRight</string>
+		<string>pointer1Left</string>
+		<string>pointer1Middle</string>
+		<string>pointer1Right</string>
+	</array>
+	<key>pointercoords</key>
+	<array>
+		<string>{0.0453,0.9342}</string>
+		<string>{0.9647,0.9159}</string>
+		<string>{0.023,0.119}</string>
+		<string>{0.5,0.0031}</string>
+		<string>{0.977,0.1276}</string>
+	</array>
+	<key>pointerstartpoints</key>
+	<array>
+		<string>{1,0}</string>
+		<string>{0,0}</string>
+		<string>{1,1}</string>
+		<string>{0.5,1.0}</string>
+		<string>{0,1}</string>
+	</array>
+	<key>colours</key>
+	<array>
+		<string>139,211,43</string>
+		<string>255,170,0</string>
+		<string>236,0,140</string>
+		<string>0,174,239</string>
+		<string>146,39,143</string>
+		<string>237,20,91</string>
+		<string>0,104,55</string>
+	</array>
+	<key>skincolours</key>
+	<array>
+		<string>251,234,209</string>
+		<string>240,208,180</string>
+		<string>236,193,156</string>
+		<string>223,178,139</string>
+		<string>207,158,118</string>
+		<string>185,135,103</string>
+		<string>173,118,77</string>
+		<string>158,100,60</string>
+		<string>150,100,75</string>
+		<string>140,89,68</string>
+	</array>
+	<key>skincolour</key>
+	<integer>7</integer>
+	<key>clothcolour</key>
+	<string>177,33,254</string>
+	<key>staraudio</key>
+	<string>trumpet</string>
+
+	<!-- L A N G U A G E   S E T T I N G S -->
+	<key>language</key>
+    <string>en_GB</string>
+    <key>defaultlanguage</key>
+    <string>en_GB</string>
+
+	<!-- A P P   S P E C I F I C   S E T T I N G S  -->
+		<key>app_code</key>
+    <string>oc-setupMenu</string>
+    <key>menuclass</key>
+    <string>OBSetupMenu</string>
+
+    <!-- S E T U P   S E T T I N G S -->
+		<key>usesSetupMenu</key>
+		<string>true</string>
+    <key>setupFolder</key>
+    <string>oc-setup</string>
+    <key>setupClass</key>
+    <string>OBSetupMenu</string>
+
+		<!-- T I M E   S E R V E R   S E T T I N G S  -->
+		<key>timeServerWifiSSID</key>
+		<string>XPRIZE</string>
+		<key>timeServerWifiPassword</key>
+		<string></string>
+		<key>timeServerURL</key>
+		<string>192.168.0.1</string>
+
+    <!-- F A T C O N T R O L L E R   A N D   M A S T E R L I S T -->
+    <key>fatcontrollerclass</key>
+    <string>OC_FatController</string>
+    <key>masterlist</key>
+    <string>child_enGB</string>
+
+
+    <!-- E X P A N S I O N   M A N A G E M E N T -->
+    <key>expansionSearchForUpdates</key>
+    <string>false</string>
+    <key>expansionURL</key>
+    <string>http://ting.onebillion.org:5007/obb/</string>
+    <key>obbPassword</key>
+    <string>4asterix</string>
+    <key>bundledOBBFilename</key>
+    <string>assets.obb</string>
+
+
+    <!-- D E B U G  -->
+    <key>debug</key>
+    <string>true</string>
+    <key>showTestMenu</key>
+    <string>false</string>
+    <key>showBackButton</key>
+    <string>false</string>
+    <key>checkForDisabledScanning</key>
+    <string>false</string>
+    <key>checkForDisabledLocationServices</key>
+    <string>false</string>
+
+
+    <!-- A S S E T S   V E R I F I C A T I O N   M A N A G E M E N T -->
+    <key>checksumVerification</key>
+    <string>false</string>
+
+
+    <!-- B R I G H T N E S S   A D J U S T M E N T -->
+    <key>usesBrightnessAdjustment</key>
+    <string>true</string>
+    <key>brightnessCheckInterval</key>
+    <string>300</string>
+    <key>defaultMaxBrightness</key>
+    <string>0.6</string>
+    <key>defaultScreenMaxTimeout</key>
+    <string>900</string>
+
+
+    <!-- D A T E   T I M E   A D J U S T M E N T  -->
+    <key>showDateTimeSettings</key>
+    <string>false</string>
+
+
+    <!-- A D M I N I S T R A T O R   S E T T I N G S  -->
+    <key>enableAdministratorServices</key>
+    <string>true</string>
+    <key>requestDeviceOwner</key>
+    <string>true</string>
+    <key>pinApplication</key>
+    <string>true</string>
+    <key>restartAfterCrash</key>
+    <string>false</string>
+    <key>hideNavigationBar</key>
+    <string>false</string>
+
+
+    <!-- W I F I   S E T T I N G S -->
+    <key>connectToWifiOnStartup</key>
+    <string>false</string>
+    <key>keepWifiOn</key>
+    <string>true</string>
+    <key>wifiSSID</key>
+    <string>oneclass</string>
+    <key>wifiPassword</key>
+    <string>oneclasslearningcentre</string>
+
+
+    <!-- B A C K U P   M A N A G E M E N T -->
+    <key>backupSendWhenConnected</key>
+    <string>false</string>
+    <key>backupWifi</key>
+    <string>XPRIZE</string>
+    <key>backupURL</key>
+    <string>192.168.0.1</string>
+    <key>backupInterval</key>
+    <string>900</string>
+
+
+    <!-- V O L U M E   M A N A G E M E N T -->
+    <key>minimumAudioVolume</key>
+    <string>10</string>
+
+
+    <!-- F A T   C O N T R O L L E R   M A N A G E M E N T -->
+    <key>sessionTimeout</key>
+    <integer>0</integer>
+    <key>unitAttemptsCount</key>
+    <integer>3</integer>
+    <key>disallowHours</key>
+    <string>0,0</string>
+    <key>allowsTimeout</key>
+    <string>false</string>
+
+
+    <!-- B A T T E R Y   M A N A G E M E N T -->
+    <key>usesBatteryManagement</key>
+    <string>true</string>
+    <key>batteryLevels</key>
+    <dict>
+        <key>normal</key>
+        <dict>
+						<key>maxBatteryValue</key>
+						<string>100</string>
+            <key>minBatteryValue</key>
+            <string>35</string>
+            <key>maxBrightness</key>
+            <string>0.6</string>
+            <key>screenMaxTimeout</key>
+            <string>20</string>
+            <key>chargeBatteryReminder</key>
+            <string>false</string>
+            <key>chargeBatteryReminderInterval</key>
+            <string>0</string>
+            <key>showBatteryLockScreen</key>
+            <string>false</string>
+        </dict>
+        <!-- -->
+        <key>low</key>
+        <dict>
+						<key>maxBatteryValue</key>
+						<string>35</string>
+            <key>minBatteryValue</key>
+            <string>15</string>
+            <key>maxBrightness</key>
+            <string>0.4</string>
+            <key>screenMaxTimeout</key>
+            <string>5</string>
+            <key>chargeBatteryReminder</key>
+            <string>true</string>
+            <key>chargeBatteryReminderInterval</key>
+            <string>5</string>
+            <key>showBatteryLockScreen</key>
+            <string>false</string>
+        </dict>
+        <!-- -->
+        <key>critical</key>
+        <dict>
+						<key>maxBatteryValue</key>
+						<string>15</string>
+            <key>minBatteryValue</key>
+            <string>0</string>
+            <key>maxBrightness</key>
+            <string>0.2</string>
+            <key>screenMaxTimeout</key>
+            <string>1</string>
+            <key>chargeBatteryReminder</key>
+            <string>false</string>
+            <key>chargeBatteryReminderInterval</key>
+            <string>0</string>
+            <key>showBatteryLockScreen</key>
+            <string>true</string>
+        </dict>
+    </dict>
+</dict>
+</plist>

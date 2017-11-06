@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,8 +42,6 @@ import org.onebillion.onecourse.controls.OBTextLayer;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
 
-import static org.onebillion.onecourse.mainui.MainActivity.CONFIG_GRAPHIC_SCALE;
-import static org.onebillion.onecourse.mainui.MainActivity.Config;
 
 public class OBUtils
 {
@@ -89,20 +86,43 @@ public class OBUtils
 
     public static Boolean assetsDirectoryExists (String path)
     {
+        // check in bundled assets
         AssetManager am = MainActivity.mainActivity.getAssets();
         try
         {
             String files[] = am.list(path);
+            return true;
         }
         catch (IOException e)
         {
-            return false;
+            // do nothing
         }
-        return true;
+        //
+        // check if it's in the external assets
+        for (File externalDir : OBConfigManager.sharedManager.getExternalAssetsSearchPaths())
+        {
+            try
+            {
+                String externalDirPath = externalDir.getPath();
+                if (!externalDirPath.endsWith("/")) externalDirPath = externalDirPath + "/";
+                //
+                File externalAssetPath = new File(externalDirPath + path);
+                //
+                Boolean fileExists = externalAssetPath.exists();
+                return fileExists;
+            }
+            catch (Exception e)
+            {
+                // do nothing
+            }
+        }
+        //
+        return false;
     }
 
     public static List<String> filesAtPath (String path)
     {
+        // check in bundled assets
         AssetManager am = MainActivity.mainActivity.getAssets();
         try
         {
@@ -114,59 +134,43 @@ public class OBUtils
         }
         catch (IOException e)
         {
+            // do nothing
+        }
+        //
+        // check in external assets
+        for (File externalDir : OBConfigManager.sharedManager.getExternalAssetsSearchPaths())
+        {
+            try
+            {
+                String externalDirPath = externalDir.getPath();
+                if (!externalDirPath.endsWith("/")) externalDirPath = externalDirPath + "/";
+                //
+                File externalAssetPath = new File(externalDirPath + path);
+                //
+                Boolean fileExists = externalAssetPath.exists();
+                if (fileExists)
+                {
+                    String lst[] = externalAssetPath.list();
+                    if (lst != null)
+                    {
+                        return Arrays.asList(lst);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                // do nothing
+            }
         }
         return Collections.emptyList();
     }
 
-//    public static Boolean fileExistsAtPath (String path)
-//    {
-//        AssetManager am = MainActivity.mainActivity.getAssets();
-//        try
-//        {
-//            InputStream pis = am.open(path);
-//            return (pis != null);
-//        }
-//        catch (IOException e)
-//        {
-//            //e.printStackTrace();
-//        }
-//        return false;
-//    }
 
 
     public static Boolean fileExistsAtPath (String path)
     {
         Boolean result = getInputStreamForPath(path) != null;
         return result;
-        /*
-        try
-        {
-            AssetManager am = MainActivity.mainActivity.getAssets();
-            InputStream is = am.open(path);
-            return (is != null);
-        }
-        catch (IOException e)
-        {
-//            Log.v("fileExistsAtPath", "unable to find asset in bundled assets " + path);
-        }
-        //
-        for (File mounted : OBExpansionManager.sharedManager.getExternalExpansionFolders())
-        {
-            try
-            {
-                File extendedFile = new File(mounted.getAbsolutePath() + "/" + path);
-                Boolean fileExists = extendedFile.exists();
-                return fileExists;
-            }
-            catch (Exception e)
-            {
-//                Log.v("getFilePathInAssets", "exception caught " + e.toString());
-//                e.printStackTrace();
-            }
-        }
-        //
-        return false;
-        */
     }
 
 
@@ -182,19 +186,7 @@ public class OBUtils
         }
         catch (IOException e)
         {
-//             e.printStackTrace();
-        }
-        for (File mounted : OBExpansionManager.sharedManager.getExternalExpansionFolders())
-        {
-            try
-            {
-                File extendedFile = new File(mounted.getAbsolutePath() + "/" + path);
-                if (extendedFile.exists()) return extendedFile.getAbsolutePath();
-            }
-            catch (Exception e)
-            {
-//                e.printStackTrace();
-            }
+            // do nothing
         }
         return null;
     }
@@ -205,6 +197,7 @@ public class OBUtils
     {
         if (path == null) return null;
         //
+        // Look into bundled assets
         try
         {
             InputStream is = MainActivity.mainActivity.getAssets().open(path);
@@ -212,37 +205,33 @@ public class OBUtils
         }
         catch (Exception e)
         {
-            // Do nothing
+            // do nothing
         }
         //
-        for (File mounted : OBExpansionManager.sharedManager.getExternalExpansionFolders())
+        // check if path exists at external assets
+        for (File externalDir : OBConfigManager.sharedManager.getExternalAssetsSearchPaths())
         {
-            String extendedPath = mounted.getAbsolutePath() + "/" + path;
-            //
-            //MainActivity.log("OBUtils:getInputStreamForPath:looking for [" + extendedPath + "]");
-            //
             try
             {
-                File file = new File(extendedPath);
-                Boolean fileExists = file.exists();
+                String externalDirPath = externalDir.getPath();
+                if (!externalDirPath.endsWith("/")) externalDirPath = externalDirPath + "/";
+                //
+                File externalAssetPath = new File(externalDirPath + path);
+                //
+                Boolean fileExists = externalAssetPath.exists();
                 if (fileExists)
                 {
-                    //MainActivity.log("OBUtils:getInputStreamPath:found external/expansion asset: " + extendedPath);
-                    InputStream is = new FileInputStream(file);
+                    InputStream is = new FileInputStream(externalAssetPath);
                     return is;
-                }
-                else
-                {
-                    //MainActivity.log("OBUtils:getInputStreamPath:unable to find external/expansion asset: " + extendedPath);
                 }
             }
             catch (Exception e)
             {
-                //MainActivity.log("OBUtils:getInputStreamPath:unable to find external/expansion asset: " + extendedPath);
-                //e.printStackTrace();
+                // do nothing
             }
         }
         //
+        // check if path points to literal file
         try
         {
             File file = new File(path);
@@ -255,11 +244,9 @@ public class OBUtils
         }
         catch (Exception e)
         {
-            //MainActivity.log("OBUtils:getInputStreamPath:unable to find literal path asset: " + path);
-            //e.printStackTrace();
+            // do nothing
         }
         //
-        //MainActivity.log("OBUtils:getInputStreamForPath:unable to find file [" + path + "]");
         return null;
     }
 
@@ -275,37 +262,46 @@ public class OBUtils
         }
         catch (IOException e)
         {
-//            MainActivity.log("OBUtils.getAssetFileDescriptor. unable to find asset in bundled assets " + path);
+            // do nothing
         }
-        // attempt to get from external assets
-        for (File mounted : OBExpansionManager.sharedManager.getExternalExpansionFolders())
+        //
+        // check if path exists at external assets
+        for (File externalDir : OBConfigManager.sharedManager.getExternalAssetsSearchPaths())
         {
-            File extendedFile = new File(mounted.getAbsolutePath() + "/" + path);
-            Uri uri = Uri.fromFile(extendedFile);
             try
             {
+                String externalDirPath = externalDir.getPath();
+                if (!externalDirPath.endsWith("/")) externalDirPath = externalDirPath + "/";
+                //
+                File externalAssetPath = new File(externalDirPath + path);
+                Uri uri = Uri.fromFile(externalAssetPath);
                 AssetFileDescriptor fd = MainActivity.mainActivity.getContentResolver().openAssetFileDescriptor(uri, "r");
                 return fd;
             }
-            catch (IOException e)
+            catch (Exception e)
             {
-//                MainActivity.log("OBUtils.getAssetFileDescriptor. unable to find asset in downloaded assets " + path);
+                // do nothing
             }
         }
+        //
+        // check if path points to literal file
         try
         {
             File extendedFile = new File(path);
             Uri uri = Uri.fromFile(extendedFile);
-            //
             AssetFileDescriptor fd = MainActivity.mainActivity.getContentResolver().openAssetFileDescriptor(uri, "r");
             return fd;
         }
         catch (Exception e)
         {
-//            MainActivity.log("OBUtils.getAssetFileDescriptor. unable to find asset with path " + path);
+            // do nothing
         }
         return null;
     }
+
+
+
+
 
 
     public static void getFloatColour (int col, float outcol[])
@@ -435,9 +431,8 @@ public class OBUtils
 
     public static InputStream getConfigStream (String cfgName)
     {
-        Map<String, Object> config = MainActivity.mainActivity.config;
-        @SuppressWarnings("unchecked")
-        List<String> searchPaths = (List<String>) config.get(MainActivity.CONFIG_CONFIG_SEARCH_PATH);
+        List<String> searchPaths = OBConfigManager.sharedManager.getConfigSearchPaths();
+        //
         AssetManager am = MainActivity.mainActivity.getAssets();
         for (String path : searchPaths)
         {
@@ -458,7 +453,7 @@ public class OBUtils
     public static OBImage buttonFromImageName (String imageName)
     {
         OBImage im = OBImageManager.sharedImageManager().imageForName(imageName);
-        float imageScale = MainActivity.mainActivity.configFloatForKey(CONFIG_GRAPHIC_SCALE);
+        float imageScale = OBConfigManager.sharedManager.getGraphicScale();
         im.setScale(imageScale);
         return im;
     }
@@ -466,28 +461,11 @@ public class OBUtils
     public static OBControl buttonFromSVGName (String imageName)
     {
         OBGroup im = OBImageManager.sharedImageManager().vectorForName(imageName);
-        float imageScale = MainActivity.mainActivity.configFloatForKey(CONFIG_GRAPHIC_SCALE);
+        float imageScale = OBConfigManager.sharedManager.getGraphicScale();
         im.setScale(imageScale);
         im.setRasterScale(imageScale);
         im.textureKey = imageName;
         return im;
-    }
-
-    public static int PresenterColourIndex ()
-    {
-        return (Integer) Config().get(MainActivity.CONFIG_SKINCOLOUR);
-    }
-
-    public static int SkinColour (int offset)
-    {
-        @SuppressWarnings("unchecked")
-        List<Integer> colList = (List<Integer>) MainActivity.mainActivity.config.get(MainActivity.CONFIG_SKINCOLOURS);
-        return colList.get(Math.abs(9 - (((PresenterColourIndex() + offset) + 8) % 18)));
-    }
-
-    public static int SkinColourIndex ()
-    {
-        return ((Integer) MainActivity.mainActivity.config.get(MainActivity.CONFIG_SKINCOLOUR)).intValue();
     }
 
     public static List<String> stringSplitByCharType (String str)
@@ -591,15 +569,15 @@ public class OBUtils
     public static Typeface standardTypeFace ()
     {
         if (MainActivity.standardTypeFace == null)
+        {
             MainActivity.standardTypeFace = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/onebillionreader-Regular.otf");
-
-        //        MainActivity.standardTypeFace = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/Heinemann Collection - HeinemannSpecial-Roman.otf");
+        }
         return MainActivity.standardTypeFace;
     }
 
     public static OBFont StandardReadingFontOfSize(float size)
     {
-        float graphicScale = (Float) (Config().get(MainActivity.mainActivity.CONFIG_GRAPHIC_SCALE));
+        float graphicScale = OBConfigManager.sharedManager.getGraphicScale();
         OBFont font = new OBFont(standardTypeFace(),size * graphicScale);
         return font;
     }
@@ -910,8 +888,7 @@ public class OBUtils
 
     static String getConfigFile (String fileName)
     {
-        Map<String, Object> config = Config();
-        for (String path : (List<String>) config.get(MainActivity.CONFIG_CONFIG_SEARCH_PATH))
+        for (String path : OBConfigManager.sharedManager.getConfigSearchPaths())
         {
             String fullPath = stringByAppendingPathComponent(path, fileName);
             if (fileExistsAtPath(fullPath))
@@ -924,8 +901,7 @@ public class OBUtils
 
     static String getLocalFile (String fileName)
     {
-        Map<String, Object> config = Config();
-        for (String path : (List<String>) config.get(MainActivity.CONFIG_AUDIO_SEARCH_PATH))
+        for (String path : OBConfigManager.sharedManager.getAudioSearchPaths())
         {
             String fullPath = stringByAppendingPathComponent(path, fileName);
             if (fileExistsAtPath(fullPath))

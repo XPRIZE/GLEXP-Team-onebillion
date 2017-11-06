@@ -47,7 +47,14 @@ android {
 //        javaMaxHeapSize "4096M"
         javaMaxHeapSize "512M"
     }
-    sourceSets { main { assets.srcDirs = ['src/main/assets', 'src/main/assets_obb'] } }
+    sourceSets {
+        main {
+            assets.srcDirs = ['src/main/assets', 'src/main/config']
+        }
+        res {
+            res.srcDirs = ['src/main/res']
+        }
+    }
     productFlavors {
         pedro {
             minSdkVersion 22
@@ -56,7 +63,7 @@ android {
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Setup Prototype"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_pedro.plist"'
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_community_sw.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/judges",
             ]
@@ -80,7 +87,7 @@ android {
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - Judges"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_judge_test.plist"'
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_judge_test.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/judges",
             ]
@@ -104,7 +111,7 @@ android {
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - Child"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_community_sw.plist"'
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_community_sw.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/icon_child"
             ]
@@ -116,7 +123,7 @@ android {
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Dev - Child"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_test_sw.plist"'
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_test_sw.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/icon_child"
             ]
@@ -128,7 +135,7 @@ android {
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - Child (english)"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_community_enGB.plist"'
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_community_enGB.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/child_en_gb"
             ]
@@ -140,7 +147,7 @@ android {
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Dev - Child enGB"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_test_enGB.plist"'
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_test_playzone.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/child_en_gb"
             ]
@@ -151,8 +158,8 @@ android {
             targetSdkVersion 23
             versionCode 1
             versionName '1.0'
-            resValue "string", "app_name", "onecourse - Child (chichewa)"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_child_ny.plist"'
+            resValue "string", "app_name", "Community: ny"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_community_ny_homecare.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/child_ny"
             ]
@@ -164,7 +171,7 @@ android {
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - alan"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settingsas.plist"'
+            buildConfigField 'String', 'SETTINGS_FILE', '"settingsas.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/child_ny"
             ]
@@ -176,7 +183,7 @@ android {
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - wifi"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_test_wifi.plist"'
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_test_wifi.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/child_en_gb"
             ]
