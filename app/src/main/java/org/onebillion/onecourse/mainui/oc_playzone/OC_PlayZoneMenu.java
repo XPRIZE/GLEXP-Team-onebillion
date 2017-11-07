@@ -1170,6 +1170,7 @@ public class OC_PlayZoneMenu extends OC_Menu
                                 gradientColours[gradientColours.length - 1] = colour;
                                 topGradient.gradientLayer.colours = gradientColours;
                             }
+                            //
                             OBControl iconMask = button.objectDict.get("icon").copy();
                             iconMask.setPosition(menuButton.position());
                             if(!specialIcon)
@@ -1177,16 +1178,19 @@ public class OC_PlayZoneMenu extends OC_Menu
 
                             PointF relativePoint2 = OB_Maths.relativePointInRectForLocation(icon.position(), button.getWorldFrame());
                             button.insertMember(icon,2,"button_icon");
+                            // resize factor is to fit the stars in the special icons inside the mask
+                            float resizeFactor = (specialIcon) ? 0.85f : 1.0f;
+                            // 0.5 is due the icons being designed for pixel (high res) and not being processed as such
+                            icon.setScale(applyGraphicScale(icon.scale() * 0.5f * resizeFactor));
                             icon.setScale(icon.scale()/button.scale());
                             icon.setPosition(OB_Maths.locationForRect(relativePoint2, button.bounds()));
                             icon.setZPosition(2);
-
+                            //
                             PointF relativePoint = OB_Maths.relativePointInRectForLocation(iconMask.position(), icon.getWorldFrame());
                             iconMask.setScale(1.0f/icon.scale());
                             iconMask.setPosition(OB_Maths.locationForRect(relativePoint, icon.bounds()));
                             if(!specialIcon)
                                 icon.setMaskControl(iconMask);
-
                             button.objectDict.get("top_layer").setZPosition(3);
                             button.setPosition(OB_Maths.locationForRect(0.5f,0.5f,this.bounds()));
                             button.setZPosition(10);
