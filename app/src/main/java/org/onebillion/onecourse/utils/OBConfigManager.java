@@ -101,6 +101,9 @@ public class OBConfigManager
     private static String APP_MASTERLIST_PLAYZONE = "app_masterlist_playzone";
     private static String APP_MASTERLIST_LIBRARY = "app_masterlist_library";
     //
+    public static String APP_LANGUAGES = "app_languages";
+    public static String APP_LANGUAGE_NAMES = "app_language_names";
+    //
     private Map<String, Object> internalConfig;
     //
     private float sfxMasterVolume = 1.0f;

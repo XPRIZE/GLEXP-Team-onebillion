@@ -214,8 +214,8 @@ public class OC_JMenu extends OC_Menu
     public void prepare()
     {
         super.prepare();
-        languages = OBConfigManager.sharedManager.getArrayValue("languages");
-        languageNames = OBConfigManager.sharedManager.getArrayValue("languagenames");
+        languages = OBConfigManager.sharedManager.getArrayValue(OBConfigManager.APP_LANGUAGES);
+        languageNames = OBConfigManager.sharedManager.getArrayValue(OBConfigManager.APP_LANGUAGE_NAMES);
         loadMasterList(languages.get(0));
         saveConfig = OBConfigManager.sharedManager.getMainFolder();
         loadEvent("mastera");
