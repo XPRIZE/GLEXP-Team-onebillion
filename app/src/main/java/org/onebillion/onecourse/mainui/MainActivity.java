@@ -678,6 +678,21 @@ public class MainActivity extends Activity
         return  (boolString != null && boolString.equals("true"));
     }
 
+    public static List<String> ScrunchedDirArray(List<String> arr)
+    {
+        List<String>resultArray = new ArrayList<>();
+        Set usedSet = new HashSet();
+        for(String s : arr)
+        {
+            if(!usedSet.contains(s))
+            {
+                usedSet.add(s);
+                resultArray.add(s);
+            }
+        }
+        return resultArray;
+    }
+
     public List<String> audioSearchPath (String appDir, String genDir)
     {
         String wDir = null;
@@ -692,23 +707,37 @@ public class MainActivity extends Activity
                 audioSearchPath.add(OBUtils.stringByAppendingPathComponent(OBUtils.stringByAppendingPathComponent(appDir, "local"), language));
             if (wDir != null)
                 audioSearchPath.add(OBUtils.stringByAppendingPathComponent(OBUtils.stringByAppendingPathComponent(wDir, "local"), language));
-            audioSearchPath.add(OBUtils.stringByAppendingPathComponent(OBUtils.stringByAppendingPathComponent(genDir, "local"), language));
+            if (genDir != null)
+                audioSearchPath.add(OBUtils.stringByAppendingPathComponent(OBUtils.stringByAppendingPathComponent(genDir, "local"), language));
         }
         if (appDir != null)
             audioSearchPath.add(OBUtils.stringByAppendingPathComponent(OBUtils.stringByAppendingPathComponent(appDir, "local"), defaultLanguage));
         if (wDir != null)
             audioSearchPath.add(OBUtils.stringByAppendingPathComponent(OBUtils.stringByAppendingPathComponent(wDir, "local"), defaultLanguage));
-        audioSearchPath.add(OBUtils.stringByAppendingPathComponent(OBUtils.stringByAppendingPathComponent(genDir, "local"), defaultLanguage));
+        if (genDir != null)
+            audioSearchPath.add(OBUtils.stringByAppendingPathComponent(OBUtils.stringByAppendingPathComponent(genDir, "local"), defaultLanguage));
 
         if (appDir != null)
             audioSearchPath.add(OBUtils.stringByAppendingPathComponent(appDir, "sfx"));
-        audioSearchPath.add(OBUtils.stringByAppendingPathComponent(genDir, "sfx"));
+        if (genDir != null)
+            audioSearchPath.add(OBUtils.stringByAppendingPathComponent(genDir, "sfx"));
 
         for (int i = audioSearchPath.size() - 1; i >= 0; i--)
             if (!OBUtils.assetsDirectoryExists((String) audioSearchPath.get(i)))
                 audioSearchPath.remove(i);
 
         return audioSearchPath;
+    }
+
+    public List<String> audioSearchPathAppDirs(List<String> appDirs,String genDir)
+    {
+        List dirs = new ArrayList<>();
+        for(int i = 0;i < appDirs.size();i++)
+        {
+            String gd = (i == appDirs.size()  - 1) ? genDir : null;
+            dirs.addAll(audioSearchPath(appDirs.get(i),gd));
+        }
+        return ScrunchedDirArray(dirs);
     }
 
     public List<String> imageSearchPath (String appDir, String genDir)
@@ -724,7 +753,8 @@ public class MainActivity extends Activity
                 lowres.add(OBUtils.stringByAppendingPathComponent(wDir, "img/shared_3"));
             }
         }
-        lowres.add(OBUtils.stringByAppendingPathComponent(genDir, "img/shared_3"));
+        if (genDir != null)
+            lowres.add(OBUtils.stringByAppendingPathComponent(genDir, "img/shared_3"));
         List highres = new ArrayList(4);
         if (appDir != null)
         {
@@ -735,13 +765,25 @@ public class MainActivity extends Activity
                 highres.add(OBUtils.stringByAppendingPathComponent(wDir, "img/shared_4"));
             }
         }
-        highres.add(OBUtils.stringByAppendingPathComponent(genDir, "img/shared_4"));
+        if (genDir != null)
+            highres.add(OBUtils.stringByAppendingPathComponent(genDir, "img/shared_4"));
         //
         List imageSearchPath = new ArrayList(4);
         imageSearchPath.addAll(highres);
         imageSearchPath.addAll(lowres);
         //
         return imageSearchPath;
+    }
+
+    public List<String> imageSearchPathAppDirs(List<String> appDirs,String genDir)
+    {
+        List<String> dirs = new ArrayList<>();
+        for(int i = 0;i < appDirs.size();i++)
+        {
+            String gd =(i == appDirs.size()  - 1)?genDir:null;
+            dirs.addAll(imageSearchPath(appDirs.get(i),gd));
+        }
+        return ScrunchedDirArray(dirs);
     }
 
     public List<String> videoSearchPath (String appDir, String genDir)
@@ -753,13 +795,24 @@ public class MainActivity extends Activity
             videoSearchPath.add(appDir + "/img/movies");
         }
         //
-        videoSearchPath.add(genDir+"/img/movies");
+        if (genDir != null)
+            videoSearchPath.add(genDir+"/img/movies");
         //
         return videoSearchPath;
     }
 
+    public List<String> videoSearchPathAppDirs(List<String> appDirs,String genDir)
+    {
+        List dirs = new ArrayList<>();
+        for(int i = 0;i < appDirs.size();i++)
+        {
+            String gd =(i == appDirs.size()  - 1)?genDir:null;
+            dirs.addAll(videoSearchPath(appDirs.get(i),gd));
+        }
+        return ScrunchedDirArray(dirs);
+    }
 
-    public List<String> configSearchPath (String appDir, String genDir)
+    public List<String> configSearchPath(String appDir, String genDir)
     {
         List configSearchPath = new ArrayList(4);
         if (appDir != null)
@@ -771,8 +824,20 @@ public class MainActivity extends Activity
                 configSearchPath.add(OBUtils.stringByAppendingPathComponent(wDir, "config"));
             }
         }
-        configSearchPath.add(OBUtils.stringByAppendingPathComponent(genDir, "config"));
+        if (genDir != null)
+            configSearchPath.add(OBUtils.stringByAppendingPathComponent(genDir, "config"));
         return configSearchPath;
+    }
+
+    public List<String> configSearchPathAppDirs(List<String> appDirs,String genDir)
+    {
+        List dirs = new ArrayList<>();
+        for(int i = 0;i < appDirs.size();i++)
+        {
+            String gd =(i == appDirs.size()  - 1)?genDir:null;
+            dirs.addAll(configSearchPath(appDirs.get(i),gd));
+        }
+        return ScrunchedDirArray(dirs);
     }
 
     public List<String> vectorSearchPath (String appDir, String genDir)
@@ -787,8 +852,20 @@ public class MainActivity extends Activity
                 configSearchPath.add(OBUtils.stringByAppendingPathComponent(wDir, "img/vector"));
             }
         }
-        configSearchPath.add(OBUtils.stringByAppendingPathComponent(genDir, "img/vector"));
+        if (genDir != null)
+            configSearchPath.add(OBUtils.stringByAppendingPathComponent(genDir, "img/vector"));
         return configSearchPath;
+    }
+
+    public List vectorSearchPathAppDirs(List<String> appDirs,String genDir)
+    {
+        List dirs = new ArrayList<>();
+        for(int i = 0;i < appDirs.size();i++)
+        {
+            String gd =(i == appDirs.size()  - 1)?genDir:null;
+            dirs.addAll(vectorSearchPath(appDirs.get(i),gd));
+        }
+        return ScrunchedDirArray(dirs);
     }
 
     public void updateConfigPaths (String newAppCode, Boolean force)
@@ -802,7 +879,6 @@ public class MainActivity extends Activity
         if (lastAppCode.equals(newAppCode) && !force)
             return;
         config.put(CONFIG_APP_CODE, newAppCode);
-        String appDir = newAppCode;
         String genDir = (String) config.get("gen_code");
         String languageCode = language;
         if(languageCode == null)
@@ -811,11 +887,14 @@ public class MainActivity extends Activity
             config.put(CONFIG_LANGUAGE, languageCode);
         else
             config.put(CONFIG_LANGUAGE, config.get(CONFIG_DEFAULT_LANGUAGE));
-        config.put(CONFIG_AUDIO_SEARCH_PATH, audioSearchPath(appDir, genDir));
-        config.put(CONFIG_IMAGE_SEARCH_PATH, imageSearchPath(appDir, genDir));
-        config.put(CONFIG_VIDEO_SEARCH_PATH, videoSearchPath(appDir, genDir));
-        config.put(CONFIG_VECTOR_SEARCH_PATH, vectorSearchPath(appDir, genDir));
-        config.put(CONFIG_CONFIG_SEARCH_PATH, configSearchPath(appDir, genDir));
+
+        List<String> appDirs = Arrays.asList(newAppCode.split(","));
+
+        config.put(CONFIG_AUDIO_SEARCH_PATH, audioSearchPathAppDirs(appDirs, genDir));
+        config.put(CONFIG_IMAGE_SEARCH_PATH, imageSearchPathAppDirs(appDirs, genDir));
+        config.put(CONFIG_VIDEO_SEARCH_PATH, videoSearchPathAppDirs(appDirs, genDir));
+        config.put(CONFIG_VECTOR_SEARCH_PATH, vectorSearchPathAppDirs(appDirs, genDir));
+        config.put(CONFIG_CONFIG_SEARCH_PATH, configSearchPathAppDirs(appDirs, genDir));
         //
         OBImageManager.sharedImageManager().clearCaches();
         if (OBAudioManager.audioManager != null)

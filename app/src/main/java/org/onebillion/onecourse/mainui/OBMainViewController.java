@@ -304,6 +304,8 @@ public class OBMainViewController extends OBViewController
             String config = "";
             if (configPath != null)
             {
+                String[] sarr = configPath.split(",");
+                configPath = sarr[0];
                 String[] paths = configPath.split("/");
                 config = paths[0];
                 config = config.replace("-", "_");
