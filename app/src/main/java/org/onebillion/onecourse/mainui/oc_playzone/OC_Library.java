@@ -134,6 +134,8 @@ public class OC_Library extends OC_SectionController
                     public void run() throws Exception
                     {
                         OBGroup group = (OBGroup) level.propertyValue("books");
+                        if (group == null) return;
+                        //
                         currentIcon = finger(-1, -1, group.members, pt);
                         dragOffset = OB_Maths.DiffPoints(group.position(), pt);
                         currentGroup = group;
@@ -228,7 +230,7 @@ public class OC_Library extends OC_SectionController
     public void openBookForIcon(OBControl icon)
     {
         final Map<String,String> bookData = (Map<String,String>)icon.propertyValue("data");
-        final String lastAppCode = OBConfigManager.sharedManager.getMainFolder();
+        final String lastAppCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
 
         new OBRunnableSyncUI()
         {

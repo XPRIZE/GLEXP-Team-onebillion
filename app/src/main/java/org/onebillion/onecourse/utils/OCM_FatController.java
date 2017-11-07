@@ -630,7 +630,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         {
             // before overriding the app_code save it in the preferences to restore after setup is complete
             testMenuMode = true;
-            menuAppCode = OBConfigManager.sharedManager.getMainFolder();
+            menuAppCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
             OBConfigManager.sharedManager.updateConfigPaths(OBConfigManager.sharedManager.getSetupMenuFolder(), true);
             //
             String setupClassName = OBConfigManager.sharedManager.getSetupMenuClassName();
@@ -660,7 +660,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                 }
                 //
                 String menuClassName = OBConfigManager.sharedManager.getMenuClassName();
-                String appCode = OBConfigManager.sharedManager.getMainFolder();
+                String appCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
                 //
                 MainActivity.log("OC_FatController:startUp: pushing view controller [%s] [%s]", menuClassName, appCode);
                 //
@@ -1181,7 +1181,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     public void startSectionByUnitNoUser(final OCM_MlUnit unit)
     {
-        final String lastAppCode = OBConfigManager.sharedManager.getMainFolder();
+        final String lastAppCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
         currentUnitInstance = null;
         //
         new OBRunnableSyncUI()
@@ -1226,7 +1226,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     public void startSectionByUnit(final OCM_MlUnit unit, boolean study, final SectionOpeningCallback openingCallback)
     {
         sectionStartedWithUnit(unit, study ? OCM_MlUnitInstance.INSTANCE_TYPE_STUDY : OCM_MlUnitInstance.INSTANCE_TYPE_REVIEW);
-        final String lastAppCode = OBConfigManager.sharedManager.getMainFolder();
+        final String lastAppCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
         new OBRunnableSyncUI()
         {
             @Override

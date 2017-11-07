@@ -102,7 +102,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
         //
         loadFingers();
         //
-        saveConfig = OBConfigManager.sharedManager.getMainFolder();
+        saveConfig = OBConfigManager.sharedManager.getCurrentActivityFolder();
         //
         loadHomeScreen();
         //

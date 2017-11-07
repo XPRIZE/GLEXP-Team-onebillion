@@ -218,7 +218,7 @@ public class OC_JMenu extends OC_Menu
         languages = OBConfigManager.sharedManager.getArrayValue(OBConfigManager.APP_LANGUAGES);
         languageNames = OBConfigManager.sharedManager.getArrayValue(OBConfigManager.APP_LANGUAGE_NAMES);
         loadMasterList(languages.get(0));
-        saveConfig = OBConfigManager.sharedManager.getMainFolder();
+        //
         loadEvent("mastera");
         tabTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("tabtextsize")));
         subheadtextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("subheadtextsize")));
@@ -1309,7 +1309,7 @@ public class OC_JMenu extends OC_Menu
             String configName = (String) c.propertyValue("config");
             if (configName == null)
             {
-                String appDir = OBConfigManager.sharedManager.getMainFolder();
+                String appDir = OBConfigManager.sharedManager.getCurrentActivityFolder();
                 String[] comps = appDir.split("/");
                 configName = comps[0];
             }

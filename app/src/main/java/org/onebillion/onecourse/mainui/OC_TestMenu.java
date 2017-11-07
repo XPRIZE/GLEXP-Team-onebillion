@@ -50,7 +50,7 @@ public class OC_TestMenu extends OBSectionController
     {
         if (originalAppCode == null)
         {
-            originalAppCode = OBConfigManager.sharedManager.getMainFolder();
+            originalAppCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
         }
         OBBrightnessManager.sharedManager.onSuspend();
         db = new DBSQL(false);
@@ -263,7 +263,7 @@ public class OC_TestMenu extends OBSectionController
                 public void onClick (View v)
                 {
                     String menuClassName = OBConfigManager.sharedManager.getMenuClassName();
-                    String appCode = OBConfigManager.sharedManager.getMainFolder();
+                    String appCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
                     if (menuClassName != null && appCode != null)
                     {
                         OBBrightnessManager.sharedManager.onContinue();

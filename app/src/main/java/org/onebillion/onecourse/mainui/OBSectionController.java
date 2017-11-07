@@ -91,6 +91,9 @@ public class OBSectionController extends OBViewController
     private boolean popAnimationZoom;
     private RectF popAnimationZoomRect;
 
+    private String saveConfig;
+    private String saveLanguage;
+
     public float topColour[] = {1, 1, 1, 1};
     float bottomColour[] = {1, 1, 1, 1};
     protected List<Integer> busyStatuses =Arrays.asList(STATUS_BUSY,STATUS_DOING_DEMO,STATUS_DRAGGING,STATUS_CHECKING);
@@ -319,6 +322,11 @@ public class OBSectionController extends OBViewController
     public void viewWillAppear (Boolean animated)
     {
         _aborting = false;
+        //
+        if (saveConfig != null)
+        {
+            OBConfigManager.sharedManager.updateConfigPaths(saveConfig, false, saveLanguage);
+        }
     }
 
     public String getConfigPath (String cfgName)
@@ -338,6 +346,10 @@ public class OBSectionController extends OBViewController
     public void prepare ()
     {
         super.prepare();
+        //
+        saveConfig = OBConfigManager.sharedManager.getCurrentActivityFolder();
+        saveLanguage = OBConfigManager.sharedManager.getCurrentLanguage();
+        //
         theMoveSpeed = bounds().width();
         inited = true;
         processParams();

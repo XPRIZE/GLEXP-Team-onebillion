@@ -21,7 +21,7 @@ public class OC_Menu extends OC_SectionController
     public void prepare()
     {
         super.prepare();
-        saveConfig = OBConfigManager.sharedManager.getMainFolder();
+        saveConfig = OBConfigManager.sharedManager.getCurrentActivityFolder();
         saveLanguage = OBConfigManager.sharedManager.getCurrentLanguage();
         //
         loadEvent("main");
@@ -103,7 +103,7 @@ public class OC_Menu extends OC_SectionController
                 String configName = (String)attrs.get("config");
                 if (configName == null)
                 {
-                    String appDir = OBConfigManager.sharedManager.getMainFolder();
+                    String appDir = OBConfigManager.sharedManager.getCurrentActivityFolder();
                     String[] comps = appDir.split("/");
                     configName = comps[0];
                 }

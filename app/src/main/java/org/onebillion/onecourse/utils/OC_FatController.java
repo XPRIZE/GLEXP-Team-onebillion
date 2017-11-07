@@ -336,7 +336,7 @@ public class OC_FatController extends OBFatController
                 }
                 //
                 String menuClassName = OBConfigManager.sharedManager.getMenuClassName();
-                String appCode = OBConfigManager.sharedManager.getMainFolder();
+                String appCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
                 //
                 MainActivity.log("OC_FatController:startUp: pushing view controller [%s] [%s]", menuClassName, appCode);
                 //
@@ -748,7 +748,7 @@ public class OC_FatController extends OBFatController
 
     public void startSectionByUnitNoUser(final MlUnit unit)
     {
-        final String lastAppCode = OBConfigManager.sharedManager.getMainFolder();
+        final String lastAppCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
         currentUnitInstance = null;
         //
         new OBRunnableSyncUI()
@@ -792,7 +792,7 @@ public class OC_FatController extends OBFatController
     public void startSectionByUnit(final MlUnit unit)
     {
         sectionStartedWithUnit(unit);
-        final String lastAppCode = OBConfigManager.sharedManager.getMainFolder();
+        final String lastAppCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
 
         new OBRunnableSyncUI()
         {
