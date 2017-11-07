@@ -87,7 +87,7 @@ android {
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - Judges"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_judges_sw.plist"'
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_judges_sw.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/judges"
             ]

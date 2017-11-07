@@ -213,6 +213,7 @@ public class OC_JMenu extends OC_Menu
     }
     public void prepare()
     {
+        params = new String("menu");
         super.prepare();
         languages = OBConfigManager.sharedManager.getArrayValue(OBConfigManager.APP_LANGUAGES);
         languageNames = OBConfigManager.sharedManager.getArrayValue(OBConfigManager.APP_LANGUAGE_NAMES);

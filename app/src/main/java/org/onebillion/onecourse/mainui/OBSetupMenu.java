@@ -141,6 +141,9 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
         //
         OBBrightnessManager.sharedManager.setScreenSleepTimeToMax();
         //
+        MainActivity.log("OBSetupMenu.start.updating config paths to setup menu folder");
+        OBConfigManager.sharedManager.updateConfigPaths(OBConfigManager.sharedManager.getSetupMenuFolder(), true);
+        //
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             @Override

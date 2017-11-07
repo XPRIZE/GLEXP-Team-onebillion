@@ -406,7 +406,7 @@ public class OBConfigManager
 
     public void updateConfigPaths (String newActivityFolder, Boolean force, String newLanguage)
     {
-        if (currentActivityFolder.equals(newActivityFolder) && currentLanguage.equals(newLanguage) && !force)
+        if (currentActivityFolder != null && currentActivityFolder.equals(newActivityFolder) && currentLanguage != null && currentLanguage.equals(newLanguage) && !force)
         {
             MainActivity.log("OBConfigManager.updateConfigPath no need to update as new values are the current ones");
             return;
@@ -421,6 +421,7 @@ public class OBConfigManager
         internalImageSearchPaths = getImageSearchPaths(currentActivityFolder, genFolder);
         internalConfigSearchPaths = getConfigSearchPaths(currentActivityFolder, genFolder);
         internalVectorSearchPaths = getVectorSearchPaths(currentActivityFolder, genFolder);
+        internalVideoSearchPaths = getVideoSearchPaths(currentActivityFolder, genFolder);
         //
         OBImageManager.sharedImageManager().clearCaches();
         //

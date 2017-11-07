@@ -604,7 +604,10 @@ public class OBSectionController extends OBViewController
             {
                 MainActivity.log("ERROR --> null object with name " + srcname);
             }
-            ((OBGroup) im).substituteFillForAllMembers("skin.*", skincol);
+            else
+            {
+                ((OBGroup) im).substituteFillForAllMembers("skin.*", skincol);
+            }
             if (attrs.get("fill") != null)
             {
                 int col = OBUtils.colorFromRGBString((String) attrs.get("fill"));

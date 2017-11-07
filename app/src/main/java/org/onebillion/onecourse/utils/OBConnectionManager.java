@@ -310,20 +310,29 @@ public class OBConnectionManager
         //
         MainActivity.mainActivity.registerReceiver(airplaneChangedReceiver, new IntentFilter(Intent.ACTION_AIRPLANE_MODE_CHANGED));
         //
-        MainActivity.log("OBConnectionManager.connectToNetwork.disable airplane mode");
-        try
+        Boolean airplaneModeIsActive = Settings.Global.getInt(MainActivity.mainActivity.getBaseContext().getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0) != 0;
+        if (airplaneModeIsActive)
         {
-            Settings.Global.putInt(MainActivity.mainActivity.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0);
-            Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
-            intent.putExtra("state", false);
-            MainActivity.mainActivity.sendBroadcast(intent);
+            MainActivity.log("OBConnectionManager.connectToNetwork.disable airplane mode");
+            try
+            {
+                Settings.Global.putInt(MainActivity.mainActivity.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0);
+                Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+                intent.putExtra("state", false);
+                MainActivity.mainActivity.sendBroadcast(intent);
+            }
+            catch (Exception e)
+            {
+                MainActivity.log("OBConnectionManager:connectToNetwork:disableAirplaneMode:Exception was caught while trying to disable the airplane mode");
+                e.printStackTrace();
+                //
+                MainActivity.log("OBConnectionManager:connectToNetwork:disableAirplaneMode:Attempting to continue with process");
+                connectToNetwork_enableWifi(ssid, password, block);
+            }
         }
-        catch (Exception e)
+        else
         {
-            MainActivity.log("OBConnectionManager:connectToNetwork:disableAirplaneMode:Exception was caught while trying to disable the airplane mode");
-            e.printStackTrace();
-            //
-            MainActivity.log("OBConnectionManager:connectToNetwork:disableAirplaneMode:Attempting to continue with process");
+            MainActivity.log("OBConnectionManager,connectToNetwork. airplane mode is disabled. Continue with process");
             connectToNetwork_enableWifi(ssid, password, block);
         }
     }
