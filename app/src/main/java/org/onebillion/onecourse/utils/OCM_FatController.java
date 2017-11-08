@@ -105,7 +105,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     private boolean showBackButton()
     {
-        return currentUnitInstance == null;
+        return currentUnitInstance == null || OBConfigManager.sharedManager.shouldShowBackArrow();
     }
 
     public interface SectionOpeningCallback

@@ -51,8 +51,6 @@ import java.util.Objects;
 
 public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
 {
-    final static String SETUP_MENU_PASSWORD = "obxprize";
-
     final static int TARGET_BUTTON = 1,
             TARGET_STUDY = 2,
             TARGET_COMMUNITY = 3;
@@ -68,6 +66,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
     Map<String,Integer> coloursDict;
     OBControl emitter;
     boolean communityModeActive, playZoneOpened;
+    boolean communityModeActiveOverride, playZoneActiveOverride;
     List<OBGroup> communityModeIcons;
 
     RectF secretBoxLeft, secretBoxRight;
@@ -154,10 +153,11 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         lastUnitInstance = null;
         refreshCurrentDayAndAudio();
         receiveCommand(fatController.getCurrentCommand());
-        communityModeActive = fatController.communityModeActive();
+        //
+        communityModeActive = fatController.communityModeActive() || communityModeActiveOverride;
+        //
         playZoneOpened = false;
         initScreen();
-
         for(OBControl star : filterControls("top_bar_star_.*"))
             star.setProperty("start_loc",OBMisc.copyPoint(star.position()));
         previousBigIcon = null;
@@ -875,7 +875,8 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
     }
     public void loadPlayZoneBox(boolean show)
     {
-        boolean active = fatController.playZoneActive();
+        boolean active = fatController.playZoneActive() || playZoneActiveOverride;
+        //
         OBGroup box = (OBGroup)objectDict.get("box");
         box.setProperty("touched",false);
         box.setOpacity(active ? 1 : 0.5f);
@@ -907,7 +908,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         OBGroup box = (OBGroup)objectDict.get("box");
         if(!box.isEnabled())
         {
-            if(fatController.playZoneActive())
+            if(fatController.playZoneActive() || playZoneActiveOverride)
             {
                 enablePlayZoneBox();
                 return true;
@@ -969,7 +970,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                 }
             });
         }
-        else if(fatController.playZoneActive())
+        else if(fatController.playZoneActive() || playZoneActiveOverride)
         {
             shakePlayZoneBoxOnce(true);
         }
@@ -1499,7 +1500,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         presenter.moveHandfromIndex(4,2,0.2);
         presenter.speak((List<Object>)(Object)getAudioForScene("grid","DEMO2"),this);
         waitForSecs(0.3f);
-        if(!fatController.playZoneActive())
+        if(!fatController.playZoneActive() && !playZoneActiveOverride)
         {
             presenter.speak((List<Object>)(Object)getAudioForScene("grid","DEMO3"),this);
         }
@@ -1838,13 +1839,13 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
 
     public void checkPasswordAndProceed(String pass)
     {
-        if(pass.equals(SETUP_MENU_PASSWORD))
+        if (OBConfigManager.sharedManager.isJumpToSetupPasswordCorrect(pass))
         {
             final AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.mainActivity);
             final EditText input = new EditText(MainActivity.mainActivity);
             input.setInputType(InputType.TYPE_CLASS_TEXT| InputType.TYPE_TEXT_VARIATION_PASSWORD);
             alert.setTitle("Data Deletion Warning");
-            alert.setMessage("This action will RESET progress on this device and resturn to setup menu. Do you wish to continue?");
+            alert.setMessage("This action will RESET progress on this device and return to setup menu. Do you wish to continue?");
             alert.setPositiveButton("YES", new DialogInterface.OnClickListener()
             {
                 @Override
@@ -1873,6 +1874,68 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                     {
                         dialog.cancel();
                     }
+                }
+            });
+        }
+        else if (OBConfigManager.sharedManager.isActivateCommunityModeOverridePasswordCorrect(pass))
+        {
+            communityModeActive = true;
+            //
+            lockScreen();
+            try
+            {
+                List<OBControl> controls = new ArrayList<OBControl>();
+                controls.addAll(attachedControls);
+                for (OBControl control : controls)
+                {
+                    detachControl(control);
+                }
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+            communityModeActiveOverride = true;
+            playZoneActiveOverride = true;
+            prepare();
+            unlockScreen();
+            //
+            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
+            {
+                @Override
+                public void run () throws Exception
+                {
+                    start();
+                }
+            });
+        }
+        else if (OBConfigManager.sharedManager.isRevertCommunityModePasswordCorrect(pass))
+        {
+            lockScreen();
+            try
+            {
+                List<OBControl> controls = new ArrayList<OBControl>();
+                controls.addAll(attachedControls);
+                for (OBControl control : controls)
+                {
+                    detachControl(control);
+                }
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+            communityModeActiveOverride = false;
+            playZoneActiveOverride = false;
+            prepare();
+            unlockScreen();
+            //
+            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
+            {
+                @Override
+                public void run () throws Exception
+                {
+                    start();
                 }
             });
         }

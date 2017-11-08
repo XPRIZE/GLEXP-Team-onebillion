@@ -95,6 +95,9 @@ public class OBConfigManager
     private static String DEBUG_SHOW_BACK_ARROW = "debug_show_back_arrow";
     private static String DEBUG_SHOW_UNIT_ID = "debug_show_unit_id";
     private static String DEBUG_BUILD_NUMBER = "debug_build_number";
+    private static String DEBUG_JUMP_TO_SETUP_PASSWORD = "debug_jump_to_setup_password";
+    private static String DEBUG_ACTIVATE_COMMUNITY_MODE_OVERRIDE_PASSWORD = "debug_activate_community_mode_override_password";
+    private static String DEBUG_REVERT_COMMUNITY_MODE_PASSWORD = "debug_revert_community_mode_password";
     //
     private static String APP_GEN_FOLDER = "app_gen_folder";
     private static String APP_MAIN_FOLDER = "app_main_folder";
@@ -185,6 +188,23 @@ public class OBConfigManager
         currentLanguage = getLanguageID();
     }
 
+    public Boolean isJumpToSetupPasswordCorrect(String password)
+    {
+        String correctValue = getStringValue(DEBUG_JUMP_TO_SETUP_PASSWORD);
+        return correctValue != null && correctValue.equals(password);
+    }
+
+    public Boolean isActivateCommunityModeOverridePasswordCorrect(String password)
+    {
+        String correctValue = getStringValue(DEBUG_ACTIVATE_COMMUNITY_MODE_OVERRIDE_PASSWORD);
+        return correctValue != null && correctValue.equals(password);
+    }
+
+    public Boolean isRevertCommunityModePasswordCorrect(String password)
+    {
+        String correctValue = getStringValue(DEBUG_REVERT_COMMUNITY_MODE_PASSWORD);
+        return correctValue != null && correctValue.equals(password);
+    }
 
     public String getAwardSoundEffect()
     {
