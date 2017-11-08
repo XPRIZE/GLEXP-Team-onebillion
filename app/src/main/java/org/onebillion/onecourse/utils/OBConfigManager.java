@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 /**
  * Created by pedroloureiro on 02/11/2017.
@@ -21,6 +22,8 @@ import java.util.Set;
 
 public class OBConfigManager
 {
+    private static String MULTIPLE_APP_DIR_SEPARATOR = ",";
+    //
     private static String EXTENSIONS_IMAGE = "extensions_image";
     private static String EXTENSIONS_AUDIO = "extensions_audio";
     private static String EXTENSIONS_VIDEO = "extensions_video";
@@ -193,25 +196,43 @@ public class OBConfigManager
         return internalAudioSearchPaths;
     }
 
-    public List<String> getAudioSearchPaths (String appDir, String genDir, String language)
+    private List<String> generateSearchPathsForFolders(String appDir, String genDir)
     {
         List result = new ArrayList();
         //
-        String wDir = null;
-        if (OBUtils.lastPathComponent(OBUtils.stringByDeletingLastPathComponent(appDir)).equals("books"))
+        StringTokenizer mainFolderTokens = new StringTokenizer(appDir, MULTIPLE_APP_DIR_SEPARATOR);
+        while (mainFolderTokens.hasMoreTokens())
         {
-            wDir = OBUtils.stringByDeletingLastPathComponent(OBUtils.stringByDeletingLastPathComponent(appDir));
+            String token = mainFolderTokens.nextToken();
+            //
+            if (OBUtils.lastPathComponent(OBUtils.stringByDeletingLastPathComponent(token)).equals("books"))
+            {
+                String extraFolder = OBUtils.stringByDeletingLastPathComponent(OBUtils.stringByDeletingLastPathComponent(token));
+                //
+                result.add(extraFolder);
+            }
+            //
+            result.add(token);
         }
+        //
+        result.add(genDir);
+        //
+        return result;
+    }
+
+    public List<String> getAudioSearchPaths (String appDir, String genDir, String language)
+    {
+        List result = new ArrayList();
+        List<String> searchPaths = generateSearchPathsForFolders(appDir, genDir);
         //
         List<String> languages = new ArrayList();
         if (language != null) languages.add(language);
         if (!languages.contains(getLanguageID())) languages.add(getLanguageID());
         if (!languages.contains(getFallbackLanguageID())) languages.add(getFallbackLanguageID());
         //
-        // for each language, look into app, wDir, genDir, then look into sfx
         for (String availableLanguage : languages)
         {
-            for (String dir : Arrays.asList(appDir, wDir, genDir))
+            for (String dir : searchPaths)
             {
                 if (dir == null) continue;
                 //
@@ -223,7 +244,7 @@ public class OBConfigManager
             }
         }
         //
-        for (String dir : Arrays.asList(appDir, wDir, genDir))
+        for (String dir : searchPaths)
         {
             if (dir == null) continue;
             //
@@ -245,15 +266,11 @@ public class OBConfigManager
     public List<String> getImageSearchPaths (String appDir, String genDir)
     {
         List result = new ArrayList();
+        List<String> searchPaths = generateSearchPathsForFolders(appDir, genDir);
         //
-        String wDir = null;
-        if (OBUtils.lastPathComponent(OBUtils.stringByDeletingLastPathComponent(appDir)).equals("books"))
-        {
-            wDir = OBUtils.stringByDeletingLastPathComponent(OBUtils.stringByDeletingLastPathComponent(appDir));
-        }
         for (String resolution : Arrays.asList("img/shared_4", "img/shared_3"))
         {
-            for (String dir : Arrays.asList(appDir, wDir, genDir))
+            for (String dir : searchPaths)
             {
                 if (dir == null) continue;
                 //
@@ -275,14 +292,9 @@ public class OBConfigManager
     public List<String> getConfigSearchPaths (String appDir, String genDir)
     {
         List result = new ArrayList();
+        List<String> searchPaths = generateSearchPathsForFolders(appDir, genDir);
         //
-        String wDir = null;
-        if (OBUtils.lastPathComponent(OBUtils.stringByDeletingLastPathComponent(appDir)).equals("books"))
-        {
-            wDir = OBUtils.stringByDeletingLastPathComponent(OBUtils.stringByDeletingLastPathComponent(appDir));
-        }
-        //
-        for (String dir : Arrays.asList(appDir, wDir, genDir))
+        for (String dir : searchPaths)
         {
             if (dir == null) continue;
             //
@@ -304,14 +316,9 @@ public class OBConfigManager
     public List<String> getVectorSearchPaths (String appDir, String genDir)
     {
         List result = new ArrayList();
+        List<String> searchPaths = generateSearchPathsForFolders(appDir, genDir);
         //
-        String wDir = null;
-        if (OBUtils.lastPathComponent(OBUtils.stringByDeletingLastPathComponent(appDir)).equals("books"))
-        {
-            wDir = OBUtils.stringByDeletingLastPathComponent(OBUtils.stringByDeletingLastPathComponent(appDir));
-        }
-        //
-        for (String dir : Arrays.asList(appDir, wDir, genDir))
+        for (String dir : searchPaths)
         {
             if (dir == null) continue;
             //
@@ -333,13 +340,9 @@ public class OBConfigManager
     public List<String> getVideoSearchPaths (String appDir, String genDir)
     {
         List result = new ArrayList();
+        List<String> searchPaths = generateSearchPathsForFolders(appDir, genDir);
         //
-        String wDir = null;
-        if (OBUtils.lastPathComponent(OBUtils.stringByDeletingLastPathComponent(appDir)).equals("books"))
-        {
-            wDir = OBUtils.stringByDeletingLastPathComponent(OBUtils.stringByDeletingLastPathComponent(appDir));
-        }
-        for (String dir : Arrays.asList(appDir, wDir, genDir))
+        for (String dir : searchPaths)
         {
             if (dir == null) continue;
             //
