@@ -19,12 +19,15 @@ import org.onebillion.onecourse.utils.OB_Maths;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static org.onebillion.onecourse.utils.OBReadingWord.WORD_SPEAKABLE;
 import static org.onebillion.onecourse.utils.OBUtils.LoadWordComponentsXML;
+import static org.onebillion.onecourse.utils.OBUtils.StandardReadingFontOfSize;
 import static org.onebillion.onecourse.utils.OBUtils.UnscaledReadingFontOfSize;
+import static org.onebillion.onecourse.utils.OBUtils.coalesce;
 
 /**
  * Created by alan on 03/11/2017.
@@ -36,12 +39,19 @@ public class OC_ClozePhrase extends OC_Cloze
     {
         loadEvent("mastera");
         currNo = -1;
-        needDemo = parameters.get("demo").equals("true") ?true:false;
-        showPic = parameters.get("showpic").equals("false") ?false:true;
+        needDemo = coalesce(parameters.get("demo"),"false").equals("true");
+        showPic = coalesce(parameters.get("showpic"),"true").equals("true");
 
         wordDict = LoadWordComponentsXML(true);
 
-        textBox = (OBGroup) objectDict.get("textbox");
+        OBControl tb = objectDict.get("textbox");
+        detachControl(tb);
+        textBox = new OBGroup(Collections.singletonList(tb));
+        tb.hide();
+        textBox.setShouldTexturise(false);
+        attachControl(textBox);
+        textBox.setZPosition(70);
+
         if((phraseMode = parameters.get("phrases")  != null))
         {
             componentDict = loadComponent("phrase",getLocalPath("phrases.xml"));
@@ -55,7 +65,7 @@ public class OC_ClozePhrase extends OC_Cloze
             loadEvent("sentence");
         }
 
-        fontSize  = Float.parseFloat(OBUtils.coalesce(eventAttributes.get("textsize"), "60"));
+        fontSize  = Float.parseFloat(coalesce(eventAttributes.get("textsize"), "60"));
 
         OBControl greyswatch = objectDict.get("greyswatch");
         OBControl bottomRect = objectDict.get("bottomrect");
@@ -184,22 +194,22 @@ public class OC_ClozePhrase extends OC_Cloze
         float offset = 0;
         for(OBReadingWord rw : wds)
         {
-            float startx = (Float)rw.settings.get("startx");
+            float startx = coalesce((Float)rw.settings.get("startx"),0f);
             rw.settings.put("startx",(startx + offset));
             if((rw.flags & WORD_SPEAKABLE) != 0)
             {
-                if(((Boolean)rw.settings.get("missing")))
+                if(coalesce(((Boolean)rw.settings.get("missing")),false))
                 {
                     rw.settings.put("width",(dashWidth));
-                    offset += (dashWidth - (Float)rw.settings.get("wordwidth"));
+                    offset += (dashWidth - coalesce((Float)rw.settings.get("wordwidth"),0f));
                 }
             else
-                rw.settings.put("width",rw.settings.get("wordwidth"));
+                rw.settings.put("width",coalesce(rw.settings.get("wordwidth"),new Float(0)));
                 idx++;
             }
         }
         OBReadingWord rw = wds.get(wds.size()-1);
-        return (Float)rw.settings.get("startx") + (Float)rw.settings.get("width");
+        return coalesce((Float)rw.settings.get("startx"),0f) + coalesce((Float)rw.settings.get("width"),0f);
     }
 
     public List array(List arr,Object element)
@@ -248,7 +258,7 @@ public class OC_ClozePhrase extends OC_Cloze
             PointF pos = new PointF(0,y);
             pos.x = ((Float)rw.settings.get("startx") + lineStart + rw.label.width()  / 2);
             rw.label.setProperty("pos",(pos));
-            if((Boolean)rw.settings.get("missing"))
+            if(coalesce((Boolean)rw.settings.get("missing"),false))
             {
                 rw.label.hide();
                 OBControl dash = (OBControl) rw.settings.get("dash");
@@ -333,7 +343,7 @@ public class OC_ClozePhrase extends OC_Cloze
 
     public float layOutText()
     {
-        OBFont font = UnscaledReadingFontOfSize(fontSize);
+        OBFont font = StandardReadingFontOfSize(fontSize);
         Map attributes = lineAttributes(font);
         float lineHeight = fontSize;
         float topY = 0;
@@ -603,8 +613,8 @@ public class OC_ClozePhrase extends OC_Cloze
     {
         showStuff();
         boolean plural = dashes().size() > 1;
-        setReplayAudio((List<Object>)(Object)OBUtils.coalesce(plural?currentAudio("PROMPT2.REPEAT"):null,currentAudio("PROMPT.REPEAT")));
-        List<String>aud = OBUtils.coalesce(plural?currentAudio("PROMPT2"):null,currentAudio("PROMPT"));
+        setReplayAudio((List<Object>)(Object) coalesce(plural?currentAudio("PROMPT2.REPEAT"):null,currentAudio("PROMPT.REPEAT")));
+        List<String>aud = coalesce(plural?currentAudio("PROMPT2"):null,currentAudio("PROMPT"));
         if(aud != null)
             playAudioQueued((List<Object>)(Object)aud,false);
     }
@@ -659,7 +669,8 @@ public class OC_ClozePhrase extends OC_Cloze
                 animatePositions();
                 playSfxAudio("wordin",false);
                 lockScreen();
-                detachControl(targetDash);
+                //detachControl(targetDash);
+                textBox.removeMember(targetDash);
                 wLabel.setColour(Color.BLACK);
                 unlockScreen();
                 waitForSecs(0.2f);
