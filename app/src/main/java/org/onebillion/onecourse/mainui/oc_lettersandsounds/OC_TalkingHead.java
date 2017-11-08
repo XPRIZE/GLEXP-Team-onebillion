@@ -16,6 +16,7 @@ import org.onebillion.onecourse.mainui.generic.OC_Generic_WordsEvent;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBAudioManager;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBSyllable;
 import org.onebillion.onecourse.utils.OBUtils;
@@ -127,7 +128,7 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     @Override
     public void setSceneXX (String scene)
     {
-        int presenterColour = OBUtils.SkinColour(OBUtils.PresenterColourIndex());
+        int presenterColour = OBConfigManager.sharedManager.getSkinColour(0);
         avatar.substituteFillForAllMembers("colour.*", presenterColour);
         //
         buttonShowState("inactive");

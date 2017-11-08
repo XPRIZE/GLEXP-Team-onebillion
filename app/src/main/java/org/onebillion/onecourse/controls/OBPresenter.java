@@ -8,6 +8,7 @@ import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBAudioManager;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OBUtils;
 
@@ -283,7 +284,7 @@ public class OBPresenter extends OBCharacter
             faceLeft();
 
         dist = Math.abs(dist);
-        Path path = PathForWalk(startPt, endPt, BouncesForWalk(dist), MainActivity.mainActivity.applyGraphicScale(-20));
+        Path path = PathForWalk(startPt, endPt, BouncesForWalk(dist), OBConfigManager.sharedManager.applyGraphicScale(-20));
         OBAnim pAnim = OBAnim.pathMoveAnim(control, path, false, 0);
         OBAnimationGroup.runAnims(Collections.singletonList(pAnim), DurationForWalk(dist), true, OBAnim.ANIM_EASE_OUT, (OBSectionController) control.controller);
     }

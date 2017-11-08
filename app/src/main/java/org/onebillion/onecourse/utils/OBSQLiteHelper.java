@@ -225,7 +225,7 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
 
     public void emergencyRestore ()
     {
-        if (MainActivity.mainActivity.isDebugMode())
+        if (OBConfigManager.sharedManager.isDebugEnabled())
         {
             final AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.mainActivity).create();
             alertDialog.setTitle("Database Restore");

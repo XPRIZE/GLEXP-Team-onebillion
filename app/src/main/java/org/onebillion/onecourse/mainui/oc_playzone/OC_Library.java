@@ -17,6 +17,7 @@ import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.MlUnit;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBImageManager;
 import org.onebillion.onecourse.utils.OBMisc;
 import org.onebillion.onecourse.utils.OBRunnableSyncUI;
@@ -67,7 +68,7 @@ public class OC_Library extends OC_SectionController
         loadFingers();
         loadEvent("master");
         setSceneXX(currentEvent());
-        libraryMasterlist = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MASTER_LIST_LIBRARY);
+        libraryMasterlist = OBConfigManager.sharedManager.getMasterlistForLibrary();
         String xmlPath = String.format("masterlists/%s/units.xml", libraryMasterlist);
         OBGroup border1 = (OBGroup)objectDict.get("border_1");
         OBGroup border2 = (OBGroup)objectDict.get("border_2");
@@ -133,6 +134,8 @@ public class OC_Library extends OC_SectionController
                     public void run() throws Exception
                     {
                         OBGroup group = (OBGroup) level.propertyValue("books");
+                        if (group == null) return;
+                        //
                         currentIcon = finger(-1, -1, group.members, pt);
                         dragOffset = OB_Maths.DiffPoints(group.position(), pt);
                         currentGroup = group;
@@ -227,7 +230,7 @@ public class OC_Library extends OC_SectionController
     public void openBookForIcon(OBControl icon)
     {
         final Map<String,String> bookData = (Map<String,String>)icon.propertyValue("data");
-        final String lastAppCode = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_APP_CODE);
+        final String lastAppCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
 
         new OBRunnableSyncUI()
         {
@@ -236,17 +239,17 @@ public class OC_Library extends OC_SectionController
             {
                 try
                 {
-                    MainActivity.mainActivity.updateConfigPaths(bookData.get("config"), false, bookData.get("lang"));
+                    OBConfigManager.sharedManager.updateConfigPaths(bookData.get("config"), false, bookData.get("lang"));
                     if(MainViewController().pushViewControllerWithNameConfig(bookData.get("target"),bookData.get("config"),true,true,bookData.get("params")))
                     {
                         //unit started
                     }
                     else
                     {
-                        if (MainActivity.mainActivity.isDebugMode())
+                        if (OBConfigManager.sharedManager.isDebugEnabled())
                         {
                             Toast.makeText(MainActivity.mainActivity, bookData.get("target") + " hasn't been converted to Android yet.", Toast.LENGTH_LONG).show();
-                            MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                            OBConfigManager.sharedManager.updateConfigPaths(lastAppCode, false, null);
                         }
                     }
                 }
@@ -254,8 +257,7 @@ public class OC_Library extends OC_SectionController
                 {
                     Logger logger = Logger.getAnonymousLogger();
                     logger.log(Level.SEVERE, "Error in runOnMainThread", exception);
-
-                    MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, null);
+                    OBConfigManager.sharedManager.updateConfigPaths(lastAppCode, false, null);
                 }
             }
         }.run();

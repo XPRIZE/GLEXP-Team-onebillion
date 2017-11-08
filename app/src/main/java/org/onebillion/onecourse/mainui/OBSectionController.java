@@ -91,6 +91,9 @@ public class OBSectionController extends OBViewController
     private boolean popAnimationZoom;
     private RectF popAnimationZoomRect;
 
+    private String saveConfig;
+    private String saveLanguage;
+
     public float topColour[] = {1, 1, 1, 1};
     float bottomColour[] = {1, 1, 1, 1};
     protected List<Integer> busyStatuses =Arrays.asList(STATUS_BUSY,STATUS_DOING_DEMO,STATUS_DRAGGING,STATUS_CHECKING);
@@ -144,12 +147,6 @@ public class OBSectionController extends OBViewController
         if (e.contents != null)
             objectDict.put("contents", e.contents);
         return objectDict;
-    }
-
-
-    static Map<String, Object> Config ()
-    {
-        return MainActivity.mainActivity.Config();
     }
 
     static float floatOrZero (Map<String, Object> attrs, String s)
@@ -242,12 +239,10 @@ public class OBSectionController extends OBViewController
 
     public static String getLocalPath (String fileName)
     {
-        for (String path : (List<String>) Config().get(MainActivity.CONFIG_AUDIO_SEARCH_PATH))
+        for (String path :OBConfigManager.sharedManager.getAudioSearchPaths())
         {
             String fullPath = OBUtils.stringByAppendingPathComponent(path, fileName);
             if (OBUtils.fileExistsAtPath(fullPath)) return fullPath;
-//            if (OBUtils.fileExistsAtPath(fullPath))
-//                return fullPath;
         }
         return null;
     }
@@ -327,11 +322,16 @@ public class OBSectionController extends OBViewController
     public void viewWillAppear (Boolean animated)
     {
         _aborting = false;
+        //
+        if (saveConfig != null)
+        {
+            OBConfigManager.sharedManager.updateConfigPaths(saveConfig, false, saveLanguage);
+        }
     }
 
     public String getConfigPath (String cfgName)
     {
-        for (String path : (List<String>) Config().get(MainActivity.CONFIG_CONFIG_SEARCH_PATH))
+        for (String path : OBConfigManager.sharedManager.getConfigSearchPaths())
         {
             String fullPath = OBUtils.stringByAppendingPathComponent(path, cfgName);
             Boolean fileExists = OBUtils.fileExistsAtPath(fullPath);
@@ -339,8 +339,6 @@ public class OBSectionController extends OBViewController
             {
                 return fullPath;
             }
-//            if (OBUtils.fileExistsAtPath(fullPath))
-//                return fullPath;
         }
         return null;
     }
@@ -348,6 +346,10 @@ public class OBSectionController extends OBViewController
     public void prepare ()
     {
         super.prepare();
+        //
+        saveConfig = OBConfigManager.sharedManager.getCurrentActivityFolder();
+        saveLanguage = OBConfigManager.sharedManager.getCurrentLanguage();
+        //
         theMoveSpeed = bounds().width();
         inited = true;
         processParams();
@@ -609,12 +611,15 @@ public class OBSectionController extends OBViewController
             int skinOffset = 0;
             if (attrs.get("skinoffset") != null)
                 skinOffset = Integer.parseInt((String) attrs.get("skinoffset"));
-            int skincol = OBUtils.SkinColour(OBUtils.SkinColourIndex() + skinOffset);
+            int skincol = OBConfigManager.sharedManager.getSkinColour(skinOffset);
             if (im == null)
             {
                 MainActivity.log("ERROR --> null object with name " + srcname);
             }
-            ((OBGroup) im).substituteFillForAllMembers("skin.*", skincol);
+            else
+            {
+                ((OBGroup) im).substituteFillForAllMembers("skin.*", skincol);
+            }
             if (attrs.get("fill") != null)
             {
                 int col = OBUtils.colorFromRGBString((String) attrs.get("fill"));
@@ -877,7 +882,7 @@ public class OBSectionController extends OBViewController
 
     public float graphicScale ()
     {
-        return (Float) (Config().get(MainActivity.mainActivity.CONFIG_GRAPHIC_SCALE));
+        return OBConfigManager.sharedManager.getGraphicScale();
     }
 
     public List<OBControl> loadEvent (String eventID)
@@ -1498,7 +1503,7 @@ public class OBSectionController extends OBViewController
                 {
                     OBGroup arm = MainActivity.mainActivity.armPointer();
                     arm.setZPosition(POINTER_ZPOS);
-                    float graphicScale = MainActivity.mainActivity.applyGraphicScale(1);
+                    float graphicScale = OBConfigManager.sharedManager.getGraphicScale();
                     arm.scaleX = arm.scaleY = graphicScale;
                     arm.texturise(false, vc);
                     thePointer = arm;

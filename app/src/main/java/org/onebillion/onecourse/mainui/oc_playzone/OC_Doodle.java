@@ -35,6 +35,7 @@ import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBFatController;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
@@ -223,8 +224,7 @@ public class OC_Doodle extends OC_SectionController
             }
             if (drawOn == null)
             {
-                Map<String, Object> conf = MainActivity.Config();
-                drawOn = (OBImage) conf.get("oc_doodle");
+                drawOn = (OBImage) OBConfigManager.sharedManager.getValue("oc_doodle");
             }
         }
         if (drawOn == null)
@@ -671,8 +671,7 @@ public class OC_Doodle extends OC_SectionController
         Map<String,String> params = new HashMap<>();
         params.put("theme",currentEvent());
         Bitmap bm = drawn(null,true);
-        Map<String,Object> conf = MainActivity.Config();
-        conf.put("oc_doodle",drawOn);
+        OBConfigManager.sharedManager.setValue("oc_doodle", drawOn);
         saveContentsToDisk();
 
         if(!_aborting)

@@ -19,6 +19,7 @@ import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBAudioManager;
 import org.onebillion.onecourse.utils.OBConditionLock;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBImageManager;
 import org.onebillion.onecourse.utils.OBRunnableSyncUI;
 import org.onebillion.onecourse.utils.OB_Maths;
@@ -179,7 +180,7 @@ public class OC_SectionController extends OBSectionController {
         star.setScale(0.04f);
         attachControl(star);
         miscObjects.put("star", star);
-        String audioFile = (String) Config().get(MainActivity.CONFIG_AWARDAUDIO);
+        String audioFile = OBConfigManager.sharedManager.getAwardSoundEffect();
         playSFX(audioFile);
         double duration = OBAudioManager.audioManager.durationForChannel(OBAudioManager.AM_SFX_CHANNEL);
         completeDisplay((duration < 1.0) ? 1.0 : duration);
@@ -187,7 +188,7 @@ public class OC_SectionController extends OBSectionController {
 
     public void completeDisplay(double duration) throws Exception
     {
-        float scale = MainActivity.mainActivity.applyGraphicScale(1);
+        float scale = OBConfigManager.sharedManager.getGraphicScale();
         OBAnimationGroup.runAnims(Collections.singletonList(OBAnim.scaleAnim(1.0f, miscObjects.get("star"))), 0.4, false, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
         OBEmitter emitter = new OBEmitter();
         emitter.setFrame(0,0,bounds().width(),bounds().height());
@@ -227,7 +228,7 @@ public class OC_SectionController extends OBSectionController {
         star.setFillColor(colour);
         attachControl(star);
         miscObjects.put("star", star);
-        String audioFile = (String) Config().get(MainActivity.CONFIG_AWARDAUDIO);
+        String audioFile = OBConfigManager.sharedManager.getAwardSoundEffect();
         playSFX(audioFile);
         double duration = OBAudioManager.audioManager.durationForChannel(OBAudioManager.AM_SFX_CHANNEL);
         completeDisplay2((duration < 1.0) ? 1.0 : duration, colour);
@@ -235,7 +236,7 @@ public class OC_SectionController extends OBSectionController {
 
     public void completeDisplay2(double duration, int colour) throws Exception
     {
-        float scale = MainActivity.mainActivity.applyGraphicScale(1);
+        float scale = OBConfigManager.sharedManager.getGraphicScale();
         OBEmitter emitter = new OBEmitter();
         emitter.setFrame(0,0,bounds().width(),bounds().height());
         OBEmitterCell cell = new OBEmitterCell();

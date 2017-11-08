@@ -63,7 +63,7 @@ public class ScrollingHelper
 
     public static void prepareForScrollMeasure(OBControl con)
     {
-        float startSpeed = MainActivity.mainActivity.applyGraphicScale(0.1f);
+        float startSpeed = OBConfigManager.sharedManager.applyGraphicScale(0.1f);
         prepareForScrollMeasureTickValue(con, 0.0025f, 0.99f, startSpeed, startSpeed);
     }
 

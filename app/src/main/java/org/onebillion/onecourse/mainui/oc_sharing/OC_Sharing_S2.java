@@ -12,6 +12,7 @@ import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.mainui.generic.OC_Generic_Event;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
 
@@ -24,8 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.onebillion.onecourse.utils.OBUtils.PresenterColourIndex;
-import static org.onebillion.onecourse.utils.OBUtils.SkinColour;
 
 /**
  * Created by pedroloureiro on 05/05/2017.
@@ -125,7 +124,7 @@ public class OC_Sharing_S2 extends OC_Generic_Event
             containers.put((String) container.attributes().get("id"), new ArrayList(maxCapacity));
             container.objectDict.get("smile_normal").show();
             container.objectDict.get("smile_happy").hide();
-            int childColour = SkinColour(PresenterColourIndex() + skinColourOffset++);
+            int childColour = OBConfigManager.sharedManager.getSkinColour(skinColourOffset++);
             container.substituteFillForAllMembers("colour.*", childColour);
             //
             for (OBControl placement : container.filterMembers("place.*"))

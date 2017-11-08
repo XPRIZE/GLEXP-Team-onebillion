@@ -34,6 +34,7 @@ import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.controls.OBVideoPlayer;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.utils.DBSQL;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OCM_MlUnit;
 import org.onebillion.onecourse.utils.OBBrightnessManager;
 import org.onebillion.onecourse.utils.OBConnectionManager;
@@ -101,7 +102,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
         //
         loadFingers();
         //
-        saveConfig = (String) Config().get(MainActivity.CONFIG_APP_CODE);
+        saveConfig = OBConfigManager.sharedManager.getCurrentActivityFolder();
         //
         loadHomeScreen();
         //
@@ -128,7 +129,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
         }
         if (saveConfig != null)
         {
-            MainActivity.mainActivity.updateConfigPaths(saveConfig, false);
+            OBConfigManager.sharedManager.updateConfigPaths(saveConfig, false);
         }
     }
 
@@ -139,6 +140,9 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
         setStatus(STATUS_AWAITING_CLICK);
         //
         OBBrightnessManager.sharedManager.setScreenSleepTimeToMax();
+        //
+        MainActivity.log("OBSetupMenu.start.updating config paths to setup menu folder");
+        OBConfigManager.sharedManager.updateConfigPaths(OBConfigManager.sharedManager.getSetupMenuFolder(), true);
         //
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
@@ -155,9 +159,9 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
     {
         MainActivity.log("OBSetupMenu:getServerTime");
         //
-        final String wifiSSID = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_TIME_SERVER_WIFI_SSID);
-        final String wifiPassword = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_TIME_SERVER_WIFI_PASSWORD);
-        final String timeServerURL = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_TIME_SERVER_URL);
+        final String wifiSSID = OBConfigManager.sharedManager.getTimeServerWifiSSID();
+        final String wifiPassword = OBConfigManager.sharedManager.getTimeServerWifiPassword();
+        final String timeServerURL = OBConfigManager.sharedManager.getTimeServerURL();
         //
         String currentWifiSSID = OBConnectionManager.sharedManager.getCurrentWifiSSID();
         if (currentWifiSSID == null || !wifiSSID.equalsIgnoreCase(currentWifiSSID))

@@ -161,7 +161,7 @@ public class OCM_MlUnit extends DBObject
     public String pathToIcon(boolean small)
     {
         String imgName = String.format(small ? "%s_small" : "%s", this.icon);
-        String mlname = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_MASTER_LIST);
+        String mlname = OBConfigManager.sharedManager.getMasterlist();
         String fullPath = String.format("masterlists/%s/icons/%s.%s", mlname, imgName, "png");
         if (OBUtils.fileExistsAtPath(fullPath))
         {

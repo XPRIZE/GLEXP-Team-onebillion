@@ -20,6 +20,7 @@ import org.onebillion.onecourse.glstuff.OBGLView;
 import org.onebillion.onecourse.glstuff.OBRenderer;
 import org.onebillion.onecourse.glstuff.TextureShaderProgram;
 import org.onebillion.onecourse.utils.OBBrightnessManager;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBSystemsManager;
 import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OBUtils;
@@ -129,7 +130,7 @@ public class OBMainViewController extends OBViewController
         else
             bottomRightButton.setOpacity(1.0f);
 
-        if (MainActivity.mainActivity.isDebugMode())
+        if (OBConfigManager.sharedManager.isDebugEnabled())
             topLabel.setOpacity(1.0f);
         else
             topLabel.setOpacity(0.0f);

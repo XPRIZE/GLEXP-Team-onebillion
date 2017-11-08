@@ -17,6 +17,7 @@ import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimBlock;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBMisc;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
@@ -74,7 +75,7 @@ public class OC_Count100_S6 extends OC_SectionController
         PointF anchor = OB_Maths.relativePointInRectForLocation(objectDict.get("bagfront").position(),objectDict.get("bagback").frame());
         objectDict.get("bagback").setAnchorPoint(anchor);
         robotController.setButtonColour(buttonActive);
-        counter = new OBLabel("000",OBUtils.standardTypeFace(), MainActivity.mainActivity.applyGraphicScale(86));
+        counter = new OBLabel("000",OBUtils.standardTypeFace(), OBConfigManager.sharedManager.applyGraphicScale(86));
         counter.setColour(numColour);
         counter.setPosition(objectDict.get("numbox").position());
         counter.setZPosition(1.5f);

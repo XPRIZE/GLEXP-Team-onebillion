@@ -1,32 +1,23 @@
 package org.onebillion.onecourse.mainui.oc_playzone;
 
-import android.content.Context;
 import android.content.res.AssetFileDescriptor;
-import android.content.res.AssetManager;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
-import android.media.ExifInterface;
-import android.os.SystemClock;
 import android.util.ArrayMap;
 import android.view.View;
 
-import org.apache.commons.io.FileUtils;
-import org.onebillion.onecourse.R;
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBImage;
 import org.onebillion.onecourse.controls.OBLabel;
-import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.controls.OBRadialGradientPath;
 import org.onebillion.onecourse.controls.OBScrollingText;
 import org.onebillion.onecourse.controls.OBShaderControl;
 import org.onebillion.onecourse.controls.OBVideoPlayer;
 import org.onebillion.onecourse.glstuff.OBRenderer;
-import org.onebillion.onecourse.glstuff.PixelShaderProgram;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OC_Menu;
@@ -34,7 +25,7 @@ import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimBlock;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
-import org.onebillion.onecourse.utils.OBExpansionManager;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBImageManager;
 import org.onebillion.onecourse.utils.OBMisc;
 import org.onebillion.onecourse.utils.OBUtils;
@@ -43,7 +34,6 @@ import org.onebillion.onecourse.utils.OBXMLNode;
 import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OCM_FatController;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -159,7 +149,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         OBControl btmRight = objectDict.get("bottom_bar_right");
         scrollHitBox = new RectF(btmLeft.right(), btmLeft.top(), btmRight.left() , btmLeft.bottom());
 
-        playZoneMasterlist = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MASTER_LIST_PLAYZONE);
+        playZoneMasterlist = OBConfigManager.sharedManager.getMasterlistForPlayzone();
         String xmlPath = String.format("masterlists/%s/units.xml", playZoneMasterlist);
 
         OBControl backButton = objectDict.get("button_back");
@@ -1051,7 +1041,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         if(target != null)
         {
             if(config != null)
-                MainActivity.mainActivity.updateConfigPaths(config, false, lang != null ? lang : "en_GB");
+                OBConfigManager.sharedManager.updateConfigPaths(config, false, lang != null ? lang : "en_GB");
 
             if(MainViewController().pushViewControllerWithNameConfig(target,config != null ? config :"oc-playzone",true,true,params))
             {
@@ -1180,6 +1170,7 @@ public class OC_PlayZoneMenu extends OC_Menu
                                 gradientColours[gradientColours.length - 1] = colour;
                                 topGradient.gradientLayer.colours = gradientColours;
                             }
+                            //
                             OBControl iconMask = button.objectDict.get("icon").copy();
                             iconMask.setPosition(menuButton.position());
                             if(!specialIcon)
@@ -1187,16 +1178,19 @@ public class OC_PlayZoneMenu extends OC_Menu
 
                             PointF relativePoint2 = OB_Maths.relativePointInRectForLocation(icon.position(), button.getWorldFrame());
                             button.insertMember(icon,2,"button_icon");
+                            // resize factor is to fit the stars in the special icons inside the mask
+                            float resizeFactor = (specialIcon) ? 0.85f : 1.0f;
+                            // 0.5 is due the icons being designed for pixel (high res) and not being processed as such
+                            icon.setScale(applyGraphicScale(icon.scale() * 0.5f * resizeFactor));
                             icon.setScale(icon.scale()/button.scale());
                             icon.setPosition(OB_Maths.locationForRect(relativePoint2, button.bounds()));
                             icon.setZPosition(2);
-
+                            //
                             PointF relativePoint = OB_Maths.relativePointInRectForLocation(iconMask.position(), icon.getWorldFrame());
                             iconMask.setScale(1.0f/icon.scale());
                             iconMask.setPosition(OB_Maths.locationForRect(relativePoint, icon.bounds()));
                             if(!specialIcon)
                                 icon.setMaskControl(iconMask);
-
                             button.objectDict.get("top_layer").setZPosition(3);
                             button.setPosition(OB_Maths.locationForRect(0.5f,0.5f,this.bounds()));
                             button.setZPosition(10);

@@ -38,25 +38,15 @@ public class OBImageManager
         return _sharedImageManager;
     }
 
+
     public String getImgPath (String imageName)
     {
-        Map<String, Object> config = MainActivity.mainActivity.config;
-        Object obj = config.get(MainActivity.CONFIG_IMAGE_SUFFIX);
-        List<String> suffixes;
-        if (obj instanceof String)
-        {
-            suffixes = new ArrayList<String>();
-            suffixes.add((String) obj);
-        }
-        else
-        {
-            suffixes = (List<String>) obj;
-        }
         // check if it's icon for masterlist
-        String mlname = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_MASTER_LIST);
+        // TODO: it's missing the playzone and library masterlists here
+        String mlname = OBConfigManager.sharedManager.getMasterlist();
         if (mlname != null)
         {
-            for (String imageSuffix : suffixes)
+            for (String imageSuffix : OBConfigManager.sharedManager.getImageExtensions())
             {
                 String fullPath = String.format("masterlists/%s/icons/%s.%s", mlname, imageName, imageSuffix);
                 if (OBUtils.fileExistsAtPath(fullPath))
@@ -67,11 +57,9 @@ public class OBImageManager
             }
         }
         //
-        List<String> searchPaths = (List<String>) config.get(MainActivity.CONFIG_IMAGE_SEARCH_PATH);
-        //
-        for (String imageSuffix : suffixes)
+        for (String imageSuffix : OBConfigManager.sharedManager.getImageExtensions())
         {
-            for (String path : searchPaths)
+            for (String path : OBConfigManager.sharedManager.getImageSearchPaths())
             {
                 String fullPath = path + "/" + imageName + "." + imageSuffix;
                 if (OBUtils.fileExistsAtPath(fullPath)) return fullPath;
@@ -79,51 +67,20 @@ public class OBImageManager
         }
         //
         return null;
-//        AssetManager am = MainActivity.mainActivity.getAssets();
-//        for (String imageSuffix : suffixes)
-//        {
-//            for (String path : searchPaths)
-//            {
-//                String fullpath = path + "/" + imageName + "." + imageSuffix;
-//                try
-//                {
-//                    InputStream is = am.open(fullpath);
-//                    is.close();
-//                    return fullpath;
-//                }
-//                catch (IOException e)
-//                {
-//                }
-//            }
-//        }
-//        return null;
     }
 
     public String getVectorPath (String imageName)
     {
-        Map<String, Object> config = MainActivity.mainActivity.config;
-        List<String> searchPaths = (List<String>) config.get(MainActivity.CONFIG_VECTOR_SEARCH_PATH);
-        for (String path : searchPaths)
+        for (String suffix : OBConfigManager.sharedManager.getVectorExtensions())
         {
-            String fullPath = path + "/" + imageName + ".svg";
-            if (OBUtils.fileExistsAtPath(fullPath)) return fullPath;
+            for (String path : OBConfigManager.sharedManager.getVectorSearchPaths())
+            {
+                String fullPath = path + "/" + imageName + "." + suffix;
+                if (OBUtils.fileExistsAtPath(fullPath)) return fullPath;
+            }
         }
+        //
         return null;
-//        AssetManager am = MainActivity.mainActivity.getAssets();
-//        for (String path : searchPaths)
-//        {
-//            String fullpath = path + "/" + imageName + ".svg";
-//            try
-//            {
-//                InputStream is = am.open(fullpath);
-//                is.close();
-//                return fullpath;
-//            }
-//            catch (IOException e)
-//            {
-//            }
-//        }
-//        return null;
     }
 
     static boolean HighResPath(String path)
@@ -236,7 +193,6 @@ public class OBImageManager
             try
             {
                 InputStream is = OBUtils.getInputStreamForPath(path);
-//                InputStream is = MainActivity.mainActivity.getAssets().open(path);
                 svgnode = xmlManager.parseFile(is).get(0);
                 if (svgnode == null)
                     return null;

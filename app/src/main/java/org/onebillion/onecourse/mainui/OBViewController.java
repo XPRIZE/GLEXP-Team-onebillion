@@ -16,6 +16,7 @@ package org.onebillion.onecourse.mainui;
         import org.onebillion.onecourse.controls.OBControl;
         import org.onebillion.onecourse.glstuff.GraphicState;
         import org.onebillion.onecourse.glstuff.Texture;
+        import org.onebillion.onecourse.utils.OBConfigManager;
 
         import java.util.ArrayList;
         import java.util.HashMap;
@@ -182,7 +183,7 @@ public class OBViewController
 
     public float applyGraphicScale(float amt)
     {
-        return MainActivity.mainActivity.applyGraphicScale(amt);
+        return OBConfigManager.sharedManager.applyGraphicScale(amt);
     }
 
     public void setViewPort(int l,int t,int r,int b)
