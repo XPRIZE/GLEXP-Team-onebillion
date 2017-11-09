@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
@@ -132,7 +133,8 @@ public class OC_ClozePhrase extends OC_Cloze
         adjustTextPosition();
         for(OBReadingWord rw : para.words)
         {
-            rw.label.hide();
+            if (rw.label != null)
+                rw.label.hide();
             if(rw.settings.get("dash") != null )
                 ((OBControl)rw.settings.get("dash")).hide();
         }
@@ -257,7 +259,7 @@ public class OC_ClozePhrase extends OC_Cloze
             }
             PointF pos = new PointF(0,y);
             pos.x = ((Float)rw.settings.get("startx") + lineStart + rw.label.width()  / 2);
-            rw.label.setProperty("pos",(pos));
+            rw.label.setProperty("pos",new PointF(pos.x,pos.y));
             if(coalesce((Boolean)rw.settings.get("missing"),false))
             {
                 rw.label.hide();
@@ -288,11 +290,12 @@ public class OC_ClozePhrase extends OC_Cloze
             if(rw.settings.get("lclabel") != null )
             {
                 OBLabel label = (OBLabel) rw.settings.get("lclabel");
-                label.setPosition((PointF)rw.label.propertyValue("pos"));
-                label.setRight(rw.label.right());
-                PointF p = new PointF();
-                p.set(label.position());
-                label.setProperty("pos",p);
+                PointF npos = new PointF();
+                npos.set((PointF)rw.label.propertyValue("pos"));
+                float diff = rw.label.frame().width() / 2f;
+                float right = npos.x + diff;
+                npos.x = right - label.frame().width() / 2f;
+                label.setProperty("pos",npos);
             }
         }
     }
@@ -302,7 +305,7 @@ public class OC_ClozePhrase extends OC_Cloze
         for(OBReadingPara para : paragraphs)
             for(OBReadingWord rw : para.words)
             {
-                if(rw.label.propertyValue("pos") != null)
+                if(rw.label != null && rw.label.propertyValue("pos") != null)
                 {
                     rw.label.setPosition((PointF)rw.label.propertyValue("pos"));
                 }
@@ -327,6 +330,12 @@ public class OC_ClozePhrase extends OC_Cloze
                 {
                     PointF pos = (PointF)rw.label.propertyValue("pos");
                     anims.add(OBAnim.moveAnim(pos,rw.label));
+                }
+                if(rw.settings.get("lclabel") != null )
+                {
+                    OBLabel label = (OBLabel) rw.settings.get("lclabel");
+                    PointF pos = (PointF)label.propertyValue("pos");
+                    anims.add(OBAnim.moveAnim(pos,label));
                 }
                 if(rw.settings.get("dash") != null)
                 {
@@ -510,13 +519,15 @@ public class OC_ClozePhrase extends OC_Cloze
         {
             OBLabel l = candidateLabelWithText(rw.text.toLowerCase());
             movePointerToPoint(OB_Maths.locationForRect(0.5f, 0.7f, l .frame()),-1,true);
-            PointF pos = convertPointFromControl(rw.label.position(),textBox);
+            PointF pos = (PointF) labelOfTargetWord(rw).settings.get("pos");
+            pos = convertPointFromControl(pos,textBox);
             l.setZPosition(l.zPosition()  + 30);
             moveObjects(Arrays.asList(l,thePointer),pos,-0.5f,OBAnim.ANIM_EASE_IN_EASE_OUT);
             l.setZPosition(l.zPosition()  - 30);
             OBLabel wLabel = labelOfTargetWord(rw);
             lockScreen();
             wLabel.setZPosition(l.zPosition() );
+            wLabel.setPosition(convertPointToControl(l.position(),textBox));
             wLabel.setColour(l.colour() );
             wLabel.show();
             l.hide();
@@ -680,7 +691,7 @@ public class OC_ClozePhrase extends OC_Cloze
                     waitForSecs(0.2f);
                     playSfxAudio("caps",false);
                     lockScreen();
-                    detachControl((OBControl) rw.settings.get("lclabel"));
+                    ((OBControl)rw.settings.get("lclabel")).hide();
                     rw.settings.remove("lclabel");
                     rw.label.show();
                     unlockScreen();

@@ -228,8 +228,11 @@ List<Integer>indicesFromArray(List<String>arr)
         for(OBReadingPara para : paragraphs)
             for(OBReadingWord rw : para.words)
             {
-                if(rw.settings.get("missing")  == null)
-                    rw.label.show();
+                if(rw.settings.get("missing") == null)
+                {
+                    if (rw.label != null)
+                        rw.label.show();
+                }
                 else
                 {
                     OBControl dash = (OBControl) rw.settings.get("dash");
