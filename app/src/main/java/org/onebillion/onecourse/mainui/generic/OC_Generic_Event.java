@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
@@ -12,10 +13,12 @@ import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OC_SectionController;
+import org.onebillion.onecourse.mainui.oc_lettersandsounds.OC_Wordcontroller;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBAudioManager;
 import org.onebillion.onecourse.utils.OBAudioPlayer;
+import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBUserPressedBackException;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
@@ -552,6 +555,42 @@ public class OC_Generic_Event extends OC_SectionController
         return OC_Generic.action_createLabelForControl(control, finalResizeFactor, insertIntoGroup, this);
     }
 
+    public OBLabel action_createLabelForControl (OBControl control, String text, int colour, float finalResizeFactor)
+    {
+        control.setProperty("text", text);
+        OBLabel result = OC_Generic.action_createLabelForControl(control, finalResizeFactor, false, this);
+        result.setColour(colour);
+        return result;
+    }
+
+
+    public List breakdownLabel(OBLabel mLabel)
+    {
+        List result = new ArrayList<>();
+        String text = mLabel.text();
+        Typeface tf = mLabel.typeface();
+        float size = mLabel.fontSize();
+        int totalLength = 0;
+        //
+        for(int i = 0; i < mLabel.text().length(); i++)
+        {
+            totalLength += 1;
+            String subtx = text.substring(0, totalLength);
+            RectF r = OC_Wordcontroller.boundingBoxForText(subtx, tf, size);
+            float f = r.width();
+            //
+            OBLabel l = new OBLabel(mLabel.text().substring(i, i+1), tf, size);
+            l.sizeToBoundingBox();
+            l.setZPosition(mLabel.zPosition() + 0.01f);
+            l.setColour(mLabel.colour());
+            l.sizeToBoundingBox();
+            l.setPosition(mLabel.position());
+            l.setRight(mLabel.left() + f);
+            l.setProperty("original_position", l.getWorldPosition());
+            result.add(l);
+        }
+        return result;
+    }
 
     // Finger and Touch functions
 

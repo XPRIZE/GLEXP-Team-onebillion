@@ -358,7 +358,8 @@ public class OC_Generic
             }
             String content = (String) control.attributes().get("text");
             if (content == null) content = (String) control.attributes().get("number");
-            if (content == null) content = "";
+            if (content == null) content = (String) control.propertyValue("text");
+            if (content == null) content = "0000";
             //
             OBLabel label = new OBLabel(content, tf, textSize);
             //

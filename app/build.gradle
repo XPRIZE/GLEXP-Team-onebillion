@@ -1,5 +1,7 @@
 apply plugin: 'com.android.application'
 android {
+    signingConfigs {}
+    /*
     signingConfigs {
         config {
             keyAlias 'android'
@@ -8,6 +10,7 @@ android {
             storePassword 'android'
         }
     }
+    */
     compileSdkVersion 23
     buildToolsVersion '25.0.0'
     defaultConfig {
@@ -20,18 +23,17 @@ android {
     }
     buildTypes {
         debug {
-
             debuggable true
             manifestPlaceholders = [
                     appuserid : ""
             ]
-
         }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             manifestPlaceholders = [
-                    appuserid : "android.uid.system"
+                    appuserid : ""
+                    //appuserid : "android.uid.system"
             ]
         }
 
@@ -46,6 +48,7 @@ android {
 //        javaMaxHeapSize "8192M"
 //        javaMaxHeapSize "4096M"
         javaMaxHeapSize "512M"
+//        javaMaxHeapSize "1024M"
     }
     sourceSets {
         main {

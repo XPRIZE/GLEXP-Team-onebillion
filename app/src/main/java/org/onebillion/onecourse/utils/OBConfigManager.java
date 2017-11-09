@@ -22,7 +22,7 @@ import java.util.StringTokenizer;
 
 public class OBConfigManager
 {
-    private static String MULTIPLE_APP_DIR_SEPARATOR = ",";
+    public static String MULTIPLE_APP_DIR_SEPARATOR = ",";
     //
     private static String EXTENSIONS_IMAGE = "extensions_image";
     private static String EXTENSIONS_AUDIO = "extensions_audio";

@@ -399,7 +399,7 @@ public class MainActivity extends Activity
     }
 
 
-    void doGLStuff ()
+    public void doGLStuff ()
     {
         glSurfaceView = new OBGLView(this);
         glSurfaceView.setPreserveEGLContextOnPause(true);

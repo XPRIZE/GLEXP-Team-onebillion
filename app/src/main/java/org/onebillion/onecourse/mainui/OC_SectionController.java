@@ -83,27 +83,29 @@ public class OC_SectionController extends OBSectionController {
         lock.unlock();
     }
 
-    public void playAudioQueuedScene(String scene,String event, float interval,boolean wait) throws Exception
+    public OBConditionLock playAudioQueuedScene(String scene,String event, float interval,boolean wait) throws Exception
     {
         if (audioScenes == null)
-            return;
+            return new OBConditionLock(PROCESS_DONE);
+        //
         Map<String,List<String>> sc = (Map<String,List<String>>)audioScenes.get(scene);
         if (sc != null)
         {
             List<Object> arr = OBUtils.insertAudioInterval((List<Object>)(Object)sc.get(event), Math.round(interval*1000)); //yuk!
             if (arr != null)
-                playAudioQueued(arr, wait);
+                return playAudioQueued(arr, wait);
         }
+        return new OBConditionLock(PROCESS_DONE);
     }
 
-    public void playAudioQueuedScene(String audioCategory, float interval, boolean wait) throws Exception
+    public OBConditionLock playAudioQueuedScene(String audioCategory, float interval, boolean wait) throws Exception
     {
-        playAudioQueuedScene(currentEvent(),audioCategory,interval, wait);
+        return playAudioQueuedScene(currentEvent(),audioCategory,interval, wait);
     }
 
-    public void playAudioQueuedScene(String audioCategory,boolean wait) throws Exception
+    public OBConditionLock playAudioQueuedScene(String audioCategory,boolean wait) throws Exception
     {
-        playAudioQueuedScene(currentEvent(),audioCategory,wait);
+        return playAudioQueuedScene(currentEvent(),audioCategory,wait);
     }
 
     public void playAudioScene(String scene,String event,int idx) throws Exception
@@ -616,8 +618,11 @@ public class OC_SectionController extends OBSectionController {
     public void moveScenePointer(PointF point, float time, String audio, float wait) throws Exception
     {
         movePointerToPoint(point,time,true);
-        playAudio(audio);
-        waitAudio();
+        if (audio != null)
+        {
+            playAudio(audio);
+            waitAudio();
+        }
         waitForSecs(wait);
     }
 

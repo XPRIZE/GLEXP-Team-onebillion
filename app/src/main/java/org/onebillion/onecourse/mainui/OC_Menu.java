@@ -20,7 +20,10 @@ public class OC_Menu extends OC_SectionController
 
     public void prepare()
     {
+        params = "menu";
+        //
         super.prepare();
+        //
         saveConfig = OBConfigManager.sharedManager.getCurrentActivityFolder();
         saveLanguage = OBConfigManager.sharedManager.getCurrentLanguage();
         //

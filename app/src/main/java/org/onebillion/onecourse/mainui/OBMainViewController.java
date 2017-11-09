@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -298,28 +299,49 @@ public class OBMainViewController extends OBViewController
         rootView.removeView(v);
     }
 
-    private Class controllerClass (String name, String configPath)
+    private Class controllerClass (String name, String configPaths)
     {
-        try
+        if (configPaths != null)
         {
-            String config = "";
-            if (configPath != null)
+            StringTokenizer tokens = new StringTokenizer(configPaths, OBConfigManager.MULTIPLE_APP_DIR_SEPARATOR);
+            while (tokens.hasMoreTokens())
             {
-                String[] paths = configPath.split("/");
-                config = paths[0];
-                config = config.replace("-", "_");
-                config += ".";
+                try
+                {
+                    String configPath = tokens.nextToken();
+                    String config = "";
+                    if (configPath != null)
+                    {
+                        String[] paths = configPath.split("/");
+                        config = paths[0];
+                        config = config.replace("-", "_");
+                        config += ".";
+                    }
+                    Class cnm = Class.forName("org.onebillion.onecourse.mainui." + config + name);
+                    return cnm;
+                }
+                catch (ClassNotFoundException e)
+                {
+                    // do nothing
+                }
             }
-            Class cnm = Class.forName("org.onebillion.onecourse.mainui." + config + name);
-            return cnm;
+            //
+            return controllerClass(name, null);
         }
-        catch (ClassNotFoundException e)
+        else
         {
-            if (configPath != null)
-                return controllerClass(name, null);
+            try
+            {
+                Class cnm = Class.forName("org.onebillion.onecourse.mainui." + name);
+                return cnm;
+            }
+            catch (ClassNotFoundException e)
+            {
+                return null;
+            }
         }
-        return null;
     }
+
 
     public boolean pushViewControllerWithNameConfig (String nm, String configPath, boolean animate, boolean fromRight, Object _params)
     {
