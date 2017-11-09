@@ -67,7 +67,7 @@ public class OC_PhraseSentence extends OC_Reading
                 {
                     Map md = new HashMap();
                     md.putAll(phrasenode.attributes);
-                    String k = phrasenode.attributeStringValue("Object");
+                    String k = phrasenode.attributeStringValue("id");
                     String contents = phrasenode.contents;
                     if(contents != null)
                         md.put("contents",contents);
@@ -319,6 +319,8 @@ public class OC_PhraseSentence extends OC_Reading
     public List wordExtents()
     {
         List<List>arr = new ArrayList<>();
+        if (words == null)
+            return arr;
         List linearr = new ArrayList<>();
         float lastx = -1;
         for(OBReadingWord w : words)

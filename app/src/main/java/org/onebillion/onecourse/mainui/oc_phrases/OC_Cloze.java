@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.onebillion.onecourse.utils.OBUtils.StandardReadingFontOfSize;
 import static org.onebillion.onecourse.utils.OBUtils.UnscaledReadingFontOfSize;
 
 /**
@@ -111,7 +112,7 @@ List<Integer>indicesFromArray(List<String>arr)
 
     public void createBottomLabels()
     {
-        List<OBLabel>botlabs = new ArrayList<>();OBFont font = UnscaledReadingFontOfSize(fontSize);
+        List<OBLabel>botlabs = new ArrayList<>();OBFont font = StandardReadingFontOfSize(fontSize);
         int labelcol = objectDict.get("bottomlabelswatch").fillColor();
         for(String s : distractors)
         {
@@ -195,14 +196,20 @@ List<Integer>indicesFromArray(List<String>arr)
 
     public void cleanScene()
     {
-        for(OBControl c : bottomLabels)
-            detachControl(c);
-        for(OBReadingPara para : paragraphs)
-            for(OBReadingWord rw : para.words)
-            {
-                if(rw.label != null)
-                    detachControl(rw.label);
-            }
+        if (bottomLabels != null)
+            for(OBControl c : bottomLabels)
+                detachControl(c);
+        if (paragraphs != null)
+            for(OBReadingPara para : paragraphs)
+                for(OBReadingWord rw : para.words)
+                {
+                    if(rw.label != null)
+                        detachControl(rw.label);
+                }
+        for (int i = textBox.members.size()-1;i >= 0;i--)
+        {
+            textBox.removeMemberAtIndex(i);
+        }
     }
 
     public void showPic() throws Exception
@@ -339,7 +346,7 @@ List<Integer>indicesFromArray(List<String>arr)
         for(OBLabel lab : bottomLabels)
         {
             PointF bpos = (PointF) lab.propertyValue("botpos");
-            PointF pos = bpos;
+            PointF pos = new PointF(bpos.x,bpos.y);
             pos.x += w;
             lab.setPosition(pos);
             lab.show();

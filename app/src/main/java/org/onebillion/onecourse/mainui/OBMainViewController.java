@@ -299,47 +299,29 @@ public class OBMainViewController extends OBViewController
         rootView.removeView(v);
     }
 
-    private Class controllerClass (String name, String configPaths)
+    private Class controllerClass (String name, String configPath)
     {
-        if (configPaths != null)
+        try
         {
-            StringTokenizer tokens = new StringTokenizer(configPaths, OBConfigManager.MULTIPLE_APP_DIR_SEPARATOR);
-            while (tokens.hasMoreTokens())
+            String config = "";
+            if (configPath != null)
             {
-                try
-                {
-                    String configPath = tokens.nextToken();
-                    String config = "";
-                    if (configPath != null)
-                    {
-                        String[] paths = configPath.split("/");
-                        config = paths[0];
-                        config = config.replace("-", "_");
-                        config += ".";
-                    }
-                    Class cnm = Class.forName("org.onebillion.onecourse.mainui." + config + name);
-                    return cnm;
-                }
-                catch (ClassNotFoundException e)
-                {
-                    // do nothing
-                }
+                String[] sarr = configPath.split(",");
+                configPath = sarr[0];
+                String[] paths = configPath.split("/");
+                config = paths[0];
+                config = config.replace("-", "_");
+                config += ".";
             }
-            //
-            return controllerClass(name, null);
+            Class cnm = Class.forName("org.onebillion.onecourse.mainui." + config + name);
+            return cnm;
         }
-        else
+        catch (ClassNotFoundException e)
         {
-            try
-            {
-                Class cnm = Class.forName("org.onebillion.onecourse.mainui." + name);
-                return cnm;
-            }
-            catch (ClassNotFoundException e)
-            {
-                return null;
-            }
+            if (configPath != null)
+                return controllerClass(name, null);
         }
+        return null;
     }
 
 
