@@ -31,7 +31,7 @@ import static android.media.MediaCodec.BUFFER_FLAG_END_OF_STREAM;
 
 public class OBAudioBufferPlayer extends Object
 {
-    public final int OBAP_IDLE = 0,
+    public static final int OBAP_IDLE = 0,
             OBAP_PREPARING = 1,
             OBAP_PLAYING = 2,
             OBAP_SEEKING = 3,
@@ -111,7 +111,7 @@ public class OBAudioBufferPlayer extends Object
             buffers[i] = new SimpleBuffer();
     }
 
-    synchronized int getState ()
+    public synchronized int getState ()
     {
         return state;
     }
