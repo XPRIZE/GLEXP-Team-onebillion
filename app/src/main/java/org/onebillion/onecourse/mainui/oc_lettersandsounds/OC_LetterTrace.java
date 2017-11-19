@@ -147,7 +147,7 @@ public class OC_LetterTrace extends OC_LTrace
             pc.hide();
             gryPaths.add(pc);
 
-            p.show();
+            p.hide();
             p.setStrokeEnd(0);
         }
         greyPaths = gryPaths;
