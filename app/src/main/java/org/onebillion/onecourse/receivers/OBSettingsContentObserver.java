@@ -6,6 +6,7 @@ import android.media.AudioManager;
 import android.os.Handler;
 
 import org.onebillion.onecourse.mainui.MainActivity;
+import org.onebillion.onecourse.utils.OBAnalyticsManager;
 import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBSystemsManager;
 
@@ -56,7 +57,9 @@ public class OBSettingsContentObserver extends ContentObserver
         {
             MainActivity.log("Current Volume (" + currentVolume + ") lower than permitted minimum (" + minVolumeLimit + "). Resetting value");
             am.setStreamVolume(AudioManager.STREAM_MUSIC, minVolumeLimit, 0);
+            currentVolume = minVolumeLimit;
         }
+        OBAnalyticsManager.sharedManager.deviceVolumeChanged(currentVolume / (float) maxVolume);
         OBSystemsManager.sharedManager.refreshStatus();
     }
 

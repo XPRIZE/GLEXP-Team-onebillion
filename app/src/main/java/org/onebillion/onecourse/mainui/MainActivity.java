@@ -28,6 +28,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
+
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -38,10 +39,14 @@ import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.glstuff.OBGLView;
 import org.onebillion.onecourse.glstuff.OBRenderer;
+import org.onebillion.onecourse.utils.OBAnalytics;
+import org.onebillion.onecourse.utils.OBAnalyticsManager;
+import org.onebillion.onecourse.utils.OBAnalyticsManagerOnline;
 import org.onebillion.onecourse.utils.OBAudioManager;
 import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBFatController;
 import org.onebillion.onecourse.utils.OBImageManager;
+import org.onebillion.onecourse.utils.OBLocationManager;
 import org.onebillion.onecourse.utils.OBPreferenceManager;
 import org.onebillion.onecourse.utils.OBSystemsManager;
 import org.onebillion.onecourse.utils.OBUser;
@@ -74,6 +79,8 @@ public class MainActivity extends Activity
     //
     public static OBConfigManager configManager;
     public static OBSystemsManager systemsManager;
+    public static OBAnalyticsManager analyticsManager;
+    public static OBLocationManager locationManager;
     public static MainActivity mainActivity;
     public static OBMainViewController mainViewController;
     public static Typeface standardTypeFace;
@@ -102,6 +109,7 @@ public class MainActivity extends Activity
             Manifest.permission.ACCESS_NETWORK_STATE,
             Manifest.permission.ACCESS_WIFI_STATE
     };
+
     public List<OBUser> users;
     public OBFatController fatController;
     public OBGLView glSurfaceView;
@@ -141,6 +149,7 @@ public class MainActivity extends Activity
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
         systemsManager = new OBSystemsManager(this);
+
         //
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler()
         {
@@ -172,6 +181,9 @@ public class MainActivity extends Activity
         mainActivity = this;
         //
         configManager = new OBConfigManager();
+        //
+        analyticsManager = new OBAnalyticsManager(this);
+        locationManager = new OBLocationManager(this);
         //
         doGLStuff();
         //
@@ -482,6 +494,8 @@ public class MainActivity extends Activity
             glSurfaceView.onPause();
         }
         //
+        OBAnalyticsManager.sharedManager.deviceScreenTurnedOff();
+        //
         suspendLock.lock();
         OBSystemsManager.sharedManager.onPause();
     }
@@ -509,6 +523,8 @@ public class MainActivity extends Activity
         //
         setupWindowVisibilityFlags();
         //
+        OBAnalyticsManager.sharedManager.deviceScreenTurnedOn();
+        //
         try
         {
             suspendLock.unlock();
@@ -520,11 +536,19 @@ public class MainActivity extends Activity
 
     }
 
+    @Override
+    protected void onStart()
+    {
+        super.onStart();
+        analyticsManager.onStart();
+    }
+
 
     @Override
     protected void onStop ()
     {
         systemsManager.sharedManager.onStop();
+        analyticsManager.onStop();
         super.onStop();
     }
 

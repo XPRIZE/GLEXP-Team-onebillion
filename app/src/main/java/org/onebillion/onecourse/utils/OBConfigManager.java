@@ -110,6 +110,11 @@ public class OBConfigManager
     public static String APP_LANGUAGES = "app_languages";
     public static String APP_LANGUAGE_NAMES = "app_language_names";
     //
+    private static String ANALYTICS_ENABLED = "analytics_enabled";
+    private static String ANALYTICS_CLASS = "analytics_class";
+    //
+    private static String LOCATION_ENABLED = "location_enabled";
+    //
     private Map<String, Object> internalConfig;
     //
     private float sfxMasterVolume = 1.0f;
@@ -953,6 +958,26 @@ public class OBConfigManager
     public String getMasterlistForLibrary ()
     {
         return getStringValue(APP_MASTERLIST_LIBRARY);
+    }
+
+
+
+    public Boolean isAnalyticsEnabled ()
+    {
+        return getBooleanValue(ANALYTICS_ENABLED);
+    }
+
+    public String getAnalyticsClassName ()
+    {
+        return getStringValue(ANALYTICS_CLASS);
+    }
+
+
+
+
+    public Boolean isLocationEnabled()
+    {
+        return getBooleanValue(LOCATION_ENABLED);
     }
 
 }

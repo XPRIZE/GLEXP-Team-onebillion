@@ -8,6 +8,8 @@ import android.os.BatteryManager;
 
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.oc_numberlines.OC_Numberlines_Additions;
+import org.onebillion.onecourse.utils.OBAnalyticsManager;
+import org.onebillion.onecourse.utils.OBAnalyticsManagerOnline;
 import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBSystemsManager;
 import org.onebillion.onecourse.utils.OCM_FatController;
@@ -70,6 +72,8 @@ public class OBBatteryReceiver extends BroadcastReceiver
             //
             Boolean actionIsRequired = !isCharging && isNowCharging;
             isCharging = isNowCharging;
+            //
+            OBAnalyticsManager.sharedManager.batteryState(getBatteryLevel(), isCharging);
             //
             if (actionIsRequired)
             {

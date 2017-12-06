@@ -1,4 +1,9 @@
+
+
+
 apply plugin: 'com.android.application'
+
+
 android {
     signingConfigs {}
     /*
@@ -14,6 +19,7 @@ android {
     compileSdkVersion 23
     buildToolsVersion '25.0.0'
     defaultConfig {
+        multiDexEnabled true
         applicationId 'org.onebillion.onecourse'
         minSdkVersion 22
         targetSdkVersion 23
@@ -25,14 +31,14 @@ android {
         debug {
             debuggable true
             manifestPlaceholders = [
-                    appuserid : ""
+                    appuserid: ""
             ]
         }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             manifestPlaceholders = [
-                    appuserid : ""
+                    appuserid: ""
                     //appuserid : "android.uid.system"
             ]
         }
@@ -179,9 +185,24 @@ android {
                     appIcon: "@mipmap/child_ny"
             ]
         }
+        kenya_ {
+            minSdkVersion 23
+            applicationId 'org.onebillion.onecourse.kenya'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "Kenya dev"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_kenya.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/icon_child"
+            ]
+        }
 
     }
 }
+
+
+
 
 dependencies {
     //    compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -193,4 +214,6 @@ dependencies {
     //
     compile files('libs/commons-io-2.5.jar')
     compile files('libs/commons-net-3.6.jar')
+
+
 }
