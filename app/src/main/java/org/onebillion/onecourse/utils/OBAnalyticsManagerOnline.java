@@ -8,6 +8,16 @@ import org.onebillion.onecourse.mainui.MainActivity;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.parse.Parse;
+import com.parse.ParseGeoPoint;
+import com.parse.ParseObject;
+
+import android.location.Location;
+
+import io.keen.client.java.JavaKeenClientBuilder;
+import io.keen.client.java.KeenClient;
+import io.keen.client.java.KeenProject;
+
 
 /**
  * Created by pedroloureiro on 29/11/2017.
@@ -15,6 +25,12 @@ import java.util.Map;
 
 public class OBAnalyticsManagerOnline extends OBAnalyticsManager
 {
+
+    /*
+     * To open the dashboard
+     * parse-dashboard --appId "org.onebillion.onecourse.kenya" --masterKey "4asterix" --serverURL "http://onecourse-kenya.herokuapp.com/parse" --appName "onecourse-kenya"
+     *
+     */
 
     public OBAnalyticsManagerOnline (Activity activity)
     {
@@ -33,6 +49,20 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
     {
         super.startupAnalytics(activity);
         //
+        // TODO: move this to the config
+        Parse.initialize(new Parse.Configuration.Builder(activity)
+                .applicationId("org.onebillion.onecourse.kenya")
+                .server("http://onecourse-kenya.herokuapp.com/parse/")
+                .build()
+        );
+
+        KeenClient client = new JavaKeenClientBuilder().build();
+        KeenClient.initialize(client);
+        //
+        // TODO: move this to the config
+        KeenProject project = new KeenProject("5a28013ac9e77c000154b908", "2A82EE41AD3F74E58226C2E885C681251EB2620678A31F6E39E6FECC156E17E3AAA109F66870A18A9EBF909A614C94FC0E62820441105143A9DDA8BD2959AA3C231784D148EC26C9B0A8E867294C6B6404F0834E64BCA0EBA588A3DF074A41ED", null);
+        KeenClient.client().setDefaultProject(project);
+
 
     }
 
@@ -56,7 +86,71 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
         //
         MainActivity.log("OBAnalyticsManagerOnline.logEvent: " + eventName + " " + properties.toString());
         //
+        ParseObject parseObject = new ParseObject(eventName);
+        for (String key : properties.keySet())
+        {
+            parseObject.put(key, properties.get(key));
+        }
+        //
+        parseObject.put(OBAnalytics.Params.DEVICE_UUID, OBSystemsManager.sharedManager.device_getUUID());
+        //
+        parseObject.saveInBackground();
+        //
+        KeenClient.client().addEvent(eventName, properties);
+        KeenClient.client().sendQueuedEventsAsync();
 
+    }
+
+
+    @Override
+    public void deviceTurnedOn ()
+    {
+        Map<String, Object> parameters = new HashMap();
+        parameters.put(OBAnalytics.Params.DEVICE_STATE, OBAnalytics.Params.DEVICE_STATE_ON);
+        //
+        logEvent(OBAnalytics.Event.DEVICE, parameters);
+    }
+
+
+    @Override
+    public void deviceTurnedOff ()
+    {
+        Map<String, Object> parameters = new HashMap();
+        parameters.put(OBAnalytics.Params.DEVICE_STATE, OBAnalytics.Params.DEVICE_STATE_OFF);
+        //
+        logEvent(OBAnalytics.Event.DEVICE, parameters);
+    }
+
+    @Override
+    public void deviceHeadphonesPluggedIn ()
+    {
+        Map<String, Object> parameters = new HashMap();
+        parameters.put(OBAnalytics.Params.DEVICE_HEADPHONES_STATE, OBAnalytics.Params.DEVICE_HEADPHONES_STATE_PLUGGED);
+        //
+        logEvent(OBAnalytics.Event.DEVICE, parameters);
+    }
+
+    @Override
+    public void deviceHeadphonesUnplugged ()
+    {
+        Map<String, Object> parameters = new HashMap();
+        parameters.put(OBAnalytics.Params.DEVICE_HEADPHONES_STATE, OBAnalytics.Params.DEVICE_HEADPHONES_STATE_UNPLUGGED);
+        //
+        logEvent(OBAnalytics.Event.DEVICE, parameters);
+    }
+
+
+    @Override
+    public void touchMadeInUnit (String unitID, PointF startLoc, long started, PointF endLoc, long finished)
+    {
+        Map<String, Object> parameters = new HashMap();
+        parameters.put(OBAnalytics.Params.TOUCH_UNIT_ID, unitID);
+        parameters.put(OBAnalytics.Params.TOUCH_START_LOCATION, startLoc);
+        parameters.put(OBAnalytics.Params.TOUCH_START_TIME, Long.valueOf(started));
+        parameters.put(OBAnalytics.Params.TOUCH_END_LOCATION, endLoc);
+        parameters.put(OBAnalytics.Params.TOUCH_END_TIME, Long.valueOf(finished));
+        //
+        logEvent(OBAnalytics.Event.TOUCH, parameters);
     }
 
 
@@ -65,85 +159,177 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
     public void deviceGpsLocation ()
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.GPS_COORDINATES, OBLocationManager.sharedManager.getLastKnownLocation().toString());
         //
-        logEvent(OBAnalytics.Event.DEVICE, parameters);
+        Location loc = OBLocationManager.sharedManager.getLastKnownLocation();
+        if (loc != null)
+        {
+            parameters.put(OBAnalytics.Params.DEVICE_GPS_LATITUDE, Double.valueOf(loc.getLatitude()));
+            parameters.put(OBAnalytics.Params.DEVICE_GPS_LONGITUDE, Double.valueOf(loc.getLongitude()));
+            parameters.put(OBAnalytics.Params.DEVICE_GPS_ALTITUDE, Double.valueOf(loc.getAltitude()));
+            parameters.put(OBAnalytics.Params.DEVICE_GPS_BEARING, Float.valueOf(loc.getBearing()));
+            //
+            logEvent(OBAnalytics.Event.DEVICE, parameters);
+        }
+        else
+        {
+            MainActivity.log("Last Known Location is NULL. Skipping analytics event");
+        }
     }
+
+
 
     @Override
     public void deviceVolumeChanged (float value)
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.VOLUME, Float.valueOf(value));
+        parameters.put(OBAnalytics.Params.DEVICE_VOLUME, Float.valueOf(value));
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
     }
+
+
 
     @Override
     public void deviceScreenTurnedOn ()
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.SCREEN_STATE, "on");
+        parameters.put(OBAnalytics.Params.DEVICE_SCREEN_STATE, OBAnalytics.Params.DEVICE_SCREEN_STATE_ON);
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
     }
+
+
 
     @Override
     public void deviceScreenTurnedOff ()
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.SCREEN_STATE, "off");
+        parameters.put(OBAnalytics.Params.DEVICE_SCREEN_STATE, OBAnalytics.Params.DEVICE_SCREEN_STATE_OFF);
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
     }
+
+
 
     @Override
     public void deviceMobileSignalStrength (float value)
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.SIGNAL_STRENGTH, Float.valueOf(value));
+        parameters.put(OBAnalytics.Params.DEVICE_SIGNAL_STRENGTH, Float.valueOf(value));
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
     }
+
+
 
     @Override
     public void deviceStorageUse (long used, long total)
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.USED_STORAGE, Long.valueOf(used));
-        parameters.put(OBAnalytics.Params.TOTAL_STORAGE, Long.valueOf(total));
+        parameters.put(OBAnalytics.Params.DEVICE_USED_STORAGE, Long.valueOf(used));
+        parameters.put(OBAnalytics.Params.DEVICE_TOTAL_STORAGE, Long.valueOf(total));
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
     }
 
-    @Override
-    public void touchMade (PointF coordinates)
-    {
-        // do nothing, Appsee takes care of it
-    }
+
 
     @Override
-    public void batteryState(float batteryValue, Boolean chargerPluggedIn)
+    public void batteryState(float batteryValue, Boolean pluggedIn, String chargerType)
     {
         Map<String, Object> parameters = new HashMap();
         parameters.put(OBAnalytics.Params.BATTERY_LEVEL, Float.valueOf(batteryValue));
-        parameters.put(OBAnalytics.Params.CHARGER_STATE, (chargerPluggedIn) ? "plugged" : "unplugged");
+        if (!pluggedIn)
+        {
+            parameters.put(OBAnalytics.Params.BATTERY_CHARGER_STATE, OBAnalytics.Params.BATTERY_CHARGER_STATE_UNPLUGGED);
+        }
+        else
+        {
+            parameters.put(OBAnalytics.Params.BATTERY_CHARGER_STATE, chargerType);
+        }
         //
         logEvent(OBAnalytics.Event.BATTERY, parameters);
     }
 
+
+
+
+    @Override
+    public void studyZoneStartedNewDay ()
+    {
+        Map<String, Object> parameters = new HashMap();
+        parameters.put(OBAnalytics.Params.APP_MODE_CHANGE, OBAnalytics.Params.APP_STUDY_ZONE);
+        //
+        logEvent(OBAnalytics.Event.APP, parameters);
+    }
+
+
+
     @Override
     public void studyZoneUnitCompleted(String unitID, long started, long finished, float score, int replayAudioPresses)
     {
-        float elapsedSeconds = (finished - started) / (float) 1000;
-        //
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.STUDY_ZONE_UNIT_ID, unitID);
-        parameters.put(OBAnalytics.Params.STUDY_ZONE_UNIT_SCORE, Float.valueOf(score));
-        parameters.put(OBAnalytics.Params.STUDY_ZONE_UNIT_ELAPSED,Float.valueOf(elapsedSeconds));
-        parameters.put(OBAnalytics.Params.STUDY_ZONE_REPLAY_AUDIO, Integer.valueOf(replayAudioPresses));
+        parameters.put(OBAnalytics.Params.UNIT_ID, unitID);
+        parameters.put(OBAnalytics.Params.UNIT_SCORE, Float.valueOf(score));
+        parameters.put(OBAnalytics.Params.UNIT_START_TIME,Long.valueOf(started));
+        parameters.put(OBAnalytics.Params.UNIT_END_TIME,Long.valueOf(finished));
+        parameters.put(OBAnalytics.Params.UNIT_REPLAY_AUDIO_COUNT, Integer.valueOf(replayAudioPresses));
+        parameters.put(OBAnalytics.Params.UNIT_MODE, OBAnalytics.Params.UNIT_MODE_STUDY_ZONE);
         //
-        logEvent(OBAnalytics.Event.STUDY_ZONE, parameters);
+        logEvent(OBAnalytics.Event.APP, parameters);
+    }
+
+
+
+    @Override
+    public void communityModeEntered ()
+    {
+        Map<String, Object> parameters = new HashMap();
+        parameters.put(OBAnalytics.Params.APP_MODE_CHANGE, OBAnalytics.Params.APP_COMMUNITY_MODE);
+        //
+        logEvent(OBAnalytics.Event.APP, parameters);
+    }
+
+
+
+    @Override
+    public void communityModeUnitCompleted (String unitID, long started, long finished, float score, int replayAudioPresses)
+    {
+        Map<String, Object> parameters = new HashMap();
+        parameters.put(OBAnalytics.Params.UNIT_ID, unitID);
+        parameters.put(OBAnalytics.Params.UNIT_SCORE, Float.valueOf(score));
+        parameters.put(OBAnalytics.Params.UNIT_START_TIME,Long.valueOf(started));
+        parameters.put(OBAnalytics.Params.UNIT_END_TIME,Long.valueOf(finished));
+        parameters.put(OBAnalytics.Params.UNIT_REPLAY_AUDIO_COUNT, Integer.valueOf(replayAudioPresses));
+        parameters.put(OBAnalytics.Params.UNIT_MODE, OBAnalytics.Params.UNIT_MODE_COMMUNITY_MODE);
+        //
+        logEvent(OBAnalytics.Event.APP, parameters);
+    }
+
+
+    @Override
+    public void playZoneEntered ()
+    {
+        Map<String, Object> parameters = new HashMap();
+        parameters.put(OBAnalytics.Params.APP_MODE_CHANGE, OBAnalytics.Params.APP_PLAY_ZONE);
+        //
+        logEvent(OBAnalytics.Event.APP, parameters);
+    }
+
+
+
+    @Override
+    public void playZoneUnitCompleted (String unitID, long started, long finished, float score, int replayAudioPresses)
+    {
+        Map<String, Object> parameters = new HashMap();
+        parameters.put(OBAnalytics.Params.UNIT_ID, unitID);
+        parameters.put(OBAnalytics.Params.UNIT_SCORE, Float.valueOf(score));
+        parameters.put(OBAnalytics.Params.UNIT_START_TIME,Long.valueOf(started));
+        parameters.put(OBAnalytics.Params.UNIT_END_TIME,Long.valueOf(finished));
+        parameters.put(OBAnalytics.Params.UNIT_REPLAY_AUDIO_COUNT, Integer.valueOf(replayAudioPresses));
+        parameters.put(OBAnalytics.Params.UNIT_MODE, OBAnalytics.Params.UNIT_MODE_PLAY_ZONE);
+        //
+        logEvent(OBAnalytics.Event.UNITS, parameters);
     }
 
 
@@ -151,19 +337,7 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
     public void playZoneVideoWatched (String videoID)
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.VIDEO_ID, videoID);
-        //
-        logEvent(OBAnalytics.Event.PLAY_ZONE, parameters);
-    }
-
-    @Override
-    public void playZoneActivityCompleted(String activityID, long started, long finished)
-    {
-        float elapsedSeconds = (finished - started) / (float) 1000;
-        //
-        Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.PLAY_ZONE_ACTIVITY_ID, activityID);
-        parameters.put(OBAnalytics.Params.PLAY_ZONE_ELAPSED, Float.valueOf(elapsedSeconds));
+        parameters.put(OBAnalytics.Params.PLAY_ZONE_VIDEO_ID, videoID);
         //
         logEvent(OBAnalytics.Event.PLAY_ZONE, parameters);
     }
@@ -173,7 +347,7 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
     public void playZoneCreationsVideoAdded ()
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.PLAY_ZONE_CREATION_TYPE, "video");
+        parameters.put(OBAnalytics.Params.CREATION_TYPE, OBAnalytics.Params.CREATION_TYPE_VIDEO);
         //
         logEvent(OBAnalytics.Event.PLAY_ZONE, parameters);
     }
@@ -182,7 +356,7 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
     public void playZoneCreationsDoodleAdded ()
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.PLAY_ZONE_CREATION_TYPE, "doodle");
+        parameters.put(OBAnalytics.Params.CREATION_TYPE, OBAnalytics.Params.CREATION_TYPE_DOODLE);
         //
         logEvent(OBAnalytics.Event.PLAY_ZONE, parameters);
     }
@@ -191,16 +365,17 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
     public void playZoneCreationsTextAdded ()
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.PLAY_ZONE_CREATION_TYPE, "text");
+        parameters.put(OBAnalytics.Params.CREATION_TYPE, OBAnalytics.Params.CREATION_TYPE_TEXT);
         //
         logEvent(OBAnalytics.Event.PLAY_ZONE, parameters);
     }
 
+
+
     @Override
-    public void nightModeTriggered ()
+    public void nightModeEntered ()
     {
         Map<String, Object> parameters = new HashMap();
-        //
-        logEvent(OBAnalytics.Event.NIGHT_MODE, parameters);
+        parameters.put(OBAnalytics.Params.APP_MODE_CHANGE, OBAnalytics.Params.APP_NIGHT_MODE);
     }
 }

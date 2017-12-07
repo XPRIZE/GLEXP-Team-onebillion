@@ -36,6 +36,7 @@ import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.receivers.OBBatteryReceiver;
 import org.onebillion.onecourse.receivers.OBDeviceAdminReceiver;
+import org.onebillion.onecourse.receivers.OBHeadphoneReceiver;
 import org.onebillion.onecourse.receivers.OBSettingsContentObserver;
 
 import java.io.BufferedInputStream;
@@ -73,6 +74,8 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     public static OBSystemsManager sharedManager;
 
     private OBBatteryReceiver batteryReceiver;
+    private OBHeadphoneReceiver headphoneReceiver;
+
     private OBBrightnessManager brightnessManager;
     private Map<String, List<String>> memoryUsageMap;
 
@@ -94,6 +97,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     public OBSystemsManager (Activity activity)
     {
         batteryReceiver = new OBBatteryReceiver();
+        headphoneReceiver = new OBHeadphoneReceiver();
         //
         settingsContentObserver = new OBSettingsContentObserver(activity, new Handler());
         //
@@ -341,6 +345,11 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             registerBatteryReceiver();
         }
         //
+        if (headphoneReceiver != null)
+        {
+            registerHeadphoneReceiver();
+        }
+        //
         if (settingsContentObserver != null)
         {
             settingsContentObserver.onResume();
@@ -361,6 +370,11 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         if (batteryReceiver != null)
         {
             MainActivity.mainActivity.unregisterReceiver(batteryReceiver);
+        }
+        //
+        if (headphoneReceiver != null)
+        {
+            MainActivity.mainActivity.unregisterReceiver(headphoneReceiver);
         }
         //
         if (settingsContentObserver != null)
@@ -456,6 +470,12 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_POWER_DISCONNECTED));
        // batteryReceiver.onReceive(null,intent);
     }
+
+    public void registerHeadphoneReceiver()
+    {
+        Intent intent = MainActivity.mainActivity.registerReceiver(headphoneReceiver, new IntentFilter(Intent.ACTION_HEADSET_PLUG));
+    }
+
 
     public static boolean checkMD5 (String md5, InputStream is)
     {

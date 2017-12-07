@@ -14,27 +14,37 @@ public interface OBAnalyticsProtocol
     void deviceVolumeChanged(float value);
     void deviceScreenTurnedOn();
     void deviceScreenTurnedOff();
+    void deviceTurnedOn();
+    void deviceTurnedOff();
+    void deviceHeadphonesPluggedIn();
+    void deviceHeadphonesUnplugged();
     void deviceMobileSignalStrength(float value);
     void deviceStorageUse(long used, long total);
 
     // Touches
-    void touchMade(PointF coordinates);
+    void touchMadeInUnit(String unitID, PointF startLoc, long started, PointF endLoc, long finished);
 
     // Battery
-    void batteryState(float batteryValue, Boolean chargerPluggedIn);
+    void batteryState(float batteryValue, Boolean pluggedIn, String chargerType);
 
     // Study Zone
+    void studyZoneStartedNewDay();
     void studyZoneUnitCompleted(String unitID, long started, long finished, float score, int replayAudioPresses);
 
+    // Community Mode
+    void communityModeEntered();
+    void communityModeUnitCompleted(String unitID, long started, long finished, float score, int replayAudioPresses);
+
     // Play Zone
+    void playZoneEntered();
     void playZoneVideoWatched(String videoID);
-    void playZoneActivityCompleted(String activityID, long started, long finished);
+    void playZoneUnitCompleted(String activityID, long started, long finished, float score, int replayAudioPresses);
     void playZoneCreationsVideoAdded();
     void playZoneCreationsDoodleAdded();
     void playZoneCreationsTextAdded();
 
     // Night mode
-    void nightModeTriggered();
+    void nightModeEntered();
 
     void onStart();
     void onStop();

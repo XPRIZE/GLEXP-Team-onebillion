@@ -47,7 +47,8 @@
         android:showOnLockScreen="true"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        
+
+
         <receiver
             android:name="org.onebillion.onecourse.receivers.OBStartUpBootReceiver"
             android:enabled="true"
@@ -57,6 +58,38 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
                 <category android:name="android.intent.category.HOME"/>
+            </intent-filter>
+        </receiver>
+
+
+        <receiver android:name="org.onebillion.onecourse.receivers.OBHeadphoneReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.HEADSET_PLUG" />
+            </intent-filter>
+        </receiver>
+
+
+        <receiver
+            android:name="org.onebillion.onecourse.receivers.OBDeviceAdminReceiver"
+            android:description="@string/device_admin_description"
+            android:label="@string/device_admin_label"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin_policies"/>
+
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED"/>
+                <action android:name="android.app.action.DEVICE_ADMIN_DISABLED"/>
+            </intent-filter>
+        </receiver>
+
+
+        <receiver android:name="org.onebillion.onecourse.receivers.OBShutdownReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.ACTION_SHUTDOWN" />
+                <action android:name="android.intent.action.QUICKBOOT_POWEROFF" />
             </intent-filter>
         </receiver>
 
@@ -76,21 +109,6 @@
 
         <!--android:excludeFromRecents="true"-->
 
-        <receiver
-            android:name="org.onebillion.onecourse.receivers.OBDeviceAdminReceiver"
-            android:description="@string/device_admin_description"
-            android:label="@string/device_admin_label"
-            android:permission="android.permission.BIND_DEVICE_ADMIN">
-
-            <meta-data
-                android:name="android.app.device_admin"
-                android:resource="@xml/device_admin_policies"/>
-
-            <intent-filter>
-                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED"/>
-                <action android:name="android.app.action.DEVICE_ADMIN_DISABLED"/>
-            </intent-filter>
-        </receiver>
 
         <activity
             android:name="org.onebillion.onecourse.mainui.MainActivity"

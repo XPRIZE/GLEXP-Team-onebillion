@@ -21,6 +21,55 @@ public class OBAnalyticsManager implements OBAnalyticsProtocol
 
     }
 
+    @Override
+    public void deviceTurnedOn ()
+    {
+
+    }
+
+    @Override
+    public void deviceTurnedOff ()
+    {
+
+    }
+
+    @Override
+    public void touchMadeInUnit (String unitID, PointF startLoc, long started, PointF endLoc, long finished)
+    {
+
+    }
+
+    @Override
+    public void studyZoneStartedNewDay ()
+    {
+
+    }
+
+    @Override
+    public void communityModeEntered ()
+    {
+
+    }
+
+    @Override
+    public void communityModeUnitCompleted (String unitID, long started, long finished, float score, int replayAudioPresses)
+    {
+
+    }
+
+    @Override
+    public void playZoneEntered ()
+    {
+
+    }
+
+
+    @Override
+    public void playZoneUnitCompleted (String activityID, long started, long finished, float score, int replayAudioPresses)
+    {
+
+    }
+
     public OBAnalyticsManager (Activity activity)
     {
         if (OBConfigManager.sharedManager.isAnalyticsEnabled())
@@ -101,14 +150,9 @@ public class OBAnalyticsManager implements OBAnalyticsProtocol
 
     }
 
-    @Override
-    public void touchMade (PointF coordinates)
-    {
-
-    }
 
     @Override
-    public void batteryState (float batteryValue, Boolean chargerPluggedIn)
+    public void batteryState (float batteryValue, Boolean pluggedIn, String chargerType)
     {
 
     }
@@ -125,11 +169,6 @@ public class OBAnalyticsManager implements OBAnalyticsProtocol
 
     }
 
-    @Override
-    public void playZoneActivityCompleted (String activityID, long started, long finished)
-    {
-
-    }
 
     @Override
     public void playZoneCreationsVideoAdded ()
@@ -150,7 +189,19 @@ public class OBAnalyticsManager implements OBAnalyticsProtocol
     }
 
     @Override
-    public void nightModeTriggered ()
+    public void deviceHeadphonesPluggedIn ()
+    {
+
+    }
+
+    @Override
+    public void deviceHeadphonesUnplugged ()
+    {
+
+    }
+
+    @Override
+    public void nightModeEntered ()
     {
 
     }

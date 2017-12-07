@@ -25,6 +25,8 @@ import org.onebillion.onecourse.controls.OBPresenter;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OC_Menu;
+import org.onebillion.onecourse.utils.OBAnalytics;
+import org.onebillion.onecourse.utils.OBAnalyticsManager;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimBlock;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
@@ -190,6 +192,8 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         }
         if(lastCommand == OCM_FatController.OFC_SESSION_NEW && !communityModeActive)
         {
+            OBAnalyticsManager.sharedManager.studyZoneStartedNewDay();
+            //
             showNewDayScreen();
             loadEmptyStarBar(false);
             currentTarget = TARGET_BUTTON;
@@ -197,6 +201,8 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         }
         else if(communityModeActive)
         {
+            OBAnalyticsManager.sharedManager.communityModeEntered();
+            //
             hideStarBar();
             loadTopBar(true,true);
             loadIconsGridForUnits(fatController.getUnitsForGrid(),true);
@@ -318,6 +324,9 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                     {
                         setStatus(STATUS_BUSY);
                         secretBoxTouchIndex = 0;
+                        //
+                        OBAnalyticsManager.sharedManager.playZoneEntered();
+                        //
                         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                         {
                             public void run() throws Exception
