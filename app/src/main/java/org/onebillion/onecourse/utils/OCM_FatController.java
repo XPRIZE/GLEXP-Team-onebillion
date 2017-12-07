@@ -531,6 +531,15 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     }
 
+    @Override
+    public void onReplayAudioButtonPressed()
+    {
+        if (currentUnitInstance != null)
+        {
+            currentUnitInstance.replayAudioCount++;
+        }
+    }
+
 
     public OCM_MlUnit getNextUnitFromDB(DBSQL db)
     {
@@ -776,6 +785,15 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             currentUnitInstance.elapsedTime = (int)(currentUnitInstance.endTime - currentUnitInstance.startTime);
             currentUnitInstance.starColour = nextStarColourFromDB(db, currentUnitInstance.type);
             currentUnitInstance.updateDataInDB(db);
+            //
+            if (communityModeActive())
+            {
+                OBAnalyticsManager.sharedManager.communityModeUnitCompleted(currentUnitInstance.mlUnit.key, currentUnitInstance.startTime, currentUnitInstance.endTime, currentUnitInstance.score, currentUnitInstance.replayAudioCount);
+            }
+            else
+            {
+                OBAnalyticsManager.sharedManager.studyZoneUnitCompleted(currentUnitInstance.mlUnit.key, currentUnitInstance.startTime, currentUnitInstance.endTime, currentUnitInstance.score, currentUnitInstance.replayAudioCount);
+            }
         }
         catch(Exception e)
         {
@@ -1278,6 +1296,8 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     public void startPlayZone(final boolean transfer,final boolean first)
     {
+        OBAnalyticsManager.sharedManager.playZoneEntered();
+        //
         new OBRunnableSyncUI()
         {
             @Override
@@ -1714,6 +1734,8 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     public boolean savePlayZoneAssetForCurrentUserType(int type,String thumbnail,Map<String,String> params)
     {
+        OBAnalyticsManager.sharedManager.playZoneAssetCreated(type, params);
+        //
         boolean result = false;
         DBSQL db = null;
         try

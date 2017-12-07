@@ -20,6 +20,11 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.provider.Settings;
+import android.telephony.CellLocation;
+import android.telephony.PhoneStateListener;
+import android.telephony.ServiceState;
+import android.telephony.SignalStrength;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.view.Display;
@@ -199,6 +204,29 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             Intent serviceIntent = new Intent(MainActivity.mainActivity, OBAutoStartActivityService.class);
             MainActivity.mainActivity.startService(serviceIntent);
         }
+        //
+        PhoneStateListener phoneStateListener = new PhoneStateListener() {
+            public void onCallForwardingIndicatorChanged(boolean cfi) {}
+            public void onCallStateChanged(int state, String incomingNumber) {}
+            public void onCellLocationChanged(CellLocation location) {}
+            public void onDataActivity(int direction) {}
+            public void onDataConnectionStateChanged(int state) {}
+            public void onMessageWaitingIndicatorChanged(boolean mwi) {}
+            public void onServiceStateChanged(ServiceState serviceState) {}
+            public void onSignalStrengthsChanged(SignalStrength signalStrength) {}
+        };
+        //
+        TelephonyManager telephonyManager = (TelephonyManager) MainActivity.mainActivity.getSystemService(Context.TELEPHONY_SERVICE);
+
+        telephonyManager.listen(phoneStateListener,
+                PhoneStateListener.LISTEN_CALL_FORWARDING_INDICATOR |
+                        PhoneStateListener.LISTEN_CALL_STATE |
+                        PhoneStateListener.LISTEN_CELL_LOCATION |
+                        PhoneStateListener.LISTEN_DATA_ACTIVITY |
+                        PhoneStateListener.LISTEN_DATA_CONNECTION_STATE |
+                        PhoneStateListener.LISTEN_MESSAGE_WAITING_INDICATOR |
+                        PhoneStateListener.LISTEN_SERVICE_STATE |
+                        PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
         MainActivity.log("OBSystemsManager.startServices complete");
     }
 
@@ -468,7 +496,6 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_OKAY));
         MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_POWER_CONNECTED));
         MainActivity.mainActivity.registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_POWER_DISCONNECTED));
-       // batteryReceiver.onReceive(null,intent);
     }
 
     public void registerHeadphoneReceiver()

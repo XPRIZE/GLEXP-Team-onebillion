@@ -2,6 +2,8 @@ package org.onebillion.onecourse.utils;
 
 import android.graphics.PointF;
 
+import java.util.Map;
+
 /**
  * Created by pedroloureiro on 29/11/2017.
  */
@@ -39,9 +41,7 @@ public interface OBAnalyticsProtocol
     void playZoneEntered();
     void playZoneVideoWatched(String videoID);
     void playZoneUnitCompleted(String activityID, long started, long finished, float score, int replayAudioPresses);
-    void playZoneCreationsVideoAdded();
-    void playZoneCreationsDoodleAdded();
-    void playZoneCreationsTextAdded();
+    void playZoneAssetCreated(int assetType, Map<String, String> data);
 
     // Night mode
     void nightModeEntered();

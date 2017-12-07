@@ -1,4 +1,4 @@
-package org.onebillion.onecourse.mainui;
+package org.onebillion.onecourse.mainui.oc_video;
 
 import android.graphics.Color;
 import android.graphics.PointF;
@@ -14,7 +14,12 @@ import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBTextLayer;
 import org.onebillion.onecourse.controls.OBVideoPlayer;
 import org.onebillion.onecourse.glstuff.OBRenderer;
+import org.onebillion.onecourse.mainui.MainActivity;
+import org.onebillion.onecourse.mainui.OBMainViewController;
+import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
+import org.onebillion.onecourse.utils.OBAnalytics;
+import org.onebillion.onecourse.utils.OBAnalyticsManager;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBImageManager;
@@ -668,6 +673,8 @@ public class OC_VideoPlayback extends OC_SectionController
         String videoID = videoPlaylist.get(idx);
         OBXMLNode videoNode = videoXMLDict.get(videoID);
         String movie = videoNode.attributeStringValue("file");
+        //
+        OBAnalyticsManager.sharedManager.playZoneVideoWatched(videoID);
         //
         String movieName = OBUtils.stringByAppendingPathComponent(movieFolder, movie);
         OBControl placeHolder = objectDict.get("video_video");

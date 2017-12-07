@@ -7,6 +7,7 @@ import android.graphics.PointF;
 import org.onebillion.onecourse.mainui.MainActivity;
 
 import java.lang.reflect.Constructor;
+import java.util.Map;
 
 /**
  * Created by pedroloureiro on 29/11/2017.
@@ -169,21 +170,8 @@ public class OBAnalyticsManager implements OBAnalyticsProtocol
 
     }
 
-
     @Override
-    public void playZoneCreationsVideoAdded ()
-    {
-
-    }
-
-    @Override
-    public void playZoneCreationsDoodleAdded ()
-    {
-
-    }
-
-    @Override
-    public void playZoneCreationsTextAdded ()
+    public void playZoneAssetCreated (int assetType, Map<String, String> data)
     {
 
     }

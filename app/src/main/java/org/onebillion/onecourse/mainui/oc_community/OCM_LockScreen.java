@@ -10,6 +10,7 @@ import org.onebillion.onecourse.controls.OBPresenter;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OC_Menu;
+import org.onebillion.onecourse.utils.OBAnalyticsManager;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBMisc;
@@ -121,8 +122,11 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
                      waitForSecs(1);
                     if (lastCommand == OCM_FatController.OFC_SESSION_LOCKED)
                     {
+                        OBAnalyticsManager.sharedManager.nightModeEntered();
+                        //
                         demo_presenter_locked();
-                    } else if((lastCommand == OCM_FatController.OFC_BATTERY_LOW))
+                    }
+                    else if((lastCommand == OCM_FatController.OFC_BATTERY_LOW))
                     {
                         if(isCharging)
                             demo_battery();

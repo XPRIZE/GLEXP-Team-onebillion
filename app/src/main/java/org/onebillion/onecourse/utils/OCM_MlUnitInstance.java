@@ -21,7 +21,7 @@ public class OCM_MlUnitInstance extends DBObject
     public final static int INSTANCE_TYPE_REVIEW = 2;
 
     public long unitid;
-    public int userid, sessionid, seqNo, elapsedTime, type, starColour;
+    public int userid, sessionid, seqNo, elapsedTime, type, starColour, replayAudioCount;
     public float score;
     public long startTime, endTime;
 
@@ -39,6 +39,7 @@ public class OCM_MlUnitInstance extends DBObject
         startTime = 0;
         endTime = 0;
         starColour = -1;
+        replayAudioCount = 0;
     }
 
 

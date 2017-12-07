@@ -325,8 +325,6 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                         setStatus(STATUS_BUSY);
                         secretBoxTouchIndex = 0;
                         //
-                        OBAnalyticsManager.sharedManager.playZoneEntered();
-                        //
                         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                         {
                             public void run() throws Exception

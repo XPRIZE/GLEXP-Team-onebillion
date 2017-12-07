@@ -76,6 +76,7 @@ public class OBBatteryReceiver extends BroadcastReceiver
             //
             String chargerType = (usbCharge) ? OBAnalytics.Params.BATTERY_CHARGER_STATE_PLUGGED_USB : (acCharge) ? OBAnalytics.Params.BATTERY_CHARGER_STATE_PLUGGED_AC : "";
             OBAnalyticsManager.sharedManager.batteryState(getBatteryLevel(), isCharging, chargerType);
+            OBAnalyticsManager.sharedManager.deviceGpsLocation();
             //
             if (actionIsRequired)
             {

@@ -1,5 +1,7 @@
-package org.onebillion.onecourse.mainui;
+package org.onebillion.onecourse.mainui.oc_video;
 
+import org.onebillion.onecourse.mainui.MainActivity;
+import org.onebillion.onecourse.mainui.oc_video.OC_VideoPlayback;
 import org.onebillion.onecourse.utils.OBSystemsManager;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OBXMLNode;

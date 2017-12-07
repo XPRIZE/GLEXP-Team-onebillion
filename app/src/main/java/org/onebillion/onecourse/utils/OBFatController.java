@@ -22,6 +22,7 @@ public class OBFatController
         return OBMainViewController.SHOW_TOP_LEFT_BUTTON | OBMainViewController.SHOW_TOP_RIGHT_BUTTON | OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON | OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON;
     }
 
+
     public void gotAnswerRight(int amount)
     {
 
@@ -90,6 +91,11 @@ public class OBFatController
     }
 
     public void onBatteryStatusReceived(float level, boolean charging)
+    {
+
+    }
+
+    public void onReplayAudioButtonPressed()
     {
 
     }

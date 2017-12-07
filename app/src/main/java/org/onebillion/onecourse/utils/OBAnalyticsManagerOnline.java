@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.graphics.PointF;
 
 import org.onebillion.onecourse.mainui.MainActivity;
+import org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -342,30 +343,22 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
         logEvent(OBAnalytics.Event.PLAY_ZONE, parameters);
     }
 
-
     @Override
-    public void playZoneCreationsVideoAdded ()
+    public void playZoneAssetCreated (int assetType, Map<String, String> data)
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.CREATION_TYPE, OBAnalytics.Params.CREATION_TYPE_VIDEO);
         //
-        logEvent(OBAnalytics.Event.PLAY_ZONE, parameters);
-    }
-
-    @Override
-    public void playZoneCreationsDoodleAdded ()
-    {
-        Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.CREATION_TYPE, OBAnalytics.Params.CREATION_TYPE_DOODLE);
+        String creationType = "";
+        if (assetType == OC_PlayZoneAsset.ASSET_DOODLE) creationType = OBAnalytics.Params.CREATION_TYPE_DOODLE;
+        else if (assetType == OC_PlayZoneAsset.ASSET_TEXT) creationType = OBAnalytics.Params.CREATION_TYPE_TEXT;
+        else if (assetType == OC_PlayZoneAsset.ASSET_VIDEO) creationType = OBAnalytics.Params.CREATION_TYPE_VIDEO;
         //
-        logEvent(OBAnalytics.Event.PLAY_ZONE, parameters);
-    }
-
-    @Override
-    public void playZoneCreationsTextAdded ()
-    {
-        Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.CREATION_TYPE, OBAnalytics.Params.CREATION_TYPE_TEXT);
+        parameters.put(OBAnalytics.Params.CREATION_TYPE, creationType);
+        //
+        for (String key : data.keySet())
+        {
+            parameters.put(key, data.get(key));
+        }
         //
         logEvent(OBAnalytics.Event.PLAY_ZONE, parameters);
     }

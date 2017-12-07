@@ -2014,6 +2014,8 @@ public class OBSectionController extends OBViewController
 
         if (_replayAudio != null)
         {
+            MainActivity.mainActivity.fatController.onReplayAudioButtonPressed();
+            //
             setStatus(status());
             new AsyncTask<Void, Void, Void>()
             {
