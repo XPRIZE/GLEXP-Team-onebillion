@@ -40,8 +40,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             manifestPlaceholders = [
-                    appuserid: ""
-                    //appuserid : "android.uid.system"
+                    appuserid : "android.uid.system"
             ]
         }
 

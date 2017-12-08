@@ -10,11 +10,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.parse.Parse;
+import com.parse.ParseException;
 import com.parse.ParseObject;
+import com.parse.SaveCallback;
 
 import android.location.Location;
 import android.os.Environment;
 import android.os.StatFs;
+import android.os.SystemClock;
 
 
 /**
@@ -23,7 +26,7 @@ import android.os.StatFs;
 
 public class OBAnalyticsManagerOnline extends OBAnalyticsManager
 {
-
+    private long lastDataUploadTimestamp;
     /*
      * To open the dashboard
      * parse-dashboard --appId "org.onebillion.onecourse.kenya" --masterKey "4asterix" --serverURL "http://onecourse-kenya.herokuapp.com/parse" --appName "onecourse-kenya"
@@ -71,10 +74,54 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
     @Override
     public void uploadData()
     {
+        lastDataUploadTimestamp = System.currentTimeMillis();
+        //
+        MainActivity.log("OBAnalyticsManagerOnline.uploadData.disabling airplane mode");
+        OBConnectionManager.sharedManager.connectToNetwork_setAirplaneMode(false, new OBUtils.RunLambdaWithSuccess()
+        {
+            @Override
+            public void run (boolean success) throws Exception
+            {
+                if (!success)
+                {
+                    MainActivity.log("OBAnalyticsManagerOnline.uploadData.error occurred while disabling airplane mode. Aborting");
+                    return;
+                }
+                //
+                MainActivity.log("OBAnalyticsManagerOnline.uploadData.enabling mobile data");
+                OBConnectionManager.sharedManager.connectToMobile_setMobileDataState(true);
+                //
+                // TODO: set the time alive in the config (60s)
+                OBUtils.runOnOtherThreadDelayed(60.0f, new OBUtils.RunLambda()
+                {
+
+                    @Override
+                    public void run () throws Exception
+                    {
+                        MainActivity.log("OBAnalyticsManagerOnline.uploadData.60 seconds have passed. killing mobile data");
+                        OBConnectionManager.sharedManager.connectToMobile_setMobileDataState(false);
+                        //
+                        MainActivity.log("OBAnalyticsManagerOnline.uploadData.enabling airplane mode");
+                        OBConnectionManager.sharedManager.connectToNetwork_setAirplaneMode(true, new OBUtils.RunLambdaWithSuccess()
+                        {
+                            @Override
+                            public void run (boolean success) throws Exception
+                            {
+                                if (!success)
+                                {
+                                    MainActivity.log("OBAnalyticsManagerOnline.uploadData.error occurred while enabling airplane mode");
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
     }
 
 
-    private void logEvent(String eventName, Map<String, Object> properties)
+    private void logEvent(final String eventName, Map<String, Object> properties)
     {
         if (!OBConfigManager.sharedManager.isAnalyticsEnabled()) return;
         //
@@ -87,7 +134,25 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
         }
         //
         parseObject.put(OBAnalytics.Params.DEVICE_UUID, OBSystemsManager.sharedManager.device_getUUID());
-        parseObject.saveInBackground();
+        parseObject.saveEventually(new SaveCallback()
+        {
+            @Override
+            public void done (ParseException e)
+            {
+                if (e != null)
+                {
+                    MainActivity.log("OBAnalyticsManagerOnline.logEvent.event save failed");
+                    e.printStackTrace();
+                }
+            }
+        });
+        //
+        long currentTime = System.currentTimeMillis();
+        // TODO: move the time frame for uploads to the config (1hour)
+        if (currentTime - lastDataUploadTimestamp > 1000 * 60 * 60 * 1)
+        {
+            uploadData();
+        }
     }
 
 
