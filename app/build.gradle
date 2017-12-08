@@ -227,7 +227,6 @@ dependencies {
     compile files('libs/commons-net-3.6.jar')
 
     compile 'com.parse:parse-android:1.15.8'
-    compile 'io.keen:keen-client-api-java:5.2.0'
 
 
 }

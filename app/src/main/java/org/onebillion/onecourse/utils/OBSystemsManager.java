@@ -213,7 +213,10 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             public void onDataConnectionStateChanged(int state) {}
             public void onMessageWaitingIndicatorChanged(boolean mwi) {}
             public void onServiceStateChanged(ServiceState serviceState) {}
-            public void onSignalStrengthsChanged(SignalStrength signalStrength) {}
+            public void onSignalStrengthsChanged(SignalStrength signalStrength)
+            {
+                OBAnalyticsManager.sharedManager.deviceMobileSignalStrength(signalStrength.getGsmSignalStrength());
+            }
         };
         //
         TelephonyManager telephonyManager = (TelephonyManager) MainActivity.mainActivity.getSystemService(Context.TELEPHONY_SERVICE);

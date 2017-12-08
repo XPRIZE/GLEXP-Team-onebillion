@@ -77,6 +77,7 @@ public class OBBatteryReceiver extends BroadcastReceiver
             String chargerType = (usbCharge) ? OBAnalytics.Params.BATTERY_CHARGER_STATE_PLUGGED_USB : (acCharge) ? OBAnalytics.Params.BATTERY_CHARGER_STATE_PLUGGED_AC : "";
             OBAnalyticsManager.sharedManager.batteryState(getBatteryLevel(), isCharging, chargerType);
             OBAnalyticsManager.sharedManager.deviceGpsLocation();
+            OBAnalyticsManager.sharedManager.deviceStorageUse();
             //
             if (actionIsRequired)
             {
@@ -91,14 +92,28 @@ public class OBBatteryReceiver extends BroadcastReceiver
                     }
                     else
                     {
-                        MainActivity.log("OBBatteryReceiver.onReceive: Backup is NOT required. Synchronising time");
-                        OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTime();
+                        if (OBConfigManager.sharedManager.isTimeServerEnabled())
+                        {
+                            MainActivity.log("OBBatteryReceiver.onReceive: Backup is NOT required. Synchronising time");
+                            OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTime();
+                        }
+                        else
+                        {
+                            MainActivity.log("OBBatteryReceiver.onReceive: Time server is disabled. Suspending time synchronisation");
+                        }
                     }
                 }
                 else
                 {
-                    MainActivity.log("OBBatteryReceiver.onReceive: Shouldn't send backup when connecting, just synchronising time");
-                    OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTime();
+                    if (OBConfigManager.sharedManager.isTimeServerEnabled())
+                    {
+                        MainActivity.log("OBBatteryReceiver.onReceive: Shouldn't send backup when connecting, just synchronising time");
+                        OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTime();
+                    }
+                    else
+                    {
+                        MainActivity.log("OBBatteryReceiver.onReceive: Time server is disabled. Suspending time synchronisation");
+                    }
                 }
             }
             else

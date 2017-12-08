@@ -20,8 +20,8 @@ public interface OBAnalyticsProtocol
     void deviceTurnedOff();
     void deviceHeadphonesPluggedIn();
     void deviceHeadphonesUnplugged();
-    void deviceMobileSignalStrength(float value);
-    void deviceStorageUse(long used, long total);
+    void deviceMobileSignalStrength(int value);
+    void deviceStorageUse();
 
     // Touches
     void touchMadeInUnit(String unitID, PointF startLoc, long started, PointF endLoc, long finished);
@@ -48,6 +48,8 @@ public interface OBAnalyticsProtocol
 
     void onStart();
     void onStop();
+
+    void uploadData();
 
     /*
      * Unknown: screen capture  --> possible waste of mobile data for little to no information

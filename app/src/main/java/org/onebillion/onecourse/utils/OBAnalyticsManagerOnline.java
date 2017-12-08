@@ -10,14 +10,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.parse.Parse;
-import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 
 import android.location.Location;
-
-import io.keen.client.java.JavaKeenClientBuilder;
-import io.keen.client.java.KeenClient;
-import io.keen.client.java.KeenProject;
+import android.os.Environment;
+import android.os.StatFs;
 
 
 /**
@@ -50,21 +47,12 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
     {
         super.startupAnalytics(activity);
         //
-        // TODO: move this to the config
+        Parse.enableLocalDatastore(activity.getBaseContext());
         Parse.initialize(new Parse.Configuration.Builder(activity)
                 .applicationId("org.onebillion.onecourse.kenya")
                 .server("http://onecourse-kenya.herokuapp.com/parse/")
                 .build()
         );
-
-        KeenClient client = new JavaKeenClientBuilder().build();
-        KeenClient.initialize(client);
-        //
-        // TODO: move this to the config
-        KeenProject project = new KeenProject("5a28013ac9e77c000154b908", "2A82EE41AD3F74E58226C2E885C681251EB2620678A31F6E39E6FECC156E17E3AAA109F66870A18A9EBF909A614C94FC0E62820441105143A9DDA8BD2959AA3C231784D148EC26C9B0A8E867294C6B6404F0834E64BCA0EBA588A3DF074A41ED", null);
-        KeenClient.client().setDefaultProject(project);
-
-
     }
 
 
@@ -78,6 +66,11 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
     public void onStop()
     {
 
+    }
+
+    @Override
+    public void uploadData()
+    {
     }
 
 
@@ -94,12 +87,7 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
         }
         //
         parseObject.put(OBAnalytics.Params.DEVICE_UUID, OBSystemsManager.sharedManager.device_getUUID());
-        //
         parseObject.saveInBackground();
-        //
-        KeenClient.client().addEvent(eventName, properties);
-        KeenClient.client().sendQueuedEventsAsync();
-
     }
 
 
@@ -213,10 +201,10 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
 
 
     @Override
-    public void deviceMobileSignalStrength (float value)
+    public void deviceMobileSignalStrength (int value)
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.DEVICE_SIGNAL_STRENGTH, Float.valueOf(value));
+        parameters.put(OBAnalytics.Params.DEVICE_SIGNAL_STRENGTH, Integer.valueOf(value));
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
     }
@@ -224,11 +212,19 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
 
 
     @Override
-    public void deviceStorageUse (long used, long total)
+    public void deviceStorageUse ()
     {
+        StatFs stat = new StatFs(Environment.getExternalStorageDirectory().getPath());
+        long bytesAvailable = stat.getAvailableBytes();
+        long bytesTotal = stat.getTotalBytes();
+        //
+        long megaBytesAvailable = bytesAvailable / (1024 * 1024);
+        long megaBytesTotal = bytesTotal / (1024 * 1024);
+        long megaBytesUsed = megaBytesTotal - megaBytesAvailable;
+        //
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.DEVICE_USED_STORAGE, Long.valueOf(used));
-        parameters.put(OBAnalytics.Params.DEVICE_TOTAL_STORAGE, Long.valueOf(total));
+        parameters.put(OBAnalytics.Params.DEVICE_USED_STORAGE, Long.valueOf(megaBytesUsed));
+        parameters.put(OBAnalytics.Params.DEVICE_TOTAL_STORAGE, Long.valueOf(megaBytesTotal));
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
     }

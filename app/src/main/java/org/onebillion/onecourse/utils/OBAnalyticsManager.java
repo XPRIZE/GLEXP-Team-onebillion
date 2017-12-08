@@ -140,13 +140,13 @@ public class OBAnalyticsManager implements OBAnalyticsProtocol
     }
 
     @Override
-    public void deviceMobileSignalStrength (float value)
+    public void deviceMobileSignalStrength (int value)
     {
 
     }
 
     @Override
-    public void deviceStorageUse (long used, long total)
+    public void deviceStorageUse ()
     {
 
     }
@@ -190,6 +190,12 @@ public class OBAnalyticsManager implements OBAnalyticsProtocol
 
     @Override
     public void nightModeEntered ()
+    {
+
+    }
+
+    @Override
+    public void uploadData ()
     {
 
     }
