@@ -286,6 +286,14 @@ public class OBMainViewController extends OBViewController
         }
     }
 
+    public void exitGLMode ()
+    {
+        if (glMode())
+        {
+            removeView(glView());
+        }
+    }
+
     public void addView (View v)
     {
         ViewGroup rootView = (ViewGroup) MainActivity.mainActivity.findViewById(android.R.id.content);
@@ -516,7 +524,12 @@ public class OBMainViewController extends OBViewController
         OBSectionController topvc = viewControllers.get(viewControllers.size() - 1);
         OBSectionController nextvc = viewControllers.get(viewControllers.size() - 2);
         nextvc.viewWillAppear(false);
-        transition(nextvc, topvc, false, 0.5);
+        if (glMode() && !nextvc.requiresOpenGL)
+        {
+            exitGLMode();
+        }
+        else
+            transition(nextvc, topvc, false, 0.5);
         viewControllers.remove(viewControllers.size() - 1);
         showButtons(nextvc.buttonFlagsWithFatController());
         showHideButtons(nextvc.buttonFlagsWithFatController());
