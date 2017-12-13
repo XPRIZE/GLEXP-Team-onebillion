@@ -1142,10 +1142,17 @@ public class OBSectionController extends OBViewController
         RectF f = control.frame();
         attachedControls.remove(control);
         control.controller = null;
-//        if(control.texture != null)
-//            control.texture.cleanUp();
         sortedAttachedControlsValid = false;
         invalidateView((int) f.left, (int) f.top, (int) f.right, (int) f.bottom);
+    }
+
+    public void detachControls(List conts)
+    {
+        if(conts != null)
+        {
+            for(Object c : conts)
+                detachControl((OBControl)c);
+        }
     }
 
     public List<String> filterControlsIDs (String pattern)
