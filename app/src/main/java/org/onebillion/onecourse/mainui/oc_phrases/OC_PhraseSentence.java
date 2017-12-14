@@ -419,7 +419,7 @@ public class OC_PhraseSentence extends OC_Reading
             if(token == sequenceToken)
             {
                 boolean withBackground = jumpOffset > 0;
-                highlightWord(w,true,withBackground);
+                highlightWordWithBackground(w,true,withBackground);
                 if(syllablesIfPoss && syllableAudioExistsForWord(w,currComponentKey) )
                 {
                     List arr = SplitToPrefixSuffix(currComponentKey);
@@ -474,7 +474,7 @@ public class OC_PhraseSentence extends OC_Reading
 
     public boolean syllableAudioExistsForWord(OBReadingWord rw,String key)
     {
-        String localPath = OBAudioManager.audioManager.getAudioPath(String.format("%@_%d",key,rw.paraNo));
+        String localPath = OBAudioManager.audioManager.getAudioPath(String.format("%s_%d",key,rw.paraNo));
         if(localPath != null)
         {
             String dirPath = OBUtils.stringByDeletingLastPathComponent(localPath);

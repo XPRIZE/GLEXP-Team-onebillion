@@ -10,6 +10,8 @@ import org.onebillion.onecourse.utils.OBFont;
  */
 public class OBLabel extends OBControl
 {
+    OBFont font;
+
     public OBLabel()
     {
         super();
@@ -23,9 +25,10 @@ public class OBLabel extends OBControl
         ((OBTextLayer)layer).sizeToBoundingBox();
     }
 
-    public OBLabel(String s, OBFont font)
+    public OBLabel(String s, OBFont f)
     {
-        this(s,font.typeFace,font.size);
+        this(s,f.typeFace,f.size);
+        font = f;
     }
 
     @Override
@@ -57,6 +60,12 @@ public class OBLabel extends OBControl
         return ((OBTextLayer)layer).colour();
     }
 
+    public OBFont font()
+    {
+        if (font == null)
+            return new OBFont(typeface(),fontSize());
+        return font;
+    }
     public void setString(String s)
     {
         OBTextLayer tl = (OBTextLayer)layer;

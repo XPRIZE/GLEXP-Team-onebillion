@@ -145,7 +145,7 @@ public class OC_ClozePhrase extends OC_Cloze
         int i = 1;
         for(OBReadingPara pa : paragraphs)
         {
-            loadTimingsPara(pa,getLocalPath(String.format("%s_%d.etpa",currComponentKey,i)));
+            loadTimingsPara(pa,getLocalPath(String.format("%s_%d.etpa",currComponentKey,i)),false);
             i++;
         }
 

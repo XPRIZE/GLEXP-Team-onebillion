@@ -85,7 +85,7 @@ public class OC_Reading extends OC_SectionController
         return false;
     }
 
-    public void loadTimingsPara(OBReadingPara para,String xmlPath)
+    public void loadTimingsPara(OBReadingPara para,String xmlPath,boolean isSlow)
     {
         try
         {
@@ -94,9 +94,6 @@ public class OC_Reading extends OC_SectionController
                 OBXMLNode xmlNode = null;
                 OBXMLManager xmlManager = new OBXMLManager();
                 List<OBXMLNode> xl = xmlManager.parseFile(OBUtils.getInputStreamForPath(xmlPath));
-//                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
-                String filename = OBUtils.lastPathComponent(xmlPath);
-                boolean isSlow = (filename.startsWith("ps"));
                 if (isSlow)
                     slowWordsAvailable = true;
                 xmlNode = xl.get(0);
@@ -465,8 +462,8 @@ public class OC_Reading extends OC_SectionController
         int i = 1;
         for (OBReadingPara para : paragraphs)
         {
-            loadTimingsPara(para,getLocalPath(String.format("p%d_%d.etpa",pageNo,i)));
-            loadTimingsPara(para,getLocalPath(String.format("ps%d_%d.etpa",pageNo,i)));
+            loadTimingsPara(para,getLocalPath(String.format("p%d_%d.etpa",pageNo,i)),false);
+            loadTimingsPara(para,getLocalPath(String.format("ps%d_%d.etpa",pageNo,i)),true);
             i++;
         }
         //setButtons();
@@ -1064,6 +1061,15 @@ public class OC_Reading extends OC_SectionController
         }
         if (statusChanged(sttime))
             throw new Exception("flashline");
+    }
+
+    public OBReadingWord firstWord()
+    {
+        OBReadingPara p = paragraphs.get(0);
+        for(OBReadingWord w : p.words)
+            if((w.flags & WORD_SPEAKABLE) != 0)
+                return w;
+        return null;
     }
 
 }
