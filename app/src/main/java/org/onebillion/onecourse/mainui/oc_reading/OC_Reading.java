@@ -1072,4 +1072,14 @@ public class OC_Reading extends OC_SectionController
         return null;
     }
 
+    public List<OBReadingWord>unspeakableWords()
+    {
+        List arr = new ArrayList<>();
+        for(OBReadingPara para : paragraphs)
+            for(OBReadingWord w : para.words)
+                if((w.label != null) && (w.flags & WORD_SPEAKABLE) == 0)
+                    arr.add(w);
+        return arr;
+    }
+
 }

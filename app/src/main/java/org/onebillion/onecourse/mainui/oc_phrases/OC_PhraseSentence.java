@@ -286,7 +286,7 @@ public class OC_PhraseSentence extends OC_Reading
         return String.format("%ss%s",arr.get(0),"s",arr.get(1));
     }
 
-    public void speakWordAsPartial(OBReadingWord w,String key) throws Exception
+    public void speakWordAsPartial(OBReadingWord w,String key,boolean wait) throws Exception
     {
         String fn = String.format("%s_%d",key,w.paraNo);
         double ts = w.timeStart,te = w.timeEnd;
@@ -296,7 +296,13 @@ public class OC_PhraseSentence extends OC_Reading
             te = w.slowTimeEnd;
         }
         playAudioFromTo(SlowVersion(fn,slowWordsAvailable),ts,te);
-        waitAudio();
+        if (wait)
+            waitAudio();
+    }
+
+    public void speakWordAsPartial(OBReadingWord w,String key) throws Exception
+    {
+        speakWordAsPartial(w,key,true);
     }
 
     public void replayAudio()
