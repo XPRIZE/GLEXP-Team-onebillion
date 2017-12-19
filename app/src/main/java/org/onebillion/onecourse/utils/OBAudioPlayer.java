@@ -349,4 +349,11 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
         playerLock.unlock();
         player.start();
     }
+
+    public int currentPositionms()
+    {
+        if (player != null)
+            return player.getCurrentPosition();
+        return -1;
+    }
 }

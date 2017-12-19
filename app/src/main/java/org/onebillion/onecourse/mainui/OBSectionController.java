@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.*;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -1610,7 +1611,29 @@ public class OBSectionController extends OBViewController
                 public void run ()
                 {
                     if (aqtCopy == audioQueueToken)
-                        OBAudioManager.audioManager.stopPlaying();
+                    {
+                        final OBAudioManager am = OBAudioManager.audioManager;
+                        int currtimems = am.playerForChannel(OBAudioManager.AM_MAIN_CHANNEL).currentPositionms();
+                        final int timetogo = (int)(toTime * 1000) - currtimems;
+                        if (timetogo > 0)
+                        {
+                            Handler h2 = new Handler();
+                            h2.postDelayed(new Runnable()
+                            {
+                                @Override
+                                public void run ()
+                                {
+                                    if (aqtCopy == audioQueueToken)
+                                    {
+                                        am.stopPlaying();
+                                    }
+                                }
+                            }, timetogo);
+
+                        }
+                        else
+                            am.stopPlaying();
+                    }
                 }
             }, t);
 
@@ -1658,6 +1681,14 @@ public class OBSectionController extends OBViewController
 
     }
 
+    public void playAudioFromToP (final String fileName, double fromTime, double toTime)
+    {
+        updateAudioQueueToken();
+        final long aqtCopy = audioQueueToken;
+        OBAudioBufferPlayer player = new OBAudioBufferPlayer(false);
+        AssetFileDescriptor afd = OBAudioManager.audioManager.getAudioPathFD(fileName);
+        player.startPlaying(afd,fromTime,toTime);
+    }
 
     void _playSFX(final String fileName)
     {

@@ -267,8 +267,7 @@ public class OC_PhraseSentence extends OC_Reading
     {
         Pattern p = Pattern.compile("[0123456789]");
         Matcher matcher = p.matcher(s);
-        matcher.find();
-        if (matcher.matches())
+        if (matcher.find())
         {
             int idx = matcher.start();
             String s1 = s.substring(0,idx);
@@ -283,7 +282,7 @@ public class OC_PhraseSentence extends OC_Reading
         if(!slow)
             return s;
         List<String> arr = SplitToPrefixSuffix(s);
-        return String.format("%ss%s",arr.get(0),"s",arr.get(1));
+        return String.format("%ss%s",arr.get(0),arr.get(1));
     }
 
     public void speakWordAsPartial(OBReadingWord w,String key,boolean wait) throws Exception
