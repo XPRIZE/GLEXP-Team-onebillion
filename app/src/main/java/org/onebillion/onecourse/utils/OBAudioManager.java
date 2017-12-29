@@ -177,6 +177,11 @@ public class OBAudioManager
         return fd;
     }
 
+    public void playOnChannel(String ch)
+    {
+        playerForChannel(ch).play();
+    }
+
     public void startPlaying (String fileName, String channel)
     {
         OBAudioPlayer player = playerForChannel(channel);
@@ -333,6 +338,11 @@ public class OBAudioManager
         OBAudioPlayer player = playerForChannel(channel);
         AssetFileDescriptor fd = getAudioPathFD(fileName);
         player.prepare(fd);
+    }
+
+    public void prepare(final String fileName)
+    {
+        prepareForChannel(fileName,AM_MAIN_CHANNEL);
     }
 
     public void clearCaches ()

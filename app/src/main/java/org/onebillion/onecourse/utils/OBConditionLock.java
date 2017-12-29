@@ -52,4 +52,8 @@ public class OBConditionLock
             }
         }
     }
+    public int conditionValue()
+    {
+        return conditionValue;
+    }
 }

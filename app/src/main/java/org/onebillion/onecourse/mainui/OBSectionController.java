@@ -259,6 +259,11 @@ public class OBSectionController extends OBViewController
         return sl.getLineBaseline(0);
     }
 
+    public long statusTime()
+    {
+        return statusTime;
+    }
+
     public Map<String, Object> loadXML (String xmlPath)
     {
         Map<String, Object> eventsDict = new HashMap<>();
@@ -1462,7 +1467,7 @@ public class OBSectionController extends OBViewController
         OBAnimationGroup.runAnims(anims, secs, wait, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
     }
 
-    List AnimsForMoveToPoint(List<OBControl> objs,PointF pos)
+    public List AnimsForMoveToPoint(List<OBControl> objs,PointF pos)
     {
         OBControl obj = objs.get(0);
         PointF currPos = obj.position();
