@@ -2486,6 +2486,15 @@ public class OBSectionController extends OBViewController
 
     }
 
+    public void scalePic(OBControl pic,OBControl picbox)
+    {
+        float wratio = pic.width() / picbox.width();
+        float hratio = pic.height() / picbox.height();
+        float ratio = wratio > hratio?wratio:hratio;
+        pic.setScale(1 / ratio);
+        pic.setPosition(picbox.position());
+    }
+
     public void onAlarmReceived(Intent intent)
     {
 
