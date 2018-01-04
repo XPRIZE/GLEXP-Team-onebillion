@@ -3,21 +3,32 @@ package org.onebillion.onecourse.mainui.oc_missingnumbers;
 import android.graphics.Color;
 import android.graphics.Path;
 import android.graphics.PointF;
+import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.os.SystemClock;
+import android.text.Layout;
+import android.text.SpannableString;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.util.Pair;
 import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
+import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.mainui.generic.OC_Generic_Event;
 import org.onebillion.onecourse.utils.OBAnim;
+import org.onebillion.onecourse.utils.OBAnimBlock;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBConditionLock;
+import org.onebillion.onecourse.utils.OBFont;
+import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -41,9 +52,11 @@ public class OC_MissingNumbers extends OC_Generic_Event
     private int colourButtonNormal, colourButtonHilite, colourButtonDisabled;
     private int colourDashNormal, colourDashHilite;
     //
+    private boolean usesBigBox;
     private boolean forcesRightAnswer;
     private boolean useRandomSeed;
     private boolean hasDemo;
+    private boolean showDashes;
     //
     private Integer lowEnd;
     private Integer highEnd;
@@ -68,8 +81,10 @@ public class OC_MissingNumbers extends OC_Generic_Event
     private static double kReminderDelaySeconds = 5.0;
     private static String kModeDrag = "drag";
     private static String kModeType = "type";
+    private static String kBigBox = "bigbox";
     private static String kDifficultyEasy = "easy";
     private static String kDifficultyHard = "hard";
+    private static String kShowDashes = "dashes";
     private static String kTotalQuestions = "questions";
     private static String kTotalDistractors = "distractors";
     private static String kLowEnd = "min";
@@ -92,7 +107,9 @@ public class OC_MissingNumbers extends OC_Generic_Event
         mode = parameters.get(kMode);
         difficulty = parameters.get(kDifficulty);
         useRandomSeed = parameters.get(kRandomSeed).equals(kConstantTrue);
-        hasDemo = parameters.get(kDemo).equals(kConstantTrue);
+        hasDemo = parameters.get(kDemo) != null && parameters.get(kDemo).equals(kConstantTrue);
+        usesBigBox = parameters.get(kBigBox) != null && parameters.get(kBigBox).equals(kConstantTrue);
+        showDashes = parameters.get(kShowDashes) != null && parameters.get(kShowDashes).equals(kConstantTrue);
         forcesRightAnswer = true;
         currentQuestionCounter = 1;
         events = new ArrayList<>();
@@ -106,7 +123,7 @@ public class OC_MissingNumbers extends OC_Generic_Event
         if (hasDemo) events.add(0, "b");
         events.add(0, "a");
         //
-        String fileForMode = String.format("event%saudio.xml", mode);
+        String fileForMode = (usesBigBox) ? String.format("eventlistenthen%saudio.xml", mode) : String.format("event%saudio.xml", mode);
         String filePath = getConfigPath(fileForMode);
         loadAudioXML(filePath);
         colourTextNormal = (objectDict.get("colour_text_normal")).fillColor();
@@ -161,47 +178,67 @@ public class OC_MissingNumbers extends OC_Generic_Event
             numberBoxes = new ArrayList<>();
             numberBoxLabels = new ArrayList<>();
             lines = new ArrayList<>();
-            OBControl boxTemplate = objectDict.get("number_box");
-            OBPath verticalLineTemplate = (OBPath) objectDict.get("line_vertical");
-            float allocatedWidth = 0.9f * bounds().width();
-            float slottedWidth = allocatedWidth / 4;
-            float startingX = (bounds().width() - allocatedWidth + slottedWidth - boxTemplate.width()) / 2;
-            float y = 0.5f * bounds().height();
-            for (int i = 0; i < 4; i++)
+            //
+            if (usesBigBox)
             {
-                OBControl newBox = boxTemplate.copy();
-                newBox.setPosition(new PointF(startingX + i * slottedWidth + newBox.width() / 2f, y));
-                String number_string = "0000";
-                OBLabel newBoxLabel = action_createLabelForControl(newBox, number_string, colourTextNormal, 0.8f);
-                newBox.setProperty("label", newBoxLabel);
-                OBPath newVerticalLine = (OBPath) verticalLineTemplate.copy();
-                newVerticalLine.sizeToBoundingBoxIncludingStroke();
-                newVerticalLine.setPosition(new PointF(newBoxLabel.position().x, newBoxLabel.position().y - newBoxLabel.height() / 2 - newVerticalLine.height() / 2f));
-                newVerticalLine.setZPosition(newBox.zPosition() - 0.001f);
-                numberBoxes.add(newBox);
-                numberBoxLabels.add(newBoxLabel);
-                lines.add(newVerticalLine);
+                hideControls("line_.*");
+                hideControls("number_box");
+                int number = (numberSequence == null) ? 0 : numberSequence.get(0);
+                String number_string = String.format("%d", number);
+                OBControl bigBox = objectDict.get("number_box_big");
+                bigBox.setPosition(new PointF(0.5f * bounds().width(), 0.4f * bounds().height()));
+                OBLabel bigBoxLabel = action_createLabelForControl(bigBox, number_string, colourTextNormal, 0.8f);
+                bigBox.setProperty("label", bigBoxLabel);
+                numberBoxes.add(bigBox);
+                numberBoxLabels.add(bigBoxLabel);
             }
-            boxTemplate.hide();
-            verticalLineTemplate.hide();
+            else
+            {
+                hideControls(".*_big");
+                OBControl boxTemplate = objectDict.get("number_box");
+                OBPath verticalLineTemplate = (OBPath) objectDict.get("line_vertical");
+                float allocatedWidth = 0.9f * bounds().width();
+                float slottedWidth = allocatedWidth / 4;
+                float startingX = (bounds().width() - allocatedWidth + slottedWidth - boxTemplate.width()) / 2;
+                float y = 0.5f * bounds().height();
+                //
+                for (int i = 0; i < 4; i++)
+                {
+                    OBControl newBox = boxTemplate.copy();
+                    newBox.setPosition(new PointF(startingX + i * slottedWidth + newBox.width() / 2f, y));
+                    //
+                    int number = (numberSequence == null) ? 0 : numberSequence.get(i);
+                    String number_string = String.format("%d", number);
+                    OBLabel newBoxLabel = action_createLabelForControl(newBox, number_string, colourTextNormal, 0.8f);
+                    newBox.setProperty("label", newBoxLabel);
+                    OBPath newVerticalLine = (OBPath) verticalLineTemplate.copy();
+                    newVerticalLine.sizeToBoundingBoxIncludingStroke();
+                    newVerticalLine.setPosition(new PointF(newBoxLabel.position().x, newBoxLabel.position().y - newBoxLabel.height() / 2f - newVerticalLine.height() / 2f));
+                    newVerticalLine.setZPosition(newBox.zPosition() - 0.001f);
+                    numberBoxes.add(newBox);
+                    numberBoxLabels.add(newBoxLabel);
+                    lines.add(newVerticalLine);
+                }
+                boxTemplate.hide();
+                verticalLineTemplate.hide();
+                OBPath horizontalLine = (OBPath) objectDict.get("line_horizontal");
+                PointF firstPoint = OC_Generic.copyPoint(OB_Maths.AddPoints(lines.get(0).position(), lines.get(0).firstPoint()));
+                PointF lastPoint = OC_Generic.copyPoint(OB_Maths.AddPoints(lines.get(lines.size() - 1).position(), lines.get(lines.size()  -1).firstPoint()));
+                lastPoint = OB_Maths.DiffPoints(lastPoint, firstPoint);
+                lastPoint.set(bounds().width(), lastPoint.y);
+                firstPoint = new PointF(0,0);
+                Path newPath = new Path();
+                newPath.moveTo(firstPoint.x, firstPoint.y);
+                newPath.lineTo(lastPoint.x, lastPoint.y);
+                horizontalLine.setPath(newPath);
+                horizontalLine.sizeToBoundingBoxIncludingStroke();
+                horizontalLine.setLeft(0);
+                horizontalLine.setTop(lines.get(0).position().y - lines.get(0).height() / 2);
+                attachControl(horizontalLine);
+            }
         }
-        OBPath horizontalLine = (OBPath) objectDict.get("line_horizontal");
-        PointF firstPoint = OC_Generic.copyPoint(OB_Maths.AddPoints(lines.get(0).position(), lines.get(0).firstPoint()));
-        PointF lastPoint = OC_Generic.copyPoint(OB_Maths.AddPoints(lines.get(lines.size() - 1).position(), lines.get(lines.size() - 1).firstPoint()));
-        lastPoint = OB_Maths.DiffPoints(lastPoint, firstPoint);
-        lastPoint.set(bounds().width(), lastPoint.y);
-        firstPoint = new PointF(0, 0);
-        Path newPath = new Path();
-        newPath.moveTo(firstPoint.x, firstPoint.y);
-        newPath.lineTo(lastPoint.x, lastPoint.y);
-        horizontalLine.setPath(newPath);
-        horizontalLine.sizeToBoundingBoxIncludingStroke();
-        horizontalLine.setLeft(0);
-        horizontalLine.setTop(lines.get(0).position().y - lines.get(0).height() / 2);
-        attachControl(horizontalLine);
         if (numberBoxes != null) for (OBControl control : numberBoxes) attachControl(control);
-        if (numberBoxLabels != null)
-            for (OBControl control : numberBoxLabels) attachControl(control);
+        if (numberBoxLabels != null) for (OBControl control : numberBoxLabels) attachControl(control);
         if (lines != null) for (OBControl control : lines) attachControl(control);
         if (numberBoxLabels != null) for (OBControl control : numberBoxLabels) control.hide();
         if (dashes != null) for (OBControl control : dashes) control.hide();
@@ -220,7 +257,7 @@ public class OC_MissingNumbers extends OC_Generic_Event
         unlockScreen();
         if (needsNewScene)
         {
-            introScene();
+            introScene(true);
         }
         try
         {
@@ -233,6 +270,103 @@ public class OC_MissingNumbers extends OC_Generic_Event
         }
         setStatus(STATUS_AWAITING_CLICK);
     }
+
+
+    public void doAudio (String scene, boolean sayNumber) throws Exception
+    {
+        List audio = getAudioForScene(scene, "PROMPT");
+        List replayAudio = getAudioForScene(scene, "REPEAT");
+        final String correctAudio = String.format("n_%s", correctAnswer);
+        if (usesBigBox)
+        {
+            replayAudio.add(correctAudio);
+        }
+        setReplayAudio(replayAudio);
+        //
+        OBConditionLock lock = playAudioQueued(audio, false);
+        if (usesBigBox)
+        {
+            waitAudioQueue(lock);
+            waitForSecs(0.3f);
+            if (sayNumber)
+            {
+                if (mode.equals(kModeType) && showDashes)
+                {
+                    OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                    {
+                        public void run () throws Exception
+                        {
+                            playAudio(correctAudio);
+                            waitAudio();
+                            //
+                            playSfxAudio("dash_hilite", false);
+                            //
+                            lockScreen();
+                            refreshDashes();
+                            unlockScreen();
+                        }
+                    });
+                }
+                else
+                {
+                    waitForSecs(0.3f);
+                    playAudio(correctAudio);
+                }
+            }
+        }
+    }
+
+
+
+    public void doAudio (String scene)
+    {
+        try
+        {
+            doAudio(scene, true);
+        }
+        catch (Exception e)
+        {
+            MainActivity.log("OC_MissingNumbers:doAudio:Exception caught");
+            e.printStackTrace();
+        }
+    }
+
+
+
+
+    public List breakdownLabel (OBLabel label)
+    {
+        List result = new ArrayList<>();
+        Typeface font = label.typeface();
+        float fontSize = label.fontSize();
+        //
+        for (int i = 0; i < label.text().length(); i++)
+        {
+            String digitString = String.format("%c", label.text().charAt(i));
+            OBLabel newLabel = new OBLabel(digitString, font, fontSize);
+            newLabel.setZPosition(label.zPosition() + 0.1f);
+            newLabel.setColour(colourTextNormal);
+            if (i == 0)
+            {
+                newLabel.setProperty("original_left", label.left());
+                newLabel.setLeft(label.left());
+            }
+            else
+            {
+                OBLabel auxLabel = new OBLabel(label.text().substring(0, i + 1), font, fontSize);
+                auxLabel.setZPosition(label.zPosition() + 0.1f);
+                auxLabel.setLeft(label.left());
+                newLabel.setProperty("original_right", auxLabel.right());
+                newLabel.setRight(auxLabel.right());
+            }
+            newLabel.setTop(label.top());
+            newLabel.setProperty("original_position", OC_Generic.copyPoint(newLabel.position()));
+            result.add(newLabel);
+        }
+        return result;
+    }
+
+
 
 
     Integer randomNumberBetween (Integer min, Integer max)
@@ -282,26 +416,31 @@ public class OC_MissingNumbers extends OC_Generic_Event
     }
 
 
+
     public void refreshDashes ()
     {
-        int shownDashes = Math.max(1, Math.min(currentAnswer.length() + 1, numberSequence.get(hiddenNumberIndex).toString().length()));
-        for (OBPath dash : dashes)
+        if (showDashes)
         {
-            dash.setStrokeColor(colourDashNormal);
+            int shownDashes = Math.max(1, Math.min(currentAnswer.length() + 1, numberSequence.get(hiddenNumberIndex).toString().length()));
+            for (OBPath dash : dashes)
+            {
+                dash.setStrokeColor(colourDashNormal);
+            }
+            OBPath dash = dashes.get(shownDashes - 1);
+            dash.setStrokeColor(colourDashHilite);
         }
-        OBPath dash = dashes.get(shownDashes - 1);
-        dash.setStrokeColor(colourDashHilite);
     }
 
 
     public void resetScene ()
     {
-        Pair result = generateNumbersFrom(lowEnd, highEnd, increment, 4, useRandomSeed);
+        int quantity = (usesBigBox) ? 1 : 4;
+        Pair result = generateNumbersFrom(lowEnd, highEnd, increment, quantity, useRandomSeed);
         //
         numberSequence = (List<Integer>) result.first;
         distractors = (List<Integer>) result.second;
         //
-        hiddenNumberIndex = randomNumberBetween(0, 3);
+        hiddenNumberIndex = (usesBigBox) ? 0 : randomNumberBetween(0, 3);
         correctAnswer = numberSequence.get(hiddenNumberIndex).toString();
         currentAnswer = "";
         wrongAttempts = 0;
@@ -335,8 +474,9 @@ public class OC_MissingNumbers extends OC_Generic_Event
             }
             dashes = new ArrayList<>();
             dashLabels = new ArrayList<>();
-            OBPath dashTemplate = (OBPath) objectDict.get("number_dash");
+            OBPath dashTemplate = (usesBigBox) ? (OBPath ) objectDict.get("number_dash_big") :  (OBPath ) objectDict.get("number_dash");
             dashTemplate.sizeToBoundingBoxIncludingStroke();
+            //
             float allocatedFactor = Math.max(0.5f, Math.min(0.9f, 0.25f * totalDashes));
             float allocatedWidth = allocatedFactor * emptyNumberBox.width();
             float slottedWidth = allocatedWidth / totalDashes;
@@ -373,15 +513,19 @@ public class OC_MissingNumbers extends OC_Generic_Event
                 for (OBControl control : dragLabels) detachControl(control);
             }
             dragLabels = new ArrayList<>();
+            OBControl boxTemplate = objectDict.get("number_box");
+            OBLabel labelTemplate = action_createLabelForControl(boxTemplate, correctAnswer, colourTextNormal, 0.8f);
+            //
             for (Integer distractor : distractors)
             {
-                OBLabel distractorLabel = (OBLabel) emptyNumberBoxLabel.copy();
+                OBLabel distractorLabel = (OBLabel) labelTemplate.copy();
                 distractorLabel.setString(distractor.toString());
                 distractorLabel.setColour(colourTextDraggable);
                 distractorLabel.sizeToBoundingBox();
                 dragLabels.add(distractorLabel);
             }
-            OBLabel distractorLabel = (OBLabel) emptyNumberBoxLabel.copy();
+            //
+            OBLabel distractorLabel = (OBLabel) labelTemplate.copy();
             distractorLabel.setString(emptyNumberBoxLabel.text());
             distractorLabel.setColour(colourTextDraggable);
             distractorLabel.sizeToBoundingBox();
@@ -406,12 +550,21 @@ public class OC_MissingNumbers extends OC_Generic_Event
         currentShownQuestion = currentQuestionCounter;
     }
 
-    public void introScene () throws Exception
+    public void introScene (final Boolean playDashAudio) throws Exception
     {
-        playSfxAudio("number_box_appear", false);
-        lockScreen();
-        for (OBControl control : numberBoxLabels) control.show();
-        unlockScreen();
+        if (usesBigBox)
+        {
+            lockScreen();
+            for (OBControl control : numberBoxLabels) control.show();
+            unlockScreen();
+        }
+        else
+        {
+            playSfxAudio("number_box_appear", false);
+            lockScreen();
+            for (OBControl control : numberBoxLabels) control.show();
+            unlockScreen();
+        }
         waitForSecs(0.3f);
         //
         if (mode.equals(kModeDrag))
@@ -427,6 +580,7 @@ public class OC_MissingNumbers extends OC_Generic_Event
                 animations.add(moveAnim);
             }
             unlockScreen();
+            //
             playSfxAudio("number_appear", false);
             for (OBAnim animation : animations)
             {
@@ -441,7 +595,7 @@ public class OC_MissingNumbers extends OC_Generic_Event
             {
                 public void run () throws Exception
                 {
-                    playSfxAudio("dash_hilite", false);
+                    if (playDashAudio) playSfxAudio("dash_hilite", false);
                     lockScreen();
                     refreshDashes();
                     unlockScreen();
@@ -583,13 +737,45 @@ public class OC_MissingNumbers extends OC_Generic_Event
         //
         else if (mode.equals(kModeDrag))
         {
+            if (usesBigBox)
+            {
+                OBLabel draggedLabel = null;
+                for (OBLabel control : dragLabels)
+                {
+                    if (!control.isEnabled())
+                    {
+                        draggedLabel = control;
+                        break;
+
+                    }
+
+                }
+                final OBLabel draggedLabel_final = draggedLabel;
+                final float finalPointSize = emptyNumberBoxLabel.fontSize();
+                final float initialPointSize = draggedLabel.fontSize();
+                OBAnim fontAnim = new OBAnimBlock()
+                {
+                    @Override
+                    public void runAnimBlock (float frac)
+                    {
+                        float newPointSize = initialPointSize + (finalPointSize - initialPointSize) * frac;
+                        PointF position = OC_Generic.copyPoint(draggedLabel_final.position());
+                        draggedLabel_final.setFontSize(newPointSize);
+                        draggedLabel_final.sizeToBoundingBox();
+                        draggedLabel_final.setPosition(position);
+                    }
+                };
+                OBAnimationGroup.runAnims(Arrays.asList(fontAnim), 0.2, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+            }
             lockScreen();
             for (OBControl control : dragLabels)
             {
                 if (!control.isEnabled())
                 {
                     control.hide();
+
                 }
+
             }
             emptyNumberBoxLabel.setString(correctAnswer);
             unlockScreen();
@@ -974,6 +1160,161 @@ public class OC_MissingNumbers extends OC_Generic_Event
     }
 
 
+    private void demo_dragNumberToBoxWithAudio (List audio, boolean sayNumberWhenDone) throws Exception
+    {
+        OBLabel correctLabel = null;
+        for (OBLabel label : dragLabels)
+        {
+            if (label.text().equals(correctAnswer))
+            {
+                correctLabel = label;
+                break;
+            }
+        }
+        //
+        OBControl correctBox = numberBoxes.get(hiddenNumberIndex);
+        OC_Generic.pointer_moveToObject(correctLabel, 0, 0.6f, EnumSet.of(OC_Generic.Anchor.ANCHOR_MIDDLE), true, this);
+        OC_Generic.pointer_moveToPointWithObject(correctLabel, correctBox.position(), 0, 0.6f, true, this);
+        playSfxAudio("number_drop", false);
+        OBLabel correctBoxLabel = (OBLabel) correctBox.propertyValue("label");
+        final float finalPointSize = correctBoxLabel.fontSize();
+        final float initialPointSize = correctLabel.fontSize();
+        final OBLabel correctLabel_final = correctLabel;
+        //
+        if (usesBigBox)
+        {
+            OBAnim fontAnim = new OBAnimBlock()
+            {
+                @Override
+                public void runAnimBlock (float frac)
+
+                {
+                    float newPointSize = initialPointSize + (finalPointSize - initialPointSize) * frac;
+                    PointF position = OC_Generic.copyPoint(correctLabel_final.position());
+                    correctLabel_final.setFontSize(newPointSize);
+                    correctLabel_final.sizeToBoundingBox();
+                    correctLabel_final.setPosition(position);
+                }
+            };
+            OBAnimationGroup.runAnims(Arrays.asList(fontAnim), 0.2, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+            correctLabel.setColour(colourTextNormal);
+        }
+        PointF pointerNudge = OC_Generic.copyPoint(OB_Maths.AddPoints(correctBox.position(), new PointF(0f, correctBox.height() / 2f)));
+        movePointerToPoint(pointerNudge, 0, 0.3f, true);
+        waitAudio();
+        waitForSecs(0.3f);
+        //
+        if (sayNumberWhenDone)
+        {
+            correctLabel.setColour(colourTextHilite);
+            playAudio(String.format("n_%s", correctAnswer));
+            waitAudio();
+            //
+            correctLabel.setColour(colourTextNormal);
+            waitForSecs(0.3f);
+
+        }
+        playAudioQueued(audio);
+        moveScenePointer(new PointF(0.7f * bounds().width(), 0.7f * bounds().height()), 0.6f, null, 0.3f);
+        PointF destination = OC_Generic.copyPoint((PointF) correctLabel.propertyValue("original_position"));
+        //
+        if (usesBigBox)
+        {
+            lockScreen();
+            PointF position = OC_Generic.copyPoint(correctLabel.position());
+            correctLabel.setFontSize(initialPointSize);
+            correctLabel.sizeToBoundingBox();
+            correctLabel.setPosition(position);
+            correctLabel.setColour(colourTextDraggable);
+            unlockScreen();
+        }
+        OBAnim moveAnim = OBAnim.moveAnim(destination, correctLabel);
+        OBAnimationGroup.runAnims(Arrays.asList(moveAnim), 0.3, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+    }
+
+
+    private void demo_typeInNumberWithAudio (List audio, boolean sayNumberWhenDone) throws Exception
+    {
+        waitAudio();
+        waitForSecs(0.3f);
+        //
+        playSfxAudio("dash_hilite", false);
+        //
+        lockScreen();
+        refreshDashes();
+        unlockScreen();
+        waitForSecs(0.3f);
+        //
+        for (int i = 0; i < correctAnswer.length(); i++)
+        {
+            String digit = String.format("%c", correctAnswer.charAt(i));
+            for (OBControl button : numberButtons)
+            {
+                OBLabel label = (OBLabel) button.propertyValue("label");
+                if (label.text().equals(digit))
+                {
+                    OC_Generic.pointer_moveToObject(button, 0, 0.6f, EnumSet.of(OC_Generic.Anchor.ANCHOR_MIDDLE), true, this);
+                    playSfxAudio("type_digit", false);
+                    lockScreen();
+                    toggleNumberButton(button, true);
+                    OBLabel dashLabel = dashLabels.get(i);
+                    dashLabel.setString(digit);
+                    int dashIndex = Math.min(correctAnswer.length() - 1, i + 1);
+                    OBControl hilitedDash = dashes.get(dashIndex);
+                    for (OBPath dash : dashes)
+                    {
+                        dash.setStrokeColor((dash.equals(hilitedDash)) ? colourDashHilite : colourDashNormal);
+                    }
+                    unlockScreen();
+                    waitForSecs(0.3f);
+                    //
+                    lockScreen();
+                    toggleNumberButton(button, false);
+                    unlockScreen();
+                }
+            }
+        }
+        //
+        lockScreen();
+        for (OBControl control : dashes)
+        {
+            control.hide();
+        }
+        unlockScreen();
+        //
+        OBControl emptyNumberBox = numberBoxes.get(hiddenNumberIndex);
+        OBLabel emptyNumberBoxLabel = (OBLabel) emptyNumberBox.propertyValue("label");
+        List animations = new ArrayList<>();
+        for (OBControl control : dashLabels)
+        {
+            control.setProperty("previous_position", control.getWorldPosition());
+            PointF originalPosition = OC_Generic.copyPoint((PointF) control.propertyValue("original_position"));
+            OBAnim animation = OBAnim.moveAnim(originalPosition, control);
+            animations.add(animation);
+        }
+        OBAnimationGroup.runAnims(animations, 0.3, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+        waitForSecs(0.3f);
+        lockScreen();
+        for (OBControl control : dashLabels) control.hide();
+        emptyNumberBoxLabel.setString(correctAnswer);
+
+        unlockScreen();
+        if (sayNumberWhenDone)
+        {
+            playAudio(String.format("n_%s", correctAnswer));
+            emptyNumberBoxLabel.setColour(colourTextHilite);
+            waitAudio();
+            emptyNumberBoxLabel.setColour(colourTextNormal);
+            waitForSecs(0.3f);
+
+        }
+        waitAudio();
+        waitForSecs(0.7f);
+        playAudioQueued(audio);
+
+    }
+
+
     public void demoa () throws Exception
     {
         setStatus(STATUS_BUSY);
@@ -993,98 +1334,78 @@ public class OC_MissingNumbers extends OC_Generic_Event
         resetScene();
         unlockScreen();
         //
-        introScene();
+        introScene(false);
         OBPath box = (OBPath) numberBoxes.get(hiddenNumberIndex);
-        playAudioScene("DEMO", 0, false); // Look. The number is missing.;
-        OC_Generic.pointer_moveToObject(box, 0, 0.6f, EnumSet.of(OC_Generic.Anchor.ANCHOR_BOTTOM), false, this);
-        waitAudio();
-        waitForSecs(0.3f);
-        //
-        playAudioScene("DEMO", 1, false); // Watch me.;
-        if (mode.equals(kModeDrag))
+        if (usesBigBox)
         {
-            OBLabel correctLabel = null;
-            for (OBLabel label : dragLabels)
-            {
-                if (label.text().equals(correctAnswer))
-                {
-                    correctLabel = label;
-                    break;
-                }
-            }
-            OBControl correctBox = numberBoxes.get(hiddenNumberIndex);
-            OC_Generic.pointer_moveToObject(correctLabel, 0, 0.6f, EnumSet.of(OC_Generic.Anchor.ANCHOR_MIDDLE), true, this);
-            OC_Generic.pointer_moveToPointWithObject(correctLabel, correctBox.position(), 0, 0.6f, true, this);
-            playSfxAudio("number_drop", false);
-            PointF pointerNudge = OC_Generic.copyPoint(OB_Maths.AddPoints(correctBox.position(), new PointF(0f, correctBox.height() / 2f)));
-            movePointerToPoint(pointerNudge, 0, 0.3f, true);
+            playAudioScene("DEMO", 0, false); // Listen
+            moveScenePointer(new PointF(0.9f * bounds().width(), 0.6f * bounds().height()), 0.6f, null, 0.3f);
             waitAudio();
             waitForSecs(0.3f);
             //
-            playAudioScene("DEMO", 2, false); // Your Turn.;
-            moveScenePointer(new PointF(0.7f * bounds().width(), 0.7f * bounds().height()), 0.6f, null, 0.3f);
-            PointF destination = OC_Generic.copyPoint((PointF) correctLabel.propertyValue("original_position"));
-            OBAnim moveAnim = OBAnim.moveAnim(destination, correctLabel);
-            OBAnimationGroup.runAnims(Arrays.asList(moveAnim), 0.3, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
-        }
-        else if (mode.equals(kModeType))
-        {
-            for (int i = 0; i < correctAnswer.length(); i++)
-            {
-                String digit = String.format("%c", correctAnswer.charAt(i));
-                for (OBControl button : numberButtons)
-                {
-                    OBLabel label = (OBLabel) button.propertyValue("label");
-                    if (label.text().equals(digit))
-                    {
-                        OC_Generic.pointer_moveToObject(button, 0, 0.6f, EnumSet.of(OC_Generic.Anchor.ANCHOR_MIDDLE), true, this);
-                        playSfxAudio("type_digit", false);
-                        lockScreen();
-                        toggleNumberButton(button, true);
-                        OBLabel dashLabel = dashLabels.get(i);
-                        dashLabel.setString(digit);
-                        Integer dashIndex = Math.min(correctAnswer.length() - 1, i + 1);
-                        OBControl hilitedDash = dashes.get(dashIndex);
-                        for (OBPath dash : dashes)
-                        {
-                            dash.setStrokeColor((dash.equals(hilitedDash)) ? colourDashHilite : colourDashNormal);
-                        }
-                        unlockScreen();
-                        waitForSecs(0.3f);
-                        //
-                        lockScreen();
-                        toggleNumberButton(button, false);
-                        unlockScreen();
-                    }
-                }
-            }
-            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
-            {
-                public void run () throws Exception
-                {
-                    lockScreen();
-                    for (OBControl control : dashes) control.hide();
-                    unlockScreen();
-                }
-            });
+            playAudio(String.format("n_%s", correctAnswer));
             waitAudio();
-            waitForSecs(0.7f);
+            waitForSecs(0.3f);
             //
-            playAudioScene("DEMO", 2, false); // Your Turn.;
-            moveScenePointer(new PointF(0.7f * bounds().width(), 0.7f * bounds().height()), 0.6f, null, 0.3f);
-            //
-            lockScreen();
-            for (OBControl control : dashes)
+            playAudioScene("DEMO", 1, false); // Now watch me.;
+            if (mode.equals(kModeDrag))
             {
-                control.show();
+                String audioForDemo = getAudioForScene(currentEvent(), "DEMO").get(2); // Your Turn!;
+                demo_dragNumberToBoxWithAudio(Arrays.asList(audioForDemo), true);
             }
+            else if (mode.equals(kModeType))
+            {
+                String audioForDemo = getAudioForScene(currentEvent(), "DEMO").get(2); // Your Turn!
+                demo_typeInNumberWithAudio(Arrays.asList(audioForDemo), true);
+            }
+        }
+        else
+        {
+            playAudioScene("DEMO", 0, false); // Look. The number is missing.;
+            OC_Generic.pointer_moveToObject(box, 0, 0.6f, EnumSet.of(OC_Generic.Anchor.ANCHOR_BOTTOM), false, this);
+            waitAudio();
+            waitForSecs(0.3f);
+            //
+            playAudioScene("DEMO", 1, false); // Watch me.
+            if (mode.equals(kModeDrag))
+            {
+                String audioForDemo = getAudioForScene(currentEvent(), "DEMO").get(2); // Your Turn!;
+                demo_dragNumberToBoxWithAudio(Arrays.asList(audioForDemo), false);
+            }
+            else if (mode.equals(kModeType))
+            {
+                String audioForDemo = getAudioForScene(currentEvent(), "DEMO").get(2); // Your Turn!
+                demo_typeInNumberWithAudio(Arrays.asList(audioForDemo), false);
+            }
+        }
+        //
+        moveScenePointer(new PointF(0.7f * bounds().width(), 0.7f * bounds().height()), 0.6f, null, 0.3f);
+        //
+        lockScreen();
+        if (dashes != null)
+        {
+            for (OBPath dash : dashes)
+            {
+                dash.show();
+                dash.setStrokeColor(colourDashNormal);
+            }
+        }
+        if (dashLabels != null)
+        {
             for (OBLabel label : dashLabels)
             {
+                PointF previousPosition = OC_Generic.copyPoint((PointF) label.propertyValue("previous_position"));
+                label.setPosition(previousPosition);
                 label.setString("");
+                label.show();
             }
-            refreshDashes();
-            unlockScreen();
         }
+        //
+        OBControl emptyNumberBox = numberBoxes.get(hiddenNumberIndex);
+        OBLabel emptyNumberBoxLabel = (OBLabel) emptyNumberBox.propertyValue("label");
+        emptyNumberBoxLabel.setString("");
+        unlockScreen();
+        //
         waitAudio();
         waitForSecs(0.3f);
         //
@@ -1101,39 +1422,105 @@ public class OC_MissingNumbers extends OC_Generic_Event
             resetScene();
             unlockScreen();
             //
-            introScene();
+            introScene(true);
         }
         OBPath box = (OBPath) numberBoxes.get(hiddenNumberIndex);
         if (mode.equals(kModeDrag))
         {
-            moveScenePointer(new PointF(0.1f * bounds().width(), 0.9f * bounds().height()), 0.3f, null, 0f);
-            playAudioScene("DEMO", 0, false); // Choose the correct number.;
-            moveScenePointer(new PointF(0.9f * bounds().width(), 0.9f * bounds().height()), 1.2f, null, 0f);
-            waitAudio();
-            waitForSecs(0.3f);
-            //
-            playAudioScene("DEMO", 1, false); // Drag it to the empty box.;
-            OC_Generic.pointer_moveToObject(box, 0, 0.6f, EnumSet.of(OC_Generic.Anchor.ANCHOR_BOTTOM), true, this);
+            if (usesBigBox)
+            {
+                playAudioScene("DEMO", 0, false); // Listen! Then choose the number you heard.;
+                moveScenePointer(new PointF(0.75f * bounds().width(), 0.6f * bounds().height()), 0.6f, null, 0.3f);
+                waitAudio();
+                waitForSecs(0.3f);
+                //
+                playAudioScene("DEMO", 1, false); //Drag it to the box.;
+                OC_Generic.pointer_moveToObject(box, 0, 0.6f, EnumSet.of(OC_Generic.Anchor.ANCHOR_BOTTOM), true, this);
+                waitAudio();
+                waitForSecs(0.3f);
+                //
+                playAudioScene("DEMO", 2, false); // This might help!;
+                PointF butPt = OB_Maths.locationForRect(new PointF(0.5f, 1.1f), MainViewController().topRightButton.frame);
+                movePointerToPoint(butPt, 0.6f, false);
+                waitAudio();
+                waitForSecs(0.3f);
+                //
+                thePointer.hide();
+                waitForSecs(0.3f);
+                //
+                doAudio(currentEvent(), true);
+            }
+            else
+            {
+                moveScenePointer(new PointF(0.1f * bounds().width(), 0.9f * bounds().height()), 0.3f, null, 0f);
+                playAudioScene("DEMO", 0, false); // Choose the correct number.;
+                moveScenePointer(new PointF(0.9f * bounds().width(), 0.9f * bounds().height()), 1.2f, null, 0f);
+                waitAudio();
+                waitForSecs(0.3f);
+                //
+                playAudioScene("DEMO", 1, false); // Drag it to the empty box.;
+                OC_Generic.pointer_moveToObject(box, 0, 0.6f, EnumSet.of(OC_Generic.Anchor.ANCHOR_BOTTOM), true, this);
+                waitAudio();
+                waitForSecs(0.3f);
+                //
+                thePointer.hide();
+                waitForSecs(0.3f);
+                //
+                doAudio(currentEvent(), false);
+            }
         }
         //
         else if (mode.equals(kModeType))
         {
-            playAudioScene("DEMO", 0, false); // Type : the missing number.;
-            OC_Generic.pointer_moveToObject(box, 0, 0.6f, EnumSet.of(OC_Generic.Anchor.ANCHOR_BOTTOM), false, this);
-            waitAudio();
-            waitForSecs(0.3f);
-            moveScenePointer(new PointF(0.1f * bounds().width(), 0.95f * bounds().height()), 0.3f, null, 0f);
-            playAudioScene("DEMO", 1, false); // Use these!;
-            moveScenePointer(new PointF(0.9f * bounds().width(), 0.95f * bounds().height()), 1.2f, null, 0f);
+            if (usesBigBox)
+            {
+                playAudioScene("DEMO", 0, false); // Listen to the number! Then type it!
+                moveScenePointer(new PointF(0.75f * bounds().width(), 0.6f * bounds().height()), 0.6f, null, 0.3f);
+                waitAudio();
+                waitForSecs(0.3f);
+                //
+                moveScenePointer(new PointF(0.1f * bounds().width(), 0.95f * bounds().height()), 0.3f, null, 0f);
+                playAudioScene("DEMO", 1, false); // Use these keys!
+                moveScenePointer(new PointF(0.9f * bounds().width(), 0.95f * bounds().height()), 1.2f, null, 0f);
+                waitAudio();
+                waitForSecs(0.3f);
+                //
+                playAudioScene("DEMO", 2, false); // This might help!
+                PointF butPt = OB_Maths.locationForRect(new PointF(0.5f, 1.1f), MainViewController().topRightButton.frame);
+                movePointerToPoint(butPt, 0.6f, false);
+                waitAudio();
+                waitForSecs(0.3f);
+                //
+                thePointer.hide();
+                waitForSecs(0.3f);
+                //
+                doAudio(currentEvent(), true);
+
+            }
+            else
+            {
+                playAudioScene("DEMO", 0, false); // Type in the missing number.
+                OC_Generic.pointer_moveToObject(box, 0, 0.6f, EnumSet.of(OC_Generic.Anchor.ANCHOR_BOTTOM), false, this);
+                waitAudio();
+                waitForSecs(0.3f);
+                //
+                moveScenePointer(new PointF(0.1f * bounds().width(), 0.95f * bounds().height()), 0.3f, null, 0f);
+                playAudioScene("DEMO", 1, false); // Use these!
+                moveScenePointer(new PointF(0.9f * bounds().width(), 0.95f * bounds().height()), 1.2f, null, 0f);
+                waitAudio();
+                waitForSecs(0.3f);
+                //
+                thePointer.hide();
+                waitForSecs(0.3f);
+                //
+                doAudio(currentEvent(), false);
+            }
         }
-        waitAudio();
-        waitForSecs(0.3f);
         //
-        doAudio(currentEvent());
-        thePointer.hide();
         lastActionTakenTimestamp = new Date().getTime();
         setStatus(STATUS_AWAITING_CLICK);
     }
+
 
     public void demof () throws Exception
     {

@@ -67,7 +67,7 @@
 
 	<!-- BRIGHTNESS -->
 	<key>brightness_manager_enabled</key>
-	<string>true</string>
+	<string>false</string>
 	<!--  -->
 	<key>brightness_check_interval_seconds</key>
 	<string>180</string>
