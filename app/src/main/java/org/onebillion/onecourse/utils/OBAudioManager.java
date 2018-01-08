@@ -274,7 +274,7 @@ public class OBAudioManager
         waitAudioChannel(AM_SFX_CHANNEL);
     }
 
-    Boolean isPlayingChannel (String ch)
+    public Boolean isPlayingChannel (String ch)
     {
         OBAudioPlayer player = players.get(ch);
         if (player != null)

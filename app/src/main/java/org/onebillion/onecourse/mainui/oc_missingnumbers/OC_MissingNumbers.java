@@ -369,12 +369,6 @@ public class OC_MissingNumbers extends OC_Generic_Event
 
 
 
-    Integer randomNumberBetween (Integer min, Integer max)
-    {
-        return OB_Maths.randomInt(min, max);
-    }
-
-
     public Pair<List<Integer>, List<Integer>> generateNumbersFrom (Integer min, Integer max, String incrementKey, int totalNumbers, boolean randomSeed)
     {
         List<Integer> randomDistractors = new ArrayList<>();

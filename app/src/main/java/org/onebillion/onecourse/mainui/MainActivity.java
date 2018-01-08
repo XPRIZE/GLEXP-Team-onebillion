@@ -663,7 +663,15 @@ public class MainActivity extends Activity
 
     public static void log(String format, Object... args)
     {
-        log(String.format(format, args));
+        try
+        {
+            log(String.format(format, args));
+        }
+        catch (Exception e)
+        {
+            MainActivity.log("Exception caught in log with format: %s", format);
+            e.printStackTrace();
+        }
     }
 
 

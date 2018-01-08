@@ -13,6 +13,7 @@ import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OC_SectionController;
+import org.onebillion.onecourse.mainui.oc_countingpractice.OC_CountingPractice;
 import org.onebillion.onecourse.mainui.oc_lettersandsounds.OC_Wordcontroller;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
@@ -25,12 +26,14 @@ import org.onebillion.onecourse.utils.OB_Maths;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static org.onebillion.onecourse.utils.OB_Maths.PointDistance;
+import static org.onebillion.onecourse.utils.OB_Maths.randomInt;
 import static org.onebillion.onecourse.utils.OB_Maths.relativePointInRectForLocation;
 
 /**
@@ -48,10 +51,24 @@ public class OC_Generic_Event extends OC_SectionController
     int savedStatus;
     List<Object> savedReplayAudio;
     OBAnimationGroup returnToOriginalPositionAnimation;
+    //
+    public long lastActionTakenTimestamp;
+
+
+    public interface RunLambdaWithTimestamp
+    {
+        void run (long timestamp) throws Exception;
+    }
 
     public OC_Generic_Event ()
     {
         super();
+    }
+
+
+    public void updateLastActionTakenTimeStamp ()
+    {
+        lastActionTakenTimestamp = new Date().getTime();
     }
 
     public void prepare ()
@@ -154,6 +171,51 @@ public class OC_Generic_Event extends OC_SectionController
             });
         }
     }
+
+
+    public boolean isStatusIdle ()
+    {
+        return status() == STATUS_IDLE || status() == STATUS_WAITING_FOR_DRAG || status() == STATUS_AWAITING_CLICK || status() == STATUS_WAITING_FOR_TRACE || status() == STATUS_WAITING_FOR_TRACE;
+    }
+
+
+    public String getReminderKey ()
+    {
+        return this.currentEvent();
+    }
+
+
+    public void doReminderWithKey (final String key, final double reminderDelay, final RunLambdaWithTimestamp block) throws Exception
+    {
+        if (!key.equals(getReminderKey())) return;
+        if (lastActionTakenTimestamp == -1) return;
+        long timestamp = lastActionTakenTimestamp;
+        double elapsed = new Date().getTime() - lastActionTakenTimestamp;
+        if (this.isStatusIdle() && elapsed > reminderDelay)
+        {
+            if (block != null)
+            {
+                block.run(timestamp);
+            }
+        }
+        else
+        {
+            OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
+            {
+                public void run () throws Exception
+                {
+                    OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                    {
+                        public void run () throws Exception
+                        {
+                            doReminderWithKey(key, reminderDelay, block);
+                        }
+                    });
+                }
+            });
+        }
+    }
+
 
 
     public void doMainXX () throws Exception
@@ -564,7 +626,7 @@ public class OC_Generic_Event extends OC_SectionController
     }
 
 
-    public List breakdownLabel(OBLabel mLabel)
+    public List breakdownLabel (OBLabel mLabel)
     {
         List result = new ArrayList<>();
         String text = mLabel.text();
@@ -572,14 +634,14 @@ public class OC_Generic_Event extends OC_SectionController
         float size = mLabel.fontSize();
         int totalLength = 0;
         //
-        for(int i = 0; i < mLabel.text().length(); i++)
+        for (int i = 0; i < mLabel.text().length(); i++)
         {
             totalLength += 1;
             String subtx = text.substring(0, totalLength);
             RectF r = OC_Wordcontroller.boundingBoxForText(subtx, tf, size);
             float f = r.width();
             //
-            OBLabel l = new OBLabel(mLabel.text().substring(i, i+1), tf, size);
+            OBLabel l = new OBLabel(mLabel.text().substring(i, i + 1), tf, size);
             l.sizeToBoundingBox();
             l.setZPosition(mLabel.zPosition() + 0.01f);
             l.setColour(mLabel.colour());
@@ -910,7 +972,7 @@ public class OC_Generic_Event extends OC_SectionController
     }
 
 
-    public List<OBLabel> action_addLabelsToObjects(String pattern, float finalResizeFactor, boolean insertIntoGroup)
+    public List<OBLabel> action_addLabelsToObjects (String pattern, float finalResizeFactor, boolean insertIntoGroup)
     {
         List<OBControl> numbers = sortedFilteredControls(pattern);
         List<OBLabel> createdLabels = new ArrayList<>();
@@ -939,7 +1001,6 @@ public class OC_Generic_Event extends OC_SectionController
     }
 
 
-
     public PointF getRelativePositionForObject (OBControl control)
     {
         PointF position = control.position();
@@ -963,16 +1024,30 @@ public class OC_Generic_Event extends OC_SectionController
     }
 
 
-    public PointF action_getMiddleOfGroup(String pattern)
+    public PointF action_getMiddleOfGroup (String pattern)
     {
-        PointF average = new PointF(0f,  0f);
+        PointF average = new PointF(0f, 0f);
         List<OBControl> controls = filterControls(pattern);
         for (OBControl control : controls)
         {
             average = OB_Maths.AddPoints(control.getWorldPosition(), average);
         }
-        average = new PointF(average.x / controls.size(),  average.y / controls.size());
+        average = new PointF(average.x / controls.size(), average.y / controls.size());
         return average;
     }
+
+    public int randomNumberBetween(int min, int max)
+    {
+        return randomInt(min, max);
+
+    }
+
+
+    public double getCurrentTimeDouble()
+    {
+        return new Date().getTime() / 1000;
+    }
+
+
 
 }
