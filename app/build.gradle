@@ -90,6 +90,18 @@ android {
                     appIcon: "@mipmap/child_ny"
             ]
         }
+        michal_ {
+            minSdkVersion 21
+            applicationId 'org.onebillion.onecourse.michal'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "onecourse - michal"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_michal.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/child_ny"
+            ]
+        }
         sw_judges_ {
             minSdkVersion 22
             applicationId 'org.onebillion.onecourse.judges'

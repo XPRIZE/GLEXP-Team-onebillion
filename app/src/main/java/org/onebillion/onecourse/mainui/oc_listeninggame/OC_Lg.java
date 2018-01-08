@@ -1,4 +1,4 @@
-package org.onebillion.onecourse.mainui.oc_lettersandsounds;
+package org.onebillion.onecourse.mainui.oc_listeninggame;
 
 import android.graphics.Color;
 import android.graphics.PointF;
@@ -32,21 +32,21 @@ import java.util.Map;
 /**
  * Created by michal on 19/07/16.
  */
-public class OC_Lg1 extends OC_SectionController
+public class OC_Lg extends OC_SectionController
 {
     final int TARGET_WORD=0,
-    TARGET_SYLLABLE=1,
-    TARGET_LETTER=2;
+            TARGET_SYLLABLE=1,
+            TARGET_LETTER=2;
 
     int maxTrials,rows,columns,currentEvent,currentPhase;
     OBPhoneme targetPhoneme;
     List<List<OBGroup>> controlsGrid;
     Map<String,Integer> failedTargets;
     List<OBPhoneme> distractors;
-    List<OBLabel> targets;
+    List<OBControl> targets;
     List<OBGroup> shutters;
     List<List<Map<String,Object>>> eventsData;
-    OBPresenter presenter;
+    public OBPresenter presenter;
 
     public ArrayList<String> getEventMode(String mode)
     {
@@ -88,29 +88,10 @@ public class OC_Lg1 extends OC_SectionController
             setSceneXX(designs[(OB_Maths.randomInt(0, designs.length-1))]);
         }
 
-        presenter = OBPresenter.characterWithGroup((OBGroup)objectDict.get("presenter"));
-        presenter.control.setZPosition(200);
-        presenter.control.setProperty("startloc", OC_Generic.copyPoint(presenter.control.position()));
-        presenter.control.setRight(0);
-        presenter.control.show();
-
         failedTargets = new ArrayMap<>();
-
-        Map<String,OBPhoneme> componentDict = OBUtils.LoadWordComponentsXML(true);
-
-        List<String> wordParams1a = getEventMode("mode1a");
-        List<String> wordParams1b = getEventMode("mode1b");
-        List<String> wordParams2 = getEventMode("mode2");
-
         distractors = new ArrayList<>();
-        for(String distractorid : parameters.get("distractors").split(","))
-            if(componentDict.get(distractorid) != null)
-                 distractors.add(componentDict.get(distractorid));
 
         maxTrials = -1;
-
-        int size = OBUtils.getIntValue(parameters.get("size"));
-
         rows = OBUtils.getIntValue(eventAttributes.get("rows"));
         columns = OBUtils.getIntValue(eventAttributes.get("columns"));
 
@@ -155,7 +136,7 @@ public class OC_Lg1 extends OC_SectionController
 
                 OBControl bg = new OBControl();
                 bg.setFrame(new RectF(frame));
-               // bg.setPosition(shutter.position());
+                // bg.setPosition(shutter.position());
                 bg.setBackgroundColor(bgColour);
                 bg.setZPosition(1);
                 attachControl(bg);
@@ -167,135 +148,11 @@ public class OC_Lg1 extends OC_SectionController
         }
 
         eventsData  = new ArrayList<>();
-
-        if(wordParams1a != null)
-        {
-            List<Map<String,Object>> arr = new ArrayList<>();
-
-            for(String targId : wordParams1a)
-                if(componentDict.get(targId) != null)
-                    distractors.add(componentDict.get(targId));
-
-            List<Map<String,Object>> events1 = new ArrayList<>();
-            wordParams1a = OBUtils.randomlySortedArray(wordParams1a);
-            for(int i=0; i<wordParams1a.size(); i++)
-            {
-                OBPhoneme phoneme = componentDict.get(wordParams1a.get(i));
-                if(phoneme == null)
-                    continue;
-
-                for(int j=2; j<size; j++)
-                    arr.add(eventForData(j,phoneme));
-
-
-                for(int j=size-1; j<=size; j++)
-                    events1.add(eventForData(j,phoneme));
-
-            }
-
-            arr.addAll(OBUtils.randomlySortedArray(events1));
-            eventsData.add(arr);
-        }
-
-        if(wordParams1b != null)
-        {
-            maxTrials = OBUtils.getIntValue(parameters.get("trials"));
-
-            for(String targId : wordParams1b)
-                if(componentDict.get(targId) != null)
-                    distractors.add(componentDict.get(targId));
-
-            List<Map<String,Object>> events2 = new ArrayList<>();
-            if(wordParams1a != null)
-                wordParams1b.addAll(wordParams1a);
-            for(int i=0; i<maxTrials; i++)
-            {
-                if(i%wordParams1b.size() == 0)
-                    wordParams1b = OBUtils.randomlySortedArray(wordParams1b);
-
-                OBPhoneme phoneme = componentDict.get(wordParams1b.get(i%wordParams1b.size()));
-                if(phoneme == null)
-                    continue;
-
-                events2.add(eventForData(OB_Maths.randomInt(size-1,size), phoneme));
-            }
-
-            eventsData.add(OBUtils.randomlySortedArray(events2));
-        }
-
-
-        if(wordParams2 != null)
-        {
-            for(int i=0; i<wordParams2.size(); i++)
-            {
-                OBPhoneme phoneme = componentDict.get(wordParams2.get(i));
-                if(phoneme == null)
-                    continue;
-
-                distractors.add(phoneme);
-                List<Map<String,Object>> arr = new ArrayList<>();
-                List<OBPhoneme> parts = null;
-                if(phoneme.getClass() == OBSyllable.class)
-                {
-                    parts = ((OBSyllable)phoneme).phonemes;
-                }
-                else if(phoneme.getClass() == OBWord.class)
-                {
-                    parts = (List<OBPhoneme>)(Object)((OBWord)phoneme).syllables();
-                }
-
-                for(OBPhoneme pho : parts)
-                {
-                    arr.add(eventForData(size,pho));
-                }
-                arr.add(eventForData(size,phoneme));
-
-                eventsData.add(arr);
-
-            }
-
-            List<OBPhoneme> extraDistractors = new ArrayList<>();
-
-            for(OBPhoneme distract : distractors)
-            {
-                if(distract.getClass() == OBSyllable.class)
-                {
-                    for(OBPhoneme pho : ((OBSyllable)distract).phonemes)
-                    extraDistractors.add(pho);
-                }
-                if(distract.getClass() == OBWord.class)
-                {
-                    for(OBPhoneme pho : ((OBWord)distract).syllables())
-                    extraDistractors.add(pho);
-                }
-            }
-
-            distractors.addAll(extraDistractors);
-        }
-
-        List<OBPhoneme> filteredDistractors = new ArrayList<>();
-        for(OBPhoneme distractor : distractors)
-        {
-            boolean add = true;
-            for(OBPhoneme pho : filteredDistractors)
-            {
-                if(pho.text.equalsIgnoreCase(distractor.text))
-                {
-                    add = false;
-                    break;
-                }
-            }
-
-            if(add)
-                filteredDistractors.add(distractor);
-        }
-
-        distractors = filteredDistractors;
         shutters = new ArrayList<>();
         targets = new ArrayList<>();
         currentEvent=0;
         currentPhase=0;
-        setEvent(currentEvent);
+        loadPresenter();
     }
 
 
@@ -328,16 +185,8 @@ public class OC_Lg1 extends OC_SectionController
         targetPhoneme = (OBPhoneme)data.get("target");
 
         int type = targetPhoneme.getClass() == OBPhoneme.class ? TARGET_LETTER : targetPhoneme.getClass() == OBSyllable.class ? TARGET_SYLLABLE : TARGET_WORD;
-
-        float fontSize = 65;
-        if(type == TARGET_LETTER)
-            fontSize = 120;
-        else if(type == TARGET_SYLLABLE)
-            fontSize = 90;
-
-        fontSize = applyGraphicScale(fontSize);
-        Typeface font = OBUtils.standardTypeFace();
         int size = (int)data.get("size");
+
 
         List<OBPhoneme> eventPhonemes = new ArrayList<>();
         eventPhonemes.add(targetPhoneme);
@@ -383,29 +232,29 @@ public class OC_Lg1 extends OC_SectionController
 
             shutters.add(controlsGrid.get(r).get(c));
             OBPhoneme phon = eventPhonemes.get(i);
-            OBLabel letterLabel = new OBLabel(phon.text,font,fontSize);
-            letterLabel.setColour(Color.WHITE);
-            letterLabel.setZPosition(10);
             OBControl shutter = controlsGrid.get(r).get(c);
             PointF loc = OC_Generic.copyPoint(((OBControl)shutter.propertyValue("bg")).position());
-            loc.y-=OBUtils.getFontCapHeight(font,fontSize)/2.0 - OBUtils.getFontXHeight(font,fontSize)/2.0;
-            letterLabel.setPosition(loc);
-            attachControl(letterLabel);
-            letterLabel.setProperty("correct",phon == targetPhoneme);
-            letterLabel.setProperty("bg",shutter.propertyValue("bg"));
-            if(letterLabel.width() > shutter.width())
+            OBControl control = loadTargetForPhoneme(loc, phon, type);
+            control.setZPosition(10);
+
+            attachControl(control);
+            control.setProperty("correct",phon == targetPhoneme);
+            control.setProperty("shutter",shutter);
+            control.setProperty("bg",shutter.propertyValue("bg"));
+            if(control.width() > shutter.width())
             {
-                letterLabel.setScale((shutter.width())*0.9f/letterLabel.width());
+                control.setScale((shutter.width())*0.9f/control.width());
             }
 
-            if(letterLabel.scale() < minScale)
-                minScale = letterLabel.scale();
+            if(control.scale() < minScale)
+                minScale = control.scale();
 
-            targets.add(letterLabel);
+            targets.add(control);
         }
 
-        for(OBControl obj : targets)
-            obj.setScale(minScale);
+        if(keepTargetsSameSize())
+            for(OBControl obj : targets)
+                obj.setScale(minScale);
 
     }
 
@@ -430,8 +279,8 @@ public class OC_Lg1 extends OC_SectionController
 
         if(status() == STATUS_AWAITING_CLICK)
         {
-            OBLabel targ1 = null;
-            for(OBLabel con : targets)
+            OBControl targ1 = null;
+            for(OBControl con : targets)
             {
                 if(((OBControl)con.settings.get("bg")).frame().contains(pt.x, pt.y) && !con.hidden())
                 {
@@ -440,7 +289,7 @@ public class OC_Lg1 extends OC_SectionController
                 }
             }
 
-            final OBLabel targ = targ1;
+            final OBControl targ = targ1;
 
             if(targ != null)
             {
@@ -450,7 +299,7 @@ public class OC_Lg1 extends OC_SectionController
                     @Override
                     public void run() throws Exception
                     {
-                       checkTarget(targ);
+                        checkTarget(targ);
                     }
                 });
 
@@ -458,19 +307,20 @@ public class OC_Lg1 extends OC_SectionController
         }
     }
 
-    public void checkTarget(OBLabel targ) throws Exception
+    public void checkTarget(OBControl targ) throws Exception
     {
         playAudio(null);
-        targ.setColour(Color.RED);
+        highlightTarget(targ);
         if((boolean)targ.settings.get("correct"))
         {
             gotItRight();
-            nextEvent();
+            nextEvent(targ);
         }
         else
         {
             gotItWrongWithSfx();
             waitSFX();
+            lowlightTarget(targ);
             lockScreen();
             for(OBControl con : targets)
             {
@@ -484,6 +334,136 @@ public class OC_Lg1 extends OC_SectionController
             waitForSecs(0.3f);
             targetPhoneme.playAudio(this,false);
         }
+    }
+
+
+    public OBControl loadTargetForPhoneme(PointF loc, OBPhoneme phon,int type)
+    {
+        Typeface font  = OBUtils.standardTypeFace();
+        float fontSize = fontSizeForType(type);
+        OBLabel letterLabel = new OBLabel(phon.text,font,fontSize);
+        letterLabel.setColour(Color.WHITE);
+        if(!phon.text.substring(0,1).toUpperCase().equals(phon.text.substring(0,1)))
+            loc.y -= OBUtils.getFontCapHeight(font, fontSize) / 2.0 - OBUtils.getFontXHeight(font, fontSize) / 2.0;
+
+        letterLabel.setPosition(loc);
+        return letterLabel;
+    }
+
+    public float fontSizeForType(int type)
+    {
+        float fontSize = 65;
+        if(type == TARGET_LETTER)
+            fontSize = 120;
+        else if(type == TARGET_SYLLABLE)
+            fontSize = 90;
+        return applyGraphicScale(fontSize);
+    }
+
+    public boolean keepTargetsSameSize()
+    {
+        return true;
+    }
+
+    public void highlightTarget(OBControl control)
+    {
+        if(control.getClass() == OBLabel.class)
+        {
+            ((OBLabel)control).setColour(Color.RED);
+        }
+    }
+
+    public void lowlightTarget(OBControl control)
+    {
+
+    }
+
+
+    public void setMaxTrials(int trials)
+    {
+        maxTrials = trials;
+    }
+
+    public Map<String,Object> eventDataSize(int size,OBPhoneme target)
+    {
+        Map<String,Object> map = new ArrayMap<>();
+        map.put("size",size);
+        map.put("target", target);
+        return map;
+    }
+
+    public void addToEventData(List<Map<String,Object>> eventData)
+    {
+        eventsData.add(eventData);
+    }
+
+    public void addToDistrators(List<OBPhoneme> dist)
+    {
+        distractors.addAll(dist);
+    }
+
+    public void setupEventForLearning(List<OBPhoneme> phonemeList, int size)
+    {
+        List<Map<String,Object>> events1 = new ArrayList<>();
+        List<Map<String,Object>> events2 = new ArrayList<>();
+
+        for(OBPhoneme phoneme : phonemeList)
+            distractors.add(phoneme);
+
+
+        phonemeList = OBUtils.randomlySortedArray(phonemeList);
+        for(int i=0; i<phonemeList.size(); i++)
+        {
+            for(int j=2; j<size; j++)
+                events1.add(eventDataSize(j,phonemeList.get(i)));
+
+            for(int j=size-1; j<=size; j++)
+                events2.add(eventDataSize(j,phonemeList.get(i)));
+        }
+        events1.addAll(OBUtils.randomlySortedArray(events2));
+        addToEventData(events1);
+    }
+
+    public void setupEventForPractice(List<OBPhoneme> phonemeList,int size)
+    {
+        for(OBPhoneme phoneme : phonemeList)
+            distractors.add(phoneme);
+
+        List<Map<String,Object>> events1 = new ArrayList<>();
+        for(int i=0; i<maxTrials; i++)
+        {
+            if(i%phonemeList.size() == 0)
+                phonemeList = OBUtils.randomlySortedArray(phonemeList);
+
+            events1.add(eventDataSize(OB_Maths.randomInt(size-1, size),
+                    phonemeList.get(i%phonemeList.size())));
+        }
+
+        addToEventData(OBUtils.randomlySortedArray(events1));
+    }
+
+    public void finalisePrepare()
+    {
+        List<OBPhoneme> filteredDistractors = new ArrayList<>();
+        for(OBPhoneme distractor : distractors)
+        {
+            boolean add = true;
+            for(OBPhoneme pho : filteredDistractors)
+            {
+                if(pho.text.equals(distractor.text))
+                {
+                    add = false;
+                    break;
+                }
+            }
+
+            if(add)
+                filteredDistractors.add(distractor);
+        }
+
+        distractors = filteredDistractors;
+
+        setEvent(currentEvent);
     }
 
 
@@ -509,6 +489,7 @@ public class OC_Lg1 extends OC_SectionController
 
     }
 
+
     public void animateShutters(boolean open) throws Exception
     {
         animateShutters(open, 0.3f,open ? "shutter_open" : "shutter_close");
@@ -533,7 +514,7 @@ public class OC_Lg1 extends OC_SectionController
             }
 
 
-           // anims.add(OBAnim.propertyAnim("width",open ? 1 : (float) con.maskControl.propertyValue("startWidth"), con.maskControl));
+            // anims.add(OBAnim.propertyAnim("width",open ? 1 : (float) con.maskControl.propertyValue("startWidth"), con.maskControl));
             final float widthDif = (float) con.maskControl.propertyValue("startWidth") - 1.0f;
 
 
@@ -571,10 +552,12 @@ public class OC_Lg1 extends OC_SectionController
     }
 
 
-    public void nextEvent() throws Exception
+    public void nextEvent(OBControl lastControl) throws Exception
     {
         animateShutters(false);
         currentEvent++;
+        if(lastControl != null)
+            lowlightTarget(lastControl);
         if(currentEvent >= eventsData.get(currentPhase).size())
         {
             if(currentPhase+1 <  eventsData.size())
@@ -601,6 +584,16 @@ public class OC_Lg1 extends OC_SectionController
             animateShutters(true);
             startScene();
         }
+    }
+
+    void loadPresenter()
+    {
+        presenter = OBPresenter.characterWithGroup((OBGroup)objectDict.get("presenter"));
+        presenter.control.setZPosition(200);
+        presenter.control.setProperty("startloc", OC_Generic.copyPoint(presenter.control.position()));
+        presenter.control.setRight(0);
+        presenter.control.show();
+
     }
 
     public void insertEasierEventForCurrent()
@@ -652,15 +645,18 @@ public class OC_Lg1 extends OC_SectionController
         {
             for (int j = 0; j < controlsGrid.get(i).size(); j++)
             {
-                if ((i * controlsGrid.get(i).size() + j) % 2 == 0)
+                if ((i+j)%2 != 0)
                 {
                     OBGroup shutter = controlsGrid.get(i).get(j);
 
 
                     OBGroup starCopy = (OBGroup) star.copy();
                     OBPath starPath = (OBPath) starCopy.objectDict.get("star");
-                    starPath.setFillColor((int) shutter.propertyValue("colour"));
-                    starPath.setStrokeColor(OBUtils.highlightedColour((int) shutter.propertyValue("colour")));
+                    if(shutter.propertyValue("colour") != null)
+                    {
+                        starPath.setFillColor((int) shutter.propertyValue("colour"));
+                        starPath.setStrokeColor(OBUtils.highlightedColour((int) shutter.propertyValue("colour")));
+                    }
 
                     attachControl(starCopy);
 
