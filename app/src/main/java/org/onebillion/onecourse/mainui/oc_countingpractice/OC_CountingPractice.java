@@ -16,6 +16,7 @@ import org.onebillion.onecourse.mainui.generic.OC_Generic_Event;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBAudioManager;
+import org.onebillion.onecourse.utils.OBUserPressedBackException;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
 
@@ -91,7 +92,7 @@ public class OC_CountingPractice extends OC_Generic_Event
     private boolean isMode2Phase2;
     private boolean doingDemoOverride;
     //
-    private List atRestObjects;
+    private List<OBControl> atRestObjects;
     private List<OBLabel> answerLabels;
     //
     private boolean contactThreadRunning;
@@ -103,19 +104,21 @@ public class OC_CountingPractice extends OC_Generic_Event
     private boolean physicsAllDone;
     private boolean waitForClumpToComeToRest;
     //
-    private static boolean showAppliedForces = false;               // show or hide the gravity, collision and reaction forces applied to each object in the container;
-    private static double timeToDieAfterContact = 2.0f;              // the calculations on the object and their sibling (in the same clump) cease after this time;
-    private static double timeToDieAfterContactFast = 1.0f;          //;
-    private static double timeSpeedUpFactor = 3.0f;                  // action happens faster than normal time;
-    private static double timeSpeedUpFactorFast = 20.0f;             //;
-    private static double collisionCoeficientDepletion = 0.1f;       // how much of the collision coeficient is lost when object is coming to rest;
-    private static double collisionCoeficientDepletionFast = 0.3f;   //;
-    private static double physicsRefreshRate = 0.005f;               // time in seconds between each calculation for all objects in the physics engine;
-    private static double physicsRefreshRateFast = 0.0025f;          //;
-    private static double interactionForceFactor = 0.6f;             // the relative distance : width of the object that triggers the collision forces;
-    private static double speedDecayX = 0.4f;                        // speed from previous snapshot is reduced by this ammount to simulate attrition in the X Axis;
-    private static double speedDecayY = 0.8f;                        // speed from previous snapshot is reduced by this amount to simulate air drag in the Y Axis;
-    private static double bouncinessReactionFactor = 1.2f;           // when the object collides with ground, how much of the speed at that point : time is reflected upward;
+    private static boolean showAppliedForces = false;                  // show or hide the gravity, collision and reaction forces applied to each object in the container;
+    //
+    private static double timeToDieAfterContact = 2.0;                 // the calculations on the object and their sibling (in the same clump) cease after this time;
+    private static double timeToDieAfterContactFast = 1.0;             //;
+    private static double timeSpeedUpFactor = 5.0;                     // action happens faster than normal time;
+    private static double timeSpeedUpFactorFast = 20.0;                //;
+    private static double collisionCoeficientDepletion = 0.1;          // how much of the collision coeficient is lost when object is coming to rest;
+    private static double collisionCoeficientDepletionFast = 0.3;      //;
+    //
+    private static double physicsRefreshRate = 0.005;                  // time in seconds between each calculation for all objects in the physics engine;
+    private static double physicsRefreshRateFast = 0.0025;             //;
+    private static double interactionForceFactor = 0.6;                // the relative distance : width of the object that triggers the collision forces;
+    private static double speedDecayX = 0.4;                           // speed from previous snapshot is reduced by this ammount to simulate attrition in the X Axis;
+    private static double speedDecayY = 0.8;                           // speed from previous snapshot is reduced by this amount to simulate air drag in the Y Axis;
+    private static double bouncinessReactionFactor = 1.2;              // when the object collides with ground, how much of the speed at that point : time is reflected upward;
     //
     private static int kMaxWrongAttempts = 2;
     private static double kReminderDelaySeconds = 5.0;
@@ -175,7 +178,9 @@ public class OC_CountingPractice extends OC_Generic_Event
             hasDemo = true;
         }
         //
-        loadAudioXML(getConfigPath(String.format("event%saudio.xml", mode)));
+        String eventAudioFile = "event" + mode + "audio.xml";
+        MainActivity.log("Loading event audio: " + eventAudioFile);
+        loadAudioXML(getConfigPath(eventAudioFile));
         //
         colourTextNormal = objectDict.get("colour_text_normal").fillColor();
         colourTextHilite = objectDict.get("colour_text_hilite").fillColor();
@@ -190,6 +195,8 @@ public class OC_CountingPractice extends OC_Generic_Event
         colourDashHilite = objectDict.get("colour_dash_hilite").fillColor();
         //
         jar = (OBGroup) objectDict.get("jar");
+        jar.outdent(10);
+        //
         jarContainerPath = (OBPath) jar.objectDict.get("border_container");
         colourJarContainerBorder = jarContainerPath.strokeColor();
         //
@@ -249,13 +256,14 @@ public class OC_CountingPractice extends OC_Generic_Event
         if (startingObjectsInContainer > 0)
         {
             OBControl peaTemplate = objectDict.get("pea");
-            double absoluteLeft = jar.left() + 0.8f * peaTemplate.width();
-            double absoluteRight = jar.right() - 0.8f * peaTemplate.width();
-            double absoluteBottom = jar.bottom() - peaTemplate.height();
+            double absoluteLeft = jar.left() + 1.2f * peaTemplate.width();
+            double absoluteRight = jar.right() - 1.2f * peaTemplate.width();
+            double absoluteBottom = jar.bottom() - 1.2f * peaTemplate.height();
             PointF newPosition = new PointF((float) absoluteLeft, (float) absoluteBottom);
             for (int i = 0; i < startingObjectsInContainer; i++)
             {
                 OBControl newPea = peaTemplate.copy();
+                newPea.setProperty(kPhysicsFixed, true);
                 newPea.setPosition(newPosition);
                 newPea.show();
                 newPea.disable();
@@ -285,6 +293,8 @@ public class OC_CountingPractice extends OC_Generic_Event
         dragLabel.hide();
         //
         contactThreadRunning = false;
+        //
+        if (physicsControls == null) physicsControls = new ArrayList<>();
     }
 
 
@@ -301,7 +311,7 @@ public class OC_CountingPractice extends OC_Generic_Event
     }
 
 
-    public void doReminderWithTimeStamp (long timeStamp) throws Exception
+    public void doReminderWithTimeStamp (double timeStamp) throws Exception
     {
         boolean isFirstPhaseOfMode2 = mode.equals(kModeChildCountChooseAnswer) && !isMode2Phase2;
         //
@@ -312,8 +322,9 @@ public class OC_CountingPractice extends OC_Generic_Event
                 lockScreen();
                 jarContainerPath.setFillColor(Color.argb(0, 255, 255, 255));
                 jarContainerPath.setStrokeColor(Color.rgb(255, 140, 0));
-                jarContainerPath.setLineWidth(applyGraphicScale(5.0f));
+                jarContainerPath.setLineWidth(applyGraphicScale(2.5f));
                 jarContainerPath.setOpacity(1.0f);
+                jarContainerPath.sizeToBoundingBoxIncludingStroke();
                 unlockScreen();
                 //
                 waitForSecs(0.2f);
@@ -350,7 +361,7 @@ public class OC_CountingPractice extends OC_Generic_Event
                             doReminderWithKey(currentEvent(), kReminderDelaySeconds, new RunLambdaWithTimestamp()
                             {
                                 @Override
-                                public void run (long timestamp) throws Exception
+                                public void run (double timestamp) throws Exception
                                 {
                                     doReminderWithTimeStamp(timestamp);
                                 }
@@ -429,8 +440,8 @@ public class OC_CountingPractice extends OC_Generic_Event
             else if (currentEvent().equals("d"))
             {
                 playSfxAudio("pop_off", false);
-                List objectsToBeRemoved = new ArrayList<>();
-                List clumpsToBeRemoved = new ArrayList<>();
+                List<OBControl> objectsToBeRemoved = new ArrayList<>();
+                List<OBControl> clumpsToBeRemoved = new ArrayList<>();
                 //
                 lockScreen();
                 for (OBControl control : physicsControls)
@@ -484,7 +495,7 @@ public class OC_CountingPractice extends OC_Generic_Event
         doReminderWithKey(currentEvent(), kReminderDelaySeconds, new RunLambdaWithTimestamp()
         {
             @Override
-            public void run (long timestamp) throws Exception
+            public void run (double timestamp) throws Exception
             {
                 doReminderWithTimeStamp(timestamp);
             }
@@ -562,7 +573,7 @@ public class OC_CountingPractice extends OC_Generic_Event
             MainActivity.log("ERROR --> Unable to process clumpOfObjectsForUnit %d", clumpOfObjectsForUnit);
             return null;
         }
-        List<Integer> randomAnswers = OBUtils.randomlySortedArray(allValues).subList(0, 2);
+        List<Integer> randomAnswers = (List<Integer>) OBUtils.randomlySortedArray(allValues).subList(0, 2);
         randomAnswers.add(correctAnswer);
         //
         for (Integer answer : randomAnswers)
@@ -596,56 +607,79 @@ public class OC_CountingPractice extends OC_Generic_Event
 
     public void returnObjectsToGroup (final OBGroup originalGroup, boolean waitForAnimation)
     {
-        List<OBAnim> animations = new ArrayList<>();
-        List<OBGroup> controlsToReturnToGroup = new ArrayList<>();
-        List<OBControl> controls;
-        //
-        synchronized (physicsControls)
+        try
         {
-            controls = new ArrayList();
-            controls.addAll(physicsControls);
-        }
-        //
-        for (OBControl control : controls)
-        {
-            if (control.propertyValue("original_group").equals(originalGroup))
+            List<OBAnim> animations = new ArrayList<>();
+            List<OBGroup> controlsToReturnToGroup = new ArrayList<>();
+            List<OBControl> controls;
+            //
+            synchronized (physicsControls)
             {
-                PointF destination = OC_Generic.copyPoint((PointF) control.propertyValue("original_position"));
-                OBAnim moveAnim = OBAnim.moveAnim(destination, control);
-                animations.add(moveAnim);
-                controlsToReturnToGroup.add((OBGroup) control);
+                controls = new ArrayList(physicsControls);
             }
-        }
-        //
-        synchronized (physicsControls)
-        {
-            physicsControls.removeAll(controlsToReturnToGroup);
-        }
-        //
-        synchronized (atRestObjects)
-        {
-            atRestObjects.removeAll(controlsToReturnToGroup);
-        }
-        final List<OBGroup> controlsToReturnToGroup_final = controlsToReturnToGroup;
-        //
-        OBAnimationGroup.runAnims(animations, 0.3f, waitForAnimation, OBAnim.ANIM_EASE_IN_EASE_OUT, new OBUtils.RunLambda()
-        {
-            @Override
-            public void run () throws Exception
+            //
+            for (OBControl control : controls)
             {
-                lockScreen();
-                originalGroup.setPosition((PointF) originalGroup.propertyValue("original_position"));
-                for (OBGroup group : controlsToReturnToGroup_final)
+                OBGroup groupForControl = (OBGroup) control.propertyValue("original_group");
+                if (groupForControl == null) continue;
+                //
+                if (groupForControl.equals(originalGroup))
                 {
-                    OBControl body = group.objectDict.get("body");
-                    body.setRotation(0.0f);
-                    group.setZPosition((float) group.propertyValue("original_zPosition"));
-                    originalGroup.insertMember(group, 0, "pea");
+                    PointF destination = OC_Generic.copyPoint((PointF) control.propertyValue("original_position"));
+                    OBAnim moveAnim = OBAnim.moveAnim(destination, control);
+                    animations.add(moveAnim);
+                    controlsToReturnToGroup.add((OBGroup) control);
                 }
-                originalGroup.enable();
-                unlockScreen();
             }
-        }, this);
+            //
+            synchronized (physicsControls)
+            {
+                physicsControls.removeAll(controlsToReturnToGroup);
+            }
+            //
+            synchronized (atRestObjects)
+            {
+                atRestObjects.removeAll(controlsToReturnToGroup);
+            }
+            final List<OBGroup> controlsToReturnToGroup_final = controlsToReturnToGroup;
+            //
+            OBAnimationGroup.runAnims(animations, 0.3f, waitForAnimation, OBAnim.ANIM_EASE_IN_EASE_OUT, new OBUtils.RunLambda()
+            {
+                @Override
+                public void run () throws Exception
+                {
+                    try
+                    {
+                        lockScreen();
+                        attachControl(originalGroup);
+                        originalGroup.setPosition((PointF) originalGroup.propertyValue("original_position"));
+                        //
+                        for (OBGroup group : controlsToReturnToGroup_final)
+                        {
+                            detachControl(group);
+                            OBControl body = group.objectDict.get("body");
+                            body.setRotation(0.0f);
+                            group.setZPosition((float) group.propertyValue("original_zPosition"));
+                            PointF offsetPosition = OB_Maths.OffsetPoint(group.position(), - originalGroup.frame.left, - originalGroup.frame.top);
+                            group.setPosition(offsetPosition);
+                            originalGroup.insertMember(group, 0, "pea");
+                        }
+                        //
+                        originalGroup.enable();
+                        unlockScreen();
+                    }
+                    catch (Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+            }, this);
+        }
+        catch (Exception e)
+        {
+            MainActivity.log("returnObjectsToGroup. exception caught " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
 
@@ -672,9 +706,12 @@ public class OC_CountingPractice extends OC_Generic_Event
                 //
                 OBControl place = placements.get(i);
                 OBControl newClump = clumpTemplate.copy();
-                newClump.setPosition(OC_Generic.copyPoint(place.position()));
                 newClump.setZPosition(jar.zPosition() + 0.1f);
-                newClump.setProperty("original_position", OC_Generic.copyPoint(newClump.position()));
+                //
+                newClump.setPosition(place.position());
+                newClump.setProperty("original_position", newClump.getWorldPosition());
+                newClump.setProperty(kPhysicsFixed, false);
+                //
                 for (OBControl control : newControls)
                 {
                     double distance = PointDistance(control.position(), newClump.position());
@@ -682,15 +719,19 @@ public class OC_CountingPractice extends OC_Generic_Event
                     {
                         PointF nudgeVector = OC_Generic.copyPoint(NormalisedVector(OB_Maths.DiffPoints(newClump.position(), control.position())));
                         PointF newPosition = OC_Generic.copyPoint(AddPoints(newClump.position(), ScalarTimesPoint((float) (safeRadius - distance), nudgeVector)));
+                        //
                         newClump.setPosition(newPosition);
+                        newClump.setProperty("original_position", newClump.getWorldPosition());
                     }
                 }
                 OBGroup clumpGroup = (OBGroup) newClump;
+                //
                 boolean isClump = clumpGroup.filterMembers("pea") != null;
                 if (isClump)
                 {
                     for (OBControl sibling : clumpGroup.members)
                     {
+                        sibling.setProperty("original_position_in_group", sibling.position());
                         sibling.setProperty("original_position", sibling.getWorldPosition());
                         sibling.setProperty("original_group", clumpGroup);
                         sibling.setProperty("original_zPosition", sibling.zPosition());
@@ -732,7 +773,8 @@ public class OC_CountingPractice extends OC_Generic_Event
                     MainActivity.log("contactThread is now RUNNING");
                     //
                     contactThreadDead = false;
-                    int counter = atRestObjects.size();
+                    //
+                    int counter = (atRestObjects == null) ? 0 : atRestObjects.size();
                     //
                     while (!_aborting && !contactThread_aborting)
                     {
@@ -842,9 +884,13 @@ public class OC_CountingPractice extends OC_Generic_Event
                         waitForSecs(physicsRefreshRate);
                     }
                 }
+                catch (OBUserPressedBackException backException)
+                {
+                    // do nothing
+                }
                 catch (Exception e)
                 {
-                    MainActivity.log("startContactThread:exception caught %", e.getMessage());
+                    MainActivity.log("startContactThread:exception caught %s", e.getMessage());
                     e.printStackTrace();
                 }
                 //
@@ -864,38 +910,59 @@ public class OC_CountingPractice extends OC_Generic_Event
 
     public void physicsEngine_step1 (List<OBControl> controls, double timeReference, double elapsedTime)
     {
+        // STEP 1: for each object, reset forces
         for (OBControl object : controls)
         {
+            if ((boolean) object.propertyValue(kPhysicsFixed)) continue;
+            //
+            // check if the object is still alive
             double timeToDie = (double) object.propertyValue(kPhysicsTimeToDie);
             if (timeToDie > 0 && timeToDie < timeReference) continue;
+            //
+            // reset the forces for the object
             PointF gravity = new PointF(0f, 9.8f);
             PointF collision = new PointF(0f, 0f);
             PointF reaction = new PointF(0f, 0f);
+            //
+            // get the values for the object
             PointF speed = (PointF) object.propertyValue(kPhysicsSpeed);
-            PointF position = OC_Generic.copyPoint(object.position());
+            PointF position = object.getWorldPosition();
+            //
+            // calculate applied forces
             PointF appliedForces = gravity;
             appliedForces = AddPoints(appliedForces, collision);
             appliedForces = AddPoints(appliedForces, reaction);
+            //
+            // calculate the new speed for the object based on the applied forces and elapsed time
             PointF newSpeed = AddPoints(speed, ScalarTimesPoint((float) elapsedTime, appliedForces));
-            PointF newPosition = OC_Generic.copyPoint(AddPoints(position, newSpeed));
-            object.setProperty(kPhysicsGravity, gravity);
-            object.setProperty(kPhysicsCollision, collision);
-            object.setProperty(kPhysicsReaction, reaction);
-            object.setProperty(kPhysicsNewSpeed, newSpeed);
-            object.setProperty(kPhysicsNewPosition, newPosition);
+            //
+            // calculate the new position based on this speed
+            PointF newPosition = AddPoints(position, newSpeed);
+            //
+            object.setProperty(kPhysicsGravity, OC_Generic.copyPoint(gravity));
+            object.setProperty(kPhysicsCollision, OC_Generic.copyPoint(collision));
+            object.setProperty(kPhysicsReaction, OC_Generic.copyPoint(reaction));
+            object.setProperty(kPhysicsNewSpeed, OC_Generic.copyPoint(newSpeed));
+            object.setProperty(kPhysicsNewPosition, OC_Generic.copyPoint(newPosition));
         }
     }
 
 
     public void physicsEngine_step2 (List<OBControl> controls, double timeReference, double elapsedTime)
     {
+        // STEP 2: check collision with the new positions of the objects and resolve them, storing the collision vectors
         for (OBControl object : controls)
         {
-            double timeToDie = (double) object.propertyValue(kPhysicsTimeToDie);
+            if ((boolean) object.propertyValue(kPhysicsFixed)) continue;
             //
+            // check if the object is still alive
+            double timeToDie = (double) object.propertyValue(kPhysicsTimeToDie);
             if (timeToDie > 0 && timeToDie < timeReference) continue;
             //
+            // set the interaction distance
             double forceInteractionDistance = object.width() * interactionForceFactor;
+            //
+            // get the values for the object
             PointF collision = new PointF(0, 0);
             PointF speed = (PointF) object.propertyValue(kPhysicsSpeed);
             PointF position = OC_Generic.copyPoint(object.position());
@@ -909,8 +976,9 @@ public class OC_CountingPractice extends OC_Generic_Event
                 //
                 if (distance < forceInteractionDistance)
                 {
+                    // add time to die of the other object. if the other object is at rest and dead, the the collision needs to be taken care of in another way
                     double otherTimeToDie = (double) otherObject.propertyValue(kPhysicsTimeToDie);
-                    boolean collisionWithAtRestObject = false;
+                    boolean collisionWithAtRestObject;
                     //
                     synchronized (atRestObjects)
                     {
@@ -930,31 +998,47 @@ public class OC_CountingPractice extends OC_Generic_Event
             //
             if (!(boolean) object.propertyValue(kPhysicsCollisionWithAtRestObject))
             {
-                collision.set(collision.x * 0.25f, 0.0f);
+                // reduce the collision in the X axis is taken into account during the fall
+                collision.x *= 0.25;
+                //
+                // no collisions with objects at rest at the moment, remove the y AXIS value to not delay the object fall
+                collision.y = 0.0f;
             }
             else if (abs(collision.x) > 0 || abs(collision.y) > 0)
             {
+                // if there is a collision, then we need to add a force that counter acts the object current speed
                 collision = AddPoints(collision, ScalarTimesPoint(0.1f, new PointF((float) (-speed.x / elapsedTime), (float) (-speed.y / elapsedTime))));
             }
-            object.setProperty(kPhysicsCollision, collision);
+            //
+            // store new forces
+            if (Float.isNaN(collision.x) || Float.isNaN(collision.y))
+            {
+                collision = new PointF(0, 0);
+            }
+            object.setProperty(kPhysicsCollision, OC_Generic.copyPoint(collision));
         }
     }
 
 
     public void physicsEngine_step3 (List<OBGroup> controls, double timeReference, double elapsedTime)
     {
+        // STEP 3: check the reaction with the boundaries of the container, storing the reaction vectors
         for (OBGroup object : controls)
         {
-            double timeToDie = (double) object.propertyValue(kPhysicsTimeToDie);
+            if ((boolean) object.propertyValue(kPhysicsFixed)) continue;
             //
+            // check if the object is still alive
+            double timeToDie = (double) object.propertyValue(kPhysicsTimeToDie);
             if (timeToDie > 0 && timeToDie < timeReference) continue;
             //
+            // grab the boundaries and the thresholds
             double absoluteLeft = (double) object.propertyValue(kPhysicsAbsoluteLeft);
             double absoluteRight = (double) object.propertyValue(kPhysicsAbsoluteRight);
             double absoluteBottom = (double) object.propertyValue(kPhysicsAbsoluteBottom);
             double absoluteTop = (double) object.propertyValue(kPhysicsAbsoluteTop);
             double collisionCoeficient = (double) object.propertyValue(kPhysicsCollisionCoeficient);
             //
+            // get the values for the object
             PointF gravity = (PointF) object.propertyValue(kPhysicsGravity);
             PointF collision = (PointF) object.propertyValue(kPhysicsCollision);
             PointF reaction = (PointF) object.propertyValue(kPhysicsReaction);
@@ -964,56 +1048,95 @@ public class OC_CountingPractice extends OC_Generic_Event
             boolean bounced = (boolean) object.propertyValue(kPhysicsBounced);
             boolean contact = (boolean) object.propertyValue(kPhysicsContact);
             //
+            // calculate applied forces
             PointF appliedForces = gravity;
             appliedForces = AddPoints(appliedForces, collision);
             appliedForces = AddPoints(appliedForces, reaction);
+            //
+            // calculate the new speed for the object based on the applied forces and elapsed time
             PointF newSpeed = AddPoints(speed, ScalarTimesPoint((float) elapsedTime, appliedForces));
+            //
+            // calculate the new position based on this speed
             PointF newPosition = OC_Generic.copyPoint(AddPoints(position, newSpeed));
             //
+            // force resolution with boundaries (ground and walls)
+            // if the new position goes beyond the boundaries of the container, then the reaction force needs to be applied
+            //
+            // check for top (when the jar is full to the top)
             if (newPosition.y < absoluteTop && bounced && contact)
             {
+                // if there are collisions with other objects, that means it's not in free fall anymore
                 if (collision.x > 0 || collision.y > 0)
                 {
+                    // disable all collisions and reactions, let the object fall to the ground
                     collision = new PointF(0, 0);
                     reaction = new PointF(0, 0);
                     //
+                    // reduce the collisonCoeficient to slow down the object (bouncing up and down due to collisions)
                     double depletionFactor = (doingDemoOverride) ? collisionCoeficientDepletionFast : collisionCoeficientDepletion;
                     //
                     collisionCoeficient -= depletionFactor;
-                    //
                     if (collisionCoeficient < 0) collisionCoeficient = 0;
                 }
             }
             //
+            // check for ground
             if (newPosition.y > absoluteBottom)
             {
+                // object has passed the ground, reaction with ground counteracts gravity and the current speed of the object in the y axis
                 reaction = AddPoints(reaction, new PointF(gravity.x, (float) (-(gravity.y + bouncinessReactionFactor * (speed.y / elapsedTime)))));
+                //
+                // if the collisions force the object downward, then this needs to be counteracted
                 if (collision.y > 0)
                 {
                     reaction = AddPoints(reaction, new PointF(0f, -collision.y));
-
                 }
+                //
+                // object collided with object at rest, in this case the container
                 physicsEngine_putClumpToRest(object, timeReference);
             }
+            //
+            // check for left boundary
             if (newPosition.x < absoluteLeft)
             {
+                // object has passed the left wall, reaction with left wall counteracts the speed
                 reaction = AddPoints(reaction, new PointF((float) (-speed.x / elapsedTime), 0f));
+                //
+                // if the collisions force the object left, then this needs to be counteracted
                 if (collision.x < 0)
                 {
                     reaction = AddPoints(reaction, new PointF(-collision.x, 0f));
                 }
             }
+            //
+            // check for right boundary
             if (newPosition.x > absoluteRight)
             {
+                // object has passed the right wall, reaction with right wall counteracts the speed
                 reaction = AddPoints(reaction, new PointF((float) (-speed.x / elapsedTime), 0f));
+                //
+                // if the collisions force the object right, then this needs to be counteracted
                 if (collision.x > 0)
                 {
                     reaction = AddPoints(reaction, new PointF(-collision.x, 0f));
                 }
             }
             //
-            object.setProperty(kPhysicsReaction, reaction);
-            object.setProperty(kPhysicsCollision, collision);
+            // failsafe in case there is a divide by zero that invalidates the reaction
+            if (Float.isNaN(reaction.x) || Float.isNaN(reaction.y))
+            {
+                reaction = ScalarTimesPoint(-1, gravity);
+            }
+            //
+            // failsafe in case there is a divide by zero that invalidates the collision
+            if (Float.isNaN(collision.x) || Float.isNaN(collision.y))
+            {
+                collision = new PointF(0, 0);
+            }
+            //
+            // store new forces and coeficients
+            object.setProperty(kPhysicsReaction, OC_Generic.copyPoint(reaction));
+            object.setProperty(kPhysicsCollision, OC_Generic.copyPoint(collision));
             object.setProperty(kPhysicsCollisionCoeficient, collisionCoeficient);
         }
     }
@@ -1021,16 +1144,23 @@ public class OC_CountingPractice extends OC_Generic_Event
 
     public void physicsEngine_step4 (List<OBGroup> controls, double timeReference, double elapsedTime)
     {
+        // STEP 4: re calculate speed and position for the objects based of the new information
         lockScreen();
         for (OBGroup object : controls)
         {
-            double timeToDie = (double) object.propertyValue(kPhysicsTimeToDie);
+            if ((boolean) object.propertyValue(kPhysicsFixed)) continue;
             //
+            // check if the object is still alive
+            double timeToDie = (double) object.propertyValue(kPhysicsTimeToDie);
             if (timeToDie > 0 && timeToDie < timeReference)
             {
+                // Failsafe for objects that were added before the contact thread was initialised (initial objects in the parameters)
                 synchronized (atRestObjects)
                 {
-                    if (!atRestObjects.contains(object)) atRestObjects.add(object);
+                    if (!atRestObjects.contains(object))
+                    {
+                        atRestObjects.add(object);
+                    }
                 }
                 continue;
             }
@@ -1039,6 +1169,7 @@ public class OC_CountingPractice extends OC_Generic_Event
             PointF collision = (PointF) object.propertyValue(kPhysicsCollision);
             PointF reaction = (PointF) object.propertyValue(kPhysicsReaction);
             PointF speed = (PointF) object.propertyValue(kPhysicsSpeed);
+            //
             PointF position = OC_Generic.copyPoint(object.position());
             //
             double collisionCoeficient = (double) object.propertyValue(kPhysicsCollisionCoeficient);
@@ -1048,13 +1179,18 @@ public class OC_CountingPractice extends OC_Generic_Event
             boolean contact = (boolean) object.propertyValue(kPhysicsContact);
             boolean collisionWithAtRestObject = (boolean) object.propertyValue(kPhysicsCollisionWithAtRestObject);
             //
+            // calculate applied forces
             PointF appliedForces = new PointF(0, 0);
             //
             if (wakeUpTime <= timeReference)
             {
+                // the forces are only applied when the wake up time of the object is less than the current time reference
+                //
                 appliedForces = gravity;
                 appliedForces = AddPoints(appliedForces, collision);
                 appliedForces = AddPoints(appliedForces, reaction);
+                //
+                // apply a dampening effect to the speed if there is no applied force
                 if (appliedForces.x == 0)
                 {
                     speed.x *= speedDecayX;
@@ -1065,13 +1201,19 @@ public class OC_CountingPractice extends OC_Generic_Event
                 }
             }
             //
+            // calculate the new speed for the object based on the applied forces and elapsed time
             speed = AddPoints(speed, ScalarTimesPoint((float) (collisionCoeficient * elapsedTime), appliedForces));
+            //
+            // calculate the new position based on this speed
             position = AddPoints(position, speed);
             //
-            object.setProperty(kPhysicsSpeed, speed);
+            // update the values for the object
+            object.setProperty(kPhysicsSpeed, OC_Generic.copyPoint(speed));
             //
+            // contact and bounce calculations are only taken into account when the object is active
             if (wakeUpTime <= timeReference)
             {
+                // check if the object started descending (it might start with initial speed counter-acting gravity
                 if (!descentStarted)
                 {
                     boolean hasDescentStartedNow = position.y > object.position().y;
@@ -1079,6 +1221,7 @@ public class OC_CountingPractice extends OC_Generic_Event
                 }
                 else
                 {
+                    // check if the object has bounced, only after descent has started
                     if (!bounced)
                     {
                         boolean hasItBouncedNow = position.y < object.position().y;
@@ -1086,19 +1229,24 @@ public class OC_CountingPractice extends OC_Generic_Event
                     }
                     else
                     {
+                        // if the applied forces counteract gravity that means the pea has reaches the end of the path
                         if (!contact && appliedForces.y <= 0 && collisionWithAtRestObject)
                         {
+                            // contact! --> grab all the siblings in the clump and mark them as contact too
                             physicsEngine_putClumpToRest(object, timeReference);
                         }
                     }
                 }
             }
             //
+            // calculate the rotation of the object based on the delta in the X axis
             double deltaX = position.x - object.position().x;
-            double angle = (deltaX * 2f * (double) PI) / (2f * (double) PI * object.width() / 2f);         // i know the 2 * PI cancel each other, but it's for the sake of the proper equation;
+            double angle = (deltaX * 2f * PI) / (2f * PI * object.width() / 2f);         // i know the 2 * PI cancel each other, but it's for the sake of the proper equation;
+            //
             OBControl body = object.objectDict.get("body");
             body.rotation += angle;
             //
+            // final verification for position
             double absoluteLeft = (double) object.propertyValue(kPhysicsAbsoluteLeft);
             double absoluteRight = (double) object.propertyValue(kPhysicsAbsoluteRight);
             double absoluteBottom = (double) object.propertyValue(kPhysicsAbsoluteBottom);
@@ -1107,6 +1255,7 @@ public class OC_CountingPractice extends OC_Generic_Event
             if (position.x > absoluteRight) position.x = (float) absoluteRight;
             if (position.y > absoluteBottom) position.y = (float) absoluteBottom;
             //
+            // update the position of the object
             object.setPosition(position);
             //
             if (showAppliedForces)
@@ -1159,7 +1308,7 @@ public class OC_CountingPractice extends OC_Generic_Event
         PointF gravity = (PointF) object.propertyValue(kPhysicsGravity);
         PointF collision = (PointF) object.propertyValue(kPhysicsCollision);
         PointF reaction = (PointF) object.propertyValue(kPhysicsReaction);
-        PointF position = (PointF) OC_Generic.copyPoint(object.position());
+        PointF position = OC_Generic.copyPoint(object.position());
         //
         object.setBorderColor(Color.rgb(255, 140, 0));
         object.setBorderWidth(2.0f);
@@ -1253,7 +1402,7 @@ public class OC_CountingPractice extends OC_Generic_Event
     }
 
 
-    public void startPhysicsWithControl (OBControl control, boolean startContactThread)
+    public void startPhysicsWithControl (final OBControl control, boolean startContactThread)
     {
         if (physicsControls == null) physicsControls = new ArrayList<>();
         //
@@ -1263,6 +1412,7 @@ public class OC_CountingPractice extends OC_Generic_Event
         //
         if (objectsInClump.size() > 0)
         {
+            lockScreen();
             List<OBControl> members = new ArrayList(clump.members);
             for (OBControl object : members)
             {
@@ -1273,6 +1423,8 @@ public class OC_CountingPractice extends OC_Generic_Event
                 //
                 objectsToBeAddedToPhysicsControls.add(object);
             }
+            detachControl(clump);
+            unlockScreen();
         }
         else
         {
@@ -1319,9 +1471,9 @@ public class OC_CountingPractice extends OC_Generic_Event
                 fixed = true;
             }
             //
-            double absoluteLeft = jar.left() + 0.8 * objectToBeAdded.width();
-            double absoluteRight = jar.right() - 0.8 * objectToBeAdded.width();
-            double absoluteBottom = jar.bottom() - objectToBeAdded.height();
+            double absoluteLeft = jar.left() + 1.2 * objectToBeAdded.width();
+            double absoluteRight = jar.right() - 1.2 * objectToBeAdded.width();
+            double absoluteBottom = jar.bottom() - 1.2 * objectToBeAdded.height();
             double absoluteTop = 0;
             //
             objectToBeAdded.setProperty(kPhysicsFixed, fixed);
@@ -1364,7 +1516,7 @@ public class OC_CountingPractice extends OC_Generic_Event
         }
         //
         preparePlayNumberIncrement();
-        prepareNumberAudio((int) physicsControls.size());
+        prepareNumberAudio(physicsControls.size());
         //
         if (physicsThreadRunning) return;
         //
@@ -1399,15 +1551,19 @@ public class OC_CountingPractice extends OC_Generic_Event
                         double newTimeReference = getCurrentTimeDouble();
                         double speedUpFactor = (doingDemoOverride) ? timeSpeedUpFactorFast : timeSpeedUpFactor;
                         double elapsedTime = (newTimeReference - timeReference) * speedUpFactor;
-                        //
                         timeReference = newTimeReference;
                         //
                         physicsEngine_step1(controls, timeReference, elapsedTime);
                         physicsEngine_step2(controls, timeReference, elapsedTime);
                         physicsEngine_step3(controls, timeReference, elapsedTime);
                         physicsEngine_step4(controls, timeReference, elapsedTime);
+                        //
+                        waitForSecs(refreshInterval);
                     }
-                    waitForSecs(refreshInterval);
+                }
+                catch (OBUserPressedBackException backException)
+                {
+                    // do nothing
                 }
                 catch (Exception e)
                 {
@@ -1436,6 +1592,7 @@ public class OC_CountingPractice extends OC_Generic_Event
         isMode2Phase2 = true;
         loadPointer(POINTER_MIDDLE);
         //
+        lockScreen();
         answerLabels = createDistractorsAndCorrectAnswer(physicsControls.size());
         double totalWidth = bounds().width();
         double consumedWidth = 0;
@@ -1446,7 +1603,6 @@ public class OC_CountingPractice extends OC_Generic_Event
         //
         List<OBAnim> animations = new ArrayList<>();
         //
-        lockScreen();
         for (OBLabel label : answerLabels)
         {
             newX += label.width() / 2;
@@ -1504,6 +1660,7 @@ public class OC_CountingPractice extends OC_Generic_Event
 
     public Object findLabel (PointF pt)
     {
+        if (answerLabels == null) return null;
         return finger(0, 2, (List<OBControl>) (Object) answerLabels, pt, true);
     }
 
@@ -1647,10 +1804,14 @@ public class OC_CountingPractice extends OC_Generic_Event
                     waitForSecs(0.3f);
                     waitAudio();
                     waitForSecs(0.3f);
+                    //
                     populatePeasWithAnimation();
                 }
                 else if (mode.equals(kModeChildCountChooseAnswer))
                 {
+                    physicsEngine_waitUntilAllAtRest();
+                    waitForSecs(1.2);
+                    //
                     mode2_phase2();
                 }
             }
@@ -1696,13 +1857,21 @@ public class OC_CountingPractice extends OC_Generic_Event
     public void demob () throws Exception
     {
         setStatus(STATUS_BUSY);
-        if (mode.equals(kModeAutomaticCount))
+        //
+        try
         {
-            demo_mode1();
+            if (mode.equals(kModeAutomaticCount))
+            {
+                demo_mode1();
+            }
+            else if (mode.equals(kModeChildCountChooseAnswer))
+            {
+                demo_mode2();
+            }
         }
-        else if (mode.equals(kModeChildCountChooseAnswer))
+        catch (Exception e)
         {
-            demo_mode2();
+            e.printStackTrace();
         }
     }
 
@@ -1710,8 +1879,8 @@ public class OC_CountingPractice extends OC_Generic_Event
     public void intro_mode1_mode2 () throws Exception
     {
         loadPointer(POINTER_MIDDLE);
-        playAudioScene("DEMO", 0, false);                     // Let’s practice counting!                     ||   Now drag these peas to the jar, and keep counting.;
-        movePointerToRestingPosition(0.6f, true);
+        playAudioScene("DEMO", 0, false);                           // Let’s practice counting!                     ||   Now drag these peas to the jar, and keep counting.;
+        movePointerToRestingPosition(0.6, true);
         waitAudio();
         waitForSecs(0.3f);
         //
@@ -1722,7 +1891,7 @@ public class OC_CountingPractice extends OC_Generic_Event
         unlockScreen();
         waitForSecs(0.3f);
         //
-        playAudioScene("DEMO", 1, false);                     // This shows the number of peas in the jar.   ||  Remember, we are starting from this number!;
+        playAudioScene("DEMO", 1, false);                           // This shows the number of peas in the jar.    ||  Remember, we are starting from this number!;
         OC_Generic.pointer_moveToObject(jarLabel, -5, 0.9f, EnumSet.of(OC_Generic.Anchor.ANCHOR_BOTTOM), true, this);
         waitForAudio();
         waitForSecs(0.3f);
@@ -1741,7 +1910,7 @@ public class OC_CountingPractice extends OC_Generic_Event
         if (clumpOfObjectsForUnit > 1)
         {
             int audioIndex = (clumpOfObjectsForUnit == 2) ? 0 : (clumpOfObjectsForUnit == 5) ? 1 : 2;
-            playAudioScene("DEMO2", audioIndex, false);     // These peas are in twos.                       || These peas are in fives.              | These peas are in tens.;
+            playAudioScene("DEMO2", audioIndex, false);             // These peas are in twos.      || These peas are in fives.     || These peas are in tens.;
             movePointerToPoint(new PointF(0.7f * bounds().width(), 0.8f * bounds().height()), 0, 0.6f, true);
             waitAudio();
             waitForSecs(0.3f);
@@ -1756,11 +1925,11 @@ public class OC_CountingPractice extends OC_Generic_Event
     public void demo_mode1 () throws Exception
     {
         setStatus(STATUS_BUSY);
-        playAudioScene("DEMO", 0, false);           // Now watch me!
+        playAudioScene("DEMO", 0, false);                           // Now watch me!
         waitAudio();
         waitForSecs(0.3f);
         //
-        List<OBGroup> randomArray = (List<OBGroup>) (Object) OBUtils.randomlySortedArray(clumps);
+        List<OBGroup> randomArray = OBUtils.randomlySortedArray(clumps);
         OBGroup clump1 = null;
         for (OBControl control : randomArray)
         {
@@ -1770,6 +1939,7 @@ public class OC_CountingPractice extends OC_Generic_Event
                 break;
             }
         }
+        //
         clump1.disable();
         PointF dropPosition = getRandomDropPointInJarForControl(clump1);
         //
@@ -1831,7 +2001,9 @@ public class OC_CountingPractice extends OC_Generic_Event
         //
         doingDemoOverride = false;
         killAllObjects();
-        playAudioScene("DEMO", 1, false); // Your turn!;
+        waitForSecs(0.6);
+        //
+        playAudioScene("DEMO", 1, false);                           // Your turn!
         movePointerToRestingPosition(0.6f, true);
         //
         returnObjectsToGroup(clump1, true);
@@ -1863,7 +2035,7 @@ public class OC_CountingPractice extends OC_Generic_Event
         waitAudio();
         waitForSecs(0.3f);
         //
-        List replayAudio = (List<Object>) (Object) getAudioForScene(currentEvent(), "REPEAT");
+        List<Object> replayAudio = (List<Object>) (Object) getAudioForScene(currentEvent(), "REPEAT");
         setReplayAudio(replayAudio);
         //
         setStatus(STATUS_AWAITING_CLICK);
@@ -1872,7 +2044,7 @@ public class OC_CountingPractice extends OC_Generic_Event
         doReminderWithKey(currentEvent(), kReminderDelaySeconds, new RunLambdaWithTimestamp()
         {
             @Override
-            public void run (long timestamp) throws Exception
+            public void run (double timestamp) throws Exception
             {
                 doReminderWithTimeStamp(timestamp);
             }
@@ -1909,7 +2081,7 @@ public class OC_CountingPractice extends OC_Generic_Event
     public void mode2_wrongAnswer () throws Exception
     {
         loadPointer(POINTER_MIDDLE);
-        playAudioScene("INCORRECT", 0, false);                  // Let’s find the correct answer.;
+        playAudioScene("INCORRECT", 0, false);                          // Let’s find the correct answer.;
         waitAudio();
         waitForSecs(0.3f);
         //
@@ -1929,7 +2101,7 @@ public class OC_CountingPractice extends OC_Generic_Event
         waitSFX();
         waitForSecs(0.3f);
         //
-        playAudioScene("INCORRECT", 1, false);                  // The jar had this many peas.;
+        playAudioScene("INCORRECT", 1, false);                          // The jar had this many peas.;
         OC_Generic.pointer_moveToObject(jarLabelContainer, 0, 0.6f, EnumSet.of(OC_Generic.Anchor.ANCHOR_BOTTOM), true, this);
         waitAudio();
         waitForSecs(0.3f);
@@ -1945,12 +2117,12 @@ public class OC_CountingPractice extends OC_Generic_Event
         unlockScreen();
         waitForSecs(0.3f);
         //
-        playAudioScene("INCORRECT", 2, false);                  // You dragged all these.;
+        playAudioScene("INCORRECT", 2, false);                          // You dragged all these.;
         movePointerToPoint(new PointF(0.9f * bounds().width(), 0.7f * bounds().height()), 0, 0.6f, true);
         waitAudio();
         waitForSecs(0.3f);
         //
-        playAudioScene("INCORRECT", 3, false);                  //Now look and listen!;
+        playAudioScene("INCORRECT", 3, false);                          //Now look and listen!;
         hidePointer();
         waitAudio();
         waitForSecs(0.3f);
@@ -1959,15 +2131,19 @@ public class OC_CountingPractice extends OC_Generic_Event
         doingDemoOverride = true;
         int startingCounter = physicsControls.size();
         int groupCounter = 1;
+        //
         for (OBGroup group : clumps)
         {
             if ((boolean) group.propertyValue(kPhysicsFixed)) continue;
             //
             OBAnim moveAnim = OBAnim.moveAnim(destination, group);
             OBAnimationGroup.runAnims(Arrays.asList(moveAnim), 0.3, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+            //
             startPhysicsWithControl(group);
             physicsEngine_waitUntilAllAtRest();
+            //
             playSfxAudio("number_increment", false);
+            //
             lockScreen();
             jarLabel.setString(String.format("%d", (int) (startingCounter + groupCounter * clumpOfObjectsForUnit)));
             jarLabel.setColour(colourTextHilite);
@@ -1979,6 +2155,7 @@ public class OC_CountingPractice extends OC_Generic_Event
             lockScreen();
             jarLabel.setColour(colourTextNormal);
             unlockScreen();
+            //
             groupCounter++;
             waitForSecs(0.3f);
         }
@@ -2102,25 +2279,68 @@ public class OC_CountingPractice extends OC_Generic_Event
 
     public PointF getRandomDropPointInJarForControl (OBControl control)
     {
+        //thePointer.hide();
+        //
         PointF dropPosition = new PointF(0, 0);
         RectF dropFrame = jarContainerPath.getWorldFrame();
         RectF labelContainerFrame = jarLabelContainer.getWorldFrame();
+        //
+        //OBControl dropFrameControl = new OBControl();
+        //dropFrameControl.setFrame(dropFrame);
+        //dropFrameControl.setOpacity(1.0f);
+        //dropFrameControl.setBackgroundColor(Color.rgb(0,255,0));
+        //dropFrameControl.show();
+        //dropFrameControl.setShouldTexturise(true);
+        //OC_Generic.sendObjectToTop(dropFrameControl, this);
+        //attachControl(dropFrameControl);
+        //
+        //OBControl labelFrameControl = new OBControl();
+        //labelFrameControl.setFrame(labelContainerFrame);
+        //labelFrameControl.setOpacity(1.0f);
+        //labelFrameControl.setBackgroundColor(Color.rgb(255,0,0));
+        //labelFrameControl.show();
+        //labelFrameControl.setShouldTexturise(true);
+        //OC_Generic.sendObjectToTop(labelFrameControl, this);
+        //attachControl(labelFrameControl);
+        //
         double delta = labelContainerFrame.left - dropFrame.left;
         dropFrame.left = labelContainerFrame.left;
         dropFrame.right -= delta;
         while (!_aborting)
         {
-            dropPosition.set(dropFrame.left + randomInt(1, 100) * 0.01f * dropFrame.right, dropFrame.top + randomInt(1, 100) * 0.01f * dropFrame.bottom);
-            RectF futureFrame = new RectF(dropPosition.x - control.width() / 2, dropPosition.y - control.height() / 2, control.width(), control.height());
-            if (labelContainerFrame.intersect(futureFrame))
+            dropPosition.set(dropFrame.left + randomInt(1, 100) * 0.01f * (dropFrame.width()), dropFrame.top + 0.5f * control.height() + randomInt(1, 100) * 0.01f * (dropFrame.height() - 0.5f * control.height()));
+            RectF futureFrame = new RectF(dropPosition.x, dropPosition.y, dropPosition.x + control.width(), dropPosition.y + control.height());
+            //
+            //OBControl tempFrame = new OBControl();
+            //tempFrame.setFrame(futureFrame);
+            //tempFrame.setFillColor(Color.BLACK);
+            //OC_Generic.sendObjectToTop(tempFrame, this);
+            //tempFrame.show();
+            //attachControl(tempFrame);
+            //
+            if (labelContainerFrame.contains(futureFrame))
             {
+                //MainActivity.log("Not good --> inside label container");
+                continue;
+            }
+            else if (RectF.intersects(labelContainerFrame, futureFrame))
+            {
+                //MainActivity.log("Not good --> intersects label container");
                 continue;
             }
             else if (!dropFrame.contains(futureFrame))
             {
+                //MainActivity.log("Not good --> not contained by drop frame");
                 continue;
             }
-            break;
+            else
+            {
+                //MainActivity.log("It's good");
+                break;
+            }
+            //
+            //waitForSecsNoThrow(3.0);
+            //detachControl(tempFrame);
         }
         return dropPosition;
     }

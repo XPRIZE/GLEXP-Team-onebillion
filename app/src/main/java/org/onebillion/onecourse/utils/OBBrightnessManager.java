@@ -235,6 +235,8 @@ public class OBBrightnessManager
 
     public void onResume ()
     {
+        updateBrightness(false);
+        //
         MainActivity.log("OBBrightnessManager.onResume detected");
         paused = false;
         registeredTouchOnScreen(true);

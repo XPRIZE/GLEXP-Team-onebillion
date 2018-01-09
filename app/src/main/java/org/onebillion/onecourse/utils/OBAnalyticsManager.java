@@ -82,11 +82,19 @@ public class OBAnalyticsManager implements OBAnalyticsProtocol
         try
         {
             analyticsClassName = OBConfigManager.sharedManager.getAnalyticsClassName();
-            Class aClass = Class.forName("org.onebillion.onecourse.utils." + analyticsClassName);
-            Constructor<?> cons = aClass.getConstructor(Activity.class);
-            sharedManager = (OBAnalyticsManager) cons.newInstance(activity);
-            //
-            MainActivity.log("AnalyticsManager has been initialised with class name %s", analyticsClassName);
+            if (analyticsClassName == null)
+            {
+                MainActivity.log("No AnalyticsClassName set in config. AnalyticsManager reverted to root version (no actions)");
+                sharedManager = this;
+            }
+            else
+            {
+                Class aClass = Class.forName("org.onebillion.onecourse.utils." + analyticsClassName);
+                Constructor<?> cons = aClass.getConstructor(Activity.class);
+                sharedManager = (OBAnalyticsManager) cons.newInstance(activity);
+                //
+                MainActivity.log("AnalyticsManager has been initialised with class name %s", analyticsClassName);
+            }
         }
         catch (Exception e)
         {

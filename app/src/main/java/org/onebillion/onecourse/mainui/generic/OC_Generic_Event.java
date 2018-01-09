@@ -52,12 +52,12 @@ public class OC_Generic_Event extends OC_SectionController
     List<Object> savedReplayAudio;
     OBAnimationGroup returnToOriginalPositionAnimation;
     //
-    public long lastActionTakenTimestamp;
+    public double lastActionTakenTimestamp;
 
 
     public interface RunLambdaWithTimestamp
     {
-        void run (long timestamp) throws Exception;
+        void run (double timestamp) throws Exception;
     }
 
     public OC_Generic_Event ()
@@ -68,7 +68,7 @@ public class OC_Generic_Event extends OC_SectionController
 
     public void updateLastActionTakenTimeStamp ()
     {
-        lastActionTakenTimestamp = new Date().getTime();
+        lastActionTakenTimestamp = getCurrentTimeDouble();
     }
 
     public void prepare ()
@@ -91,6 +91,8 @@ public class OC_Generic_Event extends OC_SectionController
         {
             doVisual(currentEvent());
         }
+        //
+        updateLastActionTakenTimeStamp();
     }
 
 
@@ -187,10 +189,14 @@ public class OC_Generic_Event extends OC_SectionController
 
     public void doReminderWithKey (final String key, final double reminderDelay, final RunLambdaWithTimestamp block) throws Exception
     {
+        if (key == null) return;
+        //
         if (!key.equals(getReminderKey())) return;
+        //
         if (lastActionTakenTimestamp == -1) return;
-        long timestamp = lastActionTakenTimestamp;
-        double elapsed = new Date().getTime() - lastActionTakenTimestamp;
+        //
+        double timestamp = lastActionTakenTimestamp;
+        double elapsed = getCurrentTimeDouble() - lastActionTakenTimestamp;
         if (this.isStatusIdle() && elapsed > reminderDelay)
         {
             if (block != null)
@@ -1045,9 +1051,15 @@ public class OC_Generic_Event extends OC_SectionController
 
     public double getCurrentTimeDouble()
     {
-        return new Date().getTime() / 1000;
+        return (new Date().getTime() / 1000.0);
     }
 
 
-
+    @Override
+    public void replayAudio ()
+    {
+        updateLastActionTakenTimeStamp();
+        //
+        super.replayAudio();
+    }
 }

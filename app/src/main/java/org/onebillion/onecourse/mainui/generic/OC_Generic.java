@@ -349,6 +349,7 @@ public class OC_Generic
     {
         try
         {
+            RectF controlBounds = control.getWorldFrame();
             Boolean autoResize = sc.eventAttributes.get("textSize") == null;
             float textSize = 1;
             //
@@ -362,12 +363,13 @@ public class OC_Generic
             if (content == null) content = "0000";
             //
             OBLabel label = new OBLabel(content, tf, textSize);
+            label.setFrame(controlBounds);
             //
             if (autoResize)
             {
                 OBTextLayer textLayer = (OBTextLayer) label.layer;
                 textLayer.sizeToBoundingBox();
-                while (label.height() > 0 && label.height() < control.bounds.height() && textLayer.textWidth(content) < control.bounds.width())
+                while (label.height() > 0 && label.height() < controlBounds.height() && textLayer.textWidth(content) < controlBounds.width())
                 {
                     textLayer.setTextSize(textLayer.textSize() + 1);
                     label.sizeToBoundingBox();
@@ -377,14 +379,14 @@ public class OC_Generic
                 textLayer.setTextSize(currentTextSize * finalResizeFactor);
                 label.sizeToBoundingBox();
                 //
-                if (textLayer.textWidth(content) > control.bounds().width())
+                if (textLayer.textWidth(content) > controlBounds.width())
                 {
                     textLayer.setTextSize(currentTextSize);
                     label.sizeToBoundingBox();
                 }
             }
             //
-            label.setPosition(control.position());
+            label.setPosition(control.getWorldPosition());
             label.setZPosition(OC_Generic.getNextZPosition(sc));
             label.texturise(false, sc);
             //
