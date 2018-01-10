@@ -22,6 +22,7 @@ public class DBSQL
     public final static String TABLE_USERS = "users";
     public final static String TABLE_STARS = "stars";
     public final static String TABLE_PLAYZONE_ASSETS = "playzoneassets";
+    public final static String TABLE_ANALYTICS = "analytics";
 
     private static SQLiteDatabase database = null;
 

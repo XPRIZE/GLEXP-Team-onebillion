@@ -65,3 +65,11 @@ create table playzoneassets
     params text,
     createTime big unsigned int not null default 0
 );
+
+
+create table analytics
+(
+    timestamp big unsigned int not null default 0,
+    event text,
+    parameters text
+);
