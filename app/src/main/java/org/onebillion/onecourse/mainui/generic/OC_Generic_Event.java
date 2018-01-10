@@ -93,6 +93,7 @@ public class OC_Generic_Event extends OC_SectionController
         }
         //
         updateLastActionTakenTimeStamp();
+        checkAndUpdateFinale();
     }
 
 
@@ -1062,4 +1063,42 @@ public class OC_Generic_Event extends OC_SectionController
         //
         super.replayAudio();
     }
+
+
+    public void checkAndUpdateFinale()
+    {
+        String finaleScene = String.format("finale%s", events.get(events.size() - 1));
+        if (audioScenes.get(finaleScene) != null && ((Map<String,Object>)audioScenes.get(finaleScene)).get("FINAL") != null)
+        {
+            audioScenes.put("finale", audioScenes.get(finaleScene));
+            //
+            if (!events.contains("finale"))
+            {
+                events = new ArrayList<>(events);
+                events.add("finale");
+            }
+        }
+        else if (audioScenes.get("finale") != null && !events.contains("finale"))
+        {
+            events = new ArrayList<>(events);
+            events.add("finale");
+        }
+    }
+
+    public void setScenefinale()
+    {
+        // do nothing
+    }
+
+
+    public void demofinale() throws Exception
+    {
+        setStatus(STATUS_DOING_DEMO);
+        //
+        playSceneAudio("FINAL", true);
+        waitForSecs(0.3);
+        //
+        nextScene();
+    }
+
 }
