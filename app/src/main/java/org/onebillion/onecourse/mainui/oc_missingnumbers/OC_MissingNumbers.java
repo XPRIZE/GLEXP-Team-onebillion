@@ -169,9 +169,19 @@ public class OC_MissingNumbers extends OC_Generic_Event
         {
             hideControls("number_button");
             if (numberButtons != null)
-                for (OBControl control : numberButtons) detachControl(control);
+            {
+                for (OBControl control : numberButtons)
+                {
+                    detachControl(control);
+                }
+            }
             if (numberButtonLabels != null)
-                for (OBControl control : numberButtonLabels) detachControl(control);
+            {
+                for (OBControl control : numberButtonLabels)
+                {
+                    detachControl(control);
+                }
+            }
         }
         if (numberBoxes == null && numberBoxLabels == null && lines == null)
         {
@@ -376,22 +386,46 @@ public class OC_MissingNumbers extends OC_Generic_Event
         List<Integer> allowedValues = new ArrayList<>();
         Integer currentValue = min;
         Integer incrementJump = (incrementKey.equals("even") || incrementKey.equals("odd")) ? 2 : Integer.parseInt(incrementKey);
-        if (randomSeed)
+        //
+        if (incrementJump < 0)
         {
-            currentValue = randomNumberBetween(min, min + incrementJump);
+            if (randomSeed)
+            {
+                currentValue = randomNumberBetween(max + incrementJump, max);
+            }
+            if (incrementKey.equals("even"))
+            {
+                if (currentValue % 2 == 0) currentValue--;
+            }
+            else if (incrementKey.equals("odd"))
+            {
+                if (currentValue % 2 != 0) currentValue--;
+            }
+            while (currentValue >= min)
+            {
+                allowedValues.add(currentValue);
+                currentValue += incrementJump;
+            }
         }
-        if (incrementKey.equals("even"))
+        else
         {
-            if (currentValue % 2 == 0) currentValue++;
-        }
-        else if (incrementKey.equals("odd"))
-        {
-            if (currentValue % 2 != 0) currentValue++;
-        }
-        while (currentValue <= max)
-        {
-            allowedValues.add(currentValue);
-            currentValue += incrementJump;
+            if (randomSeed)
+            {
+                currentValue = randomNumberBetween(min, min + incrementJump);
+            }
+            if (incrementKey.equals("even"))
+            {
+                if (currentValue % 2 == 0) currentValue++;
+            }
+            else if (incrementKey.equals("odd"))
+            {
+                if (currentValue % 2 != 0) currentValue++;
+            }
+            while (currentValue <= max)
+            {
+                allowedValues.add(currentValue);
+                currentValue += incrementJump;
+            }
         }
         Integer index = randomNumberBetween(0, allowedValues.size() - totalNumbers);
         for (int i = 0; i < totalNumbers; i++)
@@ -438,6 +472,7 @@ public class OC_MissingNumbers extends OC_Generic_Event
         correctAnswer = numberSequence.get(hiddenNumberIndex).toString();
         currentAnswer = "";
         wrongAttempts = 0;
+        //
         for (int i = 0; i < numberBoxLabels.size(); i++)
         {
             Integer number = numberSequence.get(i);
@@ -504,7 +539,10 @@ public class OC_MissingNumbers extends OC_Generic_Event
         {
             if (dragLabels != null)
             {
-                for (OBControl control : dragLabels) detachControl(control);
+                for (OBControl control : dragLabels)
+                {
+                    detachControl(control);
+                }
             }
             dragLabels = new ArrayList<>();
             OBControl boxTemplate = objectDict.get("number_box");
@@ -518,6 +556,7 @@ public class OC_MissingNumbers extends OC_Generic_Event
                 distractorLabel.sizeToBoundingBox();
                 dragLabels.add(distractorLabel);
             }
+            labelTemplate.hide();
             //
             OBLabel distractorLabel = (OBLabel) labelTemplate.copy();
             distractorLabel.setString(emptyNumberBoxLabel.text());
