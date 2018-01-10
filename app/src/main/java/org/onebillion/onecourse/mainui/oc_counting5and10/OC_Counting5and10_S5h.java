@@ -76,6 +76,8 @@ public class OC_Counting5and10_S5h extends OC_Generic_Event
         //
         action_playNextDemoSentence(false); // Now look.
         OBGroup group = (OBGroup) objectDict.get("group_3");
+        movePointerToPoint(new PointF(0.8f * bounds().width(), 0.7f * bounds().height()), -5, 0.6f, true);
+        //
         OC_Generic.pointer_moveToObject(group, -5f, 0.6f, EnumSet.of(OC_Generic.Anchor.ANCHOR_BOTTOM), true, this);
         waitAudio();
         waitForSecs(0.3f);
