@@ -1,4 +1,4 @@
-package org.onebillion.onecourse.mainui.oc_lettersandsounds;
+package org.onebillion.onecourse.mainui.oc_handwriting;
 
 import android.graphics.Color;
 
@@ -35,7 +35,7 @@ public class OC_Hw1 extends OC_Hw
     {
         super.prepare();
         eraser.show();
-        events = Arrays.asList("a1", "a2", "a3", "b1", "b2", "b3");
+        events = Arrays.asList("trace_1", "trace_2", "trace_3", "write_1", "write_2", "write_3");
      //   this.loadAudioXML(getConfigPath("hw1audio.xml"));
 
         targetPhoneme = componentDict.get(parameters.get("target"));
@@ -48,7 +48,7 @@ public class OC_Hw1 extends OC_Hw
         exampleGroup.setPosition(OB_Maths.locationForRect(0.25f,0.5f,board.frame()));
         exampleGroup.setZPosition(4);
 
-        setupLinesFor(exampleGroup);
+        setupLinesForGroup(exampleGroup);
 
         guideGroup = (OBGroup)exampleGroup.copy();
         attachControl(guideGroup);
@@ -64,8 +64,6 @@ public class OC_Hw1 extends OC_Hw
 
 
         guideGroup.setScreenMaskControl(boardMask);
-        lineTop.setScreenMaskControl(boardMask);
-        lineBottom.setScreenMaskControl(boardMask);
 
         preparePaintForDrawing();
         preparePaintForErasing();
@@ -98,25 +96,12 @@ public class OC_Hw1 extends OC_Hw
 
     public void arrowButtonClick() throws Exception
     {
+        playSfxAudio("arrow",true);
+        waitForSecs(0.3f);
         hideArrowButton();
-        if(currentEvent().startsWith("a"))
+        if(currentEvent().startsWith("trace"))
         {
-            playSfxAudio("guidewipe",false);
-            OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("width", 1, boardMask),
-                    new OBAnimBlock()
-                    {
-                        @Override
-                        public void runAnimBlock(float frac)
-                        {
-                            lineBottom.invalidate();
-                            lineTop.invalidate();
-                            guideGroup.invalidate();
-                        }
-                    }),0.5f,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
-            waitSFX();
-            hideLines();
-            guideGroup.hide();
-            resetGuideMask();
+            animateGuideWipe(guideGroup);
             waitForSecs(0.3f);
             playAudioQueuedScene("FINAL",0.3f,true);
 
@@ -129,7 +114,7 @@ public class OC_Hw1 extends OC_Hw
         }
 
         if(!currentEvent().equalsIgnoreCase(events.get(events.size()-1)))
-                cleanUpBoard(currentEvent().startsWith("b")?false:true,false);
+                cleanUpBoard(currentEvent().startsWith("trace"),false);
 
         waitForSecs(0.4f);
         nextScene();
@@ -142,7 +127,7 @@ public class OC_Hw1 extends OC_Hw
             @Override
             public void run() throws Exception
             {
-                demoa1();
+                demotrace_1();
             }
         });
 
@@ -156,15 +141,13 @@ public class OC_Hw1 extends OC_Hw
 
     public void doMainXX() throws Exception
     {
-        if(currentEvent().startsWith("a"))
+        if(currentEvent().startsWith("trace"))
         {
             playAudioQueuedScene("DEMO",0.3f,true);
             waitForSecs(0.3f);
             demoLetterPaths();
             waitForSecs(1f);
-            animateLinesOn();
-            waitForSecs(0.7f);
-            showGuide();
+            showLinesAndGuide(guideGroup);
         }
 
         startScene();
@@ -180,14 +163,6 @@ public class OC_Hw1 extends OC_Hw
         return 1.5f;
     }
 
-    public void showGuide()
-    {
-        if(guideGroup.hidden())
-        {
-            guideGroup.show();
-
-        }
-    }
 
     public void cleanUpBoard(boolean withExample,boolean withDemo) throws Exception
     {
@@ -244,7 +219,7 @@ public class OC_Hw1 extends OC_Hw
         unlockScreen();
     }
 
-    public void demoa1() throws Exception
+    public void demotrace_1() throws Exception
     {
         presenterOpening();
 
@@ -257,9 +232,7 @@ public class OC_Hw1 extends OC_Hw
 
             waitForSecs(0.3f);
 
-            animateLinesOn();
-            waitForSecs(0.7f);
-            showGuide();
+            showLinesAndGuide(guideGroup);
             waitForSecs(0.3f);
             moveScenePointer(OB_Maths.locationForRect(0.8f,0.9f,objectDict.get("board").frame()),-40,0.5f,"DEMO3",0,0.3f);
             demoPointerTracePath();
@@ -268,6 +241,7 @@ public class OC_Hw1 extends OC_Hw
             moveScenePointer(OB_Maths.locationForRect(-0.2f,0.6f,arrowButton.frame()),-10,0.5f,"DEMO3",1,0.3f);
             movePointerToPoint(OB_Maths.locationForRect(0.5f,0.6f,arrowButton.frame()),0.3f,true);
             arrowButton.highlight();
+            playSfxAudio("arrow",true);
             waitForSecs(0.3f);
             cleanUpBoard(true,true);
             movePointerToPoint(OB_Maths.locationForRect(-0.2f,0.6f,arrowButton.frame()),0.3f,true);
@@ -282,9 +256,8 @@ public class OC_Hw1 extends OC_Hw
 
         demoLetterPaths();
         waitForSecs(0.3f);
-        animateLinesOn();
-        waitForSecs(0.7f);
-        showGuide();
+        showLinesAndGuide(guideGroup);
+        waitForSecs(0.3f);
 
         moveScenePointer(OB_Maths.locationForRect(0.75f,0.9f,objectDict.get("board").frame()),-40,0.5f,"DEMO5",0,0.3f);
         waitSFX();
@@ -330,7 +303,7 @@ public class OC_Hw1 extends OC_Hw
         }
     }
 
-    public void demob1() throws Exception
+    public void demowrite_1() throws Exception
     {
         lockScreen();
         List<OBControl> paths = exampleGroup.filterMembers("Path.*",true);

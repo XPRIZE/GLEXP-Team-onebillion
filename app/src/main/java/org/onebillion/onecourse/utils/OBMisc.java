@@ -311,4 +311,16 @@ public class OBMisc
         path.cubicTo(controlPoint1.x, controlPoint1.y, controlPoint2.x, controlPoint2.y, toPoint.x, toPoint.y);
     }
 
+    public static void checkAndUpdateFinale(OC_SectionController sectionController)
+    {
+        String finaleScene = String.format("finale%s",sectionController.events.get(sectionController.events.size()-1));
+        List<String> audio = sectionController.getAudioForScene(finaleScene, "DEMO");
+        if(audio != null)
+        {
+            sectionController.audioScenes.put("finale", audio);
+        }
+
+    }
+
+
 }

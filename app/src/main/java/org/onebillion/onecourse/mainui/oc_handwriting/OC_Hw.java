@@ -1,4 +1,4 @@
-package org.onebillion.onecourse.mainui.oc_lettersandsounds;
+package org.onebillion.onecourse.mainui.oc_handwriting;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -9,6 +9,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.util.ArrayMap;
 import android.view.View;
 
 import org.onebillion.onecourse.controls.*;
@@ -16,14 +17,18 @@ import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.utils.OBAnim;
+import org.onebillion.onecourse.utils.OBAnimBlock;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBMisc;
 import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +80,7 @@ public class OC_Hw extends OC_SectionController
         presenter.control.setProperty("startloc", OC_Generic.copyPoint(presenter.control.position()));
         presenter.control.setRight(0);
 
-        Map<String,Object> ed = loadXML(getConfigPath("tracingletters.xml"));
+        Map<String,Object> ed = loadXML(getConfigPath("tracingcapitalletters.xml"));
         eventsDict.putAll(ed);
 
         drawOn = new OBImage();
@@ -124,6 +129,8 @@ public class OC_Hw extends OC_SectionController
         boardMask.setProperty("startWidth", boardMask.width());
         boardMask.setOpacity(1.0f);
 
+        lineBottom.setScreenMaskControl(boardMask);
+        lineTop.setScreenMaskControl(boardMask);
         setupCanvas();
     }
 
@@ -312,21 +319,42 @@ public class OC_Hw extends OC_SectionController
 
 
 
-    public void setupLinesFor(OBGroup group)
+    public void setupLinesForGroup(OBGroup group)
+    {
+        setupLinesForGroup(group, true);
+    }
+
+    public void setupLinesForGroup(OBGroup group, boolean useXbox)
     {
         List<OBControl> xboxes = group.filterMembers("xbox.*",true);
         OBControl xbox = xboxes.get(0);
-
-        RectF rect = this.convertRectFromControl(xbox.bounds(),xbox);
-        PointF loc = OC_Generic.copyPoint(lineTop.position());
+        RectF rect = convertRectFromControl(xbox.bounds(),xbox);
+        if(!useXbox)
+        {
+            List<OBControl> lines = group.filterMembers("Path.*",true);
+            float minTop = rect.bottom;
+            for(OBControl line : lines)
+            {
+                float curTop = line.getWorldFrame().top;
+                if(curTop < minTop)
+                    minTop = curTop;
+            }
+           // OBPath path =(OBPath) group.objectDict.get("Path1_1");
+           // float top = group.top() - path.lineWidth()*group.scale()*0.5f;
+            rect = new RectF(rect.left, minTop-applyGraphicScale(2), rect.top+rect.width(), rect.bottom);
+        }
+        PointF loc = OBMisc.copyPoint(lineTop.position());
         loc.y = rect.top;
-        lineTop.setPosition(lineTop.position().x, rect.top);
-        lineBottom.setPosition(lineTop.position().x, rect.top+rect.bottom-rect.top);
+        lineTop.setPosition(loc);
+        loc.y = rect.bottom;
+        lineBottom.setPosition(loc);
 
         lineTop.setStrokeEnd(0);
         lineBottom.setStrokeEnd(0);
         lineTop.show();
         lineBottom.show();
+
+
     }
 
     public void highlightPathsForGroup(OBGroup group,boolean on)
@@ -443,15 +471,27 @@ public class OC_Hw extends OC_SectionController
         {
             for (String n : filterControlsIDs("Path.*|xbox"))
                 objectDict.remove(n);
-
-            String character = letter.substring(i,i+1);
-            String l = String.format("_%s", character);
-            loadEvent(l);
-            List<OBControl> lpaths = sortedFilteredControls("Path.*");
-            letterPaths.add((List<OBPath>)(Object)lpaths);
-            OBControl xbox = objectDict.get("xbox");
-            xboxes.add(xbox);
-            xbox.hide();
+            String character = letter.substring(i, i + 1);
+            if(character.equals(" "))
+            {
+                OBControl xbox = new OBControl();
+                xbox.setFrame(new RectF(0, 0, applyGraphicScale(50) , applyGraphicScale(20)));
+                Map<String,String> map = new ArrayMap<>();
+                map.put("id","xbox");
+                xbox.setProperty("attrs",map);
+                xboxes.add(xbox);
+                letterPaths.add(new ArrayList<OBPath>());
+            }
+            else
+            {
+                String l = String.format("_%s", character);
+                loadEvent(l);
+                List<OBControl> lpaths = sortedFilteredControls("Path.*");
+                letterPaths.add((List<OBPath>) (Object) lpaths);
+                OBControl xbox = objectDict.get("xbox");
+                xboxes.add(xbox);
+                xbox.hide();
+            }
         }
         if (letter.length() > 1)
         {
@@ -462,13 +502,16 @@ public class OC_Hw extends OC_SectionController
                 RectF f = xb.frame();
                 xboxeswidth += f.width();
                 List<OBPath> arr = letterPaths.get(i);
-                RectF fp = OBUtils.PathsUnionRect(arr);
-                fp.top -= f.top;
-                if (fp.top < miny)
-                    miny = fp.top;
-                float thismaxy = fp.top + fp.height();
-                if (thismaxy > maxy)
-                    maxy = thismaxy;
+                if(arr.size() > 0)
+                {
+                    RectF fp = OBUtils.PathsUnionRect(arr);
+                    fp.top -= f.top;
+                    if (fp.top < miny)
+                        miny = fp.top;
+                    float thismaxy = fp.top + fp.height();
+                    if (thismaxy > maxy)
+                        maxy = thismaxy;
+                }
             }
             float pathsheight = maxy - miny;
             float diff = (this.bounds().height() - pathsheight) / 2.0f;
@@ -494,7 +537,6 @@ public class OC_Hw extends OC_SectionController
                 path.setLineWidth(size);
                 path.setStrokeEnd(prepare ? 0 : 1);
             }
-
         }
 
         List<OBControl> allObjects = new ArrayList<>();
@@ -505,6 +547,7 @@ public class OC_Hw extends OC_SectionController
         OBGroup letterGrp = new OBGroup(allObjects);
         attachControl(letterGrp);
         letterGrp.recalculateFrameForPath(allObjects);
+
         int index = 1;
         for(int i=0; i<letterPaths.size(); i++)
         {
@@ -555,7 +598,7 @@ public class OC_Hw extends OC_SectionController
     public void setGroupPaths(OBGroup group,float size)
     {
         for(OBControl p : group.filterMembers("Path.*",true))
-            ((OBPath)p).setLineWidth(size*group.scale());
+            ((OBPath)p).setLineWidth(size*(group.scale()>1?1:group.scale()));
     }
 
     public void cleanUpDrawing()
@@ -566,7 +609,7 @@ public class OC_Hw extends OC_SectionController
         drawOn.invalidate();
     }
 
-    public void animateLinesOn()
+    public void animateLinesOn() throws Exception
     {
         OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("strokeEnd",1,lineTop),OBAnim.propertyAnim("strokeEnd",1,lineBottom)),0.5f,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
     }
@@ -622,4 +665,33 @@ public class OC_Hw extends OC_SectionController
         boardMask.setWidth((float) boardMask.propertyValue("startWidth"));
     }
 
+    public void showLinesAndGuide(OBGroup guideGroup) throws Exception
+    {
+        playSfxAudio("guideon",false);
+        animateLinesOn();
+        guideGroup.show();
+        waitSFX();
+    }
+
+    public void animateGuideWipe(final OBGroup guideGroup) throws Exception
+    {
+        playSfxAudio("guidewipe",false);
+        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("width", 1, boardMask),
+                new OBAnimBlock()
+                {
+                    @Override
+                    public void runAnimBlock(float frac)
+                    {
+                        lineBottom.invalidate();
+                        lineTop.invalidate();
+                        guideGroup.invalidate();
+
+                    }
+                }),0.5f,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
+
+        hideLines();
+        guideGroup.hide();
+        resetGuideMask();
+        waitSFX();
+    }
 }

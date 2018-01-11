@@ -1,4 +1,4 @@
-package org.onebillion.onecourse.mainui.oc_lettersandsounds;
+package org.onebillion.onecourse.mainui.oc_handwriting;
 
 import android.graphics.Color;
 import android.graphics.PointF;
@@ -44,7 +44,6 @@ public class OC_Hw2 extends OC_Hw
 
         picturepin.setZPosition(40);
         picturebg.setZPosition(38);
-       // loadAudioXML(getConfigPath("hw2audio.xml"));
 
         words = new ArrayList<>();
         String[] wordIds = parameters.get("words").split(",");
@@ -54,10 +53,10 @@ public class OC_Hw2 extends OC_Hw
             if(componentDict.get(wordIds[i]) != null)
             {
                 words.add((OBWord)componentDict.get(wordIds[i]));
-                String eventName = String.format("%d",index);
+                String eventName = String.format("trace_%d",index);
                 if(index == wordIds.length)
                 {
-                    events.add("last");
+                    events.add("trace_last");
                 }
                 else if(audioScenes.get(eventName) != null)
                 {
@@ -65,14 +64,12 @@ public class OC_Hw2 extends OC_Hw
                 }
                 else
                 {
-                    events.add("default");
+                    events.add("trace_default");
                 }
                 index++;
             }
         }
 
-        lineTop.setScreenMaskControl(boardMask);
-        lineBottom.setScreenMaskControl(boardMask);
 
         setSceneXX(currentEvent());
 
@@ -82,24 +79,10 @@ public class OC_Hw2 extends OC_Hw
 
     public void arrowButtonClick() throws Exception
     {
+        playSfxAudio("arrow", true);
+        waitForSecs(0.3f);
         hideArrowButton();
-        playSfxAudio("guidewipe",false);
-        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("width", 1, boardMask),
-                new OBAnimBlock()
-                {
-                    @Override
-                    public void runAnimBlock(float frac)
-                    {
-                        lineBottom.invalidate();
-                        lineTop.invalidate();
-                        guideGroup.invalidate();
-
-                    }
-                }),0.5f,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
-        waitSFX();
-        hideLines();
-        guideGroup.hide();
-        resetGuideMask();
+        animateGuideWipe(guideGroup);
         waitForSecs(0.3f);
         playAudioQueuedScene("FINAL",0.3f,true);
         waitForSecs(3f);
@@ -120,7 +103,7 @@ public class OC_Hw2 extends OC_Hw
             @Override
             public void run() throws Exception
             {
-                demo1();
+                demotrace_1();
             }
         });
     }
@@ -145,7 +128,7 @@ public class OC_Hw2 extends OC_Hw
         guideGroup.setZPosition(4);
 
 
-        setupLinesFor(guideGroup);
+        setupLinesForGroup(guideGroup);
 
         guideGroup.setOpacity(0.3F);
 
@@ -160,7 +143,7 @@ public class OC_Hw2 extends OC_Hw
 
         guideGroup.setScreenMaskControl(boardMask);
 
-        guideGroup.hideMembers("Path.*");
+        guideGroup.hide();
 
         preparePaintForDrawing();
     }
@@ -179,7 +162,7 @@ public class OC_Hw2 extends OC_Hw
 
     public float arrowButtonTimeout()
     {
-        return 5.0f;
+        return 1.5f;
     }
 
     public void cleanUpBoard() throws Exception
@@ -211,26 +194,25 @@ public class OC_Hw2 extends OC_Hw
         waitSFX();
     }
 
+    public void animateLinesOn() throws Exception
+    {
+        playSfxAudio("lineson",false);
+        super.animateLinesOn();
+        waitSFX();
+    }
+
 
     public void showLettersAndPlay() throws Exception
     {
-        int index = 1;
-        for(OBPhoneme pho : currentWord.phonemes())
-        {
-            lockScreen();
-            for(int i=0; i<pho.text.length(); i++)
-            {
-                guideGroup.showMembers(String.format("Path%d_.*",index));
-                index++;
-            }
-
-            unlockScreen();
-            pho.playAudio(this,true);
-            waitForSecs(0.3f);
-        }
+        lockScreen();
+        guideGroup.show();
+        playSfxAudio("wordon",false);
+        unlockScreen();
+        waitSFX();
+        waitForSecs(0.3f);
     }
 
-    public void demo1() throws Exception
+    public void demotrace_1() throws Exception
     {
         presenterOpening();
 

@@ -927,13 +927,18 @@ public class OBPath extends OBControl
 
     public void sizeToBoundingBoxIncludingStroke()
     {
-        RectF bb = boundingBox();
         OBStroke s = ((OBShapeLayer) layer).stroke;
         if (s != null)
         {
             float w = s.lineWidth;
-            bb.inset(-w, -w);
+            sizeToBoundingBoxInset(-w);
         }
+    }
+
+    public void sizeToBoundingBoxInset(float inset)
+    {
+        RectF bb = boundingBox();
+        bb.inset(inset, inset);
         sizeToBox(bb);
     }
 

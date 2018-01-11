@@ -1069,7 +1069,7 @@ public class OBGroup extends OBControl
             if(stroke.getClass() == OBPath.class)
             {
 
-                ((OBPath) stroke).sizeToBoundingBoxIncludingStroke();
+                ((OBPath) stroke).sizeToBoundingBoxInset(-((OBPath) stroke).lineWidth()/2.0f);
                 fullBounds.union(stroke.frame());
             }
         }
@@ -1083,6 +1083,7 @@ public class OBGroup extends OBControl
 
         }
        // this.setPosition(new PointF(fullBounds.left + (fullBounds.right - fullBounds.left) / 2.0f, fullBounds.top + (fullBounds.bottom - fullBounds.top) / 2.0f));
+
         this.setBounds(0,0,fullBounds.right-fullBounds.left,fullBounds.bottom-fullBounds.top);
     }
 
