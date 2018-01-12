@@ -307,7 +307,7 @@ public class OBMainViewController extends OBViewController
         rootView.removeView(v);
     }
 
-    private Class controllerClass (String name, String configPath)
+    public Class controllerClass (String name, String configPath)
     {
         try
         {

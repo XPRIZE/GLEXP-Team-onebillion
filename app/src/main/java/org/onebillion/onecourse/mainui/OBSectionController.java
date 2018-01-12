@@ -2382,6 +2382,12 @@ public class OBSectionController extends OBViewController
         });
     }
 
+    public void goToCard(Class nextSection,String param,boolean withAnimation,String configName)
+    {
+        OBConfigManager.sharedManager.updateConfigPaths(configName,false);
+        goToCard(nextSection,param,withAnimation);
+    }
+
     public void reprompt (final long sttime, final List<Object> audio, float delaySecs)
     {
         reprompt(sttime, audio, delaySecs, null);

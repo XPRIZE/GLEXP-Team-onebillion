@@ -649,6 +649,13 @@ public class OC_SectionController extends OBSectionController {
         return  audioScene.get(index);
     }
 
+    public void showScoreHammerScore(int scoreOutOfTen,boolean questionMode)
+    {
+        String script = questionMode?"scorehammer1":"scorehammer2";
+        Class cls = OBMainViewController.MainViewController().controllerClass("OC_ScoreHammer","oc-playzone");
+        goToCard(cls,String.format("scorehammer;%s/score=%d",script,scoreOutOfTen),false,"oc-playzone");
+    }
+
     @Override
     public void onPause()
     {
