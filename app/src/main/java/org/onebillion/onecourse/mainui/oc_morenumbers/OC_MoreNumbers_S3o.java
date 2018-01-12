@@ -478,6 +478,7 @@ public class OC_MoreNumbers_S3o extends OC_SectionController
 
     public void demo3o() throws Exception
     {
+        waitForSecs(0.5f);
         List<String> demoAudio = getAudioForScene(getPhase(),("DEMO"));
         playAudio(demoAudio.get(0));
         waitAudio();

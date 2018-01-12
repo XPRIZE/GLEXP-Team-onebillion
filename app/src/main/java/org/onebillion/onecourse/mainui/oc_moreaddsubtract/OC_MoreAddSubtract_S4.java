@@ -41,19 +41,26 @@ public class OC_MoreAddSubtract_S4 extends OC_SectionController
         setStatus(STATUS_BUSY);
         super.prepare();
         loadFingers();
-        loadEvent("master");
+        String startEvent = parameters.get("start");
+        loadEvent(String.format("master%s",startEvent));
         eventColour = new ArrayMap<>();
         eventColour = OBMisc.loadEventColours(this);
         eventColour.put("hdiv", OBUtils.highlightedColour(eventColour.get("div")));
         eventColour.put("hmain",OBUtils.highlightedColour(eventColour.get("main")));
         events = Arrays.asList(eventAttributes.get("scenes").split(","));
+        OBMisc.checkAndUpdateFinale(this);
         OBGroup arrow = (OBGroup)objectDict.get("arrowhead");
         arrow.objectDict.get("background").setFillColor(eventColour.get("equation"));
-        freeMode = false;
+        freeMode = OBUtils.getBooleanValue(eventAttributes.get("freemode"));
         subtractMode = OBUtils.getBooleanValue(eventAttributes.get("subtractmode"));
+        eventColour.put("equation",OBUtils.colorFromRGBString(eventAttributes.get("colour_equation")));
         setSceneXX(currentEvent());
-        hideControls("divline_.*");
-        objectDict.get("mainline").hide();
+
+        if(!freeMode)
+        {
+            hideControls("divline_.*");
+            objectDict.get("mainline").hide();
+        }
         OC_Numberlines_Additions.getLabelForEquation(1,(OBGroup)objectDict.get("equation")).show();
     }
 
@@ -74,13 +81,7 @@ public class OC_MoreAddSubtract_S4 extends OC_SectionController
         String[] eqParts = eventAttributes.get("equ").split(",");
         startNum = Integer.valueOf(eqParts[0]);
         correctNum = Integer.valueOf(eqParts[2]);
-        if(OBUtils.getBooleanValue(eventAttributes.get("reload")))
-        {
-            eventColour.put("equation",OBUtils.colorFromRGBString(eventAttributes.get("colour_equation")));
-            freeMode =  OBUtils.getBooleanValue(eventAttributes.get("freemode"));
-            OBGroup arrow = (OBGroup)objectDict.get("arrowhead");
-            arrow.objectDict.get("background").setFillColor(eventColour.get("equation"));
-        }
+
         if(!freeMode)
             eqParts[1] = "88";
 
@@ -268,6 +269,7 @@ public class OC_MoreAddSubtract_S4 extends OC_SectionController
         else
         {
             gotItWrongWithSfx();
+            resetScene();
             long time = setStatus(STATUS_AWAITING_CLICK);
             waitSFX();
             cont.setColour ( eventColour.get("num"));
@@ -424,8 +426,10 @@ public class OC_MoreAddSubtract_S4 extends OC_SectionController
         for(int i=1; i<5; i++)
             OC_Numberlines_Additions.getLabelForEquation(i,(OBGroup)objectDict.get("equation")).show();
 
-        objectDict.get("cover").setPosition(OC_Numberlines_Additions.getLabelForEquation(5,(OBGroup)objectDict.get("equation")).getWorldPosition());
-        objectDict.get("cover").show();
+        OBControl cover = objectDict.get("cover");
+        cover.setPosition(OC_Numberlines_Additions.getLabelForEquation(5,(OBGroup)objectDict.get("equation")).getWorldPosition());
+        cover.setBorderColor(eventColour.get("equation"));
+        cover.show();
         playSfxAudio("equcomplete",false);
         unlockScreen();
         waitSFX();
@@ -511,17 +515,19 @@ public class OC_MoreAddSubtract_S4 extends OC_SectionController
 
     public void demo4a2() throws Exception
     {
+        waitForSecs(0.5f);
+        playAudioScene("DEMO",0,true);
         loadPointer(POINTER_LEFT);
         waitForSecs(0.3f);
-        moveScenePointer(OB_Maths.locationForRect(0.7f,1.05f,OC_Numberlines_Additions.getLabelForEquation(1,(OBGroup)objectDict.get("equation")).getWorldFrame()),-15,0.5f,"DEMO",0,0.3f);
-        moveScenePointer(OB_Maths.locationForRect(0.8f,0.8f,this.bounds()),-35,0.5f,"DEMO",1,0.3f);
+        moveScenePointer(OB_Maths.locationForRect(0.7f,1.05f,OC_Numberlines_Additions.getLabelForEquation(1,(OBGroup)objectDict.get("equation")).getWorldFrame()),-15,0.5f,"DEMO",1,0.3f);
+        moveScenePointer(OB_Maths.locationForRect(0.8f,0.8f,this.bounds()),-35,0.5f,"DEMO",2,0.3f);
         lockScreen();
         showControls("divline_.*");
         objectDict.get("mainline").show();
         playSfxAudio("objectson",false);
         unlockScreen();
         waitSFX();
-        moveScenePointer(OB_Maths.locationForRect(0.6f,0.6f,this.bounds()),-35,0.5f,"DEMO",2,0.5f);
+        moveScenePointer(OB_Maths.locationForRect(0.6f,0.6f,this.bounds()),-35,0.5f,"DEMO",3,0.5f);
         thePointer.hide();
         waitForSecs(0.3f);
         OBMisc.doSceneAudio(4,setStatus(STATUS_AWAITING_CLICK),this);
@@ -601,15 +607,21 @@ public class OC_MoreAddSubtract_S4 extends OC_SectionController
     public void demo4l() throws Exception
     {
         ((OBPath)objectDict.get("cover")).sizeToBoundingBoxIncludingStroke();
+
+        waitForSecs(0.5f);
+        playAudioScene("DEMO",0,true);
+
         loadPointer(POINTER_LEFT);
-        moveScenePointer(OB_Maths.locationForRect(0.7f,0.8f,this.bounds()),-25,0.5f,"DEMO",0,0.3f);
+
         showEquationWithCover();
-        moveScenePointer(OB_Maths.locationForRect(0.6f,1.3f,OC_Numberlines_Additions.getLabelForEquation(3,(OBGroup)objectDict.get("equation")).getWorldFrame()),-15,0.5f,"DEMO",1,0.3f);
-        moveScenePointer(OB_Maths.locationForRect(0.6f,1.1f,objectDict.get("cover").frame()),-15,0.35f,"DEMO",2,0.3f);
+        waitForSecs(0.3);
+        moveScenePointer(OB_Maths.locationForRect(0.7f,0.8f,this.bounds()),-25,0.5f,"DEMO",1,0.3f);
+        moveScenePointer(OB_Maths.locationForRect(0.6f,1.3f,OC_Numberlines_Additions.getLabelForEquation(3,(OBGroup)objectDict.get("equation")).getWorldFrame()),-15,0.5f,"DEMO",2,0.3f);
+        moveScenePointer(OB_Maths.locationForRect(0.6f,1.1f,objectDict.get("cover").frame()),-15,0.35f,"DEMO",3,0.3f);
         PointF loc = OB_Maths.locationForRect(1.4f,-0.1f,objectDict.get("num_14").frame());
         PointF loc2 = OBMisc.copyPoint(loc);
         loc2.y = objectDict.get("mainline").position().y;
-        moveScenePointer(loc,-25,0.5f,"DEMO",3,0.3f);
+        moveScenePointer(loc,-25,0.5f,"DEMO",4,0.3f);
         movePointerToPoint(loc2,-25,0.2f,true);
         numberLineTouch();
         movePointerToPoint(OB_Maths.locationForRect(0.75f,0.8f,this.bounds()),-25,0.5f,true);
@@ -619,7 +631,7 @@ public class OC_MoreAddSubtract_S4 extends OC_SectionController
         playSfxAudio("button",false);
         objectDict.get("button").show();
         waitSFX();
-        moveScenePointer(OB_Maths.locationForRect(1.2f,1.2f,objectDict.get("button").frame()),-25,0.5f,"DEMO",4,0.3f);
+        moveScenePointer(OB_Maths.locationForRect(1.2f,1.2f,objectDict.get("button").frame()),-25,0.5f,"DEMO",5,0.3f);
         OBGroup button = (OBGroup)objectDict.get("button");
         for(int i= 0; i < 5; i++)
         {
@@ -628,11 +640,11 @@ public class OC_MoreAddSubtract_S4 extends OC_SectionController
             makeCurrentJump();
             button.objectDict.get("highlight").hide();
             movePointerToPoint(OB_Maths.locationForRect(1.2f,1.2f,objectDict.get("button").frame()),-25,0.2f,true);
-            playAudioScene("DEMO",5+i,true);
+            playAudioScene("DEMO",6+i,true);
             waitForSecs(0.3f);
         }
         OBLabel label = (OBLabel)objectDict.get("num_15");
-        moveScenePointer(OB_Maths.locationForRect(0.7f,1.1f,label.frame()),-25,0.5f,"DEMO",10,0.3f);
+        moveScenePointer(OB_Maths.locationForRect(0.7f,1.1f,label.frame()),-25,0.5f,"DEMO",11,0.3f);
         movePointerToPoint(OB_Maths.locationForRect(0.5f,0.6f,label.frame()),-25,0.2f,true);
         lockScreen();
         label.setColour(Color.RED);
@@ -646,7 +658,7 @@ public class OC_MoreAddSubtract_S4 extends OC_SectionController
         movePointerToPoint(OB_Maths.locationForRect(0.7f,1.1f,label.frame()),-25,0.2f,true);
         waitForSecs(0.3f);
         OC_Numberlines_Additions.colourEquation((OBGroup)objectDict.get("equation"),1,5,Color.RED,this);
-        playAudioScene("DEMO",11,true);
+        playAudioScene("DEMO",12,true);
         waitForSecs(0.3f);
         OC_Numberlines_Additions.colourEquation((OBGroup)objectDict.get("equation") ,1,5,eventColour.get("equation"),this);
         waitForSecs(0.3f);

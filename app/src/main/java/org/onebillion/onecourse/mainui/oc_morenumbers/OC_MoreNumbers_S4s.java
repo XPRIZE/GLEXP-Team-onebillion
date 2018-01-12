@@ -368,6 +368,7 @@ public class OC_MoreNumbers_S4s extends OC_SectionController
 
     public void demo4s() throws Exception
     {
+        waitForSecs(0.5f);
         showObjs();
         waitForSecs(0.3f);
         lockScreen();

@@ -39,10 +39,11 @@ public class OC_Count100_S3 extends OC_SectionController
 
         loadFingers();
 
-        loadEvent("master3");
+        String startEvent = parameters.get("start");
+        loadEvent(String.format("master%s",startEvent));
         buttonMode = false;
         events = Arrays.asList(eventAttributes.get("scenes").split(","));
-
+        OBMisc.checkAndUpdateFinale(this);
         eventObjects = new ArrayList<>();
         largeNums = new ArrayList<>();
 
@@ -56,11 +57,14 @@ public class OC_Count100_S3 extends OC_SectionController
 
         correctNum =  Integer.valueOf(eventAttributes.get("cnum"));
 
-        for(int i =1; i<=correctNum; i++)
-            eventObjects.get(i-1).show();
+        if(startEvent.equals("3a"))
+        {
+            for (int i = 1; i <= correctNum; i++)
+                eventObjects.get(i - 1).show();
 
+            loadLargeNums();
+        }
 
-        loadLargeNums();
     }
 
     public void start()
@@ -69,7 +73,7 @@ public class OC_Count100_S3 extends OC_SectionController
         {
             public void run() throws Exception
             {
-                demo3a();
+                performSel("demo",currentEvent());
             }
         });
 

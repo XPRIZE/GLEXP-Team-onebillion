@@ -43,6 +43,7 @@ public class OC_MoreNumbers_S5 extends OC_SectionController
         }
 
         events = Arrays.asList(eventAttributes.get("scenes").split(","));
+        OBMisc.checkAndUpdateFinale(this);
         setSceneXX(currentEvent());
     }
 
@@ -86,19 +87,6 @@ public class OC_MoreNumbers_S5 extends OC_SectionController
         startScene();
     }
 
-    public void fin()
-    {
-        try
-        {
-            animateBaloons(true);
-            waitForSecs(0.3f);
-            goToCard(OC_MoreNumbers_S5e.class,"event5" );
-        }
-        catch (Exception e)
-        {
-
-        }
-    }
 
     public void touchDownAtPoint(PointF pt, View v)
     {

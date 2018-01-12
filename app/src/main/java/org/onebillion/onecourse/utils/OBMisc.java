@@ -317,7 +317,7 @@ public class OBMisc
         List<String> audio = sectionController.getAudioForScene(finaleScene, "DEMO");
         if(audio != null)
         {
-            sectionController.audioScenes.put("finale", audio);
+            sectionController.audioScenes.put("finale", sectionController.audioScenes.get(finaleScene));
         }
 
     }

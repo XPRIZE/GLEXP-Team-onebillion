@@ -48,8 +48,9 @@ public class OC_MoreAddSubtract_S6 extends OC_SectionController
         eventColour = OBMisc.loadEventColours(this);
 
         ((OBPath)objectDict.get("box")).sizeToBoundingBoxIncludingStroke();
+        ((OBPath)objectDict.get("cover")).sizeToBoundingBoxIncludingStroke();
         events = Arrays.asList(eventAttributes.get("scenes").split(","));
-
+        OBMisc.checkAndUpdateFinale(this);
         setSceneXX(currentEvent());
     }
 
@@ -117,21 +118,6 @@ public class OC_MoreAddSubtract_S6 extends OC_SectionController
         startPhase();
     }
 
-    @Override
-    public void fin()
-    {
-        try
-        {
-            waitForSecs(0.3f);
-            goToCard(OC_MoreAddSubtract_S6i.class, "event6");
-        }
-        catch (Exception e)
-        {
-
-        }
-
-
-    }
 
     @Override
     public void touchDownAtPoint(final PointF pt, View v)
@@ -378,12 +364,14 @@ public class OC_MoreAddSubtract_S6 extends OC_SectionController
 
     public void demo6a1() throws Exception
     {
+        waitForSecs(0.5f);
+        playAudioScene("DEMO",0,true);
         waitForSecs(0.3f);
         loadPointer(POINTER_LEFT);
-        moveScenePointer(OB_Maths.locationForRect(0.4f,1.1f,objectDict.get("box").frame()),-35,0.5f,"DEMO",0 ,0.3f);
+        moveScenePointer(OB_Maths.locationForRect(0.4f,1.1f,objectDict.get("box").frame()),-35,0.5f,"DEMO",1 ,0.3f);
         showPhaseEquation();
         waitForSecs(0.3f);
-        moveScenePointer(OB_Maths.locationForRect(0.7f,0.7f,objectDict.get("box").frame()),-20,0.5f,"DEMO",1,0.5f);
+        moveScenePointer(OB_Maths.locationForRect(0.7f,0.7f,objectDict.get("box").frame()),-20,0.5f,"DEMO",2,0.5f);
         thePointer.hide();
     }
 

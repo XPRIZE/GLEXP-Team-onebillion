@@ -318,7 +318,6 @@ public class OBVideoPlayer extends OBControl
         player.setOnSeekCompleteListener(this);
         player.setOnErrorListener(this);
         player.setOnVideoSizeChangedListener(this);
-
         try
         {
             player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
