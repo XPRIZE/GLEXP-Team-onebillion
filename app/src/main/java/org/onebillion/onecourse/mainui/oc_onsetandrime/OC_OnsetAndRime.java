@@ -172,6 +172,13 @@ public class OC_OnsetAndRime extends OC_Reading
         return maxlen;
     }
 
+    public float mDashWidth()
+    {
+        Map attributes = lineAttributes(font);
+        float w = WidthOfText("m", attributes, spaceExtra);
+        return w;
+    }
+
     public void createBottomLabels()
     {
         List<OBLabel>botlabs = new ArrayList<>();
@@ -277,7 +284,7 @@ public class OC_OnsetAndRime extends OC_Reading
         OBControl d = objectDict.get("dash");
         dash = new OBControl();
         dash.setFrame(d.frame());
-        dash.setWidth(widestPrefixWidth());
+        dash.setWidth(mDashWidth());
         dash.setRight(rimeLabel.left() );
         dash.setFillColor(d.fillColor() );
         dash.setZPosition(d.zPosition() );
@@ -431,6 +438,12 @@ public class OC_OnsetAndRime extends OC_Reading
 
         RectF bb = boundingBoxForText(rime, font);
         dash.setTop(rimeLabel.bottom()  + bb.top);
+
+        float w1 = dash.left();
+        float w2 = bounds() .width() - rimeLabel.right();
+        float offset =(w1 + w2) / 2 - w1;
+        dash.setLeft(dash.left() + offset);
+        rimeLabel.setLeft(rimeLabel.left() + offset);
     }
 
     public void fin()
@@ -450,7 +463,7 @@ public class OC_OnsetAndRime extends OC_Reading
             lockScreen();
             rimeLabel.setColour(Color.RED);
             unlockScreen();
-            playAudioQueued(Arrays.asList((Object)syllID));
+            playAudioQueued(Arrays.asList((Object)syllID),true);
 
             waitForSecs(0.8f);
             MainActivity.mainActivity.fatController.completeEvent(this);
@@ -723,6 +736,7 @@ public class OC_OnsetAndRime extends OC_Reading
 
         waitForSecs(0.4f);
         thePointer.hide();
+        waitForSecs(0.4f);
         nextScene();
 
     }

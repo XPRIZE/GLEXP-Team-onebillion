@@ -156,7 +156,7 @@ public class OC_CapsFirst extends OC_Wordcontroller
 
     public void doAudio(String prompt) throws Exception
     {
-        setReplayAudio((List<Object>)(Object)currentAudio(String.format("%@.REPEAT",prompt)));
+        setReplayAudio((List<Object>)(Object)currentAudio(String.format("%s.REPEAT",prompt)));
         audioLock = playAudioQueuedScene(prompt,false);
     }
 
@@ -483,7 +483,7 @@ public class OC_CapsFirst extends OC_Wordcontroller
         try
         {
             Class cnm = Class.forName("org.onebillion.onecourse.mainui.oc_caps.OC_CapsMore");
-            goToCard(cnm,String.format("capsmore;capsfirst/letters(%",l),false);
+            goToCard(cnm,String.format("capsmore;capsfirst/letters=%s",l),false);
         } catch (ClassNotFoundException e)
         {
             e.printStackTrace();
