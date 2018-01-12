@@ -1067,7 +1067,7 @@ public class OC_Generic_Event extends OC_SectionController
 
     public void checkAndUpdateFinale()
     {
-        String finaleScene = String.format("finale%s", events.get(events.size() - 1));
+        String finaleScene = events.size() > 0 ? String.format("finale%s", events.get(events.size() - 1)) : "";
         if (audioScenes.get(finaleScene) != null && ((Map<String,Object>)audioScenes.get(finaleScene)).get("FINAL") != null)
         {
             audioScenes.put("finale", audioScenes.get(finaleScene));
