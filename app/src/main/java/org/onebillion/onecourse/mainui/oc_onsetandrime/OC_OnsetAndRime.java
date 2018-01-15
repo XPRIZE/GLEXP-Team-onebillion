@@ -736,7 +736,7 @@ public class OC_OnsetAndRime extends OC_Reading
 
         waitForSecs(0.4f);
         thePointer.hide();
-        waitForSecs(0.4f);
+        waitForSecs(0.65f);
         nextScene();
 
     }
@@ -1012,7 +1012,7 @@ public class OC_OnsetAndRime extends OC_Reading
                     objectDict.get("imageback").show();
                     unlockScreen();
                     playAudioWithHighlight();
-                    waitForSecs(0.9f);
+                    waitForSecs(1.15f);
                     playSfxAudio("picoff",false);
                     lockScreen();
                     image.hide();
