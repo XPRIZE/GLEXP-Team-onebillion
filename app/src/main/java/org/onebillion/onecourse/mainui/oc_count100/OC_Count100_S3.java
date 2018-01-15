@@ -108,7 +108,8 @@ public class OC_Count100_S3 extends OC_SectionController
             }
 
             eventObjects.clear();
-
+            if(objectDict.get("obj").getClass() == OBGroup.class)
+                OBMisc.colourObjectFromAttributes((OBGroup)objectDict.get("obj"));
             for(int i=1; i<51; i++)
             {
                 OBControl cont =  objectDict.get("obj").copy();
