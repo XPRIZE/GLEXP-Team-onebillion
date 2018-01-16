@@ -364,6 +364,7 @@ public class OC_Pws extends OC_SectionController
 
     public void highlightAndAudio(OBLabel label) throws Exception
     {
+        label.setHighRange(-1,-1,eventColours.get("normal"));
         label.setColour(eventColours.get("highlight"));
         playAudio((String)label.propertyValue("audio"));
         waitAudio();
@@ -482,15 +483,16 @@ public class OC_Pws extends OC_SectionController
                 screenLabel.setPosition(locControl.position());
                 screenLabel.setColour(eventColours.get("inactive"));
                 targetLabel.setProperty("target",screenLabel);
+
                 attachControl(screenLabel);
                 screenLabels.add(screenLabel);
                 targetLabel.setProperty("drop_loc",OBMisc.copyPoint((PointF)objectDict.get("drop_area").position()));
                 targetLabel.setProperty("anim_scale",1.0f);
+
                 targetLabels.add(targetLabel);
                 targetLabelsDict.put(phonemeid,targetLabel);
                 targetLabel.setZPosition(10);
                 attachControl(targetLabel);
-                targetLabel.setReversedScreenMaskControl(wordBag.mask);
                 index++;
                 if(minScale > targetLabel.scale())
                     minScale = targetLabel.scale();
@@ -589,6 +591,7 @@ public class OC_Pws extends OC_SectionController
         }
         lockScreen();
         curTarget.setProperty("anim_scale",1.0f);
+        curTarget.setHighRange(-1,-1,eventColours.get("normal"));
         curTarget.setColour(eventColours.get("normal"));
         curTarget.enable();
         if(demomatchShowDropTarget())

@@ -58,6 +58,7 @@ public class OC_WordBag
 
         RectF maskTopFrame = control.objectDict.get("mask").getWorldFrame();
         OBControl maskTop = control.objectDict.get("mask").copy();
+        maskTop.setScale(control.scale());
         OBControl maskBg = new OBControl();
         maskBg.setFrame(maskTopFrame.left, maskTopFrame.top, maskTopFrame.right, sectionController.bounds().height());
         maskBg.setBackgroundColor(Color.BLACK);
@@ -168,6 +169,7 @@ public class OC_WordBag
         Collections.reverse(reversedObjects);
         for(OBControl cont :reversedObjects)
         {
+            cont.setReversedScreenMaskControl(mask);
             cont.setProperty("start_scale",cont.scale());
             cont.setPosition(control.position());
             if(cont.width() > control.width()*0.9f)
@@ -238,6 +240,11 @@ public class OC_WordBag
     {
         controller.playSfxAudio(sfx,false);
 
+        if(!outside)
+        {
+            for(OBControl obj : objs)
+                obj.setReversedScreenMaskControl(mask);
+        }
         List<OBControl> objsArray =  new ArrayList<>(objs);
         if(outside)
             Collections.reverse(objsArray);
@@ -295,6 +302,11 @@ public class OC_WordBag
         if(together)
         {
             OBAnimationGroup.runAnims(allAnims,0.8,true,OBAnim.ANIM_EASE_IN_EASE_OUT,controller);
+        }
+        if(outside)
+        {
+            for(OBControl obj : objs)
+                obj.setMaskControl(null);
         }
         stopDotsAnimation();
     }
