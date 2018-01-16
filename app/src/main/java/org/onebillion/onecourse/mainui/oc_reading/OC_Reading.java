@@ -61,7 +61,8 @@ public class OC_Reading extends OC_SectionController
     public boolean reading,questionsAvailable,slowWordsAvailable,paragraphlessMode,nextOK,RAOK;
     public int picJustify,textJustification;
     String indentString;
-    protected int demoType,introNo,numberOfTextLines;
+    protected int numberOfTextLines;
+    boolean doArrowDemo;
     int pageNo,maxPageNo,readingMode;
     public List<OBReadingPara> paragraphs;
     public OBGroup textBox;
@@ -447,15 +448,7 @@ public class OC_Reading extends OC_SectionController
         pageNo = 0;
         if (parameters.get("page") != null)
             pageNo = Integer.parseInt(parameters.get("page"));
-        if (parameters.get("intro") != null)
-            introNo = Integer.parseInt(parameters.get("intro"));
-        demoType = OB_RD_DEMO_NONE;
-        String s = parameters.get("demo");
-        if (s!=null)
-            if (s.equals("full"))
-                demoType = OB_RD_DEMO_FULL;
-            else if (s.equals("partial"))
-                demoType = OB_RD_DEMO_PARTIAL;
+        doArrowDemo = !OBUtils.coalesce(parameters.get("arrowdemo"),"true").equals("false");
         initialised = true;
         paragraphs = loadPageXML(getLocalPath("book.xml"));
         loadTemplate();

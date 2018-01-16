@@ -36,7 +36,10 @@ public class OC_ReadingReadToMe extends OC_Reading
                             demoa();
                         waitForSecs(0.7);
                         readPage();
-                        democ();
+                        waitForSecs(0.3f);
+                        showNextArrow(true);
+                        if (doArrowDemo)
+                            democ();
                         setStatus(STATUS_AWAITING_CLICK);
                     }
                     else
@@ -103,8 +106,6 @@ public class OC_ReadingReadToMe extends OC_Reading
 
     public void democ() throws Exception
     {
-        waitForSecs(0.3f);
-        showNextArrow(true);
         PointF destPoint = OB_Maths.locationForRect(-0.1f, 0.3f, MainViewController().bottomRightButton .frame());
         loadPointerStartPoint(OB_Maths.locationForRect(0.5f, 1.1f, bounds()),destPoint);
         movePointerToPoint(destPoint,-1,true);

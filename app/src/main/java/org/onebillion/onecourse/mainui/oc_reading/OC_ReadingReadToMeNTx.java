@@ -60,7 +60,10 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
                         waitForSecs(0.7);
                         readTitle();
                         waitForSecs(0.5);
-                        democ();
+                        waitForSecs(0.3f);
+                        showNextArrowAndRA(true);
+                        if (doArrowDemo)
+                            democ();
                         setStatus(STATUS_AWAITING_CLICK);
                     }
                     else
@@ -199,10 +202,13 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
         presenter.walk((PointF) presenter.control.propertyValue("restpos"));
         presenter.faceFront();
         waitForSecs(0.2f);
+        boolean usecq = OBUtils.coalesce(parameters.get("cq"),"false").equals("true");
+
         Map<String,List> eventd = (Map<String, List>) audioScenes.get("a");
 
         List<Object> aud = eventd.get("DEMO");
-        presenter.speak(aud,this);
+        int idx = usecq?1:0;
+        presenter.speak(Arrays.asList(aud.get(idx)),this);
         waitForSecs(0.4f);
         PointF currPos = presenter.control.position();
         PointF destpos = new PointF(-presenter.control.width()/2, currPos.y);
@@ -211,8 +217,6 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
 
     public void democ() throws Exception
     {
-        waitForSecs(0.3f);
-        showNextArrowAndRA(true);
         PointF destPoint = OB_Maths.locationForRect(-0.1f, 0.3f, MainActivity.mainViewController.bottomRightButton.frame());
         loadPointerStartPoint(OB_Maths.locationForRect(0.5f, 1.1f,new RectF(bounds())),destPoint);
         movePointerToPoint(destPoint,-1,true);
