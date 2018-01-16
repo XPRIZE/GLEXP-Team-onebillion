@@ -1,4 +1,4 @@
-package org.onebillion.onecourse.mainui.oc_lettersandsounds;
+package org.onebillion.onecourse.mainui.oc_videorec;
 
 import android.graphics.Color;
 import android.graphics.PointF;

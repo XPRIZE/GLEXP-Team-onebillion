@@ -108,7 +108,7 @@ public class OBWord extends OBSyllable
                 fullpath = String.format("%s%s.%s", fullpath, partPhoWordAudio, "etpa");
                 List<List<Double>> phoTiming = OBUtils.ComponentTimingsForWord(fullpath);
                 //
-                if (phoTiming.size() > 0)
+                if (phoTiming.size() > 0 && phoTiming.size() >= phonemes.size())
                 {
                     List timingPhonemes = new ArrayList();
                     int index = 0;

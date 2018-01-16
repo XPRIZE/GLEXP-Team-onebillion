@@ -1,4 +1,4 @@
-package org.onebillion.onecourse.mainui.oc_lettersandsounds;
+package org.onebillion.onecourse.mainui.oc_makewordsyl;
 
 import android.graphics.Color;
 import android.graphics.PointF;
@@ -11,6 +11,7 @@ import org.onebillion.onecourse.controls.*;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
+import org.onebillion.onecourse.mainui.oc_meetletter.OC_LetterBox;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBPhoneme;
