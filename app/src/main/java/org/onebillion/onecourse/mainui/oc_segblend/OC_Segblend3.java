@@ -414,7 +414,7 @@ public class OC_Segblend3 extends OC_Wordcontroller
         joinComponents(wordLabels,leftOffsets,mainLabel);
         highlightAndSpeakWord();
         waitForSecs(0.5f);
-        waitForSecs(0.2f);
+        waitForSecs(0.45f);
     }
 
 
