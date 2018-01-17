@@ -114,6 +114,8 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         memoryUsageMap = new HashMap<String, List<String>>();
         //
         sharedManager = this;
+        //
+        MainActivity.log("OBSystemsManager is up and running for device with UUID: " + device_getUUID());
     }
 
     public boolean hasWriteSettingsPermission ()
@@ -1057,32 +1059,38 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 
     public String device_getUUID()
     {
-        String uuid = "unknown_uuid";
+        String uuid =  Build.SERIAL;
         //
-        try
+        if (uuid == null)
         {
-            List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
-            for (NetworkInterface nif : all)
+            uuid = "unknown_uuid";
+            //
+            try
             {
-                if (!nif.getName().equalsIgnoreCase("wlan0")) continue;
-                byte[] macBytes = nif.getHardwareAddress();
-                if (macBytes != null)
+                List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
+                for (NetworkInterface nif : all)
                 {
-                    StringBuilder res1 = new StringBuilder();
-                    for (byte b : macBytes)
+                    if (!nif.getName().equalsIgnoreCase("wlan0")) continue;
+                    byte[] macBytes = nif.getHardwareAddress();
+                    if (macBytes != null)
                     {
-                        res1.append(Integer.toHexString(b & 0xFF) + ":");
+                        StringBuilder res1 = new StringBuilder();
+                        for (byte b : macBytes)
+                        {
+                            res1.append(Integer.toHexString(b & 0xFF) + ":");
+                        }
+                        if (res1.length() > 0)
+                        {
+                            res1.deleteCharAt(res1.length() - 1);
+                        }
+                        uuid = res1.toString().replace(":", "");
                     }
-                    if (res1.length() > 0)
-                    {
-                        res1.deleteCharAt(res1.length() - 1);
-                    }
-                    uuid = res1.toString().replace(":", "");
                 }
             }
-        }
-        catch (Exception ex)
-        {
+            catch (Exception ex)
+            {
+                //
+            }
         }
         //
         return uuid;
