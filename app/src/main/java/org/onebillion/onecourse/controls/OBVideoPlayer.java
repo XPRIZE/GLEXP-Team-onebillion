@@ -6,6 +6,7 @@ import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
 
+import android.media.PlaybackParams;
 import android.opengl.GLES20;
 import android.util.Log;
 import android.util.Size;

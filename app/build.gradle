@@ -67,7 +67,7 @@ android {
     }
     productFlavors {
         pedro_ {
-            minSdkVersion 22
+            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.pedro'
             targetSdkVersion 23
             versionCode 1
@@ -79,7 +79,7 @@ android {
             ]
         }
         alan_ {
-            minSdkVersion 21
+            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.alan'
             targetSdkVersion 23
             versionCode 1
@@ -91,7 +91,7 @@ android {
             ]
         }
         michal_ {
-            minSdkVersion 21
+            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.michal'
             targetSdkVersion 23
             versionCode 1
@@ -103,7 +103,7 @@ android {
             ]
         }
         sw_judges_ {
-            minSdkVersion 22
+            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.judges'
             targetSdkVersion 23
             versionCode 1
@@ -115,7 +115,7 @@ android {
             ]
         }
         ny_judges_ {
-            minSdkVersion 22
+            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.judges.ny'
             targetSdkVersion 23
             versionCode 1
@@ -127,7 +127,7 @@ android {
             ]
         }
         sw_community_ {
-            minSdkVersion 22
+            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child'
             targetSdkVersion 23
             versionCode 1
@@ -139,7 +139,7 @@ android {
             ]
         }
         sw_test_ {
-            minSdkVersion 22
+            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.test'
             targetSdkVersion 23
             versionCode 1
@@ -151,7 +151,7 @@ android {
             ]
         }
         enGB_community_ {
-            minSdkVersion 22
+            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.en_GB'
             targetSdkVersion 23
             versionCode 1
@@ -163,7 +163,7 @@ android {
             ]
         }
         enGB_test_ {
-            minSdkVersion 22
+            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.en_GB.test'
             targetSdkVersion 23
             versionCode 1
