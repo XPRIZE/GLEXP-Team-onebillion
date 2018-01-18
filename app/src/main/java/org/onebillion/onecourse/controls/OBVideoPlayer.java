@@ -390,8 +390,10 @@ public class OBVideoPlayer extends OBControl
         }
         catch (Exception e)
         {
+            MainActivity.log(e.getMessage());
         }
     }
+
 
     public void start()
     {
@@ -401,7 +403,13 @@ public class OBVideoPlayer extends OBControl
         }
         catch (Exception e)
         {
+            MainActivity.log(e.getMessage());
         }
+    }
+
+    public void resetPlayerLock()
+    {
+        condition = playerLock.newCondition();
     }
 
     public void start(OBUtils.RunLambda completionBlock)
@@ -427,12 +435,41 @@ public class OBVideoPlayer extends OBControl
 
         }
     }
+
+
+    public void seekTo(int fromTime, OBUtils.RunLambda seekCompletion)
+    {
+
+        if(seekCompletion != null)
+            seekCompletionBlock = seekCompletion;
+        try
+        {
+            player.seekTo(fromTime);
+        }
+        catch(Exception e)
+        {
+
+        }
+    }
+
+    public void setPlayRate(float rate)
+    {
+        try
+        {
+            player.setPlaybackParams(player.getPlaybackParams().setSpeed(rate));
+
+        }
+        catch (Exception e)
+        {
+
+        }
+    }
     @Override
     public void onPrepared(MediaPlayer mp)
     {
         if (!playAfterPrepare)
         {
-            player.seekTo(0);
+            player.seekTo((int)fromTime);
             return;
         }
         if (fromTime > 0)
@@ -483,7 +520,7 @@ public class OBVideoPlayer extends OBControl
 
     }
 
-    private void finishVideoWait()
+    public void finishVideoWait()
     {
         if(condition == null)
             return;
