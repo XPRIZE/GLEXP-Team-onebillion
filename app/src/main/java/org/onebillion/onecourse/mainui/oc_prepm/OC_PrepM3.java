@@ -1,4 +1,4 @@
-package org.onebillion.onecourse.mainui.oc_pzmath;
+package org.onebillion.onecourse.mainui.oc_prepm;
 
 import android.graphics.Color;
 import android.graphics.PointF;
@@ -6,7 +6,6 @@ import android.graphics.RectF;
 import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
-import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.mainui.oc_numberlines.OC_Numberlines_Additions;
@@ -25,7 +24,7 @@ import java.util.Map;
  * Created by michal on 18/01/2018.
  */
 
-public class OC_EgmaSubTest3 extends OC_EgmaWithVideo
+public class OC_PrepM3 extends OC_PrepMWithVideo
 {
     List<List<Integer> > equationList;
     boolean additionMode;
@@ -375,7 +374,7 @@ public class OC_EgmaSubTest3 extends OC_EgmaWithVideo
 
     public void demoCount() throws Exception
     {
-        prepareEgmaVideo(String.format("counting-%d",maxNum));
+        prepareCountingVideo(String.format("counting-%d",maxNum));
         waitForSecs(1f);
         lockScreen();
         for(OBControl con : eventTargets)

@@ -1,4 +1,4 @@
-package org.onebillion.onecourse.mainui.oc_egragrid;
+package org.onebillion.onecourse.mainui.oc_egrid;
 
 import android.graphics.Color;
 
@@ -8,7 +8,6 @@ import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
 
-import java.io.WriteAbortedException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

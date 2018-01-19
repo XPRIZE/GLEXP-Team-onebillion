@@ -1,4 +1,4 @@
-package org.onebillion.onecourse.mainui.oc_pzmath;
+package org.onebillion.onecourse.mainui.oc_prepm;
 
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Color;
@@ -30,7 +30,7 @@ import java.util.TimerTask;
  * Created by michal on 17/01/2018.
  */
 
-public class OC_EgmaWithVideo extends OC_SectionController
+public class OC_PrepMWithVideo extends OC_SectionController
 {
     public OBVideoPlayer videoPlayer;
     public List<OBLabel> eventTargets;
@@ -41,7 +41,7 @@ public class OC_EgmaWithVideo extends OC_SectionController
     Timer videoTimer;
     int nextNumAudio;
 
-    public void prepareEgmaVideo(String name)
+    public void prepareCountingVideo(String name)
     {
         lockScreen();
         videoName = name;

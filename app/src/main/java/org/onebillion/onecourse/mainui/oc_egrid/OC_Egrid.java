@@ -1,4 +1,4 @@
-package org.onebillion.onecourse.mainui.oc_egragrid;
+package org.onebillion.onecourse.mainui.oc_egrid;
 
 import android.graphics.Color;
 import android.graphics.PointF;
@@ -10,7 +10,6 @@ import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.mainui.OC_SectionController;
-import org.onebillion.onecourse.utils.OBFont;
 import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;

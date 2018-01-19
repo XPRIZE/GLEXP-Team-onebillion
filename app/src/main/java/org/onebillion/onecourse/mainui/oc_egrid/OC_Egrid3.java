@@ -1,4 +1,4 @@
-package org.onebillion.onecourse.mainui.oc_egragrid;
+package org.onebillion.onecourse.mainui.oc_egrid;
 
 import android.graphics.Color;
 

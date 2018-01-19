@@ -1,8 +1,7 @@
-package org.onebillion.onecourse.mainui.oc_pzmath;
+package org.onebillion.onecourse.mainui.oc_prepm;
 
 import android.graphics.Color;
 import android.graphics.PointF;
-import android.util.ArrayMap;
 import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
@@ -17,13 +16,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Created by michal on 18/01/2018.
  */
 
-public class OC_EgmaSubTest5 extends OC_EgmaWithVideo
+public class OC_PrepM5 extends OC_PrepMWithVideo
 {
     boolean additionMode;
     Map<String,Integer> eventColours;
@@ -106,9 +104,12 @@ public class OC_EgmaSubTest5 extends OC_EgmaWithVideo
                 {
                     public void run() throws Exception
                     {
-                        playAudio(null);
+
                         if(objectDict.get("q_image").frame().contains(pt.x, pt.y))
-                            playAudioQueued(OBUtils.insertAudioInterval(currentQuestionAudio,300));
+                        {
+                            playAudio(null);
+                            playAudioQueued(OBUtils.insertAudioInterval(currentQuestionAudio, 300));
+                        }
                     }
                 } );
             }
@@ -184,7 +185,7 @@ public class OC_EgmaSubTest5 extends OC_EgmaWithVideo
 
     public void demoCount() throws Exception
     {
-        prepareEgmaVideo(String.format("counting-%d",maxNum));
+        prepareCountingVideo(String.format("counting-%d",maxNum));
         waitForSecs(1f);
         lockScreen();
         for(OBControl con : eventTargets)
