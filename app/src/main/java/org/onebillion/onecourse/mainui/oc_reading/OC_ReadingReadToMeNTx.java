@@ -676,6 +676,7 @@ public class OC_ReadingReadToMeNTx extends OC_ReadingReadToMe
     {
         OBPath smallStar = StarWithScale(applyGraphicScale(8), false);
         smallStar.setFillColor(Color.WHITE);
+        smallStar.setStrokeColor(Color.argb((int)(0.7*255),(int)(0.3*255),(int)(0.3*255),(int)(0.3*255)));
         smallStar.enCache();
         //OBPath shape = (OBPath) objectDict.get("shape");
         //attachControl(shape);

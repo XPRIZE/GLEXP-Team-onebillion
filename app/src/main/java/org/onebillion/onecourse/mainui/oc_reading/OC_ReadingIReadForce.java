@@ -136,16 +136,19 @@ public class OC_ReadingIReadForce extends OC_ReadingIRead
 
     public void demoNext() throws Exception
     {
-        waitForSecs(0.3f);
-        PointF destPoint = OB_Maths.locationForRect(-0.1f, 0.3f, MainViewController().bottomRightButton.frame());
-        loadPointerStartPoint(OB_Maths.locationForRect(0.5f, 1.1f, new RectF(bounds())),destPoint);
-        movePointerToPoint(destPoint,-1,true);
-        waitForSecs(0.05f);
-        Map<String,List> eventd = (Map<String, List>) audioScenes.get("c");
-        playAudioQueued(eventd.get("DEMO"),true);
-        waitForSecs(0.5f);
-        thePointer.hide();
-    }
+        if (doArrowDemo)
+        {
+            waitForSecs(0.3f);
+            PointF destPoint = OB_Maths.locationForRect(-0.1f, 0.3f, MainViewController().bottomRightButton.frame());
+            loadPointerStartPoint(OB_Maths.locationForRect(0.5f, 1.1f, new RectF(bounds())),destPoint);
+            movePointerToPoint(destPoint,-1,true);
+            waitForSecs(0.05f);
+            Map<String,List> eventd = (Map<String, List>) audioScenes.get("c");
+            playAudioQueued(eventd.get("DEMO"),true);
+            waitForSecs(0.5f);
+            thePointer.hide();
+        }
+     }
 
     public void nextWord() throws Exception
     {
