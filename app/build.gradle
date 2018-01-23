@@ -1,6 +1,9 @@
 
 repositories {
-    jcenter()
+    maven {
+        url "https://jcenter.bintray.com"
+    }
+//    jcenter()
 }
 
 apply plugin: 'com.android.application'
