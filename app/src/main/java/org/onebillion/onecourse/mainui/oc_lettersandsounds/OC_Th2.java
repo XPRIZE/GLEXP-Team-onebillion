@@ -507,7 +507,20 @@ public class OC_Th2 extends OC_Generic_WordsEvent
         movePointerToPoint(position, 0, 0.9f, true);
         waitForSecs(0.3);
         //
-        action_intro(showText, true, timestamp);
+        if (mode.equals("word"))
+        {
+            if (showText)
+            {
+                label.show();
+                waitForSecs(0.3);
+            }
+        }
+        action_playSound(correctHead, timestamp, true);
+        waitForSecs(0.3);
+        //
+        lockScreen();
+        action_showMouthFrame(correctHead, "mouth_7");
+        unlockScreen();
         waitForSecs(0.3);
         //
         action_playNextDemoSentence(false); // Remember, this lets you listen again.
@@ -785,14 +798,19 @@ public class OC_Th2 extends OC_Generic_WordsEvent
                 waitSFX();
                 waitForSecs(0.3);
                 //
-                action_intro(showText, true, timestamp);
+                if (mode.equals("word"))
+                {
+                    if (showText)
+                    {
+                        label.show();
+                        waitForSecs(0.3);
+                    }
+                }
+                action_playSound(control, timestamp, true);
                 waitForSecs(0.3);
                 //
                 lockScreen();
-                for (OBControl head : touchables)
-                {
-                    action_showMouthFrame((OBGroup) head, "mouth_7");
-                }
+                action_showMouthFrame(control, "mouth_7");
                 unlockScreen();
                 waitForSecs(0.3);
                 //

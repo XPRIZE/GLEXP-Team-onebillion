@@ -48,7 +48,7 @@
 	<string>177,33,254</string>
 	<!--  -->
 	<key>localisation_language_id</key>
-	<string>en_GB</string>
+	<string>sw</string>
 	<!--  -->
 	<key>localisation_fallback_language_id</key>
 	<string>en_GB</string>
@@ -267,13 +267,13 @@
 	<string>oc-pedro</string>
 	<!--  -->
 	<key>app_menu_class</key>
-	<string>OC_Menu</string>
+	<string>OC_SimpleListMenu</string>
 	<!--  -->
 	<key>app_fat_controller_class</key>
-	<string>OC_FatController</string>
+	<string>OBFatController</string>
 	<!--  -->
 	<key>app_masterlist</key>
-	<string>community_enGB</string>
+	<string>early_listening_sw</string>
 	<!--  -->
 	<key>app_masterlist_playzone</key>
 	<string>playzone_enGB</string>
