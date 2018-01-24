@@ -126,7 +126,7 @@ public class OC_PrepR3 extends OC_Reading
 
     public boolean showBackButton()
     {
-        return true;
+        return false;
     }
 
     public void miscSetUp()
@@ -251,6 +251,13 @@ public class OC_PrepR3 extends OC_Reading
                 lab.setRight(wdth + lineStart);
             }
             textGroup.insertMember(lab,0,"");
+            if (lab.bottom() > textGroup.bounds().bottom)
+            {
+                float diff = lab.bottom() - textGroup.bounds().bottom;
+                RectF tgf = new RectF(textGroup.frame());
+                tgf.bottom += diff;
+                textGroup.setFrame(tgf);
+            }
             w.frame = new RectF(lab.frame());
             w.label = lab;
             w.homePosition = new PointF(lab.position().x,lab.position().y);
@@ -428,7 +435,7 @@ public class OC_PrepR3 extends OC_Reading
 
     public void setSceneb() throws Exception
     {
-        OBUtils.runOnOtherThreadDelayed(15,new OBUtils.RunLambda()
+        OBUtils.runOnOtherThreadDelayed(10,new OBUtils.RunLambda()
         {
             public void run() throws Exception
             {
