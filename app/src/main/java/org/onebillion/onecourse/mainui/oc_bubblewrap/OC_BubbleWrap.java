@@ -45,13 +45,20 @@ public class OC_BubbleWrap extends OC_SectionController
 
     public void prepare()
     {
-        currentObjectId = OB_Maths.randomInt(1, 51);
+
         imgBubbles = new ArrayList<>();
         textBubbles = new ArrayList<>();
         setStatus(STATUS_BUSY);
         super.prepare();
         loadFingers();
         loadEvent("master");
+
+        if(parameters.containsKey("image"))
+            currentObjectId = OBUtils.getIntValue(parameters.get("image"));
+
+        if(!parameters.containsKey("image") || currentObjectId < 1)
+            currentObjectId = OB_Maths.randomInt(1, 51);
+
         /*for(int i=1; i<4; i++)
             OBAudioManager.audioManager.prepare("bubblewrap_pop",String.format("special%d",i));*/
         currentAudioIndex = 1;

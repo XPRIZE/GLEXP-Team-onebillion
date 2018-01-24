@@ -54,7 +54,8 @@ public class OC_PlayZoneMenu extends OC_Menu
     static float TOUCH_TOLERANCE  = 20;
 
     boolean newMediaAdded, mediaIsPlaying, animateFloat, iconsScrollMode, iconsDeleteMode, boxTouchMode;
-    List<OBGroup> mediaIcons, menuButtons;
+    List<OBGroup> mediaIcons;
+            List<OBImage> menuButtons;
     List<OC_PlayZoneAsset> mediaAssets;
     OBControl currentMediaLayer;
     OBGroup mediaIconsGroup;
@@ -150,6 +151,8 @@ public class OC_PlayZoneMenu extends OC_Menu
         scrollHitBox = new RectF(btmLeft.right(), btmLeft.top(), btmRight.left() , btmLeft.bottom());
 
         playZoneMasterlist = OBConfigManager.sharedManager.getMasterlistForPlayzone();
+
+        playZoneMasterlist = "playzone_sw";
         String xmlPath = String.format("masterlists/%s/units.xml", playZoneMasterlist);
 
         OBControl backButton = objectDict.get("button_back");
@@ -296,7 +299,7 @@ public class OC_PlayZoneMenu extends OC_Menu
             }
             else
             {
-                setButtonLoc((OBGroup)target,OB_Maths.AddPoints(pt, dragOffset));
+                setButtonLoc(target,OB_Maths.AddPoints(pt, dragOffset));
                 measureDragSpeed(target);
             }
             unlockScreen();
@@ -391,7 +394,7 @@ public class OC_PlayZoneMenu extends OC_Menu
                         @Override
                         public void run() throws Exception
                         {
-                            checkSectionButton((OBGroup)targ);
+                            checkSectionButton(targ);
                         }
                     });
                 }
@@ -575,10 +578,10 @@ public class OC_PlayZoneMenu extends OC_Menu
         }
     }
 
-    public void checkSectionButton(final OBGroup targ) throws Exception
+    public void checkSectionButton(final OBControl targ) throws Exception
     {
-        OBControl highlight = targ.objectDict.get("highlight");
-        highlight.show();
+        //OBControl highlight = targ.objectDict.get("highlight");
+        targ.highlight();
         stopFloatLoop();
         playAudio(null);
         OBUtils.runOnMainThread(new OBUtils.RunLambda()
@@ -592,7 +595,7 @@ public class OC_PlayZoneMenu extends OC_Menu
 
         waitForSecs(0.5f);
         targ.enable();
-        highlight.hide();
+        targ.lowlight();
         //  if(!started)
         // setStatus(STATUS_AWAITING_CLICK);
 
@@ -739,7 +742,7 @@ public class OC_PlayZoneMenu extends OC_Menu
     {
         long currentTime = System.currentTimeMillis();
         float frameFrac = (currentTime - lastFloatLoopTick)/(TICK_VALUE*1000.0f);
-        for(OBGroup button : menuButtons)
+        for(OBControl button : menuButtons)
         {
             if(button.isEnabled())
                 moveButtonBySpeed(button,frameFrac);
@@ -791,13 +794,13 @@ public class OC_PlayZoneMenu extends OC_Menu
     {
         for(int i=0; i< menuButtons.size(); i++)
         {
-            OBGroup button = menuButtons.get(i);
+            OBControl button = menuButtons.get(i);
             if(!(boolean)button.propertyValue("collide"))
                 continue;
             boolean precollided = false;
             for(int j=i+1; j< menuButtons.size(); j++)
             {
-                OBGroup button2 = menuButtons.get(j);
+                OBControl button2 = menuButtons.get(j);
                 float dist = OB_Maths.PointDistance(button.position(), button2.position());
                 float preCollisionDistance = buttonRadius(button) + buttonRadius(button2);
                 if(dist < preCollisionDistance)
@@ -901,7 +904,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         if(Math.abs(speedY) > MAX_SPEED)
             speedY *= decay;
         setControlSpeed(button,speedX,speedY);
-        setButtonLoc((OBGroup)button,loc ,(boolean)button.propertyValue("collide"));
+        setButtonLoc(button,loc ,(boolean)button.propertyValue("collide"));
     }
 
     public void moveMediaIconsBySpeedFrac(float frameFrac)
@@ -948,12 +951,12 @@ public class OC_PlayZoneMenu extends OC_Menu
         return true;
     }
 
-    public void setButtonLoc(OBGroup button,PointF loc)
+    public void setButtonLoc(OBControl button,PointF loc)
     {
         setButtonLoc(button,loc,true);
     }
 
-    public boolean setButtonLoc(OBGroup button,PointF loc, boolean collide)
+    public boolean setButtonLoc(OBControl button,PointF loc, boolean collide)
     {
         boolean didCollide = false;
         float speedX = (float)button.propertyValue("speedx");
@@ -1015,7 +1018,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         return didCollide;
     }
 
-    public void buttonSquish(OBGroup button,float angle, float frac)
+    public void buttonSquish(OBControl button,float angle, float frac)
     {
         if(button.propertyValue("squish_frac") != null)
         {
@@ -1148,7 +1151,8 @@ public class OC_PlayZoneMenu extends OC_Menu
                             {
                                 continue;
                             }
-                            OBGroup menuButton = (OBGroup)objectDict.get(specialIcon ? "menu_button_special" : "menu_button");
+                            OBImage button = icon;
+                           /* OBGroup menuButton = (OBGroup)objectDict.get(specialIcon ? "menu_button_special" : "menu_button");
                             OBGroup button = (OBGroup)menuButton.copy();
                             attachControl(button);
                             button.setPosition(menuButton.position());
@@ -1195,8 +1199,9 @@ public class OC_PlayZoneMenu extends OC_Menu
                             button.setPosition(OB_Maths.locationForRect(0.5f,0.5f,this.bounds()));
                             button.setZPosition(10);
                             if(!specialIcon)
-                                button.setScale(menuButton.scale() * scaleOptions.get(index%scaleOptions.size()));
+                                button.setScale(menuButton.scale() * scaleOptions.get(index%scaleOptions.size()));*/
                             menuButtons.add(button);
+                            attachControl(button);
                             prepareForSpeedMeasure(button);
                             button.setProperty("start_scale",button.scale());
                             button.setProperty("radius",button.width()*0.5f);
