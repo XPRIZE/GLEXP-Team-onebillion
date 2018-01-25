@@ -38,7 +38,7 @@ public class OC_BubbleWrap extends OC_SectionController
     List<List<OBGroup>> textBubbles,imgBubbles,currentPopArray;
     boolean animatePopping;
     long lastPopLoopTick;
-    int currentAudioIndex, currentPhase, currentObjectId;
+    int  currentPhase, currentObjectId;
     OBImage screenImage, earthMap;
     List<OBLabel> textLabels;
     OBControl targetArea;
@@ -61,7 +61,6 @@ public class OC_BubbleWrap extends OC_SectionController
 
         /*for(int i=1; i<4; i++)
             OBAudioManager.audioManager.prepare("bubblewrap_pop",String.format("special%d",i));*/
-        currentAudioIndex = 1;
         OBControl imageBox = objectDict.get("image_box");
         RectF fitRect = loadBubblesInBox(imageBox,10,6,imgBubbles);
         imageBox.setFrame(fitRect);
@@ -112,6 +111,7 @@ public class OC_BubbleWrap extends OC_SectionController
 
     public void cleanUp()
     {
+        super.cleanUp();
         stopPopLoop();
     }
 
@@ -135,6 +135,13 @@ public class OC_BubbleWrap extends OC_SectionController
                     if(targ != null)
                     {
                         popBubble((OBGroup)targ);
+                       /* for(List<OBGroup> cons : currentPopArray)
+                            for(OBGroup con : cons)
+                            {
+                                popBubble(con);
+
+                                waitForSecs(0.1);
+                            }*/
                     }
                 }
             });
@@ -260,10 +267,6 @@ public class OC_BubbleWrap extends OC_SectionController
         bubbleBg.objectDict.get("colour_bg").hide();
         bubbleBg.setProperty("pop",true);
         playSFX("bubblewrap_pop");
-        //OBAudioManager.audioManager.playOnChannel(String.format("special%d",currentAudioIndex));
-        currentAudioIndex++;
-        if(currentAudioIndex>3)
-            currentAudioIndex=1;
     }
 
     public void startPopAnimLoop() throws Exception
@@ -345,6 +348,8 @@ public class OC_BubbleWrap extends OC_SectionController
                                 con.setScaleX(currentScale);
                             else
                                 con.setScaleY(currentScale);
+                            if(currentScale == 0)
+                                con.hide();
 
                             if(currentScale != 0)
                                 popComplete = false;
@@ -361,6 +366,13 @@ public class OC_BubbleWrap extends OC_SectionController
         if(popComplete)
         {
             animatePopping = false;
+            lockScreen();
+            for(List<OBGroup> cons : currentPopArray)
+            {
+                for (OBGroup con : cons)
+                    con.hide();
+            }
+            unlockScreen();
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
                 public void run() throws Exception
@@ -411,6 +423,7 @@ public class OC_BubbleWrap extends OC_SectionController
         screenImage.hide();
         OBControl textBox = objectDict.get("text_box");
         float fitWidth = textBox.width()*0.7f;
+        float fitHeight = textBox.height()*0.45f;
         textLabels = new ArrayList<>();
         OBLabel titleLabel = new OBLabel(titleNode.contents,OBUtils.StandardReadingFontOfSize(50));
         if(titleLabel.width() > fitWidth)
@@ -437,8 +450,9 @@ public class OC_BubbleWrap extends OC_SectionController
         OBTextLayer textLayer = (OBTextLayer)descLabel.layer;
         textLayer.justification = OBTextLayer.JUST_LEFT;
         descLabel.sizeToBoundingBox();
+        if(descLabel.height() > fitHeight)
+            descLabel.setScale(descLabel.scale() * fitHeight/descLabel.height());
         descLabel.setPosition(OB_Maths.locationForRect(0.5f,0.7f,textBox.frame()));
-        descLabel.sizeToBoundingBox();
         descLabel.setLeft(textBox.left() + applyGraphicScale(5));
         descLabel.setZPosition(5);
         descLabel.setColour(Color.BLACK);
@@ -610,7 +624,10 @@ public class OC_BubbleWrap extends OC_SectionController
             waitForSecs(0.5f);
         }
         waitForSecs(5f);
-        exitEvent();
+        if(!this._aborting)
+        {
+            exitEvent();
+        }
     }
 
 }
