@@ -17,11 +17,11 @@ import java.util.Map;
 
 public class OCM_User extends DBObject
 {
-    public int masterlistid, userid;
+    public int studylistid, playzonelistid, librarylistid, userid;
     public String name;
 
     private static final String[] stringFields = {"name"};
-    private static final String[] intFields = {"userid", "masterlistid"};
+    private static final String[] intFields = {"userid", "studylistid", "playzonelistid", "librarylistid"};
 
     public OCM_User()
     {
@@ -48,17 +48,22 @@ public class OCM_User extends DBObject
     }
 
 
-    public static OCM_User initAndSaveUserInDB(DBSQL db, String name)
+    public static OCM_User initAndSaveUserInDB(DBSQL db, String name, int studylist, int playzonelist, int librarylist)
     {
         ContentValues contentValues = new ContentValues();
         contentValues.put("name", name);
+        contentValues.put("studylistid", studylist);
+        contentValues.put("librarylistid", librarylist);
+        contentValues.put("playzonelistid", playzonelist);
         long rowId = db.doInsertOnTable(DBSQL.TABLE_USERS,contentValues);
         if(rowId > -1)
         {
             OCM_User user = new OCM_User();
             user.name = name;
             user.userid = (int)rowId;
-            user.masterlistid = 1;
+            user.studylistid = studylist;
+            user.librarylistid = librarylist;
+            user.playzonelistid = playzonelist;
             return user;
         }
         else

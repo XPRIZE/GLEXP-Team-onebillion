@@ -22,6 +22,7 @@ import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OC_Menu;
 import org.onebillion.onecourse.mainui.OC_SectionController;
+import org.onebillion.onecourse.utils.MlUnit;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimBlock;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
@@ -33,6 +34,8 @@ import org.onebillion.onecourse.utils.OBXMLManager;
 import org.onebillion.onecourse.utils.OBXMLNode;
 import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OCM_FatController;
+import org.onebillion.onecourse.utils.OCM_MlUnit;
+import org.onebillion.onecourse.utils.OCM_MlUnitInstance;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -55,7 +58,7 @@ public class OC_PlayZoneMenu extends OC_Menu
 
     boolean newMediaAdded, mediaIsPlaying, animateFloat, iconsScrollMode, iconsDeleteMode, boxTouchMode;
     List<OBGroup> mediaIcons;
-            List<OBImage> menuButtons;
+    List<OBImage> menuButtons;
     List<OC_PlayZoneAsset> mediaAssets;
     OBControl currentMediaLayer;
     OBGroup mediaIconsGroup;
@@ -66,7 +69,6 @@ public class OC_PlayZoneMenu extends OC_Menu
     float dragTravelDistance;
     float leftLimit, rightLimit, topLimit, bottomLimit;
     OCM_FatController fatController;
-    String playZoneMasterlist;
 
     @Override
     public void onPause()
@@ -77,7 +79,7 @@ public class OC_PlayZoneMenu extends OC_Menu
             if(currentMediaLayer.propertyValue("gradient_manager") != null)
                 ((OBShaderControl)currentMediaLayer.propertyValue("gradient_manager")).stopAnimation();
             else if(currentMediaLayer == videoPlayer)
-                    videoPlayer.pause();
+                videoPlayer.pause();
 
         }
     }
@@ -91,7 +93,7 @@ public class OC_PlayZoneMenu extends OC_Menu
             if(currentMediaLayer.propertyValue("gradient_manager") != null)
                 ((OBShaderControl)currentMediaLayer.propertyValue("gradient_manager")).startAnimation(this);
             else if(currentMediaLayer == videoPlayer)
-                    videoPlayer.start();
+                videoPlayer.start();
         }
     }
 
@@ -150,10 +152,6 @@ public class OC_PlayZoneMenu extends OC_Menu
         OBControl btmRight = objectDict.get("bottom_bar_right");
         scrollHitBox = new RectF(btmLeft.right(), btmLeft.top(), btmRight.left() , btmLeft.bottom());
 
-        playZoneMasterlist = OBConfigManager.sharedManager.getMasterlistForPlayzone();
-
-        playZoneMasterlist = "playzone_sw";
-        String xmlPath = String.format("masterlists/%s/units.xml", playZoneMasterlist);
 
         OBControl backButton = objectDict.get("button_back");
         backButton.setZPosition(50);
@@ -165,7 +163,8 @@ public class OC_PlayZoneMenu extends OC_Menu
         else
             boxTouchMode = false;
 
-        loadMenuButtonsForXml(xmlPath);
+        List<OCM_MlUnit> playzoneUnits = fatController.getUnitsForPlayzone();
+        loadMenuButtonsForUnits(playzoneUnits);
 
         objectDict.get("bottom_bar").setZPosition(20);
         objectDict.get("bottom_bar_gradient_left").setZPosition(49);
@@ -176,7 +175,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         {
             loadEvent("box");
             OBGroup box = (OBGroup)this.objectDict.get("box");
-           // box.setScale(applyGraphicScale(0.9f));
+            // box.setScale(applyGraphicScale(0.9f));
             box.show();
             //box.setRasterScale(1.4f*box.scale());
             for(OBControl gemControl : box.filterMembers("gem_.*"))
@@ -1036,27 +1035,9 @@ public class OC_PlayZoneMenu extends OC_Menu
 
     public boolean startSectionButton(OBControl button)
     {
-        Map<String,String> buttonData = (Map<String,String>)button.propertyValue("data");
-        String target = (String)buttonData.get("target");
-        String config = (String)buttonData.get("config");
-        String params = (String)buttonData.get("params");
-        String lang = (String)buttonData.get("lang");
-        if(target != null)
-        {
-            if(config != null)
-                OBConfigManager.sharedManager.updateConfigPaths(config, false, lang != null ? lang : "en_GB");
-
-            if(MainViewController().pushViewControllerWithNameConfig(target,config != null ? config :"oc-playzone",true,true,params))
-            {
-                return true;
-            }
-            return false;
-
-        }
-        else
-        {
-            return false;
-        }
+        OCM_MlUnit unit = (OCM_MlUnit)button.propertyValue("unit");
+        fatController.startUnit(unit,OCM_MlUnitInstance.INSTANCE_TYPE_PLAYZONE,null);
+        return true;
     }
 
     public void startDeleteMode()
@@ -1114,117 +1095,31 @@ public class OC_PlayZoneMenu extends OC_Menu
         unlockScreen();
     }
 
-    public void loadMenuButtonsForXml(String xmlPath)
+    public void loadMenuButtonsForUnits(List<OCM_MlUnit> units)
     {
-        if (xmlPath != null)
+
+        menuButtons = new ArrayList<>();
+        for(OCM_MlUnit unit : units)
         {
-            menuButtons = new ArrayList<>();
-            List<String> colours = OBUtils.randomlySortedArray(Arrays.asList(eventAttributes.get("button_colours").split(";")));
-            int index = 0;
-            List<Float> scaleOptions = OBUtils.randomlySortedArray(Arrays.asList(0.95f,0.975f,1.0f,1.025f,1.05f));
-            try
+            String completePath = unit.pathToIcon(false);
+            OBImage icon = OBImageManager.sharedImageManager().imageForPath(completePath);
+            if(icon == null)
             {
-                OBXMLManager xmlman = new OBXMLManager();
-                InputStream is = OBUtils.getInputStreamForPath(xmlPath);
-                List<OBXMLNode> xml = xmlman.parseFile(is);
-                if(xml.size() > 0)
-                {
-                    OBXMLNode rootNode = xml.get(0);
-                    List<OBXMLNode> xmlLevels = rootNode.childrenOfType("level");
-                    for(OBXMLNode xmlLevel : xmlLevels)
-                    {
-                        List<OBXMLNode> xmlunits = xmlLevel.childrenOfType("unit");
-                        for (OBXMLNode n : xmlunits)
-                        {
-                            boolean specialIcon = false;
-                            Map<String,String> map = new ArrayMap<>();
-                            map.put("config", n.attributeStringValue("config"));
-                            map.put("target", n.attributeStringValue("target"));
-                            map.put("params", n.attributeStringValue("params"));
-                            map.put("lang", n.attributeStringValue("lang"));
-                            if(n.attributeStringValue("special") != null)
-                                specialIcon = true;
-                            String iconsPath = String.format("masterlists/%s/icons", playZoneMasterlist);
-                            String completePath = String.format("%s/%s.png",iconsPath,n.attributeStringValue("icon"));
-                            OBImage icon = OBImageManager.sharedImageManager().imageForPath(completePath);
-                            if(icon == null)
-                            {
-                                continue;
-                            }
-                            OBImage button = icon;
-                           /* OBGroup menuButton = (OBGroup)objectDict.get(specialIcon ? "menu_button_special" : "menu_button");
-                            OBGroup button = (OBGroup)menuButton.copy();
-                            attachControl(button);
-                            button.setPosition(menuButton.position());
-                            button.setScale(menuButton.scale());
-                            button.show();
-
-                            //OBMisc.scaleControlToControl(icon, button,true);
-                            //icon.setRasterScale(icon.scale());
-                            icon.setPosition(button.position());
-
-                            if(!specialIcon)
-                            {
-                                int colour = OBUtils.colorFromRGBString(colours.get(index % colours.size()));
-
-                                button.objectDict.get("colour").setFillColor(colour);
-                                OBRadialGradientPath topGradient = (OBRadialGradientPath) button
-                                        .objectDict.get("top_gradient");
-                                int[] gradientColours = topGradient.gradientLayer.colours;
-                                gradientColours[gradientColours.length - 1] = colour;
-                                topGradient.gradientLayer.colours = gradientColours;
-                            }
-                            //
-                            OBControl iconMask = button.objectDict.get("icon").copy();
-                            iconMask.setPosition(menuButton.position());
-                            if(!specialIcon)
-                                iconMask.show();
-
-                            PointF relativePoint2 = OB_Maths.relativePointInRectForLocation(icon.position(), button.getWorldFrame());
-                            button.insertMember(icon,2,"button_icon");
-                            // resize factor is to fit the stars in the special icons inside the mask
-                            float resizeFactor = (specialIcon) ? 0.85f : 1.0f;
-                            // 0.5 is due the icons being designed for pixel (high res) and not being processed as such
-                            icon.setScale(applyGraphicScale(icon.scale() * 0.5f * resizeFactor));
-                            icon.setScale(icon.scale()/button.scale());
-                            icon.setPosition(OB_Maths.locationForRect(relativePoint2, button.bounds()));
-                            icon.setZPosition(2);
-                            //
-                            PointF relativePoint = OB_Maths.relativePointInRectForLocation(iconMask.position(), icon.getWorldFrame());
-                            iconMask.setScale(1.0f/icon.scale());
-                            iconMask.setPosition(OB_Maths.locationForRect(relativePoint, icon.bounds()));
-                            if(!specialIcon)
-                                icon.setMaskControl(iconMask);
-                            button.objectDict.get("top_layer").setZPosition(3);
-                            button.setPosition(OB_Maths.locationForRect(0.5f,0.5f,this.bounds()));
-                            button.setZPosition(10);
-                            if(!specialIcon)
-                                button.setScale(menuButton.scale() * scaleOptions.get(index%scaleOptions.size()));*/
-                            menuButtons.add(button);
-                            attachControl(button);
-                            prepareForSpeedMeasure(button);
-                            button.setProperty("start_scale",button.scale());
-                            button.setProperty("radius",button.width()*0.5f);
-                            button.setProperty("data",map);
-                            if(!specialIcon)
-                                index++;
-                            if(boxTouchMode)
-                                button.hide();
-
-                        }
-
-                    }
-
-                }
+                continue;
             }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-            }
+            OBImage button = icon;
 
+            menuButtons.add(button);
+            attachControl(button);
+            prepareForSpeedMeasure(button);
+            button.setProperty("start_scale",button.scale());
+            button.setProperty("radius",button.width()*0.5f);
+            button.setProperty("unit",unit);
+
+            if(boxTouchMode)
+                button.hide();
         }
 
-        Collections.reverse(menuButtons);
     }
 
 
@@ -1240,21 +1135,21 @@ public class OC_PlayZoneMenu extends OC_Menu
         mbg.show();
         mbg.setZPosition(0.5f);
         OBControl thumbnail = null;
-        if(asset.type == OC_PlayZoneAsset.ASSET_VIDEO)
+        if(asset.typeid == OC_PlayZoneAsset.ASSET_VIDEO)
         {
             mbg.setFillColor(Color.RED);
             thumbnail = OBImageManager.sharedImageManager().imageForPath(OC_PlayZoneAsset.pathToAsset(asset.thumbnail));
         }
-        else if(asset.type == OC_PlayZoneAsset.ASSET_DOODLE)
+        else if(asset.typeid == OC_PlayZoneAsset.ASSET_DOODLE)
         {
             mbg.setFillColor(Color.BLUE);
             thumbnail = OBImageManager.sharedImageManager().imageForPath(OC_PlayZoneAsset.pathToAsset(asset.thumbnail));
         }
-        else if(asset.type == OC_PlayZoneAsset.ASSET_TEXT)
+        else if(asset.typeid == OC_PlayZoneAsset.ASSET_TEXT)
         {
             mbg.setFillColor(Color.GREEN);
             thumbnail = OBImageManager.sharedImageManager().imageForPath(OC_PlayZoneAsset.pathToAsset(asset.thumbnail));
-
+/*
             if (thumbnail == null)
             {
                 Map<String,String> dataDict = asset.paramsDictionary();
@@ -1277,7 +1172,7 @@ public class OC_PlayZoneMenu extends OC_Menu
                 background.setBackgroundColor(Color.WHITE);
                 background.setZPosition (1);
                 thumbnail = new OBGroup(Arrays.asList(background,thumbnailText,overlay));
-            }
+            }*/
         }
         mrect.setPosition(thumbnail.position());
         mrect.setZPosition(1);
@@ -1342,12 +1237,12 @@ public class OC_PlayZoneMenu extends OC_Menu
             public void run() throws Exception
             {
                 final OC_PlayZoneAsset asset = (OC_PlayZoneAsset)icon.propertyValue("asset");
-                if (asset.type == OC_PlayZoneAsset.ASSET_VIDEO)
+                if (asset.typeid == OC_PlayZoneAsset.ASSET_VIDEO)
                 {
                     loadVideoForAsset(asset, icon);
                     mediaIsPlaying = true;
                     setStatus(STATUS_AWAITING_CLICK);
-                } else if (asset.type == OC_PlayZoneAsset.ASSET_TEXT)
+                } else if (asset.typeid == OC_PlayZoneAsset.ASSET_TEXT)
                 {
                     OBUtils.runOnMainThread(
                             new OBUtils.RunLambda()
@@ -1372,7 +1267,7 @@ public class OC_PlayZoneMenu extends OC_Menu
                             }
                     );
 
-                } else if (asset.type == OC_PlayZoneAsset.ASSET_DOODLE)
+                } else if (asset.typeid == OC_PlayZoneAsset.ASSET_DOODLE)
                 {
                     OBUtils.runOnMainThread(
                             new OBUtils.RunLambda()

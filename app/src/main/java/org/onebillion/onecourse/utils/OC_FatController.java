@@ -1416,14 +1416,14 @@ public class OC_FatController extends OBFatController
         return OC_PlayZoneAsset.assetsFromDBForUserId(currentUser.userid);
     }
 
-    public boolean savePlayZoneAssetForCurrentUserType(int type,String thumbnail,Map<String,String> params)
+    public boolean savePlayZoneAssetForCurrentUserType(int typeid,String thumbnail,Map<String,String> params)
     {
         boolean result = false;
         DBSQL db = null;
         try
         {
             db = new DBSQL(true);
-            result = OC_PlayZoneAsset.saveAssetInDBForUserId(db,currentUser.userid,type,thumbnail,params);
+            result = OC_PlayZoneAsset.saveAssetInDBForUserId(db,currentUser.userid,typeid,thumbnail,params) > 0;
         }
         catch(Exception e)
         {

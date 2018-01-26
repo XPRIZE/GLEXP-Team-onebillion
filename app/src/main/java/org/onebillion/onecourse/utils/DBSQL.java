@@ -15,6 +15,7 @@ import java.util.Map;
  */
 public class DBSQL
 {
+    public final static String TABLE_MASTERLISTS = "masterlists";
     public final static String TABLE_UNITS = "units";
     public final static String TABLE_PREFERENCES = "preferences";
     public final static String TABLE_UNIT_INSTANCES = "unitinstances";

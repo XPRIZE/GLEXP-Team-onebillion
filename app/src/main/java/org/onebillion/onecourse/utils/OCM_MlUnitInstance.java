@@ -17,45 +17,55 @@ import java.util.Map;
 
 public class OCM_MlUnitInstance extends DBObject
 {
-    public final static int INSTANCE_TYPE_STUDY = 1;
-    public final static int INSTANCE_TYPE_REVIEW = 2;
+    public final static int INSTANCE_TYPE_STUDY = 1,INSTANCE_TYPE_REVIEW = 2, INSTANCE_TYPE_PLAYZONE=3, INSTANCE_TYPE_LIBRARY=4;
+    public final static int STATUS_STARTED = 1,
+            STATUS_COMPLETED = 2,
+            STATUS_USER_CLOSED =3,
+            STATUS_UNIT_TIMEOUT = 10,
+            STATUS_SESSION_LOCKED = 11,
+            STATUS_BATTERY_LOW = 12;
 
-    public long unitid;
-    public int userid, sessionid, seqNo, elapsedTime, type, starColour, replayAudioCount;
-    public float score;
+    public long unitid, assetid;
+    public int userid, sessionid, seqNo, elapsedTime, typeid, starColour, replayAudioCount, statusid;
+    public int scoreCorrect, scoreWrong;
     public long startTime, endTime;
+    public String extra;
 
     public OBSectionController sectionController;
     public OCM_MlUnit mlUnit;
 
-    private static final String[] intFields = {"userid","sessionid","seqNo","elapsedTime","type","starColour"};
-    private static final String[] floatFields = {"score"};
-    private static final String[] longFields = {"startTime","endTime","unitid"};
+    private static final String[] intFields = {"userid","sessionid","seqNo","elapsedTime","statusid","typeid","starColour","scoreCorrect", "scoreWrong"};
+    private static final String[] longFields = {"startTime","endTime","unitid","assetid"};
+    private static final String[] stringFields = {"extra"};
 
     public OCM_MlUnitInstance()
     {
-        score = 0;
+        scoreCorrect = 0;
+        scoreWrong = 0;
         elapsedTime = 0;
         startTime = 0;
         endTime = 0;
         starColour = -1;
+        statusid = STATUS_STARTED;
         replayAudioCount = 0;
+        assetid = -1;
+        extra = null;
     }
 
 
-    public static OCM_MlUnitInstance initWithMlUnit(OCM_MlUnit unit, int userid, int sessionid, long starttime, int week, int type)
+    public static OCM_MlUnitInstance initWithMlUnit(OCM_MlUnit unit, int userid, int sessionid, long starttime, int level, int typeid)
     {
-        return initInDBWithMlUnit(unit,userid,sessionid,starttime,week,type);
+        return initInDBWithMlUnit(unit,userid,sessionid,starttime,level,typeid);
     }
 
-    private static OCM_MlUnitInstance initInDBWithMlUnit(OCM_MlUnit unit, int userid, int sessionid, long starttime, int week, int type)
+    private static OCM_MlUnitInstance initInDBWithMlUnit(OCM_MlUnit unit, int userid, int sessionid, long starttime, int week, int typeid)
     {
         OCM_MlUnitInstance mlui = new OCM_MlUnitInstance();
         mlui.userid = userid;
         mlui.unitid = unit.unitid;
         mlui.sessionid = sessionid;
         mlui.mlUnit = unit;
-        mlui.type = type;
+        mlui.typeid = typeid;
 
         DBSQL db = null;
         try
@@ -63,9 +73,9 @@ public class OCM_MlUnitInstance extends DBObject
             db = new DBSQL(true);
             Cursor cursor = db.prepareRawQuery(String.format("SELECT MAX(seqNo)as seqNo FROM %s AS UI " +
                     "JOIN %s AS S ON S.userid = UI.userid AND S.sessionid = UI.sessionid " +
-                            "WHERE UI.userid = ? AND UI.unitid = ? AND UI.type = ? AND S.day > ? AND S.day <= ?",
+                            "WHERE UI.userid = ? AND UI.unitid = ? AND UI.typeid = ? AND S.day > ? AND S.day <= ?",
                     DBSQL.TABLE_UNIT_INSTANCES, DBSQL.TABLE_SESSIONS),
-                    Arrays.asList(String.valueOf(userid), String.valueOf(unit.unitid),String.valueOf(type)
+                    Arrays.asList(String.valueOf(userid), String.valueOf(unit.unitid),String.valueOf(typeid)
                             ,String.valueOf((week-1)*7),String.valueOf(week*7)));
 
             int columnIndex = cursor.getColumnIndex("seqNo");
@@ -101,20 +111,25 @@ public class OCM_MlUnitInstance extends DBObject
         whereMap.put("userid",String.valueOf(userid));
         whereMap.put("unitid",String.valueOf(unitid));
         whereMap.put("seqNo",String.valueOf(seqNo));
-        whereMap.put("type",String.valueOf(type));
+        whereMap.put("typeid",String.valueOf(typeid));
 
         ContentValues contentValues = new ContentValues();
         contentValues.put("endTime",endTime);
-        contentValues.put("score",score);
+        contentValues.put("scoreCorrect",scoreCorrect);
+        contentValues.put("scoreWrong",scoreWrong);
         contentValues.put("elapsedTime",elapsedTime);
         contentValues.put("starColour",starColour);
+        contentValues.put("statusid",statusid);
+        contentValues.put("assetid",assetid);
+        if(extra != null)
+            contentValues.put("extra",extra);
         boolean result = db.doUpdateOnTable(DBSQL.TABLE_UNIT_INSTANCES,whereMap,contentValues) > 0;
         return result;
     }
 
     public Boolean saveToDB(DBSQL db)
     {
-        ContentValues contentValues = getContentValues(null,intFields,longFields,floatFields);
+        ContentValues contentValues = getContentValues(stringFields,intFields,longFields,null);
         boolean result = db.doInsertOnTable(DBSQL.TABLE_UNIT_INSTANCES,contentValues) > 0;
         return result;
     }

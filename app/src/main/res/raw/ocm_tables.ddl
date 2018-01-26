@@ -3,7 +3,7 @@ create table units
     unitid integer primary key,
     masterlistid int not null,
     unitIndex int not null,
-    week int not null default 1,
+    level int not null default 1,
     key text not null,
     icon text,
     params text,
@@ -11,24 +11,38 @@ create table units
     target text not null,
     targetDuration real,
     passThreshold real,
+    typeid int not null default 0,
     lang text,
-    constraint unique_const unique(masterlistid,unitIndex) on conflict fail
+    constraint unique_const unique(masterlistid,unitIndex) on conflict fail,
+    foreign key(masterlistid) references masterlists(masterlistid)
+);
+
+create table masterlists
+(
+    masterlistid integer primary key,
+    name text not null,
+    folder text not null,
+    token big unsigned int not null default 0
 );
 
 create table unitinstances
 (
     userid integer not null references users(userid) on delete restrict,
     unitid integer not null references units(unitid) on delete restrict,
-    type integer not null,
+    typeid integer not null,
     seqNo int not null,
     sessionid integer not null,
-    score real not null default 0,
+    scoreCorrect int not null default 0,
+    scoreWrong int not null default 0,
     elapsedTime int not null default 0,
     startTime big unsigned int not null default 0,
     endTime big unsigned int default 0,
     starColour integer not null default -1,
+    statusid integer not null default -1,
+    extra text,
+    assetid integer not null default -1,
     foreign key(userid,sessionid) references sessions(userid,sessionid),
-    constraint pkey primary key (userid,sessionid,unitid,type,seqno) on conflict fail
+    constraint pkey primary key (userid,sessionid,unitid,typeid,seqno) on conflict fail
 );
 
 create table sessions
@@ -45,7 +59,9 @@ create table sessions
 create table users
 (
     userid integer primary key,
-    masterlistid integer not null default 1,
+    studylistid int not null,
+    playzonelistid int not null,
+    librarylistid int not null,
     name text not null,
     deleted int not null default 0
 );
@@ -58,12 +74,13 @@ create table preferences
 
 create table playzoneassets
 (
-    userid integer not null references users(userid) on delete restrict,
     assetid integer primary key,
-    type integer not null default 1,
+    userid integer not null references users(userid) on delete restrict,
+    typeid integer not null default 1,
     thumbnail text,
     params text,
-    createTime big unsigned int not null default 0
+    createTime big unsigned int not null default 0,
+    deleted int not null default 0
 );
 
 
