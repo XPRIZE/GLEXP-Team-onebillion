@@ -37,7 +37,7 @@ public class OC_Pws extends OC_SectionController
             MODE_BAG = 2;
 
     int currentMode, targetIndex;
-    boolean boxTouchMode;
+    boolean boxTouchMode, showDemo;
 
 
     public Map<String,OBPhoneme> componentDict;
@@ -55,6 +55,7 @@ public class OC_Pws extends OC_SectionController
         super.prepare();
         loadFingers();
         loadEvent("master");
+        showDemo = OBUtils.getBooleanValue(parameters.get("demo"));
         eventColours = new ArrayMap<>();
         eventColours = OBMisc.loadEventColours(this);
         componentDict = OBUtils.LoadWordComponentsXML(true);
@@ -570,39 +571,44 @@ public class OC_Pws extends OC_SectionController
         animateTargetWobble();
         waitForSecs(0.3f);
         loadPointer(POINTER_LEFT);
-        moveScenePointer(OB_Maths.locationForRect(0.7f,0.9f,this.bounds()),-20,0.5f,"DEMO",0,0.3f);
-        OBLabel curTarget = currentTarget();
-        movePointerToPoint(curTarget.position(),-30,0.3f,true);
-        curTarget.setProperty("anim_scale",1.2f);
-        OBLabel dropTarget = (OBLabel)curTarget.propertyValue("target");
-        OBMisc.moveControlWithAttached(curTarget,Arrays.asList(thePointer),demomatchDropTargetLoc(curTarget),0.5f,OBAnim.ANIM_EASE_IN_EASE_OUT, this);
-        animateWobble = false;
-        snapTarget(curTarget);
-        movePointerToPoint(OB_Maths.locationForRect(0.9f,0.9f,this.bounds()),-30,0.5f,true);
-        if(demomatchPlayAudio())
+        if(showDemo)
         {
-            waitForSecs(0.3f);
-            highlightAndAudio(curTarget);
+            moveScenePointer(OB_Maths.locationForRect(0.7f, 0.9f, this.bounds()), -20, 0.5f, "DEMO", 0, 0.3f);
+
+            OBLabel curTarget = currentTarget();
+            movePointerToPoint(curTarget.position(), -30, 0.3f, true);
+            curTarget.setProperty("anim_scale", 1.2f);
+            OBLabel dropTarget = (OBLabel) curTarget.propertyValue("target");
+            OBMisc.moveControlWithAttached(curTarget, Arrays.asList(thePointer), demomatchDropTargetLoc(curTarget), 0.5f, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+            animateWobble = false;
+            snapTarget(curTarget);
+            movePointerToPoint(OB_Maths.locationForRect(0.9f, 0.9f, this.bounds()), -30, 0.5f,
+                    true);
+            if (demomatchPlayAudio())
+            {
+                waitForSecs(0.3f);
+                highlightAndAudio(curTarget);
+                waitForSecs(0.3f);
+            } else
+            {
+                waitForSecs(1f);
+            }
+            lockScreen();
+            curTarget.setProperty("anim_scale", 1.0f);
+            curTarget.setHighRange(-1, -1, eventColours.get("normal"));
+            curTarget.setColour(eventColours.get("normal"));
+            curTarget.enable();
+            if (demomatchShowDropTarget())
+                dropTarget.show();
+            else
+                dropTarget.hide();
+            unlockScreen();
+            OBAnimationGroup.runAnims(Arrays.asList(OBAnim.moveAnim((PointF) curTarget.propertyValue("drop_loc"), curTarget))
+
+                    , 0.3f, true, OBAnim.ANIM_EASE_OUT, this);
+            playAudioScene("DEMO", 1, true);
             waitForSecs(0.3f);
         }
-        else
-        {
-            waitForSecs(1f);
-        }
-        lockScreen();
-        curTarget.setProperty("anim_scale",1.0f);
-        curTarget.setHighRange(-1,-1,eventColours.get("normal"));
-        curTarget.setColour(eventColours.get("normal"));
-        curTarget.enable();
-        if(demomatchShowDropTarget())
-            dropTarget.show();
-        else
-            dropTarget.hide();
-        unlockScreen();
-        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.moveAnim((PointF)curTarget.propertyValue("drop_loc"),curTarget))
-                ,0.3f,true,OBAnim.ANIM_EASE_OUT,this);
-        playAudioScene("DEMO",1,true);
-        waitForSecs(0.3f);
         moveScenePointer(OB_Maths.locationForRect(0.6f,0.9f,this.bounds()),-20,0.5f,"DEMO2",0,0.5f);
         thePointer.hide();
         waitForSecs(0.3f);

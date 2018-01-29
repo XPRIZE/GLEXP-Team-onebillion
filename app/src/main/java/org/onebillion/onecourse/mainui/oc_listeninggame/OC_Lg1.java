@@ -53,18 +53,18 @@ public class OC_Lg1 extends OC_Lg
 
         String[] wordParams1a = null;
         if(parameters.containsKey("mode1a"))
-            wordParams1a = parameters.get("mode1a").split(",");
+            wordParams1a = parameters.get("mode1a").split(";");
 
         String[] wordParams1b = null;
         if(parameters.containsKey("mode1b"))
-            wordParams1b = parameters.get("mode1b").split(",");
+            wordParams1b = parameters.get("mode1b").split(";");
 
         String[] wordParams2 = null;
         if(parameters.containsKey("mode2"))
-            wordParams2 = parameters.get("mode2").split(",");
+            wordParams2 = parameters.get("mode2").split(";");
 
         if(parameters.containsKey("distractors"))
-            addToDistrators(phonemesForIds(parameters.get("distractors").split(",")));
+            addToDistrators(phonemesForIds(parameters.get("distractors").split(";")));
 
         int size = OBUtils.getIntValue(parameters.get("size"));
         if(wordParams1a != null)
@@ -121,10 +121,29 @@ public class OC_Lg1 extends OC_Lg
     {
         List<OBPhoneme> arr = new ArrayList<>();
 
-        for(String phonemeId : phonemeIds)
+
+        for(String phonemeInfo : phonemeIds)
         {
+            String[] phonemeData = phonemeInfo.split(",");
+            String phonemeId = phonemeData[0];
+
             if(componentDict.containsKey(phonemeId))
-                arr.add(componentDict.get(phonemeId));
+            {
+                OBPhoneme pho = null;
+                if (phonemeData.length > 1 && phonemeData[1].equals("c"))
+                {
+                    pho = componentDict.get(phonemeId).copy();
+                    if(pho.text.length() > 1)
+                        pho.text = pho.text.substring(0, 1).toUpperCase() + pho.text.substring(1);
+                    else
+                        pho.text = pho.text.toUpperCase();
+                }
+                else
+                {
+                    pho = componentDict.get(phonemeId);
+                }
+                arr.add(pho);
+            }
         }
         return arr;
     }
