@@ -256,7 +256,6 @@ public class OC_MoreAddSubtract_S4 extends OC_SectionController
             {
                 playAudioScene("FINAL",0,true);
                 waitForSecs(0.3f);
-
             }
             OBGroup equ = (OBGroup)objectDict.get("equation");
             OC_Numberlines_Additions.colourEquation(equ,1,5,Color.RED,this);
@@ -269,7 +268,8 @@ public class OC_MoreAddSubtract_S4 extends OC_SectionController
         else
         {
             gotItWrongWithSfx();
-            resetScene();
+            if(freeMode)
+                resetScene();
             long time = setStatus(STATUS_AWAITING_CLICK);
             waitSFX();
             cont.setColour ( eventColour.get("num"));

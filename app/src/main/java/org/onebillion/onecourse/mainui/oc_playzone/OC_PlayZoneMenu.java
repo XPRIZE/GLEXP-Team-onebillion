@@ -1115,7 +1115,7 @@ public class OC_PlayZoneMenu extends OC_Menu
             button.setProperty("start_scale",button.scale());
             button.setProperty("radius",button.width()*0.5f);
             button.setProperty("unit",unit);
-
+            button.setZPosition(10);
             if(boxTouchMode)
                 button.hide();
         }

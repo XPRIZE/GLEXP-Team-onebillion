@@ -343,7 +343,7 @@ public class OC_PrepM3 extends OC_PrepMWithVideo
                         num1 = OB_Maths.randomInt(11, 20);
                         num2 = OB_Maths.randomInt(1, 9);
                     }
-                    while(addEquationToList(num1,num2));
+                    while(!addEquationToList(num1,num2));
                 }
             }
         }

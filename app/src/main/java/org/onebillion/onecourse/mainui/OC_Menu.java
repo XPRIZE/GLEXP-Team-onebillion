@@ -20,7 +20,8 @@ public class OC_Menu extends OC_SectionController
 
     public void prepare()
     {
-        params = "menu";
+        if(params == null)
+            params = "menu";
         //
         super.prepare();
         //

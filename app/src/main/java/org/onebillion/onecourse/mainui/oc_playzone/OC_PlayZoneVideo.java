@@ -13,6 +13,7 @@ import android.view.View;
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBImage;
+import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.controls.OBVideoPlayer;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
@@ -28,6 +29,7 @@ import org.onebillion.onecourse.utils.OCM_FatController;
 
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -46,6 +48,7 @@ public class OC_PlayZoneVideo extends OC_SectionController
 
     boolean videoOrientationFront;
     OBControl screenOverlay;
+    OBGroup progressBar;
     boolean recording;
     String currentFileName, videoFilePath, thumbnailFilePath, videoFileName, thumbnalFileName;
 
@@ -60,11 +63,12 @@ public class OC_PlayZoneVideo extends OC_SectionController
         loadEvent("master");
         screenOverlay = objectDict.get("video_overlay");
         screenOverlay.setFrame(new RectF(bounds()));
+        progressBar = (OBGroup)objectDict.get("camera_progress");
+        OBPath bar = (OBPath)progressBar.objectDict.get("progress");
+        bar.setStrokeEnd(0);
         OBControl screenView = objectDict.get("video_frame");
         screenView.setFrame(new RectF(bounds()));
         videoOrientationFront = false;
-        //objectDict.get("recording_button").setZPosition(10);
-        //objectDict.get("camera_icon").setZPosition(10);
         String fileName = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss").format(new Date());
         currentFileName  = String.format("video_%s",fileName);
         List<String> files = OC_PlayZoneAsset.assetsNamesForNewFile(OC_PlayZoneAsset.ASSET_VIDEO);
@@ -162,17 +166,25 @@ public class OC_PlayZoneVideo extends OC_SectionController
                     {
                         playSFX("click");
                         waitForSecs(0.2f);
+                        lockScreen();
                         button.hide();
-                        animateRecordingPulse();
+                        MainViewController().topLeftButton.hide();
+                        progressBar.show();
+                        unlockScreen();
+                        OBPath bar = (OBPath)progressBar.objectDict.get("progress");
                         videoRecorder.startMediaRecorderAndTimer(-1);
-                        OBUtils.runOnOtherThreadDelayed(VIDEO_DURATION, new OBUtils.RunLambda()
+                        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("strokeEnd",1,bar)),VIDEO_DURATION,true,OBAnim.ANIM_LINEAR,null);
+                        //animateRecordingPulse();
+
+                        finishRecording();
+                       /* OBUtils.runOnOtherThreadDelayed(VIDEO_DURATION, new OBUtils.RunLambda()
                         {
                             public void run() throws Exception
                             {
                                 finishRecording();
                             }
 
-                        });
+                        });*/
                     }
                 });
             }
