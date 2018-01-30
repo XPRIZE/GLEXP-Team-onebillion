@@ -2426,7 +2426,8 @@ public class OBSectionController extends OBViewController
                 continue;
 
             Map<String,List> scene = (Map<String, List>) audioScenes.get(ksc);
-            for(String kac : scene.keySet() )
+            Set<String> ks = scene.keySet();
+            for(String kac : ks )
                 if(kac.startsWith(mergePrefix))
                 {
                     String targPrefix = kac.substring(mergePrefix.length() );
