@@ -428,7 +428,7 @@ public class OC_PhraseSentence extends OC_Reading
                 if(syllablesIfPoss && syllableAudioExistsForWord(w,currComponentKey) )
                 {
                     List arr = SplitToPrefixSuffix(currComponentKey);
-                    String fileName = String.format("%@syl%@_%",arr.get(0),arr.get(1),CrunchedString(w.text));
+                    String fileName = String.format("%ssyl%s_%s",arr.get(0),arr.get(1),CrunchedString(w.text));
                     speakSyllablesForWord(w,fileName);
                     highlightWord(w,true,false);
                     waitForSecs(0.2f);

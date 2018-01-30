@@ -161,7 +161,7 @@ public class OC_Reading extends OC_SectionController
     public void speakSyllablesForWord(OBReadingWord w,String fileName) throws Exception
     {
         long token = sequenceToken;
-        List<List> timings = syllableTimingsForWord(w,getLocalPath(fileName+"etpa"));
+        List<List> timings = syllableTimingsForWord(w,getLocalPath(fileName+".etpa"));
         playAudio(fileName);
         long startTime = SystemClock.uptimeMillis();
         int i = 0;
