@@ -224,6 +224,12 @@ public class OC_BedtimeStory extends OC_SectionController
         unlockScreen();
     }
 
+    public void exitEvent()
+    {
+        player.stopPlaying();
+        super.exitEvent();
+    }
+
     void nextFile()
     {
         fileIndex++;

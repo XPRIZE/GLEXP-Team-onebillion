@@ -616,6 +616,8 @@ public class OC_PrepM1 extends OC_SectionController
                 boty = newc.top();
             }
         }
+        waitForSecs(0.1);
+        waitSFX();
         playAudioQueued(Arrays.asList(spnumbers.get(digit)),true);
         waitForSecs(0.4f);
     }
@@ -654,6 +656,8 @@ public class OC_PrepM1 extends OC_SectionController
                 x += newc.width();
             }
         }
+        waitForSecs(0.1);
+        waitSFX();
         playAudioQueued(Arrays.asList(spnumbers.get(digit)),true);
         waitForSecs(0.4f);
     }
@@ -693,8 +697,13 @@ public class OC_PrepM1 extends OC_SectionController
                 boty = newc.top();
             }
         }
-        playAudioQueued(Arrays.asList(spnumbers.get(digit)),true);
-        waitForSecs(0.4f);
+        waitForSecs(0.1);
+        waitSFX();
+        if (nums[0] > 9)
+        {
+            playAudioQueued(Arrays.asList(spnumbers.get(digit)),true);
+            waitForSecs(0.4f);
+        }
     }
 
     public void playNumber(int n) throws Exception
@@ -761,10 +770,10 @@ public class OC_PrepM1 extends OC_SectionController
         waitForSecs(0.2f);
         moveLabelsTogether(leftLabs);
         waitForSecs(0.4f);
-        highlightLabels(leftLabs,true);
-        playNumber(nums[0]);
-        highlightLabels(leftLabs,false);
 
+        highlightLabels(leftLabs, true);
+        playNumber(nums[0]);
+        highlightLabels(leftLabs, false);
 
         if(nums[1] > 9)
         {
@@ -776,6 +785,7 @@ public class OC_PrepM1 extends OC_SectionController
         waitForSecs(0.2f);
         moveLabelsTogether(rightLabs);
         waitForSecs(0.4f);
+
         highlightLabels(rightLabs,true);
         playNumber(nums[1]);
         highlightLabels(rightLabs,false);
@@ -839,8 +849,9 @@ public class OC_PrepM1 extends OC_SectionController
     {
         try
         {
-            waitForSecs(0.4f);
-            showScoreHammerScore((int)(score * 10.0/10),false);
+            waitForSecs(0.8f);
+            if (!_aborting)
+                showScoreHammerScore((int)(score * 10.0/10),false);
         }
         catch(Exception e)
         {
