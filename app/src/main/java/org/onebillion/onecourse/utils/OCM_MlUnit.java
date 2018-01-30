@@ -18,10 +18,10 @@ public class OCM_MlUnit extends DBObject
     public static final int TYPE_NONE=0,TYPE_PLAYZONE_STUDY=1,TYPE_PLAYZONE_FUN=2;
     public String key, icon, params, config, target, lang;
     public float passThreshold;
-    public int masterlistid, catAudio, level, unitid, unitIndex, targetDuration, typeid;
+    public int masterlistid, catAudio, level, unitid, unitIndex, targetDuration, typeid, showBack;
 
     private static final String[] stringFields = {"key","icon","target","params","config","lang"};
-    private static final String[] intFields = {"masterlistid","unitid","level","targetDuration","unitIndex","typeid"};
+    private static final String[] intFields = {"masterlistid","unitid","level","targetDuration","unitIndex","typeid","showBack"};
     private static final String[] floatFields = {"passThreshold"};
     private static final Map<String,String> dbToXmlConvert;
     static

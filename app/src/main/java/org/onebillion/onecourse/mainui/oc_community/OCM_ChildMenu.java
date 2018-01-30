@@ -387,7 +387,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                         resetPresenter();
                         if(!success)
                         {
-                            fatController.triggerTimeoutUnit();
+                            //fatController.triggerTimeoutUnit();
                             start();
                         }
                     }
@@ -418,7 +418,6 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                         resetPresenter();
                         if(!success)
                         {
-                            fatController.triggerTimeoutUnit();
                             start();
                         }
                     }

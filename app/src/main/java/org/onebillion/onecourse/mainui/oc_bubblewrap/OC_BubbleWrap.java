@@ -52,7 +52,6 @@ public class OC_BubbleWrap extends OC_SectionController
         super.prepare();
         loadFingers();
         loadEvent("master");
-
         if(parameters.containsKey("image"))
             currentObjectId = OBUtils.getIntValue(parameters.get("image"));
 
@@ -116,6 +115,23 @@ public class OC_BubbleWrap extends OC_SectionController
     }
 
     @Override
+    public void replayAudio()
+    {
+        super.replayAudio();
+        final long time = setStatus(status());
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                playAudio(null);
+                demoFinal(false, time);
+            }
+        });
+
+    }
+
+    @Override
     public int buttonFlags()
     {
         return  OBMainViewController.SHOW_TOP_LEFT_BUTTON;
@@ -135,13 +151,6 @@ public class OC_BubbleWrap extends OC_SectionController
                     if(targ != null)
                     {
                         popBubble((OBGroup)targ);
-                       /* for(List<OBGroup> cons : currentPopArray)
-                            for(OBGroup con : cons)
-                            {
-                                popBubble(con);
-
-                                waitForSecs(0.1);
-                            }*/
                     }
                 }
             });
@@ -520,7 +529,7 @@ public class OC_BubbleWrap extends OC_SectionController
         else
         {
             waitForSecs(0.5f);
-            demoFinal();
+            demoFinal(true,-1);
         }
     }
 
@@ -607,27 +616,47 @@ public class OC_BubbleWrap extends OC_SectionController
 
     }
 
-    public void demoFinal() throws Exception
+    public void demoFinal(boolean first, long time) throws Exception
     {
+        if(!first)
+        {
+            for(int i=0; i<textLabels.size(); i++)
+            {
+                OBLabel label = textLabels.get(i);
+                label.setColour(Color.BLACK);
+            }
+        }
         for(int i=0; i<textLabels.size(); i++)
         {
-            if(i == 1)
+            if(!first && statusChanged(time))
+                break;
+            if(first && i == 1)
                 animateEarthAndPin();
             OBLabel label = textLabels.get(i);
             label.setColour(Color.RED);
             playAudio(String.format("%d_%d",currentObjectId,i+1));
             waitAudio();
+            if(!first && statusChanged(time))
+                break;
             waitForSecs(0.3f);
-            if(i == 1)
+            if(!first && statusChanged(time))
+                break;
+            if(first && i == 1)
                 animateEarthAndPinShrink();
             label.setColour(Color.BLACK);
             waitForSecs(0.5f);
+            if(!first && statusChanged(time))
+                break;
         }
-        waitForSecs(5f);
-        if(!this._aborting)
+
+        if(first)
         {
-            exitEvent();
+            lockScreen();
+            textLabels.get(0).hide();
+            textLabels.get(0).show();
+            MainViewController().topRightButton.show();
+            MainViewController().topRightButton.setOpacity(1);
+            unlockScreen();
         }
     }
-
 }

@@ -23,7 +23,8 @@ public class OCM_MlUnitInstance extends DBObject
             STATUS_USER_CLOSED =3,
             STATUS_UNIT_TIMEOUT = 10,
             STATUS_SESSION_LOCKED = 11,
-            STATUS_BATTERY_LOW = 12;
+            STATUS_BATTERY_LOW = 12,
+            STATUS_FAILURE = 20;
 
     public long unitid, assetid;
     public int userid, sessionid, seqNo, elapsedTime, typeid, starColour, replayAudioCount, statusid;

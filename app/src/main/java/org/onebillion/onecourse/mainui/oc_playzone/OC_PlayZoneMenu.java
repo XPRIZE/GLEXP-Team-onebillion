@@ -592,9 +592,7 @@ public class OC_PlayZoneMenu extends OC_Menu
             }
         });
 
-        waitForSecs(0.5f);
-        targ.enable();
-        targ.lowlight();
+
         //  if(!started)
         // setStatus(STATUS_AWAITING_CLICK);
 
@@ -1033,10 +1031,31 @@ public class OC_PlayZoneMenu extends OC_Menu
     }
 
 
-    public boolean startSectionButton(OBControl button)
+    public boolean startSectionButton(final OBControl button)
     {
         OCM_MlUnit unit = (OCM_MlUnit)button.propertyValue("unit");
-        fatController.startUnit(unit,OCM_MlUnitInstance.INSTANCE_TYPE_PLAYZONE,null);
+        fatController.startUnit(unit,OCM_MlUnitInstance.INSTANCE_TYPE_PLAYZONE,new OCM_FatController.SectionOpeningCallback()
+        {
+            @Override
+            public void run(final OCM_MlUnitInstance unitInstance, final boolean success)
+            {
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run() throws Exception
+                    {
+                        playAudio(null);
+                        waitForSecs(0.5f);
+                        button.enable();
+                        button.lowlight();
+                        if(!success)
+                        {
+                            start();
+                        }
+                    }
+                });
+            }
+        });
         return true;
     }
 

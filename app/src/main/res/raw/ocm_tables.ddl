@@ -13,6 +13,7 @@ create table units
     passThreshold real,
     typeid int not null default 0,
     lang text,
+    showBack int not null default 0,
     constraint unique_const unique(masterlistid,unitIndex) on conflict fail,
     foreign key(masterlistid) references masterlists(masterlistid)
 );

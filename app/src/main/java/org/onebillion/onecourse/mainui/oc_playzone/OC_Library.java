@@ -230,10 +230,30 @@ public class OC_Library extends OC_SectionController
             snapClosest(time, curGroup, false);
     }
 
-    public void openBookForIcon(OBControl icon)
+    public void openBookForIcon(final OBControl icon)
     {
         OCM_MlUnit unit = (OCM_MlUnit)icon.propertyValue("unit");
-        fatController.startUnit(unit, OCM_MlUnitInstance.INSTANCE_TYPE_LIBRARY,null);
+        fatController.startUnit(unit, OCM_MlUnitInstance.INSTANCE_TYPE_LIBRARY,new OCM_FatController.SectionOpeningCallback()
+        {
+            @Override
+            public void run(final OCM_MlUnitInstance unitInstance, final boolean success)
+            {
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run() throws Exception
+                    {
+                        playAudio(null);
+                        waitForSecs(0.5f);
+                        icon.lowlight();
+                        if(!success)
+                        {
+                            start();
+                        }
+                    }
+                });
+            }
+        });
     }
 
     public void animateBooksOn() throws Exception

@@ -32,13 +32,13 @@ public class OC_PlayZoneAsset extends DBObject
 
     public static int ASSET_VIDEO = 1, ASSET_TEXT = 2, ASSET_DOODLE = 3;
 
-    public int assetid, typeid, userid, sessionid;
+    public int assetid, typeid, userid, deleted;
     public String params, thumbnail;
-    public long createTime, unitid;
+    public long createTime;
 
     private static final String[] stringFields = {"params", "thumbnail"};
-    private static final String[] intFields = {"assetid","typeid","userid","sessionid","deleted"};
-    private static final String[] longFields = {"createTime","unitid"};
+    private static final String[] intFields = {"assetid","typeid","userid","deleted"};
+    private static final String[] longFields = {"createTime"};
 
     public static List<String> assetsNamesForNewFile(int type)
     {
@@ -126,7 +126,7 @@ public class OC_PlayZoneAsset extends DBObject
         }
         catch(Exception e)
         {
-
+            e.printStackTrace();
         }
         finally
         {
