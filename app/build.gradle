@@ -46,6 +46,13 @@ android {
                     appuserid : "android.uid.system"
             ]
         }
+        distribution {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            manifestPlaceholders = [
+                    appuserid : ""
+            ]
+        }
 
     }
     dependencies {

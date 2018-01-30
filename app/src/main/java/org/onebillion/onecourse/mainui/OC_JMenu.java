@@ -1131,7 +1131,14 @@ public class OC_JMenu extends OC_Menu
                 RectF r = convertRectFromControl(highlightedIcon.bounds(),highlightedIcon);
                 if (r.contains(pto.x,pto.y))
                 {
-                    goToTarget(highlightedIcon);
+                    OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run () throws Exception
+                        {
+                            goToTarget(highlightedIcon);
+                        }
+                    });
                     OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
                     {
                         @Override
@@ -1314,9 +1321,21 @@ public class OC_JMenu extends OC_Menu
                 configName = comps[0];
             }
             else
-                OBConfigManager.sharedManager.updateConfigPaths(configName, false,languageName);
-            if (!MainActivity.mainViewController.pushViewControllerWithNameConfig(target, configName, true, true, parm))
-                setStatus(STATUS_IDLE);
+            {
+                OBConfigManager.sharedManager.updateConfigPaths(configName, false, languageName);
+            }
+            //
+            final String config = configName;
+            //
+            OBUtils.runOnMainThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run () throws Exception
+                {
+                    if (!MainActivity.mainViewController.pushViewControllerWithNameConfig(target, config, true, true, parm))
+                        setStatus(STATUS_IDLE);
+                }
+            });
 
         }
     }

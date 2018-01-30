@@ -395,6 +395,7 @@ public class OC_Generic
                 if (OBGroup.class.isInstance(control))
                 {
                     OBGroup group = (OBGroup) control;
+                    label.setScale(1 / group.scale());
                     sc.attachControl(label);
                     group.insertMember(label, 0, "label");
                 }

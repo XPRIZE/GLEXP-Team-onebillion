@@ -314,7 +314,7 @@ public class MainActivity extends Activity
                 }
                 //
                 boolean writeSettingsPermission = OBSystemsManager.sharedManager.hasWriteSettingsPermission();
-                if (!writeSettingsPermission)
+                if (OBConfigManager.sharedManager.isBrightnessManagerEnabled() && !writeSettingsPermission)
                 {
                     Toast.makeText(MainActivity.mainActivity, "Please allow this app to write settings before going back.", Toast.LENGTH_LONG).show();
                     Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);

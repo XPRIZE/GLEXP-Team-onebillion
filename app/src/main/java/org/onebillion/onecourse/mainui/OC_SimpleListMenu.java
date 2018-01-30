@@ -1,6 +1,7 @@
 package org.onebillion.onecourse.mainui;
 
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -62,7 +63,20 @@ public class OC_SimpleListMenu extends OBSectionController
             String s =  String.format("%s/%s/%s",ml.key,ml.target,ml.params);
             sarray.add(s);
         }
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(MainActivity.mainActivity,android.R.layout.simple_list_item_1,sarray);
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(MainActivity.mainActivity,android.R.layout.simple_list_item_1,sarray)
+        {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent)
+            {
+                View view = super.getView(position,convertView,parent);
+                // Get the Layout Parameters for ListView Current Item View
+                ViewGroup.LayoutParams params = view.getLayoutParams();
+                // Set the height of the Item View
+                params.height = 150;
+                view.setLayoutParams(params);
+                return view;
+            }
+        };
         listView.setAdapter(arrayAdapter);
     }
 

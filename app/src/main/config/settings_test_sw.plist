@@ -271,21 +271,21 @@
 	<string>oc-gen</string>
 	<!--  -->
 	<key>app_main_folder</key>
-	<string>oc-childmenu</string>
+	<string>oc-alan</string>
 	<!--  -->
 	<key>app_menu_class</key>
-	<string>OC_ChildMenu</string>
+	<string>OC_SimpleListMenu</string>
 	<!--  -->
 	<key>app_fat_controller_class</key>
-	<string>OC_FatController</string>
+	<string>OBFatController</string>
 	<!--  -->
 	<key>app_masterlist</key>
-	<string>community_sw</string>
+	<string>upload2</string>
 	<!--  -->
 	<key>app_masterlist_playzone</key>
-	<string>playzone_sw</string>
+	<string>playzone_enGB</string>
 	<!--  -->
 	<key>app_masterlist_library</key>
-	<string>library_sw</string>
+	<string>library_enGB</string>
 </dict>
 </plist>
