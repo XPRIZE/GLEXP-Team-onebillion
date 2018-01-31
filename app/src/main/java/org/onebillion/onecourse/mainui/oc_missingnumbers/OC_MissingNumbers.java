@@ -296,7 +296,7 @@ public class OC_MissingNumbers extends OC_Generic_Event
         OBConditionLock lock = playAudioQueued(audio, false);
         if (usesBigBox)
         {
-            waitAudioQueue(lock);
+            if (audio != null) waitAudioQueue(lock);
             waitForSecs(0.3f);
             if (sayNumber)
             {
