@@ -271,7 +271,8 @@ public class OC_Spell extends OC_Wordcontroller
         mainLabel.setColour(Color.BLACK);
         RectF bb = boundingBoxForText(mainLabel.text(),font);
         float h = bb.height() + bb.top;
-        mainLabel.setAnchorPoint(0.5f, h / mainLabel.bounds.height());
+        float y = h / mainLabel.bounds().height();
+        mainLabel.setAnchorPoint(0.5f, y);
         mainLabel.setPosition(mainTextPosition);
         return mainLabel;
     }
