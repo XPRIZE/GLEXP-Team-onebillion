@@ -601,7 +601,7 @@ public class OC_CountingPractice extends OC_Generic_Event
                 }
             }
         }
-        waitForSecs(0.3f);
+        waitForSecs(0.6f);
     }
 
 
@@ -2005,9 +2005,10 @@ public class OC_CountingPractice extends OC_Generic_Event
         unlockScreen();
         waitForSecs(0.3f);
         //
-        doingDemoOverride = false;
         killAllObjects();
         waitForSecs(0.6);
+        //
+        doingDemoOverride = false;
         //
         playAudioScene("DEMO", 1, false);                           // Your turn!
         movePointerToRestingPosition(0.6f, true);
