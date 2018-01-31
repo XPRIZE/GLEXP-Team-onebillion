@@ -110,7 +110,7 @@ public class OC_Sm3c extends OC_Sm3
         showStuff();
         playAudioQueuedScene("DEMO",true);
         waitForSecs(0.3f);
-        RectF f = picrects.get(2) .frame();
+        RectF f = new RectF(picrects.get(2) .frame());
         float boty = f.bottom;
         RectF pic2f = new RectF(f);
         f.bottom = (bounds().height());
