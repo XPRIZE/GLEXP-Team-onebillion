@@ -1013,7 +1013,7 @@ public class OC_Generic_Event extends OC_SectionController
         PointF position = control.position();
         OBControl parent = control.parent;
         RectF dimensions;
-        if (parent != null) dimensions = parent.bounds;
+        if (parent != null) dimensions = parent.bounds();
         else dimensions = boundsf();
         //
         PointF relativePosition = new PointF(position.x / dimensions.width(), position.y / dimensions.height());
