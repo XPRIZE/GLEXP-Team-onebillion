@@ -227,12 +227,15 @@ public class OC_Spell extends OC_Wordcontroller
 
     public void setUpImageWithName(String nm)
     {
-        OBImage im = OBImageManager.sharedImageManager().imageForName(nm);
-        im.setScale(picScale);
-        im.setPosition(picPosition);
-        objectDict.put("pic",im);
-        attachControl(im);
-        im.hide();
+        if (showPic)
+        {
+            OBImage im = OBImageManager.sharedImageManager().imageForName(nm);
+            im.setScale(picScale);
+            im.setPosition(picPosition);
+            objectDict.put("pic",im);
+            attachControl(im);
+            im.hide();
+        }
     }
 
     public void setSceneXX(String  scene)
