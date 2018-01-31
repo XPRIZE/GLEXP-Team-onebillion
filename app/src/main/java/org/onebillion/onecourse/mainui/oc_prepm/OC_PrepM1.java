@@ -115,7 +115,7 @@ public class OC_PrepM1 extends OC_SectionController
         font = OBUtils.StandardReadingFontOfSize(textSize);
         for(OBControl c : filterControls("count.*"))
             c.setProperty("origpos",new PointF(c.position().x,c.position().y));
-        hideControls("(line|count|cont) .*");
+        hideControls("(line|count|cont).*");
         score = 0;
         bottomY = objectDict.get("countl1_1").bottom();
         objectDict.get("presenter").hide();
