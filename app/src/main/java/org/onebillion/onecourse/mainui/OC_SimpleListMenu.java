@@ -72,7 +72,7 @@ public class OC_SimpleListMenu extends OBSectionController
                 // Get the Layout Parameters for ListView Current Item View
                 ViewGroup.LayoutParams params = view.getLayoutParams();
                 // Set the height of the Item View
-                params.height = 150;
+                params.height = 175;
                 view.setLayoutParams(params);
                 return view;
             }

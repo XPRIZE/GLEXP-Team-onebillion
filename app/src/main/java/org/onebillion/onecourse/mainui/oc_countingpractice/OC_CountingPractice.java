@@ -1788,6 +1788,12 @@ public class OC_CountingPractice extends OC_Generic_Event
             {
                 physicsEngine_waitUntilAllAtRest();
             }
+            //
+            if (mode.equals(kModeAutomaticCount) && atRestObjects.size() >= totalObjectsForUnit)
+            {
+                return;
+            }
+            //
             boolean allGone = true;
             for (OBControl control : clumps)
             {
