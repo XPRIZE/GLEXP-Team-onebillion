@@ -128,6 +128,11 @@ public class OC_BedtimeStory extends OC_SectionController
             setStatus(STATUS_STARTING_FILE);
             player = new OBAudioBufferPlayer();
             AssetFileDescriptor afd = OBAudioManager.audioManager.getAudioPathFD(fileName);
+            if (afd == null)
+            {
+                allFilesDone = true;
+                return false;
+            }
             player.startPlaying(afd);
         }
         catch (Exception e)
@@ -150,6 +155,17 @@ public class OC_BedtimeStory extends OC_SectionController
         }
         return maxx;
     }
+    static float totInFloatArray(float[] fa,int st, int en)
+    {
+        if (fa.length == 0)
+            return 0;
+        float tot = 0;
+        for (int i = st;i < en;i++)
+        {
+            tot += fa[i];
+        }
+        return tot;
+    }
     void putMaxesIntoBuckets(float data[],int inBucket[],float outBucket[])
     {
         int st = 0;
@@ -157,6 +173,17 @@ public class OC_BedtimeStory extends OC_SectionController
         {
             float maxx = maxInFloatArray(data,st,inBucket[i]);
             outBucket[i] = maxx;
+            st = inBucket[i];
+        }
+    }
+
+    void putTotsIntoBuckets(float data[],int inBucket[],float outBucket[])
+    {
+        int st = 0;
+        for (int i = 0;i < inBucket.length;i++)
+        {
+            float tot = totInFloatArray(data,st,inBucket[i]);
+            outBucket[i] = tot;
             st = inBucket[i];
         }
     }
@@ -207,9 +234,10 @@ public class OC_BedtimeStory extends OC_SectionController
         OB_Maths.dlDFT(dftArea);
         //MainActivity.log(String.format("max after dft %g",maxInFloatArray(dftArea,0,dftArea.length)));
         //int[] thresholdindexes = {512-256,512-128,512-64,512};
-        int[] thresholdindexes = {512-128,512-64,512-32,512-2};
+        //int[] thresholdindexes = {512-128,512-64,512-32,512-2};
+        int[] thresholdindexes = {512-160,512-32,512-6,512-2};
         float[] outBuckets = new float[4];
-        putMaxesIntoBuckets(dftArea,thresholdindexes,outBuckets);
+        putTotsIntoBuckets(dftArea,thresholdindexes,outBuckets);
         lockScreen();
         int noBuckets = outBuckets.length;
         for (int i = 0;i < noBuckets;i++)
@@ -219,7 +247,7 @@ public class OC_BedtimeStory extends OC_SectionController
             //float val = (outBuckets[i]);
             //MainActivity.log(String.format("%g",val));
             //sc = OB_Maths.clamp(0.1f,2,sc);
-            setObjectVal(c,val);
+            setObjectVal(c,val * 0.4f);
         }
         unlockScreen();
     }
