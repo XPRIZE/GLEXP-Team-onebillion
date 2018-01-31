@@ -415,7 +415,16 @@ public class OC_SectionController extends OBSectionController {
         {
             OBControl finger = null;
             if (i >= 0)
+            {
+                if(i >= fingers.size())
+                {
+                    OBControl f = fingers.get(fingers.size()-1).copy();
+                    f.setScale(fingers.get(fingers.size()-1).scale() * 2.0f);
+                    fingers.add(f);
+                }
+
                 finger = fingers.get(i);
+            }
             for (OBControl c : targets)
             {
                 if (filterDisabled && !c.isEnabled() || (!allowHidden && c.hidden()))
