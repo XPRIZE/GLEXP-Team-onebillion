@@ -455,7 +455,7 @@ public class OC_PhraseSentenceMake extends OC_PhraseSentence
         for(OBReadingWord w : unspeakableWords() )
         {
             String s = w.label.text();
-            if(s.matches("\\S"))
+            if(s.matches(".*\\S.*"))
                 visibles.add(w.label);
         }
         return visibles;
