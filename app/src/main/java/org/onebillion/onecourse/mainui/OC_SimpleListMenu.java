@@ -1,10 +1,13 @@
 package org.onebillion.onecourse.mainui;
 
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import org.onebillion.onecourse.R;
 import org.onebillion.onecourse.utils.MlUnit;
@@ -63,6 +66,19 @@ public class OC_SimpleListMenu extends OBSectionController
             String s =  String.format("%s/%s/%s",ml.key,ml.target,ml.params);
             sarray.add(s);
         }
+        //
+        TextView buildNumber = (TextView) MainActivity.mainActivity.findViewById(R.id.buildNumber);
+        if (buildNumber != null)
+        {
+            String buildNumberValue = OBConfigManager.sharedManager.getBuildNumber();
+            if (buildNumberValue == null)
+            {
+                buildNumberValue = "Missing BuildNo";
+            }
+            buildNumber.setText(buildNumberValue);
+            buildNumber.setBackgroundColor(Color.WHITE);
+        }
+        //
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(MainActivity.mainActivity,android.R.layout.simple_list_item_1,sarray)
         {
             @Override

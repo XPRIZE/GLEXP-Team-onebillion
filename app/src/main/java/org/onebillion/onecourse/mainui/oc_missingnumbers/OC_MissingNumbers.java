@@ -285,7 +285,9 @@ public class OC_MissingNumbers extends OC_Generic_Event
     public void doAudio (String scene, boolean sayNumber) throws Exception
     {
         List audio = getAudioForScene(scene, "PROMPT");
-        List replayAudio = getAudioForScene(scene, "REPEAT");
+        List replayAudio = new ArrayList();
+        replayAudio.addAll(getAudioForScene(scene, "REPEAT"));
+        //
         final String correctAudio = String.format("n_%s", correctAnswer);
         if (usesBigBox)
         {
