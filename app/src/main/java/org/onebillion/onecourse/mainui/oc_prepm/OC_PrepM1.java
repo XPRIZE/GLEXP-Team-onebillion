@@ -499,10 +499,10 @@ public class OC_PrepM1 extends OC_SectionController
 
     public void demointro() throws Exception
     {
-        playAudioQueuedScene("DEMO",true);
+        /*playAudioQueuedScene("DEMO",true);
         waitForSecs(0.4f);
         playAudioQueuedScene("DEMO2",true);
-        waitForSecs(0.4f);
+        waitForSecs(0.4f);*/
         nextScene();
     }
 
