@@ -218,6 +218,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         {
             public void run() throws Exception
             {
+                refreshButtonsStatus();
                 if (boxTouchMode)
                     demoPlayZoneIntro();
                 else
@@ -327,7 +328,7 @@ public class OC_PlayZoneMenu extends OC_Menu
             final OBControl targ = target;
             target = null;
             if(iconsScrollMode)
-                mediaIconsGroup.enable();
+                mediaIconsGroup.setProperty("animate", true);
             long time = System.currentTimeMillis();
             if((time-lastTouchTime) < 1000 &&
                     dragTravelDistance < applyGraphicScale(TOUCH_TOLERANCE))
@@ -366,7 +367,8 @@ public class OC_PlayZoneMenu extends OC_Menu
                             }
                             else
                             {
-                                if(targ != null)                                    targ.enable();
+                                if(targ != null)
+                                    targ.enable();
                                 setStatus(STATUS_AWAITING_CLICK);
 
                             }
@@ -413,7 +415,7 @@ public class OC_PlayZoneMenu extends OC_Menu
                 }
                 else
                 {
-                    targ.enable();
+                    targ.setProperty("animate",true);
                     long statusT = setStatus(STATUS_AWAITING_CLICK);
                     if(iconsDeleteMode)
                     {
@@ -507,7 +509,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         OBControl icon = finger(-1, -1, (List<OBControl>)(Object)mediaIcons, pt);
         OBMisc.prepareForDragging(mediaIconsGroup, pt, this);
         prepareForSpeedMeasure(mediaIconsGroup);
-        mediaIconsGroup.disable();
+        mediaIconsGroup.setProperty("animate", false);
         mediaIconsGroup.setZPosition(mediaIconsGroup.zPosition() - 10);
         iconsScrollMode = true;
         lastTouchTime = System.currentTimeMillis();
@@ -537,11 +539,11 @@ public class OC_PlayZoneMenu extends OC_Menu
         setStatus(STATUS_BUSY);
         if(iconsDeleteMode)
             stopDeleteMode();
-        OBControl btn = finger(0,0,(List<OBControl>)(Object)menuButtons,pt);
+        OBControl btn = finger(0,0,(List<OBControl>)(Object)menuButtons,pt,true);
         if(btn != null)
         {
             setStatus(STATUS_BUSY);
-            btn.disable();
+            btn.setProperty("animate", false);
             OBMisc.prepareForDragging(btn,pt,this);
             iconsScrollMode = false;
             btn.setZPosition(btn.zPosition() - 10);
@@ -741,12 +743,12 @@ public class OC_PlayZoneMenu extends OC_Menu
         float frameFrac = (currentTime - lastFloatLoopTick)/(TICK_VALUE*1000.0f);
         for(OBControl button : menuButtons)
         {
-            if(button.isEnabled())
+            if((boolean) button.propertyValue("animate"))
                 moveButtonBySpeed(button,frameFrac);
             checkButtonsForCollisions();
 
         }
-        if(mediaIconsGroup.isEnabled())
+        if((boolean)mediaIconsGroup.propertyValue("animate"))
             moveMediaIconsBySpeedFrac(frameFrac);
         if(iconsDeleteMode)
             animateIconsShake();
@@ -779,12 +781,43 @@ public class OC_PlayZoneMenu extends OC_Menu
         }
     }
 
-    public boolean checkButton(OBControl button,OBControl button2)
+    /*public boolean checkButton(OBControl button,OBControl button2)
     {
         if(button2 == button)
             return false;
         float dist = OB_Maths.PointDistance(button.position(), button2.position());
         return dist < collisionDistanceButton(button,button2);
+    }*/
+
+    public void setButtonEnabled(OBControl button, boolean enabled)
+    {
+        if(enabled)
+        {
+            button.setOpacity(1);
+            button.enable();
+        }
+        else
+        {
+            button.setOpacity(0.3f);
+            button.disable();
+        }
+        button.setProperty("locked", false);
+    }
+
+    public void refreshButtonsStatus()
+    {
+        lockScreen();
+        int unitid = fatController.getPlayzoneLockUnitId();
+
+        for (OBControl button : menuButtons)
+        {
+            OCM_MlUnit unit = (OCM_MlUnit) button.propertyValue("unit");
+            setButtonEnabled(button, unitid < 0 || unit.unitid == unitid);
+            if(unit.unitid == unitid)
+                button.setProperty("locked", true);
+        }
+        unlockScreen();
+
     }
 
     public void checkButtonsForCollisions()
@@ -830,9 +863,9 @@ public class OC_PlayZoneMenu extends OC_Menu
                         float dot2 = OB_Maths.dot_product(v2,n);
                         PointF r1 = OB_Maths.AddPoints(OB_Maths.ScalarTimesPoint(dot2-dot1,n),v1);
                         PointF r2 = OB_Maths.AddPoints(OB_Maths.ScalarTimesPoint(dot1-dot2,n),v2);
-                        if(button.isEnabled())
+                        if((boolean)button.propertyValue("animate"))
                             setControlSpeed(button,r1.x,r1.y);
-                        if(button2.isEnabled())
+                        if((boolean)button2.propertyValue("animate"))
                             setControlSpeed(button2,r2.x,r2.y);
                     }
                 }
@@ -1034,7 +1067,9 @@ public class OC_PlayZoneMenu extends OC_Menu
     public boolean startSectionButton(final OBControl button)
     {
         OCM_MlUnit unit = (OCM_MlUnit)button.propertyValue("unit");
-        fatController.startUnit(unit,OCM_MlUnitInstance.INSTANCE_TYPE_PLAYZONE,new OCM_FatController.SectionOpeningCallback()
+        boolean locked = (boolean)button.propertyValue("locked");
+        fatController.startUnit(unit,locked ? OCM_MlUnitInstance.INSTANCE_TYPE_PZ_LOCKED : OCM_MlUnitInstance.INSTANCE_TYPE_PLAYZONE ,
+                new OCM_FatController.SectionOpeningCallback()
         {
             @Override
             public void run(final OCM_MlUnitInstance unitInstance, final boolean success)
@@ -1046,7 +1081,7 @@ public class OC_PlayZoneMenu extends OC_Menu
                     {
                         playAudio(null);
                         waitForSecs(0.5f);
-                        button.enable();
+                        button.setProperty("animate", true);
                         button.lowlight();
                         if(!success)
                         {
@@ -1134,6 +1169,7 @@ public class OC_PlayZoneMenu extends OC_Menu
             button.setProperty("start_scale",button.scale());
             button.setProperty("radius",button.width()*0.5f);
             button.setProperty("unit",unit);
+            button.setProperty("animate", true);
             button.setZPosition(10);
             if(boxTouchMode)
                 button.hide();
@@ -1243,6 +1279,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         mediaIconsGroup = new OBGroup((List<OBControl>)(Object)mediaIcons);
         setMediaIconsGroupLoc(OB_Maths.locationForRect(0.5f,0.5f,objectDict.get("bottom_bar").frame()));
         attachControl(mediaIconsGroup);
+        mediaIconsGroup.setProperty("animate", true);
         //RectF frame = mediaIconsGroup.frame();
         // mediaIconsGroup.setFrame(frame);
         mediaIconsGroup.setShouldTexturise(false);
@@ -1676,7 +1713,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         for (OBControl menuButton : menuButtons)
         {
             menuButton.setScale(0.15f);
-            menuButton.disable();
+            menuButton.setProperty("animate", false);
             menuButton.show();
             menuButton.setProperty("collide", false);
 
@@ -1690,7 +1727,7 @@ public class OC_PlayZoneMenu extends OC_Menu
                     .size()) * i;
             setControlSpeed(menuButton, applyGraphicScale(5) * (float) Math.cos((float) Math.toRadians(currentAngle)),
                     applyGraphicScale(5) * (float) Math.sin((float) Math.toRadians(currentAngle)));
-            menuButton.enable();
+            menuButton.setProperty("animate", true);
             OBAnimationGroup.runAnims(Arrays.asList(OBAnim.scaleAnim((float) menuButton.propertyValue("start_scale"), menuButton)),
                     0.5, false,
                     OBAnim.ANIM_EASE_IN, new OBUtils.RunLambda()
@@ -1716,7 +1753,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         {
             PointF loc2 = OBMisc.copyPoint(mediaIconsGroup.position());
             loc2.x += objectDict.get("media_bg").width();
-            mediaIconsGroup.setPosition ( loc2);
+            mediaIconsGroup.setPosition(loc2);
 
         }
         List<OBAnim> anims = new ArrayList<>();

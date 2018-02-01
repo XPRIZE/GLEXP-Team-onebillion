@@ -28,6 +28,7 @@ public class OCM_MlUnit extends DBObject
     {
         dbToXmlConvert = new HashMap<String, String>();
         dbToXmlConvert.put("key","id");
+        dbToXmlConvert.put("typeid","type");
     }
 
     public static int unitCountForMasterlist(DBSQL db, int masterlistid)

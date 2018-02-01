@@ -434,11 +434,12 @@ public class OC_BubbleWrap extends OC_SectionController
         float fitWidth = textBox.width()*0.7f;
         float fitHeight = textBox.height()*0.45f;
         textLabels = new ArrayList<>();
+        float textLeftDist = 0.015f * textBox.width();
         OBLabel titleLabel = new OBLabel(titleNode.contents,OBUtils.StandardReadingFontOfSize(50));
         if(titleLabel.width() > fitWidth)
             titleLabel.setScale(fitWidth/titleLabel.width());
         titleLabel.setPosition(OB_Maths.locationForRect(0.5f,0.12f,textBox.frame()));
-        titleLabel.setLeft(textBox.left() + applyGraphicScale(5));
+        titleLabel.setLeft(textBox.left() + textLeftDist);
         titleLabel.setZPosition(5);
         titleLabel.setColour(Color.BLACK);
         titleLabel.hide();
@@ -448,7 +449,7 @@ public class OC_BubbleWrap extends OC_SectionController
         if(locationLabel.width() > fitWidth)
             locationLabel.setScale(fitWidth/locationLabel.width());
         locationLabel.setPosition(OB_Maths.locationForRect(0.5f,0.35f,textBox.frame()));
-        locationLabel.setLeft(textBox.left() + applyGraphicScale(5));
+        locationLabel.setLeft(textBox.left() + textLeftDist);
         locationLabel.setZPosition(5);
         locationLabel.setColour(Color.BLACK);
         locationLabel.hide();
@@ -462,12 +463,19 @@ public class OC_BubbleWrap extends OC_SectionController
         if(descLabel.height() > fitHeight)
             descLabel.setScale(descLabel.scale() * fitHeight/descLabel.height());
         descLabel.setPosition(OB_Maths.locationForRect(0.5f,0.7f,textBox.frame()));
-        descLabel.setLeft(textBox.left() + applyGraphicScale(5));
+        descLabel.setLeft(textBox.left() + textLeftDist);
         descLabel.setZPosition(5);
         descLabel.setColour(Color.BLACK);
         descLabel.hide();
         attachControl(descLabel);
         textLabels.add(descLabel);
+        float top = textLabels.get(0).top();
+        float bottom = textLabels.get(textLabels.size()-1).bottom();
+        float dif = (textBox.height() - (bottom-top))/2.0f;
+        float moveDist = (top-textBox.top()) + dif;
+        for(OBLabel label: textLabels)
+            label.setTop(label.top()+moveDist);
+
         earthMap = loadImageWithName(elementNode.attributeStringValue("map"),new PointF(0.5f, 0.5f),imageBox.frame());
         earthMap.setScale(imageBox.height()/earthMap.height());
         earthMap.setZPosition(50);
@@ -610,7 +618,7 @@ public class OC_BubbleWrap extends OC_SectionController
         float targetScale = objectDict.get("text_box").width() *0.25f /(earthMap.height()/earthMap.scale());
         OBAnimationGroup.runAnims(Arrays.asList(OBAnim.scaleAnim(targetScale,earthMap) ,
                 OBAnim.scaleAnim(startScale,pin) ,
-                OBAnim.moveAnim(OB_Maths.locationForRect(0.85f,0.5f,objectDict.get("text_box") .frame()) ,earthMap) ,
+                OBAnim.moveAnim(OB_Maths.locationForRect(0.865f,0.5f,objectDict.get("text_box") .frame()) ,earthMap) ,
                 blockAnim),1.5,true
                 ,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
 
