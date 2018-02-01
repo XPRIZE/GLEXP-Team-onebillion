@@ -75,7 +75,7 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
         catch (Exception e)
         {
             MainActivity.log("OBAnalyticsManagerCommunity.exception caught: " + e.getMessage());
-            e.printStackTrace();
+            //e.printStackTrace();
         }
         finally
         {

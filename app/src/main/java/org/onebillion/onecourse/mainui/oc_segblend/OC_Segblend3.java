@@ -189,7 +189,7 @@ public class OC_Segblend3 extends OC_Wordcontroller
         mainLabel.setColour(Color.BLACK);
         RectF bb = boundingBoxForText(mainLabel.text(),font);
         float h = bb.height() + bb.top;
-        mainLabel.setAnchorPoint(new PointF(0.5f, h / mainLabel.bounds.height()));
+        mainLabel.setAnchorPoint(new PointF(0.5f, h / mainLabel.bounds().height()));
         mainLabel.setPosition(centrePos);
         attachControl(mainLabel);
         mainLabel.hide();
