@@ -256,7 +256,7 @@
 	<string>true</string>
 	<!--  -->
 	<key>debug_build_number</key>
-	<string>0002</string>
+	<string>0004</string>
 
 	<!-- ANALYTICS MANAGER -->
 	<key>analytics_enabled</key>
@@ -280,7 +280,7 @@
 	<string>OBFatController</string>
 	<!--  -->
 	<key>app_masterlist</key>
-	<string>upload2</string>
+	<string>community_sw</string>
 	<!--  -->
 	<key>app_masterlist_playzone</key>
 	<string>playzone_enGB</string>
