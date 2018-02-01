@@ -354,7 +354,7 @@ public class OC_ClozePhrase extends OC_Cloze
     {
         OBFont font = StandardReadingFontOfSize(fontSize);
         Map attributes = lineAttributes(font);
-        float lineHeight = fontSize;
+        float lineHeight = applyGraphicScale(fontSize);
         float topY = 0;
         float indent = 0;
         float rightEdge = textBox.bounds.width();
