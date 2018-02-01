@@ -52,13 +52,14 @@ public class OC_PrepR3 extends OC_Reading
     List answerButtons;
     int score,totalQuestions;
     int highlightedIdx;
-    int hiColour;
+    int hiColour,loColour;
     OBLabel layOutBox;
     OBGroup textGroup;
     String audioPrefix;
     boolean manualLayoutMode = true;
     List<List<OBReadingWord>> laidOutLines;
     List<OBControl>backingRects;
+    List<OBControl>randomQs;
 
     Map LoadPassagesXML(String xmlPath)
     {
@@ -124,9 +125,9 @@ public class OC_PrepR3 extends OC_Reading
         return false;
     }
 
-    public boolean showBackButton()
+    public boolean showRAButton()
     {
-        return false;
+        return true;
     }
 
     public void miscSetUp()
@@ -191,6 +192,51 @@ public class OC_PrepR3 extends OC_Reading
                 }
             }
         });
+    }
+
+    public void runThroughAnswers()
+    {
+        try
+        {
+            playAudioForQuestion(questionNo);
+            waitForSecs(0.3f);
+            showAnswers(randomQs);
+            setStatus(STATUS_WAITING_FOR_ANSWER);
+        }
+        catch(Exception e)
+        {
+        }
+    }
+
+    public void replayAudio()
+    {
+        if(busyStatuses.contains(status()))
+            return;
+        if(status() == STATUS_WAITING_FOR_ANSWER)
+        {
+            setStatus(STATUS_CHECKING);
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                public void run() throws Exception
+                {
+                    runThroughAnswers();
+                }
+            });
+        }
+        else
+        {
+            if(_replayAudio != null)
+            {
+                setStatus(status());
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    public void run() throws Exception
+                    {
+                        _replayAudio();
+                    }
+                });
+            }
+        }
     }
 
     public void fin()
@@ -435,14 +481,19 @@ public class OC_PrepR3 extends OC_Reading
 
     public void setSceneb() throws Exception
     {
+     }
+
+    public void doMainb()
+    {
         OBUtils.runOnOtherThreadDelayed(10,new OBUtils.RunLambda()
         {
             public void run() throws Exception
             {
-                if(status() == STATUS_DOING_DEMO)
+                if(status() == STATUS_IDLE)
                 {
                     setStatus(STATUS_AWAITING_ARROW_CLICK);
                     objectDict.get("arrow").show();
+                    setReplayAudio((List)getAudioForScene("arrow","PROMPT"));
                     reprompt(statusTime(),(List)((Map)audioScenes.get("arrow")).get("PROMPT"),50);
                 }
             }
@@ -463,6 +514,11 @@ public class OC_PrepR3 extends OC_Reading
         return convertPointFromControl(pos,textGroup);
     }
 
+    public long switchStatus(String scene)
+    {
+        return setStatus(STATUS_IDLE);
+    }
+
     public void demointro() throws Exception
     {
         setStatus(STATUS_DOING_DEMO);
@@ -478,6 +534,7 @@ public class OC_PrepR3 extends OC_Reading
         playAudioQueuedScene("DEMO2",true);
         waitForSecs(0.4f);
         thePointer.hide();
+        setReplayAudio((List)currentAudio("DEMO2"));
         nextScene();
     }
 
@@ -580,6 +637,7 @@ public class OC_PrepR3 extends OC_Reading
         Est3_Question qu = currPassage.questions.get(questionNo);
         checkLabelBoxWidthForQuestion(qu);
         OBControl labelBox = objectDict.get("labelbox");
+        loColour = labelBox.fillColor();
         RectF fr = objectDict.get("textbox").frame();
         float y = fr.top;
         float bottom = (fr.bottom);
@@ -622,9 +680,13 @@ public class OC_PrepR3 extends OC_Reading
     {
         for(int i = 0;i < randomQuestions.size();i++)
         {
-            randomQuestions.get(i).show();
+            if (randomQuestions.get(i).hidden())
+                randomQuestions.get(i).show();
+            else
+                highlightControl((OBGroup)randomQuestions.get(i));
             int answerno = (Integer)(randomQuestions.get(i).propertyValue("answerno"));
             playAudioForQuestion(questionNo,answerno+1);
+            lowlightControl((OBGroup)randomQuestions.get(i));
             waitForSecs(0.2f);
         }
     }
@@ -652,6 +714,12 @@ public class OC_PrepR3 extends OC_Reading
     {
         OBControl c = g.members.get(1);
         c.setFillColor(hiColour);
+    }
+
+    public void lowlightControl(OBGroup g)
+    {
+        OBControl c = g.members.get(1);
+        c.setFillColor(loColour);
     }
 
     public void checkButton(OBControl targ)
@@ -693,7 +761,7 @@ public class OC_PrepR3 extends OC_Reading
     {
         totalQuestions++;
         lockScreen();
-        List randomQs = setUpQuestion(questionNo);
+        randomQs = setUpQuestion(questionNo);
         unlockScreen();
         playAudioForQuestion(questionNo);
         waitForSecs(0.3f);
