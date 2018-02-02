@@ -224,7 +224,9 @@ public class OC_Counting5and10_S1 extends OC_Generic_Event
             line.show();
 
             unlockScreen();
-            setStatus(STATUS_AWAITING_CLICK);
+            //
+            revertStatusAndReplayAudio();
+            //
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
                 public void run () throws Exception
