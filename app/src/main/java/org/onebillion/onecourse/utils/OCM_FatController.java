@@ -72,7 +72,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     public static final int SESSION_UNIT_COUNT = 15,
             SESSION_VALID_COUNT = 10,
             COLOUR_COUNT = 20,
-            MASTERLIST_RESTART_WEEK = 14,
+            MASTERLIST_RESTART_WEEK = 15,
             MAX_PZ_ASSETS = 30;
 
     public static final int OFC_UNIT_SUCCEEDED = 1,
@@ -386,6 +386,26 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         return day;
     }
 
+    public int getMasterlistDay()
+    {
+        int lastDay = currentMasterlistMaxWeek * 7;
+        int currentDay = getCurrentDay();
+        if(currentDay <= lastDay)
+        {
+            return currentDay;
+        }
+        else
+        {
+            int restartDay = (MASTERLIST_RESTART_WEEK-1)*7 + 1;
+            return restartDay + ((currentDay - lastDay - 1) % (lastDay- restartDay + 1));
+        }
+    }
+
+    public int getMasterlistWeek()
+    {
+        return (int)Math.ceil(getMasterlistDay() / 7.0f);
+    }
+
     private void prepareAlarm()
     {
         if(disallowEndHour == disallowStartHour)
@@ -628,16 +648,14 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     {
         OCM_MlUnit mlUnit = null;
         int currentWeek = getCurrentWeek();
-        int repeatWeek = currentWeek;
-        if(repeatWeek > currentMasterlistMaxWeek)
-            repeatWeek = MASTERLIST_RESTART_WEEK + ((currentWeek-1) % currentMasterlistMaxWeek);
+        int materlistWeek = getMasterlistWeek();
         Cursor cursor = db.prepareRawQuery(String.format("SELECT MAX(unitIndex) AS unitIndex FROM %s AS U "+
                 "JOIN %s AS UI ON UI.unitid = U.unitid AND U.masterlistid = ? "+
                 "JOIN %s AS S ON S.sessionid = UI.sessionid AND S.userid = UI.userid "+
                 "WHERE UI.userid = ? AND U.level = ?  AND S.day > ? AND S.day <= ?"+
                 "AND (UI.seqNo >= ? OR UI.statusid IN (?,?))", DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES,DBSQL.TABLE_SESSIONS),
                 Arrays.asList(String.valueOf(currentUser.studylistid),String .valueOf(currentUser.userid),
-                String.valueOf(repeatWeek),String.valueOf((currentWeek-1)*7),
+                String.valueOf(materlistWeek),String.valueOf((currentWeek-1)*7),
                 String.valueOf(currentWeek*7),String.valueOf(unitAttemptsCount-1),String.valueOf(OCM_MlUnitInstance.STATUS_COMPLETED),
                         String.valueOf(OCM_MlUnitInstance.STATUS_FAILURE)));
 
@@ -652,7 +670,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         if(mlUnit == null)
         {
             cursor = db.prepareRawQuery(String.format("SELECT MIN(unitIndex) AS unitIndex FROM %s AS U WHERE U.level = ? AND U.masterlistid = ?", DBSQL.TABLE_UNITS),
-                    Arrays.asList(String.valueOf(repeatWeek),String.valueOf(currentUser.studylistid)));
+                    Arrays.asList(String.valueOf(materlistWeek),String.valueOf(currentUser.studylistid)));
 
             if(cursor.moveToFirst())
             {
@@ -662,7 +680,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             }
             cursor.close();
         }
-        if(mlUnit.level != repeatWeek)
+        if(mlUnit.level != materlistWeek)
             return null;
         return mlUnit;
     }
@@ -1462,7 +1480,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             db = new DBSQL(false);
 
             Cursor cursor = db.prepareRawQuery(String.format("SELECT * FROM %s WHERE masterlistid = ? AND level = ?",DBSQL.TABLE_UNITS),
-                        Arrays.asList(String.valueOf(currentUser.playzonelistid),String.valueOf(getCurrentDay())));
+                        Arrays.asList(String.valueOf(currentUser.playzonelistid),String.valueOf(getMasterlistDay())));
 
 
             if(cursor.moveToFirst())
@@ -1484,6 +1502,72 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
         return unitsList;
     }
+
+    public int getPlayzoneLockUnitId()
+    {
+        int playZoneFunTime = 4;
+        int returnUnitId = -1;
+
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(false);
+
+            Cursor cursor = db.prepareRawQuery(String.format(
+                    "SELECT SUM(elapsedTime) as elapsed FROM %s AS UI " +
+                            "JOIN %s AS U ON U.unitid = UI.unitid AND U.masterlistid = ?" +
+                            "WHERE  UI.sessionid = ? AND U.typeid = ? " +
+                            "AND UI.startTime > (SELECT IFNULL(MAX(startTime),0) " +
+                            "FROM %s WHERE sessionid = UI.sessionid AND typeid = ?)",
+                    DBSQL.TABLE_UNIT_INSTANCES, DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES),
+                    Arrays.asList(String.valueOf(currentUser.playzonelistid),String.valueOf(currentSessionId)
+                            ,String.valueOf(OCM_MlUnit.TYPE_PLAYZONE_FUN),
+                            String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_PZ_LOCKED))
+
+            );
+
+            long elapsed = -1;
+            if(cursor.moveToFirst())
+            {
+                int index = cursor.getColumnIndex("elapsed");
+                if(!cursor.isNull(index))
+                    elapsed = cursor.getLong(index);
+            }
+            cursor.close();
+
+
+            if(elapsed >= playZoneFunTime)
+            {
+                cursor = db.prepareRawQuery(String.format("SELECT U.unitid as unitid, COUNT(UI.unitid) as count " +
+                                "FROM %s AS U LEFT JOIN %s AS UI ON U.unitid = UI.unitid " +
+                                "AND UI.sessionid = ? WHERE U.typeid = ? AND U.masterlistid = ? " +
+                                "AND U.level = ? GROUP BY U.unitid ORDER BY count, U.unitIndex LIMIT 1",
+                        DBSQL.TABLE_UNITS, DBSQL.TABLE_UNIT_INSTANCES),
+                        Arrays.asList(String.valueOf(currentSessionId),String.valueOf(OCM_MlUnit.TYPE_PLAYZONE_STUDY),
+                                String.valueOf(currentUser.playzonelistid),String.valueOf(getMasterlistDay())));
+                if(cursor.moveToFirst())
+                {
+                    int index = cursor.getColumnIndex("unitid");
+                    if(!cursor.isNull(index))
+                        returnUnitId = cursor.getInt(index);
+                }
+                cursor.close();
+            }
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+
+
+        return returnUnitId;
+    }
+
 
     public Map<Integer,List<OCM_MlUnit>> getUnitsForLibrary()
     {
@@ -2011,69 +2095,5 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         MainActivity.mainActivity.restartApplication();
     }
 
-    public int getPlayzoneLockUnitId()
-    {
-        int playZoneFunTime = 4;
-        int returnUnitId = -1;
-
-        DBSQL db = null;
-        try
-        {
-            db = new DBSQL(false);
-
-            Cursor cursor = db.prepareRawQuery(String.format(
-                    "SELECT SUM(elapsedTime) as elapsed FROM %s AS UI " +
-                            "JOIN %s AS U ON U.unitid = UI.unitid AND U.masterlistid = ?" +
-                            "WHERE  UI.sessionid = ? AND U.typeid = ? " +
-                            "AND UI.startTime > (SELECT IFNULL(MAX(startTime),0) " +
-                            "FROM %s WHERE sessionid = UI.sessionid AND typeid = ?)",
-                    DBSQL.TABLE_UNIT_INSTANCES, DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES),
-                    Arrays.asList(String.valueOf(currentUser.playzonelistid),String.valueOf(currentSessionId)
-                            ,String.valueOf(OCM_MlUnit.TYPE_PLAYZONE_FUN),
-                            String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_PZ_LOCKED))
-
-            );
-
-            long elapsed = -1;
-            if(cursor.moveToFirst())
-            {
-                int index = cursor.getColumnIndex("elapsed");
-                if(!cursor.isNull(index))
-                    elapsed = cursor.getLong(index);
-            }
-            cursor.close();
-
-
-            if(elapsed >= playZoneFunTime)
-            {
-                cursor = db.prepareRawQuery(String.format("SELECT U.unitid as unitid, COUNT(UI.unitid) as count " +
-                                "FROM %s AS U LEFT JOIN %s AS UI ON U.unitid = UI.unitid " +
-                                "AND UI.sessionid = ? WHERE U.typeid = ? AND U.masterlistid = ? " +
-                        "AND U.level = ? GROUP BY U.unitid ORDER BY count, U.unitIndex LIMIT 1",
-                        DBSQL.TABLE_UNITS, DBSQL.TABLE_UNIT_INSTANCES),
-                        Arrays.asList(String.valueOf(currentSessionId),String.valueOf(OCM_MlUnit.TYPE_PLAYZONE_STUDY),
-                                String.valueOf(currentUser.playzonelistid),String.valueOf(getCurrentDay())));
-                if(cursor.moveToFirst())
-                {
-                    int index = cursor.getColumnIndex("unitid");
-                    if(!cursor.isNull(index))
-                        returnUnitId = cursor.getInt(index);
-                }
-                cursor.close();
-            }
-        }
-        catch(Exception e)
-        {
-            e.printStackTrace();
-        }
-        finally
-        {
-            if(db != null)
-                db.close();
-        }
-
-
-        return returnUnitId;
-    }
 
 }
