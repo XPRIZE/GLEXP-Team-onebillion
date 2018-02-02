@@ -221,7 +221,8 @@ public class OC_Segblend3 extends OC_Wordcontroller
 
         if(showPic)
         {
-            OBImage im = loadImageWithName(words.get(currNo),new PointF(0, 0),boundsf(),false);
+            OBWord word = (OBWord) wordDict.get(words.get(currNo));
+            OBImage im = loadImageWithName(word.imageName,new PointF(0, 0),boundsf(),false);
             if(im != null)
             {
                 OBControl picbox = objectDict.get("picrect");
