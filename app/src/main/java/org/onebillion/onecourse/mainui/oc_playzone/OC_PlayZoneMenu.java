@@ -109,7 +109,7 @@ public class OC_PlayZoneMenu extends OC_Menu
                 @Override
                 public void run () throws Exception
                 {
-                    fatController.refreshBatteryStatus(level, charging, controller);
+                    fatController.setBatteryChargingLevel(level, charging, controller);
                 }
             });
         }

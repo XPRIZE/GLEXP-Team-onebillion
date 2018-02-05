@@ -87,6 +87,7 @@ public class OBConfigManager
     private static String FAT_CONTROLLER_NIGHT_MODE_HOURS = "fat_controller_night_mode_hours";
     private static String FAT_CONTROLLER_PLAYZONE_ACTIVE_HOUR = "fat_controller_playzone_active_hour";
     private static String FAT_CONTROLLER_SHOW_USER_NAME = "fat_controller_show_user_name";
+    private static String FAT_CONTROLLER_LOCK_TIMEOUT = "fat_controller_playzone_lock_timeout";
     //
     private static String ASSETS_EXTERNAL_PATH = "assets_external_path";
     //
@@ -877,6 +878,12 @@ public class OBConfigManager
     {
         return getBooleanValue(FAT_CONTROLLER_SHOW_USER_NAME);
     }
+
+    public int getFatControllerPlayzoneLockTimeout()
+    {
+        return getIntValue(FAT_CONTROLLER_LOCK_TIMEOUT);
+    }
+
 
 
     public String getAssetsExternalPath ()

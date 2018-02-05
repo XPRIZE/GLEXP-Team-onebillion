@@ -475,7 +475,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                 @Override
                 public void run() throws Exception
                 {
-                    fatController.refreshBatteryStatus(level, charging, controller);
+                    fatController.setBatteryChargingLevel(level, charging, controller);
                 }
             });
         }
