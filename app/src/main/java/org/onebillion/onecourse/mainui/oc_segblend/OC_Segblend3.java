@@ -399,7 +399,7 @@ public class OC_Segblend3 extends OC_Wordcontroller
         playSfxAudio("segment",false);
         segmentComponents(wordLabels,leftOffsets,mainLabel);
         String infix = syllableMode?"_syl_":"_let_";
-        String fileName = words.get(currNo).replace("_",infix);
+        String fileName = words.get(currNo).replaceFirst("_",infix);
         if(!syllableMode && OBAudioManager.audioManager.getAudioPath(fileName) == null)
         {
             List<String>phs = new ArrayList<>();
