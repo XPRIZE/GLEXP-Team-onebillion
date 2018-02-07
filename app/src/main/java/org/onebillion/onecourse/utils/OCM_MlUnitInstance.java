@@ -4,6 +4,9 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.util.ArrayMap;
 
+import com.google.gson.Gson;
+
+import org.json.JSONObject;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
 
@@ -27,17 +30,16 @@ public class OCM_MlUnitInstance extends DBObject
             STATUS_FAILURE = 20;
 
     public long unitid, assetid;
-    public int userid, sessionid, seqNo, elapsedTime, typeid, starColour, replayAudioCount, statusid;
+    public int userid, sessionid, seqNo, elapsedTime, typeid, starColour, statusid;
     public int scoreCorrect, scoreWrong;
     public long startTime, endTime;
-    public String extra;
+    private Map<String,Object> extraData;
 
     public OBSectionController sectionController;
     public OCM_MlUnit mlUnit;
 
     private static final String[] intFields = {"userid","sessionid","seqNo","elapsedTime","statusid","typeid","starColour","scoreCorrect", "scoreWrong"};
     private static final String[] longFields = {"startTime","endTime","unitid","assetid"};
-    private static final String[] stringFields = {"extra"};
 
     public OCM_MlUnitInstance()
     {
@@ -48,9 +50,8 @@ public class OCM_MlUnitInstance extends DBObject
         endTime = 0;
         starColour = -1;
         statusid = STATUS_STARTED;
-        replayAudioCount = 0;
         assetid = -1;
-        extra = null;
+        extraData = new ArrayMap<>();
     }
 
 
@@ -122,17 +123,26 @@ public class OCM_MlUnitInstance extends DBObject
         contentValues.put("starColour",starColour);
         contentValues.put("statusid",statusid);
         contentValues.put("assetid",assetid);
-        if(extra != null)
-            contentValues.put("extra",extra);
+        if(extraData.size() > 0)
+        {
+            Gson gson = new Gson();
+
+            contentValues.put("extra", gson.toJson(extraData));
+        }
         boolean result = db.doUpdateOnTable(DBSQL.TABLE_UNIT_INSTANCES,whereMap,contentValues) > 0;
         return result;
     }
 
     public Boolean saveToDB(DBSQL db)
     {
-        ContentValues contentValues = getContentValues(stringFields,intFields,longFields,null);
+        ContentValues contentValues = getContentValues(null,intFields,longFields,null);
         boolean result = db.doInsertOnTable(DBSQL.TABLE_UNIT_INSTANCES,contentValues) > 0;
         return result;
     }
 
+
+    public void addExtraData(String tag, Object data)
+    {
+        extraData.put(tag, data);
+    }
 }

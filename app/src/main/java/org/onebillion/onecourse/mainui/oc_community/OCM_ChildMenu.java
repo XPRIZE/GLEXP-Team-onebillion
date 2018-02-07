@@ -796,6 +796,8 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
     {
         OBGroup topBar = (OBGroup)objectDict.get("top_bar");
         int week = fatController.getCurrentWeek();
+        if(!fill && week > 68)
+            fill = true;
         if(currentDay%7 == 0)
             week++;
         for(int i=1; i<week; i++)

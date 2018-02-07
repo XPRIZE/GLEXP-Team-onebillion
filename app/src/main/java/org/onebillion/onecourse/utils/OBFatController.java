@@ -33,6 +33,16 @@ public class OBFatController
 
     }
 
+    public boolean shouldCollectMiscData()
+    {
+        return false;
+    }
+
+    public void collectMiscData(String tag, Object data)
+    {
+
+    }
+
     public void initScores()
     {
 

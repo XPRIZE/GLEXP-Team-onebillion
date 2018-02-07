@@ -12,6 +12,7 @@ import android.os.Handler;
 import android.util.ArrayMap;
 import android.widget.Toast;
 
+import org.json.JSONObject;
 import org.onebillion.onecourse.R;
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
@@ -25,6 +26,8 @@ import org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset;
 import org.onebillion.onecourse.receivers.OBBatteryReceiver;
 
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,9 +65,9 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     private long currentSessionStartTime, currentSessionEndTime, currentSessionWorkTime;
     private boolean allowsTimeOuts, showUserName;
     private Date startDate;
-    private boolean showBackButton;
     private List<OCM_MlUnitInstance> unitInstancesList;
 
+    private int replayAudioCount;
     private String menuAppCode;
 
     private Handler timeoutHandler;
@@ -564,6 +567,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         unitInstance.scoreCorrect = scoreCorrect;
         unitInstance.scoreWrong = scoreWrong;
         unitInstance.elapsedTime = (int)(currentUnitInstance.endTime - currentUnitInstance.startTime);
+        unitInstance.addExtraData("replayAudioCount",replayAudioCount);
         if(unitInstance.mlUnit.targetDuration > 0 &&
                 unitInstance.elapsedTime > unitInstance.mlUnit.targetDuration)
             unitInstance.elapsedTime = unitInstance.mlUnit.targetDuration;
@@ -642,7 +646,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     {
         if (currentUnitInstance != null)
         {
-            currentUnitInstance.replayAudioCount++;
+            replayAudioCount++;
         }
     }
 
@@ -693,6 +697,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     public void initDB()
     {
+        OBSQLiteHelper.getSqlHelper().backupDatabase();
         String mlname = OBConfigManager.sharedManager.getMasterlist();
         if (mlname.length() > 0)
         {
@@ -846,7 +851,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     {
         if(currentUnitInstance == null)
             return;
-        scoreCorrect = scoreWrong = 0;
+        scoreCorrect = scoreWrong = replayAudioCount = 0;
     }
 
     @Override
@@ -915,14 +920,14 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             currentUnitInstance.starColour = nextStarColourFromDB(db, currentUnitInstance.typeid);
             currentUnitInstance.updateDataInDB(db);
             //
-            if (communityModeActive())
+           /* if (communityModeActive())
             {
                 OBAnalyticsManager.sharedManager.communityModeUnitCompleted(currentUnitInstance.mlUnit.key, currentUnitInstance.startTime, currentUnitInstance.endTime, finalScore, currentUnitInstance.replayAudioCount);
             }
             else
             {
                 OBAnalyticsManager.sharedManager.studyZoneUnitCompleted(currentUnitInstance.mlUnit.key, currentUnitInstance.startTime, currentUnitInstance.endTime, finalScore, currentUnitInstance.replayAudioCount);
-            }
+            }*/
         }
         catch(Exception e)
         {
@@ -1387,7 +1392,8 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                 {
 
                     OBConfigManager.sharedManager.updateConfigPaths(unit.config, false, unit.lang);
-                    //if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OC_TestEvent","oc-childmenu",true,true,"test"))
+                    //OBConfigManager.sharedManager.updateConfigPaths("oc-community", false, unit.lang);
+                    //if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OCM_TestEvent","oc-community",true,true,"test"))
                     if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
                         currentUnitInstance.sectionController = MainViewController().topController();
@@ -1422,6 +1428,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                     }
                     Logger logger = Logger.getAnonymousLogger();
                     logger.log(Level.SEVERE, "Error in runOnMainThread", ex);
+
+                    StringWriter sw = new StringWriter();
+                    PrintWriter pw = new PrintWriter(sw);
+                    ex.printStackTrace(pw);
+                    currentUnitInstance.addExtraData("error", sw.toString());
 
                     OBConfigManager.sharedManager.updateConfigPaths(lastAppCode, false, lang);
                     openingCallback.run(currentUnitInstance, false);
@@ -2080,7 +2091,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             if(level > 20.0)
             {
                 OBControl bar = batteryIcon.objectDict.get("level_bar");
-                bar.setScaleX(level/100.0f);
+                bar.setScaleX(OB_Maths.clamp01(level/100.0f));
                 bar.show();
             }
             else
@@ -2100,6 +2111,17 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     {
         DBSQL.deleteDB();
         MainActivity.mainActivity.restartApplication();
+    }
+
+    public boolean shouldCollectMiscData()
+    {
+        return true;
+    }
+
+    public void collectMiscData(String tag, Object data)
+    {
+        if(currentUnitInstance != null)
+            currentUnitInstance.addExtraData(tag, data);
     }
 
 

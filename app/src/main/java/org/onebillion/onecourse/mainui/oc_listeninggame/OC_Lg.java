@@ -7,6 +7,8 @@ import android.graphics.Typeface;
 import android.util.ArrayMap;
 import android.view.View;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBLabel;
@@ -17,6 +19,7 @@ import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimBlock;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBMisc;
 import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBSyllable;
 import org.onebillion.onecourse.utils.OBUtils;
@@ -48,6 +51,8 @@ public class OC_Lg extends OC_SectionController
     List<List<Map<String,Object>>> eventsData;
     public OBPresenter presenter;
 
+    Map<String,List<String>> wrongMap;
+
     public ArrayList<String> getEventMode(String mode)
     {
         ArrayList<String> wordParams = null;
@@ -73,6 +78,7 @@ public class OC_Lg extends OC_SectionController
         loadFingers();
         loadEvent("master");
 
+        wrongMap = new ArrayMap<>();
 
         if(parameters.get("pattern") != null)
         {
@@ -170,6 +176,17 @@ public class OC_Lg extends OC_SectionController
 
     }
 
+    @Override
+    public void fin()
+    {
+        if (shoulCollectMiscData())
+        {
+            if(wrongMap.size() > 0)
+                collectMiscData("wrong", wrongMap);
+        }
+        super.fin();
+    }
+
     public void doMainXX()
     {
 
@@ -240,6 +257,7 @@ public class OC_Lg extends OC_SectionController
             attachControl(control);
             control.setProperty("correct",phon == targetPhoneme);
             control.setProperty("shutter",shutter);
+            control.setProperty("phoneme",phon);
             control.setProperty("bg",shutter.propertyValue("bg"));
             if(control.width() > shutter.width())
             {
@@ -256,9 +274,11 @@ public class OC_Lg extends OC_SectionController
             for(OBControl obj : targets)
                 obj.setScale(minScale);
 
+        setReplayAudio(Arrays.asList((Object)targetPhoneme.soundid));
+
     }
 
-    public void replayAudio()
+   /* public void replayAudio()
     {
         if(status() != STATUS_BUSY)
         {
@@ -271,7 +291,7 @@ public class OC_Lg extends OC_SectionController
 
             }
         }
-    }
+    }*/
 
     @Override
     public void touchDownAtPoint(PointF pt, View v)
@@ -318,6 +338,13 @@ public class OC_Lg extends OC_SectionController
         }
         else
         {
+            if(shoulCollectMiscData())
+            {
+                if(!wrongMap.containsKey(targetPhoneme.soundid))
+                    wrongMap.put(targetPhoneme.soundid, new ArrayList<String>());
+                OBPhoneme pho = (OBPhoneme)targ.propertyValue("phoneme");
+                wrongMap.get(targetPhoneme.soundid).add(pho.soundid);
+            }
             gotItWrongWithSfx();
             waitSFX();
             lowlightTarget(targ);

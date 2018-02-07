@@ -693,4 +693,15 @@ public class OC_SectionController extends OBSectionController {
         super.onBatteryStatusReceived(level, charging);
         MainActivity.mainActivity.fatController.onBatteryStatusReceived(level,charging);
     }
+
+    public boolean shoulCollectMiscData()
+    {
+        return MainActivity.mainActivity.fatController.shouldCollectMiscData();
+    }
+
+    public void collectMiscData(String tag, Object data)
+    {
+        MainActivity.mainActivity.fatController.collectMiscData(tag,data);
+    }
+
 }

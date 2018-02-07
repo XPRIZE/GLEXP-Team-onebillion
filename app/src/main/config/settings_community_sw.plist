@@ -253,7 +253,7 @@
 	<string>false</string>
 	<!--  -->
 	<key>debug_show_back_arrow</key>
-	<string>true</string>
+	<string>false</string>
 	<!--  -->
 	<key>debug_show_unit_id</key>
 	<string>true</string>

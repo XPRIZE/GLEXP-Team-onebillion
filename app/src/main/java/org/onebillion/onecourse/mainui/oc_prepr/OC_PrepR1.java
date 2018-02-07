@@ -1,9 +1,12 @@
 package org.onebillion.onecourse.mainui.oc_prepr;
 
 import android.graphics.Color;
+import android.util.ArrayMap;
 
+import org.json.JSONObject;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.mainui.oc_egrid.OC_Egrid;
+import org.onebillion.onecourse.utils.OBMisc;
 import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
@@ -11,6 +14,7 @@ import org.onebillion.onecourse.utils.OB_Maths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by michal on 22/01/2018.
@@ -20,12 +24,13 @@ public class OC_PrepR1 extends OC_Egrid
 {
     int currentPhonemeIndex, currentScore, maxScore;
     List<OBPhoneme> targetPhonemes;
-
+    Map<String,List<String>> wrongMap;
 
     public void prepare()
     {
         super.prepare();
         events = Arrays.asList("intro");
+        wrongMap = new ArrayMap<>();
         String mode = parameters.get("mode");
         loadAudioXML(getConfigPath(String.format("prepr1%saudio.xml",mode)));
         currentPhonemeIndex = 0;
@@ -55,7 +60,8 @@ public class OC_PrepR1 extends OC_Egrid
 
     public void wordTouched(OBLabel label) throws Exception
     {
-        if(targetPhoneme == null)        return;
+        if(targetPhoneme == null)
+            return;
         playAudio(null);
         label.setColour(Color.RED);
         OBPhoneme pho  = (OBPhoneme)label.propertyValue("phoneme");
@@ -73,6 +79,12 @@ public class OC_PrepR1 extends OC_Egrid
         }
         else
         {
+            if(shoulCollectMiscData())
+            {
+                if(!wrongMap.containsKey(targetPhoneme.soundid))
+                    wrongMap.put(targetPhoneme.soundid, new ArrayList<String>());
+                wrongMap.get(targetPhoneme.soundid).add(pho.soundid);
+            }
             wrongCount++;
             gotItWrongWithSfx();
             waitSFX();
@@ -100,6 +112,11 @@ public class OC_PrepR1 extends OC_Egrid
 
     public void fin()
     {
+        if (shoulCollectMiscData())
+        {
+            if(wrongMap.size() > 0)
+                collectMiscData("wrong", wrongMap);
+        }
         showScoreHammerScore((int)((currentScore*1.0f/maxScore)*10),false);
     }
 

@@ -176,6 +176,12 @@ public class OC_PrepM5 extends OC_PrepMWithVideo
         }
         else
         {
+            if(shoulCollectMiscData())
+            {
+                int num1 = currentEquationValues.get(0) , num2 = currentEquationValues.get(1);
+                String userAnswer = String.format("%d %s %d = %s",num1,additionMode ? "+" : "–",num2,targ.text());
+                collectMiscData("wrong",userAnswer);
+            }
             objectDict.get("wrong_cross").show();
             gotItWrongWithSfx();
             waitForSecs(0.3f);

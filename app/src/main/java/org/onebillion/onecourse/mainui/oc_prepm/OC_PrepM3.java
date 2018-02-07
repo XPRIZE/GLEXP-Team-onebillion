@@ -5,6 +5,8 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.view.View;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
@@ -60,6 +62,7 @@ public class OC_PrepM3 extends OC_PrepMWithVideo
         setSceneXX(currentEvent());
         OBPath line =(OBPath) objectDict.get("line");
         line.sizeToBoundingBoxIncludingStroke();
+
     }
 
     public void start()
@@ -157,6 +160,13 @@ public class OC_PrepM3 extends OC_PrepMWithVideo
         }
         else
         {
+            if(shoulCollectMiscData())
+            {
+                List<Integer> eq = currentEquationValues();
+                int num1 = eq.get(0) , num2 = eq.get(1);
+                String userAnswer = String.format("%d %s %d = %s",num1,additionMode ? "+" : "–",num2,targ.text());
+                collectMiscData("wrong",userAnswer);
+            }
             objectDict.get("wrong_cross").show();
             gotItWrongWithSfx();
             waitForSecs(0.3f);
