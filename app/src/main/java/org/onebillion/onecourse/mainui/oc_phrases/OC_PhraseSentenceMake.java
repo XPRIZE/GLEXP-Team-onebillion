@@ -201,6 +201,7 @@ public class OC_PhraseSentenceMake extends OC_PhraseSentence
         rw.settings.put("ucstring",s);
         l.setProperty("ucposition",new PointF(pos.x,pos.y));
         l.setString(lcs);
+        l.sizeToBoundingBox();
         l.setPosition(pos);
         l.setRight(r);
         rw.homePosition = new PointF(l.position().x,l.position().y);
