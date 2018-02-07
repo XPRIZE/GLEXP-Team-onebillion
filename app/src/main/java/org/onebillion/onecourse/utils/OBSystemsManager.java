@@ -1059,42 +1059,59 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 
     public String device_getUUID()
     {
-        String uuid =  Build.SERIAL;
+        String uuid = device_getSerial();
         //
         if (uuid == null)
         {
             uuid = "unknown_uuid";
-            //
-            try
-            {
-                List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
-                for (NetworkInterface nif : all)
-                {
-                    if (!nif.getName().equalsIgnoreCase("wlan0")) continue;
-                    byte[] macBytes = nif.getHardwareAddress();
-                    if (macBytes != null)
-                    {
-                        StringBuilder res1 = new StringBuilder();
-                        for (byte b : macBytes)
-                        {
-                            res1.append(Integer.toHexString(b & 0xFF) + ":");
-                        }
-                        if (res1.length() > 0)
-                        {
-                            res1.deleteCharAt(res1.length() - 1);
-                        }
-                        uuid = res1.toString().replace(":", "");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                //
-            }
+
+            String mac = device_getMac();
+            if(mac != null)
+                uuid = mac.replace(":", "");
+
         }
         //
         return uuid;
     }
+
+    public String device_getSerial()
+    {
+        return Build.SERIAL;
+    }
+
+    public String device_getMac()
+    {
+        String mac = null;
+        try
+        {
+            List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface nif : all)
+            {
+                if (!nif.getName().equalsIgnoreCase("wlan0")) continue;
+                byte[] macBytes = nif.getHardwareAddress();
+                if (macBytes != null)
+                {
+                    StringBuilder res1 = new StringBuilder();
+                    for (byte b : macBytes)
+                    {
+                        res1.append(Integer.toHexString(b & 0xFF) + ":");
+                    }
+                    if (res1.length() > 0)
+                    {
+                        res1.deleteCharAt(res1.length() - 1);
+                    }
+                    mac = res1.toString();
+                    break;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+
+        }
+        return mac;
+    }
+
 
 
     public void connectToWifiAndSynchronizeTime ()

@@ -718,6 +718,22 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             loadMasterListIntoDB(LIBRARY_LISTID,mlname);
         }
 
+        String mac = OBPreferenceManager.getStringPreference(OBPreferenceManager.PREFERENCES_MAC_NUM);
+        if(mac == null)
+        {
+            mac = OBSystemsManager.sharedManager.device_getMac();
+            if(mac != null)
+                OBPreferenceManager.setPreference(OBPreferenceManager.PREFERENCES_MAC_NUM, mac);
+        }
+
+        String serial = OBPreferenceManager.getStringPreference(OBPreferenceManager.PREFERENCES_SERIAL_NUM);
+        if(serial == null)
+        {
+            serial = OBSystemsManager.sharedManager.device_getSerial();
+            if(serial != null)
+                OBPreferenceManager.setPreference(OBPreferenceManager.PREFERENCES_SERIAL_NUM, serial);
+        }
+
         loadStartDate();
         loadUser();
     }

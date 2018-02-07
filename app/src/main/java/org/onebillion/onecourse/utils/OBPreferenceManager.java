@@ -16,7 +16,9 @@ public class OBPreferenceManager
             PREFERENCES_SETUP_COMPLETE = "setupComplete",
             PREFERENCES_SETUP_START_TIMESTAMP = "setupStartDate",
             PREFERENCES_TRIAL_START_TIMESTAMP = "trialStartDate",
-            PREFERENCES_CURRENT_BATTERY_SETTING = "currentBatterySetting";
+            PREFERENCES_CURRENT_BATTERY_SETTING = "currentBatterySetting",
+            PREFERENCES_SERIAL_NUM = "deviceSerial",
+            PREFERENCES_MAC_NUM = "deviceMac";
     private final static String COLUMN_NAME = "name";
     private final static String COLUMN_VAL = "val";
 
