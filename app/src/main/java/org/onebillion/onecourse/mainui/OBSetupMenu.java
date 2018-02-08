@@ -15,6 +15,7 @@ import android.graphics.Typeface;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.text.format.DateFormat;
+import android.text.format.DateUtils;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -50,6 +51,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Date;
 import java.util.Random;
@@ -72,6 +74,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
         HOME_SCREEN, SET_DATE_SCREEN, SET_TRIAL_DATE_SCREEN, CONFIRMATION_SCREEN, VIDEO_SCREEN, BATTERY_SCREEN, FINAL_SCREEN;
     }
     //
+    private static Date trialStartDate = new GregorianCalendar(2017,11,15).getTime(); // 0 based months, yay
     private static float clockRefreshInterval = 5.0f;
     private static String videoFilename = "tablet_care_sw.mp4";
     //
@@ -461,7 +464,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                     control.setHidden(!setDateScreenControls.contains(control));
                 }
                 //
-                showPickDateDialog(finalSelf);
+                showPickDateDialog(finalSelf, null);
                 //
                 unlockScreen();
             }
@@ -497,7 +500,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                     control.setHidden(!setTrialStartDateScreenControls.contains(control));
                 }
                 //
-                showPickDateDialog(finalSelf);
+                showPickDateDialog(finalSelf, trialStartDate);
                 //
                 unlockScreen();
             }
@@ -738,9 +741,14 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
     }
 
 
-    void showPickDateDialog (final DatePickerDialog.OnDateSetListener listener)
+    void showPickDateDialog (final DatePickerDialog.OnDateSetListener listener, Date startDate)
     {
-        final Calendar calendar = Calendar.getInstance();
+        Calendar currentCalendar = Calendar.getInstance();
+        if (startDate != null)
+        {
+            currentCalendar.setTime(startDate);
+        }
+        final Calendar calendar = currentCalendar;
         DatePickerDialog d = new DatePickerDialog(MainActivity.mainActivity, listener, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
         //
         d.setCancelable(false);
@@ -790,7 +798,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
             {
                 if (screenType == ScreenType.SET_DATE_SCREEN)
                 {
-                    showPickDateDialog(dateListener);
+                    showPickDateDialog(dateListener, null);
                 }
                 else
                 {
