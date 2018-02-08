@@ -403,6 +403,9 @@ public class OC_MissingNumbers extends OC_Generic_Event
             {
                 if (currentValue % 2 != 0) currentValue--;
             }
+            //
+            currentValue = Math.max(min, max);
+            //
             while (currentValue >= min)
             {
                 allowedValues.add(currentValue);
