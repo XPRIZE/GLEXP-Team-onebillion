@@ -242,8 +242,10 @@ public class OC_WordBag
 
         if(!outside)
         {
+            controller.lockScreen();
             for(OBControl obj : objs)
                 obj.setReversedScreenMaskControl(mask);
+            controller.unlockScreen();
         }
         List<OBControl> objsArray =  new ArrayList<>(objs);
         if(outside)
@@ -305,8 +307,10 @@ public class OC_WordBag
         }
         if(outside)
         {
+            controller.lockScreen();
             for(OBControl obj : objs)
                 obj.setMaskControl(null);
+            controller.unlockScreen();
         }
         stopDotsAnimation();
     }

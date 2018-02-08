@@ -44,11 +44,22 @@ public class OC_Pws2 extends OC_Pws
         List<String> syllables = new ArrayList<>();
         for(String syllablesString : syllableGroups)
         {
-            String[] sylArr =syllablesString.split(",");
+            String[] sylArr = syllablesString.split(",");
+            List<String> layout = new ArrayList<>();
             for(String phonemeid : sylArr)
-                if(phonemeid != null && componentDict.containsKey(phonemeid))
+            {
+                if (componentDict.containsKey(phonemeid))
+                {
                     syllables.add(phonemeid);
-            syllablesOrder.add(Arrays.asList(sylArr));
+                    layout.add(phonemeid);
+                }
+                else
+                {
+                    layout.add("");
+                }
+            }
+
+            syllablesOrder.add(layout);
 
         }
         prepareLabelsForPhonemeIds(OBUtils.randomlySortedArray(syllables),false);
@@ -111,9 +122,11 @@ public class OC_Pws2 extends OC_Pws
                 String objId = syllablesOrder.get(j).get(i);
                 if(objId == null || objId.equals(""))
                     continue;
-                OBLabel label = targetLabelsDict.get(objId);
-                if(label == null)
+
+                if(!targetLabelsDict.containsKey(objId))
                     continue;
+
+                OBLabel label = targetLabelsDict.get(objId);
                 if(newRow)
                 {
                     newRow = false;
