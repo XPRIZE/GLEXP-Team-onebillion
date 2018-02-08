@@ -253,6 +253,7 @@ public class OC_WordVideoRec extends OC_SectionController
         checkSuspendLock();
         if(!videoRecorder.audioRecorded() && count < 2)
         {
+            gotItWrong();
             showVideoPreview();
             setStatus(STATUS_BUSY);
             wordLabel.setColour(Color.BLACK);
@@ -272,6 +273,7 @@ public class OC_WordVideoRec extends OC_SectionController
         }
         else
         {
+            gotItRight();
             setStatus(STATUS_BUSY);
             wordRecordStop();
             playAudioQueued(OBUtils.insertAudioInterval(getSceneAudio("FINAL"),300),true);

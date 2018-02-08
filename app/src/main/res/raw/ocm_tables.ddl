@@ -28,8 +28,8 @@ create table masterlists
 
 create table unitinstances
 (
-    userid integer not null references users(userid) on delete restrict,
-    unitid integer not null references units(unitid) on delete restrict,
+    userid integer not null references users(userid) on delete no action,
+    unitid integer not null,
     typeid integer not null,
     seqNo int not null,
     sessionid integer not null,
@@ -46,9 +46,11 @@ create table unitinstances
     constraint pkey primary key (userid,sessionid,unitid,typeid,seqno) on conflict fail
 );
 
+create index unitid_index ON unitinstances(unitid);
+
 create table sessions
 (
-    userid integer not null references users(userid) on delete restrict,
+    userid integer not null references users(userid) on delete no action,
     sessionid integer not null,
     startTime big unsigned int not null,
     workTime big unsigned int not null,
@@ -76,7 +78,7 @@ create table preferences
 create table playzoneassets
 (
     assetid integer primary key,
-    userid integer not null references users(userid) on delete restrict,
+    userid integer not null references users(userid) on delete no action,
     typeid integer not null default 1,
     thumbnail text,
     params text,

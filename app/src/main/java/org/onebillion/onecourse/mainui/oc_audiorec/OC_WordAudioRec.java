@@ -372,6 +372,7 @@ public class OC_WordAudioRec extends OC_SectionController
         checkSuspendLock();
         if(count < 2 && !audioRecorder.audioRecorded())
         {
+            gotItWrong();
             setStatus(STATUS_BUSY);
             curLabel.setColour(Color.BLACK);
 
@@ -390,6 +391,7 @@ public class OC_WordAudioRec extends OC_SectionController
         }
         else
         {
+            gotItRight();
             setStatus(STATUS_BUSY);
             wordRecordStop(curLabel);
             if(getSceneAudio("FINAL") != null)

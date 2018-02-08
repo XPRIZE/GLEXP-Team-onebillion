@@ -79,11 +79,11 @@ public class OC_PrepR1 extends OC_Egrid
         }
         else
         {
-            if(shoulCollectMiscData())
+            if(shoulCollectMiscData() && targetPhoneme.text != null)
             {
-                if(!wrongMap.containsKey(targetPhoneme.soundid))
-                    wrongMap.put(targetPhoneme.soundid, new ArrayList<String>());
-                wrongMap.get(targetPhoneme.soundid).add(pho.soundid);
+                if(!wrongMap.containsKey(targetPhoneme.text))
+                    wrongMap.put(targetPhoneme.text, new ArrayList<String>());
+                wrongMap.get(targetPhoneme.text).add(pho.text);
             }
             wrongCount++;
             gotItWrongWithSfx();

@@ -71,6 +71,7 @@ public class OC_PrepM3 extends OC_PrepMWithVideo
         {
             public void run() throws Exception
             {
+                waitForSecs(0.5f);
                 startScene();
             }
         });

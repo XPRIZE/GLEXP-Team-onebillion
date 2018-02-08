@@ -271,6 +271,14 @@
 	<string>0012</string>
 
 
+	<!-- ANALYTICS MANAGER -->
+    <key>analytics_enabled</key>
+    <string>true</string>
+    <!--  -->
+    <key>analytics_class</key>
+    <string>OBAnalyticsManagerCommunity</string>
+
+
 	<!-- APP -->
 	<key>app_gen_folder</key>
 	<string>oc-gen</string>
@@ -292,5 +300,6 @@
 	<!--  -->
 	<key>app_masterlist_library</key>
 	<string>library_sw</string>
+
 </dict>
 </plist>

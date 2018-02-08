@@ -170,6 +170,7 @@ public class OC_PlayZoneVideo extends OC_SectionController
                         button.hide();
                         MainViewController().topLeftButton.hide();
                         progressBar.show();
+                        screenOverlay.hide();
                         unlockScreen();
                         OBPath bar = (OBPath)progressBar.objectDict.get("progress");
                         videoRecorder.startMediaRecorderAndTimer(-1);

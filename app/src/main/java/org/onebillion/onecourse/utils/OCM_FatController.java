@@ -567,7 +567,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         unitInstance.scoreCorrect = scoreCorrect;
         unitInstance.scoreWrong = scoreWrong;
         unitInstance.elapsedTime = (int)(currentUnitInstance.endTime - currentUnitInstance.startTime);
-        unitInstance.addExtraData("replayAudioCount",replayAudioCount);
+        unitInstance.addExtraData("replay_audio_count",replayAudioCount);
         if(unitInstance.mlUnit.targetDuration > 0 &&
                 unitInstance.elapsedTime > unitInstance.mlUnit.targetDuration)
             unitInstance.elapsedTime = unitInstance.mlUnit.targetDuration;

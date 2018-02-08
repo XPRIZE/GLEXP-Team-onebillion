@@ -338,12 +338,12 @@ public class OC_Lg extends OC_SectionController
         }
         else
         {
-            if(shoulCollectMiscData())
+            if(shoulCollectMiscData() && targetPhoneme.text != null)
             {
-                if(!wrongMap.containsKey(targetPhoneme.soundid))
-                    wrongMap.put(targetPhoneme.soundid, new ArrayList<String>());
+                if(!wrongMap.containsKey(targetPhoneme.text))
+                    wrongMap.put(targetPhoneme.text, new ArrayList<String>());
                 OBPhoneme pho = (OBPhoneme)targ.propertyValue("phoneme");
-                wrongMap.get(targetPhoneme.soundid).add(pho.soundid);
+                wrongMap.get(targetPhoneme.text).add(pho.text);
             }
             gotItWrongWithSfx();
             waitSFX();

@@ -77,9 +77,10 @@ public class OC_MoreNumbers_S4s extends OC_SectionController
         {
             String boxname = String.format("box_%d",i);
             OBControl box = objectDict.get(boxname);
-            ((OBPath)box).sizeToBoundingBoxIncludingStroke();
+            float lineWidth = ((OBPath)box).lineWidth();
+            ((OBPath) box).sizeToBoundingBoxInset(-lineWidth -box.getShadowOffsetY());
             box.show();
-            float fontSize2 = 75.0f*box.height()/78.0f;
+            float fontSize2 = 70.0f*box.height()/78.0f;
             OBLabel label = new OBLabel(String.format("%d",i),OBUtils.standardTypeFace(),fontSize2);
             label.setColour(Color.BLACK);
             box.setZPosition(1);

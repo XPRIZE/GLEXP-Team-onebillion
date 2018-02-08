@@ -5,6 +5,7 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.media.MediaPlayer;
+import android.util.ArrayMap;
 import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
@@ -81,6 +82,7 @@ public class OC_VideoPlayback extends OC_SectionController
     public static int defaultWaitTime = 50;
     public float currentVideoPlayerVolume;
 
+    private Map<Long,String> watchedVideos;
 
     private static Typeface plainFont ()
     {
@@ -122,6 +124,7 @@ public class OC_VideoPlayback extends OC_SectionController
 
     public void prepare ()
     {
+        watchedVideos = new ArrayMap<>();
         super.prepare();
         loadEvent("mastera");
         subtitleTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("subtitletextsize")));
@@ -135,6 +138,14 @@ public class OC_VideoPlayback extends OC_SectionController
         scrollPreviewToVisible(videoPreviewIdx, false);
     }
 
+
+    @Override
+    public void exitEvent()
+    {
+        if(shoulCollectMiscData())
+            collectMiscData("watched", watchedVideos);
+        super.exitEvent();
+    }
 
     public void cleanUp ()
     {
@@ -674,7 +685,9 @@ public class OC_VideoPlayback extends OC_SectionController
         OBXMLNode videoNode = videoXMLDict.get(videoID);
         String movie = videoNode.attributeStringValue("file");
         //
-        OBAnalyticsManager.sharedManager.playZoneVideoWatched(videoID);
+        //OBAnalyticsManager.sharedManager.playZoneVideoWatched(videoID);
+        if(shoulCollectMiscData())
+            watchedVideos.put(System.currentTimeMillis()/1000,videoID);
         //
         String movieName = OBUtils.stringByAppendingPathComponent(movieFolder, movie);
         OBControl placeHolder = objectDict.get("video_video");

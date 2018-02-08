@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.util.ArrayMap;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import org.json.JSONObject;
 import org.onebillion.onecourse.mainui.MainActivity;
@@ -125,9 +126,15 @@ public class OCM_MlUnitInstance extends DBObject
         contentValues.put("assetid",assetid);
         if(extraData.size() > 0)
         {
-            Gson gson = new Gson();
-
-            contentValues.put("extra", gson.toJson(extraData));
+            try
+            {
+                Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+                contentValues.put("extra", gson.toJson(extraData));
+            }
+            catch (Exception e)
+            {
+                MainActivity.log("OCM_MlUnitInstance: error converting data to json: " + e.getMessage());
+            }
         }
         boolean result = db.doUpdateOnTable(DBSQL.TABLE_UNIT_INSTANCES,whereMap,contentValues) > 0;
         return result;
