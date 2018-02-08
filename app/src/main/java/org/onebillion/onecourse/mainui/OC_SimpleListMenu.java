@@ -88,6 +88,7 @@ public class OC_SimpleListMenu extends OBSectionController
                 catch(Exception e)
                 {
                     Toast.makeText(MainActivity.mainActivity, m.target + " error opening!", Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
                 }
                 setStatus(STATUS_IDLE);
 
