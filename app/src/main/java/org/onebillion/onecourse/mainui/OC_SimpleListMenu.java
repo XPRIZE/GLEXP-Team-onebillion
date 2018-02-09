@@ -41,6 +41,8 @@ public class OC_SimpleListMenu extends OBSectionController
     List<MlUnit> filteredList;
     ArrayAdapter<MlUnit> arrayAdapter;
     private MasterlistFilter masterlistFilter = new MasterlistFilter();
+    List<String> checkedList;
+
 
     public OC_SimpleListMenu ()
     {
@@ -49,6 +51,7 @@ public class OC_SimpleListMenu extends OBSectionController
 
     public void initScreen()
     {
+        checkedList = new ArrayList<>();
         MainActivity.mainActivity.setContentView(R.layout.simple_list_menu);
         listView = (ListView)MainActivity.mainActivity.findViewById(R.id.OB_simplelistview);
         listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
@@ -76,6 +79,8 @@ public class OC_SimpleListMenu extends OBSectionController
 
                 try
                 {
+                    checkedList.add(m.key);
+                    arrayAdapter.notifyDataSetChanged();
                     if (MainActivity.mainViewController.pushViewControllerWithNameConfig(m.target, configName, true, true, m.params))
 
                     {
@@ -134,6 +139,10 @@ public class OC_SimpleListMenu extends OBSectionController
                 // Set the height of the Item View
                 params.height = 175;
                 view.setText(s);
+                if(checkedList.contains(ml.key))
+                    view.setTextColor(Color.RED);
+                else
+                    view.setTextColor(Color.BLACK);
                 return view;
             }
 

@@ -341,7 +341,7 @@ public class OC_Hw extends OC_SectionController
             }
            // OBPath path =(OBPath) group.objectDict.get("Path1_1");
            // float top = group.top() - path.lineWidth()*group.scale()*0.5f;
-            rect = new RectF(rect.left, minTop-applyGraphicScale(2), rect.top+rect.width(), rect.bottom);
+            rect = new RectF(rect.left, minTop-applyGraphicScale(2), rect.top+rect.width(), rect.bottom+applyGraphicScale(2));
         }
         PointF loc = OBMisc.copyPoint(lineTop.position());
         loc.y = rect.top;
