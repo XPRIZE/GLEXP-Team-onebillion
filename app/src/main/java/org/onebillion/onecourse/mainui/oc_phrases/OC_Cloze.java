@@ -299,7 +299,8 @@ List<Integer>indicesFromArray(List<String>arr)
         for(OBReadingPara para : paragraphs)
             for(OBReadingWord rw : para.words)
             {
-                rw.label.hide();
+                if (rw.label != null)
+                    rw.label.hide();
             }
         unlockScreen();
         waitForSecs(0.2f);

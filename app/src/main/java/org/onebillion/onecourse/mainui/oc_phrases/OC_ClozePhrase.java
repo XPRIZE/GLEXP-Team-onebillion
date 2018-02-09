@@ -326,24 +326,27 @@ public class OC_ClozePhrase extends OC_Cloze
         for(OBReadingPara para : paragraphs)
             for(OBReadingWord rw : para.words)
             {
-                if(rw.label.propertyValue("pos") != null)
+                if (rw.label != null)
                 {
-                    PointF pos = (PointF)rw.label.propertyValue("pos");
-                    anims.add(OBAnim.moveAnim(pos,rw.label));
-                }
-                if(rw.settings.get("lclabel") != null )
-                {
-                    OBLabel label = (OBLabel) rw.settings.get("lclabel");
-                    PointF pos = (PointF)label.propertyValue("pos");
-                    anims.add(OBAnim.moveAnim(pos,label));
-                }
-                if(rw.settings.get("dash") != null)
-                {
-                    OBControl dash = (OBControl)rw.settings.get("dash");
-                    if(dash.propertyValue("pos") != null)
+                    if(rw.label.propertyValue("pos") != null)
                     {
-                        PointF pos = (PointF)dash.propertyValue("pos");
-                        anims.add(OBAnim.moveAnim(pos,dash));
+                        PointF pos = (PointF)rw.label.propertyValue("pos");
+                        anims.add(OBAnim.moveAnim(pos,rw.label));
+                    }
+                    if(rw.settings.get("lclabel") != null )
+                    {
+                        OBLabel label = (OBLabel) rw.settings.get("lclabel");
+                        PointF pos = (PointF)label.propertyValue("pos");
+                        anims.add(OBAnim.moveAnim(pos,label));
+                    }
+                    if(rw.settings.get("dash") != null)
+                    {
+                        OBControl dash = (OBControl)rw.settings.get("dash");
+                        if(dash.propertyValue("pos") != null)
+                        {
+                            PointF pos = (PointF)dash.propertyValue("pos");
+                            anims.add(OBAnim.moveAnim(pos,dash));
+                        }
                     }
                 }
             }
