@@ -328,7 +328,8 @@ public class OC_Hw extends OC_SectionController
     {
         List<OBControl> xboxes = group.filterMembers("xbox.*",true);
         OBControl xbox = xboxes.get(0);
-        RectF rect = convertRectFromControl(xbox.bounds(),xbox);
+
+        RectF rect = xbox.getWorldFrame();
         if(!useXbox)
         {
             List<OBControl> lines = group.filterMembers("Path.*",true);
@@ -341,7 +342,7 @@ public class OC_Hw extends OC_SectionController
             }
            // OBPath path =(OBPath) group.objectDict.get("Path1_1");
            // float top = group.top() - path.lineWidth()*group.scale()*0.5f;
-            rect = new RectF(rect.left, minTop-applyGraphicScale(2), rect.top+rect.width(), rect.bottom+applyGraphicScale(2));
+            rect = new RectF(rect.left, minTop+ lines.get(0).lineWidth()/2.0f, rect.top+rect.width(), rect.bottom);
         }
         PointF loc = OBMisc.copyPoint(lineTop.position());
         loc.y = rect.top;
@@ -536,6 +537,7 @@ public class OC_Hw extends OC_SectionController
                 path.setStrokeColor(colour);
                 path.setLineWidth(size);
                 path.setStrokeEnd(prepare ? 0 : 1);
+                path.sizeToBoundingBoxIncludingStroke();
             }
         }
 
@@ -546,7 +548,7 @@ public class OC_Hw extends OC_SectionController
         allObjects.addAll(xboxes);
         OBGroup letterGrp = new OBGroup(allObjects);
         attachControl(letterGrp);
-        letterGrp.recalculateFrameForPath(allObjects);
+        //letterGrp.recalculateFrameForPath(allObjects);
 
         int index = 1;
         for(int i=0; i<letterPaths.size(); i++)

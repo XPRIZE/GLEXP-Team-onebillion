@@ -1063,7 +1063,7 @@ public class OBGroup extends OBControl
 
     public void recalculateFrameForPath(List<OBControl> paths)
     {
-        RectF fullBounds = paths.get(0).frame();
+        RectF fullBounds = new RectF(paths.get(0).frame());
         for(OBControl stroke : paths)
         {
             if(stroke.getClass() == OBPath.class)
