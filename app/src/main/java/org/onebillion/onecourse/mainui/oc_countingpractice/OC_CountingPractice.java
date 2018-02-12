@@ -177,7 +177,8 @@ public class OC_CountingPractice extends OC_Generic_Event
         }
         else if (mode.equals(kModeChildCountChooseAnswer))
         {
-            totalObjectsForUnit = clumpOfObjectsForUnit * maxClumpsOnScreen;
+            totalObjectsForUnit = Integer.parseInt(parameters.get(kTotalObjects));
+//            totalObjectsForUnit = clumpOfObjectsForUnit * maxClumpsOnScreen;
             hasDemo = true;
         }
         //
@@ -491,7 +492,6 @@ public class OC_CountingPractice extends OC_Generic_Event
                 waitSFX();
             }
             maxClumpsOnScreen = totalClumpsForSecondStage();
-            totalObjectsForUnit += clumpOfObjectsForUnit * maxClumpsOnScreen;
             populatePeasWithAnimation();
             if (currentEvent().equals("c"))
             {
@@ -520,8 +520,12 @@ public class OC_CountingPractice extends OC_Generic_Event
 
     public int totalClumpsForSecondStage ()
     {
-        int startingClumps = round(startingObjectsInContainer / clumpOfObjectsForUnit);
-        int draggedClumps = maxClumpsOnScreen - startingClumps;
+        int draggedObjectsIntoJar = atRestObjects.size() - startingObjectsInContainer;
+        int draggedClumps = round (draggedObjectsIntoJar / (float) clumpOfObjectsForUnit);
+        //
+//        int startingClumps = round(startingObjectsInContainer / clumpOfObjectsForUnit);
+//        int draggedClumps = maxClumpsOnScreen - startingClumps;
+//      //
         int result = draggedClumps;
         if (clumpOfObjectsForUnit == 1)
         {
@@ -553,8 +557,12 @@ public class OC_CountingPractice extends OC_Generic_Event
         if (result < missingClumps)
         {
             int diff = missingClumps - result;
-            totalObjectsForUnit += diff * clumpOfObjectsForUnit;
+            totalObjectsForUnit =  totalObjectsForUnit + diff * clumpOfObjectsForUnit;
             result = missingClumps;
+        }
+        else
+        {
+            totalObjectsForUnit = totalObjectsForUnit + clumpOfObjectsForUnit * result;
         }
         //
         return result;
