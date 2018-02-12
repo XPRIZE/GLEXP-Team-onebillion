@@ -186,7 +186,7 @@ public class OC_ReadingIReadForce extends OC_ReadingIRead
                 unlockScreen();
                 waitAndCheck(sttime,0.1,4);
                 lockScreen();
-                         wordback.show();
+                wordback.show();
                 unlockScreen();
                 waitAndCheck(sttime,0.1,4);
             }
@@ -194,17 +194,27 @@ public class OC_ReadingIReadForce extends OC_ReadingIRead
         catch (Exception exception)
         {
             lockScreen();
-            wordback.show();
+            wordback.setHidden(wordIdx >= words.size());
             unlockScreen();
         }
     }
 
-    public void remindBox(long sttime,float secs)
+    public void remindBox(final long sttime,float secs)
     {
         if (statusChanged(sttime))
             return;
         flashBox(sttime);
-        endBody();
+        if (statusChanged(sttime))
+            return;
+        OBUtils.runOnOtherThreadDelayed(3, new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                remindBox(sttime,3);
+            }
+        });
+
     }
 
     public void checkTarget(OBReadingWord rw,PointF pt)
