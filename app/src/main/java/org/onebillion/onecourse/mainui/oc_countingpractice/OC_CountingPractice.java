@@ -167,7 +167,7 @@ public class OC_CountingPractice extends OC_Generic_Event
         mode = parameters.get(kMode);
         startingObjectsInContainer = Integer.parseInt(parameters.get(kStartingObjectsInContainer));
         clumpOfObjectsForUnit = Integer.parseInt(parameters.get(kClump));
-        maxClumpsOnScreen = Integer.parseInt(parameters.get(kMaxClumps));
+        maxClumpsOnScreen = Math.min(20 - clumpOfObjectsForUnit + 1, Integer.parseInt(parameters.get(kMaxClumps)));
         //
         if (mode.equals(kModeAutomaticCount) || mode.equals(kModeChildCountReachTarget))
         {
@@ -1532,7 +1532,7 @@ public class OC_CountingPractice extends OC_Generic_Event
         preparePlayNumberIncrement();
         //
         // if an number audio file is already prepared at mode 2, it skips (only the first audio number is to be played for mode 2)
-        if (mode.equals(kModeChildCountChooseAnswer) && preparedAudio == null)
+        if (mode.equals(kModeAutomaticCount) || (mode.equals(kModeChildCountChooseAnswer) && preparedAudio == null))
         {
             prepareNumberAudio(physicsControls.size());
         }
