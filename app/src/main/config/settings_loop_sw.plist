@@ -67,10 +67,10 @@
 
 	<!-- BRIGHTNESS -->
 	<key>brightness_manager_enabled</key>
-	<string>false</string>
+	<string>true</string>
 	<!--  -->
 	<key>brightness_check_interval_seconds</key>
-	<string>180</string>
+	<string>18000</string>
 	<!--  -->
 	<key>brightness_turn_off_value</key>
 	<string>0.1</string>
