@@ -5,12 +5,14 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.AsyncTask;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPresenter;
+import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimBlock;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
@@ -48,9 +50,11 @@ public class OC_ReadingIRead extends OC_Reading
     public void start()
     {
         setStatus(0);
-        new AsyncTask<Void, Void,Void>()
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
-            protected Void doInBackground(Void... params) {
+            @Override
+            public void run() throws Exception
+            {
                 try
                 {
                     if (pageNo == 0)
@@ -65,8 +69,8 @@ public class OC_ReadingIRead extends OC_Reading
                 {
                 }
                 showNextArrow(true);
-                return null;
-            }}.execute();
+            }
+        });
     }
 
     public int buttonFlags()
