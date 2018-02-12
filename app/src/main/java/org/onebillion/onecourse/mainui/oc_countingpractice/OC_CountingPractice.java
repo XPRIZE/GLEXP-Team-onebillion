@@ -1551,14 +1551,14 @@ public class OC_CountingPractice extends OC_Generic_Event
                 jarLabelContainer.hide();
                 unlockScreen();
             }
-        }
-        //
-        preparePlayNumberIncrement();
-        //
-        // if an number audio file is already prepared at mode 2, it skips (only the first audio number is to be played for mode 2)
-        if (mode.equals(kModeAutomaticCount) || (mode.equals(kModeChildCountChooseAnswer) && preparedAudio == null))
-        {
-            prepareNumberAudio(physicsControls.size());
+            //
+            preparePlayNumberIncrement();
+            //
+            // if an number audio file is already prepared at mode 2, it skips (only the first audio number is to be played for mode 2)
+            if (mode.equals(kModeAutomaticCount) || (mode.equals(kModeChildCountChooseAnswer) && preparedAudio == null))
+            {
+                prepareNumberAudio(physicsControls.size());
+            }
         }
         //
         if (physicsThreadRunning) return;
