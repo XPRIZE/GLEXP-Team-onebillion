@@ -485,6 +485,8 @@ public class OC_Hw extends OC_SectionController
             }
             else
             {
+                if(character.equals("'") || character.equals("`"))
+                    character = "apost";
                 String l = String.format("_%s", character);
                 loadEvent(l);
                 List<OBControl> lpaths = sortedFilteredControls("Path.*");
