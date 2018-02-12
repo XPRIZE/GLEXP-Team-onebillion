@@ -221,8 +221,8 @@ public class OC_Pws3 extends OC_Pws
 
     public void colourLabel(OBLabel label,String rime)
     {
-        int index = label.text().indexOf(rime);
-        label.setHighRange(label.text().length()-rime.length(),index+rime.length(),eventColours.get("pattern"));
+        int index = label.text().lastIndexOf(rime);
+        label.setHighRange(index,index+rime.length(),eventColours.get("pattern"));
     }
 
     public boolean checkTargetDrop(OBLabel target)
