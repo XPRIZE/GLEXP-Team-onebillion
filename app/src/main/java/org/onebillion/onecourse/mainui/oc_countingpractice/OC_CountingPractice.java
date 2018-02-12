@@ -51,6 +51,7 @@ public class OC_CountingPractice extends OC_Generic_Event
     private List<OBPath> dashes;
     private List<OBLabel> dashLabels;
     private List<OBControl> physicsControls;
+    private List<OBControl> startingObjectsInJar;
     //
     private int colourTextNormal, colourTextHilite, colourTextDisabled, colourTextDraggable, colourTextCorrect, colourTextTarget;
     private int colourButtonNormal, colourButtonHilite, colourButtonDisabled;
@@ -255,6 +256,7 @@ public class OC_CountingPractice extends OC_Generic_Event
         attachControl(jarLabel);
         //
         clumps = new ArrayList<>();
+        startingObjectsInJar = new ArrayList<>();
         if (startingObjectsInContainer > 0)
         {
             OBControl peaTemplate = objectDict.get("pea");
@@ -278,8 +280,12 @@ public class OC_CountingPractice extends OC_Generic_Event
                     newPosition.set((float) absoluteLeft, newPosition.y);
                     newPosition.y -= interactionForceFactor * peaTemplate.width() * 0.6f;
                 }
+                //
+                startingObjectsInJar.add(newPea);
             }
         }
+        //
+        MainActivity.log("Starting at rest objects in jar: %d", atRestObjects.size());
         //
         jarLabel.setString(String.format("%d", startingObjectsInContainer));
         //
@@ -673,7 +679,7 @@ public class OC_CountingPractice extends OC_Generic_Event
                             OBControl body = group.objectDict.get("body");
                             body.setRotation(0.0f);
                             group.setZPosition((float) group.propertyValue("original_zPosition"));
-                            PointF offsetPosition = OB_Maths.OffsetPoint(group.position(), - originalGroup.frame.left, - originalGroup.frame.top);
+                            PointF offsetPosition = OB_Maths.OffsetPoint(group.position(), -originalGroup.frame.left, -originalGroup.frame.top);
                             group.setPosition(offsetPosition);
                             originalGroup.insertMember(group, 0, "pea");
                         }
@@ -714,7 +720,7 @@ public class OC_CountingPractice extends OC_Generic_Event
             List<OBControl> placements = sortedFilteredControls("place.*");
             for (int i = 0; i < maxClumpsOnScreen; i++)
             {
-                if (physicsControls.size() + newControls.size() * clumpOfObjectsForUnit > totalObjectsForUnit)
+                if (physicsControls.size() + newControls.size() * clumpOfObjectsForUnit >= totalObjectsForUnit)
                     break;
                 //
                 OBControl place = placements.get(i);
@@ -1461,6 +1467,8 @@ public class OC_CountingPractice extends OC_Generic_Event
             }
         }
         //
+        if (atRestObjects == null) atRestObjects = new ArrayList<>();
+        //
         for (OBControl objectToBeAdded : objectsToBeAddedToPhysicsControls)
         {
             PointF initialSpeed = new PointF(0, 0);
@@ -1483,6 +1491,7 @@ public class OC_CountingPractice extends OC_Generic_Event
                 descentStarted = true;
                 timeToDie = 1.0;
                 fixed = true;
+                atRestObjects.add(objectToBeAdded);
             }
             //
             double absoluteLeft = jar.left() + 1.2 * objectToBeAdded.width();
