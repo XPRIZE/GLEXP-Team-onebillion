@@ -285,7 +285,14 @@ public class OC_CountingPractice extends OC_Generic_Event
             }
         }
         //
-        MainActivity.log("Starting at rest objects in jar: %d", atRestObjects.size());
+        if (atRestObjects != null)
+        {
+            MainActivity.log("Starting at rest objects in jar: %d", atRestObjects.size());
+        }
+        else
+        {
+            MainActivity.log("No objects starting in the jar");
+        }
         //
         jarLabel.setString(String.format("%d", startingObjectsInContainer));
         //
@@ -1669,6 +1676,7 @@ public class OC_CountingPractice extends OC_Generic_Event
         //
         thePointer.hide();
         List replayAudio = getAudioForScene(currentEvent(), "REPEAT2");
+        if (replayAudio == null || replayAudio.size() == 0) replayAudio = getAudioForScene(currentEvent(), "REPEAT");
         setReplayAudio(replayAudio);
         updateLastActionTakenTimeStamp();
         //

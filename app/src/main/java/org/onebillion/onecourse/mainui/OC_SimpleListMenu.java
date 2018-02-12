@@ -13,6 +13,7 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -139,7 +140,9 @@ public class OC_SimpleListMenu extends OBSectionController
             buildNumber.setText(buildNumberValue);
 
         }
-
+        //
+        LinearLayout topBar = (LinearLayout) MainActivity.mainActivity.findViewById(R.id.topBar);
+        topBar.setBackgroundColor(Color.rgb(255,165,0));
         //
         arrayAdapter = new ArrayAdapter<MlUnit>(MainActivity.mainActivity,android.R.layout.simple_list_item_1,filteredList)
         {

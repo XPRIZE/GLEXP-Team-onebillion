@@ -4,27 +4,11 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="51dp"
-        android:orientation="horizontal"
-        android:weightSum="1"
-        android:descendantFocusability="beforeDescendants"
-        android:focusableInTouchMode="true"
-        android:background="#ffffff">
+    <LinearLayout android:id="@+id/topBar" android:layout_width="match_parent" android:layout_height="100dp" android:background="#ffffff" android:descendantFocusability="beforeDescendants" android:focusableInTouchMode="true" android:orientation="horizontal" android:weightSum="1">
 
-        <TextView
-            android:id="@+id/buildNumber"
-            android:layout_width="552dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.57"
-            android:text="TextView"
-            android:textAlignment="center"
-            android:textSize="30sp"
-            android:textStyle="bold"
-            />
+        <TextView android:id="@+id/buildNumber" android:layout_width="552dp" android:layout_height="wrap_content" android:layout_weight="0.57" android:text="TextView" android:textAlignment="center" android:textSize="30sp" android:textStyle="bold"/>
 
-        <EditText android:id="@+id/filterText" android:layout_width="552dp" android:layout_height="match_parent" android:ems="10" android:inputType="textFilter"/>
+        <EditText android:id="@+id/filterText" android:layout_width="552dp" android:layout_height="wrap_content" android:ems="10" android:inputType="textFilter"/>
 
     </LinearLayout>
 
