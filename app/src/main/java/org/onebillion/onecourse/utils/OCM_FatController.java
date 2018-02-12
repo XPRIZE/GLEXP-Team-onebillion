@@ -1279,10 +1279,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             db = new DBSQL(true);
             Cursor cursor = db.prepareRawQuery(String.format("SELECT UI.unitid as unitid, MAX(UI.seqNo) as seqNo FROM %s AS UI "+
                             "WHERE UI.userid = ? AND UI.sessionid= ? AND UI.typeid = ?"+
-                            "AND (UI.seqNo >= ? OR UI.endTime > 0) AND UI.starColour < 0 "+
+                            "AND (UI.seqNo >= ? OR UI.statusid IN(?,?)) AND UI.starColour < 0 "+
                             "GROUP BY UI.unitid", DBSQL.TABLE_UNIT_INSTANCES),
                     Arrays.asList(String.valueOf(currentUser.userid),String.valueOf(sessionId),
-                            String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_STUDY),String.valueOf(unitAttemptsCount-1)));
+                            String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_STUDY),String.valueOf(unitAttemptsCount-1),
+                            String.valueOf(OCM_MlUnitInstance.STATUS_COMPLETED),String.valueOf(OCM_MlUnitInstance.STATUS_FAILURE)));
 
             List<Map<String,Integer>> fixUnits = new ArrayList<>();
             if(cursor.moveToFirst())
@@ -1407,8 +1408,8 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                 {
 
                     OBConfigManager.sharedManager.updateConfigPaths(unit.config, false, unit.lang);
-                    //OBConfigManager.sharedManager.updateConfigPaths("oc-community", false, unit.lang);
-                    //if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OCM_TestEvent","oc-community",true,true,"test"))
+                   // OBConfigManager.sharedManager.updateConfigPaths("oc-community", false, unit.lang);
+                   // if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OCM_TestEvent","oc-community",true,true,"test"))
                     if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
                         currentUnitInstance.sectionController = MainViewController().topController();
@@ -1664,7 +1665,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     public boolean unitCompletedByUser(DBSQL db, int userid, int masterlistid, int unitIndex)
     {
         Cursor cursor = db.prepareRawQuery(String.format("SELECT U.unitid FROM %s AS U JOIN %s AS UI ON UI.unitid = U.unitid " +
-                        "WHERE UI.userid = ? AND U.masterlistid = ? AND U.unitIndex = ? AND (UI.seqNo >= ? AND UI.statusid IN(?,?))",
+                        "WHERE UI.userid = ? AND U.masterlistid = ? AND U.unitIndex = ? AND (UI.seqNo >= ? OR UI.statusid IN(?,?))",
                 DBSQL.TABLE_UNITS,  DBSQL.TABLE_UNIT_INSTANCES),
                 Arrays.asList(String.valueOf(userid),String.valueOf(masterlistid),
                         String.valueOf(unitIndex),String.valueOf(unitAttemptsCount-1),
