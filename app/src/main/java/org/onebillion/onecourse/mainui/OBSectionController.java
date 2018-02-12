@@ -18,6 +18,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.*;
+import android.media.AudioManager;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
@@ -1694,6 +1695,68 @@ public class OBSectionController extends OBViewController
         AssetFileDescriptor afd = OBAudioManager.audioManager.getAudioPathFD(fileName);
         player.startPlaying(afd,fromTime,toTime);
     }
+
+    public void playAudioFromToS (final String fileName, final double fromTime, final double toTime)
+    {
+        if (Looper.myLooper() == Looper.getMainLooper())
+        {
+            final long aqtCopy = updateAudioQueueToken();
+            MainActivity.log("Pre Audio Started");
+            OBAudioManager.audioManager.startPlaying(fileName, "SPECIAL",fromTime);
+            MainActivity.log("Post Audio Started");
+            final long t = (long) (toTime * 1000);
+            final OBAudioManager am = OBAudioManager.audioManager;
+            final Timer audioTimer = new Timer();
+            final OBSectionController controller = this;
+            MainActivity.log("Pre Wait Until Playing");
+            //waitPrepared();
+            MainActivity.log("Post Wait Until Playing");
+            final OBAudioPlayer player =  am.playerForChannel("SPECIAL");
+            audioTimer.scheduleAtFixedRate(new TimerTask()
+            {
+                @Override
+                public void run()
+                {
+                    if (aqtCopy == audioQueueToken)
+                    {
+                        
+                        int sec = player.currentPositionms();
+
+                        if (sec >= t)
+                        {
+                            MainActivity.log("Pre Audio Stopped");
+                            player.stopPlaying();
+                            MainActivity.log("Post Audio Stopped");
+                            audioTimer.cancel();
+                            audioTimer.purge();
+                        }
+                        if (controller._aborting || sec < 0)
+                        {
+                            audioTimer.cancel();
+                            audioTimer.purge();
+                        }
+                    }
+                    else
+                    {
+                        audioTimer.cancel();
+                        audioTimer.purge();
+                    }
+                }
+            },1,1);
+
+        }
+        else
+        {
+            new OBRunnableSyncUI()
+            {
+                public void ex ()
+                {
+                    playAudioFromToS(fileName, fromTime, toTime);
+                }
+            }.run();
+        }
+    }
+
 
     void _playSFX(final String fileName)
     {
