@@ -154,6 +154,8 @@ public class OC_CountingPractice extends OC_Generic_Event
     private static String kPhysicsAbsoluteRight = "absoluteRight";
     private static String kPhysicsAbsoluteBottom = "absoluteBottom";
     private static String kPhysicsAbsoluteTop = "absoluteTop";
+    //
+    private String preparedAudio;
 
 
     public void prepare ()
@@ -531,6 +533,17 @@ public class OC_CountingPractice extends OC_Generic_Event
             if (draggedClumps <= 6) result -= 1;
             else result -= 2;
         }
+        //
+        int missingObjects = totalObjectsForUnit - atRestObjects.size();
+        int missingClumps = missingObjects / clumpOfObjectsForUnit;
+        //
+        if (result < missingClumps)
+        {
+            int diff = missingClumps - result;
+            totalObjectsForUnit += diff * clumpOfObjectsForUnit;
+            result = missingClumps;
+        }
+        //
         return result;
     }
 
@@ -763,6 +776,7 @@ public class OC_CountingPractice extends OC_Generic_Event
         //
         contactThreadRunning = true;
         contactThread_aborting = false;
+        preparedAudio = null;
         //
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
@@ -1516,7 +1530,12 @@ public class OC_CountingPractice extends OC_Generic_Event
         }
         //
         preparePlayNumberIncrement();
-        prepareNumberAudio(physicsControls.size());
+        //
+        // if an number audio file is already prepared at mode 2, it skips (only the first audio number is to be played for mode 2)
+        if (mode.equals(kModeChildCountChooseAnswer) && preparedAudio == null)
+        {
+            prepareNumberAudio(physicsControls.size());
+        }
         //
         if (physicsThreadRunning) return;
         //
@@ -2367,13 +2386,14 @@ public class OC_CountingPractice extends OC_Generic_Event
 
     public void prepareNumberAudio (int number)
     {
-
-        OBAudioManager.audioManager.prepareForChannel(String.format("n_%d", number), AM_MAIN_CHANNEL);
+        preparedAudio = String.format("n_%d", number);
+        OBAudioManager.audioManager.prepareForChannel(preparedAudio, AM_MAIN_CHANNEL);
     }
 
     public void playNumberAudio ()
     {
         OBAudioManager.audioManager.playOnChannel(AM_MAIN_CHANNEL);
+        preparedAudio = null;
     }
 
 }

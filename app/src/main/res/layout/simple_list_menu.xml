@@ -24,13 +24,7 @@
             android:textStyle="bold"
             />
 
-        <EditText
-            android:id="@+id/filterText"
-            android:layout_width="552dp"
-            android:layout_height="match_parent"
-            android:ems="10"
-            android:inputType="textFilter"
-            />
+        <EditText android:id="@+id/filterText" android:layout_width="552dp" android:layout_height="match_parent" android:ems="10" android:inputType="textFilter"/>
 
     </LinearLayout>
 
