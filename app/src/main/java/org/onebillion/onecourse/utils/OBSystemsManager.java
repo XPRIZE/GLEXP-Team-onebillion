@@ -469,12 +469,12 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 
     public void refreshStatus ()
     {
-        String info = String.format("Build[%s]    Bat[%s]    Br[%s]    Vol[%s]    %s",
+        String info = String.format("Build[%s]  Bat[%s]  Br[%s]  Vol[%s]  Unit[%s]",
                 OBConfigManager.sharedManager.getBuildNumber(),
                 batteryReceiver.printStatus(),
                 brightnessManager.printStatus(),
                 settingsContentObserver.printVolumeStatus(),
-                currentUnit != null ? String.format("U[%s]", currentUnit) : "");
+                currentUnit != null ? String.format("%s", currentUnit) : "");
         //
         if (statusLabel != null)
         {

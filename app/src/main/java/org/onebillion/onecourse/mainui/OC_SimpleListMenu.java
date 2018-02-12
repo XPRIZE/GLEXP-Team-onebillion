@@ -23,6 +23,7 @@ import android.widget.Toast;
 import org.onebillion.onecourse.R;
 import org.onebillion.onecourse.utils.MlUnit;
 import org.onebillion.onecourse.utils.OBConfigManager;
+import org.onebillion.onecourse.utils.OBSystemsManager;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OBXMLManager;
 import org.onebillion.onecourse.utils.OBXMLNode;
@@ -66,6 +67,20 @@ public class OC_SimpleListMenu extends OBSectionController
                 MlUnit m = (MlUnit)parent.getItemAtPosition(position);
                 setStatus(STATUS_BUSY);
                 String configName = m.config;
+                //
+                String unitUUID = "????";
+                String keys = m.key;
+                if (keys != null)
+                {
+                    String array[] = keys.split("\\.");
+                    if (array.length > 1)
+                    {
+                        unitUUID = array[0];
+                    }
+                }
+                //
+                OBSystemsManager.sharedManager.setCurrentUnit(unitUUID);
+                //
                 if (configName == null)
                 {
                     String appDir = OBConfigManager.sharedManager.getCurrentActivityFolder();
