@@ -157,9 +157,15 @@ public class OC_PhraseSentenceRead extends OC_PhraseSentence
         showWordEtc();
     }
 
+    void doRem(final long stt)
+    {
+        doReminder(stt,currentAudio("PROMPT.REMINDER"));
+    }
+
     public void endBody()
     {
-        doReminder(switchStatus(currentEvent()),currentAudio("PROMPT.REMINDER"));
+        //doReminder(switchStatus(currentEvent()),currentAudio("PROMPT.REMINDER"));
+        doRem(switchStatus(currentEvent()));
     }
 
     public void stage2()

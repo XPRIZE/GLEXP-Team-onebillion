@@ -372,12 +372,20 @@ public class OC_PhraseSentence extends OC_Reading
             unlockScreen();
         }
     }
+    void doRem(final long stt)
+    {
+
+    }
+
     public void remindBox(long sttime,float secs)
     {
         if (statusChanged(sttime))
             return;
         flashBox(sttime);
-        endBody();
+        if (statusChanged(sttime))
+            return;
+        doRem(sttime);
+        //endBody();
     }
 
     public void showPic() throws Exception

@@ -416,9 +416,8 @@ public class OC_PhraseSentenceMake extends OC_PhraseSentence
         sequenceLock.unlock();
     }
 
-    public void endBody()
+    void doRem(final long stt)
     {
-        final long stt = statusTime;
         OBUtils.runOnOtherThreadDelayed(5,new OBUtils.RunLambda()
         {
             public void run() throws Exception
@@ -426,6 +425,19 @@ public class OC_PhraseSentenceMake extends OC_PhraseSentence
                 doReminder(stt,currentAudio("PROMPT.REMINDER"),7);
             }
         });
+    }
+
+    public void endBody()
+    {
+        final long stt = statusTime;
+        doRem(stt);
+        /*OBUtils.runOnOtherThreadDelayed(5,new OBUtils.RunLambda()
+        {
+            public void run() throws Exception
+            {
+                doReminder(stt,currentAudio("PROMPT.REMINDER"),7);
+            }
+        });*/
     }
 
     public void doMainXX() throws Exception
