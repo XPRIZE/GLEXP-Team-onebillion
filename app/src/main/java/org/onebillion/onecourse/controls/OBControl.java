@@ -137,6 +137,11 @@ public class OBControl
         this.shouldTexturise = shouldTexturise;
     }
 
+    public void cleanUp()
+    {
+
+    }
+
     public OBControl copy ()
     {
         OBControl obj;

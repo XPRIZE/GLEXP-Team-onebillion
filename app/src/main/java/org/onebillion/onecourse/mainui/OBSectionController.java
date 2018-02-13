@@ -2163,6 +2163,8 @@ public class OBSectionController extends OBViewController
     {
         stopAllAudio();
         _aborting = true;
+        for(OBControl con : attachedControls)
+            con.cleanUp();
     }
 
     public void goBack ()
