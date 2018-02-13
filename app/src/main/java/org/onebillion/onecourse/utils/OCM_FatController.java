@@ -1157,13 +1157,15 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             try
             {
                 int unitIndex = -1;
-                Cursor cursor = db.prepareRawQuery(String.format("SELECT unitIndex FROM %s " +
-                                "WHERE level = ? AND masterlistid = ? ORDER BY unitIndex DESC LIMIT 1",DBSQL.TABLE_UNITS)
+                Cursor cursor = db.prepareRawQuery(String.format("SELECT MAX(unitIndex) as unitIndex FROM %s " +
+                                "WHERE level = ? AND masterlistid = ?",DBSQL.TABLE_UNITS)
                         ,Arrays.asList(String.valueOf(getCurrentWeek()),String.valueOf(currentUser.studylistid)));
 
                 if(cursor.moveToFirst())
                 {
-                    unitIndex = cursor.getInt(cursor.getColumnIndex("unitIndex"));
+                    int index = cursor.getColumnIndex("unitIndex");
+                    if(!cursor.isNull(index))
+                        unitIndex = cursor.getInt(index);
                 }
                 cursor.close();
 
@@ -1408,8 +1410,8 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                 {
 
                     OBConfigManager.sharedManager.updateConfigPaths(unit.config, false, unit.lang);
-                   // OBConfigManager.sharedManager.updateConfigPaths("oc-community", false, unit.lang);
-                   // if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OCM_TestEvent","oc-community",true,true,"test"))
+                    //OBConfigManager.sharedManager.updateConfigPaths("oc-community", false, unit.lang);
+                    //if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OCM_TestEvent","oc-community",true,true,"test"))
                     if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
                         currentUnitInstance.sectionController = MainViewController().topController();
