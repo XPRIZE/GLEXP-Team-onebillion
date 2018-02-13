@@ -66,7 +66,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
     OBPresenter presenter;
     int currentTarget;
     Map<String,Integer> coloursDict;
-    OBControl emitter;
+    OBControl emitter, screenOverlay;
     boolean communityModeActive, playZoneOpened;
     boolean communityModeActiveOverride, playZoneActiveOverride;
     List<OBGroup> communityModeIcons;
@@ -102,8 +102,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                     lastCommand == OCM_FatController.OFC_BATTERY_LOW ||
                     lastCommand == OCM_FatController.OFC_SESSION_NEW)
             {
-                objectDict.get("overlay_button").show();
-
+                screenOverlay.show();
             }
             else if(params.get("instance") != null)
             {
@@ -124,9 +123,10 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         setStatus(STATUS_BUSY);
         super.prepare();
         loadFingers();
-        objectDict.get("overlay_button").setZPosition(60);
-        objectDict.get("button_start").setZPosition(60.5f);
-
+        screenOverlay = new OBControl();
+        screenOverlay.setFrame(new RectF(bounds()));
+        screenOverlay.setBackgroundColor(Color.WHITE);
+        screenOverlay.setZPosition(60);
         this.localisations = loadLocalisations(getLocalPath("_localisations.xml"));
         currentBigIcon = null;
         currentLevelLabel = new OBLabel("88888888888888888888",OBUtils.standardTypeFace(),applyGraphicScale(30));
@@ -192,6 +192,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         }
         if(lastCommand == OCM_FatController.OFC_SESSION_NEW && !communityModeActive)
         {
+            loadNewDayScreen();
             OBAnalyticsManager.sharedManager.studyZoneStartedNewDay();
             //
             showNewDayScreen();
@@ -225,12 +226,13 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
 
     }
 
+
     @Override
     public void viewWillAppear(Boolean animated)
     {
         super.viewWillAppear(animated);
-        if(objectDict.get("overlay_box") != null)
-            objectDict.get("overlay_box").hide();
+        if(objectDict.get("box_overlay") != null)
+            objectDict.get("box_overlay").hide();
         if(objectDict.get("box") != null)
             stopBoxGlowAnimate();
     }
@@ -563,7 +565,6 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                         {
                             playZoneOpened = false;
                             demo_playzone_back(time);
-                            animateNextGridIconShake(time);
                         }
                         else
                         {
@@ -625,7 +626,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
             closeThisMenuAndOpen(OCM_ChildMenu.class);
             return true;
         }
-        objectDict.get("overlay_button").hide();
+        screenOverlay.hide();
         if(status() == STATUS_AWAITING_CLICK && currentTarget == TARGET_COMMUNITY)
         {
             checkPlayZoneBoxStatus();
@@ -666,17 +667,29 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         currentLevelLabel.setString ( String.format("%d - %d - %d", currentDay, unit1.unitIndex,  unit2.unitIndex));
     }
 
+
+    public void loadNewDayScreen()
+    {
+        loadEvent("new_day");
+
+        objectDict.get("button_start").setZPosition(60.5f);
+    }
+
     public void showNewDayScreen()
     {
-        objectDict.get("overlay_button").show();
+        screenOverlay.show();
         objectDict.get("button_start").setOpacity(0);
-        objectDict.get("button_start").show();
+
     }
 
     public void hideNewDayScreen()
     {
-        objectDict.get("overlay_button").hide();
-        objectDict.get("button_start").hide();
+        screenOverlay.hide();
+        if(objectDict.containsKey("button_start"))
+        {
+            detachControl(objectDict.get("button_start"));
+            objectDict.remove("button_start");
+        }
     }
 
     public void loadAudioForDay(int day)
@@ -1110,7 +1123,6 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
     {
         presenter.walk((PointF)presenter.control.propertyValue("end_loc"));
         presenter.control.hide();
-
     }
 
     public void resetPresenter()
@@ -1565,7 +1577,9 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         long time = setStatus(STATUS_AWAITING_CLICK);
         if(!statusChanged(time))
             waitAudio();
-        thePointer.hide();
+        detachControl(thePointer);
+        thePointer=null;
+        //thePointer.hide();
         if(!statusChanged(time))
             waitForSecs(4f);
         if(!statusChanged(time))
@@ -1718,8 +1732,8 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
     public void demo_playzone() throws Exception
     {
         OBGroup box = (OBGroup)objectDict.get("box");
-        OBControl bg = objectDict.get("overlay_box");
-        bg.setOpacity ( 0);
+        OBControl bg = objectDict.get("box_overlay");
+        bg.setOpacity(0);
         bg.show();
         List<OBAnim> anims = new ArrayList<>();
         for(OBControl gemControl : box.filterMembers("gem_.*"))
