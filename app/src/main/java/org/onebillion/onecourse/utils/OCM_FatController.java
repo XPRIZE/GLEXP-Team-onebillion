@@ -566,14 +566,14 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         unitInstance.endTime = getCurrentTime();
         unitInstance.scoreCorrect = scoreCorrect;
         unitInstance.scoreWrong = scoreWrong;
-        unitInstance.elapsedTime = (int)(currentUnitInstance.endTime - currentUnitInstance.startTime);
+        unitInstance.elapsedTime = (int)(unitInstance.endTime - unitInstance.startTime);
         unitInstance.addExtraData("replay_audio_count",replayAudioCount);
         if(unitInstance.mlUnit.targetDuration > 0 &&
                 unitInstance.elapsedTime > unitInstance.mlUnit.targetDuration)
             unitInstance.elapsedTime = unitInstance.mlUnit.targetDuration;
     }
 
-    private void closeCurrentUnitInstance(int statusid, OBSectionController sectionController)
+    public void closeCurrentUnitInstance(int statusid, OBSectionController sectionController)
     {
         OCM_MlUnitInstance unitInstance = currentUnitInstance;
         if(currentUnitInstance == null && sectionController != null)
@@ -594,11 +594,13 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             try
             {
                 db = new DBSQL(true);
-                setUnitInstanceStatus(currentUnitInstance,statusid);
-                currentUnitInstance.updateDataInDB(db);
+                setUnitInstanceStatus(unitInstance,statusid);
+                unitInstance.updateDataInDB(db);
             }
             catch (Exception e)
-            {}
+            {
+                e.printStackTrace();
+            }
             finally
             {
                 if(db != null)
@@ -1420,6 +1422,8 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                         {
                             OBSystemsManager.sharedManager.setCurrentUnit(unit.key);
                         }
+                        if(currentUnitInstance.mlUnit.targetDuration > 0)
+                        currentUnitInstance.mlUnit.targetDuration = 5;
                         startUnitInstanceTimeout(currentUnitInstance);
                         openingCallback.run(currentUnitInstance, true);
 

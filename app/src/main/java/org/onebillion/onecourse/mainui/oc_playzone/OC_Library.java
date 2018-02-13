@@ -2,6 +2,7 @@ package org.onebillion.onecourse.mainui.oc_playzone;
 
 import android.graphics.Color;
 import android.graphics.PointF;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.util.ArrayMap;
 import android.util.MutableBoolean;
@@ -13,6 +14,8 @@ import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBImage;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBMainViewController;
+import org.onebillion.onecourse.mainui.OBSectionController;
+import org.onebillion.onecourse.mainui.OC_Menu;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.MlUnit;
 import org.onebillion.onecourse.utils.OBAnim;
@@ -47,8 +50,9 @@ import org.onebillion.onecourse.utils.ScrollingHelper;
  * Created by michal on 13/03/2017.
  */
 
-public class OC_Library extends OC_SectionController
+public class OC_Library extends OC_Menu
 {
+    final static int LIBRARY_TIMEOUT = 10*60;
     List<OBGroup> levelGroups;
     OBGroup currentGroup;
     OBControl currentIcon;
@@ -56,6 +60,8 @@ public class OC_Library extends OC_SectionController
     float limitLeft, limitRight, snapDist;
     boolean firstStart;
     OCM_FatController fatController;
+    private Handler timeoutHandler;
+    private Runnable timeoutRunnable;
 
     @Override
     public int buttonFlags()
@@ -66,6 +72,8 @@ public class OC_Library extends OC_SectionController
     public void prepare()
     {
         firstStart= true;
+        timeoutHandler = new Handler();
+
         setStatus(STATUS_BUSY);
         super.prepare();
         loadFingers();
@@ -100,6 +108,7 @@ public class OC_Library extends OC_SectionController
 
     public void start()
     {
+        startLibraryTimeout();
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             public void run() throws Exception
@@ -124,6 +133,13 @@ public class OC_Library extends OC_SectionController
 
     }
 
+    @Override
+    public void cleanUp()
+    {
+        stopLibraryTimeout();
+        super.cleanUp();
+    }
+
     public void touchDownAtPoint(final PointF pt, View v)
     {
         if (status() == STATUS_WAITING_FOR_DRAG)
@@ -132,6 +148,7 @@ public class OC_Library extends OC_SectionController
             if (level != null)
             {
                 setStatus(STATUS_BUSY);
+                stopLibraryTimeout();
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
                     public void run() throws Exception
@@ -456,6 +473,39 @@ public class OC_Library extends OC_SectionController
         bigic.setScale(bigic.scale() * icon.width()/bigic.width());
         return bigic;
 
+    }
+
+    public void startLibraryTimeout()
+    {
+        stopLibraryTimeout();
+        timeoutRunnable = new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                triggerLibraryTimeout();
+            }
+        };
+        timeoutHandler.postDelayed(timeoutRunnable,LIBRARY_TIMEOUT*1000);
+
+    }
+
+    public void stopLibraryTimeout()
+    {
+        if(timeoutRunnable != null && timeoutHandler != null)
+        {
+            timeoutHandler.removeCallbacks(timeoutRunnable);
+            timeoutRunnable = null;
+        }
+    }
+
+    public void triggerLibraryTimeout()
+    {
+        if(!_aborting)
+        {
+            fatController.closeCurrentUnitInstance(OCM_MlUnitInstance.STATUS_UNIT_TIMEOUT,this);
+            exitEvent();
+        }
     }
 
 
