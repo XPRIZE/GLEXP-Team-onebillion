@@ -1422,8 +1422,6 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                         {
                             OBSystemsManager.sharedManager.setCurrentUnit(unit.key);
                         }
-                        if(currentUnitInstance.mlUnit.targetDuration > 0)
-                        currentUnitInstance.mlUnit.targetDuration = 5;
                         startUnitInstanceTimeout(currentUnitInstance);
                         openingCallback.run(currentUnitInstance, true);
 
