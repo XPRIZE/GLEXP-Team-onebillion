@@ -445,23 +445,37 @@ public class OC_BubbleWrap extends OC_SectionController
         titleLabel.hide();
         attachControl(titleLabel);
         textLabels.add(titleLabel);
-        OBLabel locationLabel = new OBLabel(locationNode.contents,OBUtils.StandardReadingFontOfSize(40));
+        OBLabel locationLabel = new OBLabel(locationNode.contents,OBUtils.StandardReadingFontOfSize(titleLabel.scale()*38));
         if(locationLabel.width() > fitWidth)
             locationLabel.setScale(fitWidth/locationLabel.width());
+
         locationLabel.setPosition(OB_Maths.locationForRect(0.5f,0.35f,textBox.frame()));
         locationLabel.setLeft(textBox.left() + textLeftDist);
         locationLabel.setZPosition(5);
         locationLabel.setColour(Color.BLACK);
         locationLabel.hide();
+        locationLabel.setTop(titleLabel.bottom());
         attachControl(locationLabel);
         textLabels.add(locationLabel);
-        OBLabel descLabel = new OBLabel(descNode.contents,OBUtils.StandardReadingFontOfSize(30));
+        OBLabel descLabel = new OBLabel(descNode.contents,OBUtils.StandardReadingFontOfSize(titleLabel.scale()*locationLabel.scale()*30));
         descLabel.setMaxWidth(textBox.width()*0.7f);
         OBTextLayer textLayer = (OBTextLayer)descLabel.layer;
         textLayer.justification = OBTextLayer.JUST_LEFT;
         descLabel.sizeToBoundingBox();
         if(descLabel.height() > fitHeight)
-            descLabel.setScale(descLabel.scale() * fitHeight/descLabel.height());
+        {
+            for(int i=1; i<=6; i++)
+            {
+                descLabel.setFontSize(applyGraphicScale(30 - i*2));
+                descLabel.sizeToBoundingBox();
+                if(descLabel.height() <= fitHeight)
+                    break;
+            }
+
+            if(descLabel.height() > fitHeight)
+                descLabel.setScale(descLabel.scale() * fitHeight/descLabel.height());
+        }
+
         descLabel.setPosition(OB_Maths.locationForRect(0.5f,0.7f,textBox.frame()));
         descLabel.setLeft(textBox.left() + textLeftDist);
         descLabel.setZPosition(5);
@@ -472,9 +486,12 @@ public class OC_BubbleWrap extends OC_SectionController
         float top = textLabels.get(0).top();
         float bottom = textLabels.get(textLabels.size()-1).bottom();
         float dif = (textBox.height() - (bottom-top))/2.0f;
-        float moveDist = (top-textBox.top()) + dif;
+        float moveDist = dif - (top-textBox.top());
         for(OBLabel label: textLabels)
             label.setTop(label.top()+moveDist);
+
+        float dist = textBox.bottom() - locationLabel.bottom();
+        descLabel.setPosition(descLabel.position().x, locationLabel.bottom() + (dist/2.0f) - locationLabel.height()*0.05f);
 
         earthMap = loadImageWithName(elementNode.attributeStringValue("map"),new PointF(0.5f, 0.5f),imageBox.frame());
         earthMap.setScale(imageBox.height()/earthMap.height());
@@ -485,6 +502,7 @@ public class OC_BubbleWrap extends OC_SectionController
         pin.setZPosition(51);
         pin.setAnchorPoint(new PointF(0.5f, 1));
         pin.setPosition(OB_Maths.locationForRect(pinLoc, earthMap.frame));
+
     }
 
     public void showPhase1() throws Exception
