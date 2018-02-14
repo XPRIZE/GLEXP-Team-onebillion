@@ -301,11 +301,7 @@ public class OC_MoreNumbers_S6 extends OC_SectionController
                     checkDropTarget();
                 }
             });
-
         }
-
-
-
     }
 
 
@@ -314,9 +310,7 @@ public class OC_MoreNumbers_S6 extends OC_SectionController
         if (status() == STATUS_DRAGGING && target!=null)
         {
             target.setPosition(OB_Maths.AddPoints(pt, dragOffset));
-
         }
-
     }
 
 
@@ -606,19 +600,27 @@ public class OC_MoreNumbers_S6 extends OC_SectionController
         }
     }
 
-    public void flashCircle(OBGroup circle,long time) throws Exception
+    public void flashCircle(final OBGroup circle,final long time) throws Exception
     {
-        while(statusTime == time)
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
-            waitForSecs(0.5f);
-            if(statusTime != time)
-                break;
-            colourCircle(circle,hilitecolour);
-            waitForSecs(0.5f);
-            if(statusTime != time)
-                break;
-            colourCircle(circle,startcolour2);
-        }
+            @Override
+            public void run() throws Exception
+            {
+                while(statusTime == time)
+                {
+                    waitForSecs(0.5f);
+                    if(statusTime != time)
+                        break;
+                    colourCircle(circle,hilitecolour);
+                    waitForSecs(0.5f);
+                    if(statusTime != time)
+                        break;
+                    colourCircle(circle,startcolour2);
+                }
+            }
+        });
+
     }
 
     public void loadRoundGrid()
