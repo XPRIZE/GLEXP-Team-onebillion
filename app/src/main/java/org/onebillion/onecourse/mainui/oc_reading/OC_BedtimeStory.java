@@ -272,7 +272,7 @@ public class OC_BedtimeStory extends OC_SectionController
                 }
             };
         Handler h = new Handler();
-        h.postDelayed(r,300);
+        h.postDelayed(r,1000);
     }
 
     void timerEvent()
