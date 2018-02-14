@@ -19,8 +19,6 @@ import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
-import org.onebillion.onecourse.utils.OBAnalytics;
-import org.onebillion.onecourse.utils.OBAnalyticsManager;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBImageManager;
@@ -142,7 +140,7 @@ public class OC_VideoPlayback extends OC_SectionController
     @Override
     public void exitEvent()
     {
-        if(shoulCollectMiscData())
+        if(shouldCollectMiscData())
             collectMiscData("watched", watchedVideos);
         super.exitEvent();
     }
@@ -686,7 +684,7 @@ public class OC_VideoPlayback extends OC_SectionController
         String movie = videoNode.attributeStringValue("file");
         //
         //OBAnalyticsManager.sharedManager.playZoneVideoWatched(videoID);
-        if(shoulCollectMiscData())
+        if(shouldCollectMiscData())
             watchedVideos.put(System.currentTimeMillis()/1000,videoID);
         //
         String movieName = OBUtils.stringByAppendingPathComponent(movieFolder, movie);

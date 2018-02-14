@@ -69,6 +69,8 @@ public class OC_Reading extends OC_SectionController
     protected OBImage mainPic;
     OBReadingWord highlightedWord;
     public int highlightColour,backgroundColour;
+    long collectNextAppearanceTime;
+    float collectNextButtonPressDuration;
 
     protected static String CrunchedString(String s)
     {
@@ -419,6 +421,7 @@ public class OC_Reading extends OC_SectionController
     {
         if (_aborting)
             return;
+        collectNextAppearanceTime = System.currentTimeMillis();
         lockScreen();
         showNextArrow(show);
         if (show)
@@ -942,6 +945,14 @@ public class OC_Reading extends OC_SectionController
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
     }
 
+    public void collectData()
+    {
+        if (shouldCollectMiscData())
+        {
+            collectMiscData("timing", Arrays.asList(collectNextButtonPressDuration));
+        }
+
+    }
     public void doNextStuff(final Class cls)
     {
         try
@@ -959,6 +970,7 @@ public class OC_Reading extends OC_SectionController
         }
         else
         {
+            collectData();
             int p = pageNo + 1;
             StringBuilder parmString = new StringBuilder();
             parmString.append(parameters.get("0"));
@@ -982,6 +994,8 @@ public class OC_Reading extends OC_SectionController
     {
         if (!_aborting && !MainViewController().navigating && status()!= STATUS_FINISHING)
         {
+            long currTime = System.currentTimeMillis();
+            collectNextButtonPressDuration = (currTime - collectNextAppearanceTime) / 1000f;
             final Class c = this.getClass();
             setStatus(STATUS_FINISHING);
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()

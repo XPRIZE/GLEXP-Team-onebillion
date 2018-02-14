@@ -7,8 +7,6 @@ import android.graphics.Typeface;
 import android.util.ArrayMap;
 import android.view.View;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBLabel;
@@ -19,11 +17,9 @@ import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimBlock;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
-import org.onebillion.onecourse.utils.OBMisc;
 import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBSyllable;
 import org.onebillion.onecourse.utils.OBUtils;
-import org.onebillion.onecourse.utils.OBWord;
 import org.onebillion.onecourse.utils.OB_Maths;
 
 import java.util.ArrayList;
@@ -179,7 +175,7 @@ public class OC_Lg extends OC_SectionController
     @Override
     public void fin()
     {
-        if (shoulCollectMiscData())
+        if (shouldCollectMiscData())
         {
             if(wrongMap.size() > 0)
                 collectMiscData("wrong", wrongMap);
@@ -338,7 +334,7 @@ public class OC_Lg extends OC_SectionController
         }
         else
         {
-            if(shoulCollectMiscData() && targetPhoneme.text != null)
+            if(shouldCollectMiscData() && targetPhoneme.text != null)
             {
                 if(!wrongMap.containsKey(targetPhoneme.text))
                     wrongMap.put(targetPhoneme.text, new ArrayList<String>());

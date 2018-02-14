@@ -3,10 +3,8 @@ package org.onebillion.onecourse.mainui.oc_prepr;
 import android.graphics.Color;
 import android.util.ArrayMap;
 
-import org.json.JSONObject;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.mainui.oc_egrid.OC_Egrid;
-import org.onebillion.onecourse.utils.OBMisc;
 import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
@@ -79,7 +77,7 @@ public class OC_PrepR1 extends OC_Egrid
         }
         else
         {
-            if(shoulCollectMiscData() && targetPhoneme.text != null)
+            if(shouldCollectMiscData() && targetPhoneme.text != null)
             {
                 if(!wrongMap.containsKey(targetPhoneme.text))
                     wrongMap.put(targetPhoneme.text, new ArrayList<String>());
@@ -112,7 +110,7 @@ public class OC_PrepR1 extends OC_Egrid
 
     public void fin()
     {
-        if (shoulCollectMiscData())
+        if (shouldCollectMiscData())
         {
             if(wrongMap.size() > 0)
                 collectMiscData("wrong", wrongMap);
