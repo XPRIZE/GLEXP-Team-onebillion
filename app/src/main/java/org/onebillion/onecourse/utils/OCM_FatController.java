@@ -699,7 +699,6 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     public void initDB()
     {
-        OBSQLiteHelper.getSqlHelper().backupDatabase();
         String mlname = OBConfigManager.sharedManager.getMasterlist();
         if (mlname.length() > 0)
         {

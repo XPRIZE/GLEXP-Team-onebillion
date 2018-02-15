@@ -528,6 +528,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                         Map<String,Object> unitData = fatController.getNextUnitData();
                         if (unitData.get("community")!= null && (boolean)unitData.get("community"))
                         {
+                            OBAnalyticsManager.sharedManager.communityModeEntered();
                             communityModeActive = true;
                             loadIconsGridForUnits(fatController.getUnitsForGrid(),false);
                             loadTopBar(false,currentDay % 7 != 0);

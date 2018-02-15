@@ -242,13 +242,11 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     @Override
     public void studyZoneStartedNewDay ()
     {
-        // DISABLED ON PURPOSE
-        /*
         Map<String, Object> parameters = new HashMap();
         parameters.put(OBAnalytics.Params.APP_MODE_CHANGE, OBAnalytics.Params.APP_STUDY_ZONE);
         //
         logEvent(OBAnalytics.Event.APP, parameters);
-        */
+
     }
 
 
@@ -273,13 +271,11 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     @Override
     public void communityModeEntered ()
     {
-        // DISABLED ON PURPOSE
-        /*
         Map<String, Object> parameters = new HashMap();
         parameters.put(OBAnalytics.Params.APP_MODE_CHANGE, OBAnalytics.Params.APP_COMMUNITY_MODE);
         //
         logEvent(OBAnalytics.Event.APP, parameters);
-        */
+
     }
 
 
@@ -304,13 +300,11 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     @Override
     public void playZoneEntered ()
     {
-        // DISABLED ON PURPOSE
-        /*
         Map<String, Object> parameters = new HashMap();
         parameters.put(OBAnalytics.Params.APP_MODE_CHANGE, OBAnalytics.Params.APP_PLAY_ZONE);
         //
         logEvent(OBAnalytics.Event.APP, parameters);
-        */
+
     }
 
 

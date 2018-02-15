@@ -47,7 +47,7 @@ public class OBBatteryReceiver extends BroadcastReceiver
             chargePlug = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
             //
             // BatteryManager.BATTERY_STATUS_CHARGING cannot be trusted. It happens on occasion, but it's thrown while the tablet is not charging
-            isNowCharging = status == BatteryManager.BATTERY_STATUS_CHARGING && chargePlug > 0;
+            isNowCharging = (status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL )&& chargePlug > 0;
             //
             usbCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_USB;
             acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
