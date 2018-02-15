@@ -176,8 +176,10 @@ public class OC_PrepMWithVideo extends OC_SectionController
             public void run()
             {
                 int sec = videoPlayer.currentPosition();
-                if((!backward && sec >= videoTimmings.get(nextNumAudio).get("mid")) ||
-                        (backward && nextNumAudio > 0 && sec >= (videoDuration-videoTimmings.get(nextNumAudio).get("mid"))))
+
+                if(videoTimmings.containsKey(nextNumAudio) &&(
+                        (!backward && sec >= videoTimmings.get(nextNumAudio).get("mid")) ||
+                        (backward && nextNumAudio > 0 && sec >= (videoDuration-videoTimmings.get(nextNumAudio).get("mid")))))
                 {
                     if(!backward)
                         nextNumAudio++;
