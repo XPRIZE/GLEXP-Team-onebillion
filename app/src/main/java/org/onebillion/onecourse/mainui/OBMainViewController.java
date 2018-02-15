@@ -225,7 +225,10 @@ public class OBMainViewController extends OBViewController
             if (but == topLeftButton)
                 topController().goBack();
             else if (but == topRightButton)
+            {
+                MainActivity.mainActivity.fatController.onReplayAudioButtonPressed();
                 topController().replayAudio();
+            }
             else if (but == bottomLeftButton)
                 topController().prevPage();
             else if (but == bottomRightButton)

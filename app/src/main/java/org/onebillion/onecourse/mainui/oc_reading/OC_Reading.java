@@ -949,7 +949,7 @@ public class OC_Reading extends OC_SectionController
     {
         if (shouldCollectMiscData())
         {
-            collectMiscData("timing", Arrays.asList(collectNextButtonPressDuration));
+            collectMiscData(String.format("page_%d",pageNo), (int)collectNextButtonPressDuration);
         }
 
     }

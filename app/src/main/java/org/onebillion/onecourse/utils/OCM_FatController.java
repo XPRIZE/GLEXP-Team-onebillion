@@ -567,7 +567,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         unitInstance.scoreCorrect = scoreCorrect;
         unitInstance.scoreWrong = scoreWrong;
         unitInstance.elapsedTime = (int)(unitInstance.endTime - unitInstance.startTime);
-        unitInstance.addExtraData("replay_audio_count",replayAudioCount);
+        unitInstance.addExtraData("replay_audio",replayAudioCount);
         if(unitInstance.mlUnit.targetDuration > 0 &&
                 unitInstance.elapsedTime > unitInstance.mlUnit.targetDuration)
             unitInstance.elapsedTime = unitInstance.mlUnit.targetDuration;
@@ -699,6 +699,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     public void initDB()
     {
+        OBSQLiteHelper.getSqlHelper().backupDatabase();
         String mlname = OBConfigManager.sharedManager.getMasterlist();
         if (mlname.length() > 0)
         {
@@ -1413,7 +1414,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
                     OBConfigManager.sharedManager.updateConfigPaths(unit.config, false, unit.lang);
                     //OBConfigManager.sharedManager.updateConfigPaths("oc-community", false, unit.lang);
-                    //if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OCM_TestEvent","oc-community",true,true,"test"))
+                   // if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OCM_TestEvent","oc-community",true,true,"test"))
                     if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
                         currentUnitInstance.sectionController = MainViewController().topController();
