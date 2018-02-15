@@ -168,6 +168,7 @@ public class OC_PlayZoneVideo extends OC_SectionController
                         waitForSecs(0.2f);
                         lockScreen();
                         button.hide();
+                        objectDict.get("camera_icon").hide();
                         MainViewController().topLeftButton.hide();
                         progressBar.show();
                         screenOverlay.hide();
