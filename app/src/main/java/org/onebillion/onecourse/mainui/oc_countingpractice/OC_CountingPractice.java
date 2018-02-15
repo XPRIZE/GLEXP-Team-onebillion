@@ -501,6 +501,9 @@ public class OC_CountingPractice extends OC_Generic_Event
             {
                 demo_previousAnswerIncorrect();
             }
+            //
+            List<Object> replayAudio = (List<Object>) (Object) getAudioForScene("b", "REPEAT");
+            setReplayAudio(replayAudio);
         }
         firstDropPlayed = false;
         //
