@@ -54,8 +54,6 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     {
         if (!OBConfigManager.sharedManager.isAnalyticsEnabled()) return;
         //
-        MainActivity.log("OBAnalyticsManagerOnline.logEvent: " + eventName + " " + properties.toString());
-        //
         long currentTime = System.currentTimeMillis();
         JSONObject parameters = new JSONObject(properties);
         //
