@@ -187,7 +187,7 @@ public class OBAudioBufferPlayer extends Object
         int noInts = ib.limit();
         if (noInts == 0)
             return;
-        MainActivity.log(String.format("Writing buffers for f %d",frameNo));
+        //MainActivity.log(String.format("Writing buffers for f %d",frameNo));
         ib.rewind();
         long bufferDurationus = 1024 * 1000000 / sampleRate;
         long framesInBuffer = 1024;
@@ -202,7 +202,7 @@ public class OBAudioBufferPlayer extends Object
             sb.sequence = bufferSequenceNo++;
             sb.presentationTimeus = prestimeus + (long)(i * bufferDurationus);
             sb.frameNo = frameNo + i * framesInBuffer;
-            MainActivity.log(String.format("  writing to buffer %d, us - %d",idx,sb.frameNo));
+            //MainActivity.log(String.format("  writing to buffer %d, us - %d",idx,sb.frameNo));
             sb.stopWriting();
             noInts -= wamt;
             nextBufIdx = (nextBufIdx + 1) % NO_BUFFERS;
@@ -262,12 +262,12 @@ public class OBAudioBufferPlayer extends Object
         int attempts = 0;
         while (attempts < 3)
         {
-            MainActivity.log(String.format("Looking for buffer %d",frameNo));
+            //MainActivity.log(String.format("Looking for buffer %d",frameNo));
             int idx = closestBufferToFrameNo(frameNo);
             SimpleBuffer sb = buffers[idx];
             if (sb.startReading())
             {
-                MainActivity.log(String.format("  reading from buffer %d, f - %d",idx,sb.frameNo));
+                //MainActivity.log(String.format("  reading from buffer %d, f - %d",idx,sb.frameNo));
 
                 short d[] = sb.data;
                 int sz = Math.min(of.length,sb.data.length);
@@ -344,7 +344,7 @@ public class OBAudioBufferPlayer extends Object
                 {
                     ByteBuffer inputBuffer = codec.getInputBuffer(inputBufferId);
                     boolean fin = fillBuffer(inputBuffer);
-                    MainActivity.log(String.format("%d bytes read",inputBuffer.limit()));
+                    //MainActivity.log(String.format("%d bytes read",inputBuffer.limit()));
                     inputBuffer.rewind();
                     codec.queueInputBuffer(inputBufferId,0,inputBuffer.limit(),presentationTimeus,fin?BUFFER_FLAG_END_OF_STREAM:0);
                 }
@@ -373,7 +373,7 @@ public class OBAudioBufferPlayer extends Object
                     {
                         finishedPrepare();
                     }
-                    MainActivity.log(String.format("%d bytes written",res));
+                    //MainActivity.log(String.format("%d bytes written",res));
                     codec.releaseOutputBuffer(outputBufferId,true);
                 }
 
