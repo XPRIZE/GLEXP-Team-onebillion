@@ -60,6 +60,8 @@ public class OC_PrepR3 extends OC_Reading
     List<List<OBReadingWord>> laidOutLines;
     List<OBControl>backingRects;
     List<OBControl>randomQs;
+    String collectionPassageID;
+    int collectionQuestionNo,collectionAnswerNo;
 
     Map LoadPassagesXML(String xmlPath)
     {
@@ -433,6 +435,7 @@ public class OC_PrepR3 extends OC_Reading
         clearAll();
         loadEvent("passage");
         String passageID = passages.get(currNo);
+        collectionPassageID = passageID;
         currPassage = passageDict.get(passageID);
         fontSize = Float.parseFloat(OBUtils.coalesce(eventAttributes.get("textsize") ,"40"));
         font = OBUtils.StandardReadingFontOfSize(fontSize);
@@ -633,6 +636,7 @@ public class OC_PrepR3 extends OC_Reading
     public List setUpQuestion(int i)
     {
         clearAll();
+        collectionQuestionNo = i;
         loadEvent("questions");
         Est3_Question qu = currPassage.questions.get(questionNo);
         checkLabelBoxWidthForQuestion(qu);
@@ -722,12 +726,21 @@ public class OC_PrepR3 extends OC_Reading
         c.setFillColor(loColour);
     }
 
+    public void collectData()
+    {
+        if (shouldCollectMiscData())
+        {
+            collectMiscData("incorrect",Arrays.asList(collectionPassageID,collectionQuestionNo,collectionAnswerNo));
+        }
+    }
+
     public void checkButton(OBControl targ)
     {
         highlightControl((OBGroup) targ);
         try
         {
             int idx = answerButtons.indexOf(targ);
+            collectionAnswerNo = idx;
             if(idx == 0)
             {
                 playSfxAudio("tap",true);
@@ -746,6 +759,7 @@ public class OC_PrepR3 extends OC_Reading
                 waitForSecs(0.4f);
                 waitSFX();
                 events.add("feedback");
+                collectData();
                 nextScene();
                 return;
             }
