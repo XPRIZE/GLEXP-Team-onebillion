@@ -742,6 +742,17 @@ public class OC_PrepM1 extends OC_SectionController
         OBAnimationGroup.runAnims(anims,0.4,true,OBAnim.ANIM_EASE_IN_EASE_OUT,null);
     }
 
+    public void collectData()
+    {
+        if (shouldCollectMiscData())
+        {
+            if (score == 10)
+                collectMiscData(String.format("score"),Arrays.asList(score));
+            else
+                collectMiscData(String.format("score"),Arrays.asList(score,nums[0],nums[1]));
+        }
+    }
+
     public void doTheWrongThing() throws Exception
     {
         playAudioQueuedScene("1","INCORRECT",true);
@@ -801,6 +812,7 @@ public class OC_PrepM1 extends OC_SectionController
         waitForSecs(1f);
 
         thePointer.hide();
+        collectData();
         fin();
     }
 
