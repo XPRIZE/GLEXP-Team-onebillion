@@ -21,6 +21,7 @@ import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBAudioBufferPlayer;
 import org.onebillion.onecourse.utils.OBAudioManager;
+import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
 
 import java.io.FileDescriptor;
@@ -275,6 +276,18 @@ public class OC_BedtimeStory extends OC_SectionController
         h.postDelayed(r,1000);
     }
 
+    void asyncNextFile()
+    {
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                nextFile();
+            }
+        });
+    }
+
     void timerEvent()
     {
         if (player.isPlaying())
@@ -291,7 +304,15 @@ public class OC_BedtimeStory extends OC_SectionController
                 {
                     setStatus(STATUS_FINISHED_FILE);
                     zeroBuckets();
-                    nextFile();
+                    OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run() throws Exception
+                        {
+                            waitForSecs(0.02);
+                            asyncNextFile();
+                        }
+                    });
                 }
             }
         }
