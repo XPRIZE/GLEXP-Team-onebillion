@@ -12,6 +12,7 @@ import java.util.Map;
 public interface OBAnalyticsProtocol
 {
     // Device
+    void deviceStatus();
     void deviceGpsLocation();
     void deviceVolumeChanged(float value);
     void deviceScreenTurnedOn();

@@ -9,6 +9,7 @@ public class OBAnalytics
     public static class Event
     {
         public static final String DEVICE = "device";
+        public static final String DEVICE_STATUS = "device_status";
         public static final String TOUCH = "touch";
         public static final String BATTERY = "battery";
         public static final String PLAY_ZONE = "play_zone";

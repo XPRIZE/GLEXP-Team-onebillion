@@ -20,6 +20,9 @@ import java.util.Map;
 
 public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
 {
+    public Map<String, Object> deviceStatusValues;
+
+    
     public OBAnalyticsManagerCommunity (Activity activity)
     {
         super();
@@ -35,8 +38,25 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     protected void startupAnalytics (Activity activity)
     {
         super.startupAnalytics(activity);
+        //
+        deviceStatusValues = new HashMap<>();
+        //
+        refreshDeviceStatus();
     }
 
+    protected void refreshDeviceStatus()
+    {
+        logEvent(OBAnalytics.Event.DEVICE_STATUS, deviceStatusValues);
+        //
+        float delay = OBConfigManager.sharedManager.getAnalyticsDeviceStatusRefreshIntervalMinutes() * 60f;
+        //
+        OBUtils.runOnOtherThreadDelayed(delay, new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception {
+                refreshDeviceStatus();
+            }
+        });
+    }
 
     @Override
     public void onStart ()
@@ -108,19 +128,29 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     @Override
     public void deviceHeadphonesPluggedIn ()
     {
+        deviceStatusValues.put(OBAnalytics.Params.DEVICE_HEADPHONES_STATE, OBAnalytics.Params.DEVICE_HEADPHONES_STATE_PLUGGED);
+        /*
+         * Value is now stored in a buffer for regular updates to the database
+         *
         Map<String, Object> parameters = new HashMap();
         parameters.put(OBAnalytics.Params.DEVICE_HEADPHONES_STATE, OBAnalytics.Params.DEVICE_HEADPHONES_STATE_PLUGGED);
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
+        */
     }
 
     @Override
     public void deviceHeadphonesUnplugged ()
     {
+        deviceStatusValues.put(OBAnalytics.Params.DEVICE_HEADPHONES_STATE, OBAnalytics.Params.DEVICE_HEADPHONES_STATE_UNPLUGGED);;
+        /*
+         * Value is now stored in a buffer for regular updates to the database
+         *
         Map<String, Object> parameters = new HashMap();
         parameters.put(OBAnalytics.Params.DEVICE_HEADPHONES_STATE, OBAnalytics.Params.DEVICE_HEADPHONES_STATE_UNPLUGGED);
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
+        */
     }
 
 
@@ -146,12 +176,20 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
         Location loc = OBLocationManager.sharedManager.getLastKnownLocation();
         if (loc != null)
         {
+            deviceStatusValues.put(OBAnalytics.Params.DEVICE_GPS_LATITUDE, Double.valueOf(loc.getLatitude()));
+            deviceStatusValues.put(OBAnalytics.Params.DEVICE_GPS_LONGITUDE, Double.valueOf(loc.getLongitude()));
+            deviceStatusValues.put(OBAnalytics.Params.DEVICE_GPS_ALTITUDE, Double.valueOf(loc.getAltitude()));
+            deviceStatusValues.put(OBAnalytics.Params.DEVICE_GPS_BEARING, Float.valueOf(loc.getBearing()));
+            /*
+             * Value is now stored in a buffer for regular updates to the database
+             *
             parameters.put(OBAnalytics.Params.DEVICE_GPS_LATITUDE, Double.valueOf(loc.getLatitude()));
             parameters.put(OBAnalytics.Params.DEVICE_GPS_LONGITUDE, Double.valueOf(loc.getLongitude()));
             parameters.put(OBAnalytics.Params.DEVICE_GPS_ALTITUDE, Double.valueOf(loc.getAltitude()));
             parameters.put(OBAnalytics.Params.DEVICE_GPS_BEARING, Float.valueOf(loc.getBearing()));
             //
             logEvent(OBAnalytics.Event.DEVICE, parameters);
+            */
         }
         else
         {
@@ -163,10 +201,15 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     @Override
     public void deviceVolumeChanged (float value)
     {
+        deviceStatusValues.put(OBAnalytics.Params.DEVICE_VOLUME, Float.valueOf(value));
+        /*
+         * Value is now stored in a buffer for regular updates to the database
+         *
         Map<String, Object> parameters = new HashMap();
         parameters.put(OBAnalytics.Params.DEVICE_VOLUME, Float.valueOf(value));
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
+        */
     }
 
 
@@ -193,10 +236,15 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     @Override
     public void deviceMobileSignalStrength (int value)
     {
+        deviceStatusValues.put(OBAnalytics.Params.DEVICE_SIGNAL_STRENGTH, Integer.valueOf(value));
+        /*
+         * Value is now stored in a buffer for regular updates to the database
+         *
         Map<String, Object> parameters = new HashMap();
         parameters.put(OBAnalytics.Params.DEVICE_SIGNAL_STRENGTH, Integer.valueOf(value));
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
+        */
     }
 
 
@@ -211,17 +259,35 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
         long megaBytesTotal = bytesTotal / (1024 * 1024);
         long megaBytesUsed = megaBytesTotal - megaBytesAvailable;
         //
+        deviceStatusValues.put(OBAnalytics.Params.DEVICE_USED_STORAGE, Long.valueOf(megaBytesUsed));
+        deviceStatusValues.put(OBAnalytics.Params.DEVICE_TOTAL_STORAGE, Long.valueOf(megaBytesTotal));
+        /*
+         * Value is now stored in a buffer for regular updates to the database
+         *
         Map<String, Object> parameters = new HashMap();
         parameters.put(OBAnalytics.Params.DEVICE_USED_STORAGE, Long.valueOf(megaBytesUsed));
         parameters.put(OBAnalytics.Params.DEVICE_TOTAL_STORAGE, Long.valueOf(megaBytesTotal));
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
+        */
     }
 
 
     @Override
     public void batteryState (float batteryValue, Boolean pluggedIn, String chargerType)
     {
+        deviceStatusValues.put(OBAnalytics.Params.BATTERY_LEVEL, Float.valueOf(batteryValue));
+        if (!pluggedIn)
+        {
+            deviceStatusValues.put(OBAnalytics.Params.BATTERY_CHARGER_STATE, OBAnalytics.Params.BATTERY_CHARGER_STATE_UNPLUGGED);
+        }
+        else
+        {
+            deviceStatusValues.put(OBAnalytics.Params.BATTERY_CHARGER_STATE, chargerType);
+        }
+        /*
+         * Value is now stored in a buffer for regular updates to the database
+         *
         Map<String, Object> parameters = new HashMap();
         parameters.put(OBAnalytics.Params.BATTERY_LEVEL, Float.valueOf(batteryValue));
         if (!pluggedIn)
@@ -234,6 +300,7 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
         }
         //
         logEvent(OBAnalytics.Event.BATTERY, parameters);
+        */
     }
 
 

@@ -264,6 +264,9 @@
 	<!--  -->
 	<key>analytics_class</key>
 	<string>OBAnalyticsManagerCommunity</string>
+	<!-- -->
+	<key>analytics_device_status_refresh_interval_minutes</key>
+	<string>15</string>
 
 
 	<!-- APP -->

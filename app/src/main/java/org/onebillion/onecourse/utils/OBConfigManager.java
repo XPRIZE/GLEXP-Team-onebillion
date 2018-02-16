@@ -113,6 +113,7 @@ public class OBConfigManager
     //
     private static String ANALYTICS_ENABLED = "analytics_enabled";
     private static String ANALYTICS_CLASS = "analytics_class";
+    private static String ANALYTICS_DEVICE_STATUS_REFRESH_INTERVAL_MINUTES = "analytics_device_status_refresh_interval_minutes";
     //
     private static String LOCATION_ENABLED = "location_enabled";
     //
@@ -977,6 +978,11 @@ public class OBConfigManager
     public String getAnalyticsClassName ()
     {
         return getStringValue(ANALYTICS_CLASS);
+    }
+
+    public int getAnalyticsDeviceStatusRefreshIntervalMinutes()
+    {
+        return getIntValue(ANALYTICS_DEVICE_STATUS_REFRESH_INTERVAL_MINUTES);
     }
 
 

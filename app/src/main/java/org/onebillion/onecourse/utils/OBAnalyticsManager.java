@@ -7,6 +7,9 @@ import android.graphics.PointF;
 import org.onebillion.onecourse.mainui.MainActivity;
 
 import java.lang.reflect.Constructor;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,6 +24,7 @@ public class OBAnalyticsManager implements OBAnalyticsProtocol
     {
 
     }
+
 
     @Override
     public void deviceTurnedOn ()
@@ -107,7 +111,6 @@ public class OBAnalyticsManager implements OBAnalyticsProtocol
 
     protected void startupAnalytics(Activity activity)
     {
-
     }
 
     @Override
@@ -118,6 +121,12 @@ public class OBAnalyticsManager implements OBAnalyticsProtocol
 
     @Override
     public void onStop()
+    {
+
+    }
+
+    @Override
+    public void deviceStatus()
     {
 
     }
