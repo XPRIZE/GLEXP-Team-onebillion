@@ -9,7 +9,9 @@ public class OBAnalytics
     public static class Event
     {
         public static final String DEVICE = "device";
-        public static final String DEVICE_STATUS = "device_status";
+        public static final String HEADPHONES = "headphones";
+        public static final String SCREEN = "screen";
+        public static final String STATUS = "status";
         public static final String TOUCH = "touch";
         public static final String BATTERY = "battery";
         public static final String PLAY_ZONE = "play_zone";
@@ -27,17 +29,12 @@ public class OBAnalytics
         public static final String DEVICE_GPS_BEARING = "gps_bearing";
         public static final String DEVICE_VOLUME = "volume";
         public static final String DEVICE_STATE = "device_state";
-        public static final String DEVICE_STATE_ON = "on";
-        public static final String DEVICE_STATE_OFF = "off";
-        public static final String DEVICE_SCREEN_STATE = "screen_state";
-        public static final String DEVICE_SCREEN_STATE_ON = "on";
-        public static final String DEVICE_SCREEN_STATE_OFF = "off";
+        public static final String DEVICE_ON = "device_on";
+        public static final String DEVICE_SCREEN_ON = "screen_on";
         public static final String DEVICE_SIGNAL_STRENGTH = "signal_strength";
         public static final String DEVICE_USED_STORAGE = "used_storage";
         public static final String DEVICE_TOTAL_STORAGE = "total_storage";
-        public static final String DEVICE_HEADPHONES_STATE = "headphones_state";
-        public static final String DEVICE_HEADPHONES_STATE_PLUGGED = "plugged";
-        public static final String DEVICE_HEADPHONES_STATE_UNPLUGGED = "unplugged";
+        public static final String DEVICE_HEADPHONES_PLUGGED_IN = "plugged_in";
         //
         public static final String BATTERY_LEVEL = "battery_level";
         public static final String BATTERY_CHARGER_STATE = "charger_state";

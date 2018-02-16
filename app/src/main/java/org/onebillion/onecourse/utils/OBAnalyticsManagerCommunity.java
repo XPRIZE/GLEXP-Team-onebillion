@@ -46,7 +46,7 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
 
     protected void refreshDeviceStatus()
     {
-        logEvent(OBAnalytics.Event.DEVICE_STATUS, deviceStatusValues);
+        logEvent(OBAnalytics.Event.STATUS, deviceStatusValues);
         //
         float delay = OBConfigManager.sharedManager.getAnalyticsDeviceStatusRefreshIntervalMinutes() * 60f;
         //
@@ -110,9 +110,9 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     public void deviceTurnedOn ()
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.DEVICE_STATE, OBAnalytics.Params.DEVICE_STATE_ON);
+        parameters.put(OBAnalytics.Params.DEVICE_ON, Boolean.valueOf(true));
         //
-        logEvent(OBAnalytics.Event.DEVICE, parameters);
+        logEvent(OBAnalytics.Event.SCREEN, parameters);
     }
 
 
@@ -120,37 +120,27 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     public void deviceTurnedOff ()
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.DEVICE_STATE, OBAnalytics.Params.DEVICE_STATE_OFF);
+        parameters.put(OBAnalytics.Params.DEVICE_ON, Boolean.valueOf(false));
         //
-        logEvent(OBAnalytics.Event.DEVICE, parameters);
+        logEvent(OBAnalytics.Event.SCREEN, parameters);
     }
 
     @Override
     public void deviceHeadphonesPluggedIn ()
     {
-        deviceStatusValues.put(OBAnalytics.Params.DEVICE_HEADPHONES_STATE, OBAnalytics.Params.DEVICE_HEADPHONES_STATE_PLUGGED);
-        /*
-         * Value is now stored in a buffer for regular updates to the database
-         *
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.DEVICE_HEADPHONES_STATE, OBAnalytics.Params.DEVICE_HEADPHONES_STATE_PLUGGED);
+        parameters.put(OBAnalytics.Params.DEVICE_HEADPHONES_PLUGGED_IN, Boolean.valueOf(true));
         //
-        logEvent(OBAnalytics.Event.DEVICE, parameters);
-        */
+        logEvent(OBAnalytics.Event.HEADPHONES, parameters);
     }
 
     @Override
     public void deviceHeadphonesUnplugged ()
     {
-        deviceStatusValues.put(OBAnalytics.Params.DEVICE_HEADPHONES_STATE, OBAnalytics.Params.DEVICE_HEADPHONES_STATE_UNPLUGGED);;
-        /*
-         * Value is now stored in a buffer for regular updates to the database
-         *
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.DEVICE_HEADPHONES_STATE, OBAnalytics.Params.DEVICE_HEADPHONES_STATE_UNPLUGGED);
+        parameters.put(OBAnalytics.Params.DEVICE_HEADPHONES_PLUGGED_IN, Boolean.valueOf(false));
         //
-        logEvent(OBAnalytics.Event.DEVICE, parameters);
-        */
+        logEvent(OBAnalytics.Event.HEADPHONES, parameters);
     }
 
 
@@ -201,15 +191,10 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     @Override
     public void deviceVolumeChanged (float value)
     {
-        deviceStatusValues.put(OBAnalytics.Params.DEVICE_VOLUME, Float.valueOf(value));
-        /*
-         * Value is now stored in a buffer for regular updates to the database
-         *
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.DEVICE_VOLUME, Float.valueOf(value));
+        parameters.put(OBAnalytics.Params.DEVICE_VOLUME, Integer.valueOf(Math.round(value)));
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
-        */
     }
 
 
@@ -217,7 +202,7 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     public void deviceScreenTurnedOn ()
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.DEVICE_SCREEN_STATE, OBAnalytics.Params.DEVICE_SCREEN_STATE_ON);
+        parameters.put(OBAnalytics.Params.DEVICE_SCREEN_ON, Boolean.valueOf(true));
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
     }
@@ -227,7 +212,7 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     public void deviceScreenTurnedOff ()
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.DEVICE_SCREEN_STATE, OBAnalytics.Params.DEVICE_SCREEN_STATE_OFF);
+        parameters.put(OBAnalytics.Params.DEVICE_SCREEN_ON, Boolean.valueOf(false));
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
     }

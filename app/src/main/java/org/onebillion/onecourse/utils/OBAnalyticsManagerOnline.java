@@ -160,7 +160,7 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
     public void deviceTurnedOn ()
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.DEVICE_STATE, OBAnalytics.Params.DEVICE_STATE_ON);
+        parameters.put(OBAnalytics.Params.DEVICE_ON, Boolean.valueOf(true));
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
     }
@@ -170,7 +170,7 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
     public void deviceTurnedOff ()
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.DEVICE_STATE, OBAnalytics.Params.DEVICE_STATE_OFF);
+        parameters.put(OBAnalytics.Params.DEVICE_ON, Boolean.valueOf(false));
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
     }
@@ -179,7 +179,7 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
     public void deviceHeadphonesPluggedIn ()
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.DEVICE_HEADPHONES_STATE, OBAnalytics.Params.DEVICE_HEADPHONES_STATE_PLUGGED);
+        parameters.put(OBAnalytics.Params.DEVICE_HEADPHONES_PLUGGED_IN, Boolean.valueOf(true));
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
     }
@@ -188,7 +188,7 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
     public void deviceHeadphonesUnplugged ()
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.DEVICE_HEADPHONES_STATE, OBAnalytics.Params.DEVICE_HEADPHONES_STATE_UNPLUGGED);
+        parameters.put(OBAnalytics.Params.DEVICE_HEADPHONES_PLUGGED_IN, Boolean.valueOf(false));
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
     }
@@ -247,7 +247,7 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
     public void deviceScreenTurnedOn ()
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.DEVICE_SCREEN_STATE, OBAnalytics.Params.DEVICE_SCREEN_STATE_ON);
+        parameters.put(OBAnalytics.Params.DEVICE_SCREEN_ON, Boolean.valueOf(true));
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
     }
@@ -258,7 +258,7 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
     public void deviceScreenTurnedOff ()
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.DEVICE_SCREEN_STATE, OBAnalytics.Params.DEVICE_SCREEN_STATE_OFF);
+        parameters.put(OBAnalytics.Params.DEVICE_SCREEN_ON, Boolean.valueOf(false));
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
     }
