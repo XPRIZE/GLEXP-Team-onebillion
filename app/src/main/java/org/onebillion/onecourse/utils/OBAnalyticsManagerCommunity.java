@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.graphics.PointF;
 import android.location.Location;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.StatFs;
 
 import org.json.JSONObject;
@@ -21,7 +22,9 @@ import java.util.Map;
 public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
 {
     public Map<String, Object> deviceStatusValues;
-
+    public int lastRecordedVolume;
+    private Handler reportHandler;
+    private Runnable statusRunnable, volumeRunnable;
     
     public OBAnalyticsManagerCommunity (Activity activity)
     {
@@ -39,6 +42,24 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     {
         super.startupAnalytics(activity);
         //
+        lastRecordedVolume = -1;
+        reportHandler = new Handler();
+        statusRunnable = new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                refreshDeviceStatus();
+            }
+        };
+        volumeRunnable = new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                reportCurrentVolume();
+            }
+        };
         deviceStatusValues = new HashMap<>();
         //
         refreshDeviceStatus();
@@ -46,16 +67,12 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
 
     protected void refreshDeviceStatus()
     {
-        logEvent(OBAnalytics.Event.STATUS, deviceStatusValues);
+        if(deviceStatusValues.size() > 0)
+            logEvent(OBAnalytics.Event.STATUS, deviceStatusValues);
         //
-        float delay = OBConfigManager.sharedManager.getAnalyticsDeviceStatusRefreshIntervalMinutes() * 60f;
+        long delay = (long)(OBConfigManager.sharedManager.getAnalyticsDeviceStatusRefreshIntervalMinutes() * 60f * 1000);
         //
-        OBUtils.runOnOtherThreadDelayed(delay, new OBUtils.RunLambda() {
-            @Override
-            public void run() throws Exception {
-                refreshDeviceStatus();
-            }
-        });
+        reportHandler.postDelayed(statusRunnable, delay);
     }
 
     @Override
@@ -191,11 +208,24 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     @Override
     public void deviceVolumeChanged (float value)
     {
+        int newVolumne = Integer.valueOf(Math.round(value*100));
+        if(newVolumne != lastRecordedVolume)
+        {
+            lastRecordedVolume = newVolumne;
+            reportHandler.removeCallbacks(volumeRunnable);
+            reportHandler.postDelayed(volumeRunnable, 5 * 1000);
+        }
+
+    }
+
+    public void reportCurrentVolume()
+    {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.DEVICE_VOLUME, Integer.valueOf(Math.round(value)));
+        parameters.put(OBAnalytics.Params.DEVICE_VOLUME,lastRecordedVolume);
         //
         logEvent(OBAnalytics.Event.DEVICE, parameters);
     }
+
 
 
     @Override
