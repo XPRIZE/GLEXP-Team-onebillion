@@ -208,10 +208,10 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     @Override
     public void deviceVolumeChanged (float value)
     {
-        int newVolumne = Integer.valueOf(Math.round(value*100));
-        if(newVolumne != lastRecordedVolume)
+        int newVolume = Integer.valueOf(Math.round(value*100));
+        if(newVolume != lastRecordedVolume)
         {
-            lastRecordedVolume = newVolumne;
+            lastRecordedVolume = newVolume;
             reportHandler.removeCallbacks(volumeRunnable);
             reportHandler.postDelayed(volumeRunnable, 5 * 1000);
         }
