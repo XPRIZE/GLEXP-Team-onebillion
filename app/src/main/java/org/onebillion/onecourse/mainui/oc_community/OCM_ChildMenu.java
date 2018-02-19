@@ -144,6 +144,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         screenOverlay.setFrame(new RectF(bounds()));
         screenOverlay.setBackgroundColor(Color.WHITE);
         screenOverlay.setZPosition(60);
+        attachControl(screenOverlay);
         this.localisations = loadLocalisations(getLocalPath("_localisations.xml"));
         currentBigIcon = null;
         currentLevelLabel = new OBLabel("88888888888888888888",OBUtils.standardTypeFace(),applyGraphicScale(30));
@@ -212,7 +213,6 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         }
         if(lastCommand == OCM_FatController.OFC_SESSION_NEW && !communityModeActive)
         {
-            loadNewDayScreen();
             OBAnalyticsManager.sharedManager.studyZoneStartedNewDay();
             //
             showNewDayScreen();
@@ -678,29 +678,31 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
     {
         if (unit == null)
             return;
-        currentLevelLabel.setString ( String.format("%d - %d", currentDay, unit.unitIndex));
+        currentLevelLabel.setString(String.format("%d - %d", currentDay, unit.unitIndex));
     }
 
     public void refreshCurrentLabelArray(List<OCM_MlUnit> units)
     {
         OCM_MlUnit unit1 = units.get(0);
         OCM_MlUnit unit2 = units.get(units.size()-1);
-        currentLevelLabel.setString ( String.format("%d - %d - %d", currentDay, unit1.unitIndex,  unit2.unitIndex));
+        currentLevelLabel.setString(String.format("%d - %d - %d", currentDay, unit1.unitIndex,  unit2.unitIndex));
     }
 
 
     public void loadNewDayScreen()
     {
-        loadEvent("new_day");
-
-        objectDict.get("button_start").setZPosition(60.5f);
+        if(!objectDict.containsKey("button_start"))
+        {
+            loadEvent("new_day");
+            objectDict.get("button_start").setZPosition(60.5f);
+        }
     }
 
     public void showNewDayScreen()
     {
+        loadNewDayScreen();
         screenOverlay.show();
         objectDict.get("button_start").setOpacity(0);
-
     }
 
     public void hideNewDayScreen()

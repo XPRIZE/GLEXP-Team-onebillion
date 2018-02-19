@@ -112,7 +112,7 @@ public class OC_PlayZoneAsset extends DBObject
             Map<String,String> whereMap = new ArrayMap<>();
             whereMap.put("userid",String.valueOf(userid));
             whereMap.put("deleted","0");
-            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_PLAYZONE_ASSETS,allFieldNames(stringFields,intFields,longFields,null),whereMap, "createTime DESC");
+            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_PLAYZONE_ASSETS,allFieldNames(stringFields,intFields,longFields,null),whereMap, "assetid DESC");
 
             if(cursor.moveToFirst())
             {
@@ -144,8 +144,8 @@ public class OC_PlayZoneAsset extends DBObject
         {
             db = new DBSQL(false);
 
-            Cursor cursor = db.prepareRawQuery(String.format("SELECT COUNT(*) as count FROM %s WHERE userid = ? AND createTime > ? AND deleted = 0", TABLE_PLAY_ZONE_ASSETS),
-                    Arrays.asList(String.valueOf(userid),String.valueOf(createTime)));
+            Cursor cursor = db.prepareRawQuery(String.format("SELECT COUNT(*) as count FROM %s WHERE userid = ? AND assetid > ? AND deleted = 0", TABLE_PLAY_ZONE_ASSETS),
+                    Arrays.asList(String.valueOf(userid),String.valueOf(assetid)));
 
             int columnIndex = cursor.getColumnIndex("count");
             if(cursor.moveToFirst()  && !cursor.isNull(columnIndex))

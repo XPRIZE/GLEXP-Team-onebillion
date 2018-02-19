@@ -670,8 +670,8 @@ public class OC_Doodle extends OC_SectionController
     {
         Map<String,String> params = new HashMap<>();
         params.put("theme",currentEvent());
-        Bitmap bm = drawn(null,true);
-        OBConfigManager.sharedManager.setValue("oc_doodle", drawOn);
+      //  Bitmap bm = drawn(null,true);
+       // OBConfigManager.sharedManager.setValue("oc_doodle", drawOn);
         saveContentsToDisk();
 
         if(!_aborting)
