@@ -333,8 +333,9 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     @Override
     public void studyZoneUnitCompleted (String unitID, long started, long finished, float score, int replayAudioPresses)
     {
-        // DISABLED ON PURPOSE
         /*
+         * DISABLED ON PURPOSE
+         *
         Map<String, Object> parameters = new HashMap();
         parameters.put(OBAnalytics.Params.UNIT_ID, unitID);
         parameters.put(OBAnalytics.Params.UNIT_SCORE, Float.valueOf(score));
@@ -362,8 +363,9 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     @Override
     public void communityModeUnitCompleted (String unitID, long started, long finished, float score, int replayAudioPresses)
     {
-        // DISABLED ON PURPOSE
         /*
+         * DISABLED ON PURPOSE
+         *
         Map<String, Object> parameters = new HashMap();
         parameters.put(OBAnalytics.Params.UNIT_ID, unitID);
         parameters.put(OBAnalytics.Params.UNIT_SCORE, Float.valueOf(score));
@@ -391,8 +393,9 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     @Override
     public void playZoneUnitCompleted (String unitID, long started, long finished, float score, int replayAudioPresses)
     {
-        // DISABLED ON PURPOSE
         /*
+         * DISABLED ON PURPOSE
+         *
         Map<String, Object> parameters = new HashMap();
         parameters.put(OBAnalytics.Params.UNIT_ID, unitID);
         parameters.put(OBAnalytics.Params.UNIT_SCORE, Float.valueOf(score));
@@ -418,8 +421,9 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     @Override
     public void playZoneAssetCreated (int assetType, Map<String, String> data)
     {
-        // DISABLED ON PURPOSE
         /*
+         * DISABLED ON PURPOSE
+         *
         Map<String, Object> parameters = new HashMap();
         //
         String creationType = "";
@@ -447,5 +451,7 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     {
         Map<String, Object> parameters = new HashMap();
         parameters.put(OBAnalytics.Params.APP_MODE_CHANGE, OBAnalytics.Params.APP_NIGHT_MODE);
+        //
+        logEvent(OBAnalytics.Event.APP, parameters);
     }
 }
