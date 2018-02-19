@@ -76,7 +76,7 @@ public class OBMainViewController extends OBViewController
         }
 
         Typeface tf = OBUtils.standardTypeFace();
-        topLabel = new OBLabel("ALL WORK AND NO PLAY MAKES JACK A DULL BOY. ALL WORK AND NO PLAY MAKES JACK A DULL BOY. ", tf, applyGraphicScale(15));
+        topLabel = new OBLabel("ALL WORK AND NO PLAY MAKES JACK A DULL BOY. ALL WORK AND NO PLAY MAKES JACK A DULL BOY. ALL WORK AND NO PLAY MAKES JACK A DULL BOY", tf, applyGraphicScale(15));
         topLabel.setColour(Color.BLACK);
         topLabel.controller = this;
         topLabel.sizeToBoundingBox();

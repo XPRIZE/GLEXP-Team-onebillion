@@ -97,6 +97,8 @@ public class OBConfigManager
     private static String DEBUG_SHOW_UNIT_ID = "debug_show_unit_id";
     private static String DEBUG_BUILD_NUMBER = "debug_build_number";
     private static String DEBUG_JUMP_TO_SETUP_PASSWORD = "debug_jump_to_setup_password";
+    private static String DEBUG_CHANGE_DATE_PASSWORD = "debug_change_date_password";
+    private static String DEBUG_COMMUNITY_MODE_OVERRIDE = "debug_community_mode_override_enabled";
     private static String DEBUG_ACTIVATE_COMMUNITY_MODE_OVERRIDE_PASSWORD = "debug_activate_community_mode_override_password";
     private static String DEBUG_REVERT_COMMUNITY_MODE_PASSWORD = "debug_revert_community_mode_password";
     //
@@ -199,6 +201,17 @@ public class OBConfigManager
     {
         String correctValue = getStringValue(DEBUG_JUMP_TO_SETUP_PASSWORD);
         return correctValue != null && correctValue.equals(password);
+    }
+
+    public Boolean isChangeDatePasswordCorrect(String password)
+    {
+        String correctValue = getStringValue(DEBUG_CHANGE_DATE_PASSWORD);
+        return correctValue != null && correctValue.equals(password);
+    }
+
+    public Boolean isCommunityModeOverrideEnabled()
+    {
+        return getBooleanValue(DEBUG_COMMUNITY_MODE_OVERRIDE);
     }
 
     public Boolean isActivateCommunityModeOverridePasswordCorrect(String password)

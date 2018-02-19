@@ -260,6 +260,12 @@
 	<!--  -->
 	<key>debug_jump_to_setup_password</key>
 	<string>obxprize</string>
+	<!-- -->
+	<key>debug_change_date_password</key>
+	<string>kronos</string>
+	<!--  -->
+	<key>debug_community_mode_override_enabled</key>
+	<string>true</string>
 	<!--  -->
 	<key>debug_activate_community_mode_override_password</key>
 	<string>pop</string>
@@ -268,15 +274,18 @@
 	<string>opo</string>
 	<!--  -->
 	<key>debug_build_number</key>
-	<string>0012</string>
+	<string>0008 - Community</string>
 
 
 	<!-- ANALYTICS MANAGER -->
-    <key>analytics_enabled</key>
-    <string>true</string>
-    <!--  -->
-    <key>analytics_class</key>
-    <string>OBAnalyticsManagerCommunity</string>
+	<key>analytics_enabled</key>
+	<string>true</string>
+	<!--  -->
+	<key>analytics_class</key>
+	<string>OBAnalyticsManagerCommunity</string>
+	<!-- -->
+	<key>analytics_device_status_refresh_interval_minutes</key>
+	<string>15</string>
 
 
 	<!-- APP -->

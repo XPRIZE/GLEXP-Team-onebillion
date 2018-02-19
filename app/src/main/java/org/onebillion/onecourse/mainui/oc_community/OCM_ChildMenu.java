@@ -1,6 +1,10 @@
 package org.onebillion.onecourse.mainui.oc_community;
 
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -9,12 +13,19 @@ import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.text.InputType;
+import android.text.format.DateFormat;
 import android.util.ArrayMap;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.TimePicker;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
@@ -24,6 +35,7 @@ import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.controls.OBPresenter;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
+import org.onebillion.onecourse.mainui.OBSetupMenu;
 import org.onebillion.onecourse.mainui.OC_Menu;
 import org.onebillion.onecourse.utils.OBAnalytics;
 import org.onebillion.onecourse.utils.OBAnalyticsManager;
@@ -33,6 +45,7 @@ import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBImageManager;
 import org.onebillion.onecourse.utils.OBMisc;
+import org.onebillion.onecourse.utils.OBSystemsManager;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OB_MutFloat;
@@ -43,6 +56,8 @@ import org.onebillion.onecourse.utils.OCM_MlUnitInstance;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -51,7 +66,7 @@ import java.util.Objects;
  * Created by michal on 03/08/2017.
  */
 
-public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
+public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePickerDialog.OnTimeSetListener, DatePickerDialog.OnDateSetListener
 {
     final static int TARGET_BUTTON = 1,
             TARGET_STUDY = 2,
@@ -74,6 +89,8 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
     RectF secretBoxLeft, secretBoxRight;
     List<RectF> secretBoxUnlockList;
     int secretBoxTouchIndex;
+
+    private int selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute;
 
     /*
     OC_Section functions
@@ -174,6 +191,9 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         secretBoxRight = new RectF(this.bounds().right - boxSize,this.bounds().bottom -boxSize,this.bounds().right,this.bounds().bottom);
         secretBoxUnlockList = Arrays.asList(secretBoxLeft,secretBoxRight,secretBoxLeft,secretBoxLeft,secretBoxRight);
         secretBoxTouchIndex = 0;
+        //
+        OBSystemsManager.sharedManager.setCurrentWeek(String.valueOf(fatController.getCurrentWeek()));
+        OBSystemsManager.sharedManager.setCurrentDay(String.valueOf(currentDay));
     }
 
     public void refreshCurrentDayAndAudio()
@@ -1791,12 +1811,14 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                 secretBoxTouchIndex++;
                 if(secretBoxTouchIndex >= secretBoxUnlockList.size())
                 {
-                    showPasswordCheckDialog();
+                    if (OBConfigManager.sharedManager.isCommunityModeOverrideEnabled())
+                    {
+                        showPasswordCheckDialog();
+                    }
                     secretBoxTouchIndex = 0;
                 }
                 long time = setStatus(STATUS_AWAITING_CLICK);
                 delayedSecretIndexReset(time);
-
             }
             else if(secretBoxUnlockList.get(0).contains(pt.x,pt.y))
             {
@@ -1827,7 +1849,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
             public void onClick(DialogInterface dialog, int which)
             {
                 String pass = (input.getText()).toString();
-                checkPasswordAndProceed(pass);
+                checkPasswordAndProceed(pass, input);
             }
         });
         final AlertDialog dialog = alert.show();
@@ -1835,7 +1857,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if ((event != null && (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) || (actionId == EditorInfo.IME_ACTION_DONE)) {
                     String pass = (input.getText()).toString();
-                    checkPasswordAndProceed(pass);
+                    checkPasswordAndProceed(pass, input);
                     if(dialog != null && dialog.isShowing())
                     {
                         dialog.cancel();
@@ -1860,8 +1882,11 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
 
     }
 
-    public void checkPasswordAndProceed(String pass)
+    public void checkPasswordAndProceed(String pass, EditText alertPopup)
     {
+        InputMethodManager imm = (InputMethodManager) MainActivity.mainActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(alertPopup.getWindowToken(), 0);
+        //
         if (OBConfigManager.sharedManager.isJumpToSetupPasswordCorrect(pass))
         {
             final AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.mainActivity);
@@ -1962,6 +1987,122 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                 }
             });
         }
+        else if (OBConfigManager.sharedManager.isChangeDatePasswordCorrect(pass))
+        {
+            showPickDateDialog(this, null);
+        }
+    }
+
+
+
+    @Override
+    public void onDateSet (DatePicker view, int year, int monthOfYear, int dayOfMonth)
+    {
+        selectedYear = year;
+        selectedMonth = monthOfYear;
+        selectedDay = dayOfMonth;
+        //
+        MainActivity.log("OCM_ChildMenu:onDateSet:" + year + " " + monthOfYear + " " + dayOfMonth);
+        //
+        showPickTimeDialog(this);
+    }
+
+    @Override
+    public void onTimeSet (TimePicker view, int hourOfDay, int minute)
+    {
+        selectedHour = hourOfDay;
+        selectedMinute = minute;
+        //
+        MainActivity.log("OCM_ChildMenu:onTimeSet:" + hourOfDay + " " + minute);
+        //
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.YEAR, selectedYear);
+        c.set(Calendar.MONTH, selectedMonth);
+        c.set(Calendar.DAY_OF_MONTH, selectedDay);
+        c.set(Calendar.HOUR_OF_DAY, selectedHour);
+        c.set(Calendar.MINUTE, selectedMinute);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        //
+        long when = c.getTimeInMillis();
+        if (when / 1000 < Integer.MAX_VALUE)
+        {
+            try
+            {
+                ((AlarmManager) MainActivity.mainActivity.getSystemService(Context.ALARM_SERVICE)).setTime(when);
+            }
+            catch (Exception e)
+            {
+                MainActivity.log("OCM_ChildMenu:onTimeSet:Exception caught while trying to set the Date");
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    void showPickDateDialog (final DatePickerDialog.OnDateSetListener listener, Date startDate)
+    {
+        Calendar currentCalendar = Calendar.getInstance();
+        if (startDate != null)
+        {
+            currentCalendar.setTime(startDate);
+        }
+        final Calendar calendar = currentCalendar;
+        DatePickerDialog d = new DatePickerDialog(MainActivity.mainActivity, listener, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+        //
+        d.setCancelable(false);
+        d.setCanceledOnTouchOutside(false);
+        //
+        LinearLayout linearLayout = new LinearLayout(MainActivity.mainActivity.getApplicationContext());
+        d.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        d.getWindow().clearFlags(Window.FEATURE_ACTION_BAR);
+        d.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        d.setCustomTitle(linearLayout);
+        //
+        d.setButton(DatePickerDialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick (DialogInterface dialog, int which)
+            {
+                // do nothing
+            }
+        });
+        //
+        DatePicker datePicker = d.getDatePicker();
+        calendar.clear();
+        calendar.set(2017, Calendar.JANUARY, 1);
+        datePicker.setMinDate(calendar.getTimeInMillis());
+        calendar.clear();
+        calendar.set(2025, Calendar.DECEMBER, 31);
+        datePicker.setMaxDate(calendar.getTimeInMillis());
+        //
+        d.show();
+    }
+
+
+    void showPickTimeDialog (final TimePickerDialog.OnTimeSetListener listener)
+    {
+        final DatePickerDialog.OnDateSetListener dateListener = (DatePickerDialog.OnDateSetListener) listener;
+        final Calendar calendar = Calendar.getInstance();
+        TimePickerDialog d = new TimePickerDialog(MainActivity.mainActivity, listener, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), DateFormat.is24HourFormat(MainActivity.mainActivity));
+        //
+        d.setCancelable(false);
+        d.setCanceledOnTouchOutside(false);
+        //
+        d.setButton(DatePickerDialog.BUTTON_NEGATIVE, "Back", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick (DialogInterface dialog, int which)
+            {
+                showPickDateDialog(dateListener, null);
+            }
+        });
+        //
+        LinearLayout linearLayout = new LinearLayout(MainActivity.mainActivity.getApplicationContext());
+        d.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        d.setCustomTitle(linearLayout);
+        //
+        d.show();
     }
 
 

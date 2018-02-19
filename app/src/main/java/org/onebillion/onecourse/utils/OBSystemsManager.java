@@ -98,6 +98,8 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     private OBUtils.RunLambda dateSetCompletionBlock, timeSetCompletionBlock;
 
     private String currentUnit = null;
+    private String currentWeek = null;
+    private String currentDay = null;
 
     public OBSystemsManager (Activity activity)
     {
@@ -469,12 +471,14 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 
     public void refreshStatus ()
     {
-        String info = String.format("Build[%s]   Bat[%s]   Br[%s]   Vol[%s]   Unit[%s]",
+        String info = String.format("Build:%s    Bat:%s    Br:%s    Vol:%s    %s%s%s",
                 OBConfigManager.sharedManager.getBuildNumber(),
                 batteryReceiver.printStatus(),
                 brightnessManager.printStatus(),
                 settingsContentObserver.printVolumeStatus(),
-                currentUnit != null ? String.format("%s", currentUnit) : "");
+                currentUnit != null ? String.format("Unit:%s   ", currentUnit) : "",
+                currentWeek != null ? String.format("Week:%s   ", currentWeek) : "",
+                currentDay != null ? String.format("Day:%s   ", currentDay) : "");
         //
         if (statusLabel != null)
         {
@@ -490,6 +494,27 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             refreshStatus();
         }
     }
+
+
+    public void setCurrentWeek(String week)
+    {
+        if (OBConfigManager.sharedManager.isDebugEnabled())
+        {
+            currentWeek = week;
+            refreshStatus();
+        }
+    }
+
+
+    public void setCurrentDay(String day)
+    {
+        if (OBConfigManager.sharedManager.isDebugEnabled())
+        {
+            currentDay = day;
+            refreshStatus();
+        }
+    }
+
 
 
     public void setStatusLabel (OBLabel label)
