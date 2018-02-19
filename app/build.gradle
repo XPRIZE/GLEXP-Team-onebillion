@@ -1,4 +1,3 @@
-
 repositories {
     maven {
         url "https://jcenter.bintray.com"
@@ -43,14 +42,14 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             manifestPlaceholders = [
-                    appuserid : "android.uid.system"
+                    appuserid: "android.uid.system"
             ]
         }
         distribution {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             manifestPlaceholders = [
-                    appuserid : ""
+                    appuserid: ""
             ]
         }
 
@@ -69,7 +68,7 @@ android {
     }
     sourceSets {
         main {
-            assets.srcDirs = ['src/main/assets', 'src/main/config']
+            assets.srcDirs = ['src/main/assets', 'src/main/config', 'src/main/fonts/']
         }
         res {
             res.srcDirs = ['src/main/res']
@@ -242,7 +241,7 @@ android {
         exclude 'META-INF/NOTICE.txt'
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/LICENSE.txt'
-        pickFirst  'META-INF/license.txt'
+        pickFirst 'META-INF/license.txt'
     }
 }
 

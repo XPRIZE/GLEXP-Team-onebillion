@@ -85,7 +85,7 @@ public class OC_VideoPlayback extends OC_SectionController
     private static Typeface plainFont ()
     {
         if (plain == null)
-            plain = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/F37Ginger-Regular.otf");
+            plain = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Regular.otf");
         return plain;
     }
 
@@ -93,7 +93,7 @@ public class OC_VideoPlayback extends OC_SectionController
     private static Typeface boldFont ()
     {
         if (bold == null)
-            bold = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/F37Ginger-Bold.otf");
+            bold = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Bold.otf");
         return bold;
     }
 
@@ -101,7 +101,7 @@ public class OC_VideoPlayback extends OC_SectionController
     private static Typeface italicFont ()
     {
         if (italic == null)
-            italic = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/F37Ginger-Italic.otf");
+            italic = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Italic.otf");
         return italic;
     }
 
@@ -109,7 +109,7 @@ public class OC_VideoPlayback extends OC_SectionController
     private static Typeface boldItalicFont ()
     {
         if (boldItalic == null)
-            boldItalic = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/F37Ginger-BoldItalic.otf");
+            boldItalic = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-BoldItalic.otf");
         return boldItalic;
     }
 

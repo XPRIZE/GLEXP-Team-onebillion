@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 
+import org.onebillion.onecourse.utils.OBAnalytics;
 import org.onebillion.onecourse.utils.OBAnalyticsManager;
 
 /**
@@ -24,7 +25,10 @@ public class OBStartUpBootReceiver extends BroadcastReceiver
             //
             contentIntent.send();
             //
-            OBAnalyticsManager.sharedManager.deviceTurnedOn();
+            if (OBAnalyticsManager.sharedManager != null)
+            {
+                OBAnalyticsManager.sharedManager.deviceTurnedOn();
+            }
         }
         catch (PendingIntent.CanceledException e)
         {

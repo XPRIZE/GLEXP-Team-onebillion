@@ -570,7 +570,7 @@ public class OBUtils
     {
         if (MainActivity.standardTypeFace == null)
         {
-            MainActivity.standardTypeFace = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/onebillionreader-Regular.otf");
+            MainActivity.standardTypeFace = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "onebillionreader-Regular.otf");
         }
         return MainActivity.standardTypeFace;
     }
@@ -1432,7 +1432,7 @@ public class OBUtils
 
     public static Typeface TypefaceForFile(String file)
     {
-       return Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), String.format("fonts/%s",file));
+       return Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), file);
     }
 
     public static <T> T coalesce(T t1,T t2)

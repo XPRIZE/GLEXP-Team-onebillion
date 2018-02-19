@@ -557,11 +557,11 @@ public class OC_Mgp extends OC_SectionController
                     fontSize = applyGraphicScale(180);
                     break;
                 case 2:
-                    font  = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/Sen-Bold.otf");
+                    font  = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "Sen-Bold.otf");
                     fontSize = applyGraphicScale(140);
                     break;
                 case 3:
-                    font  = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/Sen-Bold.otf");
+                    font  = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "Sen-Bold.otf");
                     fontSize = applyGraphicScale(160);
                     break;
                 default:
