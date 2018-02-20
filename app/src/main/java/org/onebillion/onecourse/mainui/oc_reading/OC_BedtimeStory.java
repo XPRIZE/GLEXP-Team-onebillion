@@ -21,6 +21,7 @@ import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.OBAudioBufferPlayer;
 import org.onebillion.onecourse.utils.OBAudioManager;
+import org.onebillion.onecourse.utils.OBBrightnessManager;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
 
@@ -96,6 +97,7 @@ public class OC_BedtimeStory extends OC_SectionController
         events = new ArrayList<>();
         events.addAll(Arrays.asList("a"));
         doVisual(currentEvent());
+        OBBrightnessManager.sharedManager.onSuspend();
     }
 
     public void start()
@@ -256,6 +258,7 @@ public class OC_BedtimeStory extends OC_SectionController
     public void exitEvent()
     {
         player.stopPlaying();
+        OBBrightnessManager.sharedManager.onContinue();
         super.exitEvent();
     }
 
