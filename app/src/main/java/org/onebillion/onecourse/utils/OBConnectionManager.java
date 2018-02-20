@@ -542,7 +542,7 @@ public class OBConnectionManager
             MainActivity.log("OBConnectionManager.connectToNetwork_connectToWifi. already connected to the network");
             connectToNetWork_complete(true, block);
         }
-        else if (!ssid.equals(connectionSSID))
+        else if (!ssid.equals(connectionSSID) && connectionState == SupplicantState.COMPLETED)
         {
             MainActivity.log("OBConnectionManager.connectToNetwork_connectToWifi. Connected to OTHER Wifi. Disconnecting current WiFi");
             //
