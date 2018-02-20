@@ -133,12 +133,35 @@ public class OBAudioBufferPlayer extends Object
         state = st;
     }
 
+    public void waitAudio ()
+    {
+        if (getState() == OBAP_FINISHED)
+            return;
+        playerLock.lock();
+        while (getState() == OBAP_PLAYING ||
+                getState() == OBAP_PREPARING ||
+                getState() == OBAP_SEEKING)
+        {
+            try
+            {
+                condition.await();
+            }
+            catch (InterruptedException e)
+            {
+            }
+        }
+        playerLock.unlock();
+    }
+
     public void stopPlaying ()
     {
         if (isPlaying())
         {
             audioTrack.stop();
             setState(OBAP_FINISHED);
+            playerLock.lock();
+            condition.signalAll();
+            playerLock.unlock();
         }
     }
 
@@ -146,6 +169,9 @@ public class OBAudioBufferPlayer extends Object
     {
         //stopPlaying();
         setState(OBAP_FINISHED);
+        playerLock.lock();
+        condition.signalAll();
+        playerLock.unlock();
     }
 
     public void finishedPrepare()
