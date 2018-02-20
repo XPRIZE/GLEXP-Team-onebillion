@@ -159,6 +159,30 @@ android {
                     appIcon: "@mipmap/icon_child"
             ]
         }
+        sw_library_ {
+            minSdkVersion 23
+            applicationId 'org.onebillion.onecourse.child.library'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "Library - sw"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_library_sw.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/icon_child"
+            ]
+        }
+        sw_playzone_ {
+            minSdkVersion 23
+            applicationId 'org.onebillion.onecourse.child.playzone'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "Playzone - sw"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_playzone_sw.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/icon_child"
+            ]
+        }
         sw_loop_ {
             minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.loop'
