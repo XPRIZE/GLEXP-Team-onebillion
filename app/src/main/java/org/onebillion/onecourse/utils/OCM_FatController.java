@@ -512,7 +512,6 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
         if((unitInstance.startTime + unitInstance.mlUnit.targetDuration) <= getCurrentTime())
         {
-            MainActivity.log("Time out!!");
             timeOutUnit(unitInstance);
             return false;
         }
