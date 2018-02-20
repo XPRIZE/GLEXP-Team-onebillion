@@ -21,6 +21,7 @@ import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBBrightnessManager;
 import org.onebillion.onecourse.utils.OBImageManager;
 import org.onebillion.onecourse.utils.OBSystemsManager;
 import org.onebillion.onecourse.utils.OBUtils;
@@ -134,6 +135,8 @@ public class OC_VideoPlayback extends OC_SectionController
         hideControls("video_textbox");
         //
         scrollPreviewToVisible(videoPreviewIdx, false);
+        //
+        OBBrightnessManager.sharedManager.onSuspend();
     }
 
 
@@ -142,6 +145,9 @@ public class OC_VideoPlayback extends OC_SectionController
     {
         if(shouldCollectMiscData())
             collectMiscData("watched", watchedVideos);
+        //
+        OBBrightnessManager.sharedManager.onContinue();
+        //
         super.exitEvent();
     }
 
