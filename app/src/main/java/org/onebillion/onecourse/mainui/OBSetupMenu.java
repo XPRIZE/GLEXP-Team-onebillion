@@ -75,7 +75,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
     }
     //
     private static Date trialStartDate = new GregorianCalendar(2017,11,15).getTime(); // 0 based months, yay
-    private static float clockRefreshInterval = 5.0f;
+    private static float clockRefreshInterval = 15.0f;
     private static String videoFilename = "tablet_care_sw.mp4";
     //
     private String saveConfig;
@@ -182,7 +182,10 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                          @Override
                          public void run (boolean success) throws Exception
                          {
-                             getServerTime();
+                             if (success)
+                             {
+                                 getServerTime();
+                             }
                          }
                      });
                  }
@@ -228,7 +231,10 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                                 @Override
                                 public void run (boolean success) throws Exception
                                 {
-                                    getServerTime();
+                                    if (success)
+                                    {
+                                        getServerTime();
+                                    }
                                 }
                             });
                         }

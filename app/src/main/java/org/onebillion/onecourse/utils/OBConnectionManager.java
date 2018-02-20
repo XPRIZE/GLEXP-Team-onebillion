@@ -483,6 +483,7 @@ public class OBConnectionManager
                 connectToNetwork_disconnect();
             }
         }
+        else
         {
             MainActivity.log("OBConnectionManager.connectToNetwork_complete.FAILED. NOT CALLING COMPLETION BLOCK");
         }
