@@ -88,21 +88,26 @@ public class OC_Lg1 extends OC_Lg
     public void setupEventForBuilding(List<OBPhoneme> phonemeList, int size)
     {
         List<OBPhoneme> extraDistrators = new ArrayList<>();
-        for(int i=0; i<phonemeList.size(); i++)
+        for(int i=0; i<maxTrials; i++)
         {
-            extraDistrators.add(phonemeList.get(i));
+            int index = i%phonemeList.size();
+            if(index == 0)
+                phonemeList = OBUtils.randomlySortedArray(phonemeList);
+
+
+            extraDistrators.add(phonemeList.get(index));
             List<Map<String,Object>> events1 = new ArrayList<>();
             List<OBPhoneme> parts = null;
-            if(phonemeList.get(i).getClass() == OBSyllable.class)
+            if(phonemeList.get(index).getClass() == OBSyllable.class)
             {
-                OBSyllable syl = (OBSyllable)phonemeList.get(i);
+                OBSyllable syl = (OBSyllable)phonemeList.get(index);
                 parts = syl.phonemes;
 
             }
-            else if(phonemeList.get(i).getClass() == OBWord.class)
+            else if(phonemeList.get(index).getClass() == OBWord.class)
             {
-                OBWord word = (OBWord)phonemeList.get(i);
-                parts = (List<OBPhoneme>)(Object)word.syllables;
+                OBWord word = (OBWord)phonemeList.get(index);
+                parts = (List<OBPhoneme>)(Object)word.syllables();
             }
             extraDistrators.addAll(parts);
 
@@ -110,7 +115,7 @@ public class OC_Lg1 extends OC_Lg
             {
                 events1.add(eventDataSize(size,pho));
             }
-            events1.add(eventDataSize(size,phonemeList.get(i)));
+            events1.add(eventDataSize(size,phonemeList.get(index)));
 
             addToEventData(events1);
         }

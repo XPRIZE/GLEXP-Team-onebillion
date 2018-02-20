@@ -1701,17 +1701,12 @@ public class OBSectionController extends OBViewController
         if (Looper.myLooper() == Looper.getMainLooper())
         {
             final long aqtCopy = updateAudioQueueToken();
-            MainActivity.log("Pre Audio Started");
-            OBAudioManager.audioManager.startPlaying(fileName, "SPECIAL",fromTime);
-            MainActivity.log("Post Audio Started");
+            _playAudio(fileName, fromTime);
             final long t = (long) (toTime * 1000);
             final OBAudioManager am = OBAudioManager.audioManager;
             final Timer audioTimer = new Timer();
             final OBSectionController controller = this;
-            MainActivity.log("Pre Wait Until Playing");
-            //waitPrepared();
-            MainActivity.log("Post Wait Until Playing");
-            final OBAudioPlayer player =  am.playerForChannel("SPECIAL");
+            final OBAudioPlayer player =  am.playerForChannel(OBAudioManager.AM_MAIN_CHANNEL);
             audioTimer.scheduleAtFixedRate(new TimerTask()
             {
                 @Override
@@ -1724,9 +1719,7 @@ public class OBSectionController extends OBViewController
 
                         if (sec >= t)
                         {
-                            MainActivity.log("Pre Audio Stopped");
                             player.stopPlaying();
-                            MainActivity.log("Post Audio Stopped");
                             audioTimer.cancel();
                             audioTimer.purge();
                         }

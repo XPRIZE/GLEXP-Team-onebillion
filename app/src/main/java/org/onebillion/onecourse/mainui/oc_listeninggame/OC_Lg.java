@@ -270,11 +270,11 @@ public class OC_Lg extends OC_SectionController
             for(OBControl obj : targets)
                 obj.setScale(minScale);
 
-        setReplayAudio(Arrays.asList((Object)targetPhoneme.soundid));
+     //   setReplayAudio(Arrays.asList((Object)targetPhoneme.soundid));
 
     }
 
-   /* public void replayAudio()
+    public void replayAudio()
     {
         if(status() != STATUS_BUSY)
         {
@@ -287,7 +287,7 @@ public class OC_Lg extends OC_SectionController
 
             }
         }
-    }*/
+    }
 
     @Override
     public void touchDownAtPoint(PointF pt, View v)
