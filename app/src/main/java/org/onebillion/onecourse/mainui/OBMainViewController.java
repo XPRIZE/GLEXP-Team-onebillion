@@ -434,6 +434,7 @@ public class OBMainViewController extends OBViewController
             }
         }
         final OBSectionController vc = controller;
+        MainActivity.mainActivity.fatController.onSectionStarted(controller);
         new Handler().post(new Runnable()
         {
             @Override

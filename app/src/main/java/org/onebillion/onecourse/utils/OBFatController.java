@@ -110,6 +110,11 @@ public class OBFatController
 
     }
 
+    public void onSectionStarted(OBSectionController controller)
+    {
+
+    }
+
     public int databaseResource()
     {
         return -1;

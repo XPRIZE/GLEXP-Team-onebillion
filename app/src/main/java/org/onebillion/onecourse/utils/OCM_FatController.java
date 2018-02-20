@@ -638,9 +638,8 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     @Override
     public void onExitSection(OBSectionController cont)
     {
-        closeCurrentUnitInstance(OCM_MlUnitInstance.STATUS_USER_CLOSED, cont);
         cancelTimeout();
-
+        closeCurrentUnitInstance(OCM_MlUnitInstance.STATUS_USER_CLOSED, cont);
     }
 
     @Override
@@ -652,6 +651,14 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         }
     }
 
+    @Override
+    public void onSectionStarted(OBSectionController controller)
+    {
+        if (currentUnitInstance != null)
+        {
+            currentUnitInstance.sectionController = controller;
+        }
+    }
 
     public OCM_MlUnit getNextUnitFromDB(DBSQL db)
     {
@@ -934,7 +941,9 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                 finalScore = scoreCorrect * 1.0f / tot;
 
             setUnitInstanceStatus(currentUnitInstance,OCM_MlUnitInstance.STATUS_COMPLETED);
-            currentUnitInstance.starColour = nextStarColourFromDB(db, currentUnitInstance.typeid);
+            if(currentUnitInstance.mlUnit.masterlistid == currentUser.studylistid)
+                currentUnitInstance.starColour = nextStarColourFromDB(db, currentUnitInstance.typeid);
+
             currentUnitInstance.updateDataInDB(db);
             //
            /* if (communityModeActive())
@@ -1413,10 +1422,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
                     OBConfigManager.sharedManager.updateConfigPaths(unit.config, false, unit.lang);
                     //OBConfigManager.sharedManager.updateConfigPaths("oc-community", false, unit.lang);
-                   // if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OCM_TestEvent","oc-community",true,true,"test"))
+                    //if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OCM_TestEvent","oc-community",true,true,"test"))
                     if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
-                        currentUnitInstance.sectionController = MainViewController().topController();
+                        //currentUnitInstance.sectionController = MainViewController().topController();
                         unitInstancesList.add(currentUnitInstance);
                         if (OBConfigManager.sharedManager.isDebugEnabled())
                         {
