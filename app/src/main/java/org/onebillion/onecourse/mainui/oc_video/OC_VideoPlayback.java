@@ -663,6 +663,10 @@ public class OC_VideoPlayback extends OC_SectionController
 
     private void setUpVideoPlayerForIndex (final int idx, boolean play)
     {
+        if (idx < 0)
+        {
+            return;
+        }
         // Cleanup, if there are videos playing, stop them
         if (videoPlayer != null)
         {
