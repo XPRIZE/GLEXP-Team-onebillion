@@ -1687,13 +1687,14 @@ public class OBSectionController extends OBViewController
 
     }
 
-    public void playAudioFromToP (final String fileName, double fromTime, double toTime)
+    public OBAudioBufferPlayer playAudioFromToP (final String fileName, double fromTime, double toTime)
     {
         updateAudioQueueToken();
         final long aqtCopy = audioQueueToken;
         OBAudioBufferPlayer player = new OBAudioBufferPlayer(false);
         AssetFileDescriptor afd = OBAudioManager.audioManager.getAudioPathFD(fileName);
         player.startPlaying(afd,fromTime,toTime);
+        return player;
     }
 
     public void playAudioFromToS (final String fileName, final double fromTime, final double toTime)

@@ -56,7 +56,7 @@ public class OBPhoneme
     }
 
 
-    public void playAudio (OBSectionController sc, Boolean wait) throws Exception
+  /* public void playAudio (OBSectionController sc, Boolean wait) throws Exception
     {
         if (timings != null && timings.size() > 1)
         {
@@ -69,6 +69,23 @@ public class OBPhoneme
         if (audio() != null && wait)
         {
             sc.waitAudio();
+        }
+    }*/
+
+    public void playAudio (OBSectionController sc, Boolean wait) throws Exception
+    {
+        if (timings != null && timings.size() > 1)
+        {
+            OBAudioBufferPlayer player =  sc.playAudioFromToP(audio(), (Double) timings.get(0), (Double) timings.get(1));
+            if(wait)
+                player.waitAudio();
+        }
+        else if (audio() != null)
+        {
+            sc.playAudio(audio());
+            if (wait)
+                sc.waitAudio();
+
         }
     }
 
