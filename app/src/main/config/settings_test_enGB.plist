@@ -256,7 +256,7 @@
 	<string>true</string>
 	<!--  -->
 	<key>debug_build_number</key>
-	<string>0012</string>
+	<string>0001 - English</string>
 
 
 	<!-- APP -->
@@ -267,10 +267,10 @@
 	<string>oc-childmenu</string>
 	<!--  -->
 	<key>app_menu_class</key>
-	<string>OC_ChildMenu</string>
+	<string>OC_SimpleListMenu</string>
 	<!--  -->
 	<key>app_fat_controller_class</key>
-	<string>OC_FatController</string>
+	<string>OBFatController</string>
 	<!--  -->
 	<key>app_masterlist</key>
 	<string>community_enGB</string>
