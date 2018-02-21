@@ -213,7 +213,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         }
         if(lastCommand == OCM_FatController.OFC_SESSION_NEW && !communityModeActive)
         {
-            OBAnalyticsManager.sharedManager.studyZoneStartedNewDay();
+            OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.NEW_DAY);
             //
             showNewDayScreen();
             loadEmptyStarBar(false);
@@ -222,7 +222,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         }
         else if(communityModeActive)
         {
-            OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.COMMUNITY_MODE);
+
             //
             hideStarBar();
             loadTopBar(true,true);
@@ -230,16 +230,19 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
             loadPlayZoneBox(true);
             if(lastCommand == OCM_FatController.OFC_SESSION_NEW)
             {
+                OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.NEW_DAY);
                 showNewDayScreen();
                 currentTarget = TARGET_BUTTON;
             }
             else
             {
+                OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.COMMUNITY_MODE);
                 currentTarget = TARGET_COMMUNITY;
             }
         }
         else
         {
+            OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.STUDY_ZONE);
             loadStarBar();
             currentTarget = TARGET_STUDY;
         }
@@ -299,7 +302,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
                                 hideNewDayScreen();
                                 button.lowlight();
                                 currentTarget = communityModeActive ? TARGET_COMMUNITY : TARGET_STUDY;
-
+                                OBAnalyticsManager.sharedManager.enteredScreen(communityModeActive ? OBAnalytics.Screen.COMMUNITY_MODE : OBAnalytics.Screen.STUDY_ZONE);
                                 startNextEvent();
                             }
                         }
@@ -637,6 +640,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         int code = (int)fatController.getCurrentCommand().get("code") ;
         if(code == OCM_FatController.OFC_SESSION_LOCKED || code == OCM_FatController.OFC_BATTERY_LOW)
         {
+            OBAnalyticsManager.sharedManager.enteredScreen(code == OCM_FatController.OFC_SESSION_LOCKED ? OBAnalytics.Screen.LOCK_SCREEN : OBAnalytics.Screen.LOW_BATTERY_SCREEN);
             closeThisMenuAndOpen(OCM_LockScreen.class);
             return true;
         }

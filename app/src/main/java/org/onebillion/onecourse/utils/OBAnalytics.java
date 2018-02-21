@@ -22,6 +22,7 @@ public class OBAnalytics
 
     public static class Screen
     {
+        public static final String NEW_DAY = "new_day";
         public static final String STUDY_ZONE = "study_zone";
         public static final String PLAY_ZONE = "play_zone";
         public static final String COMMUNITY_MODE = "community_mode";

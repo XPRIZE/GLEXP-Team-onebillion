@@ -48,12 +48,6 @@ public class OBAnalyticsManager implements OBAnalyticsProtocol
     }
 
     @Override
-    public void studyZoneStartedNewDay ()
-    {
-
-    }
-
-    @Override
     public void communityModeUnitCompleted (String unitID, long started, long finished, float score, int replayAudioPresses)
     {
 

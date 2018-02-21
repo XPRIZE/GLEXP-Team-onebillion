@@ -34,7 +34,6 @@ public interface OBAnalyticsProtocol
     void enteredScreen(String screen);
 
     // Study Zone
-    void studyZoneStartedNewDay();
     void studyZoneUnitCompleted(String unitID, long started, long finished, float score, int replayAudioPresses);
 
     // Community Mode

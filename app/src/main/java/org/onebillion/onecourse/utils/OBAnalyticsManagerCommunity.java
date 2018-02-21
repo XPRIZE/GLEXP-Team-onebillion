@@ -318,16 +318,6 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     }
 
 
-    @Override
-    public void studyZoneStartedNewDay ()
-    {
-        Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.UNIT_MODE, OBAnalytics.Params.UNIT_MODE_STUDY_ZONE);
-        //
-        logEvent(OBAnalytics.Event.APP, parameters);
-
-    }
-
 
     @Override
     public void studyZoneUnitCompleted (String unitID, long started, long finished, float score, int replayAudioPresses)

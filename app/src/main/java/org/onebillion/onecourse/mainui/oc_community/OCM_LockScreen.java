@@ -123,8 +123,6 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
                      waitForSecs(1);
                     if (lastCommand == OCM_FatController.OFC_SESSION_LOCKED)
                     {
-                        OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.LOCK_SCREEN);
-                        //
                         demo_presenter_locked();
                     }
                     else if((lastCommand == OCM_FatController.OFC_BATTERY_LOW))
@@ -148,6 +146,7 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
         {
             if(lastCommand == OCM_FatController.OFC_SESSION_LOCKED)
             {
+                OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.LOW_BATTERY_SCREEN);
                 closeThisMenuAndOpen(OCM_LockScreen.class);
                 return true;
             }
@@ -159,6 +158,7 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
         {
             if(lastCommand == OCM_FatController.OFC_BATTERY_LOW)
             {
+                OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.LOCK_SCREEN);
                 closeThisMenuAndOpen(OCM_LockScreen.class);
                 return true;
             }
