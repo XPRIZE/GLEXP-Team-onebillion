@@ -247,7 +247,7 @@
 
 	<!-- DEBUG -->
 	<key>debug_enabled</key>
-	<string>false</string>
+	<string>true</string>
 	<!--  -->
 	<key>debug_show_test_menu</key>
 	<string>false</string>
