@@ -156,6 +156,11 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
         }
         else if(curCommand == OCM_FatController.OFC_SESSION_LOCKED)
         {
+            if(lastCommand == OCM_FatController.OFC_BATTERY_LOW)
+            {
+                closeThisMenuAndOpen(OCM_LockScreen.class);
+                return true;
+            }
             lastCommand=curCommand;
             return false;
         }
