@@ -222,7 +222,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         }
         else if(communityModeActive)
         {
-            OBAnalyticsManager.sharedManager.communityModeEntered();
+            OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.COMMUNITY_MODE);
             //
             hideStarBar();
             loadTopBar(true,true);
@@ -548,7 +548,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
                         Map<String,Object> unitData = fatController.getNextUnitData();
                         if (unitData.get("community")!= null && (boolean)unitData.get("community"))
                         {
-                            OBAnalyticsManager.sharedManager.communityModeEntered();
+                            OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.COMMUNITY_MODE);
                             communityModeActive = true;
                             loadIconsGridForUnits(fatController.getUnitsForGrid(),false);
                             loadTopBar(false,currentDay % 7 != 0);

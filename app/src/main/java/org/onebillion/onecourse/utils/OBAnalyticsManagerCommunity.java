@@ -10,7 +10,6 @@ import android.os.StatFs;
 
 import org.json.JSONObject;
 import org.onebillion.onecourse.mainui.MainActivity;
-import org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -323,7 +322,7 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
     public void studyZoneStartedNewDay ()
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.APP_MODE_CHANGE, OBAnalytics.Params.APP_STUDY_ZONE);
+        parameters.put(OBAnalytics.Params.UNIT_MODE, OBAnalytics.Params.UNIT_MODE_STUDY_ZONE);
         //
         logEvent(OBAnalytics.Event.APP, parameters);
 
@@ -350,13 +349,12 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
 
 
     @Override
-    public void communityModeEntered ()
+    public void enteredScreen(String screen)
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.APP_MODE_CHANGE, OBAnalytics.Params.APP_COMMUNITY_MODE);
+        parameters.put(OBAnalytics.Params.APP_SCREEN_CHANGE, screen);
         //
         logEvent(OBAnalytics.Event.APP, parameters);
-
     }
 
 
@@ -378,16 +376,6 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
         */
     }
 
-
-    @Override
-    public void playZoneEntered ()
-    {
-        Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.APP_MODE_CHANGE, OBAnalytics.Params.APP_PLAY_ZONE);
-        //
-        logEvent(OBAnalytics.Event.APP, parameters);
-
-    }
 
 
     @Override
@@ -443,15 +431,5 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
         //
         logEvent(OBAnalytics.Event.PLAY_ZONE, parameters);
         */
-    }
-
-
-    @Override
-    public void nightModeEntered ()
-    {
-        Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.APP_MODE_CHANGE, OBAnalytics.Params.APP_NIGHT_MODE);
-        //
-        logEvent(OBAnalytics.Event.APP, parameters);
     }
 }

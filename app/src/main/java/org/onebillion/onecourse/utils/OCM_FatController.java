@@ -1479,7 +1479,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     public void startPlayZone(final boolean transfer,final boolean first)
     {
-        OBAnalyticsManager.sharedManager.playZoneEntered();
+        OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.PLAY_ZONE);
         //
         new OBRunnableSyncUI()
         {

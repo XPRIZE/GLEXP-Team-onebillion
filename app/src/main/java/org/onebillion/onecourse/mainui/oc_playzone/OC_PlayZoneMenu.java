@@ -23,6 +23,7 @@ import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OC_Menu;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.utils.MlUnit;
+import org.onebillion.onecourse.utils.OBAnalytics;
 import org.onebillion.onecourse.utils.OBAnalyticsManager;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimBlock;
@@ -488,7 +489,7 @@ public class OC_PlayZoneMenu extends OC_Menu
             if(finger(0,1,Arrays.asList(backButton),pt) != null)
             {
                 playAudio(null);
-                OBAnalyticsManager.sharedManager.communityModeEntered();
+                OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.COMMUNITY_MODE);
                 goBack();
                 return true;
 

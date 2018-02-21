@@ -7,9 +7,6 @@ import android.graphics.PointF;
 import org.onebillion.onecourse.mainui.MainActivity;
 
 import java.lang.reflect.Constructor;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,6 +18,12 @@ public class OBAnalyticsManager implements OBAnalyticsProtocol
     public static OBAnalyticsManager sharedManager;
 
     protected OBAnalyticsManager ()
+    {
+
+    }
+
+    @Override
+    public void enteredScreen(String screen)
     {
 
     }
@@ -51,19 +54,7 @@ public class OBAnalyticsManager implements OBAnalyticsProtocol
     }
 
     @Override
-    public void communityModeEntered ()
-    {
-
-    }
-
-    @Override
     public void communityModeUnitCompleted (String unitID, long started, long finished, float score, int replayAudioPresses)
-    {
-
-    }
-
-    @Override
-    public void playZoneEntered ()
     {
 
     }
@@ -201,12 +192,6 @@ public class OBAnalyticsManager implements OBAnalyticsProtocol
 
     @Override
     public void deviceHeadphonesUnplugged ()
-    {
-
-    }
-
-    @Override
-    public void nightModeEntered ()
     {
 
     }

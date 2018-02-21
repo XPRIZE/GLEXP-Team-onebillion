@@ -20,6 +20,16 @@ public class OBAnalytics
     }
 
 
+    public static class Screen
+    {
+        public static final String STUDY_ZONE = "study_zone";
+        public static final String PLAY_ZONE = "play_zone";
+        public static final String COMMUNITY_MODE = "community_mode";
+        public static final String LOCK_SCREEN = "lock_screen";
+        public static final String LOW_BATTERY_SCREEN = "low_battery_screen";
+    }
+
+
     public static class Params
     {
         public static final String DEVICE_UUID = "device_uuid";
@@ -54,11 +64,7 @@ public class OBAnalytics
         //
         public static final String PLAY_ZONE_VIDEO_ID = "video_id";
         //
-        public static final String APP_MODE_CHANGE = "mode_change";
-        public static final String APP_STUDY_ZONE = "study_zone";
-        public static final String APP_COMMUNITY_MODE = "community_mode";
-        public static final String APP_PLAY_ZONE = "play_zone";
-        public static final String APP_NIGHT_MODE = "night_mode";
+        public static final String APP_SCREEN_CHANGE = "screen_change";
         //
         public static final String CREATION_TYPE = "play_zone_creation_type";
         public static final String CREATION_TYPE_VIDEO = "video";

@@ -17,7 +17,6 @@ import com.parse.SaveCallback;
 import android.location.Location;
 import android.os.Environment;
 import android.os.StatFs;
-import android.os.SystemClock;
 
 
 /**
@@ -314,13 +313,21 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
     }
 
 
+    @Override
+    public void enteredScreen(String screen)
+    {
+        Map<String, Object> parameters = new HashMap();
+        parameters.put(OBAnalytics.Params.APP_SCREEN_CHANGE, screen);
+        //
+        logEvent(OBAnalytics.Event.APP, parameters);
+    }
 
 
     @Override
     public void studyZoneStartedNewDay ()
     {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.APP_MODE_CHANGE, OBAnalytics.Params.APP_STUDY_ZONE);
+        parameters.put(OBAnalytics.Params.UNIT_MODE, OBAnalytics.Params.UNIT_MODE_STUDY_ZONE);
         //
         logEvent(OBAnalytics.Event.APP, parameters);
     }
@@ -343,16 +350,6 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
 
 
 
-    @Override
-    public void communityModeEntered ()
-    {
-        Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.APP_MODE_CHANGE, OBAnalytics.Params.APP_COMMUNITY_MODE);
-        //
-        logEvent(OBAnalytics.Event.APP, parameters);
-    }
-
-
 
     @Override
     public void communityModeUnitCompleted (String unitID, long started, long finished, float score, int replayAudioPresses)
@@ -368,15 +365,6 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
         logEvent(OBAnalytics.Event.APP, parameters);
     }
 
-
-    @Override
-    public void playZoneEntered ()
-    {
-        Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.APP_MODE_CHANGE, OBAnalytics.Params.APP_PLAY_ZONE);
-        //
-        logEvent(OBAnalytics.Event.APP, parameters);
-    }
 
 
 
@@ -425,11 +413,4 @@ public class OBAnalyticsManagerOnline extends OBAnalyticsManager
     }
 
 
-
-    @Override
-    public void nightModeEntered ()
-    {
-        Map<String, Object> parameters = new HashMap();
-        parameters.put(OBAnalytics.Params.APP_MODE_CHANGE, OBAnalytics.Params.APP_NIGHT_MODE);
-    }
 }

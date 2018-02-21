@@ -30,22 +30,20 @@ public interface OBAnalyticsProtocol
     // Battery
     void batteryState(float batteryValue, Boolean pluggedIn, String chargerType);
 
+    // Entered Screen
+    void enteredScreen(String screen);
+
     // Study Zone
     void studyZoneStartedNewDay();
     void studyZoneUnitCompleted(String unitID, long started, long finished, float score, int replayAudioPresses);
 
     // Community Mode
-    void communityModeEntered();
     void communityModeUnitCompleted(String unitID, long started, long finished, float score, int replayAudioPresses);
 
     // Play Zone
-    void playZoneEntered();
     void playZoneVideoWatched(String videoID);
     void playZoneUnitCompleted(String activityID, long started, long finished, float score, int replayAudioPresses);
     void playZoneAssetCreated(int assetType, Map<String, String> data);
-
-    // Night mode
-    void nightModeEntered();
 
     void onStart();
     void onStop();
