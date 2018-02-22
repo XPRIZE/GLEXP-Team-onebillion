@@ -235,6 +235,9 @@
 	<!--  -->
 	<key>fat_controller_playzone_active_hour</key>
 	<integer>12</integer>
+	<!--  -->
+    <key>fat_controller_playzone_lock_timeout</key>
+    <integer>10</integer>
 
 
 	<!-- ASSETS -->
@@ -244,7 +247,7 @@
 
 	<!-- DEBUG -->
 	<key>debug_enabled</key>
-	<string>false</string>
+	<string>true</string>
 	<!--  -->
 	<key>debug_show_test_menu</key>
 	<string>false</string>
@@ -253,10 +256,36 @@
 	<string>false</string>
 	<!--  -->
 	<key>debug_show_unit_id</key>
-	<string>false</string>
+	<string>true</string>
 	<!--  -->
+    <key>debug_jump_to_setup_password</key>
+	<string>obxprize</string>
+	<!-- -->
+	<key>debug_change_date_password</key>
+	<string>kronos</string>
+	<!--  -->
+	<key>debug_community_mode_override_enabled</key>
+	<string>true</string>
+	<!--  -->
+	<key>debug_activate_community_mode_override_password</key>
+	<string>pop</string>
+	<!--  -->
+	<key>debug_revert_community_mode_password</key>
+	<string>opo</string>
+    <!--  -->
 	<key>debug_build_number</key>
 	<string>0012</string>
+
+
+	<!-- ANALYTICS MANAGER -->
+	<key>analytics_enabled</key>
+	<string>true</string>
+	<!--  -->
+	<key>analytics_class</key>
+	<string>OBAnalyticsManagerCommunity</string>
+	<!-- -->
+	<key>analytics_device_status_refresh_interval_minutes</key>
+	<string>15</string>
 
 
 	<!-- APP -->
