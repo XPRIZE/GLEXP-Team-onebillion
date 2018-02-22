@@ -404,15 +404,18 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         }
         else
         {
-            int restartDay = (MASTERLIST_RESTART_WEEK-1)*7 + 1;
-            return restartDay + ((currentDay - lastDay - 1) % (lastDay- restartDay + 1));
+            int currentRestartWeek = MASTERLIST_RESTART_WEEK;
+            if(currentRestartWeek > currentStudyListMaxWeek)
+                currentRestartWeek = 1;
+            int restartDay = (currentRestartWeek-1)*7 + 1;
+            return restartDay + ((currentDay - lastDay - 1) % (lastDay - restartDay + 1));
         }
     }
 
     public int getPlayzoneDay()
     {
-        int currentDay = getCurrentDay();
-       return ((currentDay-1)%currentPlayzoneListMaxDay)+1;
+        int currentDay = getMasterlistDay();
+        return ((currentDay-1)%currentPlayzoneListMaxDay)+1;
     }
 
     public int getMasterlistWeek()
@@ -1426,10 +1429,13 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                 //
                 try
                 {
-
+                    /*
+                    //TEST PARAMS
+                    unit.config = "oc-community";
+                    unit.target = "OCM_TestEvent";
+                    unit.params = "test";
+                    */
                     OBConfigManager.sharedManager.updateConfigPaths(unit.config, false, unit.lang);
-                    //OBConfigManager.sharedManager.updateConfigPaths("oc-community", false, unit.lang);
-                    //if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OCM_TestEvent","oc-community",true,true,"test"))
                     if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
                         //currentUnitInstance.sectionController = MainViewController().topController();
