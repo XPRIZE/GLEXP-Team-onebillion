@@ -998,6 +998,14 @@ public class OBConfigManager
         return getIntValue(ANALYTICS_DEVICE_STATUS_REFRESH_INTERVAL_MINUTES);
     }
 
+    public Map<String,Float> getSfxVolumes()
+    {
+        if(internalSfxVolumes != null)
+            return internalSfxVolumes;
+        else
+            return new HashMap<>();
+    }
+
 
 
 

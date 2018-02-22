@@ -1831,7 +1831,7 @@ public class OBSectionController extends OBViewController
         if(sectionSfxVolumes == null)
         {
             Map<String, Float> sfxVolumes = MainActivity.mainActivity.sfxVolumes;
-            sectionSfxVolumes = new HashMap<>(sfxVolumes);
+            sectionSfxVolumes = new HashMap<>(OBConfigManager.sharedManager.getSfxVolumes());
             Map<String, Float> d = (Map<String, Float>) audioScenes.get("__sfxvols");
             if (d != null)
                 sectionSfxVolumes.putAll(d);
