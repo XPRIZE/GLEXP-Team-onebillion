@@ -61,7 +61,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     private OCM_MlUnitInstance currentUnitInstance;
     private OCM_User currentUser;
     private int currentSessionId, currentSessionDay;
-    private int currentMasterlistMaxWeek;
+    private int currentStudyListMaxWeek = 1, currentPlayzoneListMaxDay = 1;
     private long currentSessionStartTime, currentSessionEndTime, currentSessionWorkTime;
     private boolean allowsTimeOuts, showUserName;
     private Date startDate;
@@ -238,19 +238,20 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         fixMissingStars(currentSessionId);
     }
 
-    private void reloadCurrentMasterlistMaxWeek(DBSQL db)
+    private int maxLevelForListDB(DBSQL db, int masterlistid)
     {
         Map<String,String> map = new ArrayMap<>();
-        map.put("masterlistid", String.valueOf(currentUser.studylistid));
-        currentMasterlistMaxWeek = 14;
+        map.put("masterlistid", String.valueOf(masterlistid));
+        int maxLevel = 1;
         Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("MAX(level) as level"),map);
         if(cursor.moveToFirst())
         {
             int columnIndex = cursor.getColumnIndex("level");
             if(!cursor.isNull(columnIndex))
-                currentMasterlistMaxWeek = cursor.getInt(columnIndex);
+                maxLevel = cursor.getInt(columnIndex);
         }
         cursor.close();
+        return maxLevel;
     }
 
     public static OCM_User lastUserActiveFromDB(DBSQL db)
@@ -276,7 +277,8 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     {
         loadLastSessionFromDB(db, user.userid);
         currentUser = user;
-        reloadCurrentMasterlistMaxWeek(db);
+        currentStudyListMaxWeek = maxLevelForListDB(db, user.studylistid);
+        currentPlayzoneListMaxDay = maxLevelForListDB(db, user.playzonelistid);
         if(currentSessionId == -1)
             prepareNewSessionInDB(db, user.userid);
 
@@ -394,7 +396,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     public int getMasterlistDay()
     {
-        int lastDay = currentMasterlistMaxWeek * 7;
+        int lastDay = currentStudyListMaxWeek * 7;
         int currentDay = getCurrentDay();
         if(currentDay <= lastDay)
         {
@@ -405,6 +407,12 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             int restartDay = (MASTERLIST_RESTART_WEEK-1)*7 + 1;
             return restartDay + ((currentDay - lastDay - 1) % (lastDay- restartDay + 1));
         }
+    }
+
+    public int getPlayzoneDay()
+    {
+        int currentDay = getCurrentDay();
+       return ((currentDay-1)%currentPlayzoneListMaxDay)+1;
     }
 
     public int getMasterlistWeek()
@@ -916,7 +924,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                 cont.displayAward();
         }catch (Exception e)
         {
-
+            e.printStackTrace();
         }
         if(!cont._aborting)
             cont.exitEvent();
@@ -1524,7 +1532,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             db = new DBSQL(false);
 
             Cursor cursor = db.prepareRawQuery(String.format("SELECT * FROM %s WHERE masterlistid = ? AND level = ?",DBSQL.TABLE_UNITS),
-                        Arrays.asList(String.valueOf(currentUser.playzonelistid),String.valueOf(getMasterlistDay())));
+                        Arrays.asList(String.valueOf(currentUser.playzonelistid),String.valueOf(getPlayzoneDay())));
 
 
             if(cursor.moveToFirst())
@@ -1588,7 +1596,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                                 "AND U.level = ? GROUP BY U.unitid ORDER BY count, U.unitIndex LIMIT 1",
                         DBSQL.TABLE_UNITS, DBSQL.TABLE_UNIT_INSTANCES),
                         Arrays.asList(String.valueOf(currentSessionId),String.valueOf(OCM_MlUnit.TYPE_PLAYZONE_STUDY),
-                                String.valueOf(currentUser.playzonelistid),String.valueOf(getMasterlistDay())));
+                                String.valueOf(currentUser.playzonelistid),String.valueOf(getPlayzoneDay())));
                 if(cursor.moveToFirst())
                 {
                     int index = cursor.getColumnIndex("unitid");
