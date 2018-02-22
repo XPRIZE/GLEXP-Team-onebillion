@@ -72,13 +72,19 @@ public class OBPhoneme
         }
     }*/
 
+    private OBAudioBufferPlayer bufferedPlayer;
     public void playAudio (OBSectionController sc, Boolean wait) throws Exception
     {
         if (timings != null && timings.size() > 1)
         {
-            OBAudioBufferPlayer player =  sc.playAudioFromToP(audio(), (Double) timings.get(0), (Double) timings.get(1));
+            if(bufferedPlayer != null)
+            {
+                bufferedPlayer.stopPlaying();
+            }
+            bufferedPlayer =  sc.playAudioFromToP(audio(), (Double) timings.get(0), (Double) timings.get(1));
+
             if(wait)
-                player.waitAudio();
+                bufferedPlayer.waitAudio();
         }
         else if (audio() != null)
         {

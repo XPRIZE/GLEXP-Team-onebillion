@@ -162,6 +162,7 @@ public class OBAudioBufferPlayer extends Object
             playerLock.lock();
             condition.signalAll();
             playerLock.unlock();
+            cleanUp();
         }
     }
 
@@ -172,6 +173,26 @@ public class OBAudioBufferPlayer extends Object
         playerLock.lock();
         condition.signalAll();
         playerLock.unlock();
+        cleanUp();
+    }
+
+    void cleanUp()
+    {
+
+        if(audioTrack != null)
+        {
+            audioTrack.flush();
+            audioTrack.release();
+            audioTrack = null;
+        }
+
+        if(codec != null)
+        {
+            codec.stop();
+            codec.release();
+            codec = null;
+        }
+
     }
 
     public void finishedPrepare()
