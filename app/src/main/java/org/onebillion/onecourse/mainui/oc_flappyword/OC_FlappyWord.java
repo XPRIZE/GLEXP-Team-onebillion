@@ -894,25 +894,38 @@ public class OC_FlappyWord extends OC_SectionController
         }
         bigWordLabel.setScale(lettersSelection.get(0).height()/bigWordLabel.height());
         bigWordLabel.hide();
-        float gapSize = 0.35f;
-        float startGap = gapSize * (lettersSelection.size() + 1)/-2.0f;
-        float letterSpace = gapSize + 1.0f/(lettersSelection.size() +1);
-        // float thisWidth = bigWordLabel.width + (lettersSelection.size() - 1) * gap;
-        //float left = bigWordLabel.position.x - thisWidth / 2;
+        float gapSize = applyGraphicScale(10);
+        float lineLength = applyGraphicScale(55);
+        PointF midLoc = OB_Maths.locationForRect(0.5f,0.5f,bigWordLabel.frame());
+        float startLeft =  midLoc.x - (lineLength * lettersSelection.size() + gapSize * (lettersSelection.size()-1))/2.0f;
+        float right = 0;
         for(int i = 0; i < lettersSelection.size(); i++)
         {
             OBLabel partLabel = lettersSelection.get(i);
-            partLabel.setPosition ( OB_Maths.locationForRect(startGap + letterSpace * (i+1),0.5f,bigWordLabel.frame()));
-            //partLabel.setLeft ( left + partLabel.left - bigWordLabel.left + gap * i);
+            partLabel.setPosition (startLeft + (gapSize * (i-1)) + (lineLength)*(i+0.5f), midLoc.y);
+
             partLabel.setProperty("drop_loc",OBMisc.copyPoint(partLabel.position()));
             OBControl smallLine = lineControl.copy();
-            smallLine.setWidth(bigWordLabel.width()/lettersSelection.size() + gapSize*0.6f*bigWordLabel.width());
+            smallLine.setWidth(lineLength);
             smallLine.setPosition(partLabel.position());
             smallLine.setBottom(partLabel.bottom());
             smallLine.show();
+            right = smallLine.right();
             attachControl(smallLine);
             partLabel.setProperty("line",smallLine);
+        }
 
+
+        float repos = right - bounds().width();
+        if(repos > 0)
+        {
+            for (int i = 0; i < lettersSelection.size(); i++)
+            {
+                OBLabel partLabel = lettersSelection.get(i);
+                OBControl smallLine = (OBControl) partLabel.propertyValue("line");
+                smallLine.setRight(smallLine.right() - repos);
+                partLabel.setRight(partLabel.right() - repos);
+            }
         }
         bigWordLabel.setColour(wordColour);
     }
