@@ -247,9 +247,10 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
                 {
                     try
                     {
-                        String audioFile = main_getMainLabelAudioFile().replace("fc_", "fc_syl_");
-                        playAudioFromTo(audioFile, (Double) syllable.timings.get(0), (Double) syllable.timings.get(1));
-                        waitAudio();
+                        syllable.playAudio(this, true);
+//                        String audioFile = main_getMainLabelAudioFile().replace("fc_", "fc_syl_");
+//                        playAudioFromTo(audioFile, (Double) syllable.timings.get(0), (Double) syllable.timings.get(1));
+//                        waitAudio();
                     }
                     catch (Exception e)
                     {
