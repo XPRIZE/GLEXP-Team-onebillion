@@ -57,7 +57,7 @@ public class OC_Library extends OC_Menu
     OBGroup currentGroup;
     OBControl currentIcon;
     PointF snapLoc;
-    float limitLeft, limitRight, snapDist;
+    float limitLeft, limitRight, snapDist, touchLeft, touchRight;
     boolean firstStart;
     OCM_FatController fatController;
     private Handler timeoutHandler;
@@ -92,6 +92,8 @@ public class OC_Library extends OC_Menu
         snapDist = icon.width()*0.2f;
         limitLeft = border1.right() + dist;
         limitRight = border2.left() - dist;
+        touchLeft = border1.right();
+        touchRight = border2.left();
         fatController = (OCM_FatController)MainActivity.mainActivity.fatController;;
         Map<Integer,List<OCM_MlUnit>> libraryUnits = fatController.getUnitsForLibrary();
         loadBooksForUnits(libraryUnits);
@@ -215,7 +217,8 @@ public class OC_Library extends OC_Menu
         long currTime = SystemClock.currentThreadTimeMillis();
         PointF lastPosition = (PointF) curGroup.propertyValue("touch_loc");
         if (curIcon != null && (currTime - (long) curGroup.propertyValue("time")) < 1
-                && Math.abs(lastPosition.x - pt.x) < snapDist)
+                && Math.abs(lastPosition.x - pt.x) < snapDist && pointTouchAccepted(pt)
+                && pointTouchAccepted(lastPosition))
         {
             curIcon.highlight();
             openBookForIcon(curIcon);
@@ -245,6 +248,11 @@ public class OC_Library extends OC_Menu
         }
         if (!this._aborting)
             snapClosest(time, curGroup, false);
+    }
+
+    public boolean pointTouchAccepted(PointF pt)
+    {
+        return pt.x > touchLeft && pt.x < touchRight;
     }
 
     public void openBookForIcon(final OBControl icon)
