@@ -257,7 +257,8 @@ public class OC_BedtimeStory extends OC_SectionController
 
     public void exitEvent()
     {
-        player.stopPlaying();
+        if (player != null)
+            player.stopPlaying();
         OBBrightnessManager.sharedManager.onContinue();
         super.exitEvent();
     }
@@ -344,6 +345,7 @@ public class OC_BedtimeStory extends OC_SectionController
     public void stopAllAudio ()
     {
         super.stopAllAudio();
-        player.stopPlaying();
+        if (player != null)
+            player.stopPlaying();
     }
 }
