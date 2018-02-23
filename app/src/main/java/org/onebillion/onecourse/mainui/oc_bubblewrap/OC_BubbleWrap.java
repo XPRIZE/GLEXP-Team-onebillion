@@ -554,8 +554,10 @@ public class OC_BubbleWrap extends OC_SectionController
         }
         else
         {
+            setStatus(STATUS_BUSY);
             waitForSecs(0.5f);
             demoFinal(true,-1);
+            setStatus(STATUS_AWAITING_CLICK);
         }
     }
 
