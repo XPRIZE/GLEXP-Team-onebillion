@@ -719,22 +719,31 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         String mlname = OBConfigManager.sharedManager.getMasterlist();
         if (mlname.length() > 0)
         {
-            MainActivity.log("OCM_FatController:loadMasterListIntoDB:no study masterlist in the settings file. skipping");
             loadMasterListIntoDB(STUDY_LISTID,mlname);
+        }
+        else
+        {
+            MainActivity.log("OCM_FatController:loadMasterListIntoDB:no study masterlist in the settings file. skipping");
         }
 
         mlname = OBConfigManager.sharedManager.getMasterlistForPlayzone();
         if (mlname.length() > 0)
         {
-            MainActivity.log("OCM_FatController:loadMasterListIntoDB:no playzone masterlist in the settings file. skipping");
             loadMasterListIntoDB(PLAYZONE_LISTID,mlname);
+        }
+        else
+        {
+            MainActivity.log("OCM_FatController:loadMasterListIntoDB:no playzone masterlist in the settings file. skipping");
         }
 
         mlname = OBConfigManager.sharedManager.getMasterlistForLibrary();
         if (mlname.length() > 0)
         {
-            MainActivity.log("OCM_FatController:loadMasterListIntoDB:no library masterlist in the settings file. skipping");
             loadMasterListIntoDB(LIBRARY_LISTID,mlname);
+        }
+        else
+        {
+            MainActivity.log("OCM_FatController:loadMasterListIntoDB:no library masterlist in the settings file. skipping");
         }
 
         String mac = OBPreferenceManager.getStringPreference(OBPreferenceManager.PREFERENCES_MAC_NUM);
