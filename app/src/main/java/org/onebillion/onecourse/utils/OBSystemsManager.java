@@ -196,8 +196,16 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 
     public void startServices ()
     {
-        if (suspended) return;
-        if (!OBSystemsManager.isFirstSetupComplete()) return;
+        if (suspended)
+        {
+            MainActivity.log("OBSystemsManager.startServices. Currently suspended. Aborting");
+            return;
+        }
+        if (!OBSystemsManager.isFirstSetupComplete())
+        {
+            MainActivity.log("OBSystemsManager.startServices. Setup NOT complete. Aborting");
+            return;
+        }
         //
         MainActivity.log("OBSystemsManager.startServices");
         //
