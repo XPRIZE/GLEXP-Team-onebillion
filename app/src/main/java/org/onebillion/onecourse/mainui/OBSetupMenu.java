@@ -625,8 +625,8 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                     control.setHidden(!confirmationScreenControls.contains(control));
                 }
                 //
-                Date currentDate = serverDate;
-                if (currentDate == null) currentDate = userSetDate;
+                Date currentDate = userSetDate;
+                if (currentDate == null) currentDate = serverDate;
                 if (currentDate == null) currentDate = new Date(System.currentTimeMillis());
                 //
                 SimpleDateFormat currentDateFormat = new SimpleDateFormat("HH:mm   dd MMMM yyyy");
