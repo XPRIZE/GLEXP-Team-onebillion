@@ -780,17 +780,16 @@ public class OC_Cwys1 extends OC_Cwys
     {
         showAllObjects();
         loadPointer(POINTER_LEFT);
-        int index = 0;
-        moveScenePointer(OB_Maths.locationForRect(0.9f,0.8f,this.bounds()),-30,0.5f,"DEMO",index,0.3f);
+        moveScenePointer(OB_Maths.locationForRect(0.9f,0.8f,this.bounds()),-30,0.5f,"DEMO",0,0.3f);
         List<OBGroup> blocks = getCurrentHundredBlocks();
+        boolean modeB = currentMode.equals("b");
         if(blocks.size() > 0)
         {
-            index++;
             PointF loc1 = blocks.get(0).position();
             PointF loc2 = blocks.get(blocks.size()-1).position();
             PointF loc = OB_Maths.locationForRect(0.5f,1.15f,blocks.get(0).getWorldFrame());
             loc.x = loc1.x +(loc2.x - loc1.x) /2.0f;
-            moveScenePointer(loc,-30,0.5f,"DEMO",index,0.3f);
+            moveScenePointer(loc,-30,0.5f,"DEMO",1,0.3f);
             waitAudio();
             waitForSecs(0.3f);
         }
@@ -798,20 +797,18 @@ public class OC_Cwys1 extends OC_Cwys
         List<OBGroup> columns = getCurrentTenColumns();
         if(columns.size() > 0)
         {
-            index++;
             PointF loc1 = columns.get(0).getWorldPosition();
             PointF loc2 = columns.get(columns.size()-1).getWorldPosition();
             PointF loc = OB_Maths.locationForRect(0.5f,1.15f,columns.get(0).getWorldFrame());
             loc.x = (loc1.x +(loc2.x - loc1.x) /2.0f);
-            moveScenePointer(loc,-30,0.5f,"DEMO",index,0.3f);
+            moveScenePointer(loc,-30,0.5f,"DEMO",modeB ? 1 : 2 ,0.3f);
             waitAudio();
             waitForSecs(0.3f);
 
         }
-        index++;
         List<OBControl> units = getCurrentUnits();
         if(units.size() !=0)
-            moveScenePointer(OB_Maths.locationForRect(0.9f,2.5f,units.get(0).getWorldFrame()),-20,0.5f,"DEMO",index,0.5f);
+            moveScenePointer(OB_Maths.locationForRect(0.9f,2.5f,units.get(0).getWorldFrame()),-20,0.5f,"DEMO",modeB ? 2 : 3,0.5f);
         thePointer.hide();
         startScene(false);
     }
