@@ -247,7 +247,7 @@
 
 	<!-- DEBUG -->
 	<key>debug_enabled</key>
-	<string>true</string>
+	<string>false</string>
 	<!--  -->
 	<key>debug_show_test_menu</key>
 	<string>false</string>
@@ -256,7 +256,7 @@
 	<string>false</string>
 	<!--  -->
 	<key>debug_show_unit_id</key>
-	<string>true</string>
+	<string>false</string>
 	<!--  -->
     <key>debug_jump_to_setup_password</key>
 	<string>obxprize</string>
@@ -274,7 +274,7 @@
 	<string>opo</string>
     <!--  -->
 	<key>debug_build_number</key>
-	<string>0012</string>
+	<string>0005</string>
 
 
 	<!-- ANALYTICS MANAGER -->
