@@ -721,7 +721,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
             //
             db = new DBSQL(false);
             //
-            int unitCount = OCM_MlUnit.unitCountForMasterlist(db, 1);
+            int unitCount = OCM_MlUnit.unitCountForMasterlist(db, OCM_FatController.STUDY_LISTID);
             int randomUnitIndex = OB_Maths.randomInt(0, unitCount);
             //
             MainActivity.log("OBSetupMenu:loadRandomUnit:unit count [%d]", unitCount);

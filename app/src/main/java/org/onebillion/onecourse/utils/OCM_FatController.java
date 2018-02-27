@@ -46,7 +46,7 @@ import static org.onebillion.onecourse.mainui.OBViewController.MainViewControlle
 
 public class OCM_FatController extends OBFatController implements OBSystemsManager.TimeSynchronizationReceiver
 {
-    final int STUDY_LISTID=1,
+    public final static int STUDY_LISTID=1,
             PLAYZONE_LISTID=2,
             LIBRARY_LISTID=3;
 

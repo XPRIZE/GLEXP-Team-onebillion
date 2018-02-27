@@ -36,7 +36,7 @@ public class OCM_MlUnit extends DBObject
         int result = 0;
         Map<String,String> whereMap = new ArrayMap<>();
         whereMap.put("masterlistid",String.valueOf(masterlistid));
-        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("MAX(unitindex) as unitindex"),whereMap);
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("MAX(unitIndex) as unitindex"),whereMap);
         if(cursor.moveToFirst())
         {
             result = cursor.getInt(cursor.getColumnIndex("unitindex"));
