@@ -221,6 +221,7 @@ public class OBBrightnessManager
         MainActivity.log("OBBrightnessManager.onSuspend detected");
         suspended = true;
         setBrightness(maxBrightness());
+        setScreenSleepTimeToMax();
     }
 
 

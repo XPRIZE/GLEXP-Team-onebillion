@@ -76,7 +76,7 @@
 	<string>0.1</string>
 	<!--  -->
 	<key>brightness_max_screen_timeout_seconds</key>
-	<string>900</string>
+	<string>1800</string>
 
 
 	<!-- NTP -->
