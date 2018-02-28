@@ -396,9 +396,6 @@ public class MainActivity extends Activity
 
     public void runChecksAndLoadMainViewController()
     {
-        MainActivity.log("MainActivity.startup block. runChecks");
-        OBSystemsManager.sharedManager.runChecks();
-        //
         MainActivity.log("MainActivity.startup block. memory dump");
         OBSystemsManager.sharedManager.printMemoryStatus("Before mainViewController");
         //
@@ -560,6 +557,8 @@ public class MainActivity extends Activity
     {
         super.onStart();
         analyticsManager.onStart();
+        //
+        OBSystemsManager.sharedManager.runChecks();
     }
 
 
