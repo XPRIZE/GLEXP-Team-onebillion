@@ -187,11 +187,6 @@ public class MainActivity extends Activity
             int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
             decorView.setSystemUiVisibility(uiOptions);
         }
-        //
-        if (OBConfigManager.sharedManager.shouldPinApplication())
-        {
-            OBSystemsManager.disableStatusBar();
-        }
         //getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         //
         // this flag disables screenshots
@@ -203,6 +198,11 @@ public class MainActivity extends Activity
         //
         analyticsManager = new OBAnalyticsManager(this);
         locationManager = new OBLocationManager(this);
+        //
+        if (OBConfigManager.sharedManager.shouldPinApplication())
+        {
+            OBSystemsManager.disableStatusBar();
+        }
         //
         doGLStuff();
         //
