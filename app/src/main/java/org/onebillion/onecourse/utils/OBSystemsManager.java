@@ -394,6 +394,11 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         }
     }
 
+    public void onStart()
+    {
+        AppIsInForeground = true;
+    }
+
 
     public void onResume ()
     {
@@ -404,8 +409,6 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             MainActivity.log("OBSystemsManager.onResume.running checks after resume");
             runChecksAfterResume();
         }
-        //
-        AppIsInForeground = true;
         //
         if (batteryReceiver != null)
         {

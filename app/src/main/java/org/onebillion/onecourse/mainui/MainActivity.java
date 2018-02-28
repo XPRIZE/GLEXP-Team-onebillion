@@ -558,6 +558,8 @@ public class MainActivity extends Activity
         super.onStart();
         analyticsManager.onStart();
         //
+        OBSystemsManager.sharedManager.onStart();
+        //
         OBSystemsManager.sharedManager.runChecks();
     }
 
