@@ -1751,4 +1751,29 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
+    public static void disableStatusBar()
+    {
+        runShellCommand("pm disable com.android.systemui && service call activity 42 s16 com.android.systemui");
+    }
+
+
+    public static void runShellCommand(String cmd)
+    {
+        DataOutputStream os;
+        try
+        {
+            Process process = Runtime.getRuntime().exec("su");
+            os = new DataOutputStream(process.getOutputStream());
+            os.writeBytes(cmd + "\n");
+            os.writeBytes("exit\n");
+            os.flush();
+            os.close();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+
 }
