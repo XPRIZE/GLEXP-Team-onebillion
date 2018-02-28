@@ -93,6 +93,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     private ReentrantLock backupLock;
     private boolean AppIsInForeground;
     private boolean suspended;
+    private boolean needsToRunChecksAfterResume;
     private boolean kioskModeActive = false;
 
     private OBUtils.RunLambda dateSetCompletionBlock, timeSetCompletionBlock;
@@ -112,6 +113,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         connectionManager = new OBConnectionManager();
         //
         suspended = true;
+        needsToRunChecksAfterResume = false;
         //
         memoryUsageMap = new HashMap<String, List<String>>();
         //
@@ -256,11 +258,25 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 
     public void runChecks ()
     {
-        if (suspended) return;
+        if (suspended)
+        {
+            MainActivity.log("OBSystemsManager.runChecks.suspended. Aborting");
+            needsToRunChecksAfterResume = true;
+            return;
+        }
         //
         MainActivity.log("OBSystemsManager.runChecks check for first setup complete");
-        if (!OBSystemsManager.isFirstSetupComplete()) return;
+        if (!OBSystemsManager.isFirstSetupComplete())
+        {
+            MainActivity.log("OBSystemsManager.runCheck.FirstSetup is NOT complete. Aborting");
+            return;
+        }
         //
+        runChecksAfterResume();
+    }
+
+    public void runChecksAfterResume()
+    {
         MainActivity.log("OBSystemsManager.runChecks --> pinApplication");
         pinApplication();
         //
@@ -274,6 +290,8 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         //
         MainActivity.log("OBSystemsManager.runChecks --> SQL maintenance");
         OBSQLiteHelper.getSqlHelper().runMaintenance();
+        //
+        needsToRunChecksAfterResume = false;
     }
 
 
@@ -380,6 +398,12 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     public void onResume ()
     {
         MainActivity.log("OBSystemsManager.onResume detected");
+        //
+        if (needsToRunChecksAfterResume)
+        {
+            MainActivity.log("OBSystemsManager.onResume.running checks after resume");
+            runChecksAfterResume();
+        }
         //
         AppIsInForeground = true;
         //
