@@ -12,6 +12,8 @@ import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBImage;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
+import org.onebillion.onecourse.glstuff.OBRenderer;
+import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
@@ -167,7 +169,7 @@ public class OC_Puzzle extends OC_Wordcontroller
         }
         homeRects = prects;
         List<OBGroup>newpieces = new ArrayList<>();
-        for(int i = 0;i < puzzlePieces.size();i++)
+        for(int i = 0; i < puzzlePieces.size(); i++)
         {
             OBGroup g = (OBGroup) puzzle.copy();
             attachControl(g);

@@ -16,6 +16,7 @@ import org.onebillion.onecourse.mainui.generic.OC_Generic_WordsEvent;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBAudioManager;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBSyllable;
 import org.onebillion.onecourse.utils.OBUtils;
@@ -32,8 +33,8 @@ import java.util.Map;
  */
 public class OC_TalkingHead extends OC_Generic_WordsEvent
 {
-    static final float FIRST_REMINDER_DELAY = 6.0f;
-    static final float SECOND_REMINDER_DELAY = 4.0f;
+    protected static final float FIRST_REMINDER_DELAY = 6.0f;
+    protected static final float SECOND_REMINDER_DELAY = 4.0f;
 
 
     List<List<OBPhoneme>> words;
@@ -43,6 +44,7 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     Boolean phase2, showTick;
     OBGroup button, avatar, window;
     Boolean isReplayAudioPlaying;
+
     public OC_TalkingHead ()
     {
         super();
@@ -127,7 +129,7 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     @Override
     public void setSceneXX (String scene)
     {
-        int presenterColour = OBUtils.SkinColour(OBUtils.PresenterColourIndex());
+        int presenterColour = OBConfigManager.sharedManager.getSkinColour(0);
         avatar.substituteFillForAllMembers("colour.*", presenterColour);
         //
         buttonShowState("inactive");
@@ -611,7 +613,10 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
         {
             mouth.show();
             mouth.setNeedsRetexture();
-            window.setNeedsRetexture();
+            if (window != null)
+            {
+                window.setNeedsRetexture();
+            }
             avatar.setNeedsRetexture();
         }
         unlockScreen();

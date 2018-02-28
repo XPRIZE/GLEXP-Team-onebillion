@@ -9,6 +9,7 @@ import android.view.View;
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
+import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.utils.OBAudioManager;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
@@ -135,9 +136,20 @@ public class OC_Alpha1 extends OC_Wordcontroller
     {
         Typeface tf = OBUtils.standardTypeFace();
         List<OBLabel> mlabels = new ArrayList<>();
+        //
+        float fontSize = textSize * 0.85f;
+        //
         for(int i = 0;i < letters.size();i++)
         {
-            OBLabel label = new OBLabel(letters.get(i),tf,textSize);
+            String text = letters.get(i);
+            //
+            if (text.toUpperCase().equals(text))
+            {
+                text = OC_Generic.toTitleCase(text);
+                fontSize = textSize * 0.75f;
+            }
+            //
+            OBLabel label = new OBLabel(text, tf, fontSize);
             label.setColour(Color.BLACK);
             label.setPosition(boxes.get(i).position());
             label.setZPosition(5);

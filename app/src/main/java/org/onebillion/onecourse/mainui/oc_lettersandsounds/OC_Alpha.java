@@ -237,9 +237,20 @@ public class OC_Alpha extends OC_Generic_WordsEvent
             }
         }
         labels = new ArrayList<OBLabel>();
+        //
+        float fontSize = applyGraphicScale(textSize) * 0.85f;
+        //
         for (int i = 0; i < letters.size(); i++)
         {
-            OBLabel label = new OBLabel(letters.get(i), tf, applyGraphicScale(textSize));
+            String text = letters.get(i);
+            //
+            if (text.toUpperCase().equals(text))
+            {
+                text = OC_Generic.toTitleCase(text);
+                fontSize = applyGraphicScale(textSize) * 0.75f;
+            }
+            //
+            OBLabel label = new OBLabel(text, tf, fontSize);
             label.setColour(Color.BLACK);
             label.setPosition(boxes.get(i).position());
             label.setZPosition(5.0f);

@@ -349,6 +349,7 @@ public class OC_Generic
     {
         try
         {
+            RectF controlBounds = control.getWorldFrame();
             Boolean autoResize = sc.eventAttributes.get("textSize") == null;
             float textSize = 1;
             //
@@ -358,15 +359,17 @@ public class OC_Generic
             }
             String content = (String) control.attributes().get("text");
             if (content == null) content = (String) control.attributes().get("number");
-            if (content == null) content = "";
+            if (content == null) content = (String) control.propertyValue("text");
+            if (content == null) content = "0000";
             //
             OBLabel label = new OBLabel(content, tf, textSize);
+            label.setFrame(controlBounds);
             //
             if (autoResize)
             {
                 OBTextLayer textLayer = (OBTextLayer) label.layer;
                 textLayer.sizeToBoundingBox();
-                while (label.height() > 0 && label.height() < control.bounds.height() && textLayer.textWidth(content) < control.bounds.width())
+                while (label.height() > 0 && label.height() < controlBounds.height() && textLayer.textWidth(content) < controlBounds.width())
                 {
                     textLayer.setTextSize(textLayer.textSize() + 1);
                     label.sizeToBoundingBox();
@@ -376,14 +379,14 @@ public class OC_Generic
                 textLayer.setTextSize(currentTextSize * finalResizeFactor);
                 label.sizeToBoundingBox();
                 //
-                if (textLayer.textWidth(content) > control.bounds().width())
+                if (textLayer.textWidth(content) > controlBounds.width())
                 {
                     textLayer.setTextSize(currentTextSize);
                     label.sizeToBoundingBox();
                 }
             }
             //
-            label.setPosition(control.position());
+            label.setPosition(control.getWorldPosition());
             label.setZPosition(OC_Generic.getNextZPosition(sc));
             label.texturise(false, sc);
             //
@@ -392,6 +395,7 @@ public class OC_Generic
                 if (OBGroup.class.isInstance(control))
                 {
                     OBGroup group = (OBGroup) control;
+                    label.setScale(1 / group.scale());
                     sc.attachControl(label);
                     group.insertMember(label, 0, "label");
                 }
@@ -588,5 +592,33 @@ public class OC_Generic
         }
     }
 
+
+    public static String toTitleCase (String str)
+    {
+        if (str == null || str.isEmpty())
+            return "";
+
+        if (str.length() == 1)
+            return str.toUpperCase();
+
+        //split the string by space
+        String[] parts = str.split(" ");
+
+        StringBuilder sb = new StringBuilder(str.length());
+
+        for (String part : parts)
+        {
+
+            if (part.length() > 1)
+                sb.append(part.substring(0, 1).toUpperCase())
+                  .append(part.substring(1).toLowerCase());
+            else
+                sb.append(part.toUpperCase());
+
+            sb.append(" ");
+        }
+
+        return sb.toString().trim();
+    }
 
 }

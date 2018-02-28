@@ -127,7 +127,27 @@ public class OC_Th3 extends OC_Th2
         movePointerToPoint(position, 0, 0.9f, true);
         waitForSecs(0.3);
         //
-        action_intro(showText, true, timestamp);
+        if (mode.equals("word"))
+        {
+            if (showText)
+            {
+                label.show();
+                waitForSecs(0.3);
+            }
+        }
+        //
+        for (OBGroup correctHead : correctHeads)
+        {
+            action_playSound(correctHead, timestamp, true);
+            waitForSecs(0.3);
+        }
+        //
+        lockScreen();
+        for (OBGroup correctHead : correctHeads)
+        {
+            action_showMouthFrame(correctHead, "mouth_7");
+        }
+        unlockScreen();
         waitForSecs(0.3);
         //
         action_playNextDemoSentence(false); // Remember, this lets you listen again.
@@ -183,13 +203,24 @@ public class OC_Th3 extends OC_Th2
                 //
                 waitForSecs(0.3);
                 //
-                action_intro(showText, true, timestamp);
-                waitForSecs(0.3);
+                if (mode.equals("word"))
+                {
+                    if (showText)
+                    {
+                        label.show();
+                        waitForSecs(0.3);
+                    }
+                }
+                for (OBGroup head : (List<OBGroup>) pairedObjects)
+                {
+                    action_playSound(head, timestamp, true);
+                    waitForSecs(0.3);
+                }
                 //
                 lockScreen();
-                for (OBGroup obj : touchables)
+                for (OBGroup head : (List<OBGroup>) pairedObjects)
                 {
-                    action_showMouthFrame(obj, "mouth_7");
+                    action_showMouthFrame(head, "mouth_7");
                 }
                 unlockScreen();
                 waitForSecs(0.3);

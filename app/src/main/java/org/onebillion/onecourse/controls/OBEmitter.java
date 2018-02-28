@@ -30,6 +30,7 @@ public class OBEmitter extends OBControl
         emitterLoc = new ReentrantLock();
         cells = new ArrayList<>();
     }
+
     public void doCycle()
     {
         new OBRunnableSyncUI()
@@ -44,12 +45,14 @@ public class OBEmitter extends OBControl
             }
         }.run();
     }
+
     public synchronized void setRunning(boolean b)
     {
         running = b;
         if(!b)
             finishWait();
     }
+
     public synchronized boolean running()
     {
         return running;
@@ -69,6 +72,7 @@ public class OBEmitter extends OBControl
     {
         setBirthRate(false);
     }
+
     private void start()
     {
         condition = emitterLoc.newCondition();
@@ -77,11 +81,13 @@ public class OBEmitter extends OBControl
         for (OBEmitterCell ec : cells)
             ec.start(this);
     }
+
     public void drawLayer(Canvas canvas, int flags)
     {
         for (OBEmitterCell ec : cells)
             ec.draw(canvas);
     }
+
     public void run()
     {
         start();
@@ -93,8 +99,11 @@ public class OBEmitter extends OBControl
                 while (running())
                 {
                     doCycle();
-                    OBSectionController c = (OBSectionController) controller;
-                    c.waitForSecsNoThrow(0.02);
+                    if(controller != null)
+                    {
+                        OBSectionController c = (OBSectionController) controller;
+                        c.waitForSecsNoThrow(0.02);
+                    }
                 }
                 return null;
             }
@@ -107,6 +116,12 @@ public class OBEmitter extends OBControl
             ec.render(renderer,vc,modelViewMatrix);
     }
 
+    public void cleanUp()
+    {
+        stop();
+        setRunning(false);
+        controller = null;
+    }
 
     public void waitForCells()
     {

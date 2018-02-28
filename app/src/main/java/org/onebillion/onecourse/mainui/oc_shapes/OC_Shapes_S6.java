@@ -117,7 +117,21 @@ public class OC_Shapes_S6 extends OC_Generic_Event
     {
         setStatus(STATUS_CHECKING);
         OBPath control = (OBPath) target;
-        if (control.attributes().get("type").equals(selectedColour.attributes().get("type")))
+        String type = (String) control.attributes().get("type");
+        if (type == null)
+        {
+            // wrong type of object
+            setStatus(STATUS_AWAITING_CLICK);
+            return;
+        }
+        //
+        if (selectedColour == null)
+        {
+            // no colour selected
+            setStatus(STATUS_AWAITING_CLICK);
+            return;
+        }
+        if (type.equals(selectedColour.attributes().get("type")))
         {
             action_colourObject(control);
             colouredObjects++;

@@ -8,6 +8,10 @@ import android.os.BatteryManager;
 
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.oc_numberlines.OC_Numberlines_Additions;
+import org.onebillion.onecourse.utils.OBAnalytics;
+import org.onebillion.onecourse.utils.OBAnalyticsManager;
+import org.onebillion.onecourse.utils.OBAnalyticsManagerOnline;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBSystemsManager;
 import org.onebillion.onecourse.utils.OCM_FatController;
 
@@ -26,7 +30,6 @@ public class OBBatteryReceiver extends BroadcastReceiver
         isCharging = false;
         batteryScale = -1;
         batteryLevel= -1;
-        MainActivity.log(" BATTERY RECEIVER CREATED ");
     }
 
 
@@ -44,7 +47,7 @@ public class OBBatteryReceiver extends BroadcastReceiver
             chargePlug = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
             //
             // BatteryManager.BATTERY_STATUS_CHARGING cannot be trusted. It happens on occasion, but it's thrown while the tablet is not charging
-            isNowCharging = status == BatteryManager.BATTERY_STATUS_CHARGING && chargePlug > 0;
+            isNowCharging = (status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL )&& chargePlug > 0;
             //
             usbCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_USB;
             acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
@@ -71,32 +74,46 @@ public class OBBatteryReceiver extends BroadcastReceiver
             Boolean actionIsRequired = !isCharging && isNowCharging;
             isCharging = isNowCharging;
             //
-            if (!isCharging)
-            {
-                MainActivity.log("OBBatteryReceiver.onReceive: BATTERY IS NOW NO LONGER CHARGING");
-            }
+            String chargerType = (usbCharge) ? OBAnalytics.Params.BATTERY_CHARGER_STATE_PLUGGED_USB : (acCharge) ? OBAnalytics.Params.BATTERY_CHARGER_STATE_PLUGGED_AC : "";
+            OBAnalyticsManager.sharedManager.batteryState(getBatteryLevel(), isCharging, chargerType);
+            OBAnalyticsManager.sharedManager.deviceGpsLocation();
+            OBAnalyticsManager.sharedManager.deviceStorageUse();
             //
             if (actionIsRequired)
             {
                 MainActivity.log("OBBatteryReceiver.onReceive: it is now charging and/or plugged in. Action is required");
                 //
-                if (OBSystemsManager.sharedManager.shouldSendBackupWhenConnected())
+                if (OBConfigManager.sharedManager.isBackupWhenChargingEnabled())
                 {
-                    if (OBSystemsManager.sharedManager.backup_isRequired())
+                    if (OBSystemsManager.sharedManager.isBackupRequired())
                     {
                         MainActivity.log("OBBatteryReceiver.onReceive: Backup is required. Synchronising time and data.");
                         OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTimeAndData();
                     }
                     else
                     {
-                        MainActivity.log("OBBatteryReceiver.onReceive: Backup is NOT required. Synchronising time");
-                        OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTime();
+                        if (OBConfigManager.sharedManager.isTimeServerEnabled())
+                        {
+                            MainActivity.log("OBBatteryReceiver.onReceive: Backup is NOT required. Synchronising time");
+                            OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTime();
+                        }
+                        else
+                        {
+                            MainActivity.log("OBBatteryReceiver.onReceive: Time server is disabled. Suspending time synchronisation");
+                        }
                     }
                 }
                 else
                 {
-                    MainActivity.log("OBBatteryReceiver.onReceive: Shouldn't send backup when connecting, just synchronising time");
-                    OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTime();
+                    if (OBConfigManager.sharedManager.isTimeServerEnabled())
+                    {
+                        MainActivity.log("OBBatteryReceiver.onReceive: Shouldn't send backup when connecting, just synchronising time");
+                        OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTime();
+                    }
+                    else
+                    {
+                        MainActivity.log("OBBatteryReceiver.onReceive: Time server is disabled. Suspending time synchronisation");
+                    }
                 }
             }
             else

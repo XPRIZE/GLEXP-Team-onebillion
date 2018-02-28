@@ -19,6 +19,7 @@ import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBAudioManager;
 import org.onebillion.onecourse.utils.OBConditionLock;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBImageManager;
 import org.onebillion.onecourse.utils.OBRunnableSyncUI;
 import org.onebillion.onecourse.utils.OB_Maths;
@@ -82,27 +83,29 @@ public class OC_SectionController extends OBSectionController {
         lock.unlock();
     }
 
-    public void playAudioQueuedScene(String scene,String event, float interval,boolean wait) throws Exception
+    public OBConditionLock playAudioQueuedScene(String scene,String event, float interval,boolean wait) throws Exception
     {
         if (audioScenes == null)
-            return;
+            return new OBConditionLock(PROCESS_DONE);
+        //
         Map<String,List<String>> sc = (Map<String,List<String>>)audioScenes.get(scene);
         if (sc != null)
         {
             List<Object> arr = OBUtils.insertAudioInterval((List<Object>)(Object)sc.get(event), Math.round(interval*1000)); //yuk!
             if (arr != null)
-                playAudioQueued(arr, wait);
+                return playAudioQueued(arr, wait);
         }
+        return new OBConditionLock(PROCESS_DONE);
     }
 
-    public void playAudioQueuedScene(String audioCategory, float interval, boolean wait) throws Exception
+    public OBConditionLock playAudioQueuedScene(String audioCategory, float interval, boolean wait) throws Exception
     {
-        playAudioQueuedScene(currentEvent(),audioCategory,interval, wait);
+        return playAudioQueuedScene(currentEvent(),audioCategory,interval, wait);
     }
 
-    public void playAudioQueuedScene(String audioCategory,boolean wait) throws Exception
+    public OBConditionLock playAudioQueuedScene(String audioCategory,boolean wait) throws Exception
     {
-        playAudioQueuedScene(currentEvent(),audioCategory,wait);
+        return playAudioQueuedScene(currentEvent(),audioCategory,wait);
     }
 
     public void playAudioScene(String scene,String event,int idx) throws Exception
@@ -179,7 +182,7 @@ public class OC_SectionController extends OBSectionController {
         star.setScale(0.04f);
         attachControl(star);
         miscObjects.put("star", star);
-        String audioFile = (String) Config().get(MainActivity.CONFIG_AWARDAUDIO);
+        String audioFile = OBConfigManager.sharedManager.getAwardSoundEffect();
         playSFX(audioFile);
         double duration = OBAudioManager.audioManager.durationForChannel(OBAudioManager.AM_SFX_CHANNEL);
         completeDisplay((duration < 1.0) ? 1.0 : duration);
@@ -187,7 +190,7 @@ public class OC_SectionController extends OBSectionController {
 
     public void completeDisplay(double duration) throws Exception
     {
-        float scale = MainActivity.mainActivity.applyGraphicScale(1);
+        float scale = OBConfigManager.sharedManager.getGraphicScale();
         OBAnimationGroup.runAnims(Collections.singletonList(OBAnim.scaleAnim(1.0f, miscObjects.get("star"))), 0.4, false, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
         OBEmitter emitter = new OBEmitter();
         emitter.setFrame(0,0,bounds().width(),bounds().height());
@@ -227,7 +230,7 @@ public class OC_SectionController extends OBSectionController {
         star.setFillColor(colour);
         attachControl(star);
         miscObjects.put("star", star);
-        String audioFile = (String) Config().get(MainActivity.CONFIG_AWARDAUDIO);
+        String audioFile = OBConfigManager.sharedManager.getAwardSoundEffect();
         playSFX(audioFile);
         double duration = OBAudioManager.audioManager.durationForChannel(OBAudioManager.AM_SFX_CHANNEL);
         completeDisplay2((duration < 1.0) ? 1.0 : duration, colour);
@@ -235,7 +238,7 @@ public class OC_SectionController extends OBSectionController {
 
     public void completeDisplay2(double duration, int colour) throws Exception
     {
-        float scale = MainActivity.mainActivity.applyGraphicScale(1);
+        float scale = OBConfigManager.sharedManager.getGraphicScale();
         OBEmitter emitter = new OBEmitter();
         emitter.setFrame(0,0,bounds().width(),bounds().height());
         OBEmitterCell cell = new OBEmitterCell();
@@ -412,7 +415,16 @@ public class OC_SectionController extends OBSectionController {
         {
             OBControl finger = null;
             if (i >= 0)
+            {
+                if(i >= fingers.size())
+                {
+                    OBControl f = fingers.get(fingers.size()-1).copy();
+                    f.setScale(fingers.get(fingers.size()-1).scale() * 2.0f);
+                    fingers.add(f);
+                }
+
                 finger = fingers.get(i);
+            }
             for (OBControl c : targets)
             {
                 if (filterDisabled && !c.isEnabled() || (!allowHidden && c.hidden()))
@@ -615,8 +627,11 @@ public class OC_SectionController extends OBSectionController {
     public void moveScenePointer(PointF point, float time, String audio, float wait) throws Exception
     {
         movePointerToPoint(point,time,true);
-        playAudio(audio);
-        waitAudio();
+        if (audio != null)
+        {
+            playAudio(audio);
+            waitAudio();
+        }
         waitForSecs(wait);
     }
 
@@ -641,6 +656,13 @@ public class OC_SectionController extends OBSectionController {
             return null;
 
         return  audioScene.get(index);
+    }
+
+    public void showScoreHammerScore(int scoreOutOfTen,boolean questionMode)
+    {
+        String script = questionMode?"scorehammer1":"scorehammer2";
+        Class cls = OBMainViewController.MainViewController().controllerClass("OC_ScoreHammer","oc-playzone");
+        goToCard(cls,String.format("scorehammer;%s/score=%d",script,scoreOutOfTen),false,"oc-playzone");
     }
 
     @Override
@@ -671,4 +693,15 @@ public class OC_SectionController extends OBSectionController {
         super.onBatteryStatusReceived(level, charging);
         MainActivity.mainActivity.fatController.onBatteryStatusReceived(level,charging);
     }
+
+    public boolean shouldCollectMiscData()
+    {
+        return MainActivity.mainActivity.fatController.shouldCollectMiscData();
+    }
+
+    public void collectMiscData(String tag, Object data)
+    {
+        MainActivity.mainActivity.fatController.collectMiscData(tag,data);
+    }
+
 }

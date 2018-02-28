@@ -16,6 +16,7 @@ import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
+import org.onebillion.onecourse.utils.OBFont;
 import org.onebillion.onecourse.utils.OBReadingPara;
 import org.onebillion.onecourse.utils.OBReadingWord;
 import org.onebillion.onecourse.utils.OBXMLManager;
@@ -60,13 +61,16 @@ public class OC_Reading extends OC_SectionController
     public boolean reading,questionsAvailable,slowWordsAvailable,paragraphlessMode,nextOK,RAOK;
     public int picJustify,textJustification;
     String indentString;
-    int demoType,introNo,numberOfTextLines;
+    protected int numberOfTextLines;
+    boolean doArrowDemo;
     int pageNo,maxPageNo,readingMode;
     public List<OBReadingPara> paragraphs;
     public OBGroup textBox;
     protected OBImage mainPic;
     OBReadingWord highlightedWord;
     public int highlightColour,backgroundColour;
+    long collectNextAppearanceTime;
+    float collectNextButtonPressDuration;
 
     protected static String CrunchedString(String s)
     {
@@ -76,7 +80,7 @@ public class OC_Reading extends OC_SectionController
         return t;
     }
 
-    static boolean IsLeftHanger(String ch)
+    public static boolean IsLeftHanger(String ch)
     {
         for (String ap : Arrays.asList("“","‘"))
             if (ap.equals(ch))
@@ -84,7 +88,7 @@ public class OC_Reading extends OC_SectionController
         return false;
     }
 
-    public void loadTimingsPara(OBReadingPara para,String xmlPath)
+    public void loadTimingsPara(OBReadingPara para,String xmlPath,boolean isSlow)
     {
         try
         {
@@ -93,9 +97,6 @@ public class OC_Reading extends OC_SectionController
                 OBXMLNode xmlNode = null;
                 OBXMLManager xmlManager = new OBXMLManager();
                 List<OBXMLNode> xl = xmlManager.parseFile(OBUtils.getInputStreamForPath(xmlPath));
-//                List<OBXMLNode> xl = xmlManager.parseFile(MainActivity.mainActivity.getAssets().open(xmlPath));
-                String filename = OBUtils.lastPathComponent(xmlPath);
-                boolean isSlow = (filename.startsWith("ps"));
                 if (isSlow)
                     slowWordsAvailable = true;
                 xmlNode = xl.get(0);
@@ -162,7 +163,7 @@ public class OC_Reading extends OC_SectionController
     public void speakSyllablesForWord(OBReadingWord w,String fileName) throws Exception
     {
         long token = sequenceToken;
-        List<List> timings = syllableTimingsForWord(w,getLocalPath(fileName+"etpa"));
+        List<List> timings = syllableTimingsForWord(w,getLocalPath(fileName+".etpa"));
         playAudio(fileName);
         long startTime = SystemClock.uptimeMillis();
         int i = 0;
@@ -420,6 +421,7 @@ public class OC_Reading extends OC_SectionController
     {
         if (_aborting)
             return;
+        collectNextAppearanceTime = System.currentTimeMillis();
         lockScreen();
         showNextArrow(show);
         if (show)
@@ -449,23 +451,15 @@ public class OC_Reading extends OC_SectionController
         pageNo = 0;
         if (parameters.get("page") != null)
             pageNo = Integer.parseInt(parameters.get("page"));
-        if (parameters.get("intro") != null)
-            introNo = Integer.parseInt(parameters.get("intro"));
-        demoType = OB_RD_DEMO_NONE;
-        String s = parameters.get("demo");
-        if (s!=null)
-            if (s.equals("full"))
-                demoType = OB_RD_DEMO_FULL;
-            else if (s.equals("partial"))
-                demoType = OB_RD_DEMO_PARTIAL;
+        doArrowDemo = !OBUtils.coalesce(parameters.get("arrowdemo"),"true").equals("false");
         initialised = true;
         paragraphs = loadPageXML(getLocalPath("book.xml"));
         loadTemplate();
         int i = 1;
         for (OBReadingPara para : paragraphs)
         {
-            loadTimingsPara(para,getLocalPath(String.format("p%d_%d.etpa",pageNo,i)));
-            loadTimingsPara(para,getLocalPath(String.format("ps%d_%d.etpa",pageNo,i)));
+            loadTimingsPara(para,getLocalPath(String.format("p%d_%d.etpa",pageNo,i)),false);
+            loadTimingsPara(para,getLocalPath(String.format("ps%d_%d.etpa",pageNo,i)),true);
             i++;
         }
         //setButtons();
@@ -638,6 +632,25 @@ public class OC_Reading extends OC_SectionController
                     w.frame = convertRectFromControl(w.frame,textBox);
     }
 
+    public static float WidthOfText(String txt,Map attrs,float spaceExtraSpace)
+    {
+        OBFont font = (OBFont) attrs.get("font");
+        Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        textPaint.setTextSize(font.size);
+        textPaint.setTypeface(font.typeFace);
+        float lspacing = OBUtils.coalesce((Float)attrs.get(""),0f);
+        if (lspacing > 0)
+            textPaint.setLetterSpacing(lspacing / font.size);
+        float textWidth = textPaint.measureText(txt);
+
+        if(spaceExtraSpace != 0.0)
+        {
+            int noSpaces = txt.split(".").length - 1;
+            if (noSpaces > 0)
+                textWidth +=(noSpaces * spaceExtraSpace);
+        }
+        return textWidth;
+    }
 
     public void layOutLine(List<OBReadingWord>wordarr, float leftEdge, float rightEdge, float y, int justification, Typeface typeFace,float typeSize, String paraText)
     {
@@ -697,6 +710,15 @@ public class OC_Reading extends OC_SectionController
             else
                 lab.setZPosition(LABEL_ZPOS - 3);
         }
+    }
+
+    public Map lineAttributes(OBFont font)
+    {
+        Map attributes = new HashMap();
+        attributes.put("font",font);
+        if (letterSpacing != 0f)
+            attributes.put("letterspacing",letterSpacing);
+        return attributes;
     }
 
     public float layOutText()
@@ -814,7 +836,7 @@ public class OC_Reading extends OC_SectionController
         String pref = "p";
         if (slowWordsAvailable)
             pref = "ps";
-        playAudioFromToN(String.format("%s%d_%d",pref,pageNo,w.paraNo),w.slowTimeStart,w.slowTimeEnd);
+        playAudioFromTo(String.format("%s%d_%d",pref,pageNo,w.paraNo),w.slowTimeStart,w.slowTimeEnd);
         waitAudio();
     }
 
@@ -923,6 +945,14 @@ public class OC_Reading extends OC_SectionController
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
     }
 
+    public void collectData()
+    {
+        if (shouldCollectMiscData())
+        {
+            collectMiscData(String.format("page_%d",pageNo), (int)collectNextButtonPressDuration);
+        }
+
+    }
     public void doNextStuff(final Class cls)
     {
         try
@@ -940,6 +970,7 @@ public class OC_Reading extends OC_SectionController
         }
         else
         {
+            collectData();
             int p = pageNo + 1;
             StringBuilder parmString = new StringBuilder();
             parmString.append(parameters.get("0"));
@@ -963,6 +994,8 @@ public class OC_Reading extends OC_SectionController
     {
         if (!_aborting && !MainViewController().navigating && status()!= STATUS_FINISHING)
         {
+            long currTime = System.currentTimeMillis();
+            collectNextButtonPressDuration = (currTime - collectNextAppearanceTime) / 1000f;
             final Class c = this.getClass();
             setStatus(STATUS_FINISHING);
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
@@ -1035,6 +1068,25 @@ public class OC_Reading extends OC_SectionController
         }
         if (statusChanged(sttime))
             throw new Exception("flashline");
+    }
+
+    public OBReadingWord firstWord()
+    {
+        OBReadingPara p = paragraphs.get(0);
+        for(OBReadingWord w : p.words)
+            if((w.flags & WORD_SPEAKABLE) != 0)
+                return w;
+        return null;
+    }
+
+    public List<OBReadingWord>unspeakableWords()
+    {
+        List arr = new ArrayList<>();
+        for(OBReadingPara para : paragraphs)
+            for(OBReadingWord w : para.words)
+                if((w.label != null) && (w.flags & WORD_SPEAKABLE) == 0)
+                    arr.add(w);
+        return arr;
     }
 
 }

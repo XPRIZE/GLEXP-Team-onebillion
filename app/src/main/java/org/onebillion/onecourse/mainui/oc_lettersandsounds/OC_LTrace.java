@@ -388,6 +388,7 @@ public class OC_LTrace extends OC_Wordcontroller
         float len = path.length();
         double duration = len * 2 / theMoveSpeed;
         OBAnim anim = OBAnim.propertyAnim("strokeEnd",1,path);
+        path.show();
         OBAnimationGroup.runAnims(Collections.singletonList(anim),duration,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
     }
 
@@ -398,6 +399,7 @@ public class OC_LTrace extends OC_Wordcontroller
         {
             p.setStrokeEnd(0.0f);
             p.setPosition((PointF) p.propertyValue("origpos"));
+            p.hide();
         }
         unlockScreen();
     }
@@ -484,6 +486,7 @@ public class OC_LTrace extends OC_Wordcontroller
             }
         }
         final OBPath p = paths.get(i);
+        p.show();
         OBAnim anim = new OBAnimBlock()
         {
             @Override
@@ -513,7 +516,7 @@ public class OC_LTrace extends OC_Wordcontroller
         tLookAhead = allowedDistance / currPathLen;
         traceComplete = false;
         paths.get(i).setStrokeEnd(0);
-        paths.get(i).show();
+        //paths.get(i).show();
         if (greyPaths != null && greyPaths.size() > i)
             paths.get(i).setZPosition(greyPaths.get(i).zPosition() + 0.01f);
     }
@@ -601,6 +604,8 @@ public class OC_LTrace extends OC_Wordcontroller
         if(endT > 1)
             endT = 1;
         float tryT = usp.nearestPointOnSubPathForPoint(pt,distance,allowedDistance,tSoFar,endT);
+        if (paths.get(currPathIdx).hidden())
+            paths.get(currPathIdx).show();
         if(tryT > tSoFar)
         {
             lockScreen();

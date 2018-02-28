@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- EXTENSIONS -->
+	<key>extensions_image</key>
+	<array>
+		<string>png</string>
+		<string>jpg</string>
+	</array>
+	<!--  -->
+	<key>extensions_audio</key>
+	<string>m4a</string>
+	<!--  -->
+	<key>extensions_video</key>
+	<string>mp4</string>
+	<!--  -->
+	<key>extensions_vector</key>
+	<string>svg</string>
+
+
+	<!-- SKIN COLOURS -->
+	<key>skin_colours</key>
+	<array>
+		<string>251,234,209</string>
+		<string>240,208,180</string>
+		<string>236,193,156</string>
+		<string>223,178,139</string>
+		<string>207,158,118</string>
+		<string>185,135,103</string>
+		<string>173,118,77</string>
+		<string>158,100,60</string>
+		<string>150,100,75</string>
+		<string>140,89,68</string>
+	</array>
+
+
+	<!-- SOUND EFFECTS -->
+	<key>sfx_star</key>
+	<string>trumpet</string>
+
+
+	<!-- LOCALISATIONS -->
+	<key>localisation_skin_colour_index</key>
+	<integer>3</integer>
+	<!--  -->
+	<key>localisation_cloth_colour</key>
+	<string>177,33,254</string>
+	<!--  -->
+	<key>localisation_language_id</key>
+	<string>en_GB</string>
+	<!--  -->
+	<key>localisation_fallback_language_id</key>
+	<string>en_GB</string>
+
+
+	<!-- SETUP MENU -->
+	<key>setup_menu_enabled</key>
+	<string>false</string>
+	<!--  -->
+	<key>setup_menu_folder</key>
+	<string>oc-setup</string>
+	<!--  -->
+	<key>setup_menu_class</key>
+	<string>OBSetupMenu</string>
+
+
+	<!-- BRIGHTNESS -->
+	<key>brightness_manager_enabled</key>
+	<string>true</string>
+	<!--  -->
+	<key>brightness_check_interval_seconds</key>
+	<string>180</string>
+	<!--  -->
+	<key>brightness_turn_off_value</key>
+	<string>0.1</string>
+	<!--  -->
+	<key>brightness_max_screen_timeout_seconds</key>
+	<string>900</string>
+
+
+	<!-- NTP -->
+	<key>ntp_enabled</key>
+	<string>false</string>
+	<!--  -->
+	<key>ntp_wifi_ssid</key>
+	<string>XPRIZE</string>
+	<!--  -->
+	<key>ntp_wifi_password</key>
+	<string/>
+	<!--  -->
+	<key>ntp_url</key>
+	<string>192.168.0.1</string>
+
+
+	<!-- BACKUP -->
+	<key>backup_enabled_when_charging</key>
+	<string>false</string>
+	<!--  -->
+	<key>backup_wifi_ssid</key>
+	<string>XPRIZE</string>
+	<!--  -->
+	<key>backup_wifi_password</key>
+	<string/>
+	<!--  -->
+	<key>backup_url</key>
+	<string>192.168.0.1</string>
+	<!--  -->
+	<key>backup_interval_minutes</key>
+	<string>180</string>
+	<!--  -->
+	<key>backup_working_directory</key>
+	<string>remote</string>
+
+
+	<!-- STARTUP -->
+	<key>startup_enable_administrator_services</key>
+	<string>false</string>
+	<!--  -->
+	<key>startup_request_device_owner</key>
+	<string>true</string>
+	<!--  -->
+	<key>startup_pin_application</key>
+	<string>true</string>
+
+
+	<!-- AUDIO -->
+	<key>audio_min_volume</key>
+	<string>15</string>
+	<!--  -->
+	<key>audio_default_volume</key>
+	<string>50</string>
+
+
+	<!-- RECOVERY -->
+	<key>recovery_restart_after_crash</key>
+	<string>false</string>
+
+
+	<!-- BATTERY -->
+	<key>battery_manager_enabled</key>
+	<string>true</string>
+	<!--  -->
+	<key>battery_levels</key>
+	<dict>
+		<key>battery_level_normal</key>
+		<dict>
+			<key>battery_max_value</key>
+			<string>100</string>
+			<!--  -->
+			<key>battery_min_value</key>
+			<string>35</string>
+			<!--  -->
+			<key>battery_max_brightness</key>
+			<string>0.6</string>
+			<!--  -->
+			<key>battery_max_screen_timeout_seconds</key>
+			<string>300</string>
+			<!--  -->
+			<key>battery_charge_reminder_enabled</key>
+			<string>false</string>
+			<!--  -->
+			<key>battery_charge_reminder_internal_minutes</key>
+			<string>0</string>
+			<!--  -->
+			<key>battery_lock_screen_enabled</key>
+			<string>false</string>
+		</dict>
+		<!--  -->
+		<key>battery_level_low</key>
+		<dict>
+			<key>battery_max_value</key>
+			<string>35</string>
+			<!--  -->
+			<key>battery_min_value</key>
+			<string>15</string>
+			<!--  -->
+			<key>battery_max_brightness</key>
+			<string>0.4</string>
+			<!--  -->
+			<key>battery_max_screen_timeout_seconds</key>
+			<string>30</string>
+			<!--  -->
+			<key>battery_charge_reminder_enabled</key>
+			<string>true</string>
+			<!--  -->
+			<key>battery_charge_reminder_internal_minutes</key>
+			<string>5</string>
+			<!--  -->
+			<key>battery_lock_screen_enabled</key>
+			<string>false</string>
+		</dict>
+		<!--  -->
+		<key>battery_level_critical</key>
+		<dict>
+			<key>battery_max_value</key>
+			<string>15</string>
+			<!--  -->
+			<key>battery_min_value</key>
+			<string>0</string>
+			<!--  -->
+			<key>battery_max_brightness</key>
+			<string>0.2</string>
+			<!--  -->
+			<key>battery_max_screen_timeout_seconds</key>
+			<string>10</string>
+			<!--  -->
+			<key>battery_charge_reminder_enabled</key>
+			<string>false</string>
+			<!--  -->
+			<key>battery_charge_reminder_internal_minutes</key>
+			<string>0</string>
+			<!--  -->
+			<key>battery_lock_screen_enabled</key>
+			<string>true</string>
+		</dict>
+	</dict>
+
+
+	<!-- FAT CONTROLLER -->
+	<key>fat_controller_session_timeout_enabled</key>
+	<string>true</string>
+	<!--  -->
+	<key>fat_controller_session_timeout_seconds</key>
+	<integer>0</integer>
+	<!--  -->
+	<key>fat_controller_max_unit_attempts</key>
+	<integer>3</integer>
+	<!--  -->
+	<key>fat_controller_night_mode_hours</key>
+	<string>22,5</string>
+	<!--  -->
+	<key>fat_controller_show_user_name</key>
+	<string>false</string>
+	<!--  -->
+	<key>fat_controller_playzone_active_hour</key>
+	<integer>12</integer>
+
+
+	<!-- ASSETS -->
+	<key>assets_external_path</key>
+	<string>/onebillion/assets</string>
+
+
+	<!-- DEBUG -->
+	<key>debug_enabled</key>
+	<string>true</string>
+	<!--  -->
+	<key>debug_show_test_menu</key>
+	<string>true</string>
+	<!--  -->
+	<key>debug_show_back_arrow</key>
+	<string>true</string>
+	<!--  -->
+	<key>debug_show_unit_id</key>
+	<string>true</string>
+	<!--  -->
+	<key>debug_build_number</key>
+	<string>0004 - English</string>
+
+
+	<!-- APP -->
+	<key>app_gen_folder</key>
+	<string>oc-gen</string>
+	<!--  -->
+	<key>app_main_folder</key>
+	<string>oc-childmenu</string>
+	<!--  -->
+	<key>app_menu_class</key>
+	<string>OC_SimpleListMenu</string>
+	<!--  -->
+	<key>app_fat_controller_class</key>
+	<string>OBFatController</string>
+	<!--  -->
+	<key>app_masterlist</key>
+	<string>community_enGB</string>
+	<!--  -->
+	<key>app_masterlist_playzone</key>
+	<string>playzone_enGB</string>
+	<!--  -->
+	<key>app_masterlist_library</key>
+	<string>library_enGB</string>
+</dict>
+</plist>

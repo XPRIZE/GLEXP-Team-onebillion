@@ -22,12 +22,23 @@ public class OBFatController
         return OBMainViewController.SHOW_TOP_LEFT_BUTTON | OBMainViewController.SHOW_TOP_RIGHT_BUTTON | OBMainViewController.SHOW_BOTTOM_LEFT_BUTTON | OBMainViewController.SHOW_BOTTOM_RIGHT_BUTTON;
     }
 
+
     public void gotAnswerRight(int amount)
     {
 
     }
 
     public void gotAnswerWrong(int amount)
+    {
+
+    }
+
+    public boolean shouldCollectMiscData()
+    {
+        return false;
+    }
+
+    public void collectMiscData(String tag, Object data)
     {
 
     }
@@ -60,9 +71,9 @@ public class OBFatController
 
     public void startUp()
     {
-        MainActivity.mainActivity.updateConfigPaths(MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_APP_CODE), true, null);
+        OBConfigManager.sharedManager.updateConfigPaths(OBConfigManager.sharedManager.getMainFolder(), true);
         //
-        String menuClassName = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MENU_CLASS);
+        String menuClassName = OBConfigManager.sharedManager.getMenuClassName();
         if (menuClassName != null)
         {
             MainActivity.mainViewController.pushViewControllerWithName(menuClassName, false, true, "menu");
@@ -90,6 +101,16 @@ public class OBFatController
     }
 
     public void onBatteryStatusReceived(float level, boolean charging)
+    {
+
+    }
+
+    public void onReplayAudioButtonPressed()
+    {
+
+    }
+
+    public void onSectionStarted(OBSectionController controller)
     {
 
     }

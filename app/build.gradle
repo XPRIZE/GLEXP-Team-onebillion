@@ -1,5 +1,16 @@
+repositories {
+    maven {
+        url "https://jcenter.bintray.com"
+    }
+//    jcenter()
+}
+
 apply plugin: 'com.android.application'
+
+
 android {
+    signingConfigs {}
+    /*
     signingConfigs {
         config {
             keyAlias 'android'
@@ -8,9 +19,11 @@ android {
             storePassword 'android'
         }
     }
+    */
     compileSdkVersion 23
     buildToolsVersion '25.0.0'
     defaultConfig {
+        multiDexEnabled true
         applicationId 'org.onebillion.onecourse'
         minSdkVersion 22
         targetSdkVersion 23
@@ -20,18 +33,23 @@ android {
     }
     buildTypes {
         debug {
-
             debuggable true
             manifestPlaceholders = [
-                    appuserid : ""
+                    appuserid: ""
             ]
-
         }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             manifestPlaceholders = [
-                    appuserid : "android.uid.system"
+                    appuserid: "android.uid.system"
+            ]
+        }
+        distribution {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            manifestPlaceholders = [
+                    appuserid: ""
             ]
         }
 
@@ -46,143 +64,212 @@ android {
 //        javaMaxHeapSize "8192M"
 //        javaMaxHeapSize "4096M"
         javaMaxHeapSize "512M"
+//        javaMaxHeapSize "1024M"
     }
-    sourceSets { main { assets.srcDirs = ['src/main/assets', 'src/main/assets_obb'] } }
+    sourceSets {
+        main {
+            assets.srcDirs = ['src/main/assets', 'src/main/config', 'src/main/fonts/']
+        }
+        res {
+            res.srcDirs = ['src/main/res']
+        }
+    }
     productFlavors {
-        pedro {
-            minSdkVersion 22
+        pedro_ {
+            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.pedro'
             targetSdkVersion 23
             versionCode 1
             versionName '1.0'
-            resValue "string", "app_name", "Setup Prototype"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_pedro.plist"'
+            resValue "string", "app_name", "Pedro"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_pedro.plist"'
             manifestPlaceholders = [
-                    appIcon: "@mipmap/judges",
+                    appIcon: "@mipmap/judges"
             ]
         }
-        judgeMenu {
-            minSdkVersion 22
-            applicationId 'org.onebillion.onecourse.judges'
-            targetSdkVersion 23
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "onecourse - Judges"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_judge.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/judges",
-            ]
-        }
-        judgeMenu_test {
-            minSdkVersion 22
-            applicationId 'org.onebillion.onecourse.judges'
-            targetSdkVersion 23
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "onecourse - Judges"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_judge_test.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/judges",
-            ]
-        }
-//        judgeMenu_ny_ {
-//            minSdkVersion 23
-//            applicationId 'org.onebillion.onecourse.judges.ny'
-//            targetSdkVersion 23
-//            versionCode 1
-//            versionName '1.0'
-//            resValue "string", "app_name", "onecourse - Judges (chichewa)"
-//            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_judge_ny.plist"'
-//            manifestPlaceholders = [
-//                    appIcon: "@mipmap/judges_ny"
-//            ]
-//        }
-        childMenu {
-            minSdkVersion 22
-            applicationId 'org.onebillion.onecourse.child'
-            targetSdkVersion 23
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "onecourse - Child"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_community_sw.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/icon_child"
-            ]
-        }
-        childMenuTestVersion {
-            minSdkVersion 22
-            applicationId 'org.onebillion.onecourse.child.test'
-            targetSdkVersion 23
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "Dev - Child"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_test_sw.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/icon_child"
-            ]
-        }
-        childMenu_enGB_ {
-            minSdkVersion 22
-            applicationId 'org.onebillion.onecourse.child.en_GB'
-            targetSdkVersion 23
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "onecourse - Child (english)"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_community_enGB.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/child_en_gb"
-            ]
-        }
-        childMenu_enGB_TestVersion {
-            minSdkVersion 22
-            applicationId 'org.onebillion.onecourse.child.en_GB.test'
-            targetSdkVersion 23
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "Dev - Child enGB"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_test_enGB.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/child_en_gb"
-            ]
-        }
-        childMenu_ny_ {
+        alan_ {
             minSdkVersion 23
-            applicationId 'org.onebillion.onecourse.child.ny'
-            targetSdkVersion 23
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "onecourse - Child (chichewa)"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_child_ny.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/child_ny"
-            ]
-        }
-        alan {
-            minSdkVersion 21
             applicationId 'org.onebillion.onecourse.alan'
             targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - alan"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settingsas.plist"'
+            buildConfigField 'String', 'SETTINGS_FILE', '"settingsas.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/child_ny"
             ]
         }
-        wifiTestVersion {
-            minSdkVersion 22
-            applicationId 'org.onebillion.onecourse.wifi.test'
+        michal_ {
+            minSdkVersion 23
+            applicationId 'org.onebillion.onecourse.michal'
             targetSdkVersion 23
             versionCode 1
             versionName '1.0'
-            resValue "string", "app_name", "onecourse - wifi"
-            buildConfigField 'String', 'SETTINGS_FILE', '"config/settings_test_wifi.plist"'
+            resValue "string", "app_name", "onecourse - michal"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_michal.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/child_ny"
+            ]
+        }
+        sw_judges_ {
+            minSdkVersion 23
+            applicationId 'org.onebillion.onecourse.judges'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "onecourse - Judges"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_judges_sw.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/judges"
+            ]
+        }
+        ny_judges_ {
+            minSdkVersion 23
+            applicationId 'org.onebillion.onecourse.judges.ny'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "Judges - ny"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_judges_ny.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/judges"
+            ]
+        }
+        sw_community_ {
+            minSdkVersion 23
+            applicationId 'org.onebillion.onecourse.child'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "onecourse - Child"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_community_sw.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/icon_child"
+            ]
+        }
+        sw_test_ {
+            minSdkVersion 23
+            applicationId 'org.onebillion.onecourse.child.test'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "Dev - sw"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_test_sw.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/icon_child"
+            ]
+        }
+        sw_library_ {
+            minSdkVersion 23
+            applicationId 'org.onebillion.onecourse.child.library'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "Library - sw"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_library_sw.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/icon_child"
+            ]
+        }
+        sw_playzone_ {
+            minSdkVersion 23
+            applicationId 'org.onebillion.onecourse.child.playzone'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "Playzone - sw"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_playzone_sw.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/icon_child"
+            ]
+        }
+        sw_loop_ {
+            minSdkVersion 23
+            applicationId 'org.onebillion.onecourse.child.loop'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "Loop - sw"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_loop_sw.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/icon_child"
+            ]
+        }
+        enGB_community_ {
+            minSdkVersion 23
+            applicationId 'org.onebillion.onecourse.child.en_GB'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "onecourse - enGB"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_community_enGB.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/child_en_gb"
             ]
         }
+        enGB_test_ {
+            minSdkVersion 23
+            applicationId 'org.onebillion.onecourse.child.en_GB.test'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "Dev - enGB"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_test_enGB.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/child_en_gb"
+            ]
+        }
+        ny_community_ {
+            minSdkVersion 23
+            applicationId 'org.onebillion.onecourse.child.ny'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "onecourse - ny"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_community_ny.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/child_ny"
+            ]
+        }
+        ny_test_ {
+            minSdkVersion 23
+            applicationId 'org.onebillion.onecourse.child.ny.test'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "Dev - ny"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_test_ny.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/child_ny"
+            ]
+        }
+        kenya_ {
+            minSdkVersion 23
+            applicationId 'org.onebillion.onecourse.kenya'
+            targetSdkVersion 23
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "Kenya dev"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_kenya.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/icon_child"
+            ]
+        }
+
+    }
+
+
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        pickFirst 'META-INF/license.txt'
     }
 }
+
+
 
 dependencies {
     //    compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -194,4 +281,9 @@ dependencies {
     //
     compile files('libs/commons-io-2.5.jar')
     compile files('libs/commons-net-3.6.jar')
+
+    compile 'com.parse:parse-android:1.15.8'
+    compile 'com.google.code.gson:gson:2.8.2'
+
+
 }

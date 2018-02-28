@@ -136,16 +136,19 @@ public class OC_ReadingIReadForce extends OC_ReadingIRead
 
     public void demoNext() throws Exception
     {
-        waitForSecs(0.3f);
-        PointF destPoint = OB_Maths.locationForRect(-0.1f, 0.3f, MainViewController().bottomRightButton.frame());
-        loadPointerStartPoint(OB_Maths.locationForRect(0.5f, 1.1f, new RectF(bounds())),destPoint);
-        movePointerToPoint(destPoint,-1,true);
-        waitForSecs(0.05f);
-        Map<String,List> eventd = (Map<String, List>) audioScenes.get("c");
-        playAudioQueued(eventd.get("DEMO"),true);
-        waitForSecs(0.5f);
-        thePointer.hide();
-    }
+        if (doArrowDemo)
+        {
+            waitForSecs(0.3f);
+            PointF destPoint = OB_Maths.locationForRect(-0.1f, 0.3f, MainViewController().bottomRightButton.frame());
+            loadPointerStartPoint(OB_Maths.locationForRect(0.5f, 1.1f, new RectF(bounds())),destPoint);
+            movePointerToPoint(destPoint,-1,true);
+            waitForSecs(0.05f);
+            Map<String,List> eventd = (Map<String, List>) audioScenes.get("c");
+            playAudioQueued(eventd.get("DEMO"),true);
+            waitForSecs(0.5f);
+            thePointer.hide();
+        }
+     }
 
     public void nextWord() throws Exception
     {
@@ -183,7 +186,7 @@ public class OC_ReadingIReadForce extends OC_ReadingIRead
                 unlockScreen();
                 waitAndCheck(sttime,0.1,4);
                 lockScreen();
-                         wordback.show();
+                wordback.show();
                 unlockScreen();
                 waitAndCheck(sttime,0.1,4);
             }
@@ -191,17 +194,27 @@ public class OC_ReadingIReadForce extends OC_ReadingIRead
         catch (Exception exception)
         {
             lockScreen();
-            wordback.show();
+            wordback.setHidden(wordIdx >= words.size());
             unlockScreen();
         }
     }
 
-    public void remindBox(long sttime,float secs)
+    public void remindBox(final long sttime,float secs)
     {
         if (statusChanged(sttime))
             return;
         flashBox(sttime);
-        endBody();
+        if (statusChanged(sttime))
+            return;
+        OBUtils.runOnOtherThreadDelayed(3, new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                remindBox(sttime,3);
+            }
+        });
+
     }
 
     public void checkTarget(OBReadingWord rw,PointF pt)

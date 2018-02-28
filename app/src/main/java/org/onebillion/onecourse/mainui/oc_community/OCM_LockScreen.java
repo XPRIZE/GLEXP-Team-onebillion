@@ -10,6 +10,8 @@ import org.onebillion.onecourse.controls.OBPresenter;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OC_Menu;
+import org.onebillion.onecourse.utils.OBAnalytics;
+import org.onebillion.onecourse.utils.OBAnalyticsManager;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBMisc;
@@ -122,7 +124,8 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
                     if (lastCommand == OCM_FatController.OFC_SESSION_LOCKED)
                     {
                         demo_presenter_locked();
-                    } else if((lastCommand == OCM_FatController.OFC_BATTERY_LOW))
+                    }
+                    else if((lastCommand == OCM_FatController.OFC_BATTERY_LOW))
                     {
                         if(isCharging)
                             demo_battery();
@@ -143,6 +146,7 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
         {
             if(lastCommand == OCM_FatController.OFC_SESSION_LOCKED)
             {
+                OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.LOW_BATTERY_SCREEN);
                 closeThisMenuAndOpen(OCM_LockScreen.class);
                 return true;
             }
@@ -152,6 +156,12 @@ public class OCM_LockScreen extends OC_Menu implements OCM_FatReceiver
         }
         else if(curCommand == OCM_FatController.OFC_SESSION_LOCKED)
         {
+            if(lastCommand == OCM_FatController.OFC_BATTERY_LOW)
+            {
+                OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.LOCK_SCREEN);
+                closeThisMenuAndOpen(OCM_LockScreen.class);
+                return true;
+            }
             lastCommand=curCommand;
             return false;
         }

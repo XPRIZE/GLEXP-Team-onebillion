@@ -8,6 +8,7 @@ import android.util.Log;
 
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
+import org.onebillion.onecourse.utils.OBConfigManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,7 +74,7 @@ public class OBRenderer implements GLSurfaceView.Renderer
         glGenTextures(4, textureObjectIds, 0);
 
         if (textureObjectIds[0] == 0) {
-            Log.w("onSurfaceCreated", "Could not generate a new OpenGL texture object.");
+            MainActivity.log("OBRenderer.onSurfaceCreated. Could not generate a new OpenGL texture object.");
             return;
         }
 
@@ -84,7 +85,7 @@ public class OBRenderer implements GLSurfaceView.Renderer
         bindStandardTextureForId(textureObjectIds[1]);
         bindExternalTextureForId(textureObjectIds[2]);
         bindStandardTextureForId(textureObjectIds[3]);
-
+        //
         for (int i = 0;i < textureObjectIds.length;i++)
         {
             textureUnits.add(new TextureUnit(textureObjectIds[i]));
@@ -119,7 +120,7 @@ public class OBRenderer implements GLSurfaceView.Renderer
         glViewport(0, 0, width, height);
         w = width;
         h = height;
-        MainActivity.mainActivity.updateGraphicScale(w, h);
+        OBConfigManager.sharedManager.updateGraphicScale(w, h);
     }
 
     /**

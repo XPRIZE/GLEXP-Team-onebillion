@@ -67,7 +67,7 @@ public class OC_PhraseSentence extends OC_Reading
                 {
                     Map md = new HashMap();
                     md.putAll(phrasenode.attributes);
-                    String k = phrasenode.attributeStringValue("Object");
+                    String k = phrasenode.attributeStringValue("id");
                     String contents = phrasenode.contents;
                     if(contents != null)
                         md.put("contents",contents);
@@ -267,8 +267,7 @@ public class OC_PhraseSentence extends OC_Reading
     {
         Pattern p = Pattern.compile("[0123456789]");
         Matcher matcher = p.matcher(s);
-        matcher.find();
-        if (matcher.matches())
+        if (matcher.find())
         {
             int idx = matcher.start();
             String s1 = s.substring(0,idx);
@@ -283,10 +282,10 @@ public class OC_PhraseSentence extends OC_Reading
         if(!slow)
             return s;
         List<String> arr = SplitToPrefixSuffix(s);
-        return String.format("%ss%s",arr.get(0),"s",arr.get(1));
+        return String.format("%ss%s",arr.get(0),arr.get(1));
     }
 
-    public void speakWordAsPartial(OBReadingWord w,String key) throws Exception
+    public void speakWordAsPartial(OBReadingWord w,String key,boolean wait) throws Exception
     {
         String fn = String.format("%s_%d",key,w.paraNo);
         double ts = w.timeStart,te = w.timeEnd;
@@ -296,7 +295,13 @@ public class OC_PhraseSentence extends OC_Reading
             te = w.slowTimeEnd;
         }
         playAudioFromTo(SlowVersion(fn,slowWordsAvailable),ts,te);
-        waitAudio();
+        if (wait)
+            waitAudio();
+    }
+
+    public void speakWordAsPartial(OBReadingWord w,String key) throws Exception
+    {
+        speakWordAsPartial(w,key,true);
     }
 
     public void replayAudio()
@@ -319,6 +324,8 @@ public class OC_PhraseSentence extends OC_Reading
     public List wordExtents()
     {
         List<List>arr = new ArrayList<>();
+        if (words == null)
+            return arr;
         List linearr = new ArrayList<>();
         float lastx = -1;
         for(OBReadingWord w : words)
@@ -365,12 +372,20 @@ public class OC_PhraseSentence extends OC_Reading
             unlockScreen();
         }
     }
+    void doRem(final long stt)
+    {
+
+    }
+
     public void remindBox(long sttime,float secs)
     {
         if (statusChanged(sttime))
             return;
         flashBox(sttime);
-        endBody();
+        if (statusChanged(sttime))
+            return;
+        doRem(sttime);
+        //endBody();
     }
 
     public void showPic() throws Exception
@@ -417,11 +432,11 @@ public class OC_PhraseSentence extends OC_Reading
             if(token == sequenceToken)
             {
                 boolean withBackground = jumpOffset > 0;
-                highlightWord(w,true,withBackground);
+                highlightWordWithBackground(w,true,withBackground);
                 if(syllablesIfPoss && syllableAudioExistsForWord(w,currComponentKey) )
                 {
                     List arr = SplitToPrefixSuffix(currComponentKey);
-                    String fileName = String.format("%@syl%@_%",arr.get(0),arr.get(1),CrunchedString(w.text));
+                    String fileName = String.format("%ssyl%s_%s",arr.get(0),arr.get(1),CrunchedString(w.text));
                     speakSyllablesForWord(w,fileName);
                     highlightWord(w,true,false);
                     waitForSecs(0.2f);
@@ -472,7 +487,7 @@ public class OC_PhraseSentence extends OC_Reading
 
     public boolean syllableAudioExistsForWord(OBReadingWord rw,String key)
     {
-        String localPath = OBAudioManager.audioManager.getAudioPath(String.format("%@_%d",key,rw.paraNo));
+        String localPath = OBAudioManager.audioManager.getAudioPath(String.format("%s_%d",key,rw.paraNo));
         if(localPath != null)
         {
             String dirPath = OBUtils.stringByDeletingLastPathComponent(localPath);

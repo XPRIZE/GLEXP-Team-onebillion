@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -20,6 +21,7 @@ import org.onebillion.onecourse.glstuff.OBGLView;
 import org.onebillion.onecourse.glstuff.OBRenderer;
 import org.onebillion.onecourse.glstuff.TextureShaderProgram;
 import org.onebillion.onecourse.utils.OBBrightnessManager;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBSystemsManager;
 import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OBUtils;
@@ -74,7 +76,7 @@ public class OBMainViewController extends OBViewController
         }
 
         Typeface tf = OBUtils.standardTypeFace();
-        topLabel = new OBLabel("ALL WORK AND NO PLAY MAKES JACK A DULL BOY. ALL WORK AND NO PLAY MAKES JACK A DULL BOY. ", tf, applyGraphicScale(15));
+        topLabel = new OBLabel("ALL WORK AND NO PLAY MAKES JACK A DULL BOY. ALL WORK AND NO PLAY MAKES JACK A DULL BOY. ALL WORK AND NO PLAY MAKES JACK A DULL BOY", tf, applyGraphicScale(15));
         topLabel.setColour(Color.BLACK);
         topLabel.controller = this;
         topLabel.sizeToBoundingBox();
@@ -129,7 +131,7 @@ public class OBMainViewController extends OBViewController
         else
             bottomRightButton.setOpacity(1.0f);
 
-        if (MainActivity.mainActivity.isDebugMode())
+        if (OBConfigManager.sharedManager.isDebugEnabled())
             topLabel.setOpacity(1.0f);
         else
             topLabel.setOpacity(0.0f);
@@ -223,7 +225,10 @@ public class OBMainViewController extends OBViewController
             if (but == topLeftButton)
                 topController().goBack();
             else if (but == topRightButton)
+            {
+                MainActivity.mainActivity.fatController.onReplayAudioButtonPressed();
                 topController().replayAudio();
+            }
             else if (but == bottomLeftButton)
                 topController().prevPage();
             else if (but == bottomRightButton)
@@ -248,22 +253,17 @@ public class OBMainViewController extends OBViewController
                 {
                     currentTouchID = pointerID;
                     touchDownAtPoint(event.getX(), event.getY(), (OBGLView) v);
-                    OBBrightnessManager.sharedManager.registeredTouchOnScreen();
-//                    MainActivity.log("DOWN --> " + event.getPointerId(pointerIndex));
+                    OBBrightnessManager.sharedManager.registeredTouchOnScreen(false);
                 }
                 else if (action == MotionEvent.ACTION_MOVE && currentTouchID != null && currentTouchID == pointerID)
                 {
                     OBGLView ov = (OBGLView) v;
                     topController().touchMovedToPoint(new PointF(event.getX(), event.getY()), ov);
-//                    OBBrightnessManager.sharedManager.registeredTouchOnScreen();
-//                    MainActivity.log("MOVE --> " + event.getPointerId(pointerIndex));
                 }
                 else if (currentTouchID != null && currentTouchID == pointerID && (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_POINTER_UP))
                 {
                     currentTouchID = null;
                     touchUpAtPoint(event.getX(), event.getY(), (OBGLView) v);
-//                    OBBrightnessManager.sharedManager.registeredTouchOnScreen();
-//                    MainActivity.log("UP   --> " + event.getPointerId(pointerIndex));
                 }
                 return true;
             }
@@ -289,6 +289,14 @@ public class OBMainViewController extends OBViewController
         }
     }
 
+    public void exitGLMode ()
+    {
+        if (glMode())
+        {
+            removeView(glView());
+        }
+    }
+
     public void addView (View v)
     {
         ViewGroup rootView = (ViewGroup) MainActivity.mainActivity.findViewById(android.R.id.content);
@@ -302,13 +310,15 @@ public class OBMainViewController extends OBViewController
         rootView.removeView(v);
     }
 
-    private Class controllerClass (String name, String configPath)
+    public Class controllerClass (String name, String configPath)
     {
         try
         {
             String config = "";
             if (configPath != null)
             {
+                String[] sarr = configPath.split(",");
+                configPath = sarr[0];
                 String[] paths = configPath.split("/");
                 config = paths[0];
                 config = config.replace("-", "_");
@@ -324,6 +334,7 @@ public class OBMainViewController extends OBViewController
         }
         return null;
     }
+
 
     public boolean pushViewControllerWithNameConfig (String nm, String configPath, boolean animate, boolean fromRight, Object _params)
     {
@@ -423,6 +434,7 @@ public class OBMainViewController extends OBViewController
             }
         }
         final OBSectionController vc = controller;
+        MainActivity.mainActivity.fatController.onSectionStarted(controller);
         new Handler().post(new Runnable()
         {
             @Override
@@ -516,7 +528,12 @@ public class OBMainViewController extends OBViewController
         OBSectionController topvc = viewControllers.get(viewControllers.size() - 1);
         OBSectionController nextvc = viewControllers.get(viewControllers.size() - 2);
         nextvc.viewWillAppear(false);
-        transition(nextvc, topvc, false, 0.5);
+        if (glMode() && !nextvc.requiresOpenGL)
+        {
+            exitGLMode();
+        }
+        else
+            transition(nextvc, topvc, false, 0.5);
         viewControllers.remove(viewControllers.size() - 1);
         showButtons(nextvc.buttonFlagsWithFatController());
         showHideButtons(nextvc.buttonFlagsWithFatController());

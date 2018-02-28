@@ -19,8 +19,10 @@ import org.onebillion.onecourse.R;
 import org.onebillion.onecourse.utils.DBSQL;
 import org.onebillion.onecourse.utils.MlUnit;
 import org.onebillion.onecourse.utils.OBBrightnessManager;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBSystemsManager;
 import org.onebillion.onecourse.utils.OBUtils;
+import org.onebillion.onecourse.utils.OCM_FatController;
 import org.onebillion.onecourse.utils.OC_FatController;
 
 
@@ -36,6 +38,7 @@ public class OC_TestMenu extends OBSectionController
     private OBCursorAdapter cursorAdapter;
     private DBSQL db;
     private int currentUnitIndex;
+    private String originalAppCode;
     OC_FatController controller;
 
     public OC_TestMenu ()
@@ -45,9 +48,14 @@ public class OC_TestMenu extends OBSectionController
 
     public void initScreen()
     {
+        if (originalAppCode == null)
+        {
+            originalAppCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
+        }
         OBBrightnessManager.sharedManager.onSuspend();
         db = new DBSQL(false);
-        controller = (OC_FatController)MainActivity.mainActivity.fatController;
+        controller = (OC_FatController) MainActivity.mainActivity.fatController;
+        //
         currentUnitIndex = controller.lastPlayedUnitIndexFromDB(db);
         MainActivity.mainActivity.setContentView(R.layout.list_menu);
         listView = (ListView)MainActivity.mainActivity.findViewById(R.id.listView);
@@ -67,47 +75,46 @@ public class OC_TestMenu extends OBSectionController
             @Override
             public void onClick(View v)
             {
-
-                String menuClassName = (String)Config().get(MainActivity.CONFIG_MENU_CLASS);
-                String appCode = (String)Config().get(MainActivity.CONFIG_APP_CODE);
-                if (menuClassName != null && appCode != null)
+                OBUtils.runOnMainThread(new OBUtils.RunLambda()
                 {
-                    OBBrightnessManager.sharedManager.onContinue();
-                    db.close();
-                    MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
-                }
-
+                    @Override
+                    public void run () throws Exception
+                    {
+                        String menuClassName = OBConfigManager.sharedManager.getMenuClassName();
+                        OBConfigManager.sharedManager.updateConfigPaths(originalAppCode, true);
+                        //
+                        if (menuClassName != null)
+                        {
+                            OBBrightnessManager.sharedManager.onContinue();
+                            db.close();
+                            MainViewController().pushViewControllerWithNameConfig(menuClassName, originalAppCode, false, false, null);
+                        }
+                    }
+                });
             }
         });
 
         Button loopButton = (Button)MainActivity.mainActivity.findViewById(R.id.loopButton);
-        loopButton.setOnClickListener(new View.OnClickListener()
+        if (loopButton != null)
         {
-            @Override
-            public void onClick(View v)
+            loopButton.setOnClickListener(new View.OnClickListener()
             {
-                OBSystemsManager.sharedManager.onSuspend();
-                String menuClassName = "OC_LoopMenu";
-                String appCode = "oc-gen";
-                if (menuClassName != null && appCode != null)
+                @Override
+                public void onClick (View v)
                 {
-                    OBBrightnessManager.sharedManager.onContinue();
-                    db.close();
-                    MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
+                    OBSystemsManager.sharedManager.onSuspend();
+                    String menuClassName = "OC_LoopMenu";
+                    String appCode = "oc-gen";
+                    if (menuClassName != null && appCode != null)
+                    {
+                        OBBrightnessManager.sharedManager.onContinue();
+                        db.close();
+                        MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
+                    }
+
                 }
-
-            }
-        });
-
-        Button connectToWifiButton = (Button)MainActivity.mainActivity.findViewById(R.id.connectWifiButton);
-        connectToWifiButton.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                OBSystemsManager.sharedManager.connectToWifiAndSynchronizeTimeAndData();
-            }
-        });
+            });
+        }
 
         Button uploadBackupButton = (Button)MainActivity.mainActivity.findViewById(R.id.uploadBackup);
         uploadBackupButton.setOnClickListener(new View.OnClickListener()
@@ -170,34 +177,35 @@ public class OC_TestMenu extends OBSectionController
         });
 
         Button newDayButton = (Button)MainActivity.mainActivity.findViewById(R.id.newdDayButton);
-        newDayButton.setOnClickListener(new View.OnClickListener()
+        if (newDayButton != null)
         {
-            @Override
-            public void onClick(View v)
+            newDayButton.setOnClickListener(new View.OnClickListener()
             {
-                final AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.mainActivity).create();
-                alertDialog.setTitle("Start new day");
-                alertDialog.setMessage("Do you want to start a new day?");
-                alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "NO", new DialogInterface.OnClickListener()
+                @Override
+                public void onClick (View v)
                 {
-                    public void onClick (DialogInterface dialog, int which)
+                    final AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.mainActivity).create();
+                    alertDialog.setTitle("Start new day");
+                    alertDialog.setMessage("Do you want to start a new day?");
+                    alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "NO", new DialogInterface.OnClickListener()
                     {
-                        alertDialog.cancel();
-                    }
-                });
-                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "YES", new DialogInterface.OnClickListener()
-                {
-                    public void onClick (DialogInterface dialog, int which)
+                        public void onClick (DialogInterface dialog, int which)
+                        {
+                            alertDialog.cancel();
+                        }
+                    });
+                    alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "YES", new DialogInterface.OnClickListener()
                     {
-                        alertDialog.cancel();
-                        controller.prepareNewSession();
-                    }
-                });
-                alertDialog.show();
-
-
-            }
-        });
+                        public void onClick (DialogInterface dialog, int which)
+                        {
+                            alertDialog.cancel();
+                            controller.prepareNewSession();
+                        }
+                    });
+                    alertDialog.show();
+                }
+            });
+        }
 
 
         Button shutdownButton = (Button)MainActivity.mainActivity.findViewById(R.id.shutdownButton);
@@ -212,14 +220,17 @@ public class OC_TestMenu extends OBSectionController
 
 
         Button causeCrashButton = (Button)MainActivity.mainActivity.findViewById(R.id.crashButton);
-        causeCrashButton.setOnClickListener(new View.OnClickListener()
+        if (causeCrashButton != null)
         {
-            @Override
-            public void onClick(View v)
+            causeCrashButton.setOnClickListener(new View.OnClickListener()
             {
-                int timeToCrash = 1000 / (1 - 1);
-            }
-        });
+                @Override
+                public void onClick (View v)
+                {
+                    int timeToCrash = 1000 / (1 - 1);
+                }
+            });
+        }
 
 
         Button killButton = (Button)MainActivity.mainActivity.findViewById(R.id.killButton);
@@ -244,33 +255,63 @@ public class OC_TestMenu extends OBSectionController
         });
 
         Button skipButton = (Button) MainActivity.mainActivity.findViewById(R.id.skipButton);
-        skipButton.setOnClickListener(new View.OnClickListener()
+        if (skipButton != null)
         {
-            @Override
-            public void onClick (View v)
+            skipButton.setOnClickListener(new View.OnClickListener()
             {
-                String menuClassName = (String)Config().get(MainActivity.CONFIG_MENU_CLASS);
-                String appCode = (String)Config().get(MainActivity.CONFIG_APP_CODE);
-                if (menuClassName != null && appCode != null)
+                @Override
+                public void onClick (View v)
                 {
-                    OBBrightnessManager.sharedManager.onContinue();
-                    db.close();
-                    controller.continueFromLastUnit();
-                    MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
+                    String menuClassName = OBConfigManager.sharedManager.getMenuClassName();
+                    String appCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
+                    if (menuClassName != null && appCode != null)
+                    {
+                        OBBrightnessManager.sharedManager.onContinue();
+                        db.close();
+                        controller.continueFromLastUnit();
+                        MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null);
+                    }
                 }
-            }
-        });
-
-        TextView buildNumber = (TextView) MainActivity.mainActivity.findViewById(R.id.buildNumber);
-        String buildNumberValue = (String) MainActivity.Config().get(MainActivity.CONFIG_BUILD_NUMBER);
-        if (buildNumberValue == null)
-        {
-            buildNumberValue = "Missing BuildNo";
+            });
         }
-        buildNumber.setText(buildNumberValue);
-
+        //
+        Button playzoneButton = (Button) MainActivity.mainActivity.findViewById(R.id.playzone);
+        if (playzoneButton != null)
+        {
+            playzoneButton.setOnClickListener(new View.OnClickListener()
+            {
+                @Override
+                public void onClick (View v)
+                {
+                    OBUtils.runOnMainThread(new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run () throws Exception
+                        {
+                            OBBrightnessManager.sharedManager.onContinue();
+                            //
+                            String lang = OBConfigManager.sharedManager.getCurrentLanguage();
+                            OBConfigManager.sharedManager.updateConfigPaths("oc-playzone", false, lang);
+                            MainViewController().pushViewControllerWithNameConfig("OC_PlayZoneMenu","oc-playzone",false,true, null);
+                        }
+                    });
+                }
+            });
+        }
+        //
+        TextView buildNumber = (TextView) MainActivity.mainActivity.findViewById(R.id.buildNumber);
+        if (buildNumber != null)
+        {
+            String buildNumberValue = OBConfigManager.sharedManager.getBuildNumber();
+            if (buildNumberValue == null)
+            {
+                buildNumberValue = "Missing BuildNo";
+            }
+            buildNumber.setText(buildNumberValue);
+        }
+        //
         Cursor cursor = getCursorForList(db);
-        if(cursor.moveToFirst())
+        if(cursor != null && cursor.moveToFirst())
         {
             cursorAdapter = new OBCursorAdapter(MainActivity.mainActivity, cursor);
             listView.setAdapter(cursorAdapter);
@@ -281,7 +322,16 @@ public class OC_TestMenu extends OBSectionController
 
     public Cursor getCursorForList(DBSQL db)
     {
-        return db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("key", "unitIndex as _id", "level", "awardStar", "startAudio"),null,"unitid ASC");
+        Cursor currentUnitCursor;
+        try
+        {
+            currentUnitCursor = db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("key", "unitIndex as _id", "level", "awardStar", "startAudio"),null,"unitid ASC");
+        }
+        catch (Exception e)
+        {
+            currentUnitCursor = null;
+        }
+        return currentUnitCursor;
     }
 
     public void selectCurrentUnit()

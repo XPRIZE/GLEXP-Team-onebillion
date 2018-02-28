@@ -43,6 +43,7 @@ public class OC_MoreAddSubtract_S6i extends OC_SectionController
         eventColour = OBMisc.loadEventColours(this);
 
         events = Arrays.asList(eventAttributes.get("scenes").split(","));
+        OBMisc.checkAndUpdateFinale(this);
         PointF loc = OC_Generic.copyPoint(objectDict.get("eqbox1").position());
         loc.x = OB_Maths.locationForRect(-0.5f,0f,this.bounds()).x;
         objectDict.get("eqbox1").setPosition(loc);
@@ -341,18 +342,21 @@ public class OC_MoreAddSubtract_S6i extends OC_SectionController
 
     public void demo() throws Exception
     {
+        waitForSecs(0.5f);
+        playAudioScene("DEMO",0,true);
+
         createPhaseMissing();
         waitForSecs(0.3f);
-        playAudioScene("DEMO",0,true);
+        playAudioScene("DEMO",1,true);
         waitForSecs(0.3f);
         slideEquation();
         waitForSecs(0.3f);
 
         loadPointer(POINTER_LEFT);
-        moveScenePointer(OB_Maths.locationForRect(0.7f,1.1f,dropTargets.get(0).frame()),-30,0.5f,"DEMO",1,0.3f);
+        moveScenePointer(OB_Maths.locationForRect(0.7f,1.1f,dropTargets.get(0).frame()),-30,0.5f,"DEMO",2,0.3f);
         showDragTargets();
         waitForSecs(0.3f);
-        moveScenePointer(OB_Maths.locationForRect(0.58f,1.1f,objectDict.get("topbar").frame()),-20,0.5f,"DEMO",2,0.3f);
+        moveScenePointer(OB_Maths.locationForRect(0.58f,1.1f,objectDict.get("topbar").frame()),-20,0.5f,"DEMO",3,0.3f);
 
         movePointerToPoint(OB_Maths.locationForRect(0.6f,0.6f,dragTargets.get(2).frame()) ,-10,0.3f,true);
         OBMisc.moveControlWithAttached(dragTargets.get(2),Collections.singletonList(thePointer),dropTargets.get(0).position(), 0.6f, OBAnim.ANIM_EASE_IN_EASE_OUT,this);
@@ -368,7 +372,7 @@ public class OC_MoreAddSubtract_S6i extends OC_SectionController
         createPhaseMissing();
         slideEquation();
         showDragTargets();
-        moveScenePointer(OB_Maths.locationForRect(0.7f,1.1f,dropTargets.get(0).frame()),-35,0.5f,"DEMO",3,0.3f);
+        moveScenePointer(OB_Maths.locationForRect(0.7f,1.1f,dropTargets.get(0).frame()),-35,0.5f,"DEMO",4,0.3f);
 
         movePointerToPoint(OB_Maths.locationForRect(0.8f,0.8f,dragTargets.get(0).frame()) ,-35,0.5f,true);
         OBMisc.moveControlWithAttached(dragTargets.get(0),Collections.singletonList(thePointer),dropTargets.get(0).position(), 0.7f, OBAnim.ANIM_EASE_IN_EASE_OUT,this);

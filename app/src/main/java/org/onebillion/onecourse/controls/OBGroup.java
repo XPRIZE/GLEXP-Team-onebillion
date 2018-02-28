@@ -13,6 +13,7 @@ import org.onebillion.onecourse.glstuff.OBRenderer;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OBViewController;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBRunnableSyncUI;
 import org.onebillion.onecourse.utils.OBXMLManager;
 import org.onebillion.onecourse.utils.OBXMLNode;
@@ -601,9 +602,9 @@ public class OBGroup extends OBControl
                     {
                         int col = (Integer) of;
                         if (idstr.startsWith("skin"))
-                            col = OBUtils.SkinColour(OBUtils.SkinColourIndex());
+                            col = OBConfigManager.sharedManager.getSkinColour(0);
                         else if (idstr.startsWith("cloth"))
-                            col = ((Integer) MainActivity.mainActivity.configIntForKey(MainActivity.CONFIG_CLOTHCOLOUR)).intValue();
+                            col = OBConfigManager.sharedManager.getClothColour();
                         ((OBShapeLayer) (p.layer)).fillColour = col;
                     }
                 }
@@ -1062,13 +1063,13 @@ public class OBGroup extends OBControl
 
     public void recalculateFrameForPath(List<OBControl> paths)
     {
-        RectF fullBounds = paths.get(0).frame();
+        RectF fullBounds = new RectF(paths.get(0).frame());
         for(OBControl stroke : paths)
         {
             if(stroke.getClass() == OBPath.class)
             {
 
-                ((OBPath) stroke).sizeToBoundingBoxIncludingStroke();
+                ((OBPath) stroke).sizeToBoundingBoxInset(-((OBPath) stroke).lineWidth()/2.0f);
                 fullBounds.union(stroke.frame());
             }
         }
@@ -1082,6 +1083,7 @@ public class OBGroup extends OBControl
 
         }
        // this.setPosition(new PointF(fullBounds.left + (fullBounds.right - fullBounds.left) / 2.0f, fullBounds.top + (fullBounds.bottom - fullBounds.top) / 2.0f));
+
         this.setBounds(0,0,fullBounds.right-fullBounds.left,fullBounds.bottom-fullBounds.top);
     }
 

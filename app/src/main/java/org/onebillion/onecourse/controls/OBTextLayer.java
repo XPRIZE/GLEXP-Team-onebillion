@@ -20,7 +20,8 @@ public class OBTextLayer extends OBLayer
 {
     public static int JUST_CENTRE = 0,
     JUST_LEFT = 1,
-    JUST_RIGHT = 2;
+    JUST_RIGHT = 2,
+    JUST_FULL = 3;
     public StaticLayout stLayout;
     Typeface typeFace;
     float textSize;

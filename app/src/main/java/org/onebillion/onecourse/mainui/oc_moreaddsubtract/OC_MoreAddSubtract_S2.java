@@ -6,7 +6,6 @@ import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
-import org.onebillion.onecourse.controls.OBImage;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.mainui.OC_SectionController;
@@ -18,7 +17,6 @@ import org.onebillion.onecourse.utils.OB_Maths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Created by michal on 16/03/2017.
@@ -30,7 +28,7 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
     List<OBLabel> targetNums;
     List<OBControl> leftTargets, rightTargets;
     int equationColour, overlayColour;
-    int currentIndex, currentPhase, correctNum;
+    int currentNum, currentPhase, correctNum, incorrectCount;
     boolean freeMode, demoMode, buttonPressed, subtractMode;
 
     public void prepare()
@@ -38,13 +36,15 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
         setStatus(STATUS_BUSY);
         super.prepare();
         loadFingers();
-        loadEvent("master");
+        String startEvent = parameters.get("start");
+        loadEvent(String.format("master%s",startEvent));
         buttonPressed = false;
         subtractMode = OBUtils.getBooleanValue(eventAttributes.get("subtractmode"));
         targetNums = new ArrayList<>();
         leftTargets = new ArrayList<>();
         rightTargets = new ArrayList<>();
         events = Arrays.asList(eventAttributes.get("scenes").split(","));
+        OBMisc.checkAndUpdateFinale(this);
         equationColour = OBUtils.colorFromRGBString(eventAttributes.get("equationcolour"));
         if (eventAttributes.get("overlaycolour") != null)
             overlayColour = OBUtils.colorFromRGBString(eventAttributes.get("overlaycolour"));
@@ -68,7 +68,9 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
     {
         super.setSceneXX(scene);
         currentPhase = 0;
-        currentIndex = 0;
+        currentNum = 0;
+        incorrectCount = 0;
+        objectDict.get("button").setOpacity(1);
         if(eventAttributes.get("colourright") != null || eventAttributes.get("colourleft") != null)
         {
             int colourleft = 0;
@@ -154,7 +156,7 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
     {
         if(status() == STATUS_AWAITING_CLICK)
         {
-            if(currentPhase == 0 && objectDict.get("button").frame().contains(pt.x, pt.y) && !(demoMode && currentIndex==correctNum))
+            if(currentPhase == 0 && objectDict.get("button").frame().contains(pt.x, pt.y) && !(demoMode && currentNum ==correctNum))
             {
                 setStatus(STATUS_BUSY);
                 OBUtils.runOnOtherThread(
@@ -203,7 +205,7 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
 
             }
             else if(freeMode && finger(0,1,Arrays.asList(objectDict.get("button_arrow")),pt) != null
-                    && ((demoMode && currentIndex==correctNum) || !demoMode))
+                    && ((demoMode && currentNum ==correctNum) || !demoMode))
             {
                 setStatus(STATUS_BUSY);
                 OBUtils.runOnOtherThread(
@@ -225,11 +227,11 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
     {
         OBGroup button = (OBGroup)objectDict.get("button");
         button.objectDict.get("highlight").show();
-        if(currentIndex < rightTargets.size())
+        if(currentNum < rightTargets.size())
         {
             showCurrentObject();
-            currentIndex++;
-            if(freeMode == false && currentIndex == correctNum)
+            currentNum++;
+            if(freeMode == false && currentNum == correctNum)
             {
                 waitSFX();
                 playAudio(null);
@@ -239,10 +241,10 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
             else
             {
                 buttonPressed = true;
-                if(demoMode && currentIndex==correctNum)
+                if(demoMode && currentNum ==correctNum)
                 {
                     waitSFX();
-                    playAudioScene("FEEDBACK",currentIndex-1,true);
+                    playAudioScene("FEEDBACK", currentNum -1,true);
                     performSel("demoPhase", currentEvent());
 
                 }
@@ -254,16 +256,16 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
                     {
                         if(demoMode)
                         {
-                            playAudioScene("FEEDBACK",currentIndex-1,false);
+                            playAudioScene("FEEDBACK", currentNum -1,false);
 
                         }
-                        else if(currentIndex == 0)
+                        else if(currentNum == 0)
                         {
                             playAudioQueuedScene("FIRSTPRESS",300,false);
 
                         }
                     }
-                    if(currentIndex == correctNum && getAudioForScene(currentEvent(),"REMIND2") != null)
+                    if(currentNum == correctNum && getAudioForScene(currentEvent(),"REMIND2") != null)
                     {
                         reprompt(time,OBUtils.insertAudioInterval(getAudioForScene(currentEvent(),"REMIND"),300), 4);
                     }
@@ -319,14 +321,14 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
         box.lowlight();
         resetScene();
         unlockScreen();
-        currentIndex = 0;
+        currentNum = 0;
         setStatus(STATUS_AWAITING_CLICK);
     }
 
     public void checkArrowButton() throws Exception
     {
         buttonSet(1);
-        if(currentIndex  == correctNum)
+        if(currentNum == correctNum)
         {
             gotItRightBigTick(true);
 
@@ -348,10 +350,43 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
             lockScreen();
             resetScene();
             unlockScreen();
-            buttonSet(0);
-            setStatus(STATUS_AWAITING_CLICK);
-            playAudioQueuedScene("INCORRECT",300,false);
+            incorrectCount++;
+            if(incorrectCount >= 2)
+            {
+                buttonSet(2);
+                objectDict.get("button").setOpacity(0.5f);
+                waitForSecs(0.3f);
+                playAudioScene("INCORRECT2",0,true);
+                waitForSecs(0.3f);
+                int audioIndex = 1;
+                while(currentNum != correctNum)
+                {
+                    showCurrentObject();
+                    currentNum++;
+                    playAudioScene("INCORRECT2",audioIndex,true);
+                    audioIndex++;
+                    waitForSecs(0.3f);
 
+                }
+                lockScreen();
+                OC_Numberlines_Additions.getLabelForEquation(3,(OBGroup)objectDict.get("equation")).setOpacity(1);
+                objectDict.get("cover").hide();
+
+                unlockScreen();
+                waitForSecs(0.5f);
+                OBGroup equ =(OBGroup)objectDict.get("equation");
+                OC_Numberlines_Additions.colourEquation(equ,1,5,Color.RED,this);
+                playAudioQueuedScene("INCORRECT3",300,true);
+                waitForSecs(0.3f);
+                OC_Numberlines_Additions.colourEquation(equ,1,5,equationColour,this);
+                clearAndNextScene();
+            }
+            else
+            {
+                buttonSet(0);
+                setStatus(STATUS_AWAITING_CLICK);
+                playAudioQueuedScene("INCORRECT",300,false);
+            }
         }
     }
 
@@ -516,10 +551,14 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
             OC_Numberlines_Additions.colourEquation(equ, 1, 5, equationColour, this);
 
         }
+        clearAndNextScene();
+    }
+
+    public void clearAndNextScene() throws Exception
+    {
         waitForSecs(0.7f);
         if(currentEvent() != events.get(events.size()-1))
             clearScene();
-
         waitForSecs(0.3f);
         nextScene();
     }
@@ -529,16 +568,16 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
         lockScreen();
         if(!subtractMode)
         {
-            rightTargets.get(currentIndex).show();
+            rightTargets.get(currentNum).show();
         }
         else
         {
-            OBControl control = rightTargets.get(currentIndex);
+            OBControl control = rightTargets.get(currentNum);
             control.setColourOverlay(overlayColour);
         }
 
         OBGroup equation = (OBGroup)objectDict.get("equation");
-        if(currentIndex == 0)
+        if(currentNum == 0)
         {
             OC_Numberlines_Additions.getLabelForEquation(2, equation).show();
             OC_Numberlines_Additions.getLabelForEquation(3, equation).show();
@@ -546,7 +585,7 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
 
         playSfxAudio("buttonpress",false);
         OBLabel label = OC_Numberlines_Additions.getLabelForEquation(3, equation);
-        label.setString(String.format("%d", currentIndex+1));
+        label.setString(String.format("%d", currentNum +1));
 
         if(freeMode)
             label.setOpacity(0.5f);
@@ -582,7 +621,7 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
                 obj.lowlight();
         }
         OC_Numberlines_Additions.getLabelForEquation(3, (OBGroup)objectDict.get("equation")).hide();
-        currentIndex = 0;
+        currentNum = 0;
     }
 
     public void demoFinPoint() throws Exception
@@ -634,7 +673,7 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
             movePointerToPoint(OB_Maths.locationForRect(0.5f,0.6f,objectDict.get("button").frame()),-25,0.2f,true);
             button.objectDict.get("highlight").show();
             showCurrentObject();
-            currentIndex++;
+            currentNum++;
             waitSFX();
             button.objectDict.get("highlight").hide();
             movePointerToPoint(OB_Maths.locationForRect(0.5f,1.2f,objectDict.get("button").frame()),-25,0.2f,true);
@@ -726,7 +765,7 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
             movePointerToPoint(OB_Maths.locationForRect(0.5f,0.6f,objectDict.get("button").frame()),-15,0.2f,true);
             button.objectDict.get("highlight").show();
             showCurrentObject();
-            currentIndex++;
+            currentNum++;
             waitSFX();
             button.objectDict.get("highlight").hide();
             movePointerToPoint(OB_Maths.locationForRect(0.5f,1.2f,objectDict.get("button").frame()),-15,0.2f,true);
@@ -810,6 +849,7 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
         moveScenePointer(OB_Maths.locationForRect(1.1f,1.1f,objectDict.get("button_arrow").frame()),-25,0.5f,"DEMO",3,0.3f);
         moveScenePointer(OB_Maths.locationForRect(0.9f,0.9f,objectDict.get("box").frame()),-25,0.5f,"DEMO",4,0.5f);
         thePointer.hide();
+        buttonSet(0);
         startScene();
 
     }
@@ -846,7 +886,7 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
             movePointerToPoint(OB_Maths.locationForRect(0.5f,0.6f,objectDict.get("button").frame()),-15,0.2f,true);
             button.objectDict.get("highlight").show();
             showCurrentObject();
-            currentIndex++;
+            currentNum++;
             waitSFX();
             button.objectDict.get("highlight").hide();
             movePointerToPoint(OB_Maths.locationForRect(0.5f,1.2f,objectDict.get("button").frame()),-15,0.2f,true);
@@ -949,6 +989,7 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
         moveScenePointer(OB_Maths.locationForRect(1.1f,0.8f,OC_Numberlines_Additions.getLabelForEquation(5,equation).getWorldFrame()), -35, 0.5f, "DEMO", 1, 0.3f);
         moveScenePointer(OB_Maths.locationForRect(1.1f,1.1f,objectDict.get("button_arrow").frame()),-25,0.5f,"DEMO",2,0.3f);
         thePointer.hide();
+        buttonSet(0);
         startScene();
     }
 

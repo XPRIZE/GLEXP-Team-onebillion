@@ -5,23 +5,29 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.CursorIndexOutOfBoundsException;
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.os.Handler;
 import android.util.ArrayMap;
 import android.widget.Toast;
 
+import org.json.JSONObject;
 import org.onebillion.onecourse.R;
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
+import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OBSectionController;
+import org.onebillion.onecourse.mainui.OBUnitAdapter;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset;
 import org.onebillion.onecourse.receivers.OBBatteryReceiver;
 
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +46,10 @@ import static org.onebillion.onecourse.mainui.OBViewController.MainViewControlle
 
 public class OCM_FatController extends OBFatController implements OBSystemsManager.TimeSynchronizationReceiver
 {
+    public final static int STUDY_LISTID=1,
+            PLAYZONE_LISTID=2,
+            LIBRARY_LISTID=3;
+
     public int scoreCorrect,scoreWrong;
     public float finalScore;
     public Map<String,Integer> colourDict;
@@ -47,16 +57,17 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     public OCM_FatReceiver menu;
 
     private float lockBatteryLevel;
-    private int unitAttemptsCount, disallowStartHour, disallowEndHour, playzoneActiveHour;
+    private int unitAttemptsCount, disallowStartHour, disallowEndHour, playzoneActiveHour, playzoneLockTimeout;
     private OCM_MlUnitInstance currentUnitInstance;
     private OCM_User currentUser;
     private int currentSessionId, currentSessionDay;
-    private int currentMasterlistMaxWeek;
+    private int currentStudyListMaxWeek = 1, currentPlayzoneListMaxDay = 1;
     private long currentSessionStartTime, currentSessionEndTime, currentSessionWorkTime;
     private boolean allowsTimeOuts, showUserName;
     private Date startDate;
-    private boolean showBackButton;
+    private List<OCM_MlUnitInstance> unitInstancesList;
 
+    private int replayAudioCount;
     private String menuAppCode;
 
     private Handler timeoutHandler;
@@ -67,7 +78,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     public static final int SESSION_UNIT_COUNT = 15,
             SESSION_VALID_COUNT = 10,
             COLOUR_COUNT = 20,
-            MAX_WEEK_COUNT = 68,
+            MASTERLIST_RESTART_WEEK = 15,
             MAX_PZ_ASSETS = 30;
 
     public static final int OFC_UNIT_SUCCEEDED = 1,
@@ -105,7 +116,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     private boolean showBackButton()
     {
-        return currentUnitInstance == null;
+        if(currentUnitInstance != null && currentUnitInstance.mlUnit.showBack == 1)
+            return true;
+
+        return currentUnitInstance == null || OBConfigManager.sharedManager.shouldShowBackArrow();
     }
 
     public interface SectionOpeningCallback
@@ -114,50 +128,63 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     }
 
 
-    public void loadMasterListIntoDB()
+    public void loadMasterListIntoDB(int masterlistid, String mlname)
     {
+
         DBSQL db = null;
         try
         {
             db = new DBSQL(true);
-            String token = OBPreferenceManager.getStringPreference(OBPreferenceManager.PREFERENCE_ML_TOKEN, db);
-            String mlname = (String) MainActivity.mainActivity.config.get(MainActivity.CONFIG_MASTER_LIST);
-            if (mlname.length() == 0)
+            long token = -1;
+            Map<String,String> whereMap = new ArrayMap<>();
+            whereMap.put("masterlistid",String.valueOf(masterlistid));
+            whereMap.put("name",mlname);
+            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_MASTERLISTS, Arrays.asList("token"),whereMap);
+            if(cursor.moveToFirst())
             {
-                MainActivity.log("OCM_FatController:loadMasterListIntoDB:no masterlist in the settings file. skipping");
-                return;
+                int columnIndex = cursor.getColumnIndex("token");
+                if(!cursor.isNull(columnIndex))
+                    token = cursor.getLong(columnIndex);
             }
+            cursor.close();
             OBXMLManager xmlManager = new OBXMLManager();
             InputStream is = OBUtils.getInputStreamForPath(String.format("masterlists/%s/units.xml", mlname));
             List<OBXMLNode> xml = xmlManager.parseFile(is);
             OBXMLNode rootNode = xml.get(0);
             List<OBXMLNode> masterList = new ArrayList<>();
-            String masterListToken = rootNode.attributeStringValue("token");
-            if(token == null || !token.equals(masterListToken))
+            long masterListToken = rootNode.attributeLongValue("token");
+            if(token < 0 || token != masterListToken)
             {
                 db.beginTransaction();
                 try
                 {
-                    db.doDeleteOnTable(DBSQL.TABLE_UNITS, null);
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put("masterlistid", masterlistid);
+                    contentValues.put("name", mlname);
+                    contentValues.put("folder", mlname);
+                    contentValues.put("token", masterListToken);
+                    db.doReplaceOnTable(DBSQL.TABLE_MASTERLISTS,contentValues);
+                    whereMap = new ArrayMap<>();
+                    whereMap.put("masterlistid",String.valueOf(masterlistid));
+                    db.doDeleteOnTable(DBSQL.TABLE_UNITS, whereMap);
                     int unitIndex = 0;
 
-                        for (OBXMLNode levelNode : rootNode.childrenOfType("level"))
+                    for (OBXMLNode levelNode : rootNode.childrenOfType("level"))
+                    {
+                        int level = levelNode.attributeIntValue("id");
+
+                        List<OBXMLNode> nodes = levelNode.childrenOfType("unit");
+                        masterList.addAll(nodes);
+
+                        for (int i = 0; i < nodes.size(); i++)
                         {
-                            int week = levelNode.attributeIntValue("id");
+                            OBXMLNode node = nodes.get(i);
+                            OCM_MlUnit.insertUnitFromXMLNodeintoDB(db, node, masterlistid, unitIndex, level);
 
-                            List<OBXMLNode> nodes = levelNode.childrenOfType("unit");
-                            masterList.addAll(nodes);
-
-                            for (int i = 0; i < nodes.size(); i++)
-                            {
-                                OBXMLNode node = nodes.get(i);
-                                OCM_MlUnit.insertUnitFromXMLNodeintoDB(db, node, 1, unitIndex, week);
-
-                                unitIndex++;
-                            }
+                            unitIndex++;
                         }
+                    }
 
-                    OBPreferenceManager.setPreference(OBPreferenceManager.PREFERENCE_ML_TOKEN,masterListToken, db);
                     db.setTransactionSuccessful();
                 }
                 finally
@@ -180,9 +207,8 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     private boolean showTestMenu()
     {
+        // Needs to return false, because OC_TestMenu cant work with OCM_FatController
         return false;
-      /*  String value = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SHOW_TEST_MENU);
-        return (value != null && value.equalsIgnoreCase("true"));*/
     }
     /* Functions that manage user
      */
@@ -196,7 +222,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             u = lastUserActiveFromDB(db);
             if (u == null)
             {
-                u = OCM_User.initAndSaveUserInDB(db,"Student");
+                u = OCM_User.initAndSaveUserInDB(db,"Student",STUDY_LISTID,PLAYZONE_LISTID,LIBRARY_LISTID);
             }
             setCurrentUserDB(db,u);
         }
@@ -212,19 +238,20 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         fixMissingStars(currentSessionId);
     }
 
-    private void reloadCurrentMasterlistMaxWeek(DBSQL db)
+    private int maxLevelForListDB(DBSQL db, int masterlistid)
     {
         Map<String,String> map = new ArrayMap<>();
-        map.put("masterlistid", String.valueOf(currentUser.masterlistid));
-        currentMasterlistMaxWeek = 14;
-        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("MAX(week) as week"),map);
+        map.put("masterlistid", String.valueOf(masterlistid));
+        int maxLevel = 1;
+        Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_UNITS, Arrays.asList("MAX(level) as level"),map);
         if(cursor.moveToFirst())
         {
-            int columnIndex = cursor.getColumnIndex("week");
+            int columnIndex = cursor.getColumnIndex("level");
             if(!cursor.isNull(columnIndex))
-                currentMasterlistMaxWeek = cursor.getInt(columnIndex);
+                maxLevel = cursor.getInt(columnIndex);
         }
         cursor.close();
+        return maxLevel;
     }
 
     public static OCM_User lastUserActiveFromDB(DBSQL db)
@@ -250,7 +277,8 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     {
         loadLastSessionFromDB(db, user.userid);
         currentUser = user;
-        reloadCurrentMasterlistMaxWeek(db);
+        currentStudyListMaxWeek = maxLevelForListDB(db, user.studylistid);
+        currentPlayzoneListMaxDay = maxLevelForListDB(db, user.playzonelistid);
         if(currentSessionId == -1)
             prepareNewSessionInDB(db, user.userid);
 
@@ -366,6 +394,35 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         return day;
     }
 
+    public int getMasterlistDay()
+    {
+        int lastDay = currentStudyListMaxWeek * 7;
+        int currentDay = getCurrentDay();
+        if(currentDay <= lastDay)
+        {
+            return currentDay;
+        }
+        else
+        {
+            int currentRestartWeek = MASTERLIST_RESTART_WEEK;
+            if(currentRestartWeek > currentStudyListMaxWeek)
+                currentRestartWeek = 1;
+            int restartDay = (currentRestartWeek-1)*7 + 1;
+            return restartDay + ((currentDay - lastDay - 1) % (lastDay - restartDay + 1));
+        }
+    }
+
+    public int getPlayzoneDay()
+    {
+        int currentDay = getMasterlistDay();
+        return ((currentDay-1)%currentPlayzoneListMaxDay)+1;
+    }
+
+    public int getMasterlistWeek()
+    {
+        return (int)Math.ceil(getMasterlistDay() / 7.0f);
+    }
+
     private void prepareAlarm()
     {
         if(disallowEndHour == disallowStartHour)
@@ -395,10 +452,14 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         if(testMenuMode)
             return;
 
-        if(batteryStatusLow() ||
+        boolean batteryStatusLow = batteryStatusLow();
+        if(batteryStatusLow ||
                 currentSessionLocked() ||
                 checkAndPrepareNewSession())
         {
+            closeCurrentUnitInstance(batteryStatusLow ? OCM_MlUnitInstance.STATUS_BATTERY_LOW
+            : OCM_MlUnitInstance.STATUS_SESSION_LOCKED,MainViewController().topController());
+
             if(currentSessionLocked())
                 signalSessionLocked();
             else if(batteryStatusLow())
@@ -451,6 +512,9 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         if(unitInstance == null)
             return false;
 
+        if(unitInstance.mlUnit.targetDuration < 0)
+            return false;
+
         if(unitInstance != currentUnitInstance)
             return false;
 
@@ -459,7 +523,6 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
         if((unitInstance.startTime + unitInstance.mlUnit.targetDuration) <= getCurrentTime())
         {
-            MainActivity.log("Time out!!");
             timeOutUnit(unitInstance);
             return false;
         }
@@ -472,14 +535,18 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         {
             signalSessionLocked();
         }
-        else if(unitInstance.type == OCM_MlUnitInstance.INSTANCE_TYPE_STUDY &&
-                unitInstance.seqNo >= unitAttemptsCount - 1)
+        else
         {
+            boolean skipUnit = (unitInstance.typeid == OCM_MlUnitInstance.INSTANCE_TYPE_STUDY &&
+                    unitInstance.seqNo >= unitAttemptsCount - 1);
             DBSQL db = null;
             try
             {
                 db = new DBSQL(true);
-                unitInstance.starColour = nextStarColourFromDB(db,OCM_MlUnitInstance.INSTANCE_TYPE_STUDY);
+                if(skipUnit)
+                    unitInstance.starColour = nextStarColourFromDB(db,OCM_MlUnitInstance.INSTANCE_TYPE_STUDY);
+
+                setUnitInstanceStatus(unitInstance, OCM_MlUnitInstance.STATUS_UNIT_TIMEOUT);
                 unitInstance.updateDataInDB(db);
             }catch(Exception e)
             {
@@ -490,18 +557,72 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                 if(db != null)
                     db.close();
             }
-            signalUnitFailed();
-        }
-        else
-        {
-            signalUnitTimedOut();
-        }
 
+            if(skipUnit)
+                signalUnitFailed();
+            else
+                signalUnitTimedOut();
+        }
+        unitInstancesList.remove(unitInstance);
         currentUnitInstance = null;
         if(unitInstance.sectionController != null && !unitInstance.sectionController._aborting)
             unitInstance.sectionController.exitEvent();
+        unitInstance.sectionController = null;
     }
 
+    private void setUnitInstanceStatus(OCM_MlUnitInstance unitInstance, int statusid)
+    {
+        unitInstance.statusid = statusid;
+        unitInstance.endTime = getCurrentTime();
+        unitInstance.scoreCorrect = scoreCorrect;
+        unitInstance.scoreWrong = scoreWrong;
+        unitInstance.elapsedTime = (int)(unitInstance.endTime - unitInstance.startTime);
+        unitInstance.addExtraData("replay_audio",replayAudioCount);
+        if(unitInstance.mlUnit.targetDuration > 0 &&
+                unitInstance.elapsedTime > unitInstance.mlUnit.targetDuration)
+            unitInstance.elapsedTime = unitInstance.mlUnit.targetDuration;
+    }
+
+    public void closeCurrentUnitInstance(int statusid, OBSectionController sectionController)
+    {
+        OCM_MlUnitInstance unitInstance = currentUnitInstance;
+        if(currentUnitInstance == null && sectionController != null)
+        {
+            for(OCM_MlUnitInstance instance : unitInstancesList)
+            {
+                if (instance.sectionController == sectionController)
+                {
+                    unitInstance = instance;
+                    break;
+                }
+            }
+        }
+
+        if(unitInstance != null)
+        {
+            DBSQL db = null;
+            try
+            {
+                db = new DBSQL(true);
+                setUnitInstanceStatus(unitInstance,statusid);
+                unitInstance.updateDataInDB(db);
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+            finally
+            {
+                if(db != null)
+                    db.close();
+            }
+
+            unitInstancesList.remove(unitInstance);
+            unitInstance.sectionController = null;
+        }
+
+        currentUnitInstance = null;
+    }
 
     /*
     callbacks
@@ -527,48 +648,65 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     @Override
     public void onExitSection(OBSectionController cont)
     {
-        currentUnitInstance = null;
         cancelTimeout();
-
+        closeCurrentUnitInstance(OCM_MlUnitInstance.STATUS_USER_CLOSED, cont);
     }
 
+    @Override
+    public void onReplayAudioButtonPressed()
+    {
+        if (currentUnitInstance != null)
+        {
+            replayAudioCount++;
+        }
+    }
+
+    @Override
+    public void onSectionStarted(OBSectionController controller)
+    {
+        if (currentUnitInstance != null)
+        {
+            currentUnitInstance.sectionController = controller;
+        }
+    }
 
     public OCM_MlUnit getNextUnitFromDB(DBSQL db)
     {
         OCM_MlUnit mlUnit = null;
         int currentWeek = getCurrentWeek();
-        int repeatWeek = ((currentWeek-1) % currentMasterlistMaxWeek)+1;
+        int materlistWeek = getMasterlistWeek();
         Cursor cursor = db.prepareRawQuery(String.format("SELECT MAX(unitIndex) AS unitIndex FROM %s AS U "+
-                "JOIN %s AS UI ON UI.unitid = U.unitid "+
+                "JOIN %s AS UI ON UI.unitid = U.unitid AND U.masterlistid = ? "+
                 "JOIN %s AS S ON S.sessionid = UI.sessionid AND S.userid = UI.userid "+
-                "WHERE UI.userid = ? AND U.week = ? AND U.masterlistid = ? AND S.day > ? AND S.day <= ?"+
-                "AND (UI.seqNo >= ? OR UI.endTime > 0)", DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES,DBSQL.TABLE_SESSIONS),
-                Arrays.asList(String .valueOf(currentUser.userid),
-                String.valueOf(repeatWeek),String.valueOf(currentUser.masterlistid),String.valueOf((currentWeek-1)*7),
-                String.valueOf(currentWeek*7),String.valueOf(unitAttemptsCount-1)));
+                "WHERE UI.userid = ? AND U.level = ?  AND S.day > ? AND S.day <= ?"+
+                "AND (UI.seqNo >= ? OR UI.statusid IN (?,?))", DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES,DBSQL.TABLE_SESSIONS),
+                Arrays.asList(String.valueOf(currentUser.studylistid),String .valueOf(currentUser.userid),
+                String.valueOf(materlistWeek),String.valueOf((currentWeek-1)*7),
+                String.valueOf(currentWeek*7),String.valueOf(unitAttemptsCount-1),String.valueOf(OCM_MlUnitInstance.STATUS_COMPLETED),
+                        String.valueOf(OCM_MlUnitInstance.STATUS_FAILURE)));
 
         if(cursor.moveToFirst())
         {
             int columnIndex = cursor.getColumnIndex("unitIndex");
             if(!cursor.isNull(columnIndex))
-                mlUnit = OCM_MlUnit.nextMlUnitFromDB(db,currentUser.masterlistid, cursor.getInt(columnIndex));
+                mlUnit = OCM_MlUnit.nextMlUnitFromDB(db,currentUser.studylistid, cursor.getInt(columnIndex));
         }
         cursor.close();
 
         if(mlUnit == null)
         {
-            cursor = db.prepareRawQuery(String.format("SELECT MIN(unitIndex) AS unitIndex FROM %s AS U WHERE U.week = ? AND U.masterlistid = ?", DBSQL.TABLE_UNITS),
-                    Arrays.asList(String.valueOf(repeatWeek),String.valueOf(currentUser.masterlistid)));
+            cursor = db.prepareRawQuery(String.format("SELECT MIN(unitIndex) AS unitIndex FROM %s AS U WHERE U.level = ? AND U.masterlistid = ?", DBSQL.TABLE_UNITS),
+                    Arrays.asList(String.valueOf(materlistWeek),String.valueOf(currentUser.studylistid)));
 
             if(cursor.moveToFirst())
             {
                 int columnIndex = cursor.getColumnIndex("unitIndex");
                 if(!cursor.isNull(columnIndex))
-                    mlUnit = OCM_MlUnit.mlUnitforMasterlistIDFromDB(db,currentUser.masterlistid, cursor.getInt(columnIndex));
+                    mlUnit = OCM_MlUnit.mlUnitforMasterlistIDFromDB(db,currentUser.studylistid, cursor.getInt(columnIndex));
             }
             cursor.close();
         }
-        if(mlUnit.week != repeatWeek)
+        if(mlUnit.level != materlistWeek)
             return null;
         return mlUnit;
     }
@@ -578,7 +716,52 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     public void initDB()
     {
-        loadMasterListIntoDB();
+        String mlname = OBConfigManager.sharedManager.getMasterlist();
+        if (mlname.length() > 0)
+        {
+            loadMasterListIntoDB(STUDY_LISTID,mlname);
+        }
+        else
+        {
+            MainActivity.log("OCM_FatController:loadMasterListIntoDB:no study masterlist in the settings file. skipping");
+        }
+
+        mlname = OBConfigManager.sharedManager.getMasterlistForPlayzone();
+        if (mlname.length() > 0)
+        {
+            loadMasterListIntoDB(PLAYZONE_LISTID,mlname);
+        }
+        else
+        {
+            MainActivity.log("OCM_FatController:loadMasterListIntoDB:no playzone masterlist in the settings file. skipping");
+        }
+
+        mlname = OBConfigManager.sharedManager.getMasterlistForLibrary();
+        if (mlname.length() > 0)
+        {
+            loadMasterListIntoDB(LIBRARY_LISTID,mlname);
+        }
+        else
+        {
+            MainActivity.log("OCM_FatController:loadMasterListIntoDB:no library masterlist in the settings file. skipping");
+        }
+
+        String mac = OBPreferenceManager.getStringPreference(OBPreferenceManager.PREFERENCES_MAC_NUM);
+        if(mac == null)
+        {
+            mac = OBSystemsManager.sharedManager.device_getMac();
+            if(mac != null)
+                OBPreferenceManager.setPreference(OBPreferenceManager.PREFERENCES_MAC_NUM, mac);
+        }
+
+        String serial = OBPreferenceManager.getStringPreference(OBPreferenceManager.PREFERENCES_SERIAL_NUM);
+        if(serial == null)
+        {
+            serial = OBSystemsManager.sharedManager.device_getSerial();
+            if(serial != null)
+                OBPreferenceManager.setPreference(OBPreferenceManager.PREFERENCES_SERIAL_NUM, serial);
+        }
+
         loadStartDate();
         loadUser();
     }
@@ -594,20 +777,20 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     {
         // initial setup
         //DBSQL.deleteDB();
+        unitInstancesList = new ArrayList<>();
         try
         {
-            unitAttemptsCount = MainActivity.mainActivity.configIntForKey(MainActivity.CONFIG_UNIT_TIMEOUT_COUNT);
-            String disallowHours = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_DISALLOW_HOURS);
+            unitAttemptsCount = OBConfigManager.sharedManager.getFatControllerMaxUnitAttempts();
+            String disallowHours = OBConfigManager.sharedManager.getFatControllerNightModeHours();
             String[] disallowArray = disallowHours.split(",");
             disallowStartHour = Integer.valueOf(disallowArray[0]);
             disallowEndHour = Integer.valueOf(disallowArray[1]);
-            showUserName = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_SHOW_USER_NAME);
-            allowsTimeOuts = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_ALLOWS_TIMEOUT);
-            playzoneActiveHour = MainActivity.mainActivity.configIntForKey(MainActivity.CONFIG_PLAYZONE_ACTIVE_HOUR);
-
-            Map<String, Object> criticalBatteryLevels =  OBSystemsManager.sharedManager.getBatterySettingsForLevel(MainActivity.CONFIG_BATTERY_LEVEL_CRITICAL);
-            if(criticalBatteryLevels == null) lockBatteryLevel = 10;
-            lockBatteryLevel = Float.parseFloat((String)criticalBatteryLevels.get(MainActivity.CONFIG_MAXIMUM_BATTERY_VALUE));
+            showUserName = OBConfigManager.sharedManager.shouldFatControllerShowUserName();
+            allowsTimeOuts = OBConfigManager.sharedManager.isFatControllerSessionTimeoutEnabled();
+            playzoneActiveHour = OBConfigManager.sharedManager.getFatControllerPlayzoneActiveHour();
+            lockBatteryLevel = OBConfigManager.sharedManager.getBatteryMaxValueForLevel(OBConfigManager.BATTERY_LEVEL_CRITICAL);
+            playzoneLockTimeout = OBConfigManager.sharedManager.getFatControllerPlayzoneLockTimeout();
+            if (lockBatteryLevel < 0) lockBatteryLevel = 10;
         }
         catch (Exception e)
         {
@@ -618,12 +801,13 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             allowsTimeOuts = true;
             playzoneActiveHour = 12;
             lockBatteryLevel = 10;
+            playzoneLockTimeout = 10;
         }
         initDB();
         //
         timeoutHandler = new Handler();
         // Setup screen
-        Boolean usesSetupMenu = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_USES_SETUP_MENU);
+        Boolean usesSetupMenu = OBConfigManager.sharedManager.isSetupMenuEnabled();
         Boolean isSetupComplete = OBPreferenceManager.getBooleanPreference(OBPreferenceManager.PREFERENCES_SETUP_COMPLETE);
         long trialTimestamp = OBPreferenceManager.getLongPreference(OBPreferenceManager.PREFERENCES_TRIAL_START_TIMESTAMP);
         if(trialTimestamp < 0 && currentTimeIsDirty())
@@ -633,10 +817,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         {
             // before overriding the app_code save it in the preferences to restore after setup is complete
             testMenuMode = true;
-            menuAppCode = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_APP_CODE);
-            MainActivity.mainActivity.updateConfigPaths(MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SETUP_FOLDER), true, null);
-
-            String setupClassName = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_SETUP_CLASS);
+            menuAppCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
+            OBConfigManager.sharedManager.updateConfigPaths(OBConfigManager.sharedManager.getSetupMenuFolder(), true);
+            //
+            String setupClassName = OBConfigManager.sharedManager.getSetupMenuClassName();
             if (setupClassName != null)
             {
                 MainActivity.mainViewController.pushViewControllerWithName(setupClassName, false, true, "menu");
@@ -659,12 +843,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                 // restore app_code is it's coming from setup
                 if (menuAppCode != null)
                 {
-                    MainActivity.mainActivity.updateConfigPaths(menuAppCode, true, null);
+                    OBConfigManager.sharedManager.updateConfigPaths(menuAppCode, true);
                 }
                 //
-                String menuClassName = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MENU_CLASS);
-
-                String appCode = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_APP_CODE);
+                String menuClassName = OBConfigManager.sharedManager.getMenuClassName();
+                String appCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
                 //
                 MainActivity.log("OC_FatController:startUp: pushing view controller [%s] [%s]", menuClassName, appCode);
                 //
@@ -711,7 +894,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     {
         if(currentUnitInstance == null)
             return;
-        scoreCorrect = scoreWrong = 0;
+        scoreCorrect = scoreWrong = replayAudioCount = 0;
     }
 
     @Override
@@ -741,6 +924,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                 signalUnitSucceeded();
 
             starColour = currentUnitInstance.starColour;
+            unitInstancesList.remove(currentUnitInstance);
             currentUnitInstance.sectionController = null;
             currentUnitInstance = null;
         }
@@ -752,7 +936,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                 cont.displayAward();
         }catch (Exception e)
         {
-
+            e.printStackTrace();
         }
         if(!cont._aborting)
             cont.exitEvent();
@@ -775,11 +959,20 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             if (tot > 0)
                 finalScore = scoreCorrect * 1.0f / tot;
 
-            currentUnitInstance.endTime = getCurrentTime();
-            currentUnitInstance.score = finalScore;
-            currentUnitInstance.elapsedTime = (int)(currentUnitInstance.endTime - currentUnitInstance.startTime);
-            currentUnitInstance.starColour = nextStarColourFromDB(db, currentUnitInstance.type);
+            setUnitInstanceStatus(currentUnitInstance,OCM_MlUnitInstance.STATUS_COMPLETED);
+            if(currentUnitInstance.mlUnit.masterlistid == currentUser.studylistid)
+                currentUnitInstance.starColour = nextStarColourFromDB(db, currentUnitInstance.typeid);
+
             currentUnitInstance.updateDataInDB(db);
+            //
+           /* if (communityModeActive())
+            {
+                OBAnalyticsManager.sharedManager.communityModeUnitCompleted(currentUnitInstance.mlUnit.key, currentUnitInstance.startTime, currentUnitInstance.endTime, finalScore, currentUnitInstance.replayAudioCount);
+            }
+            else
+            {
+                OBAnalyticsManager.sharedManager.studyZoneUnitCompleted(currentUnitInstance.mlUnit.key, currentUnitInstance.startTime, currentUnitInstance.endTime, finalScore, currentUnitInstance.replayAudioCount);
+            }*/
         }
         catch(Exception e)
         {
@@ -852,7 +1045,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         try
         {
             db = new DBSQL(false);
-            int count = sessionUnitCountDB(db,currentSessionId,currentUser.userid);
+            int count = sessionUnitCountDB(db,currentSessionId,currentUser.userid, currentUser.studylistid);
             if(count >= SESSION_UNIT_COUNT)
             {
                 dict.put("community",true);
@@ -897,18 +1090,18 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             db = new DBSQL(false);
             Cursor cursor = db.prepareRawQuery(String.format("SELECT * FROM %s "+
                             "WHERE unitid IN (SELECT unitid FROM %s "+
-                            "WHERE userid = ? AND sessionid = ?) "+
+                            "WHERE userid = ? AND sessionid = ?) AND masterlistid = ? "+
                             "GROUP BY unitid ORDER BY unitIndex ASC",DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES),
-                    Arrays.asList(String.valueOf(currentUser.userid),String.valueOf(currentSessionId)));
+                    Arrays.asList(String.valueOf(currentUser.userid),String.valueOf(currentSessionId),String.valueOf(currentUser.studylistid)));
 
             if(cursor.getCount() != SESSION_UNIT_COUNT)
             {
                 cursor.close();
                 cursor = db.prepareRawQuery(String.format("SELECT * FROM %s "+
                                 "WHERE unitid IN (SELECT unitid FROM %s "+
-                                "WHERE week = ? ORDER BY unitIndex DESC LIMIT %d) "+
+                                "WHERE level = ? ORDER BY unitIndex DESC LIMIT %d) AND masterlistid = ? "+
                                 "GROUP BY unitid ORDER BY unitIndex ASC",DBSQL.TABLE_UNITS,DBSQL.TABLE_UNITS,SESSION_UNIT_COUNT),
-                        Arrays.asList(String.valueOf(getCurrentWeek())));
+                        Arrays.asList(String.valueOf(getCurrentWeek()),String.valueOf(currentUser.studylistid)));
             }
 
             if(cursor.moveToFirst())
@@ -994,18 +1187,20 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             try
             {
                 int unitIndex = -1;
-                Cursor cursor = db.prepareRawQuery(String.format("SELECT unitIndex FROM %s " +
-                                "WHERE week = ? AND masterlistid = ? ORDER BY unitIndex DESC LIMIT 1",DBSQL.TABLE_UNITS)
-                        ,Arrays.asList(String.valueOf(getCurrentWeek()),String.valueOf(currentUser.masterlistid)));
+                Cursor cursor = db.prepareRawQuery(String.format("SELECT MAX(unitIndex) as unitIndex FROM %s " +
+                                "WHERE level = ? AND masterlistid = ?",DBSQL.TABLE_UNITS)
+                        ,Arrays.asList(String.valueOf(getCurrentWeek()),String.valueOf(currentUser.studylistid)));
 
                 if(cursor.moveToFirst())
                 {
-                    unitIndex = cursor.getInt(cursor.getColumnIndex("unitIndex"));
+                    int index = cursor.getColumnIndex("unitIndex");
+                    if(!cursor.isNull(index))
+                        unitIndex = cursor.getInt(index);
                 }
                 cursor.close();
 
                 if(unitIndex >= 0)
-                    listWeekEndReached = unitCompletedByUser(db, currentUser.userid, currentUser.masterlistid, unitIndex);
+                    listWeekEndReached = unitCompletedByUser(db, currentUser.userid, currentUser.studylistid, unitIndex);
 
             }
             catch (Exception e)
@@ -1029,10 +1224,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         List<Integer> coloursList = new ArrayList<>();
         Cursor cursor = db.prepareRawQuery(String.format("SELECT UI.starColour as starColour FROM %s AS UI" +
                         " JOIN %s AS U ON U.unitid = UI.unitid" +
-                        " WHERE UI.userid = ? AND UI.sessionid = ?" +
-                        " AND UI.starColour > 0 AND UI.type = ?" +
+                        " WHERE UI.userid = ? AND UI.sessionid = ? AND U.masterlistid = ?" +
+                        " AND UI.starColour > 0 AND UI.typeid = ?" +
                         " GROUP BY UI.unitid ORDER BY U.unitIndex ASC", DBSQL.TABLE_UNIT_INSTANCES, DBSQL.TABLE_UNITS),
-                Arrays.asList(String.valueOf(currentUser.userid),String.valueOf(sessionid),String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_STUDY)));
+                Arrays.asList(String.valueOf(currentUser.userid),String.valueOf(sessionid),String.valueOf(currentUser.studylistid),String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_STUDY)));
 
         if(cursor.moveToFirst())
         {
@@ -1053,11 +1248,12 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     {
         List<Integer> coloursList = new ArrayList<>();
         Cursor cursor = db.prepareRawQuery(String.format("SELECT UI.starColour as starColour FROM %s AS UI "+
-                        "JOIN (SELECT UI.unitid as unitid, MAX(UI.seqNo) as seqNo FROM %s AS UI "+
-                        "WHERE UI.userid = ? AND UI.sessionid = ? AND UI.starColour > 0 AND UI.type = ? "+
+                        "JOIN (SELECT UI.unitid as unitid, MAX(UI.seqNo) as seqNo FROM %s AS UI " +
+                        "JOIN %s AS U on U.unitid = UI.unitid AND U.masterlistid = ? "+
+                        "WHERE UI.userid = ? AND UI.sessionid = ? AND UI.starColour > 0 AND UI.typeid = ? "+
                         "GROUP BY UI.unitid) AS TAB ON UI.unitid = TAB.unitid AND UI.seqNo = TAB.seqNo "+
-                        "WHERE UI.userid = ? AND UI.sessionid = ? AND UI.type =?",DBSQL.TABLE_UNIT_INSTANCES,DBSQL.TABLE_UNIT_INSTANCES),
-                Arrays.asList(String.valueOf(currentUser.userid),String.valueOf(sessionid),String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_REVIEW),
+                        "WHERE UI.userid = ? AND UI.sessionid = ? AND UI.typeid =?",DBSQL.TABLE_UNIT_INSTANCES,DBSQL.TABLE_UNIT_INSTANCES,DBSQL.TABLE_UNITS),
+                Arrays.asList(String.valueOf(currentUser.studylistid),String.valueOf(currentUser.userid),String.valueOf(sessionid),String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_REVIEW),
                         String.valueOf(currentUser.userid),String.valueOf(sessionid),String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_REVIEW)));
         if(cursor.moveToFirst())
         {
@@ -1114,11 +1310,12 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         {
             db = new DBSQL(true);
             Cursor cursor = db.prepareRawQuery(String.format("SELECT UI.unitid as unitid, MAX(UI.seqNo) as seqNo FROM %s AS UI "+
-                            "WHERE UI.userid = ? AND UI.sessionid= ? AND UI.type = ?"+
-                            "AND (UI.seqNo >= ? OR UI.endTime > 0) AND UI.starColour < 0 "+
+                            "WHERE UI.userid = ? AND UI.sessionid= ? AND UI.typeid = ?"+
+                            "AND (UI.seqNo >= ? OR UI.statusid IN(?,?)) AND UI.starColour < 0 "+
                             "GROUP BY UI.unitid", DBSQL.TABLE_UNIT_INSTANCES),
                     Arrays.asList(String.valueOf(currentUser.userid),String.valueOf(sessionId),
-                            String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_STUDY),String.valueOf(unitAttemptsCount-1)));
+                            String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_STUDY),String.valueOf(unitAttemptsCount-1),
+                            String.valueOf(OCM_MlUnitInstance.STATUS_COMPLETED),String.valueOf(OCM_MlUnitInstance.STATUS_FAILURE)));
 
             List<Map<String,Integer>> fixUnits = new ArrayList<>();
             if(cursor.moveToFirst())
@@ -1151,7 +1348,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                     Map<String,String> whereMap = new ArrayMap<>();
                     whereMap.put("userid",String.valueOf(currentUser.userid));
                     whereMap.put("sessionid",String.valueOf(sessionId));
-                    whereMap.put("type",String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_STUDY));
+                    whereMap.put("typeid",String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_STUDY));
                     whereMap.put("unitid",String.valueOf(unitData.get("unitid")));
                     whereMap.put("seqNo",String.valueOf(unitData.get("seqNo")));
                     ContentValues contentValues = new ContentValues();
@@ -1185,7 +1382,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     public void startSectionByUnitNoUser(final OCM_MlUnit unit)
     {
-        final String lastAppCode = (String)MainActivity.mainActivity.config.get(MainActivity.CONFIG_APP_CODE);
+        final String lastAppCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
         currentUnitInstance = null;
         //
         new OBRunnableSyncUI()
@@ -1193,63 +1390,66 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             @Override
             public void ex ()
             {
-                String lang = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_LANGUAGE);
-                if(lang == null)
-                    lang = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_DEFAULT_LANGUAGE);
+                String lang = OBConfigManager.sharedManager.getCurrentLanguage();
+                //
                 try
                 {
-                    MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
+                    OBConfigManager.sharedManager.updateConfigPaths(unit.config, false, unit.lang);
                     if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
 
                     }
                     else
                     {
-                        if (MainActivity.mainActivity.isDebugMode())
+                        if (OBConfigManager.sharedManager.isDebugEnabled())
                         {
                             Toast.makeText(MainActivity.mainActivity, unit.target + " hasn't been converted to Android yet.", Toast.LENGTH_LONG).show();
-                            MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, lang);
+                            OBConfigManager.sharedManager.updateConfigPaths(lastAppCode, false, lang);
                         }
                     }
                 }
                 catch (Exception exception)
                 {
-                    if (MainActivity.mainActivity.isDebugMode())
+                    if (OBConfigManager.sharedManager.isDebugEnabled())
                     {
                         Toast.makeText(MainActivity.mainActivity, unit.target + " failed to open the unit.", Toast.LENGTH_LONG).show();
-                        MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, lang);
+                        OBConfigManager.sharedManager.updateConfigPaths(lastAppCode, false, lang);
                     }
                     Logger logger = Logger.getAnonymousLogger();
                     logger.log(Level.SEVERE, "Error in runOnMainThread", exception);
 
-                    MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, lang);
+                    OBConfigManager.sharedManager.updateConfigPaths(lastAppCode, false, lang);
                 }
             }
         }.run();
     }
 
-    public void startSectionByUnit(final OCM_MlUnit unit, boolean study, final SectionOpeningCallback openingCallback)
+    public void startUnit(final OCM_MlUnit unit, final int instanceType, final SectionOpeningCallback openingCallback)
     {
-        sectionStartedWithUnit(unit, study ? OCM_MlUnitInstance.INSTANCE_TYPE_STUDY : OCM_MlUnitInstance.INSTANCE_TYPE_REVIEW);
-        final String lastAppCode = (String)MainActivity.mainActivity.config.get(MainActivity.CONFIG_APP_CODE);
+        sectionStartedWithUnit(unit, instanceType);
+        final String lastAppCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
         new OBRunnableSyncUI()
         {
             @Override
             public void ex ()
             {
 
-                String lang = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_LANGUAGE);
-                if(lang == null)
-                    lang = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_DEFAULT_LANGUAGE);
+                String lang = OBConfigManager.sharedManager.getCurrentLanguage();
+                //
                 try
                 {
-
-                    MainActivity.mainActivity.updateConfigPaths(unit.config, false, unit.lang);
-                    //if(OBMainViewController.MainViewController().pushViewControllerWithNameConfig("OC_TestEvent","oc-childmenu",true,true,"test"))
+                    /*
+                    //TEST PARAMS
+                    unit.config = "oc-community";
+                    unit.target = "OCM_TestEvent";
+                    unit.params = "test";
+                    */
+                    OBConfigManager.sharedManager.updateConfigPaths(unit.config, false, unit.lang);
                     if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
-                        currentUnitInstance.sectionController = MainViewController().topController();
-                        if (MainActivity.mainActivity.isDebugMode())
+                        //currentUnitInstance.sectionController = MainViewController().topController();
+                        unitInstancesList.add(currentUnitInstance);
+                        if (OBConfigManager.sharedManager.isDebugEnabled())
                         {
                             OBSystemsManager.sharedManager.setCurrentUnit(unit.key);
                         }
@@ -1259,35 +1459,51 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                     }
                     else
                     {
-                        if (MainActivity.mainActivity.isDebugMode())
+                        if (OBConfigManager.sharedManager.isDebugEnabled())
                         {
                             Toast.makeText(MainActivity.mainActivity, unit.target + " hasn't been converted to Android yet.", Toast.LENGTH_LONG).show();
                         }
-                        MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, lang);
+                        OBConfigManager.sharedManager.updateConfigPaths(lastAppCode, false, lang);
+
                         openingCallback.run(currentUnitInstance, false);
+                        signalUnitSucceeded();
+                        closeCurrentUnitInstance(OCM_MlUnitInstance.STATUS_FAILURE, null);
+
                     }
                 }
                 catch (Exception ex)
                 {
-                    if (MainActivity.mainActivity.isDebugMode())
+                    if (OBConfigManager.sharedManager.isDebugEnabled())
                     {
                         Toast.makeText(MainActivity.mainActivity, unit.target + " failed to open.", Toast.LENGTH_LONG).show();
                     }
                     Logger logger = Logger.getAnonymousLogger();
                     logger.log(Level.SEVERE, "Error in runOnMainThread", ex);
 
-                    MainActivity.mainActivity.updateConfigPaths(lastAppCode, false, lang);
+                    StringWriter sw = new StringWriter();
+                    PrintWriter pw = new PrintWriter(sw);
+                    ex.printStackTrace(pw);
+                    currentUnitInstance.addExtraData("error", sw.toString());
+
+                    OBConfigManager.sharedManager.updateConfigPaths(lastAppCode, false, lang);
                     openingCallback.run(currentUnitInstance, false);
+                    signalUnitSucceeded();
+                    closeCurrentUnitInstance(OCM_MlUnitInstance.STATUS_FAILURE, null);
+
                 }
-
-
             }
         }.run();
+    }
 
+    public void startSectionByUnit(final OCM_MlUnit unit, boolean study, final SectionOpeningCallback openingCallback)
+    {
+        startUnit(unit,study ? OCM_MlUnitInstance.INSTANCE_TYPE_STUDY : OCM_MlUnitInstance.INSTANCE_TYPE_REVIEW,openingCallback);
     }
 
     public void startPlayZone(final boolean transfer,final boolean first)
     {
+        OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.PLAY_ZONE);
+        //
         new OBRunnableSyncUI()
         {
             @Override
@@ -1295,15 +1511,14 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             {
                 try
                 {
-
                     StringBuffer stringBuffer = new StringBuffer("menu");
                     if(transfer)
                         stringBuffer.append("/intro=true");
                     if(first)
                         stringBuffer.append("/first=true");
 
-                    String lang = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_DEFAULT_LANGUAGE);
-                    MainActivity.mainActivity.updateConfigPaths("oc-playzone", false, lang);
+                    String lang = OBConfigManager.sharedManager.getCurrentLanguage();
+                    OBConfigManager.sharedManager.updateConfigPaths("oc-playzone", false, lang);
                     if(MainViewController().pushViewControllerWithNameConfig("OC_PlayZoneMenu","oc-playzone",false,true,stringBuffer.toString()))
                     {
 
@@ -1323,6 +1538,139 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     }
 
 
+    public List<OCM_MlUnit> getUnitsForPlayzone()
+    {
+        List<OCM_MlUnit> unitsList = new ArrayList<>();
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(false);
+
+            Cursor cursor = db.prepareRawQuery(String.format("SELECT * FROM %s WHERE masterlistid = ? AND level = ?",DBSQL.TABLE_UNITS),
+                        Arrays.asList(String.valueOf(currentUser.playzonelistid),String.valueOf(getPlayzoneDay())));
+
+
+            if(cursor.moveToFirst())
+            {
+                while (cursor.isAfterLast() == false)
+                {
+                    unitsList.add(OCM_MlUnit.mlUnitFromCursor(cursor));
+                    cursor.moveToNext();
+                }
+            }
+            cursor.close();
+        }catch (Exception e)
+        {}
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+
+        return unitsList;
+    }
+
+    public int getPlayzoneLockUnitId()
+    {
+        int playZoneFunTime = playzoneLockTimeout * 60;
+        int returnUnitId = -1;
+
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(false);
+
+            Cursor cursor = db.prepareRawQuery(String.format(
+                    "SELECT SUM(elapsedTime) as elapsed FROM %s AS UI " +
+                            "JOIN %s AS U ON U.unitid = UI.unitid AND U.masterlistid = ?" +
+                            "WHERE  UI.sessionid = ? AND U.typeid = ? " +
+                            "AND UI.startTime > (SELECT IFNULL(MAX(startTime),0) " +
+                            "FROM %s WHERE sessionid = UI.sessionid AND typeid = ?)",
+                    DBSQL.TABLE_UNIT_INSTANCES, DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES),
+                    Arrays.asList(String.valueOf(currentUser.playzonelistid),String.valueOf(currentSessionId)
+                            ,String.valueOf(OCM_MlUnit.TYPE_PLAYZONE_FUN),
+                            String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_PZ_LOCKED))
+
+            );
+
+            long elapsed = -1;
+            if(cursor.moveToFirst())
+            {
+                int index = cursor.getColumnIndex("elapsed");
+                if(!cursor.isNull(index))
+                    elapsed = cursor.getLong(index);
+            }
+            cursor.close();
+
+
+            if(elapsed >= playZoneFunTime)
+            {
+                cursor = db.prepareRawQuery(String.format("SELECT U.unitid as unitid, COUNT(UI.unitid) as count " +
+                                "FROM %s AS U LEFT JOIN %s AS UI ON U.unitid = UI.unitid " +
+                                "AND UI.sessionid = ? WHERE U.typeid = ? AND U.masterlistid = ? " +
+                                "AND U.level = ? GROUP BY U.unitid ORDER BY count, U.unitIndex LIMIT 1",
+                        DBSQL.TABLE_UNITS, DBSQL.TABLE_UNIT_INSTANCES),
+                        Arrays.asList(String.valueOf(currentSessionId),String.valueOf(OCM_MlUnit.TYPE_PLAYZONE_STUDY),
+                                String.valueOf(currentUser.playzonelistid),String.valueOf(getPlayzoneDay())));
+                if(cursor.moveToFirst())
+                {
+                    int index = cursor.getColumnIndex("unitid");
+                    if(!cursor.isNull(index))
+                        returnUnitId = cursor.getInt(index);
+                }
+                cursor.close();
+            }
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+
+
+        return returnUnitId;
+    }
+
+
+    public Map<Integer,List<OCM_MlUnit>> getUnitsForLibrary()
+    {
+        Map<Integer,List<OCM_MlUnit>> unitsMap = new ArrayMap();
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(false);
+
+            Cursor cursor = db.prepareRawQuery(String.format("SELECT * FROM %s WHERE masterlistid = ? ORDER BY level, unitIndex",DBSQL.TABLE_UNITS),
+                    Arrays.asList(String.valueOf(currentUser.librarylistid)));
+
+
+            if(cursor.moveToFirst())
+            {
+                while (cursor.isAfterLast() == false)
+                {
+                    OCM_MlUnit mlUnit = OCM_MlUnit.mlUnitFromCursor(cursor);
+                    if(!unitsMap.containsKey(mlUnit.level))
+                        unitsMap.put(mlUnit.level, new ArrayList<OCM_MlUnit>());
+
+                    unitsMap.get(mlUnit.level).add(mlUnit);
+                    cursor.moveToNext();
+                }
+            }
+            cursor.close();
+        }catch (Exception e)
+        {}
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+
+        return unitsMap;
+    }
     /*
         unit check stuff
      */
@@ -1352,17 +1700,15 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     public boolean unitCompletedByUser(DBSQL db, int userid, int masterlistid, int unitIndex)
     {
         Cursor cursor = db.prepareRawQuery(String.format("SELECT U.unitid FROM %s AS U JOIN %s AS UI ON UI.unitid = U.unitid " +
-                        "WHERE UI.userid = ? AND U.masterlistid = ? AND U.unitIndex = ? AND UI.endTime > 0",
+                        "WHERE UI.userid = ? AND U.masterlistid = ? AND U.unitIndex = ? AND (UI.seqNo >= ? OR UI.statusid IN(?,?))",
                 DBSQL.TABLE_UNITS,  DBSQL.TABLE_UNIT_INSTANCES),
-                Arrays.asList(String.valueOf(userid),String.valueOf(masterlistid),String.valueOf(unitIndex)));
+                Arrays.asList(String.valueOf(userid),String.valueOf(masterlistid),
+                        String.valueOf(unitIndex),String.valueOf(unitAttemptsCount-1),
+                        String.valueOf(OCM_MlUnitInstance.STATUS_COMPLETED),String.valueOf(OCM_MlUnitInstance.STATUS_FAILURE)));
 
         boolean rowExists = cursor.moveToFirst();
         cursor.close();
         if(rowExists)
-            return true;
-
-
-        if(unitAttemptsCount>0 && (unitAttemptsCount-1) <= unitAttemptsCountInDB(db, userid, masterlistid, unitIndex))
             return true;
 
         return false;
@@ -1488,7 +1834,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         try
         {
             db = new DBSQL(false);
-            result =  sessionUnitCountDB(db, currentSessionId, currentUser.userid);
+            result =  sessionUnitCountDB(db, currentSessionId, currentUser.userid, currentUser.studylistid);
         }
         catch(Exception e)
         {
@@ -1502,7 +1848,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         return result;
     }
 
-    private int sessionUnitCountDB(DBSQL db, int sessionid, int userid)
+    private int sessionUnitCountDB(DBSQL db, int sessionid, int userid, int masterlistid)
     {
         if(sessionid < 0)
             return 0;
@@ -1510,10 +1856,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         int result = 0;
 
         Cursor cursor = db.prepareRawQuery(String.format("SELECT COUNT(DISTINCT(UI.unitid)) AS count FROM %s AS U "+
-                "JOIN %s AS UI ON UI.unitid = U.unitid "+
+                "JOIN %s AS UI ON UI.unitid = U.unitid AND U.masterlistid = ? "+
                 "WHERE UI.userid = ? AND UI.sessionid = ? "+
-                "AND (UI.seqNo >= ? OR UI.endTime > 0)",DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES),Arrays.asList(String.valueOf(userid),
-                String.valueOf(sessionid),String.valueOf(unitAttemptsCount-1)));
+                "AND (UI.seqNo >= ? OR UI.statusid IN (?,?))",DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES),Arrays.asList(String.valueOf(masterlistid),
+                String.valueOf(userid),String.valueOf(sessionid),String.valueOf(unitAttemptsCount-1),String.valueOf(OCM_MlUnitInstance.STATUS_COMPLETED),
+                String.valueOf(OCM_MlUnitInstance.STATUS_FAILURE)));
 
         int columnIndex = cursor.getColumnIndex("count");
         if(cursor.moveToFirst() && !cursor.isNull(columnIndex))
@@ -1546,7 +1893,6 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     {
         if(!currentSessionFinished())
             finishCurrentSessionInDB(db);
-
 
         currentSessionStartTime = 0;
         currentSessionEndTime = 0;
@@ -1704,6 +2050,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
      */
     public List<OC_PlayZoneAsset> getPlayZoneAssetForCurrentUser()
     {
+        if (currentUser == null)
+        {
+            return new ArrayList<>();
+        }
+        //
         List<OC_PlayZoneAsset> assets = OC_PlayZoneAsset.assetsFromDBForUserId(currentUser.userid);
         if(assets.size() > MAX_PZ_ASSETS)
         {
@@ -1720,12 +2071,16 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     public boolean savePlayZoneAssetForCurrentUserType(int type,String thumbnail,Map<String,String> params)
     {
+        OBAnalyticsManager.sharedManager.playZoneAssetCreated(type, params);
+        //
         boolean result = false;
         DBSQL db = null;
         try
         {
             db = new DBSQL(true);
-            result = OC_PlayZoneAsset.saveAssetInDBForUserId(db,currentUser.userid,type,thumbnail,params);
+            long assetId = OC_PlayZoneAsset.saveAssetInDBForUserId(db,currentUser.userid,type,thumbnail,params);
+            if(currentUnitInstance != null)
+                currentUnitInstance.assetid = assetId;
         }
         catch(Exception e)
         {
@@ -1752,7 +2107,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     public void loadBatteryIcon(OBSectionController controller)
     {
-        OBControl batteryIcon = null;
+        OBGroup batteryIcon = null;
         if(!controller.objectDict.containsKey("battery_icon"))
         {
             batteryIcon = controller.loadVectorWithName("battery_icon", new PointF(0.9f, 0.9f), controller.boundsf());
@@ -1760,6 +2115,8 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             batteryIcon.setRight(controller.boundsf().right - controller.applyGraphicScale(10));
             batteryIcon.setBottom(controller.boundsf().bottom - controller.applyGraphicScale(10));
             batteryIcon.setZPosition(100);
+            OBControl bar = batteryIcon.objectDict.get("level_bar");
+            bar.setAnchorPoint(1,0.5f);
             controller.objectDict.put("battery_icon", batteryIcon);
             refreshBatteryStatus(controller);
         }
@@ -1770,28 +2127,28 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     {
         float batteryLevel = OBSystemsManager.sharedManager.getBatteryLevel();
         boolean charging = OBSystemsManager.sharedManager.isBatteryCharging();
-        refreshBatteryStatus(batteryLevel,charging,controller);
+        setBatteryChargingLevel(batteryLevel,charging,controller);
     }
 
-    public void refreshBatteryStatus(float batteryLevel, boolean charging, OBSectionController controller)
-    {
-        if(charging)
-            setBatteryLevel(controller,0);
-        else if(batteryLevel > 60.0)
-            setBatteryLevel(controller,3);
-        else if(batteryLevel > 20.0)
-            setBatteryLevel(controller,2);
-        else
-            setBatteryLevel(controller,1);
-    }
-
-    private void setBatteryLevel(OBSectionController controller, int level)
+    public void setBatteryChargingLevel(float level, boolean charging, OBSectionController controller)
     {
         if(controller.objectDict.containsKey("battery_icon"))
         {
             OBGroup batteryIcon = (OBGroup)controller.objectDict.get("battery_icon");
             batteryIcon.hideMembers("level_.*");
-            batteryIcon.objectDict.get(String.format("level_%d",level)).show();
+            if(charging)
+                batteryIcon.objectDict.get("level_charging").show();
+
+            if(level > 20.0)
+            {
+                OBControl bar = batteryIcon.objectDict.get("level_bar");
+                bar.setScaleX(OB_Maths.clamp01(level/100.0f));
+                bar.show();
+            }
+            else
+            {
+                batteryIcon.objectDict.get("level_low").show();
+            }
         }
     }
 
@@ -1806,5 +2163,17 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         DBSQL.deleteDB();
         MainActivity.mainActivity.restartApplication();
     }
+
+    public boolean shouldCollectMiscData()
+    {
+        return true;
+    }
+
+    public void collectMiscData(String tag, Object data)
+    {
+        if(currentUnitInstance != null)
+            currentUnitInstance.addExtraData(tag, data);
+    }
+
 
 }

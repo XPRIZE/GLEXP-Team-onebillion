@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
@@ -12,22 +13,27 @@ import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OC_SectionController;
+import org.onebillion.onecourse.mainui.oc_countingpractice.OC_CountingPractice;
+import org.onebillion.onecourse.mainui.oc_lettersandsounds.OC_Wordcontroller;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBAudioManager;
 import org.onebillion.onecourse.utils.OBAudioPlayer;
+import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBUserPressedBackException;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static org.onebillion.onecourse.utils.OB_Maths.PointDistance;
+import static org.onebillion.onecourse.utils.OB_Maths.randomInt;
 import static org.onebillion.onecourse.utils.OB_Maths.relativePointInRectForLocation;
 
 /**
@@ -45,10 +51,24 @@ public class OC_Generic_Event extends OC_SectionController
     int savedStatus;
     List<Object> savedReplayAudio;
     OBAnimationGroup returnToOriginalPositionAnimation;
+    //
+    public double lastActionTakenTimestamp;
+
+
+    public interface RunLambdaWithTimestamp
+    {
+        void run (double timestamp) throws Exception;
+    }
 
     public OC_Generic_Event ()
     {
         super();
+    }
+
+
+    public void updateLastActionTakenTimeStamp ()
+    {
+        lastActionTakenTimestamp = getCurrentTimeDouble();
     }
 
     public void prepare ()
@@ -71,6 +91,9 @@ public class OC_Generic_Event extends OC_SectionController
         {
             doVisual(currentEvent());
         }
+        //
+        updateLastActionTakenTimeStamp();
+        checkAndUpdateFinale();
     }
 
 
@@ -151,6 +174,55 @@ public class OC_Generic_Event extends OC_SectionController
             });
         }
     }
+
+
+    public boolean isStatusIdle ()
+    {
+        return status() == STATUS_IDLE || status() == STATUS_WAITING_FOR_DRAG || status() == STATUS_AWAITING_CLICK || status() == STATUS_WAITING_FOR_TRACE || status() == STATUS_WAITING_FOR_TRACE;
+    }
+
+
+    public String getReminderKey ()
+    {
+        return this.currentEvent();
+    }
+
+
+    public void doReminderWithKey (final String key, final double reminderDelay, final RunLambdaWithTimestamp block) throws Exception
+    {
+        if (key == null) return;
+        //
+        if (!key.equals(getReminderKey())) return;
+        //
+        if (lastActionTakenTimestamp == -1) return;
+        //
+        double timestamp = lastActionTakenTimestamp;
+        double elapsed = getCurrentTimeDouble() - lastActionTakenTimestamp;
+        if (this.isStatusIdle() && elapsed > reminderDelay)
+        {
+            if (block != null)
+            {
+                block.run(timestamp);
+            }
+        }
+        else
+        {
+            OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
+            {
+                public void run () throws Exception
+                {
+                    OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                    {
+                        public void run () throws Exception
+                        {
+                            doReminderWithKey(key, reminderDelay, block);
+                        }
+                    });
+                }
+            });
+        }
+    }
+
 
 
     public void doMainXX () throws Exception
@@ -552,6 +624,42 @@ public class OC_Generic_Event extends OC_SectionController
         return OC_Generic.action_createLabelForControl(control, finalResizeFactor, insertIntoGroup, this);
     }
 
+    public OBLabel action_createLabelForControl (OBControl control, String text, int colour, float finalResizeFactor)
+    {
+        control.setProperty("text", text);
+        OBLabel result = OC_Generic.action_createLabelForControl(control, finalResizeFactor, false, this);
+        result.setColour(colour);
+        return result;
+    }
+
+
+    public List breakdownLabel (OBLabel mLabel)
+    {
+        List result = new ArrayList<>();
+        String text = mLabel.text();
+        Typeface tf = mLabel.typeface();
+        float size = mLabel.fontSize();
+        int totalLength = 0;
+        //
+        for (int i = 0; i < mLabel.text().length(); i++)
+        {
+            totalLength += 1;
+            String subtx = text.substring(0, totalLength);
+            RectF r = OC_Wordcontroller.boundingBoxForText(subtx, tf, size);
+            float f = r.width();
+            //
+            OBLabel l = new OBLabel(mLabel.text().substring(i, i + 1), tf, size);
+            l.sizeToBoundingBox();
+            l.setZPosition(mLabel.zPosition() + 0.01f);
+            l.setColour(mLabel.colour());
+            l.sizeToBoundingBox();
+            l.setPosition(mLabel.position());
+            l.setRight(mLabel.left() + f);
+            l.setProperty("original_position", l.getWorldPosition());
+            result.add(l);
+        }
+        return result;
+    }
 
     // Finger and Touch functions
 
@@ -871,7 +979,7 @@ public class OC_Generic_Event extends OC_SectionController
     }
 
 
-    public List<OBLabel> action_addLabelsToObjects(String pattern, float finalResizeFactor, boolean insertIntoGroup)
+    public List<OBLabel> action_addLabelsToObjects (String pattern, float finalResizeFactor, boolean insertIntoGroup)
     {
         List<OBControl> numbers = sortedFilteredControls(pattern);
         List<OBLabel> createdLabels = new ArrayList<>();
@@ -900,13 +1008,12 @@ public class OC_Generic_Event extends OC_SectionController
     }
 
 
-
     public PointF getRelativePositionForObject (OBControl control)
     {
         PointF position = control.position();
         OBControl parent = control.parent;
         RectF dimensions;
-        if (parent != null) dimensions = parent.bounds;
+        if (parent != null) dimensions = parent.bounds();
         else dimensions = boundsf();
         //
         PointF relativePosition = new PointF(position.x / dimensions.width(), position.y / dimensions.height());
@@ -924,16 +1031,74 @@ public class OC_Generic_Event extends OC_SectionController
     }
 
 
-    public PointF action_getMiddleOfGroup(String pattern)
+    public PointF action_getMiddleOfGroup (String pattern)
     {
-        PointF average = new PointF(0f,  0f);
+        PointF average = new PointF(0f, 0f);
         List<OBControl> controls = filterControls(pattern);
         for (OBControl control : controls)
         {
             average = OB_Maths.AddPoints(control.getWorldPosition(), average);
         }
-        average = new PointF(average.x / controls.size(),  average.y / controls.size());
+        average = new PointF(average.x / controls.size(), average.y / controls.size());
         return average;
+    }
+
+    public int randomNumberBetween(int min, int max)
+    {
+        return randomInt(min, max);
+
+    }
+
+
+    public double getCurrentTimeDouble()
+    {
+        return (new Date().getTime() / 1000.0);
+    }
+
+
+    @Override
+    public void replayAudio ()
+    {
+        updateLastActionTakenTimeStamp();
+        //
+        super.replayAudio();
+    }
+
+
+    public void checkAndUpdateFinale()
+    {
+        String finaleScene = events.size() > 0 ? String.format("finale%s", events.get(events.size() - 1)) : "";
+        if (audioScenes.get(finaleScene) != null && ((Map<String,Object>)audioScenes.get(finaleScene)).get("FINAL") != null)
+        {
+            audioScenes.put("finale", audioScenes.get(finaleScene));
+            //
+            if (!events.contains("finale"))
+            {
+                events = new ArrayList<>(events);
+                events.add("finale");
+            }
+        }
+        else if (audioScenes.get("finale") != null && !events.contains("finale"))
+        {
+            events = new ArrayList<>(events);
+            events.add("finale");
+        }
+    }
+
+    public void setScenefinale()
+    {
+        // do nothing
+    }
+
+
+    public void demofinale() throws Exception
+    {
+        setStatus(STATUS_DOING_DEMO);
+        //
+        playSceneAudio("FINAL", true);
+        waitForSecs(0.3);
+        //
+        nextScene();
     }
 
 }

@@ -9,6 +9,7 @@ import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.mainui.generic.OC_Generic_SelectCorrectObject;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBUtils;
 
 import java.util.ArrayList;
@@ -54,7 +55,7 @@ public class OC_Counting5and10_S4 extends OC_Generic_SelectCorrectObject
         OBGroup child = (OBGroup) objectDict.get("child");
         child.hideMembers("hand.*");
         child.showMembers("hand_0");
-        child.substituteFillForAllMembers("colour.*", OBUtils.SkinColour(0));
+        child.substituteFillForAllMembers("colour.*", OBConfigManager.sharedManager.getSkinColour(0));
         unlockScreen();
     }
 
@@ -92,7 +93,7 @@ public class OC_Counting5and10_S4 extends OC_Generic_SelectCorrectObject
         for (OBControl child : children)
         {
             OBGroup group = (OBGroup) child;
-            group.substituteFillForAllMembers("colour.*", OBUtils.SkinColour(count * 2));
+            group.substituteFillForAllMembers("colour.*", OBConfigManager.sharedManager.getSkinColour(count * 2));
             count++;
         }
         //

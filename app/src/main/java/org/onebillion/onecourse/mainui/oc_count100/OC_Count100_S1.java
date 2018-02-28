@@ -12,6 +12,7 @@ import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBMisc;
 import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OBUtils;
@@ -46,7 +47,7 @@ public class OC_Count100_S1 extends OC_SectionController
 
         line = objectDict.get("line");
         Typeface tf = OBUtils.standardTypeFace();
-        float textSize = MainActivity.mainActivity.applyGraphicScale(80);
+        float textSize = OBConfigManager.sharedManager.applyGraphicScale(80);
         counter = new OBLabel("000",tf,textSize);
         counter.setColour(Color.BLACK);
         counter.setPosition(objectDict.get("numbox").position());

@@ -15,6 +15,7 @@ import android.graphics.Typeface;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.text.format.DateFormat;
+import android.text.format.DateUtils;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -34,6 +35,7 @@ import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.controls.OBVideoPlayer;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.utils.DBSQL;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OCM_MlUnit;
 import org.onebillion.onecourse.utils.OBBrightnessManager;
 import org.onebillion.onecourse.utils.OBConnectionManager;
@@ -49,6 +51,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Date;
 import java.util.Random;
@@ -71,7 +74,8 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
         HOME_SCREEN, SET_DATE_SCREEN, SET_TRIAL_DATE_SCREEN, CONFIRMATION_SCREEN, VIDEO_SCREEN, BATTERY_SCREEN, FINAL_SCREEN;
     }
     //
-    private static float clockRefreshInterval = 5.0f;
+    private static Date trialStartDate = new GregorianCalendar(2017,11,15).getTime(); // 0 based months, yay
+    private static float clockRefreshInterval = 15.0f;
     private static String videoFilename = "tablet_care_sw.mp4";
     //
     private String saveConfig;
@@ -101,7 +105,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
         //
         loadFingers();
         //
-        saveConfig = (String) Config().get(MainActivity.CONFIG_APP_CODE);
+        saveConfig = OBConfigManager.sharedManager.getCurrentActivityFolder();
         //
         loadHomeScreen();
         //
@@ -128,7 +132,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
         }
         if (saveConfig != null)
         {
-            MainActivity.mainActivity.updateConfigPaths(saveConfig, false);
+            OBConfigManager.sharedManager.updateConfigPaths(saveConfig, false);
         }
     }
 
@@ -139,6 +143,9 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
         setStatus(STATUS_AWAITING_CLICK);
         //
         OBBrightnessManager.sharedManager.setScreenSleepTimeToMax();
+        //
+        MainActivity.log("OBSetupMenu.start.updating config paths to setup menu folder");
+        OBConfigManager.sharedManager.updateConfigPaths(OBConfigManager.sharedManager.getSetupMenuFolder(), true);
         //
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
@@ -155,9 +162,9 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
     {
         MainActivity.log("OBSetupMenu:getServerTime");
         //
-        final String wifiSSID = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_TIME_SERVER_WIFI_SSID);
-        final String wifiPassword = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_TIME_SERVER_WIFI_PASSWORD);
-        final String timeServerURL = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_TIME_SERVER_URL);
+        final String wifiSSID = OBConfigManager.sharedManager.getTimeServerWifiSSID();
+        final String wifiPassword = OBConfigManager.sharedManager.getTimeServerWifiPassword();
+        final String timeServerURL = OBConfigManager.sharedManager.getTimeServerURL();
         //
         String currentWifiSSID = OBConnectionManager.sharedManager.getCurrentWifiSSID();
         if (currentWifiSSID == null || !wifiSSID.equalsIgnoreCase(currentWifiSSID))
@@ -175,7 +182,10 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                          @Override
                          public void run (boolean success) throws Exception
                          {
-                             getServerTime();
+                             if (success)
+                             {
+                                 getServerTime();
+                             }
                          }
                      });
                  }
@@ -221,7 +231,10 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                                 @Override
                                 public void run (boolean success) throws Exception
                                 {
-                                    getServerTime();
+                                    if (success)
+                                    {
+                                        getServerTime();
+                                    }
                                 }
                             });
                         }
@@ -380,8 +393,8 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                     //
                     homeScreenControls = loadEvent("master_home");
                     //
-                    Typeface defaultFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/F37Ginger-Regular.otf");
-                    Typeface boldFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/F37Ginger-Bold.otf");
+                    Typeface defaultFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Regular.otf");
+                    Typeface boldFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Bold.otf");
                     //
                     List<OBPath> lines = (List<OBPath>) (Object) filterControls("home_line_.*");
                     for (OBPath line : lines)
@@ -446,7 +459,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                 {
                     setDateScreenControls = loadEvent("master_set_date");
                     //
-                    Typeface defaultFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/F37Ginger-Regular.otf");
+                    Typeface defaultFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Regular.otf");
                     //
                     // Title, hide box, text colour as stroke colour on box, centred
                     setupLabelsForScreen("date_title", true, 0.7f, defaultFont, "centre", true, setDateScreenControls, finalSelf);
@@ -457,7 +470,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                     control.setHidden(!setDateScreenControls.contains(control));
                 }
                 //
-                showPickDateDialog(finalSelf);
+                showPickDateDialog(finalSelf, null);
                 //
                 unlockScreen();
             }
@@ -482,7 +495,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                 {
                     setTrialStartDateScreenControls = loadEvent("master_set_trial");
                     //
-                    Typeface defaultFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/F37Ginger-Regular.otf");
+                    Typeface defaultFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Regular.otf");
                     //
                     // Title, hide box, text colour as stroke colour on box, centred
                     setupLabelsForScreen("trial_title", true, 0.7f, defaultFont, "centre", true, setTrialStartDateScreenControls, finalSelf);
@@ -493,7 +506,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                     control.setHidden(!setTrialStartDateScreenControls.contains(control));
                 }
                 //
-                showPickDateDialog(finalSelf);
+                showPickDateDialog(finalSelf, trialStartDate);
                 //
                 unlockScreen();
             }
@@ -590,8 +603,8 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                     confirmationLogo.setScale(homeLogo.scale());
                     confirmationLogo.setBounds(homeLogo.bounds());
                     //
-                    Typeface defaultFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/F37Ginger-Regular.otf");
-                    Typeface boldFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/F37Ginger-Bold.otf");
+                    Typeface defaultFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Regular.otf");
+                    Typeface boldFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Bold.otf");
                     //
                     // top labels: set label, hide placeholder, set boldFont colour to stroke colour of placeholder, centre align
                     setupLabelsForScreen("confirmation_title.*", true, 0.8f, boldFont, "centre", false, confirmationScreenControls, finalSelf);
@@ -612,8 +625,8 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                     control.setHidden(!confirmationScreenControls.contains(control));
                 }
                 //
-                Date currentDate = serverDate;
-                if (currentDate == null) currentDate = userSetDate;
+                Date currentDate = userSetDate;
+                if (currentDate == null) currentDate = serverDate;
                 if (currentDate == null) currentDate = new Date(System.currentTimeMillis());
                 //
                 SimpleDateFormat currentDateFormat = new SimpleDateFormat("HH:mm   dd MMMM yyyy");
@@ -655,8 +668,8 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                 {
                     finalScreenControls = loadEvent("master_final");
                     //
-                    Typeface defaultFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/F37Ginger-Regular.otf");
-                    Typeface boldFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/F37Ginger-Bold.otf");
+                    Typeface defaultFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Regular.otf");
+                    Typeface boldFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Bold.otf");
                     //
                     // top labels: set label, hide placeholder, set boldFont colour to stroke colour of placeholder, centre align
                     setupLabelsForScreen("final_title.*", true, 0.8f, boldFont, "centre", false, finalScreenControls, finalSelf);
@@ -679,9 +692,17 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                     {
                         MainActivity.log("OBSetupMenu.delayedThread:SHUTTING DOWN");
                         //
-                        Intent i = new Intent("android.intent.action.ACTION_REQUEST_SHUTDOWN");
-                        i.putExtra("android.intent.extra.KEY_CONFIRM", false);
-                        MainActivity.mainActivity.startActivity(i);
+                        try
+                        {
+                            Intent i = new Intent("android.intent.action.ACTION_REQUEST_SHUTDOWN");
+                            i.putExtra("android.intent.extra.KEY_CONFIRM", false);
+                            MainActivity.mainActivity.startActivity(i);
+                        }
+                        catch (Exception e)
+                        {
+                            MainActivity.log("OBSetupMenu:loadFinalScreen:exception caught while trying to shutdown device. Exiting App");
+                            System.exit(0);
+                        }
                     }
                 });
             }
@@ -700,7 +721,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
             //
             db = new DBSQL(false);
             //
-            int unitCount = OCM_MlUnit.unitCountForMasterlist(db, 1);
+            int unitCount = OCM_MlUnit.unitCountForMasterlist(db, OCM_FatController.STUDY_LISTID);
             int randomUnitIndex = OB_Maths.randomInt(0, unitCount);
             //
             MainActivity.log("OBSetupMenu:loadRandomUnit:unit count [%d]", unitCount);
@@ -726,9 +747,14 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
     }
 
 
-    void showPickDateDialog (final DatePickerDialog.OnDateSetListener listener)
+    void showPickDateDialog (final DatePickerDialog.OnDateSetListener listener, Date startDate)
     {
-        final Calendar calendar = Calendar.getInstance();
+        Calendar currentCalendar = Calendar.getInstance();
+        if (startDate != null)
+        {
+            currentCalendar.setTime(startDate);
+        }
+        final Calendar calendar = currentCalendar;
         DatePickerDialog d = new DatePickerDialog(MainActivity.mainActivity, listener, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
         //
         d.setCancelable(false);
@@ -778,7 +804,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
             {
                 if (screenType == ScreenType.SET_DATE_SCREEN)
                 {
-                    showPickDateDialog(dateListener);
+                    showPickDateDialog(dateListener, null);
                 }
                 else
                 {

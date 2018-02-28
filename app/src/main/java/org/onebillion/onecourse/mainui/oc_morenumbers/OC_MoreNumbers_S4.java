@@ -39,19 +39,41 @@ public class OC_MoreNumbers_S4 extends OC_SectionController
         setStatus(STATUS_BUSY);
         super.prepare();
         loadFingers();
-        loadEvent("master4");
-        createCounter(Color.BLACK);
+        String startEvent = parameters.get("start");
+        loadEvent(String.format("master%s",startEvent));
+
         setUpButton(1);
         setUpButton(10);
         eventObjs = new ArrayList<>();
-        counter.setString(String.format("%d", 0));
         events = Arrays.asList(eventAttributes.get("scenes").split(","));
-        OBControl button = objectDict.get("button_10");
-        PointF loc = OBMisc.copyPoint(button.position());
-        button.setProperty("startloc", OBMisc.copyPoint(loc));
-        loc.x = bounds().width() / 2.0f;
-        button.setPosition(loc);
-        button.show();
+        OBMisc.checkAndUpdateFinale(this);
+        if(startEvent.equals("4a"))
+        {
+            createCounter(Color.BLACK);
+            counter.setString(String.format("%d",0));
+            OBControl button = objectDict.get("button_10");
+            PointF loc = OBMisc.copyPoint(button.position());
+            button.setProperty("startloc",OBMisc.copyPoint(loc));
+            loc.x = bounds().width()/2.0f;
+            button.setPosition(loc);
+            button.show();
+            buttonMode = false;
+        }
+        else
+        {
+            buttonMode = true;
+            OBControl shutter =objectDict.get("shutter");
+            createCounter(shutter.fillColor());
+            counter.setString(String.format("%d", 0));
+            objectDict.get("numbox").setZPosition(1);
+            counter.setZPosition(1.5f);
+            shutter.setZPosition(2);
+            shutter.setAnchorPoint(new PointF(0, 0.5f));
+            shutter.setProperty("startwidth",shutter.width());
+            counter.hide();
+            OC_MoreNumbers_Additions.buttonSet(2,this);
+        }
+
         setSceneXX(currentEvent());
     }
 
@@ -61,7 +83,7 @@ public class OC_MoreNumbers_S4 extends OC_SectionController
         {
             public void run() throws Exception
             {
-                demo4a();
+                performSel("demo",currentEvent());
             }
         });
     }
@@ -71,7 +93,7 @@ public class OC_MoreNumbers_S4 extends OC_SectionController
         super.setSceneXX(scene);
         currentNum = 0;
         targetNum = OBUtils.getIntValue(eventAttributes.get("num"));
-        if(eventAttributes.get("mode") != null && eventAttributes.get("mode").equals("button"))
+        if(buttonMode)
         {
             buttonMode = true;
             if(counter == null)
@@ -121,11 +143,6 @@ public class OC_MoreNumbers_S4 extends OC_SectionController
     public void doMainXX() throws Exception
     {
         startScene(true);
-    }
-
-    public void fin()
-    {
-        goToCard(OC_MoreNumbers_S4s.class, "event4");
     }
 
 
@@ -351,7 +368,7 @@ public class OC_MoreNumbers_S4 extends OC_SectionController
         OBGroup button = (OBGroup)objectDict.get(String.format("button_%d", num));
         OBMisc.colourObjectFromAttributes(button);
         button.objectDict.get("reflection").hide();
-        OC_MoreNumbers_Additions.insertIntoGroup(button,num, 70*objectDict.get("numbox").height()/90.0f,
+        OC_MoreNumbers_Additions.insertIntoGroup(button,num, applyGraphicScale(70),
                 OBUtils.colorFromRGBString((String)button.attributes().get("num_colour")),OB_Maths.locationForRect(0.5f,0.5f,button.frame()), this);
         button.objectDict.get("hilight").setZPosition(2);
         button.objectDict.get("number").setZPosition(1.5f);
@@ -410,8 +427,11 @@ public class OC_MoreNumbers_S4 extends OC_SectionController
             unlockScreen();
         }
         waitForSecs(1f);
-        resetScene(true);
-        waitForSecs(0.5f);
+        if(currentEvent() != events.get(events.size()-1))
+        {
+            resetScene(true);
+            waitForSecs(0.5f);
+        }
     }
 
     public void resetScene(boolean full) throws Exception
@@ -432,15 +452,6 @@ public class OC_MoreNumbers_S4 extends OC_SectionController
                 counter = null;
             }
 
-
-            if (currentEvent() == events.get(events.size() - 1))
-            {
-                counter.hide();
-                objectDict.get("shutter").hide();
-                objectDict.get("numbox").hide();
-                objectDict.get("button_10").hide();
-                objectDict.get("button_1").hide();
-            }
         }
         playSfxAudio("pop", false);
         unlockScreen();
@@ -529,6 +540,7 @@ public class OC_MoreNumbers_S4 extends OC_SectionController
 
     public void demo4k() throws Exception
     {
+        waitForSecs(0.5);
         lockScreen();
         counter.show();
         objectDict.get("shutter").show();

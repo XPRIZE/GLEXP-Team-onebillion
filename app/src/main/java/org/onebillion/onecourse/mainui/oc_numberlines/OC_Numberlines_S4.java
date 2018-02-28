@@ -40,6 +40,7 @@ public class OC_Numberlines_S4 extends OC_SectionController
         loadFingers();
         loadEvent("masterStart");
         events = Arrays.asList(eventAttributes.get("scenes").split(","));
+        OBMisc.checkAndUpdateFinale(this);
         eventTargets = new ArrayList<>();
         numColour = OBUtils.colorFromRGBString(eventAttributes.get("numcolour"));
         divColour = OBUtils.colorFromRGBString(eventAttributes.get("divcolour"));
@@ -114,18 +115,6 @@ public class OC_Numberlines_S4 extends OC_SectionController
         startScene();
     }
 
-    public void fin()
-    {
-        try
-        {
-            waitForSecs(0.5f);
-        }
-        catch (Exception e)
-        {
-
-        }
-        goToCard(OC_Numberlines_S4n.class,(String)this.params);
-    }
 
     public void touchDownAtPoint(final PointF pt,View v)
     {

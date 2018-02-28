@@ -11,11 +11,9 @@ import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
-import org.onebillion.onecourse.controls.OBTextLayer;
-import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OC_SectionController;
-import org.onebillion.onecourse.mainui.oc_lettersandsounds.OC_LetterBox;
+import org.onebillion.onecourse.mainui.oc_meetletter.OC_LetterBox;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimBlock;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
@@ -40,7 +38,7 @@ public class OC_FlappyWord extends OC_SectionController
     OBGroup bord, bordBody;
     List<Integer> wordColours;
     List<List<OBControl>> bordFrames;
-    List<OBWord> eventWords;
+    List<OBPhoneme> eventTargets;
     float bordGravity, screenScrollSpeed, treeDistance, cloudDistance;
     long lastFlapTime,fallStartTime, lastFrameTime;
     List<Integer> flapAnimationFrames;
@@ -61,6 +59,7 @@ public class OC_FlappyWord extends OC_SectionController
     OC_LetterBox letterBox;
     OBLabel letterBoxCounter, bigWordLabel;
     OBControl nest;
+    boolean letterMode;
 
     public void prepare()
     {
@@ -76,8 +75,10 @@ public class OC_FlappyWord extends OC_SectionController
         super.prepare();
         loadFingers();
         loadEvent("master");
+        letterMode = parameters.get("mode").equals("letter");
         //load box
         OBGroup box = (OBGroup)objectDict.get("box_number");
+        box.setRasterScale(box.scale()*0.5f);
         letterBox = new OC_LetterBox(box, this);
         OBControl numbox = box.objectDict.get("numbox");
         RectF labelRect = numbox.getWorldFrame();
@@ -95,7 +96,7 @@ public class OC_FlappyWord extends OC_SectionController
         bord.hideMembers("wing_.*");
         bord.setShouldTexturise(false);
         bord.objectDict.get("body").setShouldTexturise(false);
-        bord.setRasterScale(bord.scale());
+        bord.setRasterScale(bord.scale()*0.7f);
         bordFrames = new ArrayList<>();
         bordFrames.add(bord.filterMembers("wing_.*0"));
         bordFrames.add(bord.filterMembers("wing_.*1"));
@@ -148,20 +149,20 @@ public class OC_FlappyWord extends OC_SectionController
         addRandomCloudLeft(bounds().width() * 0.5f * (float)OB_Maths.rndom());
         addRandomCloudLeft(bounds().width() * (0.5f +(0.5f * (float)OB_Maths.rndom())));
         nest = objectDict.get("nest");
-        nest.setZPosition ( 30);
+        nest.setZPosition(30);
         nest.setAnchorPoint(1,1);
         nest.setProperty("dest_loc",OBMisc.copyPoint(nest.position()));
-        nest.setScale(nest.rasterScale());
-        bordBody.setRotation ( (float)Math.toRadians(-30));
+        nest.setRasterScale(nest.scale()*0.7f);
+        bordBody.setRotation((float)Math.toRadians(-30));
         showBordFrame(0);
-        bord.setPosition ( OB_Maths.locationForRect(0.5f,-0.1f,nest.frame()));
+        bord.setPosition(OB_Maths.locationForRect(0.5f,-0.1f,nest.frame()));
         bord.hide();
-        eventWords = new ArrayList<>();
+        eventTargets = new ArrayList<>();
         String[] wordList = parameters.get("words").split(",");
-        for(String phoid :wordList)
+        for(String phoid : wordList)
         {
-            if(componentDict.get(phoid) != null && componentDict.get(phoid) instanceof OBWord)
-                eventWords.add((OBWord) componentDict.get(phoid));
+            if(componentDict.get(phoid) != null)
+                eventTargets.add(componentDict.get(phoid));
         }
         currentWordIndex =0;
         List<Integer> wColours = new ArrayList<>();
@@ -170,7 +171,7 @@ public class OC_FlappyWord extends OC_SectionController
         wordColours = OBUtils.randomlySortedArray(wColours);
         currentWordColourIndex = 0;
         ((OBPath)objectDict.get("line")).sizeToBoundingBoxIncludingStroke();
-        loadWord(eventWords.get(currentWordIndex));
+        loadTarget(currentWordIndex,letterMode);
     }
 
     public void start()
@@ -254,7 +255,7 @@ public class OC_FlappyWord extends OC_SectionController
                 treeSelection.add(renderedImage);
                 //renderedImage.setRasterScale(0.5f);
                 renderedImage.setLeft ( bounds().width());
-                renderedImage.setRasterScale(0.7f*renderedImage.scale());
+                renderedImage.setRasterScale(0.5f*renderedImage.scale());
                 renderedImage.setAnchorPoint(new PointF(1,1));
                 colourIndex++;
                 if(colourIndex >= randomIndexes.size())
@@ -314,13 +315,14 @@ public class OC_FlappyWord extends OC_SectionController
         if(this._aborting)
             stopGameLoop();
         boolean finishScrollLoop = false;
+        float scrollSpeed = INITIAL_SCROLL_SPEED * 2;
         long currentTime = SystemClock.uptimeMillis();
         float frameFrac = (currentTime - lastFrameTime)/5.0f ;
-        processTreesAndLetters(frameFrac, false);
-        processClouds(frameFrac);
-        processLandscape(frameFrac);
+        processTreesAndLetters(frameFrac, false,scrollSpeed);
+        processClouds(frameFrac,scrollSpeed);
+        processLandscape(frameFrac,scrollSpeed);
         PointF destLoc = (PointF)nest.propertyValue("dest_loc") ;
-        float newNestX = nest.position().x - screenScrollSpeed * frameFrac;
+        float newNestX = nest.position().x - scrollSpeed * frameFrac;
         if(newNestX  > destLoc.x)
         {
             nest.setPosition(newNestX, nest.position().y);
@@ -345,13 +347,12 @@ public class OC_FlappyWord extends OC_SectionController
         if(this._aborting)
             stopGameLoop();
 
-
         long currentTime = SystemClock.uptimeMillis();
 
         float frameFrac = (currentTime - lastFrameTime)/5.0f ;
-        processTreesAndLetters(frameFrac,!currentWordCompleted);
-        processClouds(frameFrac);
-        processLandscape(frameFrac);
+        processTreesAndLetters(frameFrac,!currentWordCompleted,screenScrollSpeed);
+        processClouds(frameFrac,screenScrollSpeed);
+        processLandscape(frameFrac,screenScrollSpeed);
         if(nest.position().x > 0)
         {
             nest.setPosition(nest.position().x - screenScrollSpeed * frameFrac,nest.position().y);
@@ -450,7 +451,7 @@ public class OC_FlappyWord extends OC_SectionController
     }
 
 
-    public void processTreesAndLetters(float frac,boolean addTrees)
+    public void processTreesAndLetters(float frac,boolean addTrees, float scrollSpeed)
     {
         if(addTrees)
         {
@@ -499,7 +500,7 @@ public class OC_FlappyWord extends OC_SectionController
         List<OBControl> toRemove = new ArrayList<>();
         for(OBControl tree : scrollTrees)
         {
-            tree.setPosition(tree.position().x -  screenScrollSpeed * frac, tree.position().y);
+            tree.setPosition(tree.position().x -  scrollSpeed * frac, tree.position().y);
             if(tree.position().x < 0)
                 toRemove.add(tree);
 
@@ -514,8 +515,8 @@ public class OC_FlappyWord extends OC_SectionController
 
         for(OBControl letter : scrollLetters)
         {
-            letter.setPosition(letter.position().x -  screenScrollSpeed * frac, letter.position().y);
-            if(letter.position().x < -applyGraphicScale(50))
+            letter.setPosition(letter.position().x -  scrollSpeed * frac, letter.position().y);
+            if(letter.right() < 0)
                 toRemove.add(letter);
         }
 
@@ -530,7 +531,7 @@ public class OC_FlappyWord extends OC_SectionController
         }
     }
 
-    public void processClouds(float frac)
+    public void processClouds(float frac, float scrollSpeed)
     {
         if(addRandomCloudLeft(bounds().width()))
         {
@@ -540,7 +541,7 @@ public class OC_FlappyWord extends OC_SectionController
         List<OBControl> toRemove = new ArrayList<>();
         for(OBControl cloud : scrollClouds)
         {
-            cloud.setPosition(cloud.position().x -  screenScrollSpeed * frac * (float)cloud.propertyValue("speed"), cloud.position().y);
+            cloud.setPosition(cloud.position().x -  scrollSpeed * frac * (float)cloud.propertyValue("speed"), cloud.position().y);
             if(cloud.position().x < 0)
                 toRemove.add(cloud);
 
@@ -581,7 +582,7 @@ public class OC_FlappyWord extends OC_SectionController
         return false;
     }
 
-    public void processLandscape(float frac)
+    public void processLandscape(float frac, float scrollSpeed)
     {
         addRandomLandscape();
         for(int i=0; i< scrollLandscapes.size(); i++)
@@ -589,7 +590,7 @@ public class OC_FlappyWord extends OC_SectionController
             List<OBControl> toRemove = new ArrayList<>();
             for(OBControl landscape : scrollLandscapes.get(i))
             {
-                landscape.setPosition(landscape.position().x -screenScrollSpeed * frac * (i==0?1:(0.37f - (i*0.07f))), landscape.position().y);
+                landscape.setPosition(landscape.position().x -scrollSpeed * frac * (i==0?1:(0.37f - (i*0.07f))), landscape.position().y);
                if(landscape.position().x < 0)
                     toRemove.add(landscape);
 
@@ -672,8 +673,8 @@ public class OC_FlappyWord extends OC_SectionController
         {
             public void run() throws Exception
             {
-                String audio =  (String)bigLabel.propertyValue("audio");
-                playAudio(audio);
+                OBPhoneme pho = (OBPhoneme)bigLabel.propertyValue("phoneme");
+                pho.playAudio(controller,false);
                 OBLabel smallLabel = (OBLabel)bigLabel.propertyValue("small_label");
                 List<OBAnim> anims = new ArrayList<>();
                 anims.add(OBAnim.moveAnim(smallLabel.position(), bigLabel));
@@ -778,9 +779,9 @@ public class OC_FlappyWord extends OC_SectionController
             {
                 lockScreen();
                 currentWordIndex++;
-                if (currentWordIndex >= eventWords.size())
+                if (currentWordIndex >= eventTargets.size())
                     currentWordIndex = 0;
-                loadWord(eventWords.get(currentWordIndex));
+                loadTarget(currentWordIndex, letterMode);
                 prepareRandomTrees();
 
                 unlockScreen();
@@ -790,8 +791,11 @@ public class OC_FlappyWord extends OC_SectionController
         });
     }
 
-    public void loadWord(OBWord word)
+    public void loadTarget(int targetIndex, boolean letterMode)
     {
+        if(targetIndex == 0)
+            eventTargets = OBUtils.randomlySortedArray(eventTargets);
+        OBPhoneme target = eventTargets.get(targetIndex);
         for(OBControl letter : lettersSelection)
         {
             detachControl((OBControl)letter.propertyValue("line"));
@@ -820,19 +824,19 @@ public class OC_FlappyWord extends OC_SectionController
         float smallFontSize = 55.0f * smallTextBox.height()/80.0f;
         float bigFontSize = 220.0f * smallTextBox.height()/125.0f;
         float smallWordScale = 1;
-        OBLabel smallWordLabel = new OBLabel(word.text, OBUtils.standardTypeFace(), smallFontSize);
+        OBLabel smallWordLabel = new OBLabel(target.text, OBUtils.standardTypeFace(), smallFontSize);
         smallWordLabel.setPosition(smallTextBox.position());
         //attachControl(fullWordLabel);
         if(smallWordLabel.width()>smallTextBox.width())
             smallWordScale = 1.0f -((smallWordLabel.width()-smallTextBox.width())*1.0f/smallWordLabel.width());
-        bigWordLabel = new OBLabel(word.text,OBUtils.standardTypeFace(),bigFontSize);
+        bigWordLabel = new OBLabel(target.text,OBUtils.standardTypeFace(),bigFontSize);
 
         float bigWordScale = 1;
         //attachControl(fullWordLabel);
         if(bigWordLabel.width() >smallTextBox.width())
             bigWordScale = 1.0f -((bigWordLabel.width()-smallTextBox.width())*1.0f/bigWordLabel.width());
 
-        bigWordLabel.setProperty("audio",word.audio());
+        bigWordLabel.setProperty("phoneme",target);
         bigWordLabel.setProperty("dest_scale",bigWordScale);
         bigWordLabel.setProperty("dest_loc",OBMisc.copyPoint(bigTextBox.position()));
         attachControl(bigWordLabel);
@@ -840,18 +844,32 @@ public class OC_FlappyWord extends OC_SectionController
         bigWordLabel.setZPosition(50);
         bigWordLabel.setPosition(smallTextBox.position());
 
-        int searchStart =0;
-        for(int i=0; i<word.text.length(); i++)
+        List<OBPhoneme> parts = null;
+        if(!letterMode && target instanceof OBWord)
         {
-            String textPart = word.text.substring(i,i+1);
-            int rangeStart = word.text.indexOf(textPart,searchStart);
+            parts = (List<OBPhoneme>) (Object) ((OBWord) target).syllables();
+        }
+        else
+        {
+            parts = new ArrayList<>();
+            for(int i=0; i<target.text.length(); i++)
+            {
+                String textPart = target.text.substring(i,i+1);
+                parts.add(new OBPhoneme(textPart,String.format("alph_%s",textPart)));
+            }
+        }
+        int searchStart =0;
+        for(int i=0; i<parts.size(); i++)
+        {
+            OBPhoneme partPhoeneme = parts.get(i);
+            int rangeStart = target.text.indexOf(partPhoeneme.text,searchStart);
             if(rangeStart != -1)
             {
-                searchStart += textPart.length();
-                RectF bb = OBUtils.getBoundsForSelectionInLabel(rangeStart,rangeStart+textPart.length(),smallWordLabel);
+                searchStart += partPhoeneme.text.length();
+                RectF bb = OBUtils.getBoundsForSelectionInLabel(rangeStart,rangeStart+partPhoeneme.text.length(),smallWordLabel);
 
                 float left = bb.left;
-                OBLabel partLabel = new OBLabel(textPart,OBUtils.standardTypeFace(),smallFontSize);
+                OBLabel partLabel = new OBLabel(partPhoeneme.text,OBUtils.standardTypeFace(),smallFontSize);
                 partLabel.setColour(wordColour);
                 partLabel.setPosition(smallTextBox.position());
                 partLabel.setScale(smallWordScale);
@@ -860,13 +878,14 @@ public class OC_FlappyWord extends OC_SectionController
                 partLabel.setProperty("word_loc", OBMisc.copyPoint(partLabel.position()));
                 partLabel.hide();
                 smallParts.add(partLabel);
-                OBLabel bigPartLabel = new OBLabel(textPart,OBUtils.standardTypeFace(),bigFontSize);
+                OBLabel bigPartLabel = new OBLabel(partPhoeneme.text,OBUtils.standardTypeFace(),bigFontSize);
                 bigPartLabel.setColour(wordColour);
                 bigPartLabel.setZPosition(20);
                 bigPartLabel.setPosition(bigTextBox.position());
+                bigPartLabel.setRasterScale(0.5f);
                 bigPartLabel.hide();
                 partLabel.setProperty("big_label",bigPartLabel);
-                bigPartLabel.setProperty("audio",String.format("alph_%s",textPart));
+                bigPartLabel.setProperty("phoneme",partPhoeneme);
                 bigPartLabel.setProperty("small_label",partLabel);
                 attachControl(bigPartLabel);
                 attachControl(partLabel);
@@ -875,25 +894,38 @@ public class OC_FlappyWord extends OC_SectionController
         }
         bigWordLabel.setScale(lettersSelection.get(0).height()/bigWordLabel.height());
         bigWordLabel.hide();
-        float gapSize = 0.2f;
-        float startGap = gapSize * (lettersSelection.size() + 1)/-2.0f;
-        float letterSpace = gapSize + 1.0f/(lettersSelection.size() +1);
-        // float thisWidth = bigWordLabel.width + (lettersSelection.size() - 1) * gap;
-        //float left = bigWordLabel.position.x - thisWidth / 2;
+        float gapSize = applyGraphicScale(10);
+        float lineLength = applyGraphicScale(55);
+        PointF midLoc = OB_Maths.locationForRect(0.5f,0.5f,bigWordLabel.frame());
+        float startLeft =  midLoc.x - (lineLength * lettersSelection.size() + gapSize * (lettersSelection.size()-1))/2.0f;
+        float right = 0;
         for(int i = 0; i < lettersSelection.size(); i++)
         {
             OBLabel partLabel = lettersSelection.get(i);
-            partLabel.setPosition ( OB_Maths.locationForRect(startGap + letterSpace * (i+1),0.5f,bigWordLabel.frame()));
-            //partLabel.setLeft ( left + partLabel.left - bigWordLabel.left + gap * i);
+            partLabel.setPosition (startLeft + (gapSize * (i-1)) + (lineLength)*(i+0.5f), midLoc.y);
+
             partLabel.setProperty("drop_loc",OBMisc.copyPoint(partLabel.position()));
             OBControl smallLine = lineControl.copy();
-            smallLine.setWidth(bigWordLabel.width()/lettersSelection.size() + gapSize*0.6f*bigWordLabel.width());
+            smallLine.setWidth(lineLength);
             smallLine.setPosition(partLabel.position());
             smallLine.setBottom(partLabel.bottom());
             smallLine.show();
+            right = smallLine.right();
             attachControl(smallLine);
             partLabel.setProperty("line",smallLine);
+        }
 
+
+        float repos = right - bounds().width();
+        if(repos > 0)
+        {
+            for (int i = 0; i < lettersSelection.size(); i++)
+            {
+                OBLabel partLabel = lettersSelection.get(i);
+                OBControl smallLine = (OBControl) partLabel.propertyValue("line");
+                smallLine.setRight(smallLine.right() - repos);
+                partLabel.setRight(partLabel.right() - repos);
+            }
         }
         bigWordLabel.setColour(wordColour);
     }
@@ -940,8 +972,8 @@ public class OC_FlappyWord extends OC_SectionController
                 OBAnimationGroup.runAnims(Arrays.asList(OBAnim.moveAnim((PointF)bigWordLabel.propertyValue("dest_loc"),bigWordLabel),
                         OBAnim.scaleAnim((float)bigWordLabel.propertyValue("dest_scale"),bigWordLabel)),1,true,OBAnim.ANIM_EASE_IN_EASE_OUT,controller);
                 waitForSecs(0.3f);
-                playAudio((String)bigWordLabel.propertyValue("audio"));
-                waitAudio();
+                OBPhoneme pho = (OBPhoneme)bigWordLabel.propertyValue("phoneme");
+                pho.playAudio(controller,true);
                 letterBox.openLid(null);
                 letterBox.animateGlowsShow();
                 letterBox.flyObjects(Arrays.asList((OBControl)bigWordLabel), false, true, null);

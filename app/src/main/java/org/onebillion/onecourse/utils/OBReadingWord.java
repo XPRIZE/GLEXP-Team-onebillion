@@ -8,7 +8,9 @@ import org.onebillion.onecourse.controls.OBLabel;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by alan on 02/06/16.
@@ -27,6 +29,7 @@ public class OBReadingWord
     public int paraNo;
     public String filePath;
     public String imageName;
+    public Map<String,Object> settings = new HashMap<>();
 
     public static String TextByRemovingSlashes(String s)
     {

@@ -137,6 +137,11 @@ public class OBControl
         this.shouldTexturise = shouldTexturise;
     }
 
+    public void cleanUp()
+    {
+
+    }
+
     public OBControl copy ()
     {
         OBControl obj;
@@ -2164,8 +2169,16 @@ public class OBControl
         {
             Paint p = new Paint();
             p.setXfermode(new PorterDuffXfermode(maskControlReversed ? PorterDuff.Mode.DST_OUT : PorterDuff.Mode.DST_IN));
-            float fw = (bounds().right - bounds().left) * Math.abs(rasterScale);
-            float fh = (bounds().bottom - bounds().top) * Math.abs(rasterScale);
+            //float fw = (bounds().right - bounds().left) * Math.abs(rasterScale);
+            //float fh = (bounds().bottom - bounds().top) * Math.abs(rasterScale);
+            float fw = (frame().width());
+            float fh = (frame().height());
+
+            /* Changed calculation of dimensions of save area to omit rasterscale as
+            this was causing the area to be too small where rasterscale < 1.
+            This may need reviewing for when rasterscale > 1.
+            */
+
             int width = (int) Math.ceil(fw);
             int height = (int) Math.ceil(fh);
             boolean needs2ndrestore = false;

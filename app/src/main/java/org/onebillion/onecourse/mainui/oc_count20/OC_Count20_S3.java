@@ -14,6 +14,7 @@ import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OC_SectionController;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OBUtils;
 
@@ -39,7 +40,7 @@ public class OC_Count20_S3 extends OC_SectionController
         OBControl numberBox = objectDict.get("numberbox");
         highCol = OBUtils.colorFromRGBString(eventAttributes.get("highcol"));
         float textSize = Float.parseFloat(eventAttributes.get("smalltextsize"));
-        textSize = MainActivity.mainActivity.applyGraphicScale(textSize);
+        textSize = OBConfigManager.sharedManager.applyGraphicScale(textSize);
         Typeface tf = OBUtils.standardTypeFace();
         RectF frame = numberBox.frame();
         float minX = frame.left;
@@ -100,7 +101,7 @@ public class OC_Count20_S3 extends OC_SectionController
         events = Arrays.asList(eva);
         createBoxAndNumbers();
         float textSize = Float.parseFloat(eventAttributes.get("largetextsize"));
-        textSize = MainActivity.mainActivity.applyGraphicScale(textSize);
+        textSize = OBConfigManager.sharedManager.applyGraphicScale(textSize);
         Typeface tf = OBUtils.standardTypeFace();
         OBLabel txt = new OBLabel("20",tf,textSize);
         txt.setColour(Color.BLACK);

@@ -340,7 +340,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         }
 
         currentTheme = name;
-        String fontPath = String.format("fonts/%s",(String)themeData.get("font"));
+        String fontPath = String.format("%s",(String)themeData.get("font"));
         currentTypeface = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), fontPath);
         currentTypeSize = applyGraphicScale(60f) * textScale;
 
@@ -379,8 +379,8 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         float height = keyNormal.height();
         float minLeft = keyboardRect.left() + buttonDistance;
         float maxRight = minLeft;
-        Typeface typeface = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/onebillionreader-Regular.otf");
-        Typeface specialtypeface = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/onebillionreader-Regular.otf");
+        Typeface typeface = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "onebillionreader-Regular.otf");
+        Typeface specialtypeface = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "onebillionreader-Regular.otf");
         float fontSize = 40f * height / 60f;
         float specialfontSize = 30f * height / 60f;
          for(List<String> lettersRow : letters)

@@ -40,6 +40,7 @@ public class OC_MoreNumbers_S5e extends OC_SectionController
         dragTargets = new ArrayList<>();
         dropTargets = new ArrayList<>();
         events = Arrays.asList(eventAttributes.get("scenes").split(","));
+        OBMisc.checkAndUpdateFinale(this);
         setSceneXX(currentEvent());
 
     }
@@ -111,18 +112,6 @@ public class OC_MoreNumbers_S5e extends OC_SectionController
     {
         animateScene(true);
         startScene();
-    }
-
-    public void fin()
-    {
-        try
-        {
-            goToCard(OC_MoreNumbers_S5k.class, "event5");
-        }
-        catch (Exception e)
-        {
-
-        }
     }
 
     public void touchDownAtPoint(final PointF pt,View v)
@@ -213,7 +202,10 @@ public class OC_MoreNumbers_S5e extends OC_SectionController
                     waitForSecs(0.2f);
                     if(!performSel("demoFin",currentEvent()))
                         demoFinStandard();
-                    animateScene(false);
+
+                    if(currentEvent() != events.get(events.size()-1))
+                        animateScene(false);
+
                     waitForSecs(0.3f);
                     nextScene();
 
@@ -392,7 +384,7 @@ public class OC_MoreNumbers_S5e extends OC_SectionController
     }
     public void demo5e() throws Exception
     {
-        waitForSecs(0.2f);
+        waitForSecs(0.7f);
         objectDict.get("bottombar").show();
         playSfxAudio("ping",true);
         waitForSecs(0.5f);

@@ -32,12 +32,12 @@ public class OC_PlayZoneAsset extends DBObject
 
     public static int ASSET_VIDEO = 1, ASSET_TEXT = 2, ASSET_DOODLE = 3;
 
-    public int assetid, type, userid;
+    public int assetid, typeid, userid, deleted;
     public String params, thumbnail;
     public long createTime;
 
     private static final String[] stringFields = {"params", "thumbnail"};
-    private static final String[] intFields = {"assetid", "type", "userid"};
+    private static final String[] intFields = {"assetid","typeid","userid","deleted"};
     private static final String[] longFields = {"createTime"};
 
     public static List<String> assetsNamesForNewFile(int type)
@@ -53,7 +53,6 @@ public class OC_PlayZoneAsset extends DBObject
         {
             prefix = "video";
             extension2 = "mp4";
-
         }
         else if(type == ASSET_DOODLE)
         {
@@ -74,7 +73,7 @@ public class OC_PlayZoneAsset extends DBObject
         return dir.getAbsolutePath() + "/" +fileName;
     }
 
-    public static boolean saveAssetInDBForUserId(DBSQL db, int userid, int type, String thumbnail, Map<String, String> params)
+    public static long saveAssetInDBForUserId(DBSQL db, int userid, int type, String thumbnail, Map<String, String> params)
     {
         StringBuffer mutableString = new StringBuffer();
         for(String key : params.keySet())
@@ -84,15 +83,15 @@ public class OC_PlayZoneAsset extends DBObject
             mutableString.append(String.format("%s=%s",key, params.get(key)));
         }
         ContentValues contentValues = new ContentValues();
-        contentValues.put("type",type);
+        contentValues.put("typeid",type);
         contentValues.put("params",mutableString.toString());
         if(thumbnail != null)
             contentValues.put("thumbnail",thumbnail);
         contentValues.put("userid",userid);
+        contentValues.put("deleted",0);
         contentValues.put("createTime", (long)(System.currentTimeMillis()/1000));
 
-        boolean result = db.doInsertOnTable(DBSQL.TABLE_PLAYZONE_ASSETS,contentValues) > 0;
-        return result;
+        return db.doInsertOnTable(DBSQL.TABLE_PLAYZONE_ASSETS,contentValues);
     }
 
     public static OC_PlayZoneAsset assetFromCursor(Cursor cursor)
@@ -112,7 +111,8 @@ public class OC_PlayZoneAsset extends DBObject
             db = new DBSQL(false);
             Map<String,String> whereMap = new ArrayMap<>();
             whereMap.put("userid",String.valueOf(userid));
-            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_PLAYZONE_ASSETS,allFieldNames(stringFields,intFields,longFields,null),whereMap, "createTime DESC");
+            whereMap.put("deleted","0");
+            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_PLAYZONE_ASSETS,allFieldNames(stringFields,intFields,longFields,null),whereMap, "assetid DESC");
 
             if(cursor.moveToFirst())
             {
@@ -126,7 +126,7 @@ public class OC_PlayZoneAsset extends DBObject
         }
         catch(Exception e)
         {
-
+            e.printStackTrace();
         }
         finally
         {
@@ -144,8 +144,8 @@ public class OC_PlayZoneAsset extends DBObject
         {
             db = new DBSQL(false);
 
-            Cursor cursor = db.prepareRawQuery(String.format("SELECT COUNT(*) as count FROM %s WHERE userid = ? AND createTime > ?", TABLE_PLAY_ZONE_ASSETS),
-                    Arrays.asList(String.valueOf(userid),String.valueOf(createTime)));
+            Cursor cursor = db.prepareRawQuery(String.format("SELECT COUNT(*) as count FROM %s WHERE userid = ? AND assetid > ? AND deleted = 0", TABLE_PLAY_ZONE_ASSETS),
+                    Arrays.asList(String.valueOf(userid),String.valueOf(assetid)));
 
             int columnIndex = cursor.getColumnIndex("count");
             if(cursor.moveToFirst()  && !cursor.isNull(columnIndex))
@@ -189,11 +189,11 @@ public class OC_PlayZoneAsset extends DBObject
         }
 
         Map<String, String> parDict = paramsDictionary();
-        if (type == ASSET_VIDEO)
+        if (typeid == ASSET_VIDEO)
         {
             File file = new File(pathToAsset(parDict.get("video")));
             file.delete();
-        } else if (type == ASSET_DOODLE)
+        } else if (typeid == ASSET_DOODLE)
         {
             File file = new File(pathToAsset(parDict.get("doodle")));
             file.delete();
@@ -205,7 +205,9 @@ public class OC_PlayZoneAsset extends DBObject
             db = new DBSQL(true);
             Map<String, String> whereMap = new ArrayMap<>();
             whereMap.put("assetid", String.valueOf(assetid));
-            db.doDeleteOnTable(DBSQL.TABLE_PLAYZONE_ASSETS, whereMap);
+            ContentValues contentValues = new ContentValues();
+            contentValues.put("deleted",1);
+            db.doUpdateOnTable(DBSQL.TABLE_PLAYZONE_ASSETS, whereMap, contentValues);
         } catch (Exception e)
         {
 

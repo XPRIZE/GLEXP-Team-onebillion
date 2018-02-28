@@ -1,40 +1,34 @@
 package org.onebillion.onecourse.mainui.oc_playzone;
 
-import android.content.Context;
 import android.content.res.AssetFileDescriptor;
-import android.content.res.AssetManager;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
-import android.media.ExifInterface;
-import android.os.SystemClock;
 import android.util.ArrayMap;
 import android.view.View;
 
-import org.apache.commons.io.FileUtils;
-import org.onebillion.onecourse.R;
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBImage;
 import org.onebillion.onecourse.controls.OBLabel;
-import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.controls.OBRadialGradientPath;
 import org.onebillion.onecourse.controls.OBScrollingText;
 import org.onebillion.onecourse.controls.OBShaderControl;
 import org.onebillion.onecourse.controls.OBVideoPlayer;
 import org.onebillion.onecourse.glstuff.OBRenderer;
-import org.onebillion.onecourse.glstuff.PixelShaderProgram;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OC_Menu;
 import org.onebillion.onecourse.mainui.OC_SectionController;
+import org.onebillion.onecourse.utils.MlUnit;
+import org.onebillion.onecourse.utils.OBAnalytics;
+import org.onebillion.onecourse.utils.OBAnalyticsManager;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimBlock;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
-import org.onebillion.onecourse.utils.OBExpansionManager;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBImageManager;
 import org.onebillion.onecourse.utils.OBMisc;
 import org.onebillion.onecourse.utils.OBUtils;
@@ -42,8 +36,9 @@ import org.onebillion.onecourse.utils.OBXMLManager;
 import org.onebillion.onecourse.utils.OBXMLNode;
 import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OCM_FatController;
+import org.onebillion.onecourse.utils.OCM_MlUnit;
+import org.onebillion.onecourse.utils.OCM_MlUnitInstance;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,7 +59,8 @@ public class OC_PlayZoneMenu extends OC_Menu
     static float TOUCH_TOLERANCE  = 20;
 
     boolean newMediaAdded, mediaIsPlaying, animateFloat, iconsScrollMode, iconsDeleteMode, boxTouchMode;
-    List<OBGroup> mediaIcons, menuButtons;
+    List<OBGroup> mediaIcons;
+    List<OBImage> menuButtons;
     List<OC_PlayZoneAsset> mediaAssets;
     OBControl currentMediaLayer;
     OBGroup mediaIconsGroup;
@@ -75,7 +71,6 @@ public class OC_PlayZoneMenu extends OC_Menu
     float dragTravelDistance;
     float leftLimit, rightLimit, topLimit, bottomLimit;
     OCM_FatController fatController;
-    String playZoneMasterlist;
 
     @Override
     public void onPause()
@@ -86,7 +81,7 @@ public class OC_PlayZoneMenu extends OC_Menu
             if(currentMediaLayer.propertyValue("gradient_manager") != null)
                 ((OBShaderControl)currentMediaLayer.propertyValue("gradient_manager")).stopAnimation();
             else if(currentMediaLayer == videoPlayer)
-                    videoPlayer.pause();
+                videoPlayer.pause();
 
         }
     }
@@ -100,7 +95,7 @@ public class OC_PlayZoneMenu extends OC_Menu
             if(currentMediaLayer.propertyValue("gradient_manager") != null)
                 ((OBShaderControl)currentMediaLayer.propertyValue("gradient_manager")).startAnimation(this);
             else if(currentMediaLayer == videoPlayer)
-                    videoPlayer.start();
+                videoPlayer.start();
         }
     }
 
@@ -108,15 +103,18 @@ public class OC_PlayZoneMenu extends OC_Menu
     public void onBatteryStatusReceived(final float level, final boolean charging)
     {
         super.onBatteryStatusReceived(level,charging);
-        final OBSectionController controller = this;
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        if (fatController != null)
         {
-            @Override
-            public void run() throws Exception
+            final OBSectionController controller = this;
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
-                fatController.refreshBatteryStatus(level,charging,controller);
-            }
-        });
+                @Override
+                public void run () throws Exception
+                {
+                    fatController.setBatteryChargingLevel(level, charging, controller);
+                }
+            });
+        }
     }
 
     public String sectionName()
@@ -137,18 +135,25 @@ public class OC_PlayZoneMenu extends OC_Menu
 
     public void prepare()
     {
-        fatController = (OCM_FatController) MainActivity.mainActivity.fatController;
+        if (OCM_FatController.class.isInstance(MainActivity.mainActivity.fatController))
+        {
+            fatController = (OCM_FatController) MainActivity.mainActivity.fatController;
+        }
+        else
+        {
+            MainActivity.log("OC_PlayZoneMenu:prepare:WARNING --> current FatController setup in MainActivity IS NOT a OCM_FatController.");
+            fatController = null;
+        }
+        //
         setStatus(STATUS_BUSY);
         super.prepare();
         loadFingers();
         loadAudioXML(getConfigPath("pzdefaultaudio.xml"));
-        fatController.loadBatteryIcon(this);
+        if (fatController != null) fatController.loadBatteryIcon(this);
         OBControl btmLeft = objectDict.get("bottom_bar_left");
         OBControl btmRight = objectDict.get("bottom_bar_right");
         scrollHitBox = new RectF(btmLeft.right(), btmLeft.top(), btmRight.left() , btmLeft.bottom());
 
-        playZoneMasterlist = MainActivity.mainActivity.configStringForKey(MainActivity.CONFIG_MASTER_LIST_PLAYZONE);
-        String xmlPath = String.format("masterlists/%s/units.xml", playZoneMasterlist);
 
         OBControl backButton = objectDict.get("button_back");
         backButton.setZPosition(50);
@@ -160,7 +165,8 @@ public class OC_PlayZoneMenu extends OC_Menu
         else
             boxTouchMode = false;
 
-        loadMenuButtonsForXml(xmlPath);
+        List<OCM_MlUnit> playzoneUnits = fatController.getUnitsForPlayzone();
+        loadMenuButtonsForUnits(playzoneUnits);
 
         objectDict.get("bottom_bar").setZPosition(20);
         objectDict.get("bottom_bar_gradient_left").setZPosition(49);
@@ -171,7 +177,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         {
             loadEvent("box");
             OBGroup box = (OBGroup)this.objectDict.get("box");
-           // box.setScale(applyGraphicScale(0.9f));
+            // box.setScale(applyGraphicScale(0.9f));
             box.show();
             //box.setRasterScale(1.4f*box.scale());
             for(OBControl gemControl : box.filterMembers("gem_.*"))
@@ -190,7 +196,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         }
         newMediaAdded = false;
         mediaIcons = new ArrayList<>();
-        mediaAssets = fatController.getPlayZoneAssetForCurrentUser();
+        mediaAssets = (fatController != null) ? fatController.getPlayZoneAssetForCurrentUser() : new ArrayList<OC_PlayZoneAsset>();
 
         videoPlayer = null;
 
@@ -214,6 +220,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         {
             public void run() throws Exception
             {
+                refreshButtonsStatus();
                 if (boxTouchMode)
                     demoPlayZoneIntro();
                 else
@@ -294,7 +301,7 @@ public class OC_PlayZoneMenu extends OC_Menu
             }
             else
             {
-                setButtonLoc((OBGroup)target,OB_Maths.AddPoints(pt, dragOffset));
+                setButtonLoc(target,OB_Maths.AddPoints(pt, dragOffset));
                 measureDragSpeed(target);
             }
             unlockScreen();
@@ -323,7 +330,7 @@ public class OC_PlayZoneMenu extends OC_Menu
             final OBControl targ = target;
             target = null;
             if(iconsScrollMode)
-                mediaIconsGroup.enable();
+                mediaIconsGroup.setProperty("animate", true);
             long time = System.currentTimeMillis();
             if((time-lastTouchTime) < 1000 &&
                     dragTravelDistance < applyGraphicScale(TOUCH_TOLERANCE))
@@ -362,7 +369,8 @@ public class OC_PlayZoneMenu extends OC_Menu
                             }
                             else
                             {
-                                if(targ != null)                                    targ.enable();
+                                if(targ != null)
+                                    targ.enable();
                                 setStatus(STATUS_AWAITING_CLICK);
 
                             }
@@ -389,7 +397,7 @@ public class OC_PlayZoneMenu extends OC_Menu
                         @Override
                         public void run() throws Exception
                         {
-                            checkSectionButton((OBGroup)targ);
+                            checkSectionButton(targ);
                         }
                     });
                 }
@@ -409,7 +417,7 @@ public class OC_PlayZoneMenu extends OC_Menu
                 }
                 else
                 {
-                    targ.enable();
+                    targ.setProperty("animate",true);
                     long statusT = setStatus(STATUS_AWAITING_CLICK);
                     if(iconsDeleteMode)
                     {
@@ -481,6 +489,7 @@ public class OC_PlayZoneMenu extends OC_Menu
             if(finger(0,1,Arrays.asList(backButton),pt) != null)
             {
                 playAudio(null);
+                OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.COMMUNITY_MODE);
                 goBack();
                 return true;
 
@@ -503,7 +512,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         OBControl icon = finger(-1, -1, (List<OBControl>)(Object)mediaIcons, pt);
         OBMisc.prepareForDragging(mediaIconsGroup, pt, this);
         prepareForSpeedMeasure(mediaIconsGroup);
-        mediaIconsGroup.disable();
+        mediaIconsGroup.setProperty("animate", false);
         mediaIconsGroup.setZPosition(mediaIconsGroup.zPosition() - 10);
         iconsScrollMode = true;
         lastTouchTime = System.currentTimeMillis();
@@ -533,11 +542,11 @@ public class OC_PlayZoneMenu extends OC_Menu
         setStatus(STATUS_BUSY);
         if(iconsDeleteMode)
             stopDeleteMode();
-        OBControl btn = finger(0,0,(List<OBControl>)(Object)menuButtons,pt);
+        OBControl btn = finger(0,0,(List<OBControl>)(Object)menuButtons,pt,true);
         if(btn != null)
         {
             setStatus(STATUS_BUSY);
-            btn.disable();
+            btn.setProperty("animate", false);
             OBMisc.prepareForDragging(btn,pt,this);
             iconsScrollMode = false;
             btn.setZPosition(btn.zPosition() - 10);
@@ -573,10 +582,10 @@ public class OC_PlayZoneMenu extends OC_Menu
         }
     }
 
-    public void checkSectionButton(final OBGroup targ) throws Exception
+    public void checkSectionButton(final OBControl targ) throws Exception
     {
-        OBControl highlight = targ.objectDict.get("highlight");
-        highlight.show();
+        //OBControl highlight = targ.objectDict.get("highlight");
+        targ.highlight();
         stopFloatLoop();
         playAudio(null);
         OBUtils.runOnMainThread(new OBUtils.RunLambda()
@@ -588,9 +597,7 @@ public class OC_PlayZoneMenu extends OC_Menu
             }
         });
 
-        waitForSecs(0.5f);
-        targ.enable();
-        highlight.hide();
+
         //  if(!started)
         // setStatus(STATUS_AWAITING_CLICK);
 
@@ -737,14 +744,14 @@ public class OC_PlayZoneMenu extends OC_Menu
     {
         long currentTime = System.currentTimeMillis();
         float frameFrac = (currentTime - lastFloatLoopTick)/(TICK_VALUE*1000.0f);
-        for(OBGroup button : menuButtons)
+        for(OBControl button : menuButtons)
         {
-            if(button.isEnabled())
+            if((boolean) button.propertyValue("animate"))
                 moveButtonBySpeed(button,frameFrac);
             checkButtonsForCollisions();
 
         }
-        if(mediaIconsGroup.isEnabled())
+        if((boolean)mediaIconsGroup.propertyValue("animate"))
             moveMediaIconsBySpeedFrac(frameFrac);
         if(iconsDeleteMode)
             animateIconsShake();
@@ -777,25 +784,56 @@ public class OC_PlayZoneMenu extends OC_Menu
         }
     }
 
-    public boolean checkButton(OBControl button,OBControl button2)
+    /*public boolean checkButton(OBControl button,OBControl button2)
     {
         if(button2 == button)
             return false;
         float dist = OB_Maths.PointDistance(button.position(), button2.position());
         return dist < collisionDistanceButton(button,button2);
+    }*/
+
+    public void setButtonEnabled(OBControl button, boolean enabled)
+    {
+        if(enabled)
+        {
+            button.setOpacity(1);
+            button.enable();
+        }
+        else
+        {
+            button.setOpacity(0.3f);
+            button.disable();
+        }
+        button.setProperty("locked", false);
+    }
+
+    public void refreshButtonsStatus()
+    {
+        lockScreen();
+        int unitid = fatController.getPlayzoneLockUnitId();
+
+        for (OBControl button : menuButtons)
+        {
+            OCM_MlUnit unit = (OCM_MlUnit) button.propertyValue("unit");
+            setButtonEnabled(button, unitid < 0 || unit.unitid == unitid);
+            if(unit.unitid == unitid)
+                button.setProperty("locked", true);
+        }
+        unlockScreen();
+
     }
 
     public void checkButtonsForCollisions()
     {
         for(int i=0; i< menuButtons.size(); i++)
         {
-            OBGroup button = menuButtons.get(i);
+            OBControl button = menuButtons.get(i);
             if(!(boolean)button.propertyValue("collide"))
                 continue;
             boolean precollided = false;
             for(int j=i+1; j< menuButtons.size(); j++)
             {
-                OBGroup button2 = menuButtons.get(j);
+                OBControl button2 = menuButtons.get(j);
                 float dist = OB_Maths.PointDistance(button.position(), button2.position());
                 float preCollisionDistance = buttonRadius(button) + buttonRadius(button2);
                 if(dist < preCollisionDistance)
@@ -828,9 +866,9 @@ public class OC_PlayZoneMenu extends OC_Menu
                         float dot2 = OB_Maths.dot_product(v2,n);
                         PointF r1 = OB_Maths.AddPoints(OB_Maths.ScalarTimesPoint(dot2-dot1,n),v1);
                         PointF r2 = OB_Maths.AddPoints(OB_Maths.ScalarTimesPoint(dot1-dot2,n),v2);
-                        if(button.isEnabled())
+                        if((boolean)button.propertyValue("animate"))
                             setControlSpeed(button,r1.x,r1.y);
-                        if(button2.isEnabled())
+                        if((boolean)button2.propertyValue("animate"))
                             setControlSpeed(button2,r2.x,r2.y);
                     }
                 }
@@ -899,7 +937,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         if(Math.abs(speedY) > MAX_SPEED)
             speedY *= decay;
         setControlSpeed(button,speedX,speedY);
-        setButtonLoc((OBGroup)button,loc ,(boolean)button.propertyValue("collide"));
+        setButtonLoc(button,loc ,(boolean)button.propertyValue("collide"));
     }
 
     public void moveMediaIconsBySpeedFrac(float frameFrac)
@@ -946,12 +984,12 @@ public class OC_PlayZoneMenu extends OC_Menu
         return true;
     }
 
-    public void setButtonLoc(OBGroup button,PointF loc)
+    public void setButtonLoc(OBControl button,PointF loc)
     {
         setButtonLoc(button,loc,true);
     }
 
-    public boolean setButtonLoc(OBGroup button,PointF loc, boolean collide)
+    public boolean setButtonLoc(OBControl button,PointF loc, boolean collide)
     {
         boolean didCollide = false;
         float speedX = (float)button.propertyValue("speedx");
@@ -1013,7 +1051,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         return didCollide;
     }
 
-    public void buttonSquish(OBGroup button,float angle, float frac)
+    public void buttonSquish(OBControl button,float angle, float frac)
     {
         if(button.propertyValue("squish_frac") != null)
         {
@@ -1029,29 +1067,34 @@ public class OC_PlayZoneMenu extends OC_Menu
     }
 
 
-    public boolean startSectionButton(OBControl button)
+    public boolean startSectionButton(final OBControl button)
     {
-        Map<String,String> buttonData = (Map<String,String>)button.propertyValue("data");
-        String target = (String)buttonData.get("target");
-        String config = (String)buttonData.get("config");
-        String params = (String)buttonData.get("params");
-        String lang = (String)buttonData.get("lang");
-        if(target != null)
+        OCM_MlUnit unit = (OCM_MlUnit)button.propertyValue("unit");
+        boolean locked = (boolean)button.propertyValue("locked");
+        fatController.startUnit(unit,locked ? OCM_MlUnitInstance.INSTANCE_TYPE_PZ_LOCKED : OCM_MlUnitInstance.INSTANCE_TYPE_PLAYZONE ,
+                new OCM_FatController.SectionOpeningCallback()
         {
-            if(config != null)
-                MainActivity.mainActivity.updateConfigPaths(config, false, lang != null ? lang : "en_GB");
-
-            if(MainViewController().pushViewControllerWithNameConfig(target,config != null ? config :"oc-playzone",true,true,params))
+            @Override
+            public void run(final OCM_MlUnitInstance unitInstance, final boolean success)
             {
-                return true;
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run() throws Exception
+                    {
+                        playAudio(null);
+                        waitForSecs(0.5f);
+                        button.setProperty("animate", true);
+                        button.lowlight();
+                        if(!success)
+                        {
+                            start();
+                        }
+                    }
+                });
             }
-            return false;
-
-        }
-        else
-        {
-            return false;
-        }
+        });
+        return true;
     }
 
     public void startDeleteMode()
@@ -1109,111 +1152,32 @@ public class OC_PlayZoneMenu extends OC_Menu
         unlockScreen();
     }
 
-    public void loadMenuButtonsForXml(String xmlPath)
+    public void loadMenuButtonsForUnits(List<OCM_MlUnit> units)
     {
-        if (xmlPath != null)
+
+        menuButtons = new ArrayList<>();
+        for(OCM_MlUnit unit : units)
         {
-            menuButtons = new ArrayList<>();
-            List<String> colours = OBUtils.randomlySortedArray(Arrays.asList(eventAttributes.get("button_colours").split(";")));
-            int index = 0;
-            List<Float> scaleOptions = OBUtils.randomlySortedArray(Arrays.asList(0.95f,0.975f,1.0f,1.025f,1.05f));
-            try
+            String completePath = unit.pathToIcon(false);
+            OBImage icon = OBImageManager.sharedImageManager().imageForPath(completePath);
+            if(icon == null)
             {
-                OBXMLManager xmlman = new OBXMLManager();
-                InputStream is = OBUtils.getInputStreamForPath(xmlPath);
-                List<OBXMLNode> xml = xmlman.parseFile(is);
-                if(xml.size() > 0)
-                {
-                    OBXMLNode rootNode = xml.get(0);
-                    List<OBXMLNode> xmlLevels = rootNode.childrenOfType("level");
-                    for(OBXMLNode xmlLevel : xmlLevels)
-                    {
-                        List<OBXMLNode> xmlunits = xmlLevel.childrenOfType("unit");
-                        for (OBXMLNode n : xmlunits)
-                        {
-                            boolean specialIcon = false;
-                            Map<String,String> map = new ArrayMap<>();
-                            map.put("config", n.attributeStringValue("config"));
-                            map.put("target", n.attributeStringValue("target"));
-                            map.put("params", n.attributeStringValue("params"));
-                            map.put("lang", n.attributeStringValue("lang"));
-                            if(n.attributeStringValue("special") != null)
-                                specialIcon = true;
-                            String iconsPath = String.format("masterlists/%s/icons", playZoneMasterlist);
-                            String completePath = String.format("%s/%s.png",iconsPath,n.attributeStringValue("icon"));
-                            OBImage icon = OBImageManager.sharedImageManager().imageForPath(completePath);
-                            if(icon == null)
-                            {
-                                continue;
-                            }
-                            OBGroup menuButton = (OBGroup)objectDict.get(specialIcon ? "menu_button_special" : "menu_button");
-                            OBGroup button = (OBGroup)menuButton.copy();
-                            attachControl(button);
-                            button.setPosition(menuButton.position());
-                            button.setScale(menuButton.scale());
-                            button.show();
-
-                            //OBMisc.scaleControlToControl(icon, button,true);
-                            //icon.setRasterScale(icon.scale());
-                            icon.setPosition(button.position());
-
-                            if(!specialIcon)
-                            {
-                                int colour = OBUtils.colorFromRGBString(colours.get(index % colours.size()));
-
-                                button.objectDict.get("colour").setFillColor(colour);
-                                OBRadialGradientPath topGradient = (OBRadialGradientPath) button
-                                        .objectDict.get("top_gradient");
-                                int[] gradientColours = topGradient.gradientLayer.colours;
-                                gradientColours[gradientColours.length - 1] = colour;
-                                topGradient.gradientLayer.colours = gradientColours;
-                            }
-                            OBControl iconMask = button.objectDict.get("icon").copy();
-                            iconMask.setPosition(menuButton.position());
-                            if(!specialIcon)
-                                iconMask.show();
-
-                            PointF relativePoint2 = OB_Maths.relativePointInRectForLocation(icon.position(), button.getWorldFrame());
-                            button.insertMember(icon,2,"button_icon");
-                            icon.setScale(icon.scale()/button.scale());
-                            icon.setPosition(OB_Maths.locationForRect(relativePoint2, button.bounds()));
-                            icon.setZPosition(2);
-
-                            PointF relativePoint = OB_Maths.relativePointInRectForLocation(iconMask.position(), icon.getWorldFrame());
-                            iconMask.setScale(1.0f/icon.scale());
-                            iconMask.setPosition(OB_Maths.locationForRect(relativePoint, icon.bounds()));
-                            if(!specialIcon)
-                                icon.setMaskControl(iconMask);
-
-                            button.objectDict.get("top_layer").setZPosition(3);
-                            button.setPosition(OB_Maths.locationForRect(0.5f,0.5f,this.bounds()));
-                            button.setZPosition(10);
-                            if(!specialIcon)
-                                button.setScale(menuButton.scale() * scaleOptions.get(index%scaleOptions.size()));
-                            menuButtons.add(button);
-                            prepareForSpeedMeasure(button);
-                            button.setProperty("start_scale",button.scale());
-                            button.setProperty("radius",button.width()*0.5f);
-                            button.setProperty("data",map);
-                            if(!specialIcon)
-                                index++;
-                            if(boxTouchMode)
-                                button.hide();
-
-                        }
-
-                    }
-
-                }
+                continue;
             }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-            }
+            OBImage button = icon;
 
+            menuButtons.add(button);
+            attachControl(button);
+            prepareForSpeedMeasure(button);
+            button.setProperty("start_scale",button.scale());
+            button.setProperty("radius",button.width()*0.5f);
+            button.setProperty("unit",unit);
+            button.setProperty("animate", true);
+            button.setZPosition(10);
+            if(boxTouchMode)
+                button.hide();
         }
 
-        Collections.reverse(menuButtons);
     }
 
 
@@ -1229,21 +1193,21 @@ public class OC_PlayZoneMenu extends OC_Menu
         mbg.show();
         mbg.setZPosition(0.5f);
         OBControl thumbnail = null;
-        if(asset.type == OC_PlayZoneAsset.ASSET_VIDEO)
+        if(asset.typeid == OC_PlayZoneAsset.ASSET_VIDEO)
         {
             mbg.setFillColor(Color.RED);
             thumbnail = OBImageManager.sharedImageManager().imageForPath(OC_PlayZoneAsset.pathToAsset(asset.thumbnail));
         }
-        else if(asset.type == OC_PlayZoneAsset.ASSET_DOODLE)
+        else if(asset.typeid == OC_PlayZoneAsset.ASSET_DOODLE)
         {
             mbg.setFillColor(Color.BLUE);
             thumbnail = OBImageManager.sharedImageManager().imageForPath(OC_PlayZoneAsset.pathToAsset(asset.thumbnail));
         }
-        else if(asset.type == OC_PlayZoneAsset.ASSET_TEXT)
+        else if(asset.typeid == OC_PlayZoneAsset.ASSET_TEXT)
         {
             mbg.setFillColor(Color.GREEN);
             thumbnail = OBImageManager.sharedImageManager().imageForPath(OC_PlayZoneAsset.pathToAsset(asset.thumbnail));
-
+/*
             if (thumbnail == null)
             {
                 Map<String,String> dataDict = asset.paramsDictionary();
@@ -1266,7 +1230,7 @@ public class OC_PlayZoneMenu extends OC_Menu
                 background.setBackgroundColor(Color.WHITE);
                 background.setZPosition (1);
                 thumbnail = new OBGroup(Arrays.asList(background,thumbnailText,overlay));
-            }
+            }*/
         }
         mrect.setPosition(thumbnail.position());
         mrect.setZPosition(1);
@@ -1318,6 +1282,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         mediaIconsGroup = new OBGroup((List<OBControl>)(Object)mediaIcons);
         setMediaIconsGroupLoc(OB_Maths.locationForRect(0.5f,0.5f,objectDict.get("bottom_bar").frame()));
         attachControl(mediaIconsGroup);
+        mediaIconsGroup.setProperty("animate", true);
         //RectF frame = mediaIconsGroup.frame();
         // mediaIconsGroup.setFrame(frame);
         mediaIconsGroup.setShouldTexturise(false);
@@ -1331,12 +1296,12 @@ public class OC_PlayZoneMenu extends OC_Menu
             public void run() throws Exception
             {
                 final OC_PlayZoneAsset asset = (OC_PlayZoneAsset)icon.propertyValue("asset");
-                if (asset.type == OC_PlayZoneAsset.ASSET_VIDEO)
+                if (asset.typeid == OC_PlayZoneAsset.ASSET_VIDEO)
                 {
                     loadVideoForAsset(asset, icon);
                     mediaIsPlaying = true;
                     setStatus(STATUS_AWAITING_CLICK);
-                } else if (asset.type == OC_PlayZoneAsset.ASSET_TEXT)
+                } else if (asset.typeid == OC_PlayZoneAsset.ASSET_TEXT)
                 {
                     OBUtils.runOnMainThread(
                             new OBUtils.RunLambda()
@@ -1361,7 +1326,7 @@ public class OC_PlayZoneMenu extends OC_Menu
                             }
                     );
 
-                } else if (asset.type == OC_PlayZoneAsset.ASSET_DOODLE)
+                } else if (asset.typeid == OC_PlayZoneAsset.ASSET_DOODLE)
                 {
                     OBUtils.runOnMainThread(
                             new OBUtils.RunLambda()
@@ -1564,7 +1529,7 @@ public class OC_PlayZoneMenu extends OC_Menu
     {
         if(mediaAssets.size() ==0 || !mediaAssets.get(0).isLatestAsset())
         {
-            List<OC_PlayZoneAsset> newMediaAssets = fatController.getPlayZoneAssetForCurrentUser();
+            List<OC_PlayZoneAsset> newMediaAssets = (fatController != null) ? fatController.getPlayZoneAssetForCurrentUser() : new ArrayList<OC_PlayZoneAsset>();
             if(newMediaAssets.size() > 0)
             {
                 loadAllMediaIcons(newMediaAssets);
@@ -1751,7 +1716,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         for (OBControl menuButton : menuButtons)
         {
             menuButton.setScale(0.15f);
-            menuButton.disable();
+            menuButton.setProperty("animate", false);
             menuButton.show();
             menuButton.setProperty("collide", false);
 
@@ -1765,7 +1730,7 @@ public class OC_PlayZoneMenu extends OC_Menu
                     .size()) * i;
             setControlSpeed(menuButton, applyGraphicScale(5) * (float) Math.cos((float) Math.toRadians(currentAngle)),
                     applyGraphicScale(5) * (float) Math.sin((float) Math.toRadians(currentAngle)));
-            menuButton.enable();
+            menuButton.setProperty("animate", true);
             OBAnimationGroup.runAnims(Arrays.asList(OBAnim.scaleAnim((float) menuButton.propertyValue("start_scale"), menuButton)),
                     0.5, false,
                     OBAnim.ANIM_EASE_IN, new OBUtils.RunLambda()
@@ -1791,7 +1756,7 @@ public class OC_PlayZoneMenu extends OC_Menu
         {
             PointF loc2 = OBMisc.copyPoint(mediaIconsGroup.position());
             loc2.x += objectDict.get("media_bg").width();
-            mediaIconsGroup.setPosition ( loc2);
+            mediaIconsGroup.setPosition(loc2);
 
         }
         List<OBAnim> anims = new ArrayList<>();

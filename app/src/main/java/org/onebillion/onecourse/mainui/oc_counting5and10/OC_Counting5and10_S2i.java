@@ -115,6 +115,8 @@ public class OC_Counting5and10_S2i extends OC_Generic_Event
             waitForSecs(0.3);
             //
             setStatus(STATUS_AWAITING_CLICK);
+            //
+            doAudio(currentEvent());
         }
         catch (Exception e)
         {

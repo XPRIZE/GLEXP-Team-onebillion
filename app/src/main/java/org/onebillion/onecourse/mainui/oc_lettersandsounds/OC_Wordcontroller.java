@@ -13,6 +13,7 @@ import android.util.Log;
 
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.mainui.OC_SectionController;
+import org.onebillion.onecourse.utils.OBFont;
 import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBSyllable;
 import org.onebillion.onecourse.utils.OBUtils;
@@ -31,7 +32,7 @@ import java.util.Map;
  */
 public class OC_Wordcontroller extends OC_SectionController
 {
-    boolean needDemo;
+    protected boolean needDemo;
 
     public void start()
     {
@@ -362,6 +363,11 @@ public class OC_Wordcontroller extends OC_SectionController
         SpannableString ss = new SpannableString(tx);
         StaticLayout sl = new StaticLayout(ss,tp,4000, Layout.Alignment.ALIGN_NORMAL,1,0,false);
         return new RectF(0,0,sl.getLineRight(0),sl.getLineBottom(0));
+    }
+
+    public static RectF boundingBoxForText(String tx, OBFont font)
+    {
+        return boundingBoxForText(tx,font.typeFace,font.size);
     }
 
 }

@@ -37,9 +37,9 @@ public class X_SpannerText extends OC_SectionController
         doVisual(currentEvent());
         setStatus(STATUS_AWAITING_CLICK);
         //
-        Typeface font1 = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/onebillionreader-Regular_old2.otf");
-        Typeface font2 = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/onebillionreader-Regular.otf");
-        Typeface font3 = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "fonts/onebillionreader-Regular_new.otf");
+        Typeface font1 = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "onebillionreader-Regular_old2.otf");
+        Typeface font2 = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "onebillionreader-Regular.otf");
+        Typeface font3 = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "onebillionreader-Regular_new.otf");
         //
         labels = new ArrayList<>();
         int spacingY = 400;

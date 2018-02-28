@@ -37,10 +37,10 @@ public class OC_Counting5and10_S5 extends OC_Generic_Event
     }
 
 
-    public void fin ()
-    {
-        goToCard(OC_Counting5and10_S5h.class, "event5");
-    }
+//    public void fin ()
+//    {
+//        goToCard(OC_Counting5and10_S5h.class, "event5");
+//    }
 
 
     public void setSceneXX (String scene)

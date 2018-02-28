@@ -16,7 +16,9 @@ import java.util.regex.Pattern;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.*;
+import android.media.AudioManager;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
@@ -91,6 +93,9 @@ public class OBSectionController extends OBViewController
     private boolean popAnimationZoom;
     private RectF popAnimationZoomRect;
 
+    private String saveConfig;
+    private String saveLanguage;
+
     public float topColour[] = {1, 1, 1, 1};
     float bottomColour[] = {1, 1, 1, 1};
     protected List<Integer> busyStatuses =Arrays.asList(STATUS_BUSY,STATUS_DOING_DEMO,STATUS_DRAGGING,STATUS_CHECKING);
@@ -144,12 +149,6 @@ public class OBSectionController extends OBViewController
         if (e.contents != null)
             objectDict.put("contents", e.contents);
         return objectDict;
-    }
-
-
-    static Map<String, Object> Config ()
-    {
-        return MainActivity.mainActivity.Config();
     }
 
     static float floatOrZero (Map<String, Object> attrs, String s)
@@ -242,12 +241,10 @@ public class OBSectionController extends OBViewController
 
     public static String getLocalPath (String fileName)
     {
-        for (String path : (List<String>) Config().get(MainActivity.CONFIG_AUDIO_SEARCH_PATH))
+        for (String path :OBConfigManager.sharedManager.getAudioSearchPaths())
         {
             String fullPath = OBUtils.stringByAppendingPathComponent(path, fileName);
             if (OBUtils.fileExistsAtPath(fullPath)) return fullPath;
-//            if (OBUtils.fileExistsAtPath(fullPath))
-//                return fullPath;
         }
         return null;
     }
@@ -261,6 +258,11 @@ public class OBSectionController extends OBViewController
         SpannableString ss = new SpannableString(tx);
         StaticLayout sl = new StaticLayout(ss,tp,4000, Layout.Alignment.ALIGN_NORMAL,1,0,false);
         return sl.getLineBaseline(0);
+    }
+
+    public long statusTime()
+    {
+        return statusTime;
     }
 
     public Map<String, Object> loadXML (String xmlPath)
@@ -327,11 +329,16 @@ public class OBSectionController extends OBViewController
     public void viewWillAppear (Boolean animated)
     {
         _aborting = false;
+        //
+        if (saveConfig != null)
+        {
+            OBConfigManager.sharedManager.updateConfigPaths(saveConfig, false, saveLanguage);
+        }
     }
 
     public String getConfigPath (String cfgName)
     {
-        for (String path : (List<String>) Config().get(MainActivity.CONFIG_CONFIG_SEARCH_PATH))
+        for (String path : OBConfigManager.sharedManager.getConfigSearchPaths())
         {
             String fullPath = OBUtils.stringByAppendingPathComponent(path, cfgName);
             Boolean fileExists = OBUtils.fileExistsAtPath(fullPath);
@@ -339,8 +346,6 @@ public class OBSectionController extends OBViewController
             {
                 return fullPath;
             }
-//            if (OBUtils.fileExistsAtPath(fullPath))
-//                return fullPath;
         }
         return null;
     }
@@ -348,6 +353,10 @@ public class OBSectionController extends OBViewController
     public void prepare ()
     {
         super.prepare();
+        //
+        saveConfig = OBConfigManager.sharedManager.getCurrentActivityFolder();
+        saveLanguage = OBConfigManager.sharedManager.getCurrentLanguage();
+        //
         theMoveSpeed = bounds().width();
         inited = true;
         processParams();
@@ -609,12 +618,15 @@ public class OBSectionController extends OBViewController
             int skinOffset = 0;
             if (attrs.get("skinoffset") != null)
                 skinOffset = Integer.parseInt((String) attrs.get("skinoffset"));
-            int skincol = OBUtils.SkinColour(OBUtils.SkinColourIndex() + skinOffset);
+            int skincol = OBConfigManager.sharedManager.getSkinColour(skinOffset);
             if (im == null)
             {
                 MainActivity.log("ERROR --> null object with name " + srcname);
             }
-            ((OBGroup) im).substituteFillForAllMembers("skin.*", skincol);
+            else
+            {
+                ((OBGroup) im).substituteFillForAllMembers("skin.*", skincol);
+            }
             if (attrs.get("fill") != null)
             {
                 int col = OBUtils.colorFromRGBString((String) attrs.get("fill"));
@@ -877,7 +889,7 @@ public class OBSectionController extends OBViewController
 
     public float graphicScale ()
     {
-        return (Float) (Config().get(MainActivity.mainActivity.CONFIG_GRAPHIC_SCALE));
+        return OBConfigManager.sharedManager.getGraphicScale();
     }
 
     public List<OBControl> loadEvent (String eventID)
@@ -1137,10 +1149,17 @@ public class OBSectionController extends OBViewController
         RectF f = control.frame();
         attachedControls.remove(control);
         control.controller = null;
-//        if(control.texture != null)
-//            control.texture.cleanUp();
         sortedAttachedControlsValid = false;
         invalidateView((int) f.left, (int) f.top, (int) f.right, (int) f.bottom);
+    }
+
+    public void detachControls(List conts)
+    {
+        if(conts != null)
+        {
+            for(Object c : conts)
+                detachControl((OBControl)c);
+        }
     }
 
     public List<String> filterControlsIDs (String pattern)
@@ -1449,7 +1468,7 @@ public class OBSectionController extends OBViewController
         OBAnimationGroup.runAnims(anims, secs, wait, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
     }
 
-    List AnimsForMoveToPoint(List<OBControl> objs,PointF pos)
+    public List AnimsForMoveToPoint(List<OBControl> objs,PointF pos)
     {
         OBControl obj = objs.get(0);
         PointF currPos = obj.position();
@@ -1498,7 +1517,7 @@ public class OBSectionController extends OBViewController
                 {
                     OBGroup arm = MainActivity.mainActivity.armPointer();
                     arm.setZPosition(POINTER_ZPOS);
-                    float graphicScale = MainActivity.mainActivity.applyGraphicScale(1);
+                    float graphicScale = OBConfigManager.sharedManager.getGraphicScale();
                     arm.scaleX = arm.scaleY = graphicScale;
                     arm.texturise(false, vc);
                     thePointer = arm;
@@ -1598,7 +1617,29 @@ public class OBSectionController extends OBViewController
                 public void run ()
                 {
                     if (aqtCopy == audioQueueToken)
-                        OBAudioManager.audioManager.stopPlaying();
+                    {
+                        final OBAudioManager am = OBAudioManager.audioManager;
+                        int currtimems = am.playerForChannel(OBAudioManager.AM_MAIN_CHANNEL).currentPositionms();
+                        final int timetogo = (int)(toTime * 1000) - currtimems;
+                        if (timetogo > 0)
+                        {
+                            Handler h2 = new Handler();
+                            h2.postDelayed(new Runnable()
+                            {
+                                @Override
+                                public void run ()
+                                {
+                                    if (aqtCopy == audioQueueToken)
+                                    {
+                                        am.stopPlaying();
+                                    }
+                                }
+                            }, timetogo);
+
+                        }
+                        else
+                            am.stopPlaying();
+                    }
                 }
             }, t);
 
@@ -1644,6 +1685,70 @@ public class OBSectionController extends OBViewController
             }
         });
 
+    }
+
+    public OBAudioBufferPlayer playAudioFromToP (final String fileName, double fromTime, double toTime)
+    {
+        updateAudioQueueToken();
+        final long aqtCopy = audioQueueToken;
+        OBAudioBufferPlayer player = new OBAudioBufferPlayer(false);
+        AssetFileDescriptor afd = OBAudioManager.audioManager.getAudioPathFD(fileName);
+        player.startPlaying(afd,fromTime,toTime);
+        return player;
+    }
+
+    public void playAudioFromToS (final String fileName, final double fromTime, final double toTime)
+    {
+        if (Looper.myLooper() == Looper.getMainLooper())
+        {
+            final long aqtCopy = updateAudioQueueToken();
+            _playAudio(fileName, fromTime);
+            final long t = (long) (toTime * 1000);
+            final OBAudioManager am = OBAudioManager.audioManager;
+            final Timer audioTimer = new Timer();
+            final OBSectionController controller = this;
+            final OBAudioPlayer player =  am.playerForChannel(OBAudioManager.AM_MAIN_CHANNEL);
+            audioTimer.scheduleAtFixedRate(new TimerTask()
+            {
+                @Override
+                public void run()
+                {
+                    if (aqtCopy == audioQueueToken)
+                    {
+                        
+                        int sec = player.currentPositionms();
+
+                        if (sec >= t)
+                        {
+                            player.stopPlaying();
+                            audioTimer.cancel();
+                            audioTimer.purge();
+                        }
+                        if (controller._aborting || sec < 0)
+                        {
+                            audioTimer.cancel();
+                            audioTimer.purge();
+                        }
+                    }
+                    else
+                    {
+                        audioTimer.cancel();
+                        audioTimer.purge();
+                    }
+                }
+            },1,1);
+
+        }
+        else
+        {
+            new OBRunnableSyncUI()
+            {
+                public void ex ()
+                {
+                    playAudioFromToS(fileName, fromTime, toTime);
+                }
+            }.run();
+        }
     }
 
 
@@ -1726,7 +1831,7 @@ public class OBSectionController extends OBViewController
         if(sectionSfxVolumes == null)
         {
             Map<String, Float> sfxVolumes = MainActivity.mainActivity.sfxVolumes;
-            sectionSfxVolumes = new HashMap<>(sfxVolumes);
+            sectionSfxVolumes = new HashMap<>(OBConfigManager.sharedManager.getSfxVolumes());
             Map<String, Float> d = (Map<String, Float>) audioScenes.get("__sfxvols");
             if (d != null)
                 sectionSfxVolumes.putAll(d);
@@ -2009,6 +2114,8 @@ public class OBSectionController extends OBViewController
 
         if (_replayAudio != null)
         {
+            MainActivity.mainActivity.fatController.onReplayAudioButtonPressed();
+            //
             setStatus(status());
             new AsyncTask<Void, Void, Void>()
             {
@@ -2050,6 +2157,8 @@ public class OBSectionController extends OBViewController
     {
         stopAllAudio();
         _aborting = true;
+        for(OBControl con : attachedControls)
+            con.cleanUp();
     }
 
     public void goBack ()
@@ -2332,6 +2441,12 @@ public class OBSectionController extends OBViewController
         });
     }
 
+    public void goToCard(Class nextSection,String param,boolean withAnimation,String configName)
+    {
+        OBConfigManager.sharedManager.updateConfigPaths(configName,false);
+        goToCard(nextSection,param,withAnimation);
+    }
+
     public void reprompt (final long sttime, final List<Object> audio, float delaySecs)
     {
         reprompt(sttime, audio, delaySecs, null);
@@ -2370,7 +2485,10 @@ public class OBSectionController extends OBViewController
                 continue;
 
             Map<String,List> scene = (Map<String, List>) audioScenes.get(ksc);
-            for(String kac : scene.keySet() )
+            Set<String> ks = new HashSet<>();
+            ks.addAll(scene.keySet());
+            //
+            for(String kac : ks )
                 if(kac.startsWith(mergePrefix))
                 {
                     String targPrefix = kac.substring(mergePrefix.length() );
@@ -2434,6 +2552,15 @@ public class OBSectionController extends OBViewController
     public void onPause()
     {
 
+    }
+
+    public void scalePic(OBControl pic,OBControl picbox)
+    {
+        float wratio = pic.width() / picbox.width();
+        float hratio = pic.height() / picbox.height();
+        float ratio = wratio > hratio?wratio:hratio;
+        pic.setScale(1 / ratio);
+        pic.setPosition(picbox.position());
     }
 
     public void onAlarmReceived(Intent intent)

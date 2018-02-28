@@ -4,164 +4,24 @@
               android:layout_height="match_parent"
               android:orientation="vertical">
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                  android:layout_width="match_parent"
-                  android:layout_height="730dp"
-                  android:orientation="horizontal"
-                  android:weightSum="1">
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="horizontal" android:weightSum="1">
 
-        <ListView
-            android:id="@+id/listView"
-            android:layout_width="1000dp"
-            android:layout_height="711dp"
-            android:choiceMode="singleChoice"/>
+        <ListView android:id="@+id/listView" android:layout_width="1000dp" android:layout_height="match_parent" android:choiceMode="singleChoice"/>
 
-        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                      android:layout_width="wrap_content"
-                      android:layout_height="match_parent"
-                      android:layout_weight="0.4"
-                      android:orientation="vertical"
-                      android:weightSum="1">
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_weight="0.4" android:orientation="vertical" android:weightSum="1">
 
-            <RelativeLayout
-                android:layout_width="250dp"
-                android:layout_height="match_parent"
-                android:layout_centerInParent="true">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="100dp">
-
-                        <Button
-                            android:id="@+id/skipButton"
-                            android:layout_width="200dp"
-                            android:layout_height="wrap_content"
-                            android:layout_centerInParent="true"
-                            android:text="SKIP"/>
-                    </RelativeLayout>
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="100dp">
-
-                        <Button
-                            android:id="@+id/loopButton"
-                            android:layout_width="200dp"
-                            android:layout_height="wrap_content"
-                            android:layout_centerInParent="true"
-                            android:text="SPIN LIKE A RECORD"/>
-                    </RelativeLayout>
-
-
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="150dp">
-
-                        <Button
-                            android:id="@+id/nextButton"
-                            android:layout_width="200dp"
-                            android:layout_height="100dp"
-                            android:layout_centerInParent="true"
-                            android:text="Next"/>
-                    </RelativeLayout>
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="100dp">
-
-                        <Button
-                            android:id="@+id/disableAdministratorButton"
-                            android:layout_width="200dp"
-                            android:layout_height="wrap_content"
-                            android:layout_centerInParent="true"
-                            android:text="Disable Administrator Privileges"/>
-                    </RelativeLayout>
-
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="100dp">
-
-                        <Button
-                            android:id="@+id/killButton"
-                            android:layout_width="200dp"
-                            android:layout_height="wrap_content"
-                            android:layout_centerInParent="true"
-                            android:text="Kill Services"/>
-                    </RelativeLayout>
-
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="100dp">
-
-                        <Button
-                            android:id="@+id/shutdownButton"
-                            android:layout_width="200dp"
-                            android:layout_height="wrap_content"
-                            android:layout_centerInParent="true"
-                            android:text="Shutdown"
-                            />
-                    </RelativeLayout>
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="100dp">
-
-                        <Button
-                            android:id="@+id/crashButton"
-                            android:layout_width="200dp"
-                            android:layout_height="wrap_content"
-                            android:layout_centerInParent="true"
-                            android:text="Force crash"/>
-                    </RelativeLayout>
-
-                </LinearLayout>
-            </RelativeLayout>
+            <TextView android:id="@+id/buildNumber" android:layout_width="match_parent" android:layout_height="120dp" android:layout_weight="1" android:text="0000" android:textAlignment="center" android:textSize="36sp" android:textStyle="bold"/>
+            <Button android:id="@+id/nextButton" android:layout_width="match_parent" android:layout_height="180dp" android:layout_centerInParent="true" android:layout_weight="1" android:text="Next"/>
+            <Button android:id="@+id/loopButton" android:layout_width="match_parent" android:layout_height="60dp" android:layout_centerInParent="true" android:layout_weight="1" android:text="SPIN LIKE A RECORD"/>
+            <Button android:id="@+id/disableAdministratorButton" android:layout_width="match_parent" android:layout_height="60dp" android:layout_centerInParent="true" android:layout_weight="1" android:text="Disable Administrator Privileges"/>
+            <Button android:id="@+id/killButton" android:layout_width="match_parent" android:layout_height="60dp" android:layout_centerInParent="true" android:layout_weight="1" android:text="Kill Services"/>
+            <Button android:id="@+id/shutdownButton" android:layout_width="match_parent" android:layout_height="60dp" android:layout_centerInParent="true" android:layout_weight="1" android:text="Shutdown"/>
+            <Button android:id="@+id/uploadBackup" android:layout_width="match_parent" android:layout_height="60dp" android:layout_alignParentBottom="true" android:layout_centerHorizontal="true" android:layout_weight="1" android:enabled="true" android:singleLine="true" android:text="Upload Backup"/>
+            <Button android:id="@+id/skipButton" android:layout_width="match_parent" android:layout_height="60dp" android:layout_centerInParent="true" android:layout_weight="1" android:text="SKIP"/>
+            <Button android:id="@+id/newdDayButton" android:layout_width="match_parent" android:layout_height="60dp" android:layout_alignParentTop="true" android:layout_alignStart="@+id/refreshButton" android:layout_weight="1" android:enabled="true" android:singleLine="true" android:text="new day"/>
+            <Button android:id="@+id/refreshButton" android:layout_width="match_parent" android:layout_height="60dp" android:layout_alignParentBottom="true" android:layout_centerHorizontal="true" android:layout_weight="1" android:enabled="true" android:singleLine="true" android:text="RESET"/>
+            <Button android:id="@+id/playzone" android:layout_width="match_parent" android:layout_height="120dp" android:layout_centerInParent="true" android:layout_weight="1" android:enabled="true" android:singleLine="true" android:text="Playzone"/>
         </LinearLayout>
     </LinearLayout>
 
-    <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_alignParentTop="true" android:weightSum="1">
-
-            <RelativeLayout
-                android:layout_width="270dp"
-                android:layout_height="match_parent">
-
-                <Button
-                    android:id="@+id/newdDayButton"
-                    android:layout_width="139dp"
-                    android:layout_height="wrap_content" android:enabled="true"
-                    android:singleLine="true"
-                    android:text="new day" android:layout_alignParentTop="true" android:layout_alignStart="@+id/refreshButton"/>
-                <Button android:id="@+id/refreshButton" android:layout_width="139dp" android:layout_height="wrap_content" android:enabled="true" android:singleLine="true" android:text="RESET" android:layout_alignParentBottom="true" android:layout_centerHorizontal="true"/>
-            </RelativeLayout>
-
-
-            <RelativeLayout android:layout_width="264dp" android:layout_height="match_parent">
-
-                <Button android:id="@+id/connectWifiButton" android:layout_width="200dp" android:layout_height="wrap_content" android:enabled="true" android:singleLine="true" android:text="Connect to Wifi" android:layout_alignParentTop="true" android:layout_centerHorizontal="true"/>
-                <Button android:id="@+id/uploadBackup" android:layout_width="139dp" android:layout_height="wrap_content" android:enabled="true" android:singleLine="true" android:text="Upload Backup" android:layout_alignParentBottom="true" android:layout_centerHorizontal="true"/>
-            </RelativeLayout>
-
-
-            <RelativeLayout android:layout_width="300dp" android:layout_height="match_parent">
-
-                <TextView android:id="@+id/buildNumber" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1" android:text="0000" android:textAlignment="textEnd" android:textSize="36sp" android:textStyle="bold"/>
-            </RelativeLayout>
-
-        </LinearLayout>
-    </RelativeLayout>
 </LinearLayout>

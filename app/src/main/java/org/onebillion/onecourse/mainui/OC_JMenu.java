@@ -20,6 +20,7 @@ import org.onebillion.onecourse.controls.OBVideoPlayer;
 import org.onebillion.onecourse.glstuff.OBRenderer;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBImageManager;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OBXMLManager;
@@ -83,25 +84,25 @@ public class OC_JMenu extends OC_Menu
     static Typeface plainFont()
     {
         if (plain == null)
-            plain = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(),"fonts/F37Ginger-Regular.otf");
+            plain = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(),"F37Ginger-Regular.otf");
         return plain;
     }
     static Typeface boldFont()
     {
         if (bold == null)
-            bold = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(),"fonts/F37Ginger-Bold.otf");
+            bold = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(),"F37Ginger-Bold.otf");
         return bold;
     }
     static Typeface italicFont()
     {
         if (italic == null)
-            italic = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(),"fonts/F37Ginger-Italic.otf");
+            italic = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(),"F37Ginger-Italic.otf");
         return italic;
     }
     static Typeface boldItalicFont()
     {
         if (boldItalic == null)
-            boldItalic = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(),"fonts/F37Ginger-BoldItalic.otf");
+            boldItalic = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(),"F37Ginger-BoldItalic.otf");
         return boldItalic;
     }
     Typeface jFont(boolean isBold,boolean isItalic)
@@ -212,11 +213,12 @@ public class OC_JMenu extends OC_Menu
     }
     public void prepare()
     {
+        params = new String("menu");
         super.prepare();
-        languages = (List<String>)Config().get("languages");
-        languageNames = (List<String>)Config().get("languagenames");
+        languages = OBConfigManager.sharedManager.getArrayValue(OBConfigManager.APP_LANGUAGES);
+        languageNames = OBConfigManager.sharedManager.getArrayValue(OBConfigManager.APP_LANGUAGE_NAMES);
         loadMasterList(languages.get(0));
-        saveConfig = (String)Config().get(MainActivity.CONFIG_APP_CODE);
+        //
         loadEvent("mastera");
         tabTextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("tabtextsize")));
         subheadtextSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("subheadtextsize")));
@@ -1129,7 +1131,14 @@ public class OC_JMenu extends OC_Menu
                 RectF r = convertRectFromControl(highlightedIcon.bounds(),highlightedIcon);
                 if (r.contains(pto.x,pto.y))
                 {
-                    goToTarget(highlightedIcon);
+                    OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run () throws Exception
+                        {
+                            goToTarget(highlightedIcon);
+                        }
+                    });
                     OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
                     {
                         @Override
@@ -1307,14 +1316,26 @@ public class OC_JMenu extends OC_Menu
             String configName = (String) c.propertyValue("config");
             if (configName == null)
             {
-                String appDir = (String) Config().get("app_code");
+                String appDir = OBConfigManager.sharedManager.getCurrentActivityFolder();
                 String[] comps = appDir.split("/");
                 configName = comps[0];
             }
             else
-                MainActivity.mainActivity.updateConfigPaths(configName, false,languageName);
-            if (!MainActivity.mainViewController.pushViewControllerWithNameConfig(target, configName, true, true, parm))
-                setStatus(STATUS_IDLE);
+            {
+                OBConfigManager.sharedManager.updateConfigPaths(configName, false, languageName);
+            }
+            //
+            final String config = configName;
+            //
+            OBUtils.runOnMainThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run () throws Exception
+                {
+                    if (!MainActivity.mainViewController.pushViewControllerWithNameConfig(target, config, true, true, parm))
+                        setStatus(STATUS_IDLE);
+                }
+            });
 
         }
     }

@@ -237,7 +237,7 @@ public class OC_MoreNumbers_S5k extends OC_SectionController
         return complete;
     }
 
-    public void moveFlags(boolean moveIn,float duration)
+    public void moveFlags(boolean moveIn,float duration) throws Exception
     {
         List<OBAnim> arr = new ArrayList<>();
         float top = objectDict.get("bottombar").top();
@@ -252,6 +252,7 @@ public class OC_MoreNumbers_S5k extends OC_SectionController
                 arr.add(OBAnim.propertyAnim("top",top,flag));
             }
         }
+        playSfxAudio(moveIn ? "flags_on" : "flags_off", false);
         OBAnimationGroup.runAnims(arr,duration,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
         if(!moveIn)
         {
@@ -259,6 +260,7 @@ public class OC_MoreNumbers_S5k extends OC_SectionController
                 detachControl(flag);
 
         }
+        waitSFX();
 
     }
 
@@ -271,8 +273,7 @@ public class OC_MoreNumbers_S5k extends OC_SectionController
         objectDict.get("button_arrow").show();
         playSfxAudio("button_appear",true);
         waitForSecs(0.5f);
-        playSfxAudio("flags_on",false);
-        moveFlags(true,1);
+        moveFlags(true,0.6f);
         waitSFX();
         waitForSecs(0.3f);
         loadPointer(POINTER_LEFT);

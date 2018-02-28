@@ -1,6 +1,10 @@
 package org.onebillion.onecourse.mainui.oc_community;
 
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -9,12 +13,19 @@ import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.text.InputType;
+import android.text.format.DateFormat;
 import android.util.ArrayMap;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.TimePicker;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
@@ -24,12 +35,17 @@ import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.controls.OBPresenter;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
+import org.onebillion.onecourse.mainui.OBSetupMenu;
 import org.onebillion.onecourse.mainui.OC_Menu;
+import org.onebillion.onecourse.utils.OBAnalytics;
+import org.onebillion.onecourse.utils.OBAnalyticsManager;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimBlock;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBImageManager;
 import org.onebillion.onecourse.utils.OBMisc;
+import org.onebillion.onecourse.utils.OBSystemsManager;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OB_MutFloat;
@@ -40,6 +56,8 @@ import org.onebillion.onecourse.utils.OCM_MlUnitInstance;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -48,10 +66,8 @@ import java.util.Objects;
  * Created by michal on 03/08/2017.
  */
 
-public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
+public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePickerDialog.OnTimeSetListener, DatePickerDialog.OnDateSetListener
 {
-    final static String SETUP_MENU_PASSWORD = "obxprize";
-
     final static int TARGET_BUTTON = 1,
             TARGET_STUDY = 2,
             TARGET_COMMUNITY = 3;
@@ -65,13 +81,16 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
     OBPresenter presenter;
     int currentTarget;
     Map<String,Integer> coloursDict;
-    OBControl emitter;
+    OBControl emitter, screenOverlay;
     boolean communityModeActive, playZoneOpened;
+    boolean communityModeActiveOverride, playZoneActiveOverride;
     List<OBGroup> communityModeIcons;
 
     RectF secretBoxLeft, secretBoxRight;
     List<RectF> secretBoxUnlockList;
     int secretBoxTouchIndex;
+
+    private int selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute;
 
     /*
     OC_Section functions
@@ -100,8 +119,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                     lastCommand == OCM_FatController.OFC_BATTERY_LOW ||
                     lastCommand == OCM_FatController.OFC_SESSION_NEW)
             {
-                objectDict.get("overlay_button").show();
-
+                screenOverlay.show();
             }
             else if(params.get("instance") != null)
             {
@@ -122,9 +140,11 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         setStatus(STATUS_BUSY);
         super.prepare();
         loadFingers();
-        objectDict.get("overlay_button").setZPosition(60);
-        objectDict.get("button_start").setZPosition(60.5f);
-
+        screenOverlay = new OBControl();
+        screenOverlay.setFrame(new RectF(bounds()));
+        screenOverlay.setBackgroundColor(Color.WHITE);
+        screenOverlay.setZPosition(60);
+        attachControl(screenOverlay);
         this.localisations = loadLocalisations(getLocalPath("_localisations.xml"));
         currentBigIcon = null;
         currentLevelLabel = new OBLabel("88888888888888888888",OBUtils.standardTypeFace(),applyGraphicScale(30));
@@ -133,8 +153,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         currentLevelLabel.setPosition(OB_Maths.locationForRect(0.97f,0.9f,this.bounds()));
         currentLevelLabel.setRight(this.bounds().width() - applyGraphicScale(10));
         currentLevelLabel.setColour(Color.BLACK);
-        boolean showUnitID = MainActivity.mainActivity.configBooleanForKey(MainActivity.CONFIG_SHOW_UNIT_ID);
-        if (showUnitID)
+        if (OBConfigManager.sharedManager.shouldShowUnitID())
         {
             attachControl(currentLevelLabel);
         }
@@ -154,10 +173,11 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         lastUnitInstance = null;
         refreshCurrentDayAndAudio();
         receiveCommand(fatController.getCurrentCommand());
-        communityModeActive = fatController.communityModeActive();
+        //
+        communityModeActive = fatController.communityModeActive() || communityModeActiveOverride;
+        //
         playZoneOpened = false;
         initScreen();
-
         for(OBControl star : filterControls("top_bar_star_.*"))
             star.setProperty("start_loc",OBMisc.copyPoint(star.position()));
         previousBigIcon = null;
@@ -172,6 +192,9 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         secretBoxRight = new RectF(this.bounds().right - boxSize,this.bounds().bottom -boxSize,this.bounds().right,this.bounds().bottom);
         secretBoxUnlockList = Arrays.asList(secretBoxLeft,secretBoxRight,secretBoxLeft,secretBoxLeft,secretBoxRight);
         secretBoxTouchIndex = 0;
+        //
+        OBSystemsManager.sharedManager.setCurrentWeek(String.valueOf(fatController.getCurrentWeek()));
+        OBSystemsManager.sharedManager.setCurrentDay(String.valueOf(currentDay));
     }
 
     public void refreshCurrentDayAndAudio()
@@ -190,6 +213,8 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         }
         if(lastCommand == OCM_FatController.OFC_SESSION_NEW && !communityModeActive)
         {
+            OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.NEW_DAY);
+            //
             showNewDayScreen();
             loadEmptyStarBar(false);
             currentTarget = TARGET_BUTTON;
@@ -197,34 +222,40 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         }
         else if(communityModeActive)
         {
+
+            //
             hideStarBar();
             loadTopBar(true,true);
             loadIconsGridForUnits(fatController.getUnitsForGrid(),true);
             loadPlayZoneBox(true);
             if(lastCommand == OCM_FatController.OFC_SESSION_NEW)
             {
+                OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.NEW_DAY);
                 showNewDayScreen();
                 currentTarget = TARGET_BUTTON;
             }
             else
             {
+                OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.COMMUNITY_MODE);
                 currentTarget = TARGET_COMMUNITY;
             }
         }
         else
         {
+            OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.STUDY_ZONE);
             loadStarBar();
             currentTarget = TARGET_STUDY;
         }
 
     }
 
+
     @Override
     public void viewWillAppear(Boolean animated)
     {
         super.viewWillAppear(animated);
-        if(objectDict.get("overlay_box") != null)
-            objectDict.get("overlay_box").hide();
+        if(objectDict.get("box_overlay") != null)
+            objectDict.get("box_overlay").hide();
         if(objectDict.get("box") != null)
             stopBoxGlowAnimate();
     }
@@ -271,7 +302,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                                 hideNewDayScreen();
                                 button.lowlight();
                                 currentTarget = communityModeActive ? TARGET_COMMUNITY : TARGET_STUDY;
-
+                                OBAnalyticsManager.sharedManager.enteredScreen(communityModeActive ? OBAnalytics.Screen.COMMUNITY_MODE : OBAnalytics.Screen.STUDY_ZONE);
                                 startNextEvent();
                             }
                         }
@@ -318,6 +349,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                     {
                         setStatus(STATUS_BUSY);
                         secretBoxTouchIndex = 0;
+                        //
                         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                         {
                             public void run() throws Exception
@@ -380,7 +412,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                         resetPresenter();
                         if(!success)
                         {
-                            fatController.triggerTimeoutUnit();
+                            //fatController.triggerTimeoutUnit();
                             start();
                         }
                     }
@@ -411,7 +443,6 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                         resetPresenter();
                         if(!success)
                         {
-                            fatController.triggerTimeoutUnit();
                             start();
                         }
                     }
@@ -469,7 +500,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                 @Override
                 public void run() throws Exception
                 {
-                    fatController.refreshBatteryStatus(level, charging, controller);
+                    fatController.setBatteryChargingLevel(level, charging, controller);
                 }
             });
         }
@@ -520,6 +551,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                         Map<String,Object> unitData = fatController.getNextUnitData();
                         if (unitData.get("community")!= null && (boolean)unitData.get("community"))
                         {
+                            OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.COMMUNITY_MODE);
                             communityModeActive = true;
                             loadIconsGridForUnits(fatController.getUnitsForGrid(),false);
                             loadTopBar(false,currentDay % 7 != 0);
@@ -557,7 +589,6 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                         {
                             playZoneOpened = false;
                             demo_playzone_back(time);
-                            animateNextGridIconShake(time);
                         }
                         else
                         {
@@ -609,6 +640,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         int code = (int)fatController.getCurrentCommand().get("code") ;
         if(code == OCM_FatController.OFC_SESSION_LOCKED || code == OCM_FatController.OFC_BATTERY_LOW)
         {
+            OBAnalyticsManager.sharedManager.enteredScreen(code == OCM_FatController.OFC_SESSION_LOCKED ? OBAnalytics.Screen.LOCK_SCREEN : OBAnalytics.Screen.LOW_BATTERY_SCREEN);
             closeThisMenuAndOpen(OCM_LockScreen.class);
             return true;
         }
@@ -619,7 +651,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
             closeThisMenuAndOpen(OCM_ChildMenu.class);
             return true;
         }
-        objectDict.get("overlay_button").hide();
+        screenOverlay.hide();
         if(status() == STATUS_AWAITING_CLICK && currentTarget == TARGET_COMMUNITY)
         {
             checkPlayZoneBoxStatus();
@@ -650,27 +682,41 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
     {
         if (unit == null)
             return;
-        currentLevelLabel.setString ( String.format("%d - %d", currentDay, unit.unitIndex));
+        currentLevelLabel.setString(String.format("%d - %d", currentDay, unit.unitIndex));
     }
 
     public void refreshCurrentLabelArray(List<OCM_MlUnit> units)
     {
         OCM_MlUnit unit1 = units.get(0);
         OCM_MlUnit unit2 = units.get(units.size()-1);
-        currentLevelLabel.setString ( String.format("%d - %d - %d", currentDay, unit1.unitIndex,  unit2.unitIndex));
+        currentLevelLabel.setString(String.format("%d - %d - %d", currentDay, unit1.unitIndex,  unit2.unitIndex));
+    }
+
+
+    public void loadNewDayScreen()
+    {
+        if(!objectDict.containsKey("button_start"))
+        {
+            loadEvent("new_day");
+            objectDict.get("button_start").setZPosition(60.5f);
+        }
     }
 
     public void showNewDayScreen()
     {
-        objectDict.get("overlay_button").show();
+        loadNewDayScreen();
+        screenOverlay.show();
         objectDict.get("button_start").setOpacity(0);
-        objectDict.get("button_start").show();
     }
 
     public void hideNewDayScreen()
     {
-        objectDict.get("overlay_button").hide();
-        objectDict.get("button_start").hide();
+        screenOverlay.hide();
+        if(objectDict.containsKey("button_start"))
+        {
+            detachControl(objectDict.get("button_start"));
+            objectDict.remove("button_start");
+        }
     }
 
     public void loadAudioForDay(int day)
@@ -790,6 +836,8 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
     {
         OBGroup topBar = (OBGroup)objectDict.get("top_bar");
         int week = fatController.getCurrentWeek();
+        if(!fill && week > 68)
+            fill = true;
         if(currentDay%7 == 0)
             week++;
         for(int i=1; i<week; i++)
@@ -875,7 +923,8 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
     }
     public void loadPlayZoneBox(boolean show)
     {
-        boolean active = fatController.playZoneActive();
+        boolean active = fatController.playZoneActive() || playZoneActiveOverride;
+        //
         OBGroup box = (OBGroup)objectDict.get("box");
         box.setProperty("touched",false);
         box.setOpacity(active ? 1 : 0.5f);
@@ -907,7 +956,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         OBGroup box = (OBGroup)objectDict.get("box");
         if(!box.isEnabled())
         {
-            if(fatController.playZoneActive())
+            if(fatController.playZoneActive() || playZoneActiveOverride)
             {
                 enablePlayZoneBox();
                 return true;
@@ -969,7 +1018,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                 }
             });
         }
-        else if(fatController.playZoneActive())
+        else if(fatController.playZoneActive() || playZoneActiveOverride)
         {
             shakePlayZoneBoxOnce(true);
         }
@@ -1101,7 +1150,6 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
     {
         presenter.walk((PointF)presenter.control.propertyValue("end_loc"));
         presenter.control.hide();
-
     }
 
     public void resetPresenter()
@@ -1499,7 +1547,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         presenter.moveHandfromIndex(4,2,0.2);
         presenter.speak((List<Object>)(Object)getAudioForScene("grid","DEMO2"),this);
         waitForSecs(0.3f);
-        if(!fatController.playZoneActive())
+        if(!fatController.playZoneActive() && !playZoneActiveOverride)
         {
             presenter.speak((List<Object>)(Object)getAudioForScene("grid","DEMO3"),this);
         }
@@ -1556,7 +1604,9 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
         long time = setStatus(STATUS_AWAITING_CLICK);
         if(!statusChanged(time))
             waitAudio();
-        thePointer.hide();
+        detachControl(thePointer);
+        thePointer=null;
+        //thePointer.hide();
         if(!statusChanged(time))
             waitForSecs(4f);
         if(!statusChanged(time))
@@ -1709,8 +1759,8 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
     public void demo_playzone() throws Exception
     {
         OBGroup box = (OBGroup)objectDict.get("box");
-        OBControl bg = objectDict.get("overlay_box");
-        bg.setOpacity ( 0);
+        OBControl bg = objectDict.get("box_overlay");
+        bg.setOpacity(0);
         bg.show();
         List<OBAnim> anims = new ArrayList<>();
         for(OBControl gemControl : box.filterMembers("gem_.*"))
@@ -1767,12 +1817,14 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                 secretBoxTouchIndex++;
                 if(secretBoxTouchIndex >= secretBoxUnlockList.size())
                 {
-                    showPasswordCheckDialog();
+                    if (OBConfigManager.sharedManager.isCommunityModeOverrideEnabled())
+                    {
+                        showPasswordCheckDialog();
+                    }
                     secretBoxTouchIndex = 0;
                 }
                 long time = setStatus(STATUS_AWAITING_CLICK);
                 delayedSecretIndexReset(time);
-
             }
             else if(secretBoxUnlockList.get(0).contains(pt.x,pt.y))
             {
@@ -1803,7 +1855,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
             public void onClick(DialogInterface dialog, int which)
             {
                 String pass = (input.getText()).toString();
-                checkPasswordAndProceed(pass);
+                checkPasswordAndProceed(pass, input);
             }
         });
         final AlertDialog dialog = alert.show();
@@ -1811,7 +1863,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if ((event != null && (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) || (actionId == EditorInfo.IME_ACTION_DONE)) {
                     String pass = (input.getText()).toString();
-                    checkPasswordAndProceed(pass);
+                    checkPasswordAndProceed(pass, input);
                     if(dialog != null && dialog.isShowing())
                     {
                         dialog.cancel();
@@ -1836,15 +1888,18 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
 
     }
 
-    public void checkPasswordAndProceed(String pass)
+    public void checkPasswordAndProceed(String pass, EditText alertPopup)
     {
-        if(pass.equals(SETUP_MENU_PASSWORD))
+        InputMethodManager imm = (InputMethodManager) MainActivity.mainActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(alertPopup.getWindowToken(), 0);
+        //
+        if (OBConfigManager.sharedManager.isJumpToSetupPasswordCorrect(pass))
         {
             final AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.mainActivity);
             final EditText input = new EditText(MainActivity.mainActivity);
             input.setInputType(InputType.TYPE_CLASS_TEXT| InputType.TYPE_TEXT_VARIATION_PASSWORD);
             alert.setTitle("Data Deletion Warning");
-            alert.setMessage("This action will RESET progress on this device and resturn to setup menu. Do you wish to continue?");
+            alert.setMessage("This action will RESET progress on this device and return to setup menu. Do you wish to continue?");
             alert.setPositiveButton("YES", new DialogInterface.OnClickListener()
             {
                 @Override
@@ -1876,6 +1931,184 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver
                 }
             });
         }
+        else if (OBConfigManager.sharedManager.isActivateCommunityModeOverridePasswordCorrect(pass))
+        {
+            communityModeActive = true;
+            //
+            lockScreen();
+            try
+            {
+                List<OBControl> controls = new ArrayList<OBControl>();
+                controls.addAll(attachedControls);
+                for (OBControl control : controls)
+                {
+                    detachControl(control);
+                }
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+            communityModeActiveOverride = true;
+            playZoneActiveOverride = true;
+            prepare();
+            unlockScreen();
+            //
+            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
+            {
+                @Override
+                public void run () throws Exception
+                {
+                    start();
+                }
+            });
+        }
+        else if (OBConfigManager.sharedManager.isRevertCommunityModePasswordCorrect(pass))
+        {
+            lockScreen();
+            try
+            {
+                List<OBControl> controls = new ArrayList<OBControl>();
+                controls.addAll(attachedControls);
+                for (OBControl control : controls)
+                {
+                    detachControl(control);
+                }
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+            communityModeActiveOverride = false;
+            playZoneActiveOverride = false;
+            prepare();
+            unlockScreen();
+            //
+            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
+            {
+                @Override
+                public void run () throws Exception
+                {
+                    start();
+                }
+            });
+        }
+        else if (OBConfigManager.sharedManager.isChangeDatePasswordCorrect(pass))
+        {
+            showPickDateDialog(this, null);
+        }
+    }
+
+
+
+    @Override
+    public void onDateSet (DatePicker view, int year, int monthOfYear, int dayOfMonth)
+    {
+        selectedYear = year;
+        selectedMonth = monthOfYear;
+        selectedDay = dayOfMonth;
+        //
+        MainActivity.log("OCM_ChildMenu:onDateSet:" + year + " " + monthOfYear + " " + dayOfMonth);
+        //
+        showPickTimeDialog(this);
+    }
+
+    @Override
+    public void onTimeSet (TimePicker view, int hourOfDay, int minute)
+    {
+        selectedHour = hourOfDay;
+        selectedMinute = minute;
+        //
+        MainActivity.log("OCM_ChildMenu:onTimeSet:" + hourOfDay + " " + minute);
+        //
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.YEAR, selectedYear);
+        c.set(Calendar.MONTH, selectedMonth);
+        c.set(Calendar.DAY_OF_MONTH, selectedDay);
+        c.set(Calendar.HOUR_OF_DAY, selectedHour);
+        c.set(Calendar.MINUTE, selectedMinute);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        //
+        long when = c.getTimeInMillis();
+        if (when / 1000 < Integer.MAX_VALUE)
+        {
+            try
+            {
+                ((AlarmManager) MainActivity.mainActivity.getSystemService(Context.ALARM_SERVICE)).setTime(when);
+            }
+            catch (Exception e)
+            {
+                MainActivity.log("OCM_ChildMenu:onTimeSet:Exception caught while trying to set the Date");
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    void showPickDateDialog (final DatePickerDialog.OnDateSetListener listener, Date startDate)
+    {
+        Calendar currentCalendar = Calendar.getInstance();
+        if (startDate != null)
+        {
+            currentCalendar.setTime(startDate);
+        }
+        final Calendar calendar = currentCalendar;
+        DatePickerDialog d = new DatePickerDialog(MainActivity.mainActivity, listener, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+        //
+        d.setCancelable(false);
+        d.setCanceledOnTouchOutside(false);
+        //
+        LinearLayout linearLayout = new LinearLayout(MainActivity.mainActivity.getApplicationContext());
+        d.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        d.getWindow().clearFlags(Window.FEATURE_ACTION_BAR);
+        d.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        d.setCustomTitle(linearLayout);
+        //
+        d.setButton(DatePickerDialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick (DialogInterface dialog, int which)
+            {
+                // do nothing
+            }
+        });
+        //
+        DatePicker datePicker = d.getDatePicker();
+        calendar.clear();
+        calendar.set(2017, Calendar.JANUARY, 1);
+        datePicker.setMinDate(calendar.getTimeInMillis());
+        calendar.clear();
+        calendar.set(2025, Calendar.DECEMBER, 31);
+        datePicker.setMaxDate(calendar.getTimeInMillis());
+        //
+        d.show();
+    }
+
+
+    void showPickTimeDialog (final TimePickerDialog.OnTimeSetListener listener)
+    {
+        final DatePickerDialog.OnDateSetListener dateListener = (DatePickerDialog.OnDateSetListener) listener;
+        final Calendar calendar = Calendar.getInstance();
+        TimePickerDialog d = new TimePickerDialog(MainActivity.mainActivity, listener, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), DateFormat.is24HourFormat(MainActivity.mainActivity));
+        //
+        d.setCancelable(false);
+        d.setCanceledOnTouchOutside(false);
+        //
+        d.setButton(DatePickerDialog.BUTTON_NEGATIVE, "Back", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick (DialogInterface dialog, int which)
+            {
+                showPickDateDialog(dateListener, null);
+            }
+        });
+        //
+        LinearLayout linearLayout = new LinearLayout(MainActivity.mainActivity.getApplicationContext());
+        d.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        d.setCustomTitle(linearLayout);
+        //
+        d.show();
     }
 
 

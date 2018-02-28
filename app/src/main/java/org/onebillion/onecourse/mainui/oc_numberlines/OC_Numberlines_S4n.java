@@ -36,15 +36,25 @@ public class OC_Numberlines_S4n extends OC_SectionController
         setStatus(STATUS_BUSY);
         super.prepare();
         loadFingers();
-        loadEvent("masterLine");
+        String startEvent = parameters.get("start");
+        loadEvent(String.format("master2%s",startEvent));
         events = Arrays.asList(eventAttributes.get("scenes").split(","));
+        OBMisc.checkAndUpdateFinale(this);
+
+
+
         numColour = OBUtils.colorFromRGBString(eventAttributes.get("numcolour"));
         divColour = OBUtils.colorFromRGBString(eventAttributes.get("divcolour"));
         mainColour = OBUtils.colorFromRGBString(eventAttributes.get("maincolour"));
         eqColour = OBUtils.colorFromRGBString(eventAttributes.get("eqcolour"));
         setSceneXX(currentEvent());
-        objectDict.get("mainline").hide();
-        hideControls("divline_.*");
+
+        if(startEvent.startsWith("a"))
+        {
+            objectDict.get("mainline").hide();
+            hideControls("divline_.*");
+        }
+
     }
 
     public void start()
@@ -546,7 +556,8 @@ public class OC_Numberlines_S4n extends OC_SectionController
         waitForSecs(0.5f);
         thePointer.hide();
         waitForSecs(0.5f);
-        resetScreen();
+        if(currentEvent() != events.get(events.size()-1))
+            resetScreen();
         waitForSecs(0.5f);
     }
 
@@ -564,30 +575,23 @@ public class OC_Numberlines_S4n extends OC_SectionController
     public void demo4s() throws Exception
     {
         loadPointer(POINTER_LEFT);
-        movePointerToPoint(OB_Maths.locationForRect(0.5f,0.5f,objectDict.get("mainline").frame()),-30,0.6f,true);
-        List<OBControl> arr = new ArrayList<>();
-        arr.addAll(filterControls("divline_.*"));
-        arr.add(objectDict.get("mainline"));
-        arr.add(objectDict.get("numberline"));
-        arr.add(thePointer);
-        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.moveAnim(OB_Maths.locationForRect(0.5f,0.8f,this.bounds()),objectDict.get("numberline")),
-                OBMisc.attachedAnim(objectDict.get("numberline"),arr)),
-                1,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
-        redrawScreen(targetNum);
-        moveScenePointer(OB_Maths.locationForRect(0.5f,0.95f,this.bounds()),-20,0.5f,"DEMO",0,0.3f);
-        showFullNumberline();
-        moveScenePointer(OB_Maths.locationForRect(0.6f,1.1f,objectDict.get("num_14").frame()),-40,0.5f,"DEMO",1,0.3f);
-        playAudioScene("DEMO",2,true);
+        playAudioScene("DEMO",0,true);
         waitForSecs(0.3f);
-        for(int i=3; i<7; i++)
+        moveScenePointer(OB_Maths.locationForRect(0.5f,0.95f,this.bounds()),-20,0.5f,"DEMO",1,0.3f);
+        showFullNumberline();
+
+        moveScenePointer(OB_Maths.locationForRect(0.6f,1.1f,objectDict.get("num_14").frame()),-40,0.5f,"DEMO",2,0.3f);
+        playAudioScene("DEMO",3,true);
+        waitForSecs(0.3f);
+        for(int i=4; i<8; i++)
         {
-            moveScenePointer(OB_Maths.locationForRect(0.6f,2f,objectDict.get(String.format("linelabel_%d",i+11)).frame()),-30,0.35f,"DEMO",i,0.1f);
+            moveScenePointer(OB_Maths.locationForRect(0.6f,2f,objectDict.get(String.format("linelabel_%d",i+10)).frame()),-30,0.35f,"DEMO",i,0.1f);
         }
-        moveScenePointer(OB_Maths.locationForRect(0.6f,1.1f,objectDict.get("num_18").frame()),-40,0.5f,"DEMO",7,0.3f);
+        moveScenePointer(OB_Maths.locationForRect(0.6f,1.1f,objectDict.get("num_18").frame()),-40,0.5f,"DEMO",8,0.3f);
         waitForSecs(0.5f);
         showBoxes();
         waitForSecs(0.5f);
-        moveScenePointer(OB_Maths.locationForRect(0.5f,0.5f,this.bounds()),-20,0.5f,"DEMO",8,0.3f);
+        moveScenePointer(OB_Maths.locationForRect(0.5f,0.5f,this.bounds()),-20,0.5f,"DEMO",9,0.3f);
         movePointerToPoint(OB_Maths.locationForRect(0.5f,0.5f,objectDict.get("eqbox_1").frame()),-20,0.5f,true);
         waitForSecs(0.15f);
         movePointerToPoint(OB_Maths.locationForRect(0.5f,0.5f,objectDict.get("eqbox_2").frame()),-15,0.5f,true);
@@ -683,16 +687,7 @@ public class OC_Numberlines_S4n extends OC_SectionController
     public void demo5w() throws Exception
     {
         loadPointer(POINTER_LEFT);
-        movePointerToPoint(OB_Maths.locationForRect(0.5f,0.5f,objectDict.get("mainline").frame()),-30,0.6f,true);
-        List<OBControl> arr = new ArrayList<>();
-        arr.addAll(filterControls("divline_.*"));
-        arr.add(objectDict.get("mainline"));
-        arr.add(objectDict.get("numberline"));
-        arr.add(thePointer);
-        OBAnimationGroup.runAnims(Arrays.asList(OBAnim.moveAnim(OB_Maths.locationForRect(0.5f,0.8f,this.bounds()),objectDict.get("numberline")),
-                OBMisc.attachedAnim(objectDict.get("numberline"),arr)),
-                1,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
-        redrawScreen(targetNum);
+
         moveScenePointer(OB_Maths.locationForRect(0.5f,0.95f,this.bounds()),-20,0.5f,"DEMO",0,0.3f);
         showFullNumberline();
         moveScenePointer(OB_Maths.locationForRect(0.6f,1.1f,objectDict.get("num_10").frame()),-15,0.5f,"DEMO",1,0.3f);

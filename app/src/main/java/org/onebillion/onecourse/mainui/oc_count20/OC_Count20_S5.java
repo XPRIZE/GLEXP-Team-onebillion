@@ -15,6 +15,7 @@ import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.OC_Tracer;
+import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBRunnableSyncUI;
 import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OB_MutBoolean;
@@ -56,7 +57,7 @@ public class OC_Count20_S5 extends OC_Tracer
         box.insertMember(parent,2,"counter_parent");
         float graphicScale = graphicScale();
         float textSize = Float.parseFloat(eventAttributes.get("textsize")) / graphicScale;
-        textSize = MainActivity.mainActivity.applyGraphicScale(textSize);
+        textSize = OBConfigManager.sharedManager.applyGraphicScale(textSize);
         Typeface tf = OBUtils.standardTypeFace();
         float x = screenMask.position().x;
         counters = new ArrayList<>();

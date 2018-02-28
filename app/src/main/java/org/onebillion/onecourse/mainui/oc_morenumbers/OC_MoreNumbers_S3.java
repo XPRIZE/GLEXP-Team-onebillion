@@ -40,6 +40,7 @@ public class OC_MoreNumbers_S3 extends OC_SectionController
         loadFingers();
         loadEvent("master3");
         events = Arrays.asList(eventAttributes.get("scenes").split(","));
+        OBMisc.checkAndUpdateFinale(this);
         textcolour = OBUtils.colorFromRGBString(eventAttributes.get("textcolour"));
         hilitecolour = OBUtils.colorFromRGBString(eventAttributes.get("hilitecolour"));
         evencolour = OBUtils.colorFromRGBString(eventAttributes.get("evencolour"));
@@ -103,27 +104,6 @@ public class OC_MoreNumbers_S3 extends OC_SectionController
         startScene();
 
     }
-
-    public void fin()
-    {
-        try
-        {
-            waitForSecs(1f);
-            lockScreen();
-            hideControls("box_.*");
-            hideControls("num_.*");
-            playSfxAudio("pop",false);
-
-            unlockScreen();
-            waitSFX();
-            waitForSecs(0.5f);
-            goToCard(OC_MoreNumbers_S3na.class,"event3");
-        }
-        catch (Exception e)
-        {
-        }
-    }
-
 
     public void touchDownAtPoint(final PointF pt, View v)
     {

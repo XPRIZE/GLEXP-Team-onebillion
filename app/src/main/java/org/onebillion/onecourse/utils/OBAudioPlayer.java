@@ -54,7 +54,6 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
         {
             final MediaPlayer cpplayer = player;
             player = null;
-
             try
             {
                 cpplayer.setOnPreparedListener(null);
@@ -63,6 +62,7 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
             }
             catch (Exception e)
             {
+                // do nothing
             }
             try
             {
@@ -71,6 +71,7 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
             }
             catch (Exception e)
             {
+                // do nothing
             }
             playerLock.lock();
             condition.signalAll();
@@ -89,8 +90,13 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
                 Handler handler = new Handler();
                 handler.postDelayed(runnable,250);
             }
+            catch (java.lang.RuntimeException runTimeException)
+            {
+                // do nothing --> prevent spam of "Can't create handler inside thread that has not called Looper.prepare()"
+            }
             catch (Exception e)
             {
+                // if it's something else, then show it on logs
                 e.printStackTrace();
             }
         }
@@ -348,5 +354,12 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
         condition.signalAll();
         playerLock.unlock();
         player.start();
+    }
+
+    public int currentPositionms()
+    {
+        if (player != null)
+            return player.getCurrentPosition();
+        return -1;
     }
 }
