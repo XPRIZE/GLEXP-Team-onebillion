@@ -21,7 +21,7 @@ android {
     }
     */
     compileSdkVersion 23
-    buildToolsVersion '25.0.0'
+    buildToolsVersion '26.0.2'
     defaultConfig {
         multiDexEnabled true
         applicationId 'org.onebillion.onecourse'
@@ -74,6 +74,9 @@ android {
             res.srcDirs = ['src/main/res']
         }
     }
+
+    flavorDimensions "ob"
+
     productFlavors {
         pedro_ {
             minSdkVersion 23
