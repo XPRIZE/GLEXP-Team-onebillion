@@ -136,7 +136,7 @@ public class OBAudioRecorder
 
     public void playRecording()
     {
-        OBAudioPlayer player = OBAudioManager.audioManager.playerForChannel(OBAudioManager.AM_MAIN_CHANNEL);
+        OBGeneralAudioPlayer player = OBAudioManager.audioManager.playerForChannel(OBAudioManager.AM_MAIN_CHANNEL);
         if(audioRecorded())
         {
             long audioStart = timeFirstSound-timeRecordingStart;

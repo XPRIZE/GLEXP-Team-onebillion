@@ -33,12 +33,20 @@ public abstract class OBGeneralAudioPlayer
 
     public abstract void waitAudio ();
     public abstract void waitPrepared ();
+    public abstract void waitUntilPlaying ();
     public abstract void stopPlaying ();
     public abstract void play();
-    public abstract void finishedPrepare();
     public abstract void prepare(AssetFileDescriptor afd);
     public abstract void startPlaying (AssetFileDescriptor afd);
+    public void startPlayingAtTime (AssetFileDescriptor afd, long fr)
+    {
+        startPlayingAtTimeVolume(afd,fr,1.0f);
+    }
+
+    public abstract void startPlayingAtTimeVolume(AssetFileDescriptor afd, long fr,float vol);
     public abstract double duration();
+    public abstract int currentPositionms();
+
     public boolean isPlaying ()
     {
         return state == OBAP_PLAYING;

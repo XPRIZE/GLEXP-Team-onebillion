@@ -25,13 +25,13 @@ public class OBAudioManager
             AM_SFX_CHANNEL = "2";
     final static int MAX_AUDIOPATH_CACHE_COUNT = 40;
     public static OBAudioManager audioManager;
-    public Map<String, OBAudioPlayer> players;
+    public Map<String, OBGeneralAudioPlayer> players;
     Map<String, AssetFileDescriptor> pathCacheDict = new HashMap<>();
     List<String> pathCacheList = new ArrayList<>();
 
     public OBAudioManager ()
     {
-        players = new HashMap<String, OBAudioPlayer>();
+        players = new HashMap<String, OBGeneralAudioPlayer>();
         audioManager = this;
     }
 
@@ -96,7 +96,7 @@ public class OBAudioManager
 
     public void stopPlayingOnChannel (String ch)
     {
-        OBAudioPlayer player = players.get(ch);
+        OBGeneralAudioPlayer player = players.get(ch);
         player.stopPlaying();
     }
 
@@ -184,7 +184,7 @@ public class OBAudioManager
 
     public void startPlaying (String fileName, String channel)
     {
-        OBAudioPlayer player = playerForChannel(channel);
+        OBGeneralAudioPlayer player = playerForChannel(channel);
         if (fileName == null)
             player.stopPlaying();
         else
@@ -208,7 +208,7 @@ public class OBAudioManager
 
     public void startPlaying (String fileName, String channel, double atTime, float atVolume)
     {
-        OBAudioPlayer player = playerForChannel(channel);
+        OBGeneralAudioPlayer player = playerForChannel(channel);
         if (fileName == null)
             player.stopPlaying();
         else
@@ -245,21 +245,21 @@ public class OBAudioManager
 
     public void waitPrepared (String ch)
     {
-        OBAudioPlayer player = players.get(ch);
+        OBGeneralAudioPlayer player = players.get(ch);
         if (player != null)
             player.waitPrepared();
     }
 
     public void waitUntilPlaying (String ch)
     {
-        OBAudioPlayer player = players.get(ch);
+        OBGeneralAudioPlayer player = players.get(ch);
         if (player != null)
             player.waitUntilPlaying();
     }
 
     public void waitAudioChannel (String ch)
     {
-        OBAudioPlayer player = players.get(ch);
+        OBGeneralAudioPlayer player = players.get(ch);
         if (player != null)
             player.waitAudio();
     }
@@ -276,7 +276,7 @@ public class OBAudioManager
 
     public Boolean isPlayingChannel (String ch)
     {
-        OBAudioPlayer player = players.get(ch);
+        OBGeneralAudioPlayer player = players.get(ch);
         if (player != null)
             return player.isPlaying();
         return false;
@@ -289,7 +289,7 @@ public class OBAudioManager
 
     Boolean isPreparingChannel (String ch)
     {
-        OBAudioPlayer player = players.get(ch);
+        OBGeneralAudioPlayer player = players.get(ch);
         if (player != null)
             return player.isPreparing();
         return false;
@@ -302,7 +302,7 @@ public class OBAudioManager
 
     public double durationForChannel (String ch)
     {
-        OBAudioPlayer player = players.get(ch);
+        OBGeneralAudioPlayer player = players.get(ch);
         if (player != null)
             return player.duration();
         return 0.0;
@@ -319,9 +319,9 @@ public class OBAudioManager
         return durationForChannel(AM_SFX_CHANNEL);
     }
 
-    public OBAudioPlayer playerForChannel (String channel)
+    public OBGeneralAudioPlayer playerForChannel (String channel)
     {
-        OBAudioPlayer player = players.get(channel);
+        OBGeneralAudioPlayer player = players.get(channel);
         if (player == null)
         {
             player = new OBAudioPlayer();
@@ -335,7 +335,7 @@ public class OBAudioManager
 
     public void prepareForChannel (final String fileName, final String channel)
     {
-        OBAudioPlayer player = playerForChannel(channel);
+        OBGeneralAudioPlayer player = playerForChannel(channel);
         AssetFileDescriptor fd = getAudioPathFD(fileName);
         player.prepare(fd);
     }

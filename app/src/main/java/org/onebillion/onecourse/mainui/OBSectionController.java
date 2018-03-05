@@ -1707,7 +1707,7 @@ public class OBSectionController extends OBViewController
             final OBAudioManager am = OBAudioManager.audioManager;
             final Timer audioTimer = new Timer();
             final OBSectionController controller = this;
-            final OBAudioPlayer player =  am.playerForChannel(OBAudioManager.AM_MAIN_CHANNEL);
+            final OBGeneralAudioPlayer player =  am.playerForChannel(OBAudioManager.AM_MAIN_CHANNEL);
             audioTimer.scheduleAtFixedRate(new TimerTask()
             {
                 @Override

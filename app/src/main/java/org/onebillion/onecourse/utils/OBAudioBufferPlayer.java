@@ -395,6 +395,7 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
             audioTrack = new AudioTrack(aab.build(),
                     afb.build(),
                     bufsz,AudioTrack.MODE_STREAM, AudioManager.AUDIO_SESSION_ID_GENERATE);
+            audioTrack.setVolume(volume);
             MediaFormat format = mediaExtractor.getTrackFormat(0);
             String mime = format.getString(MediaFormat.KEY_MIME);
             codec = MediaCodec.createDecoderByType(mime);
@@ -479,6 +480,12 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
         return 0.0;
     }
 
+    public int currentPositionms()
+    {
+        return (int)(currentPlayTimeus() / 1000);
+    }
+
+
     boolean fillBuffer(ByteBuffer b)
     {
         if (state == OBAP_FINISHED)
@@ -508,6 +515,15 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
             stopPlaying();
         fromTime = fromSecs;
         toTime = toSecs;
+        startPlaying(afd);
+    }
+
+    public void startPlayingAtTimeVolume(AssetFileDescriptor afd, long fr,float vol)
+    {
+        if (isPlaying())
+            stopPlaying();
+        volume = vol;
+        fromTime = fr;
         startPlaying(afd);
     }
 
