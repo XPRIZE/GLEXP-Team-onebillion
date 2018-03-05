@@ -29,23 +29,13 @@ import static android.media.MediaCodec.BUFFER_FLAG_END_OF_STREAM;
  * Created by alan on 13/07/17.
  */
 
-public class OBAudioBufferPlayer extends Object
+public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
 {
-    public static final int OBAP_IDLE = 0,
-            OBAP_PREPARING = 1,
-            OBAP_PLAYING = 2,
-            OBAP_SEEKING = 3,
-            OBAP_FINISHED = 4,
-            OBAP_PAUSED = 5;
     final int NO_BUFFERS = 16;
     public MediaExtractor mediaExtractor;
     MediaCodec codec;
     AudioTrack audioTrack;
     AssetFileDescriptor afd;
-    public Lock playerLock;
-    Condition condition;
-    int state;
-    float volume = 1.0f;
     double fromTime,toTime;
     long fileLength,fileAmtRead,amtWritten;
     long startFrame = 0,endFrame = Long.MAX_VALUE;
@@ -117,21 +107,13 @@ public class OBAudioBufferPlayer extends Object
         condition = playerLock.newCondition();
         setState(OBAP_IDLE);
         wantsFFTData = withFFT;
-        for (int i = 0;i < NO_BUFFERS;i++)
-            buffers[i] = new SimpleBuffer();
+        if (wantsFFTData)
+            for (int i = 0;i < NO_BUFFERS;i++)
+                buffers[i] = new SimpleBuffer();
         fromTime = 0.0;
         toTime = -1.0;
     }
 
-    public synchronized int getState ()
-    {
-        return state;
-    }
-
-    synchronized void setState (int st)
-    {
-        state = st;
-    }
 
     public void waitAudio ()
     {
@@ -141,6 +123,42 @@ public class OBAudioBufferPlayer extends Object
         while (getState() == OBAP_PLAYING ||
                 getState() == OBAP_PREPARING ||
                 getState() == OBAP_SEEKING)
+        {
+            try
+            {
+                condition.await();
+            }
+            catch (InterruptedException e)
+            {
+            }
+        }
+        playerLock.unlock();
+    }
+
+    public void waitPrepared ()
+    {
+        if (getState() == OBAP_IDLE || getState() == OBAP_FINISHED)
+            return;
+        playerLock.lock();
+        while (getState() == OBAP_PREPARING)
+        {
+            try
+            {
+                condition.await();
+            }
+            catch (InterruptedException e)
+            {
+            }
+        }
+        playerLock.unlock();
+    }
+
+    public void waitUntilPlaying ()
+    {
+        if (getState() == OBAP_IDLE || getState() == OBAP_FINISHED)
+            return;
+        playerLock.lock();
+        while (getState() != OBAP_PLAYING)
         {
             try
             {
@@ -195,26 +213,31 @@ public class OBAudioBufferPlayer extends Object
 
     }
 
+    public void play() //call only after prepare!!!
+    {
+        audioTrack.setPlaybackPositionUpdateListener(new AudioTrack.OnPlaybackPositionUpdateListener()
+        {
+            @Override
+            public void onMarkerReached(AudioTrack track)
+            {
+                trackFinished();
+            }
+
+            @Override
+            public void onPeriodicNotification(AudioTrack track)
+            {
+
+            }
+        });
+        audioTrack.play();
+        state = OBAP_PLAYING;
+    }
+
     public void finishedPrepare()
     {
         if (playWhenReady)
         {
-            audioTrack.setPlaybackPositionUpdateListener(new AudioTrack.OnPlaybackPositionUpdateListener()
-            {
-                @Override
-                public void onMarkerReached(AudioTrack track)
-                {
-                    trackFinished();
-                }
-
-                @Override
-                public void onPeriodicNotification(AudioTrack track)
-                {
-
-                }
-            });
-            audioTrack.play();
-            state = OBAP_PLAYING;
+            play();
         }
     }
 
@@ -349,8 +372,9 @@ public class OBAudioBufferPlayer extends Object
         return getFloatsFromBufferClosestToFrameNo(of,currentFrame());
     }
 
-    public void prepare()
+    public void prepare(AssetFileDescriptor afd)
     {
+        this.afd = afd;
         try
         {
             state = OBAP_PREPARING;
@@ -447,6 +471,14 @@ public class OBAudioBufferPlayer extends Object
         }
     }
 
+    public double duration ()
+    {
+        waitPrepared();
+        if (durationus >= 0)
+            return durationus / 1000000.0;
+        return 0.0;
+    }
+
     boolean fillBuffer(ByteBuffer b)
     {
         if (state == OBAP_FINISHED)
@@ -466,9 +498,8 @@ public class OBAudioBufferPlayer extends Object
     {
         if (isPlaying())
             stopPlaying();
-        this.afd = afd;
         playWhenReady = true;
-        prepare();
+        prepare(afd);
     }
 
     public void startPlaying (AssetFileDescriptor afd,double fromSecs,double toSecs)
@@ -480,10 +511,6 @@ public class OBAudioBufferPlayer extends Object
         startPlaying(afd);
     }
 
-    public boolean isPlaying ()
-    {
-        return state == OBAP_PLAYING;
-    }
 
 
 }

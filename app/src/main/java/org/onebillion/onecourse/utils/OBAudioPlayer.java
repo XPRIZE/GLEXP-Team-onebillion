@@ -336,7 +336,7 @@ public class OBAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlaye
         }
     }
 
-    double duration ()
+    public double duration ()
     {
         if (player != null)
         {
