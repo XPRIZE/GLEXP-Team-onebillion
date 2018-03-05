@@ -1,6 +1,7 @@
 package org.onebillion.onecourse.utils;
 
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,6 +12,7 @@ import java.util.Set;
 import android.content.res.AssetFileDescriptor;
 
 import org.onebillion.onecourse.mainui.MainActivity;
+import org.onebillion.onecourse.mainui.OBSectionController;
 
 
 /**
@@ -218,6 +220,23 @@ public class OBAudioManager
         }
     }
 
+    public void startPlayingFromTo(String fileName, String channel, double fromSecs, double toSecs)
+    {
+        OBAudioBufferPlayer player = (OBAudioBufferPlayer)playerForChannel(channel,OBAudioBufferPlayer.class);
+        if (fileName == null)
+            player.stopPlaying();
+        else
+        {
+            AssetFileDescriptor fd = getAudioPathFD(fileName);
+            player.startPlaying(fd, fromSecs,toSecs);
+        }
+    }
+
+    public void startPlayingFromTo(String fileName,double fromSecs, double toSecs)
+    {
+        startPlayingFromTo(fileName,AM_MAIN_CHANNEL,fromSecs,toSecs);
+    }
+
     public void startPlaying (String fileName, double atTime)
     {
         startPlaying(fileName, AM_MAIN_CHANNEL, atTime);
@@ -325,6 +344,31 @@ public class OBAudioManager
         if (player == null)
         {
             player = new OBAudioPlayer();
+            synchronized (this)
+            {
+                players.put(channel, player);
+            }
+        }
+        return player;
+    }
+
+    public OBGeneralAudioPlayer playerForChannel (String channel,Class cls)
+    {
+        OBGeneralAudioPlayer player = players.get(channel);
+        if (player == null || (player.getClass() != cls))
+        {
+            Constructor<?> cons;
+            try
+            {
+                cons = cls.getConstructor();
+                player = (OBGeneralAudioPlayer) cons.newInstance();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                return null;
+            }
+
             synchronized (this)
             {
                 players.put(channel, player);

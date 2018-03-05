@@ -129,7 +129,7 @@ public class OC_BedtimeStory extends OC_SectionController
         try
         {
             setStatus(STATUS_STARTING_FILE);
-            player = new OBAudioBufferPlayer();
+            player = new OBAudioBufferPlayer(true);
             AssetFileDescriptor afd = OBAudioManager.audioManager.getAudioPathFD(fileName);
             if (afd == null)
             {

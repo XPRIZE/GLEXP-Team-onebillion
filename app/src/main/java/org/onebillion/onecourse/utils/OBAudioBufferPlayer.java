@@ -97,7 +97,7 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
     }
     public OBAudioBufferPlayer ()
     {
-        this(true);
+        this(false);
     }
 
     public OBAudioBufferPlayer (boolean withFFT)
