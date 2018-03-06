@@ -40,6 +40,7 @@ public class OBMainViewController extends OBViewController
     OBControl downButton;
     public long lastTouchActivity = 0;
     private Integer currentTouchID;
+    private Handler lowlightButtonHandler = new Handler();
 
     public OBMainViewController (Activity a)
     {
@@ -197,21 +198,33 @@ public class OBMainViewController extends OBViewController
         }
     }
 
+    void scheduleLowLightButton(final OBControl button)
+    {
+        Runnable runnable = (Runnable) button.propertyValue("lowlightrunnable");
+        if (runnable == null)
+        {
+            runnable = new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    button.lowlight();
+                    glView().requestRender();
+                }
+            };
+            button.setProperty("lowlightrunnable",runnable);
+        }
+        lowlightButtonHandler.removeCallbacks(runnable);
+        lowlightButtonHandler.postDelayed(runnable,300);
+    }
+
     public void touchUpAtPoint (float x, float y, OBGLView v)
     {
         setTouchTime();
         final OBControl db = downButton;
         if (db != null)
-            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
-            {
-                @Override
-                public void run () throws Exception
-                {
-                    db.lowlight();
-                    glView().requestRender();
-                }
-            });
-        else
+            scheduleLowLightButton(db);
+         else
         {
             topController().touchUpAtPoint(new PointF(x, y), v);
             return;
