@@ -5,6 +5,7 @@ import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.app.admin.DevicePolicyManager;
 import android.content.BroadcastReceiver;
@@ -70,6 +71,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 
 /**
  * Created by pedroloureiro on 31/08/16.
@@ -391,6 +393,40 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 MainActivity.log("OBSystemsManager.killBackgroundProcesses: " + name);
                 activityManager.killBackgroundProcesses(name);
             }
+        }
+    }
+
+
+    public void unzipAssetsIfFound(final OBUtils.RunLambda completionBlock)
+    {
+        if (OBUtils.fileExistsAtPath("/sdcard/onebillion/assets.zip"))
+        {
+            final String zipArchivePath = OBUtils.getFilePath("/sdcard/onebillion/assets.zip");
+            //
+            MainActivity.log("OBSystemsManager: found zipped assets. unzipping");
+            //
+            OBBrightnessManager.sharedManager.onSuspend();
+            OBUnZip unzip = new OBUnZip(zipArchivePath, "/sdcard/onebillion", new OBUtils.RunLambda()
+            {
+                @Override
+                public void run () throws Exception
+                {
+                    String newZipArchivePath = zipArchivePath.replaceFirst("assets.zip", "assets_extracted.zip");
+                    File newZipArchive = new File(newZipArchivePath);
+                    //
+                    File zipArchive = new File(zipArchivePath);
+                    zipArchive.renameTo(newZipArchive);
+                    //
+                    completionBlock.run();
+                    //
+                    OBBrightnessManager.sharedManager.onContinue();
+                }
+            });
+            unzip.execute();
+        }
+        else
+        {
+            OBUtils.runOnMainThread(completionBlock);
         }
     }
 
@@ -1737,7 +1773,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             //
             if (externalAssets.exists())
             {
-                MainActivity.log("OBSystemsMananger.getExternalAssetsFolder.found: " + externalAssets);
+                MainActivity.log("OBSystemsManager.getExternalAssetsFolder.found: " + externalAssets);
                 result.add(externalAssets);
             }
             //
@@ -1750,7 +1786,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 //
                 if (externalAssets.exists())
                 {
-                    MainActivity.log("OBSystemsMananger.getExternalAssetsFolder.found: " + externalAssets);
+                    MainActivity.log("OBSystemsManager.getExternalAssetsFolder.found: " + externalAssets);
                     result.add(externalAssets);
                 }
             }
@@ -1760,7 +1796,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             //
             if (externalAssets.exists())
             {
-                MainActivity.log("OBSystemsMananger.getExternalAssetsFolder.found: " + externalAssets);
+                MainActivity.log("OBSystemsManager.getExternalAssetsFolder.found: " + externalAssets);
                 result.add(externalAssets);
             }
             //
@@ -1769,7 +1805,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             //
             if (externalAssets.exists())
             {
-                MainActivity.log("OBSystemsMananger.getExternalAssetsFolder.found: " + externalAssets);
+                MainActivity.log("OBSystemsManager.getExternalAssetsFolder.found: " + externalAssets);
                 result.add(externalAssets);
             }
         }

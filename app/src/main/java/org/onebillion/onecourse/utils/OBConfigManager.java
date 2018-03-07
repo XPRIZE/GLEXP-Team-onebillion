@@ -165,7 +165,7 @@ public class OBConfigManager
         }
     }
 
-    private void loadConfigPLIST () throws Exception
+    public void loadConfigPLIST () throws Exception
     {
         String configPath = BuildConfig.SETTINGS_FILE;
         InputStream fileInputStream = MainActivity.mainActivity.getAssets().open(configPath);
