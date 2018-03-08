@@ -90,6 +90,9 @@ public class OBConfigManager
     private static String FAT_CONTROLLER_LOCK_TIMEOUT = "fat_controller_playzone_lock_timeout";
     //
     private static String ASSETS_EXTERNAL_PATH = "assets_external_path";
+    private static String ASSETS_LOOK_FOR_ZIPPED_FILES = "assets_look_for_zipped_files";
+    private static String ASSETS_PRIORITY_FOLDERS = "assets_priority_folders";
+    private static String ASSETS_READY_TO_BE_USED = "assets_ready_to_be_used";
     //
     private static String DEBUG_ENABLED = "debug_enabled";
     private static String DEBUG_SHOW_TEST_MENU = "debug_show_test_menu";
@@ -912,6 +915,27 @@ public class OBConfigManager
             internalAssetsSearchPaths = OBSystemsManager.sharedManager.getExternalAssetsFolders();
         }
         return internalAssetsSearchPaths;
+    }
+
+    public Boolean shouldLookForZippedAsssets()
+    {
+        return getBooleanValue(ASSETS_LOOK_FOR_ZIPPED_FILES);
+    }
+
+    public List<String> getZippedAssetsPriorityFolders()
+    {
+        String value = getStringValue(ASSETS_PRIORITY_FOLDERS);
+        return Arrays.asList(value.split(","));
+    }
+
+    public Boolean areAssetsReadyToBeUsed()
+    {
+        return getBooleanValue(ASSETS_READY_TO_BE_USED);
+    }
+
+    public void setAssetsReadyToBeUsed(Boolean value)
+    {
+        internalConfig.put(ASSETS_READY_TO_BE_USED, (value ? "true" : "false"));
     }
 
 

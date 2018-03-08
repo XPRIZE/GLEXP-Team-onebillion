@@ -243,6 +243,13 @@
 	<!-- ASSETS -->
 	<key>assets_external_path</key>
 	<string>/onebillion/assets</string>
+	<!-- -->
+	<key>assets_look_for_zipped_files</key>
+	<string>true</string>
+	<!-- -->
+	<key>assets_priority_folders</key>
+	<string>oc-gen,oc-setup,masterlists,oc-childmenu</string>
+
 
 
 	<!-- DEBUG -->
@@ -309,6 +316,8 @@
 	<!--  -->
 	<key>app_masterlist_library</key>
 	<string>library_sw</string>
+
+
 
 </dict>
 </plist>
