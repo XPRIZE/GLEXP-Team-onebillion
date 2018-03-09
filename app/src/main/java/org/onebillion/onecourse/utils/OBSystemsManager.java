@@ -5,6 +5,7 @@ import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.app.admin.DevicePolicyManager;
 import android.content.BroadcastReceiver;
@@ -49,6 +50,7 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -70,6 +72,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 
 /**
  * Created by pedroloureiro on 31/08/16.
@@ -102,7 +105,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     private String currentWeek = null;
     private String currentDay = null;
 
-    public OBSystemsManager (Activity activity)
+    public OBSystemsManager(Activity activity)
     {
         batteryReceiver = new OBBatteryReceiver();
         headphoneReceiver = new OBHeadphoneReceiver();
@@ -122,7 +125,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         MainActivity.log("OBSystemsManager is up and running for device with UUID: " + device_getUUID());
     }
 
-    public boolean hasWriteSettingsPermission ()
+    public boolean hasWriteSettingsPermission()
     {
         if (!MainActivity.isSDKCompatible())
         {
@@ -132,22 +135,20 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
         {
             return Settings.System.canWrite(MainActivity.mainActivity);
-        }
-        else
+        } else
         {
             MainActivity.log("OBSystemsManager:hasWriteSettingsPermission: failsafe incompatible SDK version. exiting function");
             return true;
         }
     }
 
-    public boolean isAppIsInForeground ()
+    public boolean isAppIsInForeground()
     {
         return AppIsInForeground;
     }
 
 
-
-    public boolean isScreenOn (Context context)
+    public boolean isScreenOn(Context context)
     {
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH)
         {
@@ -161,8 +162,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 }
             }
             return screenOn;
-        }
-        else
+        } else
         {
             PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
             //noinspection deprecation
@@ -171,7 +171,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    private boolean isMyServiceRunning (Class<?> serviceClass)
+    private boolean isMyServiceRunning(Class<?> serviceClass)
     {
         ActivityManager manager = (ActivityManager) MainActivity.mainActivity.getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE))
@@ -185,7 +185,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void killAllServices ()
+    public void killAllServices()
     {
         if (suspended) return;
         if (!OBSystemsManager.isFirstSetupComplete()) return;
@@ -196,7 +196,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void startServices ()
+    public void startServices()
     {
         if (suspended)
         {
@@ -219,14 +219,36 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             MainActivity.mainActivity.startService(serviceIntent);
         }
         //
-        PhoneStateListener phoneStateListener = new PhoneStateListener() {
-            public void onCallForwardingIndicatorChanged(boolean cfi) {}
-            public void onCallStateChanged(int state, String incomingNumber) {}
-            public void onCellLocationChanged(CellLocation location) {}
-            public void onDataActivity(int direction) {}
-            public void onDataConnectionStateChanged(int state) {}
-            public void onMessageWaitingIndicatorChanged(boolean mwi) {}
-            public void onServiceStateChanged(ServiceState serviceState) {}
+        PhoneStateListener phoneStateListener = new PhoneStateListener()
+        {
+            public void onCallForwardingIndicatorChanged(boolean cfi)
+            {
+            }
+
+            public void onCallStateChanged(int state, String incomingNumber)
+            {
+            }
+
+            public void onCellLocationChanged(CellLocation location)
+            {
+            }
+
+            public void onDataActivity(int direction)
+            {
+            }
+
+            public void onDataConnectionStateChanged(int state)
+            {
+            }
+
+            public void onMessageWaitingIndicatorChanged(boolean mwi)
+            {
+            }
+
+            public void onServiceStateChanged(ServiceState serviceState)
+            {
+            }
+
             public void onSignalStrengthsChanged(SignalStrength signalStrength)
             {
                 OBAnalyticsManager.sharedManager.deviceMobileSignalStrength(signalStrength.getGsmSignalStrength());
@@ -248,7 +270,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public static boolean isFirstSetupComplete ()
+    public static boolean isFirstSetupComplete()
     {
         return OBPreferenceManager.getBooleanPreference("firstSetupComplete");
 //        String result = MainActivity.mainActivity.getPreferences("firstSetupComplete");
@@ -256,7 +278,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void runChecks ()
+    public void runChecks()
     {
         if (suspended)
         {
@@ -295,7 +317,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public Handler getMainHandler ()
+    public Handler getMainHandler()
     {
         if (mainHandler == null)
         {
@@ -305,7 +327,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void printMemoryStatus (String message)
+    public void printMemoryStatus(String message)
     {
         if (!MainActivity.isSDKCompatible())
         {
@@ -350,8 +372,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 long diff = lastValue - secondLastValue;
                 long fullDiff = lastValue - firstValue;
                 MainActivity.log("Memory status: " + key + " --> " + lastValue + " (" + ((diff > 0) ? "+" : "") + diff + ")  --> since beginning (" + ((fullDiff > 0) ? "+" : "") + fullDiff + ")");
-            }
-            else
+            } else
             {
                 long diff = lastValue - firstValue;
                 MainActivity.log("Memory status: " + key + " --> " + lastValue + " (" + ((diff > 0) ? "+" : "") + diff + ")");
@@ -360,7 +381,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void runBatterySavingMode ()
+    public void runBatterySavingMode()
     {
         MainActivity.log("OBSystemsManager.runBatterySavingMode");
         OBConnectionManager.sharedManager.setBluetooth(false);
@@ -370,7 +391,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void killBackgroundProcesses ()
+    public void killBackgroundProcesses()
     {
         MainActivity.log("OBSystemsManager.killBackgroundProcesses");
         ActivityManager activityManager = (ActivityManager) MainActivity.mainActivity.getSystemService(MainActivity.ACTIVITY_SERVICE);
@@ -394,13 +415,134 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         }
     }
 
+
+    public void unzipAssetsIfFound(final OBUtils.RunLambda completionBlock)
+    {
+        if (OBConfigManager.sharedManager.shouldLookForZippedAsssets())
+        {
+            OBBrightnessManager.sharedManager.onSuspend();
+            //
+            List<String> priorityList = OBConfigManager.sharedManager.getZippedAssetsPriorityFolders();
+            List<File> assetsFolders = OBSystemsManager.sharedManager.getExternalAssetsFolders();
+            //
+            final File externalAssetsFolder = assetsFolders.get(0);
+            String tempFolderPath = externalAssetsFolder.getAbsolutePath();
+            if (!tempFolderPath.endsWith("/")) tempFolderPath += "/";
+            //
+            final String externalAssetsFolderPath = tempFolderPath;
+            //
+            final List<String> priorityFiles = new ArrayList();
+            //
+            for (String assetsFolderName : priorityList)
+            {
+                final String zippedFilePath = externalAssetsFolderPath + assetsFolderName + ".zip";
+                if (OBUtils.fileExistsAtPath(zippedFilePath))
+                {
+                    File decompressedFolder = new File(externalAssetsFolderPath + assetsFolderName);
+                    if (decompressedFolder.exists() && decompressedFolder.isDirectory()) continue;
+                    priorityFiles.add(zippedFilePath);
+                }
+            }
+            //
+            OBUnZip unzipPriority = new OBUnZip(priorityFiles, externalAssetsFolderPath, new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    // Files have been unzip, can continue with operations
+                    OBUtils.runOnMainThread(completionBlock);
+                    OBBrightnessManager.sharedManager.onContinue();
+                }
+            }, true);
+            unzipPriority.execute();
+        }
+        else
+        {
+            OBUtils.runOnMainThread(completionBlock);
+        }
+    }
+
+    public OBUnZip unzipRestOfAssets()
+    {
+        if (OBConfigManager.sharedManager.shouldLookForZippedAsssets())
+        {
+            List<String> priorityList = OBConfigManager.sharedManager.getZippedAssetsPriorityFolders();
+            List<File> assetsFolders = OBSystemsManager.sharedManager.getExternalAssetsFolders();
+            //
+            final File externalAssetsFolder = assetsFolders.get(0);
+            String tempFolderPath = externalAssetsFolder.getAbsolutePath();
+            if (!tempFolderPath.endsWith("/")) tempFolderPath += "/";
+            //
+            final String externalAssetsFolderPath = tempFolderPath;
+            //
+            final List<String> priorityFiles = new ArrayList();
+            //
+            for (String assetsFolderName : priorityList)
+            {
+                final String zippedFilePath = externalAssetsFolderPath + assetsFolderName + ".zip";
+                if (OBUtils.fileExistsAtPath(zippedFilePath))
+                {
+                    File decompressedFolder = new File(externalAssetsFolderPath + assetsFolderName);
+                    if (decompressedFolder.exists() && decompressedFolder.isDirectory()) continue;
+                    priorityFiles.add(zippedFilePath);
+                }
+            }
+
+            List<String> otherFiles = Arrays.asList(externalAssetsFolder.list(new FilenameFilter()
+            {
+                @Override
+                public boolean accept(File dir, String filename)
+                {
+                    return filename.toLowerCase().endsWith(".zip");
+                }
+            }));
+            // Start unzipping the rest
+            List<String> decompressList = new ArrayList<>();
+            for (String file : otherFiles)
+            {
+                String zippedFilePath = externalAssetsFolderPath + file; // already has the .zip extension
+                String folderPath = zippedFilePath.replaceAll(".zip", "");
+                //
+                if (priorityFiles.contains(zippedFilePath)) continue; // already extracted
+                if (OBUtils.fileExistsAtPath(zippedFilePath))
+                {
+                    File decompressedFolder = new File(folderPath);
+                    if (decompressedFolder.exists() && decompressedFolder.isDirectory())
+                        continue; // already extracted
+                    decompressList.add(zippedFilePath);
+                }
+            }
+            //
+            OBConfigManager.sharedManager.setAssetsReadyToBeUsed(decompressList.size() == 0);
+            //
+            OBUnZip unzipRest = new OBUnZip(decompressList, externalAssetsFolderPath, new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    // enable "Test onecourse" button in setup menu
+                    MainActivity.log("OBSystemsManager.unZipAssetsIfFound.assets are now ready to be used");
+                    OBConfigManager.sharedManager.setAssetsReadyToBeUsed(true);
+                }
+            }, false);
+            //
+            MainActivity.log("unzipping: " + decompressList);
+            //
+            return unzipRest;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
     public void onStart()
     {
         AppIsInForeground = true;
     }
 
 
-    public void onResume ()
+    public void onResume()
     {
         MainActivity.log("OBSystemsManager.onResume detected");
         //
@@ -429,7 +571,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void onPause ()
+    public void onPause()
     {
         MainActivity.log("OBSystemsManager.onPause detected" + (MainActivity.mainActivity.isFinishing() ? " and is finishing!" : ""));
         //
@@ -456,14 +598,14 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void onDestroy ()
+    public void onDestroy()
     {
         MainActivity.log("OBSystemsManager.onDestroy detected");
         DBSQL.finalise();
     }
 
 
-    public void onStop ()
+    public void onStop()
     {
         if (MainActivity.mainActivity.isFinishing())
         {
@@ -476,7 +618,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void onSuspend ()
+    public void onSuspend()
     {
         MainActivity.log("OBSystemsManager.onSuspend detected");
         //
@@ -488,7 +630,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void onContinue ()
+    public void onContinue()
     {
         MainActivity.log("OBSystemsManager.onContinue");
         //
@@ -504,7 +646,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void refreshStatus ()
+    public void refreshStatus()
     {
         String info = String.format("Build:%s    Bat:%s    Br:%s    Vol:%s    %s%s%s",
                 OBConfigManager.sharedManager.getBuildNumber(),
@@ -551,8 +693,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-
-    public void setStatusLabel (OBLabel label)
+    public void setStatusLabel(OBLabel label)
     {
         statusLabel = label;
         refreshStatus();
@@ -573,7 +714,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public static boolean checkMD5 (String md5, InputStream is)
+    public static boolean checkMD5(String md5, InputStream is)
     {
         if (TextUtils.isEmpty(md5) || is == null)
         {
@@ -594,14 +735,13 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public static String calculateMD5 (InputStream is)
+    public static String calculateMD5(InputStream is)
     {
         MessageDigest digest;
         try
         {
             digest = MessageDigest.getInstance("MD5");
-        }
-        catch (NoSuchAlgorithmException e)
+        } catch (NoSuchAlgorithmException e)
         {
             MainActivity.log("Exception while getting digest");
 //            e.printStackTrace();
@@ -622,18 +762,15 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             // Fill to 32 chars
             output = String.format("%32s", output).replace(' ', '0');
             return output;
-        }
-        catch (IOException e)
+        } catch (IOException e)
         {
             throw new RuntimeException("Unable to process file for MD5", e);
-        }
-        finally
+        } finally
         {
             try
             {
                 is.close();
-            }
-            catch (IOException e)
+            } catch (IOException e)
             {
                 MainActivity.log("Exception on closing MD5 input stream");
 //                e.printStackTrace();
@@ -642,7 +779,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void requestRootAccess ()
+    public void requestRootAccess()
     {
         MainActivity.log("OBSystemsManager.requestRootAccess");
         Process p;
@@ -661,38 +798,35 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 if (p.exitValue() != 255)
                 {
                     MainActivity.log("OBSystemsManager.requestRootAccess --> App has been granted Root Access");
-                }
-                else
+                } else
                 {
                     MainActivity.log("OBSystemsManager.requestRootAccess --> App has NOT been granted Root Access");
                 }
-            }
-            catch (InterruptedException e)
+            } catch (InterruptedException e)
             {
                 MainActivity.log("OBSystemsManager.requestRootAccess --> App has NOT been granted Root Access");
             }
-        }
-        catch (IOException e)
+        } catch (IOException e)
         {
             MainActivity.log("OBSystemsManager.requestRootAccess --> App has NOT been granted Root Access");
         }
     }
 
 
-    public boolean hasAdministratorPrivileges ()
+    public boolean hasAdministratorPrivileges()
     {
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
         return devicePolicyManager.isAdminActive(AdministratorReceiver());
     }
 
 
-    public ComponentName AdministratorReceiver ()
+    public ComponentName AdministratorReceiver()
     {
         return OBDeviceAdminReceiver.getComponentName(MainActivity.mainActivity);
     }
 
 
-    public boolean isDeviceOwner ()
+    public boolean isDeviceOwner()
     {
         MainActivity.log("OBSystemsManager.isDeviceOwner");
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
@@ -702,7 +836,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void requestToRemoveAccounts ()
+    public void requestToRemoveAccounts()
     {
         Toast.makeText(MainActivity.mainActivity, "Please remove all accounts before going back", Toast.LENGTH_LONG).show();
         Intent intent = new Intent(Settings.ACTION_SYNC_SETTINGS);
@@ -710,7 +844,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void requestDeviceOwner ()
+    public void requestDeviceOwner()
     {
         MainActivity.log("OBSystemsManager.requestDeviceOwner");
         //
@@ -744,8 +878,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             {
                 Toast.makeText(MainActivity.mainActivity, "Device Owner was not set. Another App is the device owner.", Toast.LENGTH_LONG).show();
             }
-        }
-        catch (Exception e)
+        } catch (Exception e)
         {
             MainActivity.log("OBSystemsManager.requestDeviceOwner: device is not rooted. No point in continuing.");
 //            e.printStackTrace();
@@ -753,7 +886,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public boolean enableAdminstratorPrivileges ()
+    public boolean enableAdminstratorPrivileges()
     {
         MainActivity.log("OBSystemsManager.enableAdminstratorPrivileges");
         //
@@ -803,8 +936,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 {
                     MainActivity.log("OBSystemsManager. App is now set to device owner");
                     return true;
-                }
-                else
+                } else
                 {
                     MainActivity.log("OBSystemsManager. Another account was detected. Requesting user to remove them"); // no idea how to do this programmatically
                     //
@@ -814,8 +946,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                     //
                     return false;
                 }
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 MainActivity.log("OBSystemsManager.device is not rooted. No point in continuing enableAdminstratorPrivileges");
 //                e.printStackTrace();
@@ -828,7 +959,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void disableAdministratorPrivileges ()
+    public void disableAdministratorPrivileges()
     {
         if (!MainActivity.isSDKCompatible())
         {
@@ -860,8 +991,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 MainActivity.log("OBSystemsManager.disableAdministratorPrivileges: clearing device owner");
                 devicePolicyManager.clearDeviceOwnerApp(MainActivity.mainActivity.getPackageName());
                 MainActivity.log("OBSystemsManager.disableAdministratorPrivileges: done");
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 MainActivity.log("OBSystemsManager.disableAdministratorPrivileges: exception caught");
 //                e.printStackTrace();
@@ -876,7 +1006,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void pinApplication ()
+    public void pinApplication()
     {
         MainActivity.log("OBSystemsManager.pinApplication");
         //
@@ -900,35 +1030,30 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                             MainActivity.log("OBSystemsManager.pinApplication: starting locked task");
                             MainActivity.mainActivity.startLockTask();
                             kioskModeActive = true;
-                        }
-                        catch (Exception e)
+                        } catch (Exception e)
                         {
                             MainActivity.log("OBSystemsManager.pinApplication: exception caught");
 //                            e.printStackTrace();
                             kioskModeActive = false;
                         }
-                    }
-                    else
+                    } else
                     {
                         MainActivity.log("OBSystemsManager.pinApplication:application is not in foreground, cancelling");
                     }
                 }
-            }
-            else
+            } else
             {
                 MainActivity.log("OBSystemsManager.pinApplication: unable to pin application, not a device owner");
             }
             toggleKeyguardAndStatusBar(false);
-        }
-        else
+        } else
         {
             MainActivity.log("OBSystemsManager.pinApplication: disabled in settings");
         }
     }
 
 
-
-    public void unpinApplication ()
+    public void unpinApplication()
     {
         MainActivity.log("OBSystemsManager.unpinApplication");
         //
@@ -952,32 +1077,28 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                             MainActivity.log("OBSystemsManager.unpinApplication: starting locked task");
                             MainActivity.mainActivity.stopLockTask();
                             kioskModeActive = false;
-                        }
-                        catch (Exception e)
+                        } catch (Exception e)
                         {
                             MainActivity.log("OBSystemsManager.unpinApplication: exception caught");
                         }
-                    }
-                    else
+                    } else
                     {
                         MainActivity.log("OBSystemsManager.unpinApplication:application is not in foreground, cancelling");
                     }
                 }
-            }
-            else
+            } else
             {
                 MainActivity.log("OBSystemsManager.unpinApplication: unable to unpin application, not a device owner");
             }
             toggleKeyguardAndStatusBar(false);
-        }
-        else
+        } else
         {
             MainActivity.log("OBSystemsManager.unpinApplication: disabled in settings");
         }
     }
 
 
-    public void toggleKeyguardAndStatusBar (boolean status)
+    public void toggleKeyguardAndStatusBar(boolean status)
     {
         if (!MainActivity.isSDKCompatible())
         {
@@ -1001,13 +1122,13 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void screenLock ()
+    public void screenLock()
     {
         DevicePolicyManager devicePolicyManager = (DevicePolicyManager) MainActivity.mainActivity.getSystemService(Context.DEVICE_POLICY_SERVICE);
         devicePolicyManager.lockNow();
     }
 
-    public void shutdownProcedures ()
+    public void shutdownProcedures()
     {
         // the shutdown procedure should only be triggered for debug mode, as we want the app to restart automatically and not lose any setting
         //
@@ -1019,7 +1140,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void toggleNavigationBar (final int value)
+    public void toggleNavigationBar(final int value)
     {
         MainActivity.log("OBSystemsManager." + (value == 0 ? "enabling" : "disabling") + " navigation bar");
         try
@@ -1069,13 +1190,11 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 }
                 output = log.toString();
                 MainActivity.log("OBSystemsManager.toggleNavigationBar.output from process: " + output);
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 MainActivity.log("OBSystemsManager.toggleNavigationBar. unable to execute command. Device is probably not rooted");
             }
-        }
-        catch (Exception e)
+        } catch (Exception e)
         {
             MainActivity.log("OBSystemsManager.toggleNagivationBar. exception caught");
 //            e.printStackTrace();
@@ -1084,7 +1203,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void saveLogToFile ()
+    public void saveLogToFile()
     {
         File sd = new File(Environment.getExternalStorageDirectory(), "//onebillion//logs//");
         sd.mkdirs();
@@ -1099,8 +1218,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 MainActivity.log("Log exported to " + file.getAbsolutePath());
                 @SuppressWarnings("unused")
                 Process process = Runtime.getRuntime().exec("logcat -df " + file.getAbsolutePath());
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 MainActivity.log("OBSystemsManager.saveLogToFile: exception caught");
 //                e.printStackTrace();
@@ -1108,7 +1226,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         }
     }
 
-    public boolean isBackupRequired ()
+    public boolean isBackupRequired()
     {
         String value_string = OBPreferenceManager.getStringPreference("lastBackupTimeStamp");
         if (value_string == null) return true;
@@ -1130,7 +1248,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             uuid = "unknown_uuid";
 
             String mac = device_getMac();
-            if(mac != null)
+            if (mac != null)
                 uuid = mac.replace(":", "");
 
         }
@@ -1168,8 +1286,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                     break;
                 }
             }
-        }
-        catch (Exception ex)
+        } catch (Exception ex)
         {
 
         }
@@ -1177,14 +1294,13 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-
-    public void connectToWifiAndSynchronizeTime ()
+    public void connectToWifiAndSynchronizeTime()
     {
         MainActivity.log("OBSystemsManager.connectToWifiAndSynchronizeTime");
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             @Override
-            public void run () throws Exception
+            public void run() throws Exception
             {
                 String wifiSSID = OBConfigManager.sharedManager.getBackupWifiSSID();
                 String wifiPassword = OBConfigManager.sharedManager.getBackupWifiPassword();
@@ -1192,7 +1308,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 connectionManager.connectToNetwork_connectToWifi(wifiSSID, wifiPassword, new OBUtils.RunLambdaWithSuccess()
                 {
                     @Override
-                    public void run (boolean success) throws Exception
+                    public void run(boolean success) throws Exception
                     {
                         if (success)
                         {
@@ -1205,16 +1321,14 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-
-
-    public void connectToWifiAndSynchronizeTimeAndData ()
+    public void connectToWifiAndSynchronizeTimeAndData()
     {
         MainActivity.log("OBSystemsManager.connectToWifiAndSynchronizeTimeAndData");
         //asd
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             @Override
-            public void run () throws Exception
+            public void run() throws Exception
             {
                 String wifiSSID = OBConfigManager.sharedManager.getBackupWifiSSID();
                 String wifiPassword = OBConfigManager.sharedManager.getBackupWifiPassword();
@@ -1222,7 +1336,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 connectionManager.connectToNetwork_connectToWifi(wifiSSID, wifiPassword, new OBUtils.RunLambdaWithSuccess()
                 {
                     @Override
-                    public void run (boolean success) throws Exception
+                    public void run(boolean success) throws Exception
                     {
                         if (success)
                         {
@@ -1236,7 +1350,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         });
     }
 
-    public Lock backup_getLock ()
+    public Lock backup_getLock()
     {
         if (backupLock == null)
         {
@@ -1246,7 +1360,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void backup_uploadDatabase_ftp (Boolean disconnectAfter)
+    public void backup_uploadDatabase_ftp(Boolean disconnectAfter)
     {
         MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp attempting lock");
         if (backup_getLock().tryLock())
@@ -1261,8 +1375,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 if (fileURL == null)
                 {
                     MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp.could not generate a database backup");
-                }
-                else
+                } else
                 {
                     File file = new File(fileURL);
                     FTPClient ftpClient = new FTPClient();
@@ -1296,13 +1409,12 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                             OBUtils.runOnMainThread(new OBUtils.RunLambda()
                             {
                                 @Override
-                                public void run () throws Exception
+                                public void run() throws Exception
                                 {
                                     Toast.makeText(MainActivity.mainActivity, "Database has been uploaded to the server", Toast.LENGTH_LONG).show();
                                 }
                             });
-                        }
-                        else
+                        } else
                         {
                             MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp error while uploading FTP file");
                         }
@@ -1314,8 +1426,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                         }
                     }
                 }
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp exception caught");
                 e.printStackTrace();
@@ -1323,16 +1434,14 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             //
             MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp releasing lock");
             backup_getLock().unlock();
-        }
-        else
+        } else
         {
             MainActivity.log("OBSystemsManager.backup_uploadDatabase_ftp backup already in progress");
         }
     }
 
 
-
-    public void backup_uploadDatabase_php ()
+    public void backup_uploadDatabase_php()
     {
         MainActivity.log("OBSystemsManager.backup_uploadDatabase_php attempting lock");
         if (backup_getLock().tryLock())
@@ -1416,28 +1525,26 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 OBUtils.runOnMainThread(new OBUtils.RunLambda()
                 {
                     @Override
-                    public void run () throws Exception
+                    public void run() throws Exception
                     {
                         Toast.makeText(MainActivity.mainActivity, "Database has been uploaded to the server", Toast.LENGTH_LONG).show();
                     }
                 });
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 MainActivity.log("OBSystemsManager.backup_uploadDatabase_php exception caught");
                 e.printStackTrace();
             }
             MainActivity.log("OBSystemsManager.backup_uploadDatabase_php releasing lock");
             backup_getLock().unlock();
-        }
-        else
+        } else
         {
             MainActivity.log("OBSystemsManager.backup_uploadDatabase_php backup already in progress");
         }
     }
 
 
-    public static void unregisterReceiver (BroadcastReceiver receiver)
+    public static void unregisterReceiver(BroadcastReceiver receiver)
     {
         if (receiver != null)
         {
@@ -1445,19 +1552,17 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             {
                 MainActivity.mainActivity.unregisterReceiver(receiver);
                 MainActivity.log("OBSystemsManager.unregisterReceiver successfull");
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 MainActivity.log("OBSystemsManager.unregisterReceiver NOT successfull --> not registered");
             }
-        }
-        else
+        } else
         {
             MainActivity.log("OBSystemsManager.unregisterReceiver NOT successfull --> not initialised");
         }
     }
 
-    public Dialog createDateSetDialog (String message, Boolean cancelable, OBUtils.RunLambda completionBlock)
+    public Dialog createDateSetDialog(String message, Boolean cancelable, OBUtils.RunLambda completionBlock)
     {
         dateSetCompletionBlock = completionBlock;
         final Calendar calendar = Calendar.getInstance();
@@ -1471,8 +1576,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             LinearLayout linearLayout = new LinearLayout(MainActivity.mainActivity.getApplicationContext());
             d.requestWindowFeature(Window.FEATURE_NO_TITLE);
             d.setCustomTitle(linearLayout);
-        }
-        else
+        } else
         {
             d.setMessage(message + "\n");
         }
@@ -1489,7 +1593,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         return d;
     }
 
-    public Dialog createTimeSetDialog (OBUtils.RunLambda completionBlock, final OBUtils.RunLambda cancelCompletionBlock)
+    public Dialog createTimeSetDialog(OBUtils.RunLambda completionBlock, final OBUtils.RunLambda cancelCompletionBlock)
     {
         timeSetCompletionBlock = completionBlock;
         final Calendar calendar = Calendar.getInstance();
@@ -1499,7 +1603,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         d.setButton(DatePickerDialog.BUTTON_NEGATIVE, "Back", new DialogInterface.OnClickListener()
         {
             @Override
-            public void onClick (DialogInterface dialog, int which)
+            public void onClick(DialogInterface dialog, int which)
             {
                 OBUtils.runOnMainThread(cancelCompletionBlock);
             }
@@ -1510,7 +1614,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 
 
     @Override
-    public void onDateSet (DatePicker view, int year, int monthOfYear, int dayOfMonth)
+    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth)
     {
         final Activity activity = MainActivity.mainActivity;
         if (activity != null)
@@ -1524,7 +1628,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
     @Override
-    public void onTimeSet (TimePicker view, int hourOfDay, int minute)
+    public void onTimeSet(TimePicker view, int hourOfDay, int minute)
     {
         final Activity activity = MainActivity.mainActivity;
         ;
@@ -1538,7 +1642,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         }
     }
 
-    public static void setDate (Context context, int year, int month, int day)
+    public static void setDate(Context context, int year, int month, int day)
     {
         Calendar c = Calendar.getInstance();
         //
@@ -1552,8 +1656,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             try
             {
                 ((AlarmManager) context.getSystemService(Context.ALARM_SERVICE)).setTime(when);
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 MainActivity.log("Exception caught while trying to set the Date");
 //                e.printStackTrace();
@@ -1561,7 +1664,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         }
     }
 
-    public static void setTime (Context context, int hourOfDay, int minute)
+    public static void setTime(Context context, int hourOfDay, int minute)
     {
         Calendar c = Calendar.getInstance();
         //
@@ -1576,8 +1679,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             try
             {
                 ((AlarmManager) context.getSystemService(Context.ALARM_SERVICE)).setTime(when);
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 MainActivity.log("Exception caught while trying to set the Time");
                 //e.printStackTrace();
@@ -1586,17 +1688,17 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public void setDateAndTimeDialog (final OBUtils.RunLambda completionBlock)
+    public void setDateAndTimeDialog(final OBUtils.RunLambda completionBlock)
     {
         createDateSetDialog("Please set the current date.", false, new OBUtils.RunLambda()
         {
             @Override
-            public void run () throws Exception
+            public void run() throws Exception
             {
                 createTimeSetDialog(completionBlock, new OBUtils.RunLambda()
                 {
                     @Override
-                    public void run () throws Exception
+                    public void run() throws Exception
                     {
                         setDateAndTimeDialog(completionBlock);
                     }
@@ -1606,7 +1708,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public String getBatterySettingKeyForCurrentLevel ()
+    public String getBatterySettingKeyForCurrentLevel()
     {
         float batteryLevel = batteryReceiver.getBatteryLevel();
         //
@@ -1629,21 +1731,21 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     /**
      * @return battery level on 0.0-100.0 scale, -1 if no battery data
      */
-    public float getBatteryLevel ()
+    public float getBatteryLevel()
     {
-       if(batteryReceiver != null)
-       {
-           return batteryReceiver.getBatteryLevel();
-       }
-       return -1;
+        if (batteryReceiver != null)
+        {
+            return batteryReceiver.getBatteryLevel();
+        }
+        return -1;
     }
 
     /**
      * @return true if battery is charging(cable is plugged in)
      */
-    public boolean isBatteryCharging ()
+    public boolean isBatteryCharging()
     {
-        if(batteryReceiver != null)
+        if (batteryReceiver != null)
         {
             return batteryReceiver.cablePluggedIn();
         }
@@ -1667,18 +1769,15 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             client.close();
             //
             timestamp = info.getMessage().getReceiveTimeStamp().getTime();
-        }
-        catch (SocketException e)
+        } catch (SocketException e)
         {
             e.printStackTrace();
 
-        }
-        catch (SocketTimeoutException e)
+        } catch (SocketTimeoutException e)
         {
 
 
-        }
-        catch (Exception e)
+        } catch (Exception e)
         {
 
         }
@@ -1691,8 +1790,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         try
         {
             ((AlarmManager) MainActivity.mainActivity.getSystemService(Context.ALARM_SERVICE)).setTime(timestamp);
-        }
-        catch (Exception e)
+        } catch (Exception e)
         {
             MainActivity.log("OBSystemManager:setSystemTime: Exception caught while trying to set the Date");
             e.printStackTrace();
@@ -1704,17 +1802,17 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         if (!OBConfigManager.sharedManager.isTimeServerEnabled()) return;
         //
         final String timeServerURL = OBConfigManager.sharedManager.getTimeServerURL();
-        if(timeServerURL != null)
+        if (timeServerURL != null)
         {
             long timestampMillisec = getNTPTimestamp(timeServerURL);
-            MainActivity.log("OBSystemManager:synchronizeAndUpdate: Timestamp received from server: "+timestampMillisec);
-            if(timestampMillisec > 0)
+            MainActivity.log("OBSystemManager:synchronizeAndUpdate: Timestamp received from server: " + timestampMillisec);
+            if (timestampMillisec > 0)
             {
                 OBFatController fatController = MainActivity.mainActivity.fatController;
-                if(fatController != null &&
+                if (fatController != null &&
                         TimeSynchronizationReceiver.class.isAssignableFrom(fatController.getClass()))
                 {
-                    ((TimeSynchronizationReceiver)fatController).timeReceived(timestampMillisec);
+                    ((TimeSynchronizationReceiver) fatController).timeReceived(timestampMillisec);
                 }
             }
         }
@@ -1726,7 +1824,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
-    public List<File> getExternalAssetsFolders ()
+    public List<File> getExternalAssetsFolders()
     {
         List<File> result = new ArrayList();
         //
@@ -1737,7 +1835,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             //
             if (externalAssets.exists())
             {
-                MainActivity.log("OBSystemsMananger.getExternalAssetsFolder.found: " + externalAssets);
+                MainActivity.log("OBSystemsManager.getExternalAssetsFolder.found: " + externalAssets);
                 result.add(externalAssets);
             }
             //
@@ -1750,7 +1848,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                 //
                 if (externalAssets.exists())
                 {
-                    MainActivity.log("OBSystemsMananger.getExternalAssetsFolder.found: " + externalAssets);
+                    MainActivity.log("OBSystemsManager.getExternalAssetsFolder.found: " + externalAssets);
                     result.add(externalAssets);
                 }
             }
@@ -1760,7 +1858,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             //
             if (externalAssets.exists())
             {
-                MainActivity.log("OBSystemsMananger.getExternalAssetsFolder.found: " + externalAssets);
+                MainActivity.log("OBSystemsManager.getExternalAssetsFolder.found: " + externalAssets);
                 result.add(externalAssets);
             }
             //
@@ -1769,7 +1867,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             //
             if (externalAssets.exists())
             {
-                MainActivity.log("OBSystemsMananger.getExternalAssetsFolder.found: " + externalAssets);
+                MainActivity.log("OBSystemsManager.getExternalAssetsFolder.found: " + externalAssets);
                 result.add(externalAssets);
             }
         }
@@ -1796,8 +1894,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             os.writeBytes("exit\n");
             os.flush();
             os.close();
-        }
-        catch (Exception e)
+        } catch (Exception e)
         {
             MainActivity.log("OBSystemsManager.runShellCommand.exception caught: " + e.getMessage());
             e.printStackTrace();

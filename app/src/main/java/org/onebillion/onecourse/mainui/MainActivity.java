@@ -149,7 +149,6 @@ public class MainActivity extends Activity
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
         systemsManager = new OBSystemsManager(this);
-
         //
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler()
         {
@@ -217,10 +216,10 @@ public class MainActivity extends Activity
         try
         {
             new OBAudioManager();
+            //
             setUpConfig();
             checkForFirstSetupAndRun();
-            //glSurfaceView.controller = mainViewController;
-
+            //
             ((ThreadPoolExecutor) AsyncTask.THREAD_POOL_EXECUTOR).setCorePoolSize(20);
             log("onCreate ended");
         }
@@ -387,8 +386,16 @@ public class MainActivity extends Activity
                 //
                 OBPreferenceManager.setPreference("firstSetupComplete", true);
                 //
-                runChecksAndLoadMainViewController();
-
+                OBSystemsManager.sharedManager.unzipAssetsIfFound(new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run () throws Exception
+                    {
+                        OBConfigManager.sharedManager.updateConfigPaths(OBConfigManager.sharedManager.getMainFolder(), true);
+                        //
+                        runChecksAndLoadMainViewController();
+                    }
+                });
             }
         });
     }

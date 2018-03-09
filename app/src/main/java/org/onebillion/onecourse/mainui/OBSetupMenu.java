@@ -12,6 +12,7 @@ import android.content.res.AssetFileDescriptor;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.text.format.DateFormat;
@@ -36,6 +37,7 @@ import org.onebillion.onecourse.controls.OBVideoPlayer;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.utils.DBSQL;
 import org.onebillion.onecourse.utils.OBConfigManager;
+import org.onebillion.onecourse.utils.OBUnZip;
 import org.onebillion.onecourse.utils.OCM_MlUnit;
 import org.onebillion.onecourse.utils.OBBrightnessManager;
 import org.onebillion.onecourse.utils.OBConnectionManager;
@@ -81,6 +83,9 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
     private String saveConfig;
     private OBLabel dateTimeField, serverOKField, serverNotFoundField, setDateTimeButtonLabel;
     private OBLabel currentDateField, startOfTrialDateField;
+    //
+    private OBPath testOnecourseButton;
+    private OBUnZip unzipAssetsTask;
     //
     private Date userSetDate, trialDate, serverDate;
     //
@@ -423,6 +428,21 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                     //
                     // Activate onecourse button (font is slightly larger than all the others)
                     setupLabelsForScreen("home_button_activate_onecourse", false, 0.7f, boldFont, "centre", false, homeScreenControls, finalSelf);
+                    //
+                    unzipAssetsTask = OBSystemsManager.sharedManager.unzipRestOfAssets();
+                    //
+                    testOnecourseButton = (OBPath) objectDict.get("home_button_step_1_example");
+                    //
+                    if (unzipAssetsTask != null && unzipAssetsTask.getStatus() == AsyncTask.Status.PENDING)
+                    {
+                        MainActivity.log("OBSetupMenu.loadHomeScreen.assigning external progress bar and starting unzip");
+                        unzipAssetsTask.externalProgressBar = testOnecourseButton;
+                        unzipAssetsTask.execute();
+                    }
+                    else if (unzipAssetsTask == null)
+                    {
+                        MainActivity.log("OBSetupMenu.loadHomeScreen: task is null");
+                    }
                 }
                 //
                 for (OBControl control : attachedControls)
