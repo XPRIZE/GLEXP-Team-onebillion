@@ -248,7 +248,7 @@
 	<string>true</string>
 	<!-- -->
 	<key>assets_priority_folders</key>
-	<string>oc-gen,oc-setup,masterlists,oc-childmenu</string>
+	<string>oc-gen,oc-setup,oc-community,masterlists</string>
 
 
 

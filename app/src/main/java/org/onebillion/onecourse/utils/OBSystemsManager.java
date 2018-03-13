@@ -430,7 +430,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             if (!tempFolderPath.endsWith("/")) tempFolderPath += "/";
             //
             final String externalAssetsFolderPath = tempFolderPath;
-            //
+            //=
             final List<String> priorityFiles = new ArrayList();
             //
             for (String assetsFolderName : priorityList)

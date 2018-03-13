@@ -3,6 +3,7 @@ package org.onebillion.onecourse.utils;
 import android.app.ProgressDialog;
 import android.graphics.Color;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Log;
 
 import org.onebillion.onecourse.controls.OBControl;
@@ -40,6 +41,8 @@ public class OBUnZip extends AsyncTask<Void, Integer, Integer>
     private Boolean _useProgressDialog;
     private List<String> _zipFiles;
     //
+    public float progress;
+    //
     public OBPath externalProgressBar;
 
     public OBUnZip(List<String> zipFiles, String location, OBUtils.RunLambda completionBlock, Boolean useProgressDialog)
@@ -71,7 +74,7 @@ public class OBUnZip extends AsyncTask<Void, Integer, Integer>
 
     public static void streamCopy(InputStream in, OutputStream out) throws IOException
     {
-        byte[] buffer = new byte[128 * 1024]; // play with sizes..
+        byte[] buffer = new byte[64 * 1024]; // play with sizes..
         int readCount;
         while ((readCount = in.read(buffer)) != -1)
         {
@@ -104,7 +107,18 @@ public class OBUnZip extends AsyncTask<Void, Integer, Integer>
                 ZipEntry ze = null;
                 while ((ze = zin.getNextEntry()) != null)
                 {
-                    //MainActivity.log("Unzipping " + ze.getName());
+                    String[] locationArray = _location.split("/");
+                    String[] fileArray = ze.getName().split("/");
+                    //
+                    String outFilePath = _location + ze.getName();
+                    if (locationArray[locationArray.length - 1].equalsIgnoreCase(fileArray[0]))
+                    {
+                        String[] newFileArray = Arrays.copyOfRange(fileArray, 1, fileArray.length);
+                        outFilePath = TextUtils.join("/", locationArray) + "/" + TextUtils.join("/", newFileArray);
+                    }
+                    //
+                    //MainActivity.log("Unzipping " + outFilePath);
+                    //
                     if (ze.isDirectory())
                     {
                         _dirChecker(ze.getName());
@@ -114,7 +128,7 @@ public class OBUnZip extends AsyncTask<Void, Integer, Integer>
                         per++;
                         publishProgress(per);
                         //
-                        FileOutputStream fout = new FileOutputStream(_location + ze.getName());
+                        FileOutputStream fout = new FileOutputStream(outFilePath);
                         //
                         streamCopy(zin, fout);
                         //
@@ -224,12 +238,25 @@ public class OBUnZip extends AsyncTask<Void, Integer, Integer>
             //
             //MainActivity.log("Decompressing: " + ratio * 100.0);
         }
+        progress = per / (float) totalFiles;
+        //
         super.onProgressUpdate(values);
     }
 
     private void _dirChecker(String dir)
     {
-        File f = new File(_location + dir);
+        String[] locationArray = _location.split("/");
+        String[] fileArray = dir.split("/");
+        //
+        String outFilePath = _location + dir;
+        if (locationArray[locationArray.length - 1].equalsIgnoreCase(fileArray[0]))
+        {
+            String[] newFileArray = Arrays.copyOfRange(fileArray, 1, fileArray.length);
+            outFilePath = TextUtils.join("/", locationArray) + "/" + TextUtils.join("/", newFileArray);
+        }
+        //
+        File f = new File(outFilePath);
+        //
         if (!f.isDirectory())
         {
             f.mkdirs();
