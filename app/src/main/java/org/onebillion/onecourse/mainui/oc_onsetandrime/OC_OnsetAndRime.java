@@ -36,7 +36,7 @@ import static org.onebillion.onecourse.utils.OBUtils.StandardReadingFontOfSize;
  * Created by alan on 27/12/17.
  */
 
-public class OC_OnsetAndRime extends OC_Reading
+public class OC_OnsetAndRime extends OC_Onset
 {
     boolean showDemo,showPic;
     String rime;
