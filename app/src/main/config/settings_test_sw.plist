@@ -283,7 +283,7 @@
 	<string>OBFatController</string>
 	<!--  -->
 	<key>app_masterlist</key>
-	<string>community_sw</string>
+	<string>sample_sw</string>
 	<!--  -->
 	<key>app_masterlist_playzone</key>
 	<string>playzone_sw</string>
