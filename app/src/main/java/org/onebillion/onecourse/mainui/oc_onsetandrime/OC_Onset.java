@@ -178,11 +178,11 @@ public class OC_Onset extends OC_Reading
         return w;
     }
 
-    public void createBottomLabels()
+    public void createBottomLabels(List<String>fixes)
     {
         List<OBLabel>botlabs = new ArrayList<>();
         int labelcol = objectDict.get("bottomlabelswatch").fillColor();
-        for(String s : prefixes)
+        for(String s : fixes)
         {
             OBLabel lab = new OBLabel(s,font);
             lab.setColour(labelcol);
@@ -254,21 +254,27 @@ public class OC_Onset extends OC_Reading
         }
     }
 
-    public void setUpFirstScreen()
+    public void setupImageBack()
     {
-        loadEvent("a");
-
         OBControl backRect = objectDict.get("imageback");
         RectF imagef = objectDict.get("imagerect").frame();
         RectF backf = objectDict.get("imageback").frame();
         imageOutset =(imagef.height() - backf.height()) / 2;
         OBControl br = new OBControl();
-        br.setFillColor(backRect.fillColor() );
-        br.setZPosition(backRect.zPosition() );
+        br.setFillColor(backRect.fillColor());
+        br.setZPosition(backRect.zPosition());
         br.setFrame(backf);
         detachControl(backRect);
         objectDict.put("imageback",br);
         attachControl(br);
+
+    }
+
+    public void setUpFirstScreen()
+    {
+        loadEvent("a");
+
+        setupImageBack();
 
         OBControl r = objectDict.get("rect0");
         midright0 = new PointF(r.right(),r.frame().centerY());
@@ -293,7 +299,7 @@ public class OC_Onset extends OC_Reading
 
         attachControl(dash);
 
-        createBottomLabels();
+        createBottomLabels(prefixes);
         positionBottomLabels();
 
         labelList = new ArrayList<>();
@@ -679,6 +685,114 @@ public class OC_Onset extends OC_Reading
         playSfxAudio("scatter",false);
         OBAnimationGroup.runAnims(anims,1,true,OBAnim.ANIM_EASE_IN_EASE_OUT,null);
     }
+
+    public void actionsForDemoa() throws Exception
+    {
+        PointF destpt = OB_Maths.locationForRect(new PointF(0.9f, -0.1f) ,objectDict.get("bottomrect").frame());
+        PointF startpt = pointForDestPoint(destpt,10);
+        loadPointerStartPoint(startpt,destpt);
+        movePointerToPoint(destpt,-1,true);
+        waitForSecs(0.1f);
+        playAudioQueuedScene("DEMO",true);
+        slideInLabels();
+        waitForSecs(0.4f);
+    }
+
+    public void actionsForDemoc() throws Exception
+    {
+
+        playAudioScene("DEMO",0,true);
+        waitForSecs(0.3f);
+
+        PointF destpt = OB_Maths.locationForRect(new PointF(0.5f, 2) , dash.frame());
+        movePointerToPoint(destpt,-1,true);
+        playAudioScene("DEMO",1,true);
+
+        RectF f = AllLabelsFrame(bottomLabels);
+        movePointerToPoint(OB_Maths.locationForRect(new PointF(0, 0.6f) , f),-35,-1,true);
+        playAudioScene("DEMO",2,false);
+        waitForSecs(0.5f);
+
+        movePointerToPoint(OB_Maths.locationForRect(new PointF(1, 0.6f) , f),-5,-1,true);
+        waitForSecs(0.8f);
+
+        PointF butPt;
+        lockScreen();
+        butPt = OB_Maths.locationForRect(new PointF(0.5f,1.1f) , MainViewController() .topRightButton.frame);
+        unlockScreen();
+        movePointerToPoint(butPt,0,-1,true);
+
+        playAudioScene("DEMO",3,true);
+
+        waitForSecs(0.4f);
+        thePointer.hide();
+        waitForSecs(0.65f);
+    }
+
+    public void actionsForDemof() throws Exception
+    {
+        playSfxAudio("paneloff",false);
+        objectDict.get("bottomrect").hide();
+        waitForSecs(0.2f);
+        shuffleLabels();
+    }
+
+    public void actionsForDemog(String text,boolean isPref) throws Exception
+    {
+        int rimeColour = objectDict.get("rimeswatch").fillColor();
+        PointF destpt = OB_Maths.locationForRect(new PointF(0.9f, -0.1f) ,objectDict.get("bottomrect").frame());
+        PointF startpt = pointForDestPoint(destpt,10);
+        loadPointerStartPoint(startpt,destpt);
+        movePointerToPoint(destpt,-1,true);
+        waitForSecs(0.2f);
+        playAudioQueuedScene("DEMO",true);
+        waitForSecs(0.2f);
+        int textlen =(int) text.length();
+        for(OBLabel lab : labelList)
+        {
+            playSfxAudio("pattern",false);
+            lockScreen();
+            lab.setColour(rimeColour);
+            if(isPref)
+                lab.setHighRange(textlen,lab.text().length(),Color.BLACK);
+            else
+                lab.setHighRange(0 , lab.text().length() - textlen,Color.BLACK);
+            unlockScreen();
+            waitForSecs(0.2f);
+            waitSFX();
+            waitForSecs(0.2f);
+        }
+    }
+
+    public void actionsForDemoh() throws Exception
+    {
+        waitForSecs(0.2f);
+        playAudioQueuedScene("DEMO",true);
+        int i = 0;
+        for(OBLabel lab : labelList)
+        {
+            lockScreen();
+            lab.setColour(Color.RED);
+            unlockScreen();
+            playAudioQueued(Arrays.asList((Object)wordIDs.get(i)),true);
+            lockScreen();
+            lab.setColour(Color.BLACK);
+            unlockScreen();
+
+            waitForSecs(0.2f);
+            i++;
+        }
+        waitForSecs(0.8f);
+        scatterLabels();
+    }
+
+    public void actionsForDemoi() throws Exception
+    {
+        playAudioQueuedScene("DEMO",true);
+        waitForSecs(0.3f);
+        thePointer.hide();
+    }
+
 
     public void  playAudioWithHighlightAtEnd(boolean atEnd)throws Exception
     {
