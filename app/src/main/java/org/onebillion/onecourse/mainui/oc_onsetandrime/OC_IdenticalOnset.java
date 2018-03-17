@@ -55,7 +55,7 @@ public class OC_IdenticalOnset extends OC_Onset
     {
         OBLabel lab = createLabelText(tx,font,Color.BLACK);
         lab.setPosition(midLeft0);
-        lab.setRight(midLeft0.x);
+        lab.setLeft(midLeft0.x);
         lab.setZPosition(onsetLabel.zPosition() + 1);
         attachControl(lab);
         return lab;
@@ -114,7 +114,7 @@ public class OC_IdenticalOnset extends OC_Onset
         dash = new OBControl();
         dash.setFrame(d.frame());
         dash.setWidth(WidthOfText("M", lineAttributes(font) , spaceExtra));
-        dash.setRight(rimeLabel.left());
+        dash.setLeft(rimeLabel.right());
         dash.setFillColor(d.fillColor());
         dash.setZPosition(d.zPosition());
         attachControl(dash);
@@ -149,7 +149,7 @@ public class OC_IdenticalOnset extends OC_Onset
             dash.setBottom(dash.bottom() - bot);
             onsetLabel.setBottom(onsetLabel.bottom() - bot);
             unlockScreen();
-            List anims = Arrays.asList(OBAnim.moveAnim(dashpos,dash),OBAnim.moveAnim(dashpos,onsetLabel));
+            List anims = Arrays.asList(OBAnim.moveAnim(dashpos,dash),OBAnim.moveAnim(onsetpos,onsetLabel));
             OBAnimationGroup.runAnims(anims,0.3,true,OBAnim.ANIM_EASE_IN_EASE_OUT,null);
         }
     }
@@ -296,6 +296,16 @@ public class OC_IdenticalOnset extends OC_Onset
         actionsForDemoi();
 
         nextScene();
+    }
+
+    public PointF destPointForDraggedLabel(OBLabel targ)
+    {
+        return new PointF(completeLabel.right() -(targ.width() / 2) ,completeLabel.position() .y);
+    }
+
+    public String dragInSFX()
+    {
+        return "ending";
     }
 
 }

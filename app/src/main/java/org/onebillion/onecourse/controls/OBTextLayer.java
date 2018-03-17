@@ -242,6 +242,7 @@ public class OBTextLayer extends OBLayer
     public void setColour(int colour)
     {
         this.colour = colour;
+        hiStartIdx = hiEndIdx = -1;
         displayObjectsValid = false;
     }
 

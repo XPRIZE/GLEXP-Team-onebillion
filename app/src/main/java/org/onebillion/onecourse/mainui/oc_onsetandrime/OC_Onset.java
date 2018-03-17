@@ -524,7 +524,7 @@ public class OC_Onset extends OC_Reading
             oaud.addAll(aud);
             oaud.add(300);
         }
-        oaud.add(wordIDs.get(currNo));
+        oaud.add(wID);
         return oaud;
     }
 
@@ -599,16 +599,23 @@ public class OC_Onset extends OC_Reading
         });
     }
 
+    public int wordIdIdxForScene(String scene)
+    {
+        if(scene.equals("i2"))
+            return finalList.get(currNo).intValue();
+        return currNo;
+    }
+
     public void endBody()
     {
-        if(currentAudio("PROMPT.REMINDER") != null)
+        if(currentAudio("PROMPT.REMINDER") != null || currentEvent().equals("i2"))
         {
             try
             {
                 long stt = statusTime();
                 waitForSecs(0.2f);
                 waitAudioQueue(mainAudioLock);
-                repromptDash(stt,arrayWithCategory("PROMPT.REPEAT",wordIDs.get(currNo)),6);
+                repromptDash(stt,arrayWithCategory("PROMPT.REMINDER",wordIDs.get(wordIdIdxForScene(currentEvent()))),6);
             }
             catch (Exception e)
             {
@@ -650,12 +657,14 @@ public class OC_Onset extends OC_Reading
         {
             List anims = new ArrayList<>();
             OBLabel lab = labelList.get(i);
-            anims.add(OBAnim.moveAnim(new PointF(right - lab.width() / 2,ys.get(i)),lab));
+            float x = lab.position().x;
+            anims.add(OBAnim.moveAnim(new PointF(x,ys.get(i)),lab));
             for(int j = i + 1;j < labct;j++)
             {
                 lab = labelList.get(j);
+                float xx = lab.position().x;
                 float y = ys.get(labct - j + i);
-                anims.add(OBAnim.moveAnim(new PointF(right - lab.width() / 2, y),lab));
+                anims.add(OBAnim.moveAnim(new PointF(xx, y),lab));
             }
             OBAnimationGroup.runAnims(anims,secs/labct - 0.05,true,OBAnim.ANIM_EASE_IN_EASE_OUT,null);
             waitForSecs(0.05f);
@@ -864,9 +873,10 @@ public class OC_Onset extends OC_Reading
         else
         {
             setReplayAudio(raForI2());
-            switchStatus(currentEvent());
+            long stt = switchStatus(currentEvent());
             int idx = finalList.get(currNo).intValue();
-            playAudioQueued(Arrays.asList((Object)wordIDs.get(idx)),false);
+            playAudioQueued(Arrays.asList((Object)wordIDs.get(idx)),true);
+            repromptDash(stt,Arrays.asList((Object)wordIDs.get(idx)),6);
         }
     }
 
@@ -908,6 +918,11 @@ public class OC_Onset extends OC_Reading
         return rimeLabel;
     }
 
+    public String dragInSFX()
+    {
+        return "onset";
+    }
+
     public void checkDragAtPoint(PointF pt)
     {
         try
@@ -930,10 +945,14 @@ public class OC_Onset extends OC_Reading
             {
                 PointF destpt = destPointForDraggedLabel(targ);
                 moveObjects(Arrays.asList((OBControl)targ),destpt,0.2f,OBAnim.ANIM_EASE_IN_EASE_OUT);
-                playSfxAudio("onset",false);
+                playSfxAudio(dragInSFX(),false);
                 int labelcol = objectDict.get("bottomlabelswatch").fillColor();
                 lockScreen();
-                completeLabel.setHighRange(0,bottomLabels.get(idx).text().length(),labelcol);
+                int len = bottomLabels.get(idx).text().length();
+                if (targ.left() > staticLabel().left())
+                    completeLabel.setHighRange(staticLabel().text().length(),completeLabel.text().length(),labelcol);
+                else
+                    completeLabel.setHighRange(0,len,labelcol);
                 completeLabel.show();
                 targ.hide();
                 staticLabel().hide();
