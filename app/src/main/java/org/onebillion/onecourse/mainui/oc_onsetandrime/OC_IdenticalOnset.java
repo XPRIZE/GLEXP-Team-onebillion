@@ -167,9 +167,17 @@ public class OC_IdenticalOnset extends OC_Onset
             Map fnl = (Map) audioScenes.get("finale");
             playAudioQueued((List)fnl.get("DEMO"),true);
             waitForSecs(0.1f);
-            lockScreen();
-            rimeLabel.setColour(Color.RED);
-            unlockScreen();
+            for (int i = 0;i < 3;i++)
+            {
+                lockScreen();
+                rimeLabel.setColour(Color.RED);
+                unlockScreen();
+                waitForSecs(0.5f);
+                lockScreen();
+                rimeLabel.setColour(Color.BLACK);
+                unlockScreen();
+                waitForSecs(0.25f);
+            }
             waitForSecs(0.8f);
             MainActivity.mainActivity.fatController.completeEvent(this);
         }
