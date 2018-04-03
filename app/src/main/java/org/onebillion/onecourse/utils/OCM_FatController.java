@@ -1125,7 +1125,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             }
             cursor.close();
         }catch (Exception e)
-        {}
+        {
+            MainActivity.log("OCM_FatController.getUnitsForGrid. exception caught: " + e.getMessage());
+            e.printStackTrace();
+        }
         finally
         {
             if(db != null)

@@ -687,9 +687,12 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
 
     public void refreshCurrentLabelArray(List<OCM_MlUnit> units)
     {
-        OCM_MlUnit unit1 = units.get(0);
-        OCM_MlUnit unit2 = units.get(units.size()-1);
-        currentLevelLabel.setString(String.format("%d - %d - %d", currentDay, unit1.unitIndex,  unit2.unitIndex));
+        if (units != null && units.size() > 0)
+        {
+            OCM_MlUnit unit1 = units.get(0);
+            OCM_MlUnit unit2 = units.get(units.size() - 1);
+            currentLevelLabel.setString(String.format("%d - %d - %d", currentDay, unit1.unitIndex, unit2.unitIndex));
+        }
     }
 
 
