@@ -1110,9 +1110,9 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                 cursor.close();
                 cursor = db.prepareRawQuery(String.format("SELECT * FROM %s "+
                                 "WHERE unitid IN (SELECT unitid FROM %s "+
-                                "WHERE level = ? ORDER BY unitIndex DESC LIMIT %d) AND masterlistid = ? "+
+                                "WHERE level = ? AND masterlistid = ? ORDER BY unitIndex DESC LIMIT %d) AND masterlistid = ? "+
                                 "GROUP BY unitid ORDER BY unitIndex ASC",DBSQL.TABLE_UNITS,DBSQL.TABLE_UNITS,SESSION_UNIT_COUNT),
-                        Arrays.asList(String.valueOf(getCurrentWeek()),String.valueOf(currentUser.studylistid)));
+                        Arrays.asList(String.valueOf(getCurrentWeek()),String.valueOf(currentUser.studylistid),String.valueOf(currentUser.studylistid)));
             }
 
             if(cursor.moveToFirst())
