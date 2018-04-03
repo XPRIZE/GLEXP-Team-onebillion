@@ -1936,7 +1936,6 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         }
         else if (OBConfigManager.sharedManager.isActivateCommunityModeOverridePasswordCorrect(pass))
         {
-            /*
             communityModeActive = true;
             //
             lockScreen();
@@ -1966,10 +1965,9 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
                     start();
                 }
             });
-            */
-
-            fatController.jumpToCommunity();
-            closeThisMenuAndOpen(OCM_ChildMenu.class);
+            //
+//            fatController.jumpToCommunity();
+//            closeThisMenuAndOpen(OCM_ChildMenu.class);
         }
         else if (OBConfigManager.sharedManager.isRevertCommunityModePasswordCorrect(pass))
         {
