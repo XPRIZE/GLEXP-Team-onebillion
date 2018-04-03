@@ -77,9 +77,7 @@ android {
 
     productFlavors {
         pedro_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.pedro'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Pedro"
@@ -89,9 +87,7 @@ android {
             ]
         }
         alan_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.alan'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - alan"
@@ -101,9 +97,7 @@ android {
             ]
         }
         michal_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.michal'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - michal"
@@ -113,9 +107,7 @@ android {
             ]
         }
         sw_judges_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.judges'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - Judges"
@@ -125,9 +117,7 @@ android {
             ]
         }
         ny_judges_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.judges.ny'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Judges - ny"
@@ -137,9 +127,7 @@ android {
             ]
         }
         sw_community_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - Child"
@@ -149,9 +137,7 @@ android {
             ]
         }
         sw_test_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.test'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Dev - sw"
@@ -161,9 +147,7 @@ android {
             ]
         }
         sw_library_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.library'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Library - sw"
@@ -173,9 +157,7 @@ android {
             ]
         }
         sw_playzone_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.playzone'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Playzone - sw"
@@ -185,9 +167,7 @@ android {
             ]
         }
         sw_loop_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.loop'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Loop - sw"
@@ -197,9 +177,7 @@ android {
             ]
         }
         enGB_community_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.en_GB'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - enGB"
@@ -209,9 +187,7 @@ android {
             ]
         }
         enGB_test_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.en_GB.test'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Dev - enGB"
@@ -221,9 +197,7 @@ android {
             ]
         }
         ny_community_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.ny'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - ny"
@@ -233,9 +207,7 @@ android {
             ]
         }
         ny_test_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.ny.test'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Dev - ny"
@@ -245,9 +217,7 @@ android {
             ]
         }
         kenya_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.kenya'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Kenya dev"
