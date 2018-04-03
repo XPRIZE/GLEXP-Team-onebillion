@@ -503,7 +503,6 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
         timeoutRunnable = null;
     }
-
     public boolean checkTimeout(OCM_MlUnitInstance unitInstance)
     {
         if (!allowsTimeOuts)
@@ -1079,6 +1078,18 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         }
 
         return dict;
+    }
+
+    public void jumpToCommunity()
+    {
+        Map<String,Object> dict = getNextUnitData();
+        while(!(boolean)dict.get("community"))
+        {
+            OCM_MlUnit unit = (OCM_MlUnit)dict.get("unit");
+            sectionStartedWithUnit(unit,OCM_MlUnitInstance.INSTANCE_TYPE_STUDY);
+            updateScores();
+            dict = getNextUnitData();
+        }
     }
 
     public List<OCM_MlUnit> getUnitsForGrid()
