@@ -263,7 +263,10 @@ public class OC_JMenu extends OC_Menu
             public void run() throws Exception
             {
                 switchTo("video",false);
-                showMessage();
+                if (OBConfigManager.sharedManager.getShowJudgesPopupMenu())
+                {
+                    showMessage();
+                }
 
             }
         });
@@ -1422,7 +1425,10 @@ public class OC_JMenu extends OC_Menu
                 MainViewController().topController().exitEvent();
             videoPreviewIdx = 0;
             switchTo("video",true);
-            showMessage();
+            if (OBConfigManager.sharedManager.getShowJudgesPopupMenu())
+            {
+                showMessage();
+            }
         }
         else
             scheduleMessageHandler();

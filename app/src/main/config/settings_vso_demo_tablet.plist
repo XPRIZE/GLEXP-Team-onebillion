@@ -48,7 +48,7 @@
 	<string>177,33,254</string>
 	<!--  -->
 	<key>localisation_language_id</key>
-	<string>ny</string>
+	<string>sw</string>
 	<!--  -->
 	<key>localisation_fallback_language_id</key>
 	<string>en_GB</string>
@@ -67,7 +67,7 @@
 
 	<!-- BRIGHTNESS -->
 	<key>brightness_manager_enabled</key>
-	<string>true</string>
+	<string>false</string>
 	<!--  -->
 	<key>brightness_check_interval_seconds</key>
 	<string>180</string>
@@ -284,17 +284,17 @@
 	
 	<!-- CUSTOM APP VALUES FOR JUDGES MENU -->
 	<key>showMenuPopup</key>
-	<string>true</string>
+	<string>false</string>
 	<!--  -->
 	<key>app_languages</key>
     <array>
-        <string>ny</string>
+        <string>sw</string>
         <string>en</string>
     </array>
 	<!--  -->
     <key>app_language_names</key>
     <array>
-        <string>Chichewa</string>
+        <string>Swahili</string>
         <string>English</string>
     </array>
 </dict>

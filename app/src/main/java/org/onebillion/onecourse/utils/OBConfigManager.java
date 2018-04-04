@@ -122,6 +122,8 @@ public class OBConfigManager
     //
     private static String LOCATION_ENABLED = "location_enabled";
     //
+    private static String JUDGES_MENU_SHOW_POPUP = "showMenuPopup";
+    //
     private Map<String, Object> internalConfig;
     //
     private float sfxMasterVolume = 1.0f;
@@ -1028,6 +1030,12 @@ public class OBConfigManager
             return internalSfxVolumes;
         else
             return new HashMap<>();
+    }
+
+
+    public Boolean getShowJudgesPopupMenu()
+    {
+        return getBooleanValue(JUDGES_MENU_SHOW_POPUP);
     }
 
 

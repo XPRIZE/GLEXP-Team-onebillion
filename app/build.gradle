@@ -226,6 +226,16 @@ android {
                     appIcon: "@mipmap/icon_child"
             ]
         }
+        vso_demo_tablet_ {
+            applicationId 'org.onebillion.onecourse.demo'
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "onecourse"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_vso_demo_tablet.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/judges"
+            ]
+        }
 
     }
 
