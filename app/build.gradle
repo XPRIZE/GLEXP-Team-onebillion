@@ -19,7 +19,7 @@ android {
     }
     */
     compileSdkVersion 23
-    buildToolsVersion '26.0.2'
+    buildToolsVersion '27.0.3'
     defaultConfig {
         multiDexEnabled true
         applicationId 'org.onebillion.onecourse'
@@ -67,11 +67,9 @@ android {
     sourceSets {
         main {
             assets.srcDirs = ['src/main/assets', 'src/main/config', 'src/main/fonts/']
-        }
-        res {
             res.srcDirs = ['src/main/res']
         }
-    }
+     }
 
     flavorDimensions "ob"
 
