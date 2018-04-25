@@ -1,5 +1,6 @@
 package org.onebillion.onecourse.mainui.generic;
 
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
@@ -342,10 +343,20 @@ public class OC_Generic
 
     public static OBLabel action_createLabelForControl (OBControl control, float finalResizeFactor, Boolean insertIntoGroup, OC_SectionController sc)
     {
-        return action_createLabelForControl(control, finalResizeFactor, insertIntoGroup, sc, OBUtils.standardTypeFace());
+        return action_createLabelForControl(control, finalResizeFactor, insertIntoGroup, OBUtils.standardTypeFace(), sc);
     }
 
-    public static OBLabel action_createLabelForControl (OBControl control, float finalResizeFactor, Boolean insertIntoGroup, OC_SectionController sc, Typeface tf)
+    public static OBLabel action_createLabelForControl(OBControl control, float finalResizeFactor, Boolean insertIntoGroup, Typeface tf, OC_SectionController sc)
+    {
+        String content = (String) control.attributes().get("text");
+        if (content == null) content = (String) control.attributes().get("number");
+        if (content == null) content = (String) control.propertyValue("text");
+        if (content == null) content = "0000";
+        //
+        return action_createLabelForControl(control, content, finalResizeFactor, insertIntoGroup, tf, Color.BLACK, sc);
+    }
+
+    public static OBLabel action_createLabelForControl (OBControl control, String text, float finalResizeFactor, Boolean insertIntoGroup, Typeface tf, int colour, OC_SectionController sc)
     {
         try
         {
@@ -357,19 +368,16 @@ public class OC_Generic
             {
                 textSize = sc.applyGraphicScale(Float.parseFloat(sc.eventAttributes.get("textSize")));
             }
-            String content = (String) control.attributes().get("text");
-            if (content == null) content = (String) control.attributes().get("number");
-            if (content == null) content = (String) control.propertyValue("text");
-            if (content == null) content = "0000";
             //
-            OBLabel label = new OBLabel(content, tf, textSize);
+            OBLabel label = new OBLabel(text, tf, textSize);
+            label.setColour(colour);
             label.setFrame(controlBounds);
             //
             if (autoResize)
             {
                 OBTextLayer textLayer = (OBTextLayer) label.layer;
                 textLayer.sizeToBoundingBox();
-                while (label.height() > 0 && label.height() < controlBounds.height() && textLayer.textWidth(content) < controlBounds.width())
+                while (label.height() > 0 && label.height() < controlBounds.height() && textLayer.textWidth(text) < controlBounds.width())
                 {
                     textLayer.setTextSize(textLayer.textSize() + 1);
                     label.sizeToBoundingBox();
@@ -379,7 +387,7 @@ public class OC_Generic
                 textLayer.setTextSize(currentTextSize * finalResizeFactor);
                 label.sizeToBoundingBox();
                 //
-                if (textLayer.textWidth(content) > controlBounds.width())
+                if (textLayer.textWidth(text) > controlBounds.width())
                 {
                     textLayer.setTextSize(currentTextSize);
                     label.sizeToBoundingBox();

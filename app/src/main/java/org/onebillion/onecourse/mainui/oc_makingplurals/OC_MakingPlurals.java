@@ -1,6 +1,9 @@
 package org.onebillion.onecourse.mainui.oc_makingplurals;
 
 import android.graphics.Color;
+import android.graphics.PointF;
+import android.graphics.RectF;
+import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
@@ -14,6 +17,7 @@ import org.onebillion.onecourse.mainui.generic.OC_Generic_Event;
 import org.onebillion.onecourse.mainui.oc_lettersandsounds.OC_Wordcontroller;
 import org.onebillion.onecourse.utils.OBAudioManager;
 import org.onebillion.onecourse.utils.OBConditionLock;
+import org.onebillion.onecourse.utils.OBImageManager;
 import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OBWord;
@@ -22,6 +26,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import static org.onebillion.onecourse.mainui.generic.OC_Generic.randomInt;
+import static org.onebillion.onecourse.utils.OBUtils.RectOverlapRatio;
 
 /**
  * Created by pedroloureiro on 24/04/2018.
@@ -46,7 +53,6 @@ import java.util.Map;
 
 public class OC_MakingPlurals extends OC_Wordcontroller
 {
-
     public static float INITIAL_DELAY = 10.0f;
     public static float FOLLOWING_DELAY = 6.0f;
 
@@ -59,7 +65,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
     int colourSymbolNormal, colourSymbolHilited;
     int colourLine;
     List<Integer> colourRowArray;
-    List<OBLabel> labels_mode2_demo, labels_mode2;
+    List<List<OBLabel>> labels_mode2_demo, labels_mode2;
     List<OBLabel> draggableLabels;
     List<OBPath> underlines;
     OBGroup button;
@@ -354,7 +360,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
     }
 
 
-    public List<List<OBWord>>  extractWordsFromParameter(String  parameterName)
+    public List<List<OBWord>> extractWordsFromParameter(String parameterName)
     {
         List<List<OBWord>> result = new ArrayList<>();
         String ws = parameters.get(parameterName);
@@ -378,84 +384,88 @@ public class OC_MakingPlurals extends OC_Wordcontroller
         return result;
     }
 
-
-    /*
-
-
-
-    public void introWords()
+    public void introWords() throws Exception
     {
         wordsShowing = true;
-        List<> set = words_mode1.objectAtIndex(currNo);
-        OBWord singularWord = set.firstObject;
-        OBWord pluralWord = set.lastObject;
+        List<OBWord> set = words_mode1.get(currNo);
+        OBWord singularWord = set.get(0);
+        OBWord pluralWord = set.get(set.size() - 1);
+        //
         lockScreen();
-        imageSingular = OBImageManager.sharedImageManager.imageForName(singularWord.imageName);
-        imageSingular.setScale ( 0.8 * (boxSingular.width / imageSingular.width));
+        imageSingular = OBImageManager.sharedImageManager().imageForName(singularWord.imageName);
+        imageSingular.setScale(0.8f * (boxSingular.width() / imageSingular.width()));
         attachControl(imageSingular);
-        imageSingular.setPosition(boxSingular.position);
-        imageSingular.top -= imageSingular.height * 0.1;
-        imageSingular.setZPosition ( 30.0);
+        imageSingular.setPosition(boxSingular.position());
+        imageSingular.setTop(imageSingular.top() - imageSingular.height() * 0.1f);
+        imageSingular.setZPosition(30.0f);
         toggleSingularSymbol(true);
-
         unlockScreen();
-        playSfxAudio("imageon",false);
+        //
+        playSfxAudio("imageon", false);
         waitForSecs(0.6f);
+        //
         lockScreen();
-        labelSingular = createLabel_simple([objectDict objectForKey:"singular_label")  text:singularWord.text colour:colourTextNormal];
-        labelSingular.setZPosition ( 30.0);
+        labelSingular = OC_Generic.action_createLabelForControl(objectDict.get("singular_label"), singularWord.text, 1.0f, false, OBUtils.standardTypeFace(), colourTextNormal, this);
+        labelSingular.setZPosition(30.0f);
         attachControl(labelSingular);
-
         unlockScreen();
-        playSfxAudio("wordon",false);
+        //
+        playSfxAudio("wordon", false);
         waitForSecs(0.3f);
+        //
         lockScreen();
-        labelSingular.setColour ( colourTextHilited);
-
+        labelSingular.setColour(colourTextHilited);
         unlockScreen();
-    [singularWord playAudio:wait:true];
+        singularWord.playAudio(this, true);
+        //
         lockScreen();
-        labelSingular.setColour ( colourTextNormal);
-
+        labelSingular.setColour(colourTextNormal);
         unlockScreen();
+        //
         waitForSecs(0.8f);
+        //
         lockScreen();
-        imagePlural = OBImageManager.sharedImageManager.imageForName(pluralWord.imageName);
-        imagePlural.setScale ( 0.8 * (boxPlural.width / imagePlural.width));
+        imagePlural = OBImageManager.sharedImageManager().imageForName(pluralWord.imageName);
+        imagePlural.setScale(0.8f * (boxPlural.width() / imagePlural.width()));
         attachControl(imagePlural);
-        imagePlural.setPosition(boxPlural.position);
-        imagePlural.top -= imagePlural.height * 0.1;
-        imagePlural.setZPosition ( 30.0);
+        imagePlural.setPosition(boxPlural.position());
+        imagePlural.setTop(imagePlural.top() - imagePlural.height() * 0.1f);
+        imagePlural.setZPosition(30.0f);
         toggleSingularSymbol(false);
         togglePluralSymbol(true);
-
         unlockScreen();
-        playSfxAudio("imageon",false);
+        //
+        playSfxAudio("imageon", false);
         waitForSecs(0.6f);
+        //
         lockScreen();
-        labelPlural = createLabel_simple([objectDict objectForKey:"plural_label")  text:pluralWord.text colour:colourTextNormal];
-        labelPlural.setZPosition ( 30.0);
+        labelPlural = OC_Generic.action_createLabelForControl(objectDict.get("plural_label"), pluralWord.text, 1.0f, false, OBUtils.standardTypeFace(), colourTextNormal, this);
+        labelPlural.setZPosition(30.0f);
         attachControl(labelPlural);
-
         unlockScreen();
-        playSfxAudio("wordon",false);
+        //
+        playSfxAudio("wordon", false);
         waitForSecs(0.3f);
+        //
         lockScreen();
-        labelPlural.setColour ( colourTextHilited);
-
+        labelPlural.setColour(colourTextHilited);
         unlockScreen();
-    [pluralWord playAudio:wait:true];
+        //
+        pluralWord.playAudio(this, true);
+        //
         lockScreen();
-        labelPlural.setColour ( colourTextNormal);
+        labelPlural.setColour(colourTextNormal);
         togglePluralSymbol(false);
-
         unlockScreen();
+        //
         waitForSecs(0.4f);
-
     }
-    public void exitWords(boolean fullClear)
+
+
+    public void exitWords(boolean fullClear) throws Exception
     {
         wordsShowing = false;
+        //
         lockScreen();
         detachControl(labelPlural);
         detachControl(labelSingular);
@@ -471,217 +481,183 @@ public class OC_MakingPlurals extends OC_Wordcontroller
                 for (OBPath line : underlines)
                 {
                     detachControl(line);
-
                 }
-
             }
-
         }
-
         unlockScreen();
+        //
         if (!fullClear)
         {
-            playSfxAudio("wordpicoff",false);
-
+            playSfxAudio("wordpicoff", false);
         }
         waitForSecs(0.3f);
-
     }
-    public void colourLabel(OBLabel  label inRange:(NSRange) range, Color  colour, Color  remainingColour)
-    {
-        if (remainingColour == null)
-        {
-            remainingColour = Color.blackColor;
 
-        }
-        lockScreen();
-        NSMutableAttributedString mastr;
-        Object s = label.string();
-        if (![s isKindOfClass:NSAttributedString.class()])
-        {
-            s = [NSAttributedString.alloc() initWithString:s attributes:@
-            {
-                NSFontAttributeName:label.font
-            }
-];
 
-        }
-        mastr = [NSMutableAttributedString.alloc() initWithAttributedString:s];
-        Map<> *attributes = @
-        {
-            NSForegroundColorAttributeName:(id)remainingColour.CGColor
-        }
-        ;
-        [mastr addAttributes:attributes range:NSMakeRange(0, mastr.string.length)];
-        if (colour)
-        {
-            Map<> *attributes = @
-            {
-                NSForegroundColorAttributeName:(id)colour.CGColor
-            }
-            ;
-            [mastr addAttributes:attributes range:range];
-
-        }
-        label.setString ( (String*)mastr);
-
-        unlockScreen();
-
-    }
     public void toggleSingularSymbol(boolean state)
     {
         lockScreen();
-        symbolSingular.setFillColor ( state ? colourSymbolHilited : colourSymbolNormal);
-
+        symbolSingular.setFillColor(state ? colourSymbolHilited : colourSymbolNormal);
         unlockScreen();
-
     }
+
+
     public void togglePluralSymbol(boolean state)
     {
         lockScreen();
-        for (OBPath symbol : symbolPlural.members)
+        for (OBPath symbol : (List<OBPath>) (Object) symbolPlural.members)
         {
-            symbol.setFillColor ( state ? colourSymbolHilited : colourSymbolNormal);
-
+            symbol.setFillColor(state ? colourSymbolHilited : colourSymbolNormal);
         }
-
         unlockScreen();
-
     }
+
+
     public void hiliteButton()
     {
         lockScreen();
-        button.setFillColor ( colourButtonHilited);
-        button.setOpacity(1.0);
-
+        button.setFillColor(colourButtonHilited);
+        button.setOpacity(1.0f);
         unlockScreen();
-
     }
+
     public void disableButton()
     {
         lockScreen();
-        button.setFillColor ( colourButtonDisabled);
+        button.setFillColor(colourButtonDisabled);
         button.disable();
-
         unlockScreen();
-
     }
+
     public void enableButton()
     {
         lockScreen();
-        button.setFillColor ( colourButtonNormal);
+        button.setFillColor(colourButtonNormal);
         button.enable();
-
         unlockScreen();
-
     }
+
 
     public Object findButton(PointF pt)
     {
-        OBControl c = finger(0,2,Arrays.asList(button),pt, true);
+        OBControl c = finger(0, 2, (List<OBControl>) (Object) Arrays.asList(button), pt, true);
         return c;
-
     }
+
     public Object findLabel(PointF pt)
     {
-        OBLabel c = finger(0,2,draggableLabels,pt, true);
+        OBControl c = finger(0, 2, (List<OBControl>) (Object) draggableLabels, pt, true);
         return c;
-
     }
-    public void checkButton()
+
+    public void checkButton() throws Exception
     {
         setStatus(STATUS_CHECKING);
         hidePointer();
-        playSfxAudio("buttontouch",false);
+        playSfxAudio("buttontouch", false);
         hiliteButton();
         waitForSecs(0.3f);
+        //
         disableButton();
         if (wordsShowing)
         {
             exitWords(false);
             waitForSecs(0.3f);
-
         }
         introWords();
         waitForSecs(1.2f);
-        if (currentEvent.equals("g"))
+        //
+        if (currentEvent().equals("g"))
         {
             waitForSecs(1.5f);
+            //
             exitWords(true);
             waitForSecs(0.3f);
+            //
             nextScene();
-
         }
         else
         {
             enableButton();
-            playSfxAudio("buttonactive",false);
-            setLastActionTakenTimestamp ( [NSDate.date() timeIntervalSince1970]);
+            playSfxAudio("buttonactive", false);
+            lastActionTakenTimestamp = System.currentTimeMillis();
             setStatus(STATUS_AWAITING_CLICK);
             currNo++;
             nextScene();
-
         }
-
     }
+
+
     public void checkDragAtPoint(PointF pt)
     {
-        if (target = = null) return;
-        setStatus(STATUS_CHECKING);
-        OBLabel label = (OBLabel ) target;
-        OBLabel otherLabel = findLabelUnderLabel(label);
-        if (otherLabel == null)
+        try
         {
-            PointF originalPosition = OC_Generic.copyPoint(label.propertyValue("original.position())") ;
-        [label moveToPoint:originalPosition time:0.3 wait:true];
-
-        }
-        else
-        {
-            swapLabel(label withLabel:otherLabel);
-            lockScreen();
-            RectF labelFrame = label.propertyValue("original_frame").RectFValue();
-            if (RectOverlapRatio(label.frame, labelFrame) >= 0.9)
+            if (target == null)
             {
-                label.setColour ( colourTextNormal);
-                label.disable();
-
-            }
-            RectF otherLabelFrame = otherLabel.propertyValue("original_frame").RectFValue();
-            if (RectOverlapRatio(otherLabel.frame, otherLabelFrame) >= 0.9)
-            {
-                otherLabel.setColour ( colourTextNormal);
-                otherLabel.disable();
-
-            }
-
-            unlockScreen();
-            waitForSecs(0.3f);
-            boolean allPlaced = true;
-            for (OBLabel label : draggableLabels)
-            {
-                if (label.setIsEnabled) allPlaced ( false);
-
-            }
-            if (allPlaced)
-            {
-                gotItRightBigTick(true);
-                waitForSecs(0.3f);
-                nextScene();
                 return;
-
             }
+            setStatus(STATUS_CHECKING);
+            OBLabel label = (OBLabel) target;
+            OBLabel otherLabel = findLabelUnderLabel(label);
+            if (otherLabel == null)
+            {
+                PointF originalPosition = OC_Generic.copyPoint((PointF) label.propertyValue("original_position"));
+                label.moveToPoint(originalPosition, 0.3f, true);
+            }
+            else
+            {
+                swapLabel(label, otherLabel);
+                //
+                lockScreen();
+                RectF labelFrame = (RectF) label.propertyValue("original_frame");
+                if (RectOverlapRatio(label.frame, labelFrame) >= 0.9)
+                {
+                    label.setColour(colourTextNormal);
+                    label.disable();
+                }
+                RectF otherLabelFrame = (RectF) otherLabel.propertyValue("original_frame");
+                if (RectOverlapRatio(otherLabel.frame, otherLabelFrame) >= 0.9)
+                {
+                    otherLabel.setColour(colourTextNormal);
+                    otherLabel.disable();
 
+                }
+                unlockScreen();
+                waitForSecs(0.3f);
+                //
+                boolean allPlaced = true;
+                for (OBLabel draggableLabel : (List<OBLabel>) (Object) draggableLabels)
+                {
+                    if (draggableLabel.isEnabled())
+                    {
+                        allPlaced = false;
+                    }
+                }
+                //
+                if (allPlaced)
+                {
+                    gotItRightBigTick(true);
+                    waitForSecs(0.3f);
+                    //
+                    nextScene();
+                    return;
+                }
+            }
+            lastActionTakenTimestamp = System.currentTimeMillis();
+            setStatus(STATUS_AWAITING_CLICK);
         }
-        setLastActionTakenTimestamp ( [NSDate.date() timeIntervalSince1970]);
-        setStatus(STATUS_AWAITING_CLICK);
-
+        catch (Exception e)
+        {
+            MainActivity.log("OC_MakingPlurals:checkDragAtPoint exception caught: " + e.getLocalizedMessage());
+            e.printStackTrace();
+        }
     }
-    public void touchDownAtPoint(PointF pt, View  v)
+
+    public void touchDownAtPoint(PointF pt, View v)
     {
         if (status() == STATUS_AWAITING_CLICK)
         {
-            setLastActionTakenTimestamp ( [NSDate.date() timeIntervalSince1970]);
+            lastActionTakenTimestamp = System.currentTimeMillis();
             Object obj = findButton(pt);
             if (obj != null)
             {
@@ -690,7 +666,6 @@ public class OC_MakingPlurals extends OC_Wordcontroller
                     public void run() throws Exception
                     {
                         checkButton();
-
                     }
                 });
 
@@ -700,79 +675,380 @@ public class OC_MakingPlurals extends OC_Wordcontroller
                 obj = findLabel(pt);
                 if (obj != null)
                 {
-                    checkDragTarget(obj point:pt);
-
+                    checkDragTarget((OBControl) obj, pt);
                 }
+            }
+        }
+    }
+
+
+    public void movePointerToRestingPosition(float time, boolean wait)
+    {
+        movePointerToPoint(new PointF(0.9f * bounds().width(), 0.9f * bounds().height()), time, wait);
+    }
+
+    public void hidePointer()
+    {
+        movePointerToPoint(new PointF(1.1f * bounds().width(), 1.1f * bounds().height()), 0, 0.6f, false);
+
+    }
+
+    public void swapLabel(OBLabel label1, OBLabel label2) throws Exception
+    {
+        PointF original1 = OC_Generic.copyPoint((PointF) label1.propertyValue("original_position"));
+        PointF original2 = OC_Generic.copyPoint((PointF) label2.propertyValue("original_position"));
+        //
+        PointF newOriginal1 = original2;
+        newOriginal1.x = original1.x;
+        //
+        PointF newOriginal2 = original1;
+        newOriginal2.x = original2.x;
+        //
+        label1.setProperty("original_position", newOriginal1);
+        label2.setProperty("original_position", newOriginal2);
+        //
+        label1.moveToPoint(newOriginal1, 0.3f, false);
+        playSfxAudio("match", false);
+        label2.moveToPoint(newOriginal2, 0.3f, true);
+    }
+
+    public OBLabel findLabelUnderLabel(OBLabel label)
+    {
+        OBLabel closestMatch = null;
+        float bestOverlap = 0.0f;
+        for (OBLabel possibleMatch : draggableLabels)
+        {
+            if (!possibleMatch.isEnabled())
+            {
+                continue;
+            }
+            if (possibleMatch.equals(label))
+            {
+                continue;
+            }
+            float overlap = RectOverlapRatio(label.frame, possibleMatch.frame);
+            if (overlap > bestOverlap)
+            {
+                closestMatch = possibleMatch;
+                bestOverlap = overlap;
+            }
+        }
+        return closestMatch;
+    }
+
+    public boolean wereRequiredMultipleLettersForPlural(List<List<OBLabel>> words)
+    {
+        for (List<OBLabel> pair : words)
+        {
+            OBLabel plural = pair.get(pair.size() - 1);
+            OBWord pluralWord = (OBWord) plural.propertyValue("word");
+            int deltaFromRootPlural = (int) pluralWord.text.length() - (int) pluralWord.Root.length();
+            if (deltaFromRootPlural > 1)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public List<OBLabel> breakdownLabel(OBLabel mainLabel)
+    {
+        List<Float> lefts = new ArrayList<>();
+        for (int i = 0; i < mainLabel.text().length(); i++)
+        {
+            float f = mainLabel.textOffset(i);
+            lefts.add(f);
+        }
+        //
+        List<OBLabel> labs = new ArrayList<>();
+        for (int i = 0; i < mainLabel.text().length(); i++)
+        {
+            String text = mainLabel.text().substring(i, 1);
+            OBLabel l = new OBLabel(text, mainLabel.font().typeFace, mainLabel.fontSize());
+            l.setColour(Color.BLACK);
+            l.setPosition(mainLabel.position());
+            l.setLeft(mainLabel.left() + lefts.get(i));
+            l.setProperty("origpos", OC_Generic.copyPoint(l.position()));
+            labs.add(l);
+        }
+        return labs;
+    }
+
+
+    public void colourLabel(OBLabel label, int startIdx, int length, int colour, int remainingColour)
+    {
+        if (remainingColour == -1)
+        {
+            remainingColour = Color.BLACK;
+        }
+        //
+        lockScreen();
+        label.setColour(remainingColour);
+        label.setHighRange(startIdx, length, colour);
+        unlockScreen();
+    }
+
+    public void demoPluralWords(List<List<OBLabel>> labels) throws Exception
+    {
+        for (List<OBLabel> pair : labels)
+        {
+            OBLabel plural = pair.get(pair.size() - 1);
+            OBWord pluralWord = (OBWord) plural.propertyValue("word");
+            String wordRoot = pluralWord.Root;
+            if (wordRoot != null && wordRoot.length() > 0)
+            {
+                int index = pluralWord.text.indexOf(wordRoot);
+                colourLabel(plural, index, wordRoot.length(), colourTextNormal, colourTextPlural);
+            }
+            else
+            {
+                plural.setColour(colourTextNormal);
+            }
+            playSfxAudio("pluralpattern", false);
+            waitForSecs(0.2f);
+        }
+    }
+
+    public void demoPluralWords_underlineAddedLetters(List<List<OBLabel>> labels) throws Exception
+    {
+        underlines = new ArrayList<>();
+        for (List<OBLabel> pair : labels)
+        {
+            OBLabel singular = pair.get(0);
+            OBWord singularWord = (OBWord) singular.propertyValue("word");
+            OBLabel plural = pair.get(pair.size() - 1);
+            String wordRoot = singularWord.text;
+            //
+            lockScreen();
+            List<OBLabel> pluralBreakdown = breakdownLabel(plural);
+            int index = plural.text().indexOf(wordRoot);
+            PointF point1 = null;
+            PointF point2 = null;
+            int firstIndex, lastIndex;
+            //
+            for (firstIndex = 0; firstIndex < pluralBreakdown.size(); firstIndex++)
+            {
+                if (firstIndex >= index && firstIndex < index + wordRoot.length())
+                {
+                    continue;
+                }
+                OBLabel label = pluralBreakdown.get(firstIndex);
+                point1 = label.bottomLeft();
+                break;
+            }
+            //
+            for (lastIndex = firstIndex; lastIndex < pluralBreakdown.size(); lastIndex++)
+            {
+                if (lastIndex >= index && lastIndex < index + wordRoot.length())
+                {
+                    break;
+                }
+                OBLabel label = pluralBreakdown.get(lastIndex);
+                point2 = label.bottomRight();
+            }
+            float nudge = plural.height() * 0.1f;
+            point1.y -= nudge;
+            point2.y -= nudge;
+            OBPath underline = new OBPath(point1, point2);
+            underline.setLineWidth(applyGraphicScale(3.0f));
+            underline.setStrokeColor(colourLine);
+            underline.setZPosition(31.0f);
+            attachControl(underline);
+            underlines.add(underline);
+            unlockScreen();
+            //
+            playSfxAudio("underline", false);
+            waitForSecs(0.5f);
+        }
+    }
+
+    public void demoPluralWords_underlineChangedLetters(List<List<OBLabel>> labels) throws Exception
+    {
+        underlines = new ArrayList<>();
+        for (List<OBLabel> pair : labels)
+        {
+            OBLabel singular = pair.get(0);
+            OBWord singularWord = (OBWord) singular.propertyValue("word");
+            OBLabel plural = pair.get(pair.size() - 1);
+            OBWord pluralWord = (OBWord) plural.propertyValue("word");
+            String wordRoot = singularWord.Root;
+            //
+            lockScreen();
+            List<OBLabel> singularBreakdown = breakdownLabel(singular);
+            int index = singular.text().indexOf(wordRoot);
+            PointF point1 = null;
+            PointF point2 = null;
+            int firstIndex, lastIndex;
+            //
+            for (firstIndex = 0; firstIndex < singularBreakdown.size(); firstIndex++)
+            {
+                if (firstIndex >= index && firstIndex < index + wordRoot.length())
+                {
+                    continue;
+                }
+                //
+                OBLabel label = singularBreakdown.get(firstIndex);
+                point1 = label.bottomLeft();
+                break;
+            }
+            for (lastIndex = firstIndex; lastIndex < singularBreakdown.size(); lastIndex++)
+            {
+                if (lastIndex >= index && lastIndex < index + wordRoot.length())
+                {
+                    break;
+                }
+                OBLabel label = singularBreakdown.get(lastIndex);
+                point2 = label.bottomRight();
+            }
+            //
+            float nudge = singular.height() * 0.1f;
+            point1.y -= nudge;
+            point2.y -= nudge;
+            //
+            OBPath underline = new OBPath(point1, point2);
+            underline.setLineWidth(applyGraphicScale(3.0f));
+            underline.setStrokeColor(colourLine);
+            underline.setZPosition(31.0f);
+            attachControl(underline);
+            underlines.add(underline);
+            unlockScreen();
+            //
+            playSfxAudio("underline", false);
+            waitForSecs(0.2f);
+            //
+            wordRoot = pluralWord.Root;
+            lockScreen();
+            List<OBLabel> pluralBreakdown = breakdownLabel(plural);
+            //
+            index = plural.text().indexOf(wordRoot);
+            for (firstIndex = 0; firstIndex < pluralBreakdown.size(); firstIndex++)
+            {
+                if (firstIndex >= index && firstIndex < index + wordRoot.length())
+                {
+                    continue;
+                }
+                OBLabel label = pluralBreakdown.get(firstIndex);
+                point1 = label.bottomLeft();
+                break;
+            }
+            for (lastIndex = firstIndex; lastIndex < pluralBreakdown.size(); lastIndex++)
+            {
+                if (lastIndex >= index && lastIndex < index + wordRoot.length())
+                {
+                    break;
+                }
+                OBLabel label = pluralBreakdown.get(lastIndex);
+                point2 = label.bottomRight();
 
             }
-
+            nudge = plural.height() * 0.1f;
+            point1.y -= nudge;
+            point2.y -= nudge;
+            underline = new OBPath(point1, point2);
+            underline.setLineWidth(applyGraphicScale(3.0f));
+            underline.setStrokeColor(colourLine);
+            underline.setZPosition(31.0f);
+            attachControl(underline);
+            underlines.add(underline);
+            unlockScreen();
+            //
+            playSfxAudio("underline", false);
+            waitForSecs(0.5f);
         }
-
     }
-    public void demob()
+
+    public void demoSingularWords(List<List<OBLabel>> labels) throws Exception
+    {
+        for (List<OBLabel> pair : labels)
+        {
+            OBLabel singular = pair.get(0);
+            OBWord singularWord = (OBWord) singular.propertyValue("word");
+            String wordRoot = singularWord.Root;
+            if (wordRoot != null && wordRoot.length() > 0)
+            {
+                int index = singularWord.text.indexOf(wordRoot);
+                colourLabel(singular, index, wordRoot.length(), colourTextNormal, colourTextSingular);
+            }
+            else
+            {
+                singular.setColour(colourTextNormal);
+            }
+            playSfxAudio("singpattern", false);
+            waitForSecs(0.2f);
+        }
+    }
+
+
+    public void demob() throws Exception
     {
         setStatus(STATUS_BUSY);
-        List<> audio = currentAudio("DEMO");
-        presenter walk:presenter.control.settings.get("restpos").();
+        List<String> audio = currentAudio("DEMO");
+        presenter.walk((PointF) presenter.control.settings.get("restpos"));
         presenter.faceFront();
         waitForSecs(0.2f);
-    [presenter speak:Arrays.asList(audio.get(0)) controller:;
-        // Now let’s see how a word changes when there’s more than one of a thing.;
+        //
+        presenter.speak((List<Object>) (Object) Arrays.asList(audio.get(0)), this);     // Now let’s see how a word changes when there’s more than one of a thing.;
         waitForSecs(0.2f);
+        //
         PointF currPos = OC_Generic.copyPoint(presenter.control.position());
-        PointF destPos = new PointF(currPos.x + bounds().size.width * 0.3f,  currPos.yf);
+        PointF destPos = new PointF(currPos.x + bounds().width() * 0.3f, currPos.y);
         presenter.walk(destPos);
         presenter.faceFront();
         waitForSecs(0.3f);
-    [presenter speak:Arrays.asList(audio.get(1)) controller:;
-        // Are you ready?;
+        //
+        presenter.speak((List<Object>) (Object) Arrays.asList(audio.get(1)), this);     // Are you ready?;
         waitForSecs(0.2f);
-        currPos = presenter.control.position;
-        destPos = new PointF(currPos.x + bounds().size.width * 0.3f,  currPos.yf);
+        //
+        currPos = presenter.control.position();
+        destPos = new PointF(currPos.x + bounds().width() * 0.3f, currPos.y);
         presenter.walk(destPos);
         presenter.faceFront();
         waitForSecs(0.3f);
+        //
         nextScene();
-
     }
-    public void democ()
+
+    public void democ() throws Exception
     {
         setStatus(STATUS_BUSY);
+        //
         loadPointer(POINTER_MIDDLE);
         PointF destination = OC_Generic.copyPoint(symbolSingular.position());
-        destination.y += symbolSingular.height;
+        destination.y += symbolSingular.height();
+        //
         toggleSingularSymbol(true);
-        playAudioScene("DEMO",0,false);
-        // Look. One dot.;
-        movePointerToPoint(destination,0.6f,true);
+        playAudioScene("DEMO", 0, false);       // Look. One dot.
+        movePointerToPoint(destination, 0.6f, true);
         waitForAudio();
         waitForSecs(0.3f);
-        playAudioScene("DEMO",1,false);
-        // Singular.;
+        //
+        playAudioScene("DEMO", 1, false);       // Singular.
         waitForAudio();
         toggleSingularSymbol(false);
         waitForSecs(0.3f);
-        destination = symbolPlural.position;
-        destination.y += symbolPlural.height;
-        movePointerToPoint(destination,0.6f,true);
+        //
+        destination = OC_Generic.copyPoint(symbolPlural.position());
+        destination.y += symbolPlural.height();
+        movePointerToPoint(destination, 0.6f, true);
         togglePluralSymbol(true);
-        playAudioScene("DEMO",2,false);
-        // More than one dot.;
+        playAudioScene("DEMO", 2, false);       // More than one dot.
         waitForAudio();
         waitForSecs(0.3f);
-        playAudioScene("DEMO",3,false);
-        // Plural.;
+        //
+        playAudioScene("DEMO", 3, false);       // Plural.
         waitForAudio();
         togglePluralSymbol(false);
         hidePointer();
         waitForSecs(1.5f);
-        doAudio(currentEvent);
-        // no prompt, just replay audio;
+        //
+        doAudio(currentEvent());                // no prompt, just replay audio;
         setStatus(STATUS_AWAITING_CLICK);
         enableButton();
-        playSfxAudio("buttonactive",false);
-        long timeStamp = statusTime;
-        OBUtils.runOnOtherThreadDelayed(1.5,new OBUtils.RunLambda()
+        playSfxAudio("buttonactive", false);
+        final long timeStamp = statusTime;
+        //
+        OBUtils.runOnOtherThreadDelayed(1.5f, new OBUtils.RunLambda()
         {
             public void run() throws Exception
             {
@@ -783,1012 +1059,719 @@ public class OC_MakingPlurals extends OC_Wordcontroller
                         if (statusTime == timeStamp)
                         {
                             PointF destination = OC_Generic.copyPoint(button.position());
-                            destination.setX ( button.right + button.width * 0.2);
-                            playAudioScene("DEMO",4,false);
-                            // Now touch the button.;
-                            movePointerToPoint(destination,0.0,0.6f,false);
+                            destination.x = button.right() + button.width() * 0.2f;
+                            playAudioScene("DEMO", 4, false);             // Now touch the button.;
+                            movePointerToPoint(destination, 0.0f, 0.6f, false);
                             waitAudio();
                             waitForSecs(0.3f);
+                            //
                             hidePointer();
-
                         }
-
                     }
-                }
-            });
-
-        } ) ;
-
+                });
+            }
+        });
     }
+
+
     public void setSceneh()
     {
-        float labelHeight = objectDict.objectForKey("singular_label").height * 1.3;
+        float labelHeight = objectDict.get("singular_label").height() * 1.3f;
         float totalHeight = labelHeight * words_mode1.size();
-        float top = boxSingular.top;
-        float bottom = bounds().size.height - labelHeight * 0.5;
+        float top = boxSingular.top();
+        float bottom = bounds().height() - labelHeight * 0.5f;
         float availableHeight = (bottom - top) - totalHeight;
         int longestWord = 0;
-        for (List<> pair : words_mode2)
+        //
+        for (List<OBWord> pair : words_mode2)
         {
-            OBWord singularWord = pair.firstObject;
-            longestWord = Math.max(longestWord, (int) singularWord.text.length);
-            OBWord pluralWord = pair.lastObject;
-            longestWord = Math.max(longestWord, (int) pluralWord.text.length);
-
+            OBWord singularWord = pair.get(0);
+            longestWord = Math.max(longestWord, (int) singularWord.text.length());
+            OBWord pluralWord = pair.get(pair.size() - 1);
+            longestWord = Math.max(longestWord, (int) pluralWord.text.length());
         }
         top += availableHeight * 0.5;
-        OBControl singularLabelControl = objectDict.objectForKey("singular_label");
-        OBControl pluralLabelControl = objectDict.objectForKey("plural_label");
+        OBControl singularLabelControl = objectDict.get("singular_label");
+        OBControl pluralLabelControl = objectDict.get("plural_label");
         labels_mode2_demo = new ArrayList<>();
         float longestLabelSingular = 0;
         float longestLabelPlural = 0;
-        for (List<> pair : words_mode1)
+        for (List<OBWord> pair : words_mode1)
         {
-            List<> labels = new ArrayList<>();
-            OBWord singularWord = pair.firstObject;
-            OBWord pluralWord = pair.lastObject;
-            OBLabel singular = createLabel_simple(singularLabelControl  text:singularWord.text colour:colourTextNormal);
-            singular.setZPosition ( 30.0);
-            singular.setTop ( top);
-            singular.setProperty("word",singularWord);
-            longestLabelSingular = Math.max(longestLabelSingular, singular.width);
+            List<OBLabel> labels = new ArrayList<>();
+            OBWord singularWord = pair.get(0);
+            OBWord pluralWord = pair.get(pair.size() - 1);
+            OBLabel singular = OC_Generic.action_createLabelForControl(singularLabelControl, singularWord.text, 1.0f, false, OBUtils.standardTypeFace(), colourTextNormal, this);
+            singular.setZPosition(30.0f);
+            singular.setTop(top);
+            singular.setProperty("word", singularWord);
+            longestLabelSingular = Math.max(longestLabelSingular, singular.width());
             attachControl(singular);
             singular.hide();
             labels.add(singular);
-            OBLabel plural = createLabel_simple(pluralLabelControl  text:pluralWord.text colour:colourTextNormal);
-            plural.setZPosition ( 30.0);
-            plural.setTop ( top);
-            plural.setProperty("word",pluralWord);
-            longestLabelPlural = Math.max(longestLabelPlural, plural.width);
+            OBLabel plural = OC_Generic.action_createLabelForControl(pluralLabelControl, pluralWord.text, 1.0f, false, OBUtils.standardTypeFace(), colourTextNormal, this);
+            plural.setZPosition(30.0f);
+            plural.setTop(top);
+            plural.setProperty("word", pluralWord);
+            longestLabelPlural = Math.max(longestLabelPlural, plural.width());
             attachControl(plural);
             plural.hide();
             labels.add(plural);
             top += labelHeight;
             labels_mode2_demo.add(labels);
-
         }
-        for (List<> pair : labels_mode2_demo)
+        for (List<OBLabel> pair : labels_mode2_demo)
         {
-            OBLabel singular = pair.firstObject;
-            singular.setLeft ( symbolSingular.position.x - longestLabelSingular * 0.5);
-            OBLabel plural = pair.lastObject;
-            plural.setLeft ( symbolPlural.position.x - longestLabelPlural * 0.5);
-
+            OBLabel singular = pair.get(0);
+            singular.setLeft(symbolSingular.position().x - longestLabelSingular * 0.5f);
+            OBLabel plural = pair.get(pair.size() - 1);
+            plural.setLeft(symbolPlural.position().x - longestLabelPlural * 0.5f);
         }
-
     }
-    public void demoh()
+
+
+    public void demoh() throws Exception
     {
         setStatus(STATUS_BUSY);
+        //
         loadPointer(POINTER_MIDDLE);
-        playAudioScene("DEMO",0,true);
-        // Here are those words again.;
-        for (List<> pair : labels_mode2_demo)
+        playAudioScene("DEMO", 0, true);        // Here are those words again.;
+        for (List<OBLabel> pair : labels_mode2_demo)
         {
-            OBLabel singular = pair.firstObject;
-            OBLabel plural = pair.lastObject;
+            OBLabel singular = pair.get(0);
+            OBLabel plural = pair.get(pair.size() - 1);
+            //
             lockScreen();
             singular.show();
             plural.show();
-
             unlockScreen();
-            playSfxAudio("wordon",false);
+            playSfxAudio("wordon", false);
             waitForSecs(0.3f);
+            //
             lockScreen();
-            singular.setColour ( colourTextHilited);
+            singular.setColour(colourTextHilited);
             toggleSingularSymbol(true);
-
             unlockScreen();
-            OBWord singularWord = singular.propertyValue("word");
-        [singularWord playAudio:wait:true];
+            //
+            OBWord singularWord = (OBWord) singular.propertyValue("word");
+            singularWord.playAudio(this, true);
+            //
             lockScreen();
-            singular.setColour ( colourTextNormal);
+            singular.setColour(colourTextNormal);
             toggleSingularSymbol(false);
-
             unlockScreen();
             waitForSecs(0.3f);
+            //
             lockScreen();
-            plural.setColour ( colourTextHilited);
+            plural.setColour(colourTextHilited);
             togglePluralSymbol(true);
-
             unlockScreen();
-            OBWord pluralWord = plural.propertyValue("word");
-        [pluralWord playAudio:wait:true];
+            //
+            OBWord pluralWord = (OBWord) plural.propertyValue("word");
+            pluralWord.playAudio(this, true);
+            //
             lockScreen();
-            plural.setColour ( colourTextNormal);
+            plural.setColour(colourTextNormal);
             togglePluralSymbol(false);
-
             unlockScreen();
             waitForSecs(0.3f);
-
         }
         float right = 0;
-        for (List<> pair : labels_mode2_demo)
+        for (List<OBLabel> pair : labels_mode2_demo)
         {
-            OBLabel label = pair.firstObject;
-            right = Math.max(right, label.right + label.width * 0.2);
-
+            OBLabel label = pair.get(0);
+            right = Math.max(right, label.right() + label.width() * 0.2f);
         }
-        OBLabel firstLabel = ((List<> ) labels_mode2_demo.firstObject).firstObject;
+        OBLabel firstLabel = labels_mode2_demo.get(0).get(0);
         PointF firstPoint = OC_Generic.copyPoint(firstLabel.position());
-        firstPoint.setX ( right);
-        OBLabel lastLabel = ((List<> ) labels_mode2_demo.lastObject).firstObject;
+        firstPoint.x = right;
+        //
+        OBLabel lastLabel = labels_mode2_demo.get(labels_mode2_demo.size() - 1).get(0);
         PointF lastPoint = OC_Generic.copyPoint(lastLabel.position());
-        lastPoint.setX ( right);
+        lastPoint.x = right;
+        //
         toggleSingularSymbol(true);
-        movePointerToPoint(firstPoint,0.0,0.6f,true);
-        playAudioScene("DEMO",1,false);
-        // Remember. One of each thing.;
-        movePointerToPoint(lastPoint,0.0,1.8f,true);
+        movePointerToPoint(firstPoint, 0.0f, 0.6f, true);
+        playAudioScene("DEMO", 1, false);           // Remember. One of each thing.;
+        movePointerToPoint(lastPoint, 0.0f, 1.8f, true);
         waitAudio();
         waitForSecs(0.3f);
-        playAudioScene("DEMO",2,false);
-        // Singular.;
+        //
+        playAudioScene("DEMO", 2, false);           // Singular.
         waitAudio();
         toggleSingularSymbol(false);
         waitForSecs(0.3f);
+        //
         right = 0;
-        for (List<> pair : labels_mode2_demo)
+        for (List<OBLabel> pair : labels_mode2_demo)
         {
-            OBLabel label = pair.lastObject;
-            right = Math.max(right, label.right + label.width * 0.2);
-
+            OBLabel label = pair.get(pair.size() - 1);
+            right = Math.max(right, label.right() + label.width() * 0.2f);
         }
-        firstLabel = ((List<> ) labels_mode2_demo.firstObject).lastObject;
-        firstPoint = firstLabel.position;
-        firstPoint.setX ( right);
-        lastLabel = ((List<> ) labels_mode2_demo.lastObject).lastObject;
-        lastPoint = lastLabel.position;
-        lastPoint.setX ( right);
+        List<OBLabel> firstPair = labels_mode2_demo.get(0);
+        firstLabel = firstPair.get(firstPair.size() - 1);
+        firstPoint = OC_Generic.copyPoint(firstLabel.position());
+        firstPoint.x = right;
+        //
+        List<OBLabel> lastPair = labels_mode2_demo.get(labels_mode2_demo.size() - 1);
+        lastLabel = lastPair.get(lastPair.size() - 1);
+        lastPoint = OC_Generic.copyPoint(lastLabel.position());
+        lastPoint.x = right;
         togglePluralSymbol(true);
-        movePointerToPoint(firstPoint,0.0,0.6f,true);
-        playAudioScene("DEMO",3,false);
-        // More than one of each thing.;
-        movePointerToPoint(lastPoint,0.0,1.8f,true);
+        movePointerToPoint(firstPoint, 0.0f, 0.6f, true);
+        playAudioScene("DEMO", 3, false);           // More than one of each thing.
+        movePointerToPoint(lastPoint, 0.0f, 1.8f, true);
         waitAudio();
         waitForSecs(0.3f);
-        playAudioScene("DEMO",4,false);
-        // Plural.;
+        //
+        playAudioScene("DEMO", 4, false);           // Plural.
         waitAudio();
         togglePluralSymbol(false);
         waitForSecs(0.3f);
+        //
         if (groupMode.equals("1"))
         {
-            firstLabel = ((List<> ) labels_mode2_demo.firstObject).firstObject;
-            firstPoint = firstLabel.topLeft;
-            lastLabel = ((List<> ) labels_mode2_demo.lastObject).lastObject;
-            lastPoint = lastLabel.bottomRight;
-            movePointerToPoint(firstPoint,0.0,0.6f,true);
-            playAudioScene("DEMO2",0,false);
-            // For these words, the singular and plural are the same!;
-            movePointerToPoint(lastPoint,0.0,2.4f,true);
+            firstLabel = firstPair.get(0);
+            firstPoint = firstLabel.topLeft();
+            //
+            lastLabel = lastPair.get(lastPair.size() - 1);
+            lastPoint = lastLabel.bottomRight();
+            //
+            movePointerToPoint(firstPoint, 0.0f, 0.6f, true);
+            playAudioScene("DEMO2", 0, false);      // For these words, the singular and plural are the same!
+            movePointerToPoint(lastPoint, 0.0f, 2.4f, true);
             waitAudio();
-
         }
         else if (groupMode.equals("2"))
         {
-            firstLabel = ((List<> ) labels_mode2_demo.firstObject).firstObject;
-            firstPoint = firstLabel.topLeft;
-            lastLabel = ((List<> ) labels_mode2_demo.lastObject).lastObject;
-            lastPoint = lastLabel.bottomRight;
-            movePointerToPoint(firstPoint,0.0,0.6f,true);
-            playAudioScene("DEMO3",0,false);
-            // For these words, the singular and plural are very different!;
-            movePointerToPoint(lastPoint,0.0,2.4f,true);
+            firstLabel = firstPair.get(0);
+            firstPoint = firstLabel.topLeft();
+            //
+            lastLabel = lastPair.get(lastPair.size() - 1);
+            lastPoint = lastLabel.bottomRight();
+            //
+            movePointerToPoint(firstPoint, 0.0f, 0.6f, true);
+            playAudioScene("DEMO3", 0, false);      // For these words, the singular and plural are very different!
+            movePointerToPoint(lastPoint, 0.0f, 2.4f, true);
             waitAudio();
             waitForSecs(0.3f);
-            playAudioScene("DEMO3",1,false);
-            // You’ll get to know them.;
+            //
+            playAudioScene("DEMO3", 1, false);      // You’ll get to know them.;
             waitAudio();
-
         }
         else if (groupMode.equals("3"))
         {
-            firstPoint = objectDict.objectForKey("plural_label").position;
-            firstPoint.setY ( bounds().size.height * 0.9);
+            firstPoint = OC_Generic.copyPoint(objectDict.get("plural_label").position());
+            firstPoint.y = bounds().height() * 0.9f;
             boolean addedMultipleLetters = wereRequiredMultipleLettersForPlural(labels_mode2_demo);
-            movePointerToPoint(firstPoint,0.0,0.6f,true);
-            playAudioScene("DEMO4",(addedMultipleLetters ? 1: 0),false);
-            // To make the plurals, a letter is added.  |  To make the plurals, letters are added.;
+            movePointerToPoint(firstPoint, 0.0f, 0.6f, true);
+            playAudioScene("DEMO4", (addedMultipleLetters ? 1 : 0), false);     // To make the plurals, a letter is added.  |  To make the plurals, letters are added.;
             waitAudio();
             waitForSecs(0.3f);
+            //
             demoPluralWords(labels_mode2_demo);
             waitForSecs(0.6f);
-            playAudioScene("DEMO4",2,false);
-            // Look at the pattern.;
+            //
+            playAudioScene("DEMO4", 2, false);      // Look at the pattern.;
             waitAudio();
-
         }
         else if (groupMode.equals("4"))
         {
-            firstPoint = objectDict.objectForKey("singular_label").position;
-            firstPoint.setY ( bounds().size.height * 0.9);
-            playAudioScene("DEMO5",0,false);
-            // Look at the pattern here.;
-            movePointerToPoint(firstPoint,0.0,0.6f,true);
+            firstPoint = OC_Generic.copyPoint(objectDict.get("singular_label").position());
+            firstPoint.y = bounds().height() * 0.9f;
+            playAudioScene("DEMO5", 0, false);      // Look at the pattern here.;
+            movePointerToPoint(firstPoint, 0.0f, 0.6f, true);
             waitAudio();
             demoSingularWords(labels_mode2_demo);
             waitForSecs(0.3f);
-            firstPoint = objectDict.objectForKey("plural_label").position;
-            firstPoint.setY ( bounds().size.height * 0.9);
-            playAudioScene("DEMO5",1,false);
-            // And here.;
-            movePointerToPoint(firstPoint,0.0,0.6f,true);
+            //
+            firstPoint = OC_Generic.copyPoint(objectDict.get("plural_label").position());
+            firstPoint.y = bounds().height() * 0.9f;
+            playAudioScene("DEMO5", 1, false);      // And here.;
+            movePointerToPoint(firstPoint, 0.0f, 0.6f, true);
             waitAudio();
             demoPluralWords(labels_mode2_demo);
             waitForSecs(0.3f);
+            //
             boolean addedMultipleLetters = wereRequiredMultipleLettersForPlural(labels_mode2_demo);
-            playAudioScene("DEMO5",(addedMultipleLetters ? 3: 2),false);
-            // To make the plurals, this letter is added.  |   To make the plurals, these letters are added.;
+            playAudioScene("DEMO5", (addedMultipleLetters ? 3 : 2), false);     // To make the plurals, this letter is added.  |   To make the plurals, these letters are added.;
             waitAudio();
             waitForSecs(0.6f);
+            //
             demoPluralWords_underlineAddedLetters(labels_mode2_demo);
-
         }
         else if (groupMode.equals("5"))
         {
-            firstPoint = objectDict.objectForKey("singular_label").position;
-            firstPoint.setY ( bounds().size.height * 0.9);
-            playAudioScene("DEMO6",0,false);
-            // Look at the pattern here.;
-            movePointerToPoint(firstPoint,0.0,0.6f,true);
+            firstPoint = OC_Generic.copyPoint(objectDict.get("singular_label").position());
+            firstPoint.y = bounds().height() * 0.9f;
+            playAudioScene("DEMO6", 0, false);      // Look at the pattern here.;
+            movePointerToPoint(firstPoint, 0.0f, 0.6f, true);
             waitAudio();
             demoSingularWords(labels_mode2_demo);
             waitForSecs(0.3f);
-            firstPoint = objectDict.objectForKey("plural_label").position;
-            firstPoint.setY ( bounds().size.height * 0.9);
-            playAudioScene("DEMO6",1,false);
-            // And here.;
-            movePointerToPoint(firstPoint,0.0,0.6f,true);
+            //
+            firstPoint = OC_Generic.copyPoint(objectDict.get("plural_label").position());
+            firstPoint.y = bounds().height() * 0.9f;
+            playAudioScene("DEMO6", 1, false);      // And here.;
+            movePointerToPoint(firstPoint, 0.0f, 0.6f, true);
             waitAudio();
             demoPluralWords(labels_mode2_demo);
             waitForSecs(0.3f);
+            //
             boolean addedMultipleLetters = wereRequiredMultipleLettersForPlural(labels_mode2_demo);
-            playAudioScene("DEMO6",(addedMultipleLetters ? 3: 2),false);
-            // See how a letter changed, to make the plural.  |  See how letters changed, to make the plural.;
+            playAudioScene("DEMO6", (addedMultipleLetters ? 3 : 2), false);     // See how a letter changed, to make the plural.  |  See how letters changed, to make the plural.;
             waitAudio();
-
         }
         hidePointer();
         waitForSecs(2.5f);
+        //
         lockScreen();
-        for (List<> pair : labels_mode2_demo)
+        for (List<OBLabel> pair : labels_mode2_demo)
         {
             for (OBLabel label : pair)
             {
                 label.hide();
-
             }
-
         }
-        for (OBLabel line : underlines)
+        for (OBPath line : underlines)
         {
             line.hide();
-
         }
-
         unlockScreen();
-        playSfxAudio("alloff",false);
+        //
+        playSfxAudio("alloff", false);
         waitForSecs(0.3f);
+        //
         nextScene();
-
     }
+
+
     public void setScenei()
     {
         hideControls("button");
         hideControls(".*_label");
         hideControls(".*_box");
-        float labelHeight = objectDict.objectForKey("singular_label").height * 1.3;
+        float labelHeight = objectDict.get("singular_label").height() * 1.3f;
         float totalHeight = labelHeight * words_mode2.size();
-        float top = boxSingular.top;
-        float bottom = bounds().size.height - labelHeight * 0.5;
+        float top = boxSingular.top();
+        float bottom = bounds().height() - labelHeight * 0.5f;
         float availableHeight = (bottom - top) - totalHeight;
         int longestWord = 0;
-        for (List<> pair : words_mode2)
+        //
+        for (List<OBWord> pair : words_mode2)
         {
-            OBWord singularWord = pair.firstObject;
-            longestWord = Math.max(longestWord, (int) singularWord.text.length);
-            OBWord pluralWord = pair.lastObject;
-            longestWord = Math.max(longestWord, (int) pluralWord.text.length);
-
+            OBWord singularWord = pair.get(0);
+            longestWord = Math.max(longestWord, singularWord.text.length());
+            OBWord pluralWord = pair.get(pair.size() - 1);
+            longestWord = Math.max(longestWord, pluralWord.text.length());
         }
-        top += availableHeight * 0.5;
-        OBControl singularLabelControl = objectDict.objectForKey("singular_label");
-        OBControl pluralLabelControl = objectDict.objectForKey("plural_label");
+        top += availableHeight * 0.5f;
+        OBControl singularLabelControl = objectDict.get("singular_label");
+        OBControl pluralLabelControl = objectDict.get("plural_label");
+        //
         labels_mode2 = new ArrayList<>();
         draggableLabels = new ArrayList<>();
-        List<> label_tops = new ArrayList<>();
+        List<Float> label_tops = new ArrayList<>();
         int rowColourIndex = 0;
         float longestLabelSingular = 0;
         float longestLabelPlural = 0;
-        for (List<> pair : words_mode2)
+        for (List<OBWord> pair : words_mode2)
         {
-            List<> labels = new ArrayList<>();
-            OBWord singularWord = pair.firstObject;
-            OBWord pluralWord = pair.lastObject;
-            OBLabel singular = createLabel_simple(singularLabelControl  text:singularWord.text colour:colourTextNormal);
-            singular.setZPosition ( 30.0);
-            singular.setTop ( top);
-            singular.setProperty("word",singularWord);
-            longestLabelSingular = Math.max(longestLabelSingular, singular.width);
+            List<OBLabel> labels = new ArrayList<>();
+            OBWord singularWord = pair.get(0);
+            OBWord pluralWord = pair.get(pair.size() - 1);
+            OBLabel singular = OC_Generic.action_createLabelForControl(singularLabelControl, singularWord.text, 1.0f, false, OBUtils.standardTypeFace(), colourTextNormal, this);
+            singular.setZPosition(30.0f);
+            singular.setTop(top);
+            singular.setProperty("word", singularWord);
+            longestLabelSingular = Math.max(longestLabelSingular, singular.width());
             attachControl(singular);
             singular.hide();
             labels.add(singular);
-            OBLabel plural = createLabel_simple(pluralLabelControl  text:pluralWord.text colour:colourTextNormal);
-            plural.setZPosition ( 30.0);
-            plural.setTop ( top);
-            plural.setProperty("word",pluralWord);
-            longestLabelPlural = Math.max(longestLabelPlural, plural.width);
+            //
+            OBLabel plural = OC_Generic.action_createLabelForControl(pluralLabelControl, pluralWord.text, 1.0f, false, OBUtils.standardTypeFace(), colourTextNormal, this);
+            plural.setZPosition(30.0f);
+            plural.setTop(top);
+            plural.setProperty("word", pluralWord);
+            longestLabelPlural = Math.max(longestLabelPlural, plural.width());
             attachControl(plural);
             plural.hide();
             labels.add(plural);
+            //
             draggableLabels.add(plural);
-            label_tops.add(NSNumber.numberWithFloat(plural.top));
+            //
+            label_tops.add(plural.top());
             top += labelHeight;
             labels_mode2.add(labels);
-            OBControl bar = [OBControl.alloc() init];
-            bar.setFillColor ( colourRowArray.objectAtIndex(rowColourIndex));
-            bar.setFrame(new RectF(0, singular.position.y - labelHeight * 0.5, bounds().size.width, labelHeight));
+            OBControl bar = new OBControl();
+            bar.setFillColor(colourRowArray.get(rowColourIndex));
+            bar.setFrame(new RectF(0, singular.position().y - labelHeight * 0.5f, bounds().width(), labelHeight));
             attachControl(bar);
-            bar.setZPosition ( 29.0);
+            bar.setZPosition(29.0f);
             rowColourIndex++;
-
         }
-        for (List<> pair : labels_mode2)
+        //
+        for (List<OBLabel> pair : labels_mode2)
         {
-            OBLabel singular = pair.firstObject;
-            singular.setLeft ( symbolSingular.position.x - longestLabelSingular * 0.5);
-            OBLabel plural = pair.lastObject;
-            plural.setLeft ( symbolPlural.position.x - longestLabelPlural * 0.5);
-            plural.setProperty("original_frame",NSValue valueWithRectF:plural..frame());
-
+            OBLabel singular = pair.get(0);
+            singular.setLeft(symbolSingular.position().x - longestLabelSingular * 0.5f);
+            OBLabel plural = pair.get(pair.size() - 1);
+            plural.setLeft(symbolPlural.position().x - longestLabelPlural * 0.5f);
+            plural.setProperty("original_frame", plural.frame());
         }
+        //
         while (true)
         {
-            draggableLabels = List<>.arrayWithArray(OBUtils.randomlySortedArray(draggableLabels));
+            draggableLabels = OBUtils.randomlySortedArray(draggableLabels);
             boolean needsReshuffle = false;
-            for (int i = 0;
-                 i < draggableLabels.size();
-                 i++)
+            for (int i = 0; i < draggableLabels.size(); i++)
             {
-                OBLabel label = draggableLabels.objectAtIndex(i);
-                for (int j = 0;
-                     j < labels_mode2.size();
-                     j++)
+                OBLabel label = draggableLabels.get(i);
+                //
+                for (int j = 0; j < labels_mode2.size(); j++)
                 {
-                    List<> pair = labels_mode2.objectAtIndex(j);
-                    OBLabel plural = pair.lastObject;
+                    List<OBLabel> pair = labels_mode2.get(j);
+                    OBLabel plural = pair.get(pair.size() - 1);
                     if (label.equals(plural) && i == j)
                     {
                         needsReshuffle = true;
                         break;
-
                     }
-
                 }
-
             }
-            if (needsReshuffle) continue;
+            if (needsReshuffle)
+            {
+                continue;
+            }
             break;
-
         }
-        for (int i = 0;
-             i < draggableLabels.size();
-             i++)
+        //
+        for (int i = 0; i < draggableLabels.size(); i++)
         {
-            OBLabel label = draggableLabels.objectAtIndex(i);
-            label.setTop ( (float)label_tops.objectAtIndex(i) );
-            label.setColour ( colourTextMovable);
-            label.setProperty("original_position",OC_Generic.copyPoint(label.position()));
-            label.setProperty("original_left",NSNumber.numberWithFloat(label.left));
-
+            OBLabel label = draggableLabels.get(i);
+            label.setTop(label_tops.get(i));
+            label.setColour(colourTextMovable);
+            label.setProperty("original_position", OC_Generic.copyPoint(label.position()));
+            label.setProperty("original_left", label.left());
         }
-
     }
-    public void demoi()
+
+    public void demoi() throws Exception
     {
         setStatus(STATUS_BUSY);
         loadPointer(POINTER_MIDDLE);
-        playAudioScene("DEMO",0,false);
-        // Now let’s try this.;
-        movePointerToRestingPosition(0.3 wait:true);
+        playAudioScene("DEMO", 0, false);       // Now let’s try this.
+        movePointerToRestingPosition(0.3f, true);
         waitAudio();
         waitForSecs(0.3f);
+        //
         toggleSingularSymbol(true);
-        for (List<> pair : labels_mode2)
+        for (List<OBLabel> pair : labels_mode2)
         {
-            OBLabel singular = pair.firstObject;
+            OBLabel singular = pair.get(0);
             lockScreen();
             singular.show();
-
             unlockScreen();
-            playSfxAudio("singular",false);
+            //
+            playSfxAudio("singular", false);
             waitForSecs(0.2f);
-
         }
         float right = 0;
-        for (List<> pair : labels_mode2)
+        for (List<OBLabel> pair : labels_mode2)
         {
-            OBLabel label = pair.firstObject;
-            right = Math.max(right, label.right + label.width * 0.2);
-
+            OBLabel label = pair.get(0);
+            right = Math.max(right, label.right() + label.width() * 0.2f);
         }
-        OBLabel firstLabel = ((List<> ) labels_mode2.firstObject).firstObject;
+        //
+        List<OBLabel> firstPair = labels_mode2.get(0);
+        OBLabel firstLabel = firstPair.get(0);
         PointF firstPoint = OC_Generic.copyPoint(firstLabel.position());
-        firstPoint.setX ( right);
-        OBLabel lastLabel = ((List<> ) labels_mode2.lastObject).firstObject;
+        firstPoint.x = right;
+        //
+        List<OBLabel> lastPair = labels_mode2.get(labels_mode2.size() - 1);
+        OBLabel lastLabel = lastPair.get(0);
         PointF lastPoint = OC_Generic.copyPoint(lastLabel.position());
-        lastPoint.setX ( right);
-        movePointerToPoint(firstPoint,0.0,0.6f,true);
-        playAudioScene("DEMO",1,false);
-        // Singular.;
-        movePointerToPoint(lastPoint,0.0,1.8f,true);
+        lastPoint.x = right;
+        //
+        movePointerToPoint(firstPoint, 0.0f, 0.6f, true);
+        playAudioScene("DEMO", 1, false);   // Singular.;
+        movePointerToPoint(lastPoint, 0.0f, 1.8f, true);
         waitAudio();
         toggleSingularSymbol(false);
         waitForSecs(0.3f);
+        //
         togglePluralSymbol(true);
         for (OBLabel label : draggableLabels)
         {
             lockScreen();
             label.show();
-
             unlockScreen();
-            playSfxAudio("plural",false);
+            //
+            playSfxAudio("plural", false);
             waitForSecs(0.2f);
-
         }
         right = 0;
-        for (List<> pair : labels_mode2)
+        for (List<OBLabel> pair : labels_mode2)
         {
-            OBLabel label = pair.lastObject;
-            right = Math.max(right, label.right + label.width * 0.2);
-
+            OBLabel label = pair.get(pair.size() - 1);
+            right = Math.max(right, label.right() + label.width() * 0.2f);
         }
-        firstPoint = ((OBLabel ) draggableLabels.firstObject).position;
-        firstPoint.setX ( right);
-        lastPoint = ((OBLabel ) draggableLabels.lastObject).position;
-        lastPoint.setX ( right);
-        movePointerToPoint(firstPoint,0.0,0.6f,true);
-        playAudioScene("DEMO",2,false);
-        // Plural.;
-        movePointerToPoint(lastPoint,0.0,1.8f,true);
+        //
+        firstPoint = OC_Generic.copyPoint(draggableLabels.get(0).position());
+        firstPoint.x = right;
+        lastPoint = OC_Generic.copyPoint(draggableLabels.get(draggableLabels.size() - 1).position());
+        lastPoint.x = right;
+        //
+        movePointerToPoint(firstPoint, 0.0f, 0.6f, true);
+        playAudioScene("DEMO", 2, false);   // Plural.;
+        movePointerToPoint(lastPoint, 0.0f, 1.8f, true);
         waitAudio();
         togglePluralSymbol(false);
         waitForSecs(0.3f);
-        playAudioScene("DEMO",3,false);
-        // But these words are : the wrong order!;
-        for (int i = 0;
-             i < 3;
-             i++)
+        //
+        playAudioScene("DEMO", 3, false);   // But these words are : the wrong order!;
+        for (int i = 0; i < 3; i++)
         {
             lockScreen();
-            for (List<> pair : labels_mode2)
+            for (List<OBLabel> pair : labels_mode2)
             {
-                OBLabel plural = pair.lastObject;
-                plural.setOpacity(0.25);
-
+                OBLabel plural = pair.get(pair.size() - 1);
+                plural.setOpacity(0.25f);
             }
-
             unlockScreen();
             waitForSecs(0.2f);
+            //
             lockScreen();
-            for (List<> pair : labels_mode2)
+            for (List<OBLabel> pair : labels_mode2)
             {
-                OBLabel plural = pair.lastObject;
-                plural.setOpacity(1.0);
-
+                OBLabel plural = pair.get(pair.size() - 1);
+                plural.setOpacity(1.0f);
             }
-
             unlockScreen();
             waitForSecs(0.2f);
-
         }
         waitAudio();
         waitForSecs(0.3f);
-        playAudioScene("DEMO",4,false);
-        // Watch me.;
+        //
+        playAudioScene("DEMO", 4, false);   // Watch me.;
         waitAudio();
         waitForSecs(0.3f);
-        int randomWordIndex = randomInt(0, (int) draggableLabels.size() - 1);
-        OBLabel label = draggableLabels.objectAtIndex(randomWordIndex);
-        RectF frame = label.propertyValue("original_frame").RectFValue();
-        OBLabel otherLabel;
+        //
+        int randomWordIndex = randomInt(0, draggableLabels.size() - 1);
+        OBLabel label = draggableLabels.get(randomWordIndex);
+        RectF frame = (RectF) label.propertyValue("original_frame");
+        OBLabel otherLabel = null;
         float bestDistance = 10000;
         for (OBLabel possibleMatch : draggableLabels)
         {
-            float delta = fabsf((float) possibleMatch.position.y - (float) (frame.origin.y + frame.size.height * 0.5));
+            float delta = Math.abs((possibleMatch.position().y - frame.centerY() + frame.height()) * 0.5f);   // frame.origin.y --> might be a bug using centerY
             if (delta < bestDistance)
             {
                 bestDistance = delta;
                 otherLabel = possibleMatch;
-
             }
-
         }
-        movePointerToPoint(label.position,0.0,0.6f,true);
-        OC_Generic.pointer_moveToPointWithObject(label, otherLabel.position, 0.0, 0.6f, true, this);
-        swapLabel(label withLabel:otherLabel);
+        movePointerToPoint(label.position(), 0.0f, 0.6f, true);
+        OC_Generic.pointer_moveToPointWithObject(label, otherLabel.position(), 0.0f, 0.6f, true, this);
+        swapLabel(label, otherLabel);
+        //
         lockScreen();
-        RectF labelFrame = label.propertyValue("original_frame").RectFValue();
+        RectF labelFrame = (RectF) label.propertyValue("original_frame");
         if (RectOverlapRatio(label.frame, labelFrame) >= 0.9)
         {
-            label.setColour ( colourTextNormal);
+            label.setColour(colourTextNormal);
             label.disable();
-
         }
-        RectF otherLabelFrame = otherLabel.propertyValue("original_frame").RectFValue();
+        RectF otherLabelFrame = (RectF) otherLabel.propertyValue("original_frame");
         if (RectOverlapRatio(otherLabel.frame, otherLabelFrame) >= 0.9)
         {
-            otherLabel.setColour ( colourTextNormal);
+            otherLabel.setColour(colourTextNormal);
             otherLabel.disable();
-
         }
-
         unlockScreen();
+        //
         hidePointer();
         waitForSecs(1.2f);
-        playAudioScene("DEMO",5,false);
-        // Your turn;
+        //
+        playAudioScene("DEMO", 5, false);   // Your turn;
+        //
         lockScreen();
-        label.setColour ( colourTextMovable);
+        label.setColour(colourTextMovable);
         label.enable();
-        otherLabel.setColour ( colourTextMovable);
+        otherLabel.setColour(colourTextMovable);
         otherLabel.enable();
-
         unlockScreen();
-        swapLabel(label withLabel:otherLabel);
+        //
+        swapLabel(label, otherLabel);
         waitAudio();
         waitForSecs(0.3f);
+        //
         setStatus(STATUS_AWAITING_CLICK);
-        doAudio(currentEvent);
-
+        doAudio(currentEvent());
     }
-    public void demoj()
+
+
+    public void demoj() throws Exception
     {
         setStatus(STATUS_BUSY);
         loadPointer(POINTER_MIDDLE);
-        movePointerToRestingPosition(0.3 wait:true);
-        playAudioScene("DEMO",0,false);
-        // Good! They’re : order.;
+        movePointerToRestingPosition(0.3f, true);
+        playAudioScene("DEMO", 0, false); // Good! They’re : order.;
         waitAudio();
         waitForSecs(0.9f);
-        for (List<> pair : labels_mode2)
+        //
+        for (List<OBLabel> pair : labels_mode2)
         {
-            OBLabel singular = pair.firstObject;
-            OBLabel plural = pair.lastObject;
+            OBLabel singular = pair.get(0);
+            OBLabel plural = pair.get(pair.size() - 1);
+            //
             lockScreen();
-            singular.setColour ( colourTextHilited);
+            singular.setColour(colourTextHilited);
             toggleSingularSymbol(true);
-
             unlockScreen();
-            OBWord singularWord = singular.propertyValue("word");
-        [singularWord playAudio:wait:true];
+            //
+            OBWord singularWord = (OBWord) singular.propertyValue("word");
+            singularWord.playAudio(this, true);
+            //
             lockScreen();
-            singular.setColour ( colourTextNormal);
+            singular.setColour(colourTextNormal);
             toggleSingularSymbol(false);
-
             unlockScreen();
             waitForSecs(0.3f);
+            //
             lockScreen();
-            plural.setColour ( colourTextHilited);
+            plural.setColour(colourTextHilited);
             togglePluralSymbol(true);
-
             unlockScreen();
-            OBWord pluralWord = plural.propertyValue("word");
-        [pluralWord playAudio:wait:true];
+            //
+            OBWord pluralWord = (OBWord) plural.propertyValue("word");
+            pluralWord.playAudio(this, true);
+            //
             lockScreen();
-            plural.setColour ( colourTextNormal);
+            plural.setColour(colourTextNormal);
             togglePluralSymbol(false);
-
             unlockScreen();
             waitForSecs(0.3f);
-
         }
         if (!groupMode.equals("0"))
         {
-            playAudioScene("DEMO",1,false);
-            // Now let's check!;
+            playAudioScene("DEMO", 1, false);   // Now let's check!;
             waitAudio();
             waitForSecs(0.3f);
-
         }
+        //
+        List<OBLabel> firstPair = labels_mode2.get(0);
+        List<OBLabel> lastPair = labels_mode2.get(labels_mode2.size() - 1);
+        //
         if (groupMode.equals("1"))
         {
-            OBLabel firstLabel = ((List<> ) labels_mode2.firstObject).firstObject;
-            PointF firstPoint = firstLabel.topLeft;
-            OBLabel lastLabel = ((List<> ) labels_mode2.lastObject).lastObject;
-            PointF lastPoint = lastLabel.bottomRight;
-            movePointerToPoint(firstPoint,0.0,0.6f,true);
-            playAudioScene("DEMO2",0,false);
-            // The singular and plural are the same.;
-            movePointerToPoint(lastPoint,0.0,2.4f,true);
+            OBLabel firstLabel = firstPair.get(0);
+            PointF firstPoint = firstLabel.topLeft();
+            OBLabel lastLabel = lastPair.get(lastPair.size() - 1);
+            PointF lastPoint = lastLabel.bottomRight();
+            movePointerToPoint(firstPoint, 0.0f, 0.6f, true);
+            playAudioScene("DEMO2", 0, false);      // The singular and plural are the same.;
+            movePointerToPoint(lastPoint, 0.0f, 2.4f, true);
             waitAudio();
-
         }
         else if (groupMode.equals("2"))
         {
-            OBLabel firstLabel = ((List<> ) labels_mode2.firstObject).firstObject;
-            PointF firstPoint = firstLabel.topLeft;
-            OBLabel lastLabel = ((List<> ) labels_mode2.lastObject).lastObject;
-            PointF lastPoint = lastLabel.bottomRight;
-            movePointerToPoint(firstPoint,0.0,0.6f,true);
-            playAudioScene("DEMO3",0,false);
-            // The singular and plural are very different.;
-            movePointerToPoint(lastPoint,0.0,2.4f,true);
+            OBLabel firstLabel = firstPair.get(0);
+            PointF firstPoint = firstLabel.topLeft();
+            OBLabel lastLabel = lastPair.get(lastPair.size() - 1);
+            PointF lastPoint = lastLabel.bottomRight();
+            movePointerToPoint(firstPoint, 0.0f, 0.6f, true);
+            playAudioScene("DEMO3", 0, false);      // The singular and plural are very different.;
+            movePointerToPoint(lastPoint, 0.0f, 2.4f, true);
             waitAudio();
-
         }
         else if (groupMode.equals("3"))
         {
-            PointF firstPoint = OC_Generic.copyPoint(objectDict.objectForKey("plural_label").position());
-            firstPoint.setY ( bounds().size.height * 0.9);
+            PointF firstPoint = OC_Generic.copyPoint(objectDict.get("plural_label").position());
+            firstPoint.y = bounds().height() * 0.9f;
             boolean addedMultipleLetters = wereRequiredMultipleLettersForPlural(labels_mode2);
-            movePointerToPoint(firstPoint,0.0,0.6f,true);
-            playAudioScene("DEMO4",(addedMultipleLetters ? 1: 0),false);
-            // The same letter is added here too. |  The same letters are added here too.;
+            movePointerToPoint(firstPoint, 0.0f, 0.6f, true);
+            playAudioScene("DEMO4", (addedMultipleLetters ? 1 : 0), false);     // The same letter is added here too. |  The same letters are added here too.;
             waitAudio();
             waitForSecs(0.3f);
+            //
             demoPluralWords(labels_mode2);
             waitAudio();
-
         }
         else if (groupMode.equals("4"))
         {
-            PointF firstPoint = OC_Generic.copyPoint(objectDict.objectForKey("singular_label").position());
-            firstPoint.setY ( bounds().size.height * 0.9);
-            playAudioScene("DEMO5",0,false);
-            // These show the same pattern as before.;
-            movePointerToPoint(firstPoint,0.0,0.6f,true);
+            PointF firstPoint = OC_Generic.copyPoint(objectDict.get("singular_label").position());
+            firstPoint.y = bounds().height() * 0.9f;
+            playAudioScene("DEMO5", 0, false);          // These show the same pattern as before.;
+            movePointerToPoint(firstPoint, 0.0f, 0.6f, true);
             waitAudio();
             demoSingularWords(labels_mode2);
             waitForSecs(0.3f);
-            firstPoint = objectDict.objectForKey("plural_label").position;
-            firstPoint.setY ( bounds().size.height * 0.9);
-            playAudioScene("DEMO5",1,false);
-            // So do these.;
-            movePointerToPoint(firstPoint,0.0,0.6f,true);
+            //
+            firstPoint = OC_Generic.copyPoint(objectDict.get("plural_label").position());
+            firstPoint.y = bounds().height() * 0.9f;
+            playAudioScene("DEMO5", 1, false);          // So do these.;
+            movePointerToPoint(firstPoint, 0.0f, 0.6f, true);
             waitAudio();
             demoPluralWords(labels_mode2);
             waitForSecs(0.3f);
+            //
             boolean addedMultipleLetters = wereRequiredMultipleLettersForPlural(labels_mode2);
-            playAudioScene("DEMO5",(addedMultipleLetters ? 3: 2),false);
-            // This letter is added, to make the plural.  |  These letters are added, to make the plural.;
+            playAudioScene("DEMO5", (addedMultipleLetters ? 3 : 2), false);         // This letter is added, to make the plural.  |  These letters are added, to make the plural.;
             waitAudio();
             waitForSecs(0.6f);
+            //
             demoPluralWords_underlineAddedLetters(labels_mode2);
             waitForSecs(0.3f);
-
         }
         else if (groupMode.equals("5"))
         {
-            PointF firstPoint = OC_Generic.copyPoint(objectDict.objectForKey("singular_label").position());
-            firstPoint.setY ( bounds().size.height * 0.9);
-            playAudioScene("DEMO6",0,false);
-            // These show the same pattern as before.;
-            movePointerToPoint(firstPoint,0.0,0.6f,true);
+            PointF firstPoint = OC_Generic.copyPoint(objectDict.get("singular_label").position());
+            firstPoint.y = bounds().height() * 0.9f;
+            playAudioScene("DEMO6", 0, false);      // These show the same pattern as before.;
+            movePointerToPoint(firstPoint, 0.0f, 0.6f, true);
             waitAudio();
             demoSingularWords(labels_mode2);
             waitForSecs(0.3f);
-            firstPoint = objectDict.objectForKey("plural_label").position;
-            firstPoint.setY ( bounds().size.height * 0.9);
-            playAudioScene("DEMO6",1,false);
-            // So do these.;
-            movePointerToPoint(firstPoint,0.0,0.6f,true);
+            //
+            firstPoint = OC_Generic.copyPoint(objectDict.get("plural_label").position());
+            firstPoint.y = bounds().height() * 0.9f;
+            playAudioScene("DEMO6", 1, false);      // So do these.;
+            movePointerToPoint(firstPoint, 0.0f, 0.6f, true);
             waitAudio();
             demoPluralWords(labels_mode2);
             waitForSecs(0.3f);
+            //
             boolean addedMultipleLetters = wereRequiredMultipleLettersForPlural(labels_mode2);
-            playAudioScene("DEMO6",(addedMultipleLetters ? 3: 2),false);
-            // A letter changed, to make the plural.  |  Letters changed, to make the plural.;
+            playAudioScene("DEMO6", (addedMultipleLetters ? 3 : 2), false);     // A letter changed, to make the plural.  |  Letters changed, to make the plural.;
             waitAudio();
             demoPluralWords_underlineChangedLetters(labels_mode2);
             waitForSecs(0.3f);
-
         }
         hidePointer();
         waitForSecs(2.5f);
-        playAudioQueuedScene("FINAL",300,true);
+        //
+        playAudioQueuedScene("FINAL", 300, true);
         waitForSecs(0.7f);
+        //
         nextScene();
-
     }
+
+
     public void setScenek()
     {
         setScenei();
-
     }
-    public void demok()
+
+
+    public void demok() throws Exception
     {
         demoi();
-
     }
-    public void demol()
+
+
+    public void demol() throws Exception
     {
         demoj();
-
     }
-    public void swapLabel(OBLabel  label1, OBLabel  label2)
-    {
-        PointF original1 = OC_Generic.copyPoint(label1.propertyValue("original.position())") ;
-        PointF original2 = OC_Generic.copyPoint(label2.propertyValue("original.position())") ;
-        PointF newOriginal1 = original2;
-        newOriginal1.setX ( original1.x);
-        PointF newOriginal2 = original1;
-        newOriginal2.setX ( original2.x);
-        label1.setProperty("original_position",NSValue.valueWithPointF(newOriginal1));
-        label2.setProperty("original_position",NSValue.valueWithPointF(newOriginal2));
-    [label1 moveToPoint:newOriginal1 time:0.3 wait:false];
-        playSfxAudio("match",false);
-    [label2 moveToPoint:newOriginal2 time:0.3 wait:true];
-
-    }
-    public OBLabel  findLabelUnderLabel(OBLabel  label)
-    {
-        OBLabel closestMatch;
-        float bestOverlap = 0.0;
-        for (OBLabel possibleMatch : draggableLabels)
-        {
-            if (!possibleMatch.isEnabled) continue;
-            if (possibleMatch.equals(label)) continue;
-            float overlap = RectOverlapRatio(label.frame, possibleMatch.frame);
-            if (overlap > bestOverlap)
-            {
-                closestMatch = possibleMatch;
-                bestOverlap = overlap;
-
-            }
-
-        }
-        return closestMatch;
-
-    }
-    public boolean wereRequiredMultipleLettersForPlural(List<>  words)
-    {
-        for (List<> pair : words)
-        {
-            OBLabel plural = pair.lastObject;
-            OBWord pluralWord = plural.propertyValue("word");
-            int deltaFromRootPlural = (int) pluralWord.text.length - (int) pluralWord.Root.length;
-            if (deltaFromRootPlural > 1) return true;
-
-        }
-        return false;
-
-    }
-    public void demoPluralWords(List<>  labels)
-    {
-        for (List<> pair : labels)
-        {
-            OBLabel plural = pair.lastObject;
-            OBWord pluralWord = plural.propertyValue("word");
-            String wordRoot = pluralWord.Root;
-            if (wordRoot != null && wordRoot.length > 0)
-            {
-                NSRange range = pluralWord.text.rangeOfString(wordRoot);
-                colourLabel(plural inRange:range withColour:colourTextNormal andRemainingColour:colourTextPlural);
-
-            }
-            else
-            {
-                plural.setColour ( colourTextNormal);
-
-            }
-            playSfxAudio("pluralpattern",false);
-            waitForSecs(0.2f);
-
-        }
-
-    }
-    public void demoPluralWords_underlineAddedLetters(List<>  labels)
-    {
-        underlines = new ArrayList<>();
-        for (List<> pair : labels)
-        {
-            OBLabel singular = pair.firstObject;
-            OBWord singularWord = singular.propertyValue("word");
-            OBLabel plural = pair.lastObject;
-            String wordRoot = singularWord.text;
-            lockScreen();
-            List<> pluralBreakdown = breakdownLabel(plural);
-            NSRange pluralRange = plural.text.rangeOfString(wordRoot);
-            PointF point1, point2;
-            int firstIndex, lastIndex;
-            for (firstIndex = 0;
-                 firstIndex < pluralBreakdown.size();
-                 firstIndex++)
-            {
-                if (NSLocationInRange(firstIndex, pluralRange)) continue;
-                OBLabel label = pluralBreakdown.objectAtIndex(firstIndex);
-                point1 = label.bottomLeft;
-                break;
-
-            }
-            for (lastIndex = firstIndex;
-                 lastIndex < pluralBreakdown.size();
-                 lastIndex++)
-            {
-                if (NSLocationInRange(lastIndex, pluralRange)) break;
-                OBLabel label = pluralBreakdown.objectAtIndex(lastIndex);
-                point2 = label.bottomRight;
-
-            }
-            float nudge = plural.height * 0.1;
-            point1.y -= nudge;
-            point2.y -= nudge;
-            OBPath underline = [OBPath.alloc() initLinePt1:point1 pt2:point2];
-            underline.setLineWidth ( applyGraphicScale(3.0));
-            underline.setStrokeColor ( colourLine);
-            underline.setZPosition ( 31.00);
-            attachControl(underline);
-            underlines.add(underline);
-
-            unlockScreen();
-            playSfxAudio("underline",false);
-            waitForSecs(0.2f);
-            waitForSecs(0.3f);
-
-        }
-
-    }
-    public void demoPluralWords_underlineChangedLetters(List<>  labels)
-    {
-        underlines = new ArrayList<>();
-        for (List<> pair : labels)
-        {
-            OBLabel singular = pair.firstObject;
-            OBWord singularWord = singular.propertyValue("word");
-            OBLabel plural = pair.lastObject;
-            OBWord pluralWord = plural.propertyValue("word");
-            String wordRoot = singularWord.Root;
-            lockScreen();
-            List<> singularBreakdown = breakdownLabel(singular);
-            NSRange singularRange = singular.text.rangeOfString(wordRoot);
-            PointF point1, point2;
-            int firstIndex, lastIndex;
-            for (firstIndex = 0;
-                 firstIndex < singularBreakdown.size();
-                 firstIndex++)
-            {
-                if (NSLocationInRange(firstIndex, singularRange)) continue;
-                OBLabel label = singularBreakdown.objectAtIndex(firstIndex);
-                point1 = label.bottomLeft;
-                break;
-
-            }
-            for (lastIndex = firstIndex;
-                 lastIndex < singularBreakdown.size();
-                 lastIndex++)
-            {
-                if (NSLocationInRange(lastIndex, singularRange)) break;
-                OBLabel label = singularBreakdown.objectAtIndex(lastIndex);
-                point2 = label.bottomRight;
-
-            }
-            float nudge = singular.height * 0.1;
-            point1.y -= nudge;
-            point2.y -= nudge;
-            OBPath underline = [OBPath.alloc() initLinePt1:point1 pt2:point2];
-            underline.setLineWidth ( applyGraphicScale(3.0));
-            underline.setStrokeColor ( colourLine);
-            underline.setZPosition ( 31.00);
-            attachControl(underline);
-            underlines.add(underline);
-
-            unlockScreen();
-            playSfxAudio("underline",false);
-            waitForSecs(0.2f);
-            wordRoot = pluralWord.Root;
-            lockScreen();
-            List<> pluralBreakdown = breakdownLabel(plural);
-            NSRange pluralRange = plural.text.rangeOfString(wordRoot);
-            PointF point1, point2;
-            int firstIndex, lastIndex;
-            for (firstIndex = 0;
-                 firstIndex < pluralBreakdown.size();
-                 firstIndex++)
-            {
-                if (NSLocationInRange(firstIndex, pluralRange)) continue;
-                OBLabel label = pluralBreakdown.objectAtIndex(firstIndex);
-                point1 = label.bottomLeft;
-                break;
-
-            }
-            for (lastIndex = firstIndex;
-                 lastIndex < pluralBreakdown.size();
-                 lastIndex++)
-            {
-                if (NSLocationInRange(lastIndex, pluralRange)) break;
-                OBLabel label = pluralBreakdown.objectAtIndex(lastIndex);
-                point2 = label.bottomRight;
-
-            }
-            float nudge = plural.height * 0.1;
-            point1.y -= nudge;
-            point2.y -= nudge;
-            OBPath underline = [OBPath.alloc() initLinePt1:point1 pt2:point2];
-            underline.setLineWidth ( applyGraphicScale(3.0));
-            underline.setStrokeColor ( colourLine);
-            underline.setZPosition ( 31.00);
-            attachControl(underline);
-            underlines.add(underline);
-
-            unlockScreen();
-            playSfxAudio("underline",false);
-            waitForSecs(0.2f);
-            waitForSecs(0.3f);
-
-        }
-
-    }
-    public void demoSingularWords(List<>  labels)
-    {
-        for (List<> pair : labels)
-        {
-            OBLabel singular = pair.firstObject;
-            OBWord singularWord = singular.propertyValue("word");
-            String wordRoot = singularWord.Root;
-            if (wordRoot != null && wordRoot.length > 0)
-            {
-                NSRange range = singularWord.text.rangeOfString(wordRoot);
-                colourLabel(singular inRange:range withColour:colourTextNormal andRemainingColour:colourTextSingular);
-
-            }
-            else
-            {
-                singular.setColour ( colourTextNormal);
-
-            }
-            playSfxAudio("singpattern",false);
-            waitForSecs(0.2f);
-
-        }
-
-    }
-    public void movePointerToRestingPosition(float time, boolean wait)
-    {
-        movePointerToPoint(new PointF(0.9 * bounds().size.widthf,  0.9 * bounds().size.heightf),timef,wait);
-
-    }
-    public void hidePointer()
-    {
-        movePointerToPoint(new PointF(1.1 * bounds().size.widthf,  1.1 * bounds().size.heightf),0,0.6f,false);
-
-    }
-    public List<>  breakdownLabel(OBLabel  mainLabel)
-    {
-        Map<> *attributes = @
-        {
-            NSFontAttributeName:mainLabel.font,                                 NSForegroundColorAttributeName:(id).get(Color.BLACKCGColor)
-        }
-        ;
-        NSAttributedString astr = [NSAttributedString.alloc()initWithString:mainLabel.text attributes:attributes];
-        CTLineRef line = CTLineCreateWithAttributedString((CFAttributedStringRef)astr);
-        List<> lefts = new ArrayList<>();
-        for (int i = 0;
-             i < mainLabel.text.length;
-             i++)
-        {
-            float f = CTLineGetOffsetForStringIndex(line, i, NULL);
-            lefts.add(f);
-
-        }
-        List<> labs = new ArrayList<>();
-        for (int i = 0;
-             i < mainLabel.text.length;
-             i++)
-        {
-            String text = mainLabel.text.substringWithRange(NSMakeRange(i, 1));
-            OBLabel l = new OBLabel(text,font,fontSize);
-            l.setColour ( Color.BLACK);
-            l.setPosition ( mainLabel.position);
-            l.setLeft ( mainLabel.left + (float)lefts.get(i));
-            l.setProperty("origpos",OC_Generic.copyPoint(l.position()));
-            labs.add(l);
-
-        }
-        return labs;
-
-    }
-
-     */
 }

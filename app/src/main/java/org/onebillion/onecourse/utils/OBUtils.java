@@ -1101,6 +1101,12 @@ public class OBUtils
                         String image = wordNode.attributeStringValue("image");
                         OBWord wor = new OBWord(fullText, audioID, null, syllables, image);
                         //
+                        String root = wordNode.attributeStringValue("root");
+                        if (root != null)
+                        {
+                            wor.Root = root;
+                        }
+                        //
                         dictionary.put(audioID, wor);
                     }
                 }

@@ -14,6 +14,7 @@ public class OBWord extends OBSyllable
 
     public List<OBSyllable> syllables;
     public String imageName;
+    public String Root;
     Boolean syllablesChecked, phonemesChecked;
 
 
