@@ -46,6 +46,10 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
     SimpleBuffer buffers[] = new SimpleBuffer[NO_BUFFERS];
     AudioTimestamp timeStamp = new AudioTimestamp();
     int sampleRate = 44100;
+    public float pitch = 1.0f;
+    float pitchData[];
+    ByteBuffer tempBuffer;
+    PitchShifter pitchShifter;
 
     public class SimpleBuffer extends Object
     {
@@ -439,7 +443,21 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
                     }
                     if (wantsFFTData)
                         writeOutputBufferToBuffers(outputBuffer,info.presentationTimeUs,amtWritten / 2);
-                    int res = audioTrack.write(outputBuffer,bytesInBuffer,AudioTrack.WRITE_BLOCKING);
+                    int res;
+                    if (pitch != 1f)
+                    {
+                        ByteBuffer tb = pitchShift(outputBuffer);
+                        for (int i = 0;i < tb.limit();i++)
+                        {
+                            Byte a = outputBuffer.get(i);
+                            Byte b = tb.get(i);
+                            if (a != b)
+                                res = -1;
+                        }
+                        res = audioTrack.write(tb,bytesInBuffer,AudioTrack.WRITE_BLOCKING);
+                    }
+                    else
+                        res = audioTrack.write(outputBuffer,bytesInBuffer,AudioTrack.WRITE_BLOCKING);
                     amtWritten += res;
                     if (state == OBAP_PREPARING && amtWritten > 300)
                     {
@@ -472,6 +490,48 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
         }
     }
 
+    ByteBuffer pitchShift(ByteBuffer bb)
+    {
+        ShortBuffer sb = bb.asShortBuffer();
+        int noFrames = sb.limit();
+        if (noFrames > 0)
+        {
+            if (pitchData == null || noFrames > pitchData.length)
+                pitchData = new float[noFrames];
+            for (int i = 0;i < noFrames;i++)
+                pitchData[i] = (sb.get(i) / 32767f);
+            if (pitchShifter == null)
+                pitchShifter = new PitchShifter();
+            pitchShifter.PitchShift(pitch,noFrames,1024,16,sampleRate,pitchData);
+            if (tempBuffer == null)
+                tempBuffer = ByteBuffer.allocateDirect(8192);
+            tempBuffer.order(bb.order());
+            tempBuffer.rewind();
+            tempBuffer.limit(bb.limit());
+            ShortBuffer nsb = tempBuffer.asShortBuffer();
+            for (int i = 0;i < noFrames;i++)
+                nsb.put(i,(short)(pitchData[i] * 32767f));
+            return tempBuffer;
+            /*
+            ByteBuffer tb = ByteBuffer.allocateDirect(8192);
+            tb.order(bb.order());
+            tb.rewind();
+            tb.limit(bb.limit());
+            ShortBuffer nsb = tb.asShortBuffer();
+            for (int i = 0;i < noFrames;i++)
+                nsb.put(i,(short)(pitchData[i] * 32767f));
+            for (int i = 0;i < noFrames;i++)
+            {
+                int res = 0;
+                short a = sb.get(i);
+                short b = nsb.get(i);
+                if (a != b)
+                    res = -1;
+            }
+            return tb;*/
+        }
+        return bb;
+    }
     public double duration ()
     {
         waitPrepared();
