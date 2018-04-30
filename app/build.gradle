@@ -234,6 +234,16 @@ android {
                     appIcon: "@mipmap/judges"
             ]
         }
+        demo_recording_ {
+            applicationId 'org.onebillion.onecourse.child.recording.demo'
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "Recording - sw"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_recording.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/icon_child"
+            ]
+        }
 
     }
 

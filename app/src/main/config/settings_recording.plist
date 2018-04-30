@@ -244,7 +244,7 @@
 
 	<!-- DEBUG -->
 	<key>debug_enabled</key>
-	<string>true</string>
+	<string>false</string>
 	<!--  -->
 	<key>debug_show_test_menu</key>
 	<string>false</string>
@@ -253,7 +253,7 @@
 	<string>true</string>
 	<!--  -->
 	<key>debug_show_unit_id</key>
-	<string>true</string>
+	<string>false</string>
 	<!--  -->
 	<key>debug_build_number</key>
 	<string>0009</string>
@@ -283,7 +283,7 @@
 	<string>OBFatController</string>
 	<!--  -->
 	<key>app_masterlist</key>
-	<string>community_sw</string>
+	<string>recording_demo</string>
 	<!--  -->
 	<key>app_masterlist_playzone</key>
 	<string>playzone_sw</string>
