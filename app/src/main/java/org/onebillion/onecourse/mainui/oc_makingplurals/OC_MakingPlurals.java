@@ -68,7 +68,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
     List<List<OBLabel>> labels_mode2_demo, labels_mode2;
     List<OBLabel> draggableLabels;
     List<OBPath> underlines;
-    OBGroup button;
+    OBPath button;
     OBLabel labelSingular, labelPlural;
     OBPath boxSingular, boxPlural;
     OBImage imageSingular, imagePlural;
@@ -81,23 +81,26 @@ public class OC_MakingPlurals extends OC_Wordcontroller
     boolean alreadyPlayedReminder;
     String groupMode;
     OBConditionLock promptAudioLock;
-    long lastActionTakenTimestamp;
+    double lastActionTakenTimestamp;
 
     public void doAudio(String scene) throws Exception
     {
         setReplayAudio((List<Object>) (Object) getAudioForScene(this.currentEvent(), "REPEAT"));
-        long timeStamp = System.currentTimeMillis();
+        double timeStamp = OC_Generic.currentTime();
         lastActionTakenTimestamp = timeStamp;
         waitForSecs(0.9f);
+        //
         if (lastActionTakenTimestamp == timeStamp)
         {
             promptAudioLock = playAudioQueuedScene("PROMPT", false);
+            waitForSecs(0.5);
+            //
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
                 public void run() throws Exception
                 {
                     waitAudioQueue(promptAudioLock);
-                    lastActionTakenTimestamp = System.currentTimeMillis();
+                    lastActionTakenTimestamp = OC_Generic.currentTime();
                     alreadyPlayedReminder = false;
                     doReminderForEvent(currentEvent(), INITIAL_DELAY, new OC_Generic_Event.RunLambdaWithTimestamp()
                     {
@@ -151,9 +154,9 @@ public class OC_MakingPlurals extends OC_Wordcontroller
         symbolSingular = objectDict.get("singular_symbol");
         symbolPlural = (OBGroup) objectDict.get("plural_symbol");
         hasMode1 = words_mode1.size() > 0;
-        needDemo = parameters.get("demo").equals("true");
+        needDemo = parameters.get("demo") != null && parameters.get("demo").equals("true");
         this.currNo = 0;
-        button = (OBGroup) objectDict.get("button");
+        button = (OBPath) objectDict.get("button");
         button.disable();
     }
 
@@ -168,8 +171,9 @@ public class OC_MakingPlurals extends OC_Wordcontroller
         {
             loadAudioXML(getConfigPath("mp1audio.xml"));
             //
-            int totalEventsPart1 = (int) words_mode1.size() - 1;
-            events = Arrays.asList("c,d,e,f".split(","));
+            int totalEventsPart1 = words_mode1.size() - 1;
+            events = new ArrayList();
+            events.addAll(Arrays.asList("c,d,e,f".split(",")));
             //
             while (events.size() < totalEventsPart1)
             {
@@ -177,7 +181,8 @@ public class OC_MakingPlurals extends OC_Wordcontroller
             }
             while (events.size() > totalEventsPart1)
             {
-                events.remove(events.get(events.size() - 1));
+                int lastIndex = events.size() - 1;
+                events.remove(lastIndex);
             }
             events.add("g");
             events.add("h");
@@ -207,14 +212,14 @@ public class OC_MakingPlurals extends OC_Wordcontroller
         {
             return;
         }
-        long timestamp = lastActionTakenTimestamp;
-        double elapsed = System.currentTimeMillis() - lastActionTakenTimestamp;
+        double timestamp = lastActionTakenTimestamp;
+        double elapsed = OC_Generic.currentTime() - lastActionTakenTimestamp;
         if ((status() == STATUS_WAITING_FOR_DRAG || status() == STATUS_AWAITING_CLICK) && elapsed > reminderDelay)
         {
             if (block != null)
             {
                 block.run(timestamp);
-                lastActionTakenTimestamp = System.currentTimeMillis();
+                lastActionTakenTimestamp = OC_Generic.currentTime();
             }
             OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
             {
@@ -292,11 +297,14 @@ public class OC_MakingPlurals extends OC_Wordcontroller
                 alreadyPlayedReminder = true;
             }
             List<OBLabel> labels = new ArrayList<>();
-            for (OBLabel label : draggableLabels)
+            if (draggableLabels != null)
             {
-                if (label.isEnabled())
+                for (OBLabel label : draggableLabels)
                 {
-                    labels.add(label);
+                    if (label.isEnabled())
+                    {
+                        labels.add(label);
+                    }
                 }
             }
             for (int i = 0; i < 3; i++)
@@ -364,6 +372,8 @@ public class OC_MakingPlurals extends OC_Wordcontroller
     {
         List<List<OBWord>> result = new ArrayList<>();
         String ws = parameters.get(parameterName);
+        if (ws == null) return result;
+        //
         List<String> sets = Arrays.asList(ws.split(";"));
         for (String set : sets)
         {
@@ -546,8 +556,12 @@ public class OC_MakingPlurals extends OC_Wordcontroller
 
     public Object findLabel(PointF pt)
     {
-        OBControl c = finger(0, 2, (List<OBControl>) (Object) draggableLabels, pt, true);
-        return c;
+        if (draggableLabels != null)
+        {
+            OBControl c = finger(0, 2, (List<OBControl>) (Object) draggableLabels, pt, true);
+            return c;
+        }
+        return null;
     }
 
     public void checkButton() throws Exception
@@ -580,7 +594,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
         {
             enableButton();
             playSfxAudio("buttonactive", false);
-            lastActionTakenTimestamp = System.currentTimeMillis();
+            lastActionTakenTimestamp = OC_Generic.currentTime();
             setStatus(STATUS_AWAITING_CLICK);
             currNo++;
             nextScene();
@@ -643,10 +657,9 @@ public class OC_MakingPlurals extends OC_Wordcontroller
                     return;
                 }
             }
-            lastActionTakenTimestamp = System.currentTimeMillis();
+            lastActionTakenTimestamp = OC_Generic.currentTime();
             setStatus(STATUS_AWAITING_CLICK);
-        }
-        catch (Exception e)
+        } catch (Exception e)
         {
             MainActivity.log("OC_MakingPlurals:checkDragAtPoint exception caught: " + e.getLocalizedMessage());
             e.printStackTrace();
@@ -657,7 +670,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
     {
         if (status() == STATUS_AWAITING_CLICK)
         {
-            lastActionTakenTimestamp = System.currentTimeMillis();
+            lastActionTakenTimestamp = OC_Generic.currentTime();
             Object obj = findButton(pt);
             if (obj != null)
             {
@@ -698,10 +711,10 @@ public class OC_MakingPlurals extends OC_Wordcontroller
         PointF original1 = OC_Generic.copyPoint((PointF) label1.propertyValue("original_position"));
         PointF original2 = OC_Generic.copyPoint((PointF) label2.propertyValue("original_position"));
         //
-        PointF newOriginal1 = original2;
+        PointF newOriginal1 = OC_Generic.copyPoint(original2);
         newOriginal1.x = original1.x;
         //
-        PointF newOriginal2 = original1;
+        PointF newOriginal2 = OC_Generic.copyPoint(original1);
         newOriginal2.x = original2.x;
         //
         label1.setProperty("original_position", newOriginal1);
@@ -764,12 +777,12 @@ public class OC_MakingPlurals extends OC_Wordcontroller
         List<OBLabel> labs = new ArrayList<>();
         for (int i = 0; i < mainLabel.text().length(); i++)
         {
-            String text = mainLabel.text().substring(i, 1);
+            String text = mainLabel.text().substring(i, i+1);
             OBLabel l = new OBLabel(text, mainLabel.font().typeFace, mainLabel.fontSize());
             l.setColour(Color.BLACK);
             l.setPosition(mainLabel.position());
             l.setLeft(mainLabel.left() + lefts.get(i));
-            l.setProperty("origpos", OC_Generic.copyPoint(l.position()));
+            l.setProperty("original_position", OC_Generic.copyPoint(l.position()));
             labs.add(l);
         }
         return labs;
@@ -812,54 +825,63 @@ public class OC_MakingPlurals extends OC_Wordcontroller
 
     public void demoPluralWords_underlineAddedLetters(List<List<OBLabel>> labels) throws Exception
     {
-        underlines = new ArrayList<>();
-        for (List<OBLabel> pair : labels)
+        try
         {
-            OBLabel singular = pair.get(0);
-            OBWord singularWord = (OBWord) singular.propertyValue("word");
-            OBLabel plural = pair.get(pair.size() - 1);
-            String wordRoot = singularWord.text;
-            //
-            lockScreen();
-            List<OBLabel> pluralBreakdown = breakdownLabel(plural);
-            int index = plural.text().indexOf(wordRoot);
-            PointF point1 = null;
-            PointF point2 = null;
-            int firstIndex, lastIndex;
-            //
-            for (firstIndex = 0; firstIndex < pluralBreakdown.size(); firstIndex++)
+            underlines = new ArrayList<>();
+            for (List<OBLabel> pair : labels)
             {
-                if (firstIndex >= index && firstIndex < index + wordRoot.length())
+                OBLabel singular = pair.get(0);
+                OBWord singularWord = (OBWord) singular.propertyValue("word");
+                OBLabel plural = pair.get(pair.size() - 1);
+                String wordRoot = singularWord.text;
+                //
+                lockScreen();
+                List<OBLabel> pluralBreakdown = breakdownLabel(plural);
+                int index = plural.text().indexOf(wordRoot);
+                PointF point1 = null;
+                PointF point2 = null;
+                int firstIndex, lastIndex;
+                //
+                for (firstIndex = 0; firstIndex < pluralBreakdown.size(); firstIndex++)
                 {
-                    continue;
-                }
-                OBLabel label = pluralBreakdown.get(firstIndex);
-                point1 = label.bottomLeft();
-                break;
-            }
-            //
-            for (lastIndex = firstIndex; lastIndex < pluralBreakdown.size(); lastIndex++)
-            {
-                if (lastIndex >= index && lastIndex < index + wordRoot.length())
-                {
+                    if (firstIndex >= index && firstIndex < index + wordRoot.length())
+                    {
+                        continue;
+                    }
+                    OBLabel label = pluralBreakdown.get(firstIndex);
+                    point1 = label.bottomLeft();
                     break;
                 }
-                OBLabel label = pluralBreakdown.get(lastIndex);
-                point2 = label.bottomRight();
+                //
+                for (lastIndex = firstIndex; lastIndex < pluralBreakdown.size(); lastIndex++)
+                {
+                    if (lastIndex >= index && lastIndex < index + wordRoot.length())
+                    {
+                        break;
+                    }
+                    OBLabel label = pluralBreakdown.get(lastIndex);
+                    point2 = label.bottomRight();
+                }
+                float nudge = plural.height() * 0.1f;
+                point1.y -= nudge;
+                point2.y -= nudge;
+                OBPath underline = new OBPath(point1, point2);
+                underline.setLineWidth(applyGraphicScale(3.0f));
+                underline.setStrokeColor(colourLine);
+                underline.setZPosition(31.0f);
+                underline.sizeToBoundingBoxIncludingStroke();
+                attachControl(underline);
+                underlines.add(underline);
+                unlockScreen();
+                //
+                playSfxAudio("underline", false);
+                waitForSecs(0.5f);
             }
-            float nudge = plural.height() * 0.1f;
-            point1.y -= nudge;
-            point2.y -= nudge;
-            OBPath underline = new OBPath(point1, point2);
-            underline.setLineWidth(applyGraphicScale(3.0f));
-            underline.setStrokeColor(colourLine);
-            underline.setZPosition(31.0f);
-            attachControl(underline);
-            underlines.add(underline);
-            unlockScreen();
-            //
-            playSfxAudio("underline", false);
-            waitForSecs(0.5f);
+        }
+        catch (Exception e)
+        {
+            MainActivity.log("Exception caught: " + e.toString());
+            e.printStackTrace();
         }
     }
 
@@ -1093,7 +1115,9 @@ public class OC_MakingPlurals extends OC_Wordcontroller
         top += availableHeight * 0.5;
         OBControl singularLabelControl = objectDict.get("singular_label");
         OBControl pluralLabelControl = objectDict.get("plural_label");
+        //
         labels_mode2_demo = new ArrayList<>();
+        //
         float longestLabelSingular = 0;
         float longestLabelPlural = 0;
         for (List<OBWord> pair : words_mode1)
@@ -1133,8 +1157,8 @@ public class OC_MakingPlurals extends OC_Wordcontroller
     public void demoh() throws Exception
     {
         setStatus(STATUS_BUSY);
-        //
         loadPointer(POINTER_MIDDLE);
+        //
         playAudioScene("DEMO", 0, true);        // Here are those words again.;
         for (List<OBLabel> pair : labels_mode2_demo)
         {
@@ -1333,9 +1357,12 @@ public class OC_MakingPlurals extends OC_Wordcontroller
                 label.hide();
             }
         }
-        for (OBPath line : underlines)
+        if (underlines != null)
         {
-            line.hide();
+            for (OBPath line : underlines)
+            {
+                line.hide();
+            }
         }
         unlockScreen();
         //
@@ -1351,6 +1378,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
         hideControls("button");
         hideControls(".*_label");
         hideControls(".*_box");
+        //
         float labelHeight = objectDict.get("singular_label").height() * 1.3f;
         float totalHeight = labelHeight * words_mode2.size();
         float top = boxSingular.top();
@@ -1371,6 +1399,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
         //
         labels_mode2 = new ArrayList<>();
         draggableLabels = new ArrayList<>();
+        //
         List<Float> label_tops = new ArrayList<>();
         int rowColourIndex = 0;
         float longestLabelSingular = 0;
@@ -1417,7 +1446,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
             singular.setLeft(symbolSingular.position().x - longestLabelSingular * 0.5f);
             OBLabel plural = pair.get(pair.size() - 1);
             plural.setLeft(symbolPlural.position().x - longestLabelPlural * 0.5f);
-            plural.setProperty("original_frame", plural.frame());
+            plural.setProperty("original_frame", OC_Generic.copyRectF(plural.frame()));
         }
         //
         while (true)
@@ -1460,6 +1489,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
     {
         setStatus(STATUS_BUSY);
         loadPointer(POINTER_MIDDLE);
+        //
         playAudioScene("DEMO", 0, false);       // Now let’s try this.
         movePointerToRestingPosition(0.3f, true);
         waitAudio();
@@ -1564,8 +1594,8 @@ public class OC_MakingPlurals extends OC_Wordcontroller
         float bestDistance = 10000;
         for (OBLabel possibleMatch : draggableLabels)
         {
-            float delta = Math.abs((possibleMatch.position().y - frame.centerY() + frame.height()) * 0.5f);   // frame.origin.y --> might be a bug using centerY
-            if (delta < bestDistance)
+            float delta = Math.abs(possibleMatch.position().y - frame.centerY());   // frame.origin.y --> might be a bug using centerY
+            if (delta < bestDistance && possibleMatch != label)
             {
                 bestDistance = delta;
                 otherLabel = possibleMatch;
@@ -1615,6 +1645,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
     {
         setStatus(STATUS_BUSY);
         loadPointer(POINTER_MIDDLE);
+        //
         movePointerToRestingPosition(0.3f, true);
         playAudioScene("DEMO", 0, false); // Good! They’re : order.;
         waitAudio();

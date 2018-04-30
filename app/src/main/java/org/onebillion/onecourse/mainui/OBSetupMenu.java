@@ -1027,7 +1027,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
         //
         for (OBPath labelBox : stepLabels)
         {
-            OBLabel label = OC_Generic.action_createLabelForControl(labelBox, fontResizeFactor, false, finalSelf, font);
+            OBLabel label = OC_Generic.action_createLabelForControl(labelBox, fontResizeFactor, false, font, finalSelf);
             label.setColour(labelBox.strokeColor());
             //
             label.sizeToBoundingBox();

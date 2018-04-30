@@ -284,6 +284,11 @@ public class OC_Generic
         return new PointF(original.x, original.y);
     }
 
+    public static RectF copyRectF (RectF original)
+    {
+        return new RectF(original.left, original.top, original.right, original.bottom);
+    }
+
     public static double currentTime ()
     {
         return (SystemClock.uptimeMillis() / (double) 1000);
