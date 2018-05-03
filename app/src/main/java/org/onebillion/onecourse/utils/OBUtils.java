@@ -886,7 +886,7 @@ public class OBUtils
                 Math.round(Color.blue(colour) * 0.8f));
     }
 
-    static String getConfigFile (String fileName)
+    public static String getConfigFile (String fileName)
     {
         for (String path : OBConfigManager.sharedManager.getConfigSearchPaths())
         {

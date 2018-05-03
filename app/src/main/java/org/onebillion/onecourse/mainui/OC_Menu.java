@@ -1,12 +1,19 @@
 package org.onebillion.onecourse.mainui;
 
+import android.graphics.Color;
 import android.graphics.PointF;
+import android.graphics.RectF;
 import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
+import org.onebillion.onecourse.controls.OBLabel;
+import org.onebillion.onecourse.controls.OBPath;
+import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.utils.OBConfigManager;
+import org.onebillion.onecourse.utils.OBUtils;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -30,8 +37,33 @@ public class OC_Menu extends OC_SectionController
         //
         loadEvent("main");
         for (OBControl but : filterControls("but.*"))
+        {
             if (but instanceof OBGroup)
+            {
                 ((OBGroup) but).outdent(applyGraphicScale(8));
+            }
+            //
+            String labelValue = (String) but.attributes().get("label");
+            if (labelValue != null)
+            {
+                OBControl background = new OBControl();
+                background.setFrame(but.frame());
+                background.setPosition(OC_Generic.copyPoint(but.position()));
+                background.setBackgroundColor(Color.WHITE);
+                background.setBorderColor(Color.BLUE);
+                background.setBorderWidth(2.0f);
+                background.setCornerRadius(20.0f);
+                background.setZPosition(5.0f);
+                background.disable();
+                attachControl(background);
+                //
+                OBLabel label = OC_Generic.action_createLabelForControl(but, labelValue, 0.9f, false, OBUtils.standardTypeFace(), Color.BLACK, this);
+                label.setZPosition(6.0f);
+                label.disable();
+                label.sizeToBoundingBox();
+                attachControl(label);
+            }
+        }
         for (OBControl c : attachedControls)
             c.texturise(false,this);
 
