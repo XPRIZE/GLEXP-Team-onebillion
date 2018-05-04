@@ -12,7 +12,7 @@ public class OC_DiagnosticsQuestion
 {
     public String eventUUID;
     public List correctAnswers;
-    public List distractors;
+    public List<String> distractors;
     public List unitsUsed;
     public Map<String, Object> additionalInformation;
 

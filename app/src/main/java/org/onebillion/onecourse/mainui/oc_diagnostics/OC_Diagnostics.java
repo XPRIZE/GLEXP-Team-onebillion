@@ -33,7 +33,7 @@ public class OC_Diagnostics extends OC_SectionController
     OBControl smallTick;                        // tick for when the user picks the correct answer;
     OBControl smallCross;                       // cross for when the user picks an incorrect answer or doesnt pick the correct answer;
     String eventUUID;                           // eventUUID from the Diagnostics Manager;
-    List questions;                             // questions generated at the start of the exercise;
+    List<OC_DiagnosticsQuestion> questions;     // questions generated at the start of the exercise;
     List relevantParametersForRemedialUnits;    // parameters that will be used to further filter the remedial units based on the correct answer and what the user answered;
 
     double lastActionTimestamp;
@@ -88,7 +88,15 @@ public class OC_Diagnostics extends OC_SectionController
         {
             MainActivity.log("OC_Diagnostics --> WARNING: unable to find event : parameters");
         }
-        questions = generateQuestionsForExercise(eventUUID);
+        try
+        {
+            questions = generateQuestionsForExercise(eventUUID);
+        }
+        catch (Exception e)
+        {
+            MainActivity.log("OC_Diagnostics --> ERROR: exception caught: " + e.toString());
+            e.printStackTrace();
+        }
     }
 
 
@@ -189,7 +197,10 @@ public class OC_Diagnostics extends OC_SectionController
         OBControl background = objectDict.get(String.format("background_%s", OC_DiagnosticsManager.sharedManager().backgroundForEvent(eventUUID)));
         ;
         //
-        if (background != null) background.show();
+        if (background != null)
+        {
+            background.show();
+        }
         //
         buildScene();
     }
@@ -222,7 +233,7 @@ public class OC_Diagnostics extends OC_SectionController
     }
 
 
-    public List<OC_DiagnosticsQuestion> generateQuestionsForExercise(String eventUUID)
+    public List<OC_DiagnosticsQuestion> generateQuestionsForExercise(String eventUUID) throws Exception
     {
         return null;
     }
@@ -304,7 +315,7 @@ public class OC_Diagnostics extends OC_SectionController
     }
 
 
-    public void showAnswerFeedback(OBControl userAnswer)
+    public void showAnswerFeedback(OBControl userAnswer) throws Exception
     {
     }
 
@@ -416,6 +427,159 @@ public class OC_Diagnostics extends OC_SectionController
     {
         updateLastActionTimeStamp(true);
         super.replayAudio();
+    }
+
+
+    public static double evalExpression(final String str)
+    {
+        return new Object()
+        {
+            int pos = -1, ch;
+
+            void nextChar()
+            {
+                ch = (++pos < str.length()) ? str.charAt(pos) : -1;
+            }
+
+            boolean eat(int charToEat)
+            {
+                while (ch == ' ')
+                {
+                    nextChar();
+                }
+                if (ch == charToEat)
+                {
+                    nextChar();
+                    return true;
+                }
+                return false;
+            }
+
+            double parse()
+            {
+                nextChar();
+                double x = parseExpression();
+                if (pos < str.length())
+                {
+                    throw new RuntimeException("Unexpected: " + (char) ch);
+                }
+                return x;
+            }
+
+            // Grammar:
+            // expression = term | expression `+` term | expression `-` term
+            // term = factor | term `*` factor | term `/` factor
+            // factor = `+` factor | `-` factor | `(` expression `)`
+            //        | number | functionName factor | factor `^` factor
+
+            double parseExpression()
+            {
+                double x = parseTerm();
+                for (; ; )
+                {
+                    if (eat('+'))
+                    {
+                        x += parseTerm(); // addition
+                    }
+                    else if (eat('-'))
+                    {
+                        x -= parseTerm(); // subtraction
+                    }
+                    else
+                    {
+                        return x;
+                    }
+                }
+            }
+
+            double parseTerm()
+            {
+                double x = parseFactor();
+                for (; ; )
+                {
+                    if (eat('*'))
+                    {
+                        x *= parseFactor(); // multiplication
+                    }
+                    else if (eat('/'))
+                    {
+                        x /= parseFactor(); // division
+                    }
+                    else
+                    {
+                        return x;
+                    }
+                }
+            }
+
+            double parseFactor()
+            {
+                if (eat('+'))
+                {
+                    return parseFactor(); // unary plus
+                }
+                if (eat('-'))
+                {
+                    return -parseFactor(); // unary minus
+                }
+
+                double x;
+                int startPos = this.pos;
+                if (eat('('))
+                { // parentheses
+                    x = parseExpression();
+                    eat(')');
+                }
+                else if ((ch >= '0' && ch <= '9') || ch == '.')
+                { // numbers
+                    while ((ch >= '0' && ch <= '9') || ch == '.')
+                    {
+                        nextChar();
+                    }
+                    x = Double.parseDouble(str.substring(startPos, this.pos));
+                }
+                else if (ch >= 'a' && ch <= 'z')
+                { // functions
+                    while (ch >= 'a' && ch <= 'z')
+                    {
+                        nextChar();
+                    }
+                    String func = str.substring(startPos, this.pos);
+                    x = parseFactor();
+                    if (func.equals("sqrt"))
+                    {
+                        x = Math.sqrt(x);
+                    }
+                    else if (func.equals("sin"))
+                    {
+                        x = Math.sin(Math.toRadians(x));
+                    }
+                    else if (func.equals("cos"))
+                    {
+                        x = Math.cos(Math.toRadians(x));
+                    }
+                    else if (func.equals("tan"))
+                    {
+                        x = Math.tan(Math.toRadians(x));
+                    }
+                    else
+                    {
+                        throw new RuntimeException("Unknown function: " + func);
+                    }
+                }
+                else
+                {
+                    throw new RuntimeException("Unexpected: " + (char) ch);
+                }
+
+                if (eat('^'))
+                {
+                    x = Math.pow(x, parseFactor()); // exponentiation
+                }
+
+                return x;
+            }
+        }.parse();
     }
 
 }

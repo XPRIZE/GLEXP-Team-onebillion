@@ -363,10 +363,15 @@ public class OC_Generic
 
     public static OBLabel action_createLabelForControl (OBControl control, String text, float finalResizeFactor, Boolean insertIntoGroup, Typeface tf, int colour, OC_SectionController sc)
     {
+        Boolean autoResize = sc.eventAttributes.get("textSize") == null;
+        return action_createLabelForControl(control, text, finalResizeFactor, insertIntoGroup, autoResize, tf, colour, sc);
+    }
+
+    public static OBLabel action_createLabelForControl (OBControl control, String text, float finalResizeFactor, Boolean insertIntoGroup, Boolean autoResize, Typeface tf, int colour, OC_SectionController sc)
+    {
         try
         {
             RectF controlBounds = control.getWorldFrame();
-            Boolean autoResize = sc.eventAttributes.get("textSize") == null;
             float textSize = 1;
             //
             if (!autoResize)

@@ -48,8 +48,8 @@ public class OC_DiagnosticsManager
     static String kOptionsNumberRange = "number_range";                     // Range : the form of X-Y for options in the exercise
     static String kDistractorsNumberRange = "distractors_number_range";     // Range : the form of X-Y for distractors in the exercise
     static String kAnswerNumberRange = "answer_number_range";               // Range : the form of X-Y for answers in the exercise (the answer must fall within the range)
-    static String Parameter1NumberRange = "number_range_parameter_1";       // Range : the form of X-Y for parameter 1 in the exercise;
-    static String Parameter2NumberRange = "number_range_parameter_2";       // Range : the form of X-Y for parameter 1 in the exercise
+    static String kParameter1NumberRange = "number_range_parameter_1";       // Range : the form of X-Y for parameter 1 in the exercise;
+    static String kParameter2NumberRange = "number_range_parameter_2";       // Range : the form of X-Y for parameter 1 in the exercise
     static String kNumberComparison = "number_comparison";                  // For number comparison units, use kNumberComparisonLarger or kNumberComparisonSmaller
     static String kNumberComparisonLarger = "larger";                       //
     static String kNumberComparisonSmaller = "smaller";                     //
