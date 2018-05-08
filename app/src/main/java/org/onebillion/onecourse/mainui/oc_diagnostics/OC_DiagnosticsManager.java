@@ -234,12 +234,12 @@ public class OC_DiagnosticsManager
                 }
                 else
                 {
-                    MainActivity.log("OC_Diagnostics: loadMasterlist: %s.()  root node not found", masterListFolder);
+                    MainActivity.log("OC_Diagnostics: loadMasterlist: [%s]  root node not found", masterListFolder);
                 }
             }
             else
             {
-                MainActivity.log("OC_Diagnostics: loadMasterlist: %s.() file not found", masterListFolder);
+                MainActivity.log("OC_Diagnostics: loadMasterlist: [%s] file not found", masterListFolder);
             }
             return result;
         }
@@ -297,7 +297,7 @@ public class OC_DiagnosticsManager
 
     public void markQuestion(String eventUUID, boolean value, List parameters)
     {
-        MainActivity.log("OC_DiagnosticsManager --> markQuestionWithValueAndRelevantParameters --> %s.()", value ? "CORRECT" : "WRONG");
+        MainActivity.log("OC_DiagnosticsManager --> markQuestionWithValueAndRelevantParameters --> [%s]", value ? "CORRECT" : "WRONG");
         progress.add(value);
         currentQuestionIndex++;
         if (!value)

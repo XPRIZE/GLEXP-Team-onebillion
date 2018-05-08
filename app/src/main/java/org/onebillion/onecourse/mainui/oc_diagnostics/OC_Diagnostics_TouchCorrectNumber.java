@@ -29,7 +29,7 @@ public class OC_Diagnostics_TouchCorrectNumber extends OC_Diagnostics_TouchCorre
         OC_DiagnosticsQuestion currentQuestion = questions.get(currNo);
         int number = Integer.parseInt((String) currentQuestion.correctAnswers.get(0));
         //
-        MainActivity.log("Correct answer is %s.()", number);
+        MainActivity.log("Correct answer is [%s]", number);
         //
         String promptAudio = getAudioForScene(scene, "PROMPT").get(number + audioOffset);
         setReplayAudio((List<Object>) (Object) Arrays.asList(promptAudio));
@@ -74,7 +74,7 @@ public class OC_Diagnostics_TouchCorrectNumber extends OC_Diagnostics_TouchCorre
         //
         if (allParameters.size() < possibleAnswerCount)
         {
-            MainActivity.log("OC_Diagnostics_TouchCorrectNumber:generateQuestionsForExercise --> ERROR: not enough parameters to run this exercise %s.()", eventUUID);
+            MainActivity.log("OC_Diagnostics_TouchCorrectNumber:generateQuestionsForExercise --> ERROR: not enough parameters to run this exercise [%s]", eventUUID);
             return null;
         }
         List pickedAnswers = new ArrayList<>();

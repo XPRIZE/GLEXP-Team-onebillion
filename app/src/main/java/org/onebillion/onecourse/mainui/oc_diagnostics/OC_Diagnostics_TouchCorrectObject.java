@@ -48,7 +48,7 @@ public class OC_Diagnostics_TouchCorrectObject extends OC_Diagnostics
         //
         if (allParameters.size() < possibleAnswerCount)
         {
-            MainActivity.log("OC_Diagnostics_TouchCorrectObject:generateQuestionsForExercise --> ERROR: not enough parameters to run this exercise %s.()", eventUUID);
+            MainActivity.log("OC_Diagnostics_TouchCorrectObject:generateQuestionsForExercise --> ERROR: not enough parameters to run this exercise [%s]", eventUUID);
             return null;
         }
         List pickedAnswers = new ArrayList<>();
@@ -109,7 +109,7 @@ public class OC_Diagnostics_TouchCorrectObject extends OC_Diagnostics
         replayAudio.add(phoneme.audio());
         //
         setReplayAudio(replayAudio);
-        MainActivity.log("Correct answer is %s.()", phoneme.text);
+        MainActivity.log("Correct answer is [%s]", phoneme.text);
         playAudioQueuedScene("PROMPT", 300, true);
         //
         phoneme.playAudio(this, false);
@@ -129,7 +129,7 @@ public class OC_Diagnostics_TouchCorrectObject extends OC_Diagnostics
             OBPhoneme phoneme = (OBPhoneme) OC_DiagnosticsManager.sharedManager().WordComponents().get(phonemeUUID);
             if (phoneme == null)
             {
-                MainActivity.log("OC_Diagnostics_TouchCorrectObject --> ERROR: unable to find phoneme with UUID %s.()", phonemeUUID);
+                MainActivity.log("OC_Diagnostics_TouchCorrectObject --> ERROR: unable to find phoneme with UUID [%s]", phonemeUUID);
                 return;
             }
             OBLabel phonemeLabel = OC_Generic.action_createLabelForControl(labelBox, phoneme.text, 1.0f, false, false, OBUtils.standardTypeFace(), Color.BLACK, this);

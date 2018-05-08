@@ -384,7 +384,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
                 OBWord entry = (OBWord) localDictionary.get(item);
                 if (entry == null)
                 {
-                    MainActivity.log("OC_MakingPlurals:extractWordsFromParameter: ERROR --> %s.() has no entry : the local dictionary. skipping", item);
+                    MainActivity.log("OC_MakingPlurals:extractWordsFromParameter: ERROR --> [%s] has no entry : the local dictionary. skipping", item);
                     continue;
                 }
                 words.add(entry);

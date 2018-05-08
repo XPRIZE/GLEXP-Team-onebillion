@@ -38,7 +38,7 @@ public class OC_Diagnostics_TouchCorrectWord_InitialSyllable extends OC_Diagnost
         replayAudio.add(firstSyllable.audio());
         //
         setReplayAudio(replayAudio);
-        MainActivity.log("Correct answer is %s.()", word.text);
+        MainActivity.log("Correct answer is [%s]", word.text);
         playAudioQueuedScene("PROMPT", 300, true);
         firstSyllable.playAudio(this, false);
     }
@@ -73,7 +73,7 @@ public class OC_Diagnostics_TouchCorrectWord_InitialSyllable extends OC_Diagnost
             OBWord word = (OBWord) OC_DiagnosticsManager.sharedManager().WordComponents().get(wordUUID);
             if (word == null)
             {
-                MainActivity.log("OC_Diagnostics_TouchCorrectObject_InitialSyllable --> ERROR: unable to find word with UUID %s.()", wordUUID);
+                MainActivity.log("OC_Diagnostics_TouchCorrectObject_InitialSyllable --> ERROR: unable to find word with UUID [%s]", wordUUID);
                 return;
             }
             OBLabel wordLabel = OC_Generic.action_createLabelForControl(labelBox, word.text, 1.0f, false, false, OBUtils.standardTypeFace(), Color.BLACK, this);
@@ -115,7 +115,7 @@ public class OC_Diagnostics_TouchCorrectWord_InitialSyllable extends OC_Diagnost
         //
         if (allParameters.size() < possibleAnswerCount)
         {
-            MainActivity.log("OC_Diagnostics_TouchCorrectWord_InitialSyllable:generateQuestionsForExercise --> ERROR: not enough parameters to run this exercise %s.()", eventUUID);
+            MainActivity.log("OC_Diagnostics_TouchCorrectWord_InitialSyllable:generateQuestionsForExercise --> ERROR: not enough parameters to run this exercise [%s]", eventUUID);
             return null;
         }
         OBXMLManager xmlManager = new OBXMLManager();

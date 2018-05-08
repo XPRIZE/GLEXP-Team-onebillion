@@ -30,8 +30,8 @@ public class OC_Diagnostics_TouchCorrectObject_ShapeIdentification extends OC_Di
         List replayAudio = new ArrayList();
         replayAudio.addAll(getAudioForScene(scenario, "PROMPT"));
         //
-        MainActivity.log("Correct answer is %s.()", currentQuestion.correctAnswers);
-        MainActivity.log("Prompt Audio is %s.()", replayAudio);
+        MainActivity.log("Correct answer is [%s]", currentQuestion.correctAnswers);
+        MainActivity.log("Prompt Audio is [%s]", replayAudio);
         playAudioQueued(replayAudio);
     }
 
