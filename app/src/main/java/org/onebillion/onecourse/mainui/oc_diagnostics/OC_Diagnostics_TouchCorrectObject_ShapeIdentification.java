@@ -42,6 +42,9 @@ public class OC_Diagnostics_TouchCorrectObject_ShapeIdentification extends OC_Di
         for (OBControl shape : touchables)
         {
             toggleTouchedObject(shape, false);
+            //
+            OBPath path = (OBPath) shape;
+            path.sizeToBoundingBoxIncludingStroke();
         }
     }
 
@@ -53,7 +56,8 @@ public class OC_Diagnostics_TouchCorrectObject_ShapeIdentification extends OC_Di
         path.setProperty("selected", value);
     }
 
-    public boolean isAnswerCorrect(OBLabel label, boolean saveInformation)
+
+    public boolean isAnswerCorrect(OBControl label, boolean saveInformation)
     {
         OC_DiagnosticsQuestion currentQuestion = questions.get(currNo);
         //
@@ -160,7 +164,8 @@ public class OC_Diagnostics_TouchCorrectObject_ShapeIdentification extends OC_Di
         List result = new ArrayList<>();
         Map exerciseData = OC_DiagnosticsManager.sharedManager().parametersForEvent(eventUUID);
         Map scenarioCorrectAnswer = (Map) exerciseData.get(kScenarios);
-        List scenarios = Arrays.asList(scenarioCorrectAnswer.keySet().toArray());
+        List scenarios = new ArrayList();
+        scenarios.addAll(Arrays.asList(scenarioCorrectAnswer.keySet().toArray()));
         //
         int totalQuestions = Integer.parseInt((String) exerciseData.get(kTotalQuestions));
         //
@@ -181,7 +186,7 @@ public class OC_Diagnostics_TouchCorrectObject_ShapeIdentification extends OC_Di
     }
 
 
-    public void checkObject(OBLabel control) throws Exception
+    public void checkObject(OBControl control) throws Exception
     {
         setStatus(STATUS_CHECKING);
         //

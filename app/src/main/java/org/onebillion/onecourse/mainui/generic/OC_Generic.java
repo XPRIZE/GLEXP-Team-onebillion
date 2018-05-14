@@ -418,19 +418,22 @@ public class OC_Generic
     public static OBLabel action_createLabelForControl(OBControl control, String text, float finalResizeFactor, Boolean insertIntoGroup, Typeface tf, int colour, OC_SectionController sc)
     {
         Boolean autoResize = sc.eventAttributes.get("textSize") == null;
-        return action_createLabelForControl(control, text, finalResizeFactor, insertIntoGroup, autoResize, tf, colour, sc);
+        float textSize = 1;
+        return action_createLabelForControl(control, text, finalResizeFactor, insertIntoGroup, autoResize, tf, textSize, colour, sc);
     }
 
-    public static OBLabel action_createLabelForControl(OBControl control, String text, float finalResizeFactor, Boolean insertIntoGroup, Boolean autoResize, Typeface tf, int colour, OC_SectionController sc)
+    public static OBLabel action_createLabelForControl(OBControl control, String text, float finalResizeFactor, Boolean insertIntoGroup, Boolean autoResize, Typeface tf, float textSize, int colour, OC_SectionController sc)
     {
         try
         {
             RectF controlBounds = control.getWorldFrame();
-            float textSize = 1;
-            //
             if (!autoResize)
             {
-                textSize = sc.applyGraphicScale(Float.parseFloat(sc.eventAttributes.get("textSize")));
+                String eventTextSize = sc.eventAttributes.get("textSize");
+                if (eventTextSize != null)
+                {
+                    textSize = sc.applyGraphicScale(Float.parseFloat(eventTextSize));
+                }
             }
             //
             OBLabel label = new OBLabel(text, tf, textSize);

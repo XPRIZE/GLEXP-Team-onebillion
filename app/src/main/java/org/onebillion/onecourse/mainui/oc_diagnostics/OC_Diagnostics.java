@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static org.onebillion.onecourse.mainui.OBMainViewController.SHOW_TOP_LEFT_BUTTON;
 import static org.onebillion.onecourse.mainui.OBMainViewController.SHOW_TOP_RIGHT_BUTTON;
 
 /**
@@ -30,8 +31,8 @@ public class OC_Diagnostics extends OC_SectionController
     List<OBControl> touchables;                 // created objects that are allowed to interact with user;
     List<OBControl> inertObjects;               // objects that are created as part of the question but do not interact with the user;
     OBControl confirmAnswerButton;              // bottom right button for questions with multiple answers;
-    OBControl smallTick;                        // tick for when the user picks the correct answer;
-    OBControl smallCross;                       // cross for when the user picks an incorrect answer or doesnt pick the correct answer;
+    OBGroup smallTick;                          // tick for when the user picks the correct answer;
+    OBGroup smallCross;                         // cross for when the user picks an incorrect answer or doesnt pick the correct answer;
     String eventUUID;                           // eventUUID from the Diagnostics Manager;
     List<OC_DiagnosticsQuestion> questions;     // questions generated at the start of the exercise;
     List relevantParametersForRemedialUnits;    // parameters that will be used to further filter the remedial units based on the correct answer and what the user answered;
@@ -42,7 +43,8 @@ public class OC_Diagnostics extends OC_SectionController
     @Override
     public int buttonFlags()
     {
-        return SHOW_TOP_RIGHT_BUTTON;
+        return SHOW_TOP_LEFT_BUTTON | SHOW_TOP_RIGHT_BUTTON;
+        //return SHOW_TOP_RIGHT_BUTTON;
     }
 
 
@@ -61,18 +63,30 @@ public class OC_Diagnostics extends OC_SectionController
         masterObjects.putAll(objectDict);
         //
         OBGroup presenterControl = (OBGroup) objectDict.get("presenter");
-        presenterControl.hide();
+        if (presenterControl != null)
+        {
+            presenterControl.hide();
+        }
         //
         hideControls("background.*");
         //
         confirmAnswerButton = objectDict.get("confirm_answer");
-        confirmAnswerButton.hide();
+        if (confirmAnswerButton != null)
+        {
+            confirmAnswerButton.hide();
+        }
         //
-        smallTick = objectDict.get("tick");
-        smallTick.hide();
+        smallTick = (OBGroup) objectDict.get("tick");
+        if (smallTick != null)
+        {
+            smallTick.hide();
+        }
         //
-        smallCross = objectDict.get("cross");
-        smallCross.hide();
+        smallCross = (OBGroup) objectDict.get("cross");
+        if (smallCross != null)
+        {
+            smallCross.hide();
+        }
         //
         unitsUsedForParameter = new ArrayMap<>();
         touchables = new ArrayList<>();
@@ -86,7 +100,7 @@ public class OC_Diagnostics extends OC_SectionController
         }
         else
         {
-            MainActivity.log("OC_Diagnostics --> WARNING: unable to find event : parameters");
+            MainActivity.log("OC_Diagnostics --> WARNING: unable to find event in parameters");
         }
         try
         {
@@ -302,6 +316,7 @@ public class OC_Diagnostics extends OC_SectionController
         lockScreen();
         icon.hideMembers(".*");
         icon.showMembers("active");
+        icon.outdent(applyGraphicScale(10));
         unlockScreen();
     }
 
@@ -322,24 +337,26 @@ public class OC_Diagnostics extends OC_SectionController
 
     public void loadTickAtControl(OBControl control)
     {
-        OBControl newTick = smallTick.copy();
+        OBGroup newTick = (OBGroup) smallTick.copy();
         attachControl(newTick);
         newTick.show();
         newTick.setTop(control.position().y + control.height() * 0.25f);
         newTick.setLeft(control.right() + newTick.width() * 0.25f);
         newTick.setZPosition(10);
+        newTick.outdent(applyGraphicScale(10));
         inertObjects.add(newTick);
     }
 
 
     public void loadCrossAtControl(OBControl control)
     {
-        OBControl newCross = smallCross.copy();
+        OBGroup newCross = (OBGroup) smallCross.copy();
         attachControl(newCross);
         newCross.show();
         newCross.setTop(control.position().y + control.height() * 0.25f);
         newCross.setLeft(control.right() + newCross.width() * 0.25f);
         newCross.setZPosition(10);
+        newCross.outdent(applyGraphicScale(10));
         inertObjects.add(newCross);
     }
 

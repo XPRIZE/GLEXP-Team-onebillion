@@ -7,6 +7,7 @@ import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
+import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OBXMLManager;
 import org.onebillion.onecourse.utils.OBXMLNode;
@@ -30,9 +31,11 @@ public class OC_Diagnostics_TouchCorrectLetter extends OC_Diagnostics_TouchCorre
 
     public void doAudio(String scene) throws Exception
     {
+        if (questions == null) return;
+        //
         OC_DiagnosticsQuestion currentQuestion = questions.get(currNo);
         String letterName = (String) currentQuestion.correctAnswers.get(0);
-        String phonemeAudio = String.format("is_%", letterName);
+        String phonemeAudio = String.format("is_%s", letterName);
         //
         List replayAudio = new ArrayList();
         replayAudio.addAll(getAudioForScene(scene, "PROMPT"));
@@ -47,6 +50,8 @@ public class OC_Diagnostics_TouchCorrectLetter extends OC_Diagnostics_TouchCorre
 
     public void buildScene()
     {
+        if (questions == null) return;
+        //
         int totalParameters = filterControls("label.*").size();
         OC_DiagnosticsQuestion currentQuestion = questions.get(currNo);
         Map exerciseData = OC_DiagnosticsManager.sharedManager().parametersForEvent(eventUUID);
@@ -83,8 +88,7 @@ public class OC_Diagnostics_TouchCorrectLetter extends OC_Diagnostics_TouchCorre
         }
     }
 
-
-    public boolean isAnswerCorrect(OBLabel label, boolean saveInformation)
+    public boolean isAnswerCorrect(OBControl label, boolean saveInformation)
     {
         OC_DiagnosticsQuestion currentQuestion = questions.get(currNo);
         //

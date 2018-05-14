@@ -80,7 +80,7 @@ public class OC_PrepR3 extends OC_Reading
 
                     List<OBXMLNode>passagesNodes = cqNode.childrenOfType("passages");
                     if(passagesNodes.size() == 0)
-                        throw new Exception(String.format("Passages missing for %",passage.passageID));
+                        throw new Exception(String.format("Passages missing for %s",passage.passageID));
 
                     List<OBXMLNode>passageNodes = passagesNodes.get(0).childrenOfType("passage");
                     if(passageNodes.size() == 0)

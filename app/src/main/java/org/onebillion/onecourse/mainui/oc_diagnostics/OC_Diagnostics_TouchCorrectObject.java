@@ -2,6 +2,7 @@ package org.onebillion.onecourse.mainui.oc_diagnostics;
 
 import android.graphics.Color;
 import android.graphics.PointF;
+import android.graphics.Typeface;
 import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
@@ -44,7 +45,13 @@ public class OC_Diagnostics_TouchCorrectObject extends OC_Diagnostics
         //
         int totalQuestions = Integer.parseInt((String) exerciseData.get(kTotalQuestions));
         int possibleAnswerCount = Integer.parseInt((String) exerciseData.get(kTotalAvailableOptions));
-        int maxLength = Integer.parseInt((String) exerciseData.get(kParameterMaxWordLength));
+        //
+        String maxLengthString = (String) exerciseData.get(kParameterMaxWordLength);
+        int maxLength = 0;
+        if (maxLengthString != null)
+        {
+            maxLength = Integer.parseInt(maxLengthString);
+        }
         //
         if (allParameters.size() < possibleAnswerCount)
         {
@@ -118,9 +125,12 @@ public class OC_Diagnostics_TouchCorrectObject extends OC_Diagnostics
 
     public void buildScene()
     {
+        if (questions == null) return;
+        //
         int totalParameters = filterControls("label.*").size();
         OC_DiagnosticsQuestion currentQuestion = questions.get(currNo);
         float fontSize = bestFontSize();
+        //
         MainActivity.log("OC_Diagnostics_TouchCorrectObject --> using font size %f.()", fontSize);
         for (int i = 0; i < totalParameters; i++)
         {
@@ -132,7 +142,7 @@ public class OC_Diagnostics_TouchCorrectObject extends OC_Diagnostics
                 MainActivity.log("OC_Diagnostics_TouchCorrectObject --> ERROR: unable to find phoneme with UUID [%s]", phonemeUUID);
                 return;
             }
-            OBLabel phonemeLabel = OC_Generic.action_createLabelForControl(labelBox, phoneme.text, 1.0f, false, false, OBUtils.standardTypeFace(), Color.BLACK, this);
+            OBLabel phonemeLabel = OC_Generic.action_createLabelForControl(labelBox, phoneme.text, 1.0f, false, false, OBUtils.standardTypeFace(), fontSize, Color.BLACK, this);
             phonemeLabel.setProperty("phoneme", phoneme);
             touchables.add(phonemeLabel);
             attachControl(phonemeLabel);
@@ -152,6 +162,7 @@ public class OC_Diagnostics_TouchCorrectObject extends OC_Diagnostics
                 OBPhoneme phoneme = (OBPhoneme) OC_DiagnosticsManager.sharedManager().WordComponents().get(distractor);
                 OBLabel phonemeLabel = OC_Generic.action_createLabelForControl(labelBox, phoneme.text, 1.0f, false, OBUtils.standardTypeFace(), Color.BLACK, this);
                 fontSize = (fontSize == -1 || fontSize > phonemeLabel.fontSize()) ? phonemeLabel.fontSize() : fontSize;
+                detachControl(phonemeLabel);
             }
         }
         return fontSize;
@@ -199,7 +210,7 @@ public class OC_Diagnostics_TouchCorrectObject extends OC_Diagnostics
     }
 
 
-    public void checkObject(OBLabel control) throws Exception
+    public void checkObject(OBControl control) throws Exception
     {
         setStatus(STATUS_CHECKING);
         toggleTouchedObject(control, true);
@@ -306,7 +317,7 @@ public class OC_Diagnostics_TouchCorrectObject extends OC_Diagnostics
                 {
                     public void run() throws Exception
                     {
-                        checkObject((OBLabel) obj);
+                        checkObject((OBControl) obj);
                     }
                 });
             }

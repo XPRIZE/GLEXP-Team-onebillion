@@ -140,7 +140,7 @@ public class OC_DiagnosticsManager
                 List<String> filter = new ArrayList<>();
                 if (filterString.length() > 0)
                 {
-                    filter.addAll(Arrays.asList(filterString.split("|")));
+                    filter.addAll(Arrays.asList(filterString.split("\\|")));
                 }
                 List<Object> remedialUnitFilter = new ArrayList<>();
                 remedialUnitFilter.add(target);
@@ -198,12 +198,12 @@ public class OC_DiagnosticsManager
     {
         String masterListFolder = OBConfigManager.sharedManager.getMasterlist();
         //
-        if (masterListFolder == null || masterListFolder.length() > 0)
+        if (masterListFolder == null || masterListFolder.length() == 0)
         {
             return new ArrayList<>();
         }
         String masterList = String.format("masterlists/%s/units.xml", masterListFolder);
-        InputStream xmlPath = OBUtils.getInputStreamForPath(OBUtils.getAbsolutePathForFile(masterList));
+        InputStream xmlPath = OBUtils.getInputStreamForPath(masterList);
         //
         try
         {
@@ -285,7 +285,7 @@ public class OC_DiagnosticsManager
                 String[] values = ((String) split.get(split.size() - 1)).split(";|,| ");
                 for (String value : values)
                 {
-                    if (valuePrefix.length() > 0 && !value.startsWith(valuePrefix)) continue;
+                    if (valuePrefix != null && valuePrefix.length() > 0 && !value.startsWith(valuePrefix)) continue;
                     if (result.contains(value)) continue;
                     result.add(value);
                 }
@@ -323,6 +323,7 @@ public class OC_DiagnosticsManager
 
     public void loadCurrentQuestion()
     {
+        final String appCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
         OBSectionController currentController = MainViewController().viewControllers.get(MainViewController().viewControllers.size() - 1);
         currentController._aborting = true;
         //
@@ -335,7 +336,6 @@ public class OC_DiagnosticsManager
             }
             MainActivity.log("OC_DiagnosticsManager --> loadCurrentQuestion --> Reached the end of the questions");
             //
-            MainViewController().popViewController();
             OBUtils.runOnOtherThreadDelayed(0.1f, new OBUtils.RunLambda()
             {
                 public void run() throws Exception
@@ -347,11 +347,18 @@ public class OC_DiagnosticsManager
                         {
                             if (debugEnabled)
                             {
-                                MainViewController().pushViewControllerWithName("OC_DiagnosticsDebug", false, false, finalParameters);
+                                if (WrongAnswers() > 0)
+                                {
+                                    MainViewController().pushViewControllerWithNameConfig("OC_DiagnosticsDebug", appCode, false, false, finalParameters, true);
+                                }
+                                else
+                                {
+                                    MainViewController().popViewController();
+                                }
                             }
                             else
                             {
-                                MainViewController().pushViewControllerWithName("OC_DiagnosticsIntro", false, false, finalParameters);
+                                MainViewController().pushViewControllerWithNameConfig("OC_DiagnosticsIntro", appCode, false, false, finalParameters, true);
                             }
                         }
                     });
@@ -367,7 +374,7 @@ public class OC_DiagnosticsManager
                 @Override
                 public void run() throws Exception
                 {
-                    MainViewController().pushViewControllerWithName(eventTarget, false, false, startingParameters);
+                    MainViewController().pushViewControllerWithNameConfig(eventTarget, appCode, false, false, startingParameters, true);
                 }
             });
         }
@@ -442,7 +449,7 @@ public class OC_DiagnosticsManager
 
     public String CurrentEvent()
     {
-        if (questionEvents.size() <= currentQuestionIndex) return null;
+        if (questionEvents == null || questionEvents.size() <= currentQuestionIndex) return null;
         //
         String eventUUID = (String) questionEvents.get(currentQuestionIndex);
         return eventUUID;
@@ -473,7 +480,7 @@ public class OC_DiagnosticsManager
     public List availableUnitsForEvent(String eventUUID)
     {
         Map parameters = parametersForEvent(eventUUID);
-        List classFilter = (List) parameters.get(kClassFilter);
+        List classFilter = Arrays.asList((String[]) parameters.get(kClassFilter));
         //
         if (classFilter == null)
             return null;               // no filter required, the parameters are generated by the unit.;
@@ -496,7 +503,7 @@ public class OC_DiagnosticsManager
     {
         List<Map> availableUnits = availableUnitsForEvent(eventUUID);
         Map eventParameters = parametersForEvent(eventUUID);
-        List unitParameters = (List) eventParameters.get(kParameterFilter);
+        List unitParameters = Arrays.asList((String[])eventParameters.get(kParameterFilter));
         String parameterPrefix = (String) eventParameters.get(kParameterPrefix);
         Map<String, List> unitsUsedForParameter = new ArrayMap<>();
         //
@@ -591,20 +598,23 @@ public class OC_DiagnosticsManager
             {
                 List extractedValues = extractValuesFromParameters(parameters, unit, parameterFilter);
                 boolean unitWasRelevant = false;
-                for (String value : relevantParameters)
+                if (relevantParameters != null)
                 {
-                    List<String> possibleValues = Arrays.asList(value, String.format("is_%", value), String.format("isyl_%", value), String.format("fc_%", value), String.format("nw_%", value));
-                    //
-                    for (String possibleValue : possibleValues)
+                    for (String value : relevantParameters)
                     {
-                        if (extractedValues.contains(possibleValue))
+                        List<String> possibleValues = Arrays.asList(value, String.format("is_%s", value), String.format("isyl_%s", value), String.format("fc_%s", value), String.format("nw_%s", value));
+                        //
+                        for (String possibleValue : possibleValues)
                         {
-                            unitWasRelevant = true;
-                            relevantUnits.add(unit.get("id"));
-                            break;
+                            if (extractedValues.contains(possibleValue))
+                            {
+                                unitWasRelevant = true;
+                                relevantUnits.add(unit.get("id"));
+                                break;
+                            }
                         }
+                        if (unitWasRelevant) break;     // no more work to be done here;
                     }
-                    if (unitWasRelevant) break;     // no more work to be done here;
                 }
                 if (!unitWasRelevant)
                 {
@@ -684,7 +694,7 @@ public class OC_DiagnosticsManager
         int index = 1;
         for (String unit : remedialUnits)
         {
-            MainActivity.log("%2d: %", index, unit);
+            MainActivity.log("%2d: %s", index, unit);
             index++;
         }
         return remedialUnits;

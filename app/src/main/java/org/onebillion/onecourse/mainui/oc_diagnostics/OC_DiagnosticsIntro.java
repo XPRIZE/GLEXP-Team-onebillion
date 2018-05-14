@@ -64,7 +64,7 @@ public class OC_DiagnosticsIntro extends OC_Diagnostics
 
     public void setSceneXX(String scene)
     {
-        MainActivity.log("Intro Scene %", scene);
+        MainActivity.log("Intro Scene %s", scene);
         showQuestionProgress(!endSequence);
     }
 

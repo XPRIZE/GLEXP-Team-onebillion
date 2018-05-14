@@ -40,7 +40,7 @@ public class OC_Diagnostics_TouchCorrectWord_InitialSound extends OC_Diagnostics
     }
 
 
-    public boolean isAnswerCorrect(OBLabel label, boolean saveInformation)
+    public boolean isAnswerCorrect(OBControl label, boolean saveInformation)
     {
         OC_DiagnosticsQuestion currentQuestion = questions.get(currNo);
         OBWord userAnswer = (OBWord) label.propertyValue("word");
@@ -73,7 +73,7 @@ public class OC_Diagnostics_TouchCorrectWord_InitialSound extends OC_Diagnostics
                 return;
 
             }
-            OBLabel wordLabel = OC_Generic.action_createLabelForControl(labelBox, word.text, 1.0f, false, false, OBUtils.standardTypeFace(), Color.BLACK, this);
+            OBLabel wordLabel = OC_Generic.action_createLabelForControl(labelBox, word.text, 1.0f, false, false, OBUtils.standardTypeFace(), fontSize, Color.BLACK, this);
             wordLabel.setProperty("word", word);
             touchables.add(wordLabel);
             //

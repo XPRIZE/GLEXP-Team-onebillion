@@ -45,9 +45,13 @@ public class OC_Diagnostics_TouchCorrectNumber_Equation extends OC_Diagnostics_T
     {
         super.buildScene();
         //
+        if (questions == null) return;
+        //
         OC_DiagnosticsQuestion currentQuestion = questions.get(currNo);
         String equation = (String) currentQuestion.additionalInformation.get("equation");
         OBControl equationBox = objectDict.get("equation");
+        if (equationBox == null) return;
+        //
         OBLabel equationLabel = OC_Generic.action_createLabelForControl(equationBox, equation, 1.0f, false, OBUtils.standardTypeFace(), Color.BLACK, this);
         inertObjects.add(equationLabel);
         //
@@ -110,14 +114,14 @@ public class OC_Diagnostics_TouchCorrectNumber_Equation extends OC_Diagnostics_T
             String minDistractorString = distractorsRangeArray.get(0);
             if (minDistractorString.contains("n"))
             {
-                minDistractorString.replace("n", String.format("%d", correctValue));
+                minDistractorString = minDistractorString.replace("n", String.format("%d", correctValue));
                 minDistractorString = String.valueOf(Math.round(OC_Diagnostics.evalExpression(minDistractorString)));
             }
             //
             String maxDistractorString = distractorsRangeArray.get(1);
             if (maxDistractorString.contains("n"))
             {
-                maxDistractorString.replace("n", String.format("%d", correctValue));
+                maxDistractorString = maxDistractorString.replace("n", String.format("%d", correctValue));
                 maxDistractorString = String.valueOf(Math.round(OC_Diagnostics.evalExpression(maxDistractorString)));
             }
             //

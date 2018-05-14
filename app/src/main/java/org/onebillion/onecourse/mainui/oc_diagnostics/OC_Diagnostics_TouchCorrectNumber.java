@@ -39,6 +39,8 @@ public class OC_Diagnostics_TouchCorrectNumber extends OC_Diagnostics_TouchCorre
 
     public void buildScene()
     {
+        if (questions == null) return;
+        //
         int totalParameters = filterControls("label.*").size();
         OC_DiagnosticsQuestion currentQuestion = questions.get(currNo);
         for (int i = 0; i < totalParameters; i++)
@@ -102,7 +104,7 @@ public class OC_Diagnostics_TouchCorrectNumber extends OC_Diagnostics_TouchCorre
     }
 
 
-    public boolean isAnswerCorrect(OBLabel label, boolean saveInformation)
+    public boolean isAnswerCorrect(OBControl label, boolean saveInformation)
     {
         OC_DiagnosticsQuestion currentQuestion = questions.get(currNo);
         String correctAnswer = (String) currentQuestion.correctAnswers.get(0);

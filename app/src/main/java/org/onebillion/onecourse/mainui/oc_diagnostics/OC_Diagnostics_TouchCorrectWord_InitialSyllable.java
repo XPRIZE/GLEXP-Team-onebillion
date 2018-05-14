@@ -44,7 +44,7 @@ public class OC_Diagnostics_TouchCorrectWord_InitialSyllable extends OC_Diagnost
     }
 
 
-    public boolean isAnswerCorrect(OBLabel label, boolean saveInformation)
+    public boolean isAnswerCorrect(OBControl label, boolean saveInformation)
     {
         OC_DiagnosticsQuestion currentQuestion = questions.get(currNo);
         OBWord userAnswer = (OBWord) label.propertyValue("word");
@@ -76,7 +76,7 @@ public class OC_Diagnostics_TouchCorrectWord_InitialSyllable extends OC_Diagnost
                 MainActivity.log("OC_Diagnostics_TouchCorrectObject_InitialSyllable --> ERROR: unable to find word with UUID [%s]", wordUUID);
                 return;
             }
-            OBLabel wordLabel = OC_Generic.action_createLabelForControl(labelBox, word.text, 1.0f, false, false, OBUtils.standardTypeFace(), Color.BLACK, this);
+            OBLabel wordLabel = OC_Generic.action_createLabelForControl(labelBox, word.text, 1.0f, false, false, OBUtils.standardTypeFace(), fontSize, Color.BLACK, this);
             wordLabel.setProperty("word", word);
             touchables.add(wordLabel);
             attachControl(wordLabel);
@@ -96,6 +96,7 @@ public class OC_Diagnostics_TouchCorrectWord_InitialSyllable extends OC_Diagnost
                 OBWord word = (OBWord) OC_DiagnosticsManager.sharedManager().WordComponents().get(distractor);
                 OBLabel label = OC_Generic.action_createLabelForControl(labelBox, word.text, 1.0f, false, OBUtils.standardTypeFace(), Color.BLACK, this);
                 fontSize = (fontSize == -1 || fontSize > label.fontSize()) ? label.fontSize() : fontSize;
+                detachControl(label);
             }
         }
         return fontSize;
