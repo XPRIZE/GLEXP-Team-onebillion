@@ -1,6 +1,7 @@
 package org.onebillion.onecourse.mainui.generic;
 
 import android.graphics.Color;
+import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
@@ -32,6 +33,13 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.onebillion.onecourse.utils.OB_Maths.AddPoints;
+import static org.onebillion.onecourse.utils.OB_Maths.NormalisedVector;
+import static org.onebillion.onecourse.utils.OB_Maths.PointDistance;
+import static org.onebillion.onecourse.utils.OB_Maths.ScalarTimesPoint;
+import static org.onebillion.onecourse.utils.OB_Maths.lperp;
+import static org.onebillion.onecourse.utils.OB_Maths.rperp;
+
 /**
  * OC_Generic
  * Collection of functions that are common for all Maths and Literacy units.
@@ -52,7 +60,7 @@ public class OC_Generic
     public static void pointer_nudge(float x, float y, float angle, float time, Boolean wait, OC_SectionController sc)
     {
         PointF relativePosition = OB_Maths.relativePointInRectForLocation(sc.thePointer.position(), new RectF(sc.bounds()));
-        PointF nudge = OB_Maths.locationForRect(OB_Maths.AddPoints(relativePosition, new PointF(x, y)), new RectF(sc.bounds()));
+        PointF nudge = OB_Maths.locationForRect(AddPoints(relativePosition, new PointF(x, y)), new RectF(sc.bounds()));
         sc.movePointerToPoint(nudge, angle, time, wait);
     }
 
@@ -703,5 +711,54 @@ public class OC_Generic
 
         return sb.toString().trim();
     }
+
+
+    public static int lighterColourForColour(int c)
+    {
+        float[] hsv = new float[3];
+        Color.colorToHSV(c, hsv);
+        hsv[2] *= 1.2f;
+        return Color.HSVToColor(hsv);
+    }
+
+
+    public static int darkerColorForColor(int c)
+    {
+        float[] hsv = new float[3];
+        Color.colorToHSV(c, hsv);
+        hsv[2] *= 0.8f;
+        return Color.HSVToColor(hsv);
+    }
+
+
+    public static void movePointerToRestingPosition(float time, boolean wait, OC_SectionController sc)
+    {
+        OC_Generic.pointer_moveToRelativePointOnScreen(0.85f, 0.8f, 0f, time, wait, sc);
+    }
+
+
+    public static void hidePointer(OC_SectionController sc)
+    {
+        OC_Generic.pointer_moveToRelativePointOnScreen(1.1f, 1.1f, 0f, 0.6f, false, sc);
+    }
+
+
+    public static Path generateBezierPathForControl(OBControl control, PointF destination)
+    {
+        PointF from = OC_Generic.copyPoint(control.position());
+        float offset = PointDistance(from, destination);
+        Path path = new Path();
+        path.moveTo(from.x, from.y);
+        PointF c1 = OB_Maths.tPointAlongLine(0.30f, from, destination);
+        PointF c2 = OB_Maths.tPointAlongLine(0.70f, from, destination);
+        PointF lp1 = ScalarTimesPoint(offset / 2,NormalisedVector(lperp(OB_Maths.DiffPoints(destination, from))));
+        PointF lp2 = ScalarTimesPoint(offset / 4,NormalisedVector(rperp(OB_Maths.DiffPoints(destination, from))));
+        PointF cp1 = AddPoints(c1, lp1);
+        PointF cp2 = AddPoints(c2, lp2);
+        path.cubicTo(destination.x, destination.y, cp1.x, cp1.y, cp2.x, cp2.y);
+        return path;
+    }
+
+
 
 }
