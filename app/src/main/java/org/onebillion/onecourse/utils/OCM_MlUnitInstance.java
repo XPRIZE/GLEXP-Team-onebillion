@@ -114,6 +114,7 @@ public class OCM_MlUnitInstance extends DBObject
         whereMap.put("userid",String.valueOf(userid));
         whereMap.put("unitid",String.valueOf(unitid));
         whereMap.put("seqNo",String.valueOf(seqNo));
+        whereMap.put("sessionid",String.valueOf(sessionid));
         whereMap.put("typeid",String.valueOf(typeid));
 
         ContentValues contentValues = new ContentValues();
