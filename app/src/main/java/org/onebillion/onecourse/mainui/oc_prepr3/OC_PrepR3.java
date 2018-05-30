@@ -29,13 +29,13 @@ import static org.onebillion.onecourse.utils.OBReadingWord.WORD_SPEAKABLE;
 
 public class OC_PrepR3 extends OC_Reading
 {
-    class Est3_Question
+    public static class Est3_Question
     {
         String questionText,questionID;
         int sentenceIndex;
         List<String> answers;
     }
-    class Est3_Passage
+    public static class Est3_Passage
     {
         String passageID;
         List<String> sentences;
@@ -63,7 +63,7 @@ public class OC_PrepR3 extends OC_Reading
     String collectionPassageID;
     int collectionQuestionNo,collectionAnswerNo;
 
-    Map LoadPassagesXML(String xmlPath)
+    public static Map LoadPassagesXML(String xmlPath)
     {
         Map dict = new HashMap();
         try
