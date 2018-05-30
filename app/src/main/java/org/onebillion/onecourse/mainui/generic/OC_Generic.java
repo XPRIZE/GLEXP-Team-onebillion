@@ -712,22 +712,23 @@ public class OC_Generic
         return sb.toString().trim();
     }
 
-
-    public static int lighterColourForColour(int c)
+    public static int adjustColour(int colour, float factor)
     {
         float[] hsv = new float[3];
-        Color.colorToHSV(c, hsv);
-        hsv[2] *= 1.2f;
+        Color.colorToHSV(colour, hsv);
+        hsv[2] *= (1 + factor);
         return Color.HSVToColor(hsv);
     }
 
-
-    public static int darkerColorForColor(int c)
+    public static int lighterColour(int c)
     {
-        float[] hsv = new float[3];
-        Color.colorToHSV(c, hsv);
-        hsv[2] *= 0.8f;
-        return Color.HSVToColor(hsv);
+        return adjustColour(c, 0.2f);
+    }
+
+
+    public static int darkerColor(int c)
+    {
+        return adjustColour(c, -0.2f);
     }
 
 
@@ -751,14 +752,13 @@ public class OC_Generic
         path.moveTo(from.x, from.y);
         PointF c1 = OB_Maths.tPointAlongLine(0.30f, from, destination);
         PointF c2 = OB_Maths.tPointAlongLine(0.70f, from, destination);
-        PointF lp1 = ScalarTimesPoint(offset / 2,NormalisedVector(lperp(OB_Maths.DiffPoints(destination, from))));
-        PointF lp2 = ScalarTimesPoint(offset / 4,NormalisedVector(rperp(OB_Maths.DiffPoints(destination, from))));
+        PointF lp1 = ScalarTimesPoint(offset / 2, NormalisedVector(lperp(OB_Maths.DiffPoints(destination, from))));
+        PointF lp2 = ScalarTimesPoint(offset / 4, NormalisedVector(rperp(OB_Maths.DiffPoints(destination, from))));
         PointF cp1 = AddPoints(c1, lp1);
         PointF cp2 = AddPoints(c2, lp2);
-        path.cubicTo(destination.x, destination.y, cp1.x, cp1.y, cp2.x, cp2.y);
+        path.cubicTo(cp1.x, cp1.y, cp2.x, cp2.y, destination.x, destination.y);
         return path;
     }
-
 
 
 }

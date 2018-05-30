@@ -1,5 +1,6 @@
 package org.onebillion.onecourse.mainui.oc_countingto1000;
 
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.view.View;
@@ -21,7 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static org.onebillion.onecourse.mainui.generic.OC_Generic.darkerColorForColor;
+import static org.onebillion.onecourse.mainui.generic.OC_Generic.darkerColor;
 
 public class OC_CountingTo1000 extends OC_SectionController
 {
@@ -135,6 +136,7 @@ public class OC_CountingTo1000 extends OC_SectionController
         attachControl(button1Label);
         button1Label.hide();
         button1.hide();
+        button1.sizeToBoundingBoxIncludingStroke();
         //
         button10 = (OBPath) objectDict.get("button_10");
         button10.setPosition(new PointF(bounds().width() * 0.5f, bounds().height() * 0.9f));
@@ -147,6 +149,7 @@ public class OC_CountingTo1000 extends OC_SectionController
         attachControl(button10Label);
         button10Label.hide();
         button10.hide();
+        button10.sizeToBoundingBoxIncludingStroke();
         //
         button100 = (OBPath) objectDict.get("button_100");
         button100.setPosition(new PointF(bounds().width() * 0.5f, bounds().height() * 0.9f));
@@ -159,6 +162,7 @@ public class OC_CountingTo1000 extends OC_SectionController
         attachControl(button100Label);
         button100Label.hide();
         button100.hide();
+        button100.sizeToBoundingBoxIncludingStroke();
         //
         block1Template = (OBPath) objectDict.get("block_1");
         block10Template = (OBPath) objectDict.get("block_10");
@@ -241,6 +245,8 @@ public class OC_CountingTo1000 extends OC_SectionController
         numberBox.hide();
         hideControls("colour.*");
         hideControls("position.*");
+        //
+        numberBoxLabelTemplate.hide();
     }
 
 
@@ -315,8 +321,8 @@ public class OC_CountingTo1000 extends OC_SectionController
         int strokeColour = (int) button.propertyValue("original_stroke");
         if (value)
         {
-            fillColour = darkerColorForColor(fillColour);
-            strokeColour = darkerColorForColor(strokeColour);
+            fillColour = darkerColor(fillColour);
+            strokeColour = darkerColor(strokeColour);
         }
         button.setFillColor(fillColour);
         button.setStrokeColor(strokeColour);
@@ -330,7 +336,7 @@ public class OC_CountingTo1000 extends OC_SectionController
         int fillColour = (value) ? colourNumberBoxSelected : colourNumberBoxNormal;
         if (darkerColour)
         {
-            fillColour = darkerColorForColor(fillColour);
+            fillColour = darkerColor(fillColour);
         }
         else if (hilitedColour)
         {
@@ -465,12 +471,18 @@ public class OC_CountingTo1000 extends OC_SectionController
                 }
             }
         }
-        OBGroup completeSet = new OBGroup(result);
-        completeSet.sizeToBox(setFrame);
-        completeSet.setPosition(middleScreen);
-        for (OBControl set : result)
+        if (setFrame != null)
         {
-            completeSet.removeMember(set);
+            OBGroup completeSet = new OBGroup(result, setFrame);
+            completeSet.setPosition(middleScreen);
+            for (OBControl set : result)
+            {
+                completeSet.removeMember(set);
+            }
+            //
+//            completeSet.setBorderColor(Color.YELLOW);
+//            completeSet.setBorderWidth(3.0f);
+//            attachControl(completeSet);
         }
         return result;
     }
@@ -520,7 +532,7 @@ public class OC_CountingTo1000 extends OC_SectionController
 
     public void playGridQuestion() throws Exception
     {
-        String number = String.format("n_%", questionsForThirdPhase.get(questionIndexForThirdPhase));
+        String number = String.format("n_%s", questionsForThirdPhase.get(questionIndexForThirdPhase));
         playAudio(number);
         List replayAudio = new ArrayList();
         replayAudio.addAll(((Map<String, List>) audioScenes.get(currentEvent())).get("REPEAT"));
@@ -673,7 +685,7 @@ public class OC_CountingTo1000 extends OC_SectionController
                     }
                 }
                 String wrongAudio = getAudioForScene(currentEvent(), "INCORRECT").get(0);
-                List audio = OBUtils.insertAudioInterval(Arrays.asList(wrongAudio, String.format("n_%", questionsForThirdPhase.get(questionIndexForThirdPhase))), 300);
+                List audio = OBUtils.insertAudioInterval(Arrays.asList(wrongAudio, String.format("n_%s", questionsForThirdPhase.get(questionIndexForThirdPhase))), 300);
                 //
                 OBConditionLock audioLock = playAudioQueued(audio, false);
                 while (audioLock.conditionValue() != PROCESS_DONE)
@@ -686,7 +698,7 @@ public class OC_CountingTo1000 extends OC_SectionController
                 }
                 questionIndexForThirdPhase++;
                 wrongAudio = getAudioForScene(currentEvent(), "INCORRECT").get(1);
-                audio = OBUtils.insertAudioInterval(Arrays.asList(wrongAudio, String.format("n_%", questionsForThirdPhase.get(questionIndexForThirdPhase))), 300);
+                audio = OBUtils.insertAudioInterval(Arrays.asList(wrongAudio, String.format("n_%s", questionsForThirdPhase.get(questionIndexForThirdPhase))), 300);
                 if (questionIndexForThirdPhase >= questionsForThirdPhase.size())
                 {
                     gotItRightBigTick(true);
@@ -710,23 +722,26 @@ public class OC_CountingTo1000 extends OC_SectionController
         setStatus(STATUS_CHECKING);
         highlightCell(cell, true, false, true);
         waitForSecs(0.3f);
+        //
         OBLabel label = (OBLabel) cell.propertyValue("label");
         playSfxAudio("numberingrid", false);
+        //
         lockScreen();
         label.show();
-
         unlockScreen();
         waitForSecs(0.3f);
-        playAudio(String.format("n_%", label.text()));
+        //
+        playAudio(String.format("n_%s", label.text()));
         waitAudio();
-        nextHilitedCell();
         //
         if (isFirstHilitedCell())
         {
             waitForSecs(0.3f);
             //
-            playAudioQueuedScene("PROMPT", 300, false);
+            playAudioQueuedScene("PROMPT", 0.3f, false);
         }
+        //
+        nextHilitedCell();
         //
         lockScreen();
         highlightCell(cell, false, false, false);
@@ -807,12 +822,12 @@ public class OC_CountingTo1000 extends OC_SectionController
 
     public boolean isFirstHilitedCell()
     {
-        return hilitedCellIndex == 1;
+        return hilitedCellIndex == 0;
     }
 
     public boolean isCompleteHilitingCells()
     {
-        return hilitedCellIndex > 10;
+        return hilitedCellIndex >= 10;
     }
 
     public void touchUpAtPoint(final PointF pt, View v)

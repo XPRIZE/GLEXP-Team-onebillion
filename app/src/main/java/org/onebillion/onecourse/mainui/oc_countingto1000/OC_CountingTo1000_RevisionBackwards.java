@@ -28,7 +28,7 @@ public class OC_CountingTo1000_RevisionBackwards extends OC_CountingTo1000_Revis
         waitForSecs(0.2f);
         //
         List<String> audioFiles = getAudioForScene(currentEvent(), "DEMO");
-        String presenterAudio = audioFiles.get(0);                                  // Let’s practise counting to one thousand, : hundreds!;
+        String presenterAudio = audioFiles.get(0);                                  // Let’s practise counting to one thousand, in hundreds!;
         presenter.speak((List<Object>) (Object) presenterAudio, 0.3f, this);
         waitForSecs(0.7f);
         //

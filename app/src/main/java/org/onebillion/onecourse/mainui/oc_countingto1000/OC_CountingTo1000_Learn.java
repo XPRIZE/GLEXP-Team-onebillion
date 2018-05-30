@@ -185,9 +185,9 @@ public class OC_CountingTo1000_Learn extends OC_CountingTo1000
         setStatus(STATUS_BUSY);
         //
         loadPointer(POINTER_MIDDLE);
-        playAudioQueuedScene("DEMO", 300, false);
+        OBConditionLock lock = playAudioQueuedScene("DEMO", 300, false);
         movePointerToRestingPosition(0.6f, true, this);
-        waitAudio();
+        waitAudioQueue(lock);
         waitForSecs(0.3f);
         //
         nextScene();
@@ -489,7 +489,7 @@ public class OC_CountingTo1000_Learn extends OC_CountingTo1000
         int originalStrokeColour = -1;
         for (OBPath cell : numberGrid)
         {
-            String number = String.format("n_%", cell.propertyValue("number"));
+            String number = String.format("n_%s", cell.propertyValue("number"));
             OBLabel label = (OBLabel) cell.propertyValue("label");
             if (originalStrokeColour == -1)
             {

@@ -163,12 +163,12 @@ public class OC_CountingTo1000_Revision extends OC_CountingTo1000
 
     public boolean isFirstHilitedCell()
     {
-        return hilitedCellIndex == 1;
+        return hilitedCellIndex == 0;
     }
 
     public boolean isCompleteHilitingCells()
     {
-        return hilitedCellIndex > 10;
+        return hilitedCellIndex >= 10;
     }
 
     public void checkDragAtPoint(PointF pt)
@@ -181,7 +181,7 @@ public class OC_CountingTo1000_Revision extends OC_CountingTo1000
             OBPath anyCell = (OBPath) findCell(pt);
             if (anyCell == null)
             {
-                PointF originalPosition = OC_Generic.copyPoint((PointF) label.propertyValue("original.position())"));
+                PointF originalPosition = OC_Generic.copyPoint((PointF) label.propertyValue("original_position"));
                 OBAnim moveAnim = OBAnim.moveAnim(originalPosition, label);
                 OBAnimationGroup.runAnims(Arrays.asList(moveAnim), 0.3, false, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
                 setStatus(STATUS_AWAITING_CLICK);
@@ -189,56 +189,64 @@ public class OC_CountingTo1000_Revision extends OC_CountingTo1000
             else
             {
                 OBPath hilitedCell = (OBPath) findHilitedCell(pt);
-                String correctAnswer = (String) hilitedCell.propertyValue("number");
-                String userAnswer = label.text();
-                if (hilitedCell != null && correctAnswer.equals(userAnswer))
+                //
+                if (hilitedCell != null)
                 {
-                    highlightCell(hilitedCell, false, false, true);
-                    label.moveToPoint(hilitedCell.position(), 0.1f, false);
-                    gotItRightBigTick(false);
-                    waitForSecs(0.3f);
-                    //
-                    nextHilitedCell();
-                    if (isCompleteHilitingCells())
+                    String correctAnswer = (String) hilitedCell.propertyValue("number");
+                    String userAnswer = label.text();
+                    if (correctAnswer.equals(userAnswer))
                     {
-                        hiliteCurrentCell();
-                        gotItRightBigTick(true);
+                        highlightCell(hilitedCell, false, false, true);
+                        label.moveToPoint(hilitedCell.position(), 0.1f, false);
+                        gotItRightBigTick(false);
                         waitForSecs(0.3f);
                         //
-                        nextScene();
+                        nextHilitedCell();
+                        if (isCompleteHilitingCells())
+                        {
+                            hiliteCurrentCell();
+                            gotItRightBigTick(true);
+                            waitForSecs(0.3f);
+                            //
+                            nextScene();
+                        }
+                        else
+                        {
+                            thirdPhaseWrongAnswerCount = 0;
+                            playSfxAudio("fill", false);
+                            hiliteCurrentCell();
+                            setStatus(STATUS_AWAITING_CLICK);
+                        }
                     }
                     else
                     {
-                        thirdPhaseWrongAnswerCount = 0;
-                        playSfxAudio("fill", false);
-                        hiliteCurrentCell();
+                        gotItWrongWithSfx();
+                        thirdPhaseWrongAnswerCount++;
+                        PointF originalPosition = OC_Generic.copyPoint((PointF) label.propertyValue("original_position"));
+                        OBAnim moveAnim = OBAnim.moveAnim(originalPosition, label);
+                        OBAnimationGroup.runAnims(Arrays.asList(moveAnim), 0.3, false, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
                         setStatus(STATUS_AWAITING_CLICK);
+                        if (thirdPhaseWrongAnswerCount > 2)
+                        {
+                            OBLabel correctLabel = (OBLabel) hilitedCell.propertyValue("label");
+                            for (int i = 0; i < 3; i++)
+                            {
+                                lockScreen();
+                                correctLabel.setColour(colourNumberBoxHilited);
+                                unlockScreen();
+                                waitForSecs(0.3f);
+                                //
+                                lockScreen();
+                                correctLabel.setColour(colourTextNormal);
+                                unlockScreen();
+                                waitForSecs(0.3f);
+                            }
+                        }
                     }
                 }
                 else
                 {
-                    gotItWrongWithSfx();
-                    thirdPhaseWrongAnswerCount++;
-                    PointF originalPosition = OC_Generic.copyPoint((PointF) label.propertyValue("original.position())"));
-                    OBAnim moveAnim = OBAnim.moveAnim(originalPosition, label);
-                    OBAnimationGroup.runAnims(Arrays.asList(moveAnim), 0.3, false, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
                     setStatus(STATUS_AWAITING_CLICK);
-                    if (thirdPhaseWrongAnswerCount > 2)
-                    {
-                        OBLabel correctLabel = (OBLabel) hilitedCell.propertyValue("label");
-                        for (int i = 0; i < 3; i++)
-                        {
-                            lockScreen();
-                            correctLabel.setColour(colourNumberBoxHilited);
-                            unlockScreen();
-                            waitForSecs(0.3f);
-                            //
-                            lockScreen();
-                            correctLabel.setColour(colourTextNormal);
-                            unlockScreen();
-                            waitForSecs(0.3f);
-                        }
-                    }
                 }
             }
         }
@@ -306,9 +314,11 @@ public class OC_CountingTo1000_Revision extends OC_CountingTo1000
     public void demointro2() throws Exception
     {
         setStatus(STATUS_BUSY);
+        //
         loadPointer(POINTER_MIDDLE);
+        //
         movePointerToRestingPosition(0.6f, false, this);
-        playAudioQueuedScene("DEMO", 300, true);                            // Let’s practise counting : hundreds, to one thousand.;
+        playAudioQueuedScene("DEMO", 0.3f, true);                            // Let’s practise counting in hundreds, to one thousand.;
         waitForSecs(0.7f);
         //
         nextScene();
@@ -407,7 +417,7 @@ public class OC_CountingTo1000_Revision extends OC_CountingTo1000
         {
             OBPath cell = numberGrid.get(hilitedCellIndex);
             OBLabel label = (OBLabel) cell.propertyValue("label");
-            String number = String.format("n_%", cell.propertyValue("number"));
+            String number = String.format("n_%s", cell.propertyValue("number"));
             if (originalStrokeColour == -1)
             {
                 originalStrokeColour = cell.strokeColor();

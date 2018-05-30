@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 
-import static org.onebillion.onecourse.mainui.generic.OC_Generic.darkerColorForColor;
+import static org.onebillion.onecourse.mainui.generic.OC_Generic.darkerColor;
 import static org.onebillion.onecourse.mainui.generic.OC_Generic.hidePointer;
 import static org.onebillion.onecourse.mainui.generic.OC_Generic.movePointerToRestingPosition;
 
@@ -450,7 +450,7 @@ public class OC_CountingPractice_Grid extends OC_SectionController
             }
             waitForSecs(0.3f);
             //
-            String numberAudio = String.format("n_%", numbers.get(startCell + i));
+            String numberAudio = String.format("n_%s", numbers.get(startCell + i));
             playAudio(numberAudio);
             //
             lockScreen();
@@ -529,7 +529,7 @@ public class OC_CountingPractice_Grid extends OC_SectionController
                     }
                 }
                 String wrongAudio = getAudioForSceneIndex(currentEvent(), "INCORRECT", 0);                   //  It's this one;
-                List<Object> audio = OBUtils.insertAudioInterval(Arrays.asList(wrongAudio, String.format("n_%", numbersForPhase2.get(phase2QuestionIndex))), 300);
+                List<Object> audio = OBUtils.insertAudioInterval(Arrays.asList(wrongAudio, String.format("n_%s", numbersForPhase2.get(phase2QuestionIndex))), 300);
                 OBConditionLock audioLock = playAudioQueued(audio, false);
                 while (audioLock.conditionValue() != PROCESS_DONE)
                 {
@@ -551,7 +551,7 @@ public class OC_CountingPractice_Grid extends OC_SectionController
                 else
                 {
                     wrongAudio = getAudioForSceneIndex(currentEvent(), "INCORRECT", 1);                     // Now find the next one!;
-                    audio = OBUtils.insertAudioInterval(Arrays.asList(wrongAudio, String.format("n_%", numbersForPhase2.get(phase2QuestionIndex))), 300);
+                    audio = OBUtils.insertAudioInterval(Arrays.asList(wrongAudio, String.format("n_%s", numbersForPhase2.get(phase2QuestionIndex))), 300);
                     phase2WrongAnswerCount = 0;
                     playAudioQueued(audio);
                 }
@@ -685,7 +685,7 @@ public class OC_CountingPractice_Grid extends OC_SectionController
 
     private void playGridQuestion()
     {
-        String number = String.format("n_%", numbersForPhase2.get(phase2QuestionIndex));
+        String number = String.format("n_%s", numbersForPhase2.get(phase2QuestionIndex));
         playAudio(number);
         List<String> replayAudio = new ArrayList<>();
         replayAudio.addAll(getAudioForScene(currentEvent(), "REPEAT"));
@@ -854,7 +854,7 @@ public class OC_CountingPractice_Grid extends OC_SectionController
         //
         for (OBLabel label : numberGridLabels)
         {
-            String number = String.format("n_%", label.text());
+            String number = String.format("n_%s", label.text());
             playAudio(number);
             //
             lockScreen();
@@ -905,7 +905,7 @@ public class OC_CountingPractice_Grid extends OC_SectionController
         int fillColour = (value) ? colourNumberBoxSelected : colourNumberBoxNormal;
         if (darkerColour)
         {
-            fillColour = darkerColorForColor(fillColour);
+            fillColour = darkerColor(fillColour);
         }
         else if (hilitedColour)
         {
