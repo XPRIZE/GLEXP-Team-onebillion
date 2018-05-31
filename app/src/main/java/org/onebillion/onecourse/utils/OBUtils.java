@@ -725,8 +725,8 @@ public class OBUtils
         }
         else
         {
-            List<String> ls = (List<String>) audios;
-            for (String audio : ls)
+            List<Object> ls = (List<Object>) audios;
+            for (Object audio : ls)
             {
                 arr.add(audio);
                 if (ls.get(ls.size() - 1) != audio)

@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 
-import static org.onebillion.onecourse.mainui.generic.OC_Generic.darkerColor;
+import static org.onebillion.onecourse.mainui.generic.OC_Generic.adjustColour;
 import static org.onebillion.onecourse.mainui.generic.OC_Generic.hidePointer;
 import static org.onebillion.onecourse.mainui.generic.OC_Generic.movePointerToRestingPosition;
 
@@ -117,9 +117,9 @@ public class OC_CountingPractice_Grid extends OC_SectionController
         phase2WrongAnswerCount = 0;
         //
         List<String> phase3 = new ArrayList<>();
-        phase3.addAll(OBUtils.randomlySortedArray(numbers.subList(0, 10).subList(0, 3)));
-        phase3.addAll(OBUtils.randomlySortedArray(numbers.subList(10, 20).subList(0, 3)));
-        phase3.addAll(OBUtils.randomlySortedArray(numbers.subList(20, 30).subList(0, 3)));
+        phase3.addAll(OBUtils.randomlySortedArray(numbers.subList(0, 10)).subList(0, 3));
+        phase3.addAll(OBUtils.randomlySortedArray(numbers.subList(10, 20)).subList(0, 3));
+        phase3.addAll(OBUtils.randomlySortedArray(numbers.subList(20, 30)).subList(0, 3));
         //
         numbersForPhase3 = OBUtils.randomlySortedArray(phase3);
         phase3QuestionIndex = 0;
@@ -222,42 +222,42 @@ public class OC_CountingPractice_Grid extends OC_SectionController
                                     }
                                 });
                             }
-                        }
-                        else if (dragNumberEvents.contains(currentEvent()))
-                        {
-                            if (!reminderAudioWasPlayed)
+                            else if (dragNumberEvents.contains(currentEvent()))
                             {
-                                waitAudio();
-                                playAudioQueuedScene("REMINDER", 300, false);
-                                reminderAudioWasPlayed = true;
-                            }
-                            //
-                            for (int i = 0; i < 3; i++)
-                            {
-                                lockScreen();
-                                for (OBLabel label : draggableLabelsForPhase3)
+                                if (!reminderAudioWasPlayed)
                                 {
-                                    if (label.isEnabled())
-                                    {
-                                        label.setColour(colourTextHilited);
-                                    }
+                                    waitAudio();
+                                    playAudioQueuedScene("REMINDER", 0.3f, false);
+                                    reminderAudioWasPlayed = true;
                                 }
-                                unlockScreen();
-                                waitForSecs(0.2f);
                                 //
-                                lockScreen();
-                                for (OBLabel label : draggableLabelsForPhase3)
+                                for (int i = 0; i < 3; i++)
                                 {
-                                    if (label.isEnabled())
+                                    lockScreen();
+                                    for (OBLabel label : draggableLabelsForPhase3)
                                     {
-                                        label.setColour(colourTextMovable);
+                                        if (label.isEnabled())
+                                        {
+                                            label.setColour(colourTextHilited);
+                                        }
                                     }
+                                    unlockScreen();
+                                    waitForSecs(0.2f);
+                                    //
+                                    lockScreen();
+                                    for (OBLabel label : draggableLabelsForPhase3)
+                                    {
+                                        if (label.isEnabled())
+                                        {
+                                            label.setColour(colourTextMovable);
+                                        }
+                                    }
+                                    unlockScreen();
+                                    waitForSecs(0.2f);
                                 }
-                                unlockScreen();
-                                waitForSecs(0.2f);
                             }
+                            updateLastActionTimeStamp();
                         }
-                        updateLastActionTimeStamp();
                     }
                 }
                 Thread.sleep(1000);
@@ -308,7 +308,7 @@ public class OC_CountingPractice_Grid extends OC_SectionController
         for (OBControl box : numberGrid)
         {
             OBLabel label = (OBLabel) numberBoxLabelTemplate.copy();
-            label.setPosition(OC_Generic.copyPoint(label.position()));
+            label.setPosition(OC_Generic.copyPoint(box.position()));
             label.setString((String) box.propertyValue("number"));
             label.setProperty("original_position", OC_Generic.copyPoint(label.position()));
             label.setProperty("box", box);
@@ -322,6 +322,7 @@ public class OC_CountingPractice_Grid extends OC_SectionController
         numberBox.hide();
         hideControls("colour.*");
         hideControls("position.*");
+        numberBoxLabelTemplate.hide();
     }
 
     public void setSceneXX(String scene)
@@ -691,7 +692,7 @@ public class OC_CountingPractice_Grid extends OC_SectionController
         replayAudio.addAll(getAudioForScene(currentEvent(), "REPEAT"));
         replayAudio.add(number);
         //
-        setReplayAudio(OBUtils.insertAudioInterval(replayAudio, 3000));
+        setReplayAudio(OBUtils.insertAudioInterval(replayAudio, 300));
     }
 
     public void demointro1() throws Exception
@@ -710,7 +711,7 @@ public class OC_CountingPractice_Grid extends OC_SectionController
         //
         PointF currPos = OC_Generic.copyPoint(presenter.control.position());
         OBControl front = presenter.control.objectDict.get("front");
-        PointF destPos = new PointF(bounds().width() - front.width(), currPos.y);
+        PointF destPos = new PointF(bounds().width() - 1.5f * front.width(), currPos.y);
         presenter.walk(destPos);
         presenter.faceFront();
         waitForSecs(0.2f);
@@ -719,7 +720,7 @@ public class OC_CountingPractice_Grid extends OC_SectionController
         audioFiles.add(getAudioForSceneIndex(currentEvent(), "DEMO", 2));                   // Ready?;
         presenter.speak((List<Object>) (Object) audioFiles, 0.3f, this);
         currPos = presenter.control.position();
-        destPos = new PointF(bounds().width() + front.width(), currPos.y);
+        destPos = new PointF(1.25f * bounds().width() + front.width(), currPos.y);
         presenter.walk(destPos);
         //
         nextScene();
@@ -731,7 +732,7 @@ public class OC_CountingPractice_Grid extends OC_SectionController
         loadPointer(POINTER_MIDDLE);
         //
         movePointerToRestingPosition(0.6f, false, this);
-        playAudioQueuedScene("DEMO", 300, true);
+        playAudioQueuedScene("DEMO", 0.3f, true);
         //
         nextScene();
     }
@@ -778,7 +779,7 @@ public class OC_CountingPractice_Grid extends OC_SectionController
         setStatus(STATUS_BUSY);
         loadPointer(POINTER_MIDDLE);
         //
-        playAudioQueuedScene("DEMO", 300, false);                                           // Next … touch all the numbers you hear.;
+        playAudioQueuedScene("DEMO", 0.3f, false);                                           // Next … touch all the numbers you hear.;
         movePointerToRestingPosition(0.6f, true, this);
         waitAudio();
         waitForSecs(0.3f);
@@ -905,7 +906,7 @@ public class OC_CountingPractice_Grid extends OC_SectionController
         int fillColour = (value) ? colourNumberBoxSelected : colourNumberBoxNormal;
         if (darkerColour)
         {
-            fillColour = darkerColor(fillColour);
+            fillColour = adjustColour(fillColour, -0.1f);
         }
         else if (hilitedColour)
         {

@@ -349,11 +349,14 @@ public class OC_FlippingEquations extends OC_SectionController
             equationIndex = flippingEquationEvents.indexOf(scene) + 4 - 2;     // +4 for the right equation index and -2 for the two demo events displacement
         //
         Map<String, Object> equation = equationNumbers.get(equationIndex);
-        if (addedLabels.size() > 0)
+        if (addedLabels != null)
         {
-            for (OBLabel label : addedLabels)
+            if (addedLabels.size() > 0)
             {
-                detachControl(label);
+                for (OBLabel label : addedLabels)
+                {
+                    detachControl(label);
+                }
             }
         }
         //
@@ -403,17 +406,17 @@ public class OC_FlippingEquations extends OC_SectionController
         PointF lastPoint = underline.lastPoint();
         lastPoint.x = part2Box.right();
         //
-        OBPath newPath = new OBPath();
-        newPath.moveToPoint(firstPoint.x, firstPoint.y);
-        newPath.addLineToPoint(lastPoint.x, lastPoint.y);
+        Path newPath = new Path();
+        newPath.moveTo(firstPoint.x, firstPoint.y);
+        newPath.lineTo(lastPoint.x, lastPoint.y);
         //
-        underline.setPath(newPath.path());
+        underline.setPath(newPath);
         underline.sizeToBoundingBoxIncludingStroke();
         //
         if (isPhase2 || isPhase3)
         {
             part1Box = objectDict.get("phase2_equation_part_1");
-            part1Label = action_createLabelForControl(part1Box, (String) equation.get("part1"), resizeFactorForEquation, false, OBUtils.standardTypeFace(), colourTextNormal, this);
+            part1Label = action_createLabelForControl(part1Box, (String) equation.get("part2"), resizeFactorForEquation, false, OBUtils.standardTypeFace(), colourTextNormal, this);
             part1Label.hide();
             addedLabels.add(part1Label);
             equation2Labels.add(part1Label);
@@ -425,7 +428,7 @@ public class OC_FlippingEquations extends OC_SectionController
             equation2Labels.add(signLabel);
             //
             part2Box = objectDict.get("phase2_equation_part_2");
-            part2Label = action_createLabelForControl(part2Box, (String) equation.get("part2"), resizeFactorForEquation, false, OBUtils.standardTypeFace(), colourTextNormal, this);
+            part2Label = action_createLabelForControl(part2Box, (String) equation.get("part1"), resizeFactorForEquation, false, OBUtils.standardTypeFace(), colourTextNormal, this);
             part2Label.hide();
             addedLabels.add(part2Label);
             equation2Labels.add(part2Label);
@@ -448,6 +451,8 @@ public class OC_FlippingEquations extends OC_SectionController
         //
         if (!isPhase3)
         {
+            OBControl bottomBar = objectDict.get("background_bottom_bar");
+            //
             float resizeFactorForOptions = 0.9f;
             int optionIndex = 0;
             List<String> options = (List<String>) equation.get("options");
@@ -456,14 +461,15 @@ public class OC_FlippingEquations extends OC_SectionController
             {
                 String number = options.get(optionIndex);
                 OBLabel optionLabel = action_createLabelForControl(placement, number, resizeFactorForOptions, false, OBUtils.standardTypeFace(), colourTextMovable, this);
-                PointF position = OC_Generic.copyPoint(optionLabel.position());
-                optionLabel.setProperty("original_position", position);
+                PointF newPosition = OC_Generic.copyPoint(optionLabel.position());
+                optionLabel.setProperty("original_position", OC_Generic.copyPoint(newPosition));
                 optionLabel.setProperty("original_colour", colourTextMovable);
+                optionLabel.setZPosition(bottomBar.zPosition() + 1.0f);
                 //
                 if (isPhase1 || isFlippingPhase)
                 {
-                    position.x -= bounds().width();
-                    optionLabel.setPosition(position);
+                    newPosition.x -= bounds().width();
+                    optionLabel.setPosition(newPosition);
                 }
                 addedLabels.add(optionLabel);
                 optionLabels.add(optionLabel);
@@ -514,7 +520,7 @@ public class OC_FlippingEquations extends OC_SectionController
     {
         if (currentEvent().equals("a")) return;
         //
-        playAudioQueuedScene("DEMO", 300, true);
+        playAudioQueuedScene("DEMO", 0.3f, true);
         //
         if (isPhase(1, currentEvent()) || flippingEquationEvents.contains(currentEvent()))
         {
@@ -574,7 +580,7 @@ public class OC_FlippingEquations extends OC_SectionController
         if (value && equationWasFlipped) return;
         if (!value && !equationWasFlipped) return;
         //
-        if (flippingAnimation.lock != null && flippingAnimation.lock.conditionValue() != PROCESS_DONE)
+        if (flippingAnimation != null && flippingAnimation.lock != null && flippingAnimation.lock.conditionValue() != PROCESS_DONE)
         {
             MainActivity.log("OC_FlippingEquations: flipEquation:completionBlock --> animation not done yet. Ignoring request to flip");
             return;
@@ -590,19 +596,6 @@ public class OC_FlippingEquations extends OC_SectionController
         //
         OBLabel equationPart1 = equation1Labels.get(0);
         OBLabel equationPart2 = equation1Labels.get(2);
-        //
-        PointF point1 = (PointF) equationPart1.propertyValue("original_position");
-        PointF point2 = (PointF) equationPart2.propertyValue("original_position");
-        //
-        OBPath newPath1 = new OBPath();
-        newPath1.moveToPoint(point2.x, point2.y);
-        newPath1.addLineToPoint(point1.x, point1.y);
-        path1.setPath(newPath1.path());
-        //
-        OBPath newPath2 = new OBPath();
-        newPath2.moveToPoint(point1.x, point1.y);
-        newPath2.addLineToPoint(point2.x, point2.y);
-        path2.setPath(newPath2.path());
         //
         if (value)
         {
@@ -724,6 +717,7 @@ public class OC_FlippingEquations extends OC_SectionController
         //
         lockScreen();
         underline.show();
+        underline.enable();
         unlockScreen();
     }
 
@@ -828,7 +822,7 @@ public class OC_FlippingEquations extends OC_SectionController
             {
                 waitForSecs(1.0f);
                 //
-                playAudioQueuedScene("FINAL", 300, true);
+                playAudioQueuedScene("FINAL", 0.3f, true);
                 waitForSecs(1.5f);
             }
             else
@@ -878,6 +872,7 @@ public class OC_FlippingEquations extends OC_SectionController
         }
         else
         {
+            underline.disable();
             flipEquation(true, new OBUtils.RunLambda()
             {
                 @Override
@@ -892,6 +887,8 @@ public class OC_FlippingEquations extends OC_SectionController
                             lockScreen();
                             underline.setStrokeColor(colourUnderlineNormal);
                             unlockScreen();
+                            //
+                            underline.enable();
                         }
                     });
                 }
@@ -952,7 +949,7 @@ public class OC_FlippingEquations extends OC_SectionController
         //
         PointF currPos = OC_Generic.copyPoint(presenter.control.position());
         OBControl front = presenter.control.objectDict.get("front");
-        PointF destPos = new PointF(bounds().width() - front.width(), currPos.y);
+        PointF destPos = new PointF(bounds().width() - 1.5f * front.width(), currPos.y);
         presenter.walk(destPos);
         presenter.faceFront();
         presenterAudio = (String) audioFiles.get(2);                                // You’ll see!;
@@ -960,7 +957,7 @@ public class OC_FlippingEquations extends OC_SectionController
         waitForSecs(0.3f);
         //
         currPos = presenter.control.position();
-        destPos = new PointF(bounds().width() + front.width(), currPos.y);
+        destPos = new PointF(1.25f * bounds().width() + front.width(), currPos.y);
         presenter.walk(destPos);
         //
         nextScene();

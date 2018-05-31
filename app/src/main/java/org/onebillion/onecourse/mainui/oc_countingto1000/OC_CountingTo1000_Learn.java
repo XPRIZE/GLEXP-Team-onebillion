@@ -166,7 +166,7 @@ public class OC_CountingTo1000_Learn extends OC_CountingTo1000
         //
         PointF currPos = OC_Generic.copyPoint(presenter.control.position());
         OBControl front = presenter.control.objectDict.get("front");
-        PointF destPos = new PointF(bounds().width() - front.width(), currPos.y);
+        PointF destPos = new PointF(bounds().width() - 1.5f * front.width(), currPos.y);
         presenter.walk(destPos);
         presenter.faceFront();
         presenterAudio = audioFiles.get(2);                   // Ready?;
@@ -174,7 +174,7 @@ public class OC_CountingTo1000_Learn extends OC_CountingTo1000
         waitForSecs(0.3f);
         //
         currPos = presenter.control.position();
-        destPos = new PointF(bounds().width() + front.width(), currPos.y);
+        destPos = new PointF(1.25f * bounds().width() + front.width(), currPos.y);
         presenter.walk(destPos);
         //
         nextScene();
@@ -185,7 +185,7 @@ public class OC_CountingTo1000_Learn extends OC_CountingTo1000
         setStatus(STATUS_BUSY);
         //
         loadPointer(POINTER_MIDDLE);
-        OBConditionLock lock = playAudioQueuedScene("DEMO", 300, false);
+        OBConditionLock lock = playAudioQueuedScene("DEMO", 0.3f, false);
         movePointerToRestingPosition(0.6f, true, this);
         waitAudioQueue(lock);
         waitForSecs(0.3f);

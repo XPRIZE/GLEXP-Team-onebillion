@@ -320,7 +320,7 @@ public class OC_Generic
 
     public static double currentTime()
     {
-        return (SystemClock.uptimeMillis() / (double) 1000);
+        return (SystemClock.elapsedRealtime() / (double) 1000);
     }
 
     public static PointF firstPoint(OBPath path, OC_SectionController sc)
@@ -472,6 +472,9 @@ public class OC_Generic
             label.setPosition(control.getWorldPosition());
             label.setZPosition(OC_Generic.getNextZPosition(sc));
             label.texturise(false, sc);
+            //
+            PointF originalPosition = OC_Generic.copyPoint(label.getWorldPosition());
+            label.setProperty("original_position", originalPosition);
             //
             if (insertIntoGroup)
             {

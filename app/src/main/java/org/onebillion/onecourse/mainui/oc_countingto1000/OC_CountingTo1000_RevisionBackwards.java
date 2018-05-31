@@ -38,7 +38,7 @@ public class OC_CountingTo1000_RevisionBackwards extends OC_CountingTo1000_Revis
         //
         PointF currPos = OC_Generic.copyPoint(presenter.control.position());
         OBControl front = presenter.control.objectDict.get("front");
-        PointF destPos = new PointF(bounds().width() - front.width(),  currPos.y);
+        PointF destPos = new PointF(bounds().width() - 1.5f * front.width(),  currPos.y);
         presenter.walk(destPos);
         presenter.faceFront();
         presenterAudio = audioFiles.get(2);                               // Are you ready?;
@@ -46,7 +46,7 @@ public class OC_CountingTo1000_RevisionBackwards extends OC_CountingTo1000_Revis
         waitForSecs(0.3f);
         //
         currPos = presenter.control.position();
-        destPos = new PointF(bounds().width() + front.width(),  currPos.y);
+        destPos = new PointF(1.25f * bounds().width() + front.width(),  currPos.y);
         presenter.walk(destPos);
         nextScene();
     }

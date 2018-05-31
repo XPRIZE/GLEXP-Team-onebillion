@@ -14,6 +14,7 @@ import org.onebillion.onecourse.utils.OBUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by alan on 07/06/16.
@@ -185,8 +186,11 @@ public class OBPresenter extends OBCharacter
                 controller.unlockScreen();
                 controller.checkSequenceToken(token);
             }
-        } catch (Exception exception)
+        }
+        catch (Exception exception)
         {
+            MainActivity.log(exception.getMessage());
+            exception.printStackTrace();
         }
         controller.unlockSequenceLock();
         controller.lockScreen();
