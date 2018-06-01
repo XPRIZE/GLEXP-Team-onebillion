@@ -32,7 +32,7 @@ public class OC_PrepR3 extends OC_Reading
     public static class Est3_Question
     {
         public String questionText,questionID;
-        public int sentenceIndex;
+        public List<Integer> sentenceIndices = new ArrayList<>();
         public List<String> answers;
     }
     public static class Est3_Passage
@@ -110,7 +110,8 @@ public class OC_PrepR3 extends OC_Reading
                         List<OBXMLNode>correctNodes = quNode.childrenOfType("correct");
                         if(correctNodes.size() == 0)
                             throw new Exception(String.format("Correct reference missing for %s.%s",passage.passageID,quNode.attributeStringValue("id")));
-                        question.sentenceIndex = Integer.parseInt(correctNodes.get(0).contents);
+                        for (String is : correctNodes.get(0).contents.split(","))
+                            question.sentenceIndices.add(Integer.parseInt(is));
                     }
                     dict.put(passage.passageID,passage);
                 }
@@ -452,7 +453,7 @@ public class OC_PrepR3 extends OC_Reading
         {
             textGroup = new OBGroup(new ArrayList<OBControl>(),objectDict.get("textbox").frame());
             laidOutLines = layOutManually(passageText.toString());
-            backingRects = createBackingRects(laidOutLines);
+            //backingRects = createBackingRects(laidOutLines);
             attachControl(textGroup);
         }
         else
@@ -476,7 +477,8 @@ public class OC_PrepR3 extends OC_Reading
 
     public void setScenefeedback()
     {
-        highlightedIdx = currPassage.questions.get(questionNo) .sentenceIndex - 1;
+        //highlightedIdx = currPassage.questions.get(questionNo) .sentenceIndex - 1;
+        highlightedIdx = -1;
         setUpPassage();
         for (OBControl c : backingRects)
             c.hide();
@@ -546,15 +548,24 @@ public class OC_PrepR3 extends OC_Reading
         setStatus(STATUS_DOING_DEMO);
         waitForSecs(0.4f);
         playAudioQueuedScene("DEMO",true);
-        lockScreen();
-        for (OBControl c : backingRects)
-            c.show();
-        unlockScreen();
         playSfxAudio("tap",false);
         waitForSecs(0.7f);
         Est3_Question qu = currPassage.questions.get(questionNo);
-        int sno = qu.sentenceIndex;
-        playAudioForSentence(sno);
+        for(Integer n : qu.sentenceIndices)
+        {
+            int ni = n;
+            highlightedIdx = ni - 1;
+            lockScreen();
+            backingRects = createBackingRects(laidOutLines);
+            //layOutBox.layer.setNeedsDisplay();
+            for (OBControl c : backingRects)
+                c.show();
+            unlockScreen();
+            playSfxAudio("tap",false);
+            waitForSecs(0.7f);
+            playAudioForSentence(ni);
+            waitForSecs(0.3f);
+        }
         waitForSecs(1f);
         nextScene();
     }

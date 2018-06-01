@@ -32,7 +32,7 @@ public class OC_Comprehension extends OC_SectionController
     boolean playQuestionAudio;
     OBPresenter presenter;
     String storyID;
-    Map storyDict;
+    Map<String,OC_PrepR3.Est3_Passage> storyDict;
     String audioPrefix;
     List<OBGroup> answerControls,screenOrderedAnswerControls;
     OBLabel questionLabel;
