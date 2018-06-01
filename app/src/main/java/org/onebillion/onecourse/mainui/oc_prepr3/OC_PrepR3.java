@@ -31,15 +31,15 @@ public class OC_PrepR3 extends OC_Reading
 {
     public static class Est3_Question
     {
-        String questionText,questionID;
-        int sentenceIndex;
-        List<String> answers;
+        public String questionText,questionID;
+        public int sentenceIndex;
+        public List<String> answers;
     }
     public static class Est3_Passage
     {
-        String passageID;
-        List<String> sentences;
-        List<Est3_Question> questions;
+        public String passageID;
+        public List<String> sentences;
+        public List<Est3_Question> questions;
     }
 
     static int MARGIN = 24;

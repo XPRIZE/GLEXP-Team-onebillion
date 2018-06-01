@@ -31,7 +31,7 @@ public class OBTextLayer extends OBLayer
     float lineOffset;
     int hiStartIdx=-1,hiEndIdx=-1;
     int hiRangeColour;
-    float letterSpacing,lineSpaceMultiplier=1.0f;
+    float letterSpacing,lineSpaceMultiplier=1.0f,lineSpaceAdd;
     public int justification = JUST_CENTRE;
     Rect tempRect;
     SpannableString spanner;
@@ -68,6 +68,7 @@ public class OBTextLayer extends OBLayer
         obj.lineOffset = lineOffset;
         obj.letterSpacing = letterSpacing;
         obj.lineSpaceMultiplier = lineSpaceMultiplier;
+        obj.lineSpaceAdd = lineSpaceAdd;
         obj.hiStartIdx = hiStartIdx;
         obj.hiEndIdx = hiEndIdx;
         obj.hiRangeColour = hiRangeColour;
@@ -87,7 +88,7 @@ public class OBTextLayer extends OBLayer
         float mw = maxw > 0?maxw:(just==JUST_CENTRE)?bounds().width():4000;
         stLayout = new StaticLayout(spanner,textPaint,(int)Math.ceil(mw),
                 (just==JUST_CENTRE)?Layout.Alignment.ALIGN_CENTER:Layout.Alignment.ALIGN_NORMAL,
-                lineSpaceMultiplier,0,false);
+                lineSpaceMultiplier,lineSpaceAdd,false);
         displayObjectsValid = true;
     }
     @Override
@@ -212,6 +213,17 @@ public class OBTextLayer extends OBLayer
         displayObjectsValid = false;
     }
 
+    public float lineSpaceAdd()
+    {
+        return lineSpaceAdd;
+    }
+
+    public void setLineSpaceAdd(float f)
+    {
+        this.lineSpaceAdd = f;
+        displayObjectsValid = false;
+    }
+
     public float textSize()
     {
         return textSize;
@@ -253,4 +265,13 @@ public class OBTextLayer extends OBLayer
         stLayout.getSelectionPath(start,end,dest);
     }
 
+    public void setJustification(int j)
+    {
+        justification = j;
+    }
+
+    public int justification()
+    {
+        return justification;
+    }
 }
