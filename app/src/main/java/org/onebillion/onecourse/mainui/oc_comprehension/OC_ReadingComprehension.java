@@ -64,7 +64,7 @@ public class OC_ReadingComprehension extends OC_Comprehension
             if(len > 0)
                 len++;
             if(i == idx)
-                return Arrays.asList(len,s.length());
+                return Arrays.asList(len,len + s.length());
             len += s.length();
             i++;
         }
@@ -87,6 +87,7 @@ public class OC_ReadingComprehension extends OC_Comprehension
         passageLabel.setLineSpaceAdd(lineSpacing);
         passageLabel.setZPosition(50);
         passageLabel.setColour(Color.BLACK);
+        passageLabel.setAlignment(OBLabel.OBLABEL_ALIGN_LEFT);
         //passageLabel.setWrapped(true);
         passageLabel.sizeToBoundingBoxMaxWidth(textBox.width());
         passageLabel.setLeft(textBox.left());
@@ -134,8 +135,9 @@ public class OC_ReadingComprehension extends OC_Comprehension
         loadEvent("question");
         if(questionLabel != null)
             detachControl(questionLabel);
-        for(OBControl c : answerControls)
-            detachControl(c);
+        if (answerControls != null)
+            for(OBControl c : answerControls)
+                detachControl(c);
 
         setUpQuestion(questionNo);
     }
@@ -211,7 +213,9 @@ public class OC_ReadingComprehension extends OC_Comprehension
     public void animatePassage(boolean on) throws Exception
     {
         PointF pos = new PointF();
-        pos.set(((PointF)passageLabel.propertyValue("origpos")).x,-1 - passageLabel.height() / 2);
+        pos.set((PointF)passageLabel.propertyValue("origpos"));
+        if (!on)
+            pos.y = -1 - passageLabel.height() / 2;
         OBAnim anim = OBAnim.moveAnim(pos,passageLabel);
         float destopacity = on?0:1;
         List anims = new ArrayList();
@@ -219,7 +223,7 @@ public class OC_ReadingComprehension extends OC_Comprehension
         anims.add(OBAnim.opacityAnim(destopacity,questionLabel));
         for(OBControl c : answerControls)
             anims.add(OBAnim.opacityAnim(destopacity,c));
-        OBAnimationGroup.runAnims(anims,0.3,true,OBAnim.ANIM_EASE_IN_EASE_OUT,null);
+        OBAnimationGroup.runAnims(anims,0.3,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
     }
 
     public void flashArrow(final long stt)
@@ -422,7 +426,7 @@ public class OC_ReadingComprehension extends OC_Comprehension
                 {
                     int nn = n.intValue();
                     List<Integer> r = rangeForSentenceIndex(nn - 1);
-                    passageLabel.setHighRange(r.get(0),r.get(0) + r.get(1),Color.RED);
+                    passageLabel.setHighRange(r.get(0),r.get(1),Color.RED);
                     playStorySentence(nn - 1);
                     waitForSecs(0.3f);
                     passageLabel.setHighRange(-1,-1,Color.BLACK);

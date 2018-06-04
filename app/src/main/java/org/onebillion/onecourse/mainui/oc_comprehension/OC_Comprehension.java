@@ -47,7 +47,7 @@ public class OC_Comprehension extends OC_SectionController
         loadEvent("mastera");
         playQuestionAudio = OBUtils.coalesce(parameters.get("quaudio") ,"false").equals("true");
         textSize = Float.parseFloat(OBUtils.coalesce(eventAttributes.get("textsize") ,"56"));
-        lineSpacing = Float.parseFloat(OBUtils.coalesce(eventAttributes.get("linespacing") ,"27"));
+        lineSpacing = applyGraphicScale(Float.parseFloat(OBUtils.coalesce(eventAttributes.get("linespacing") ,"27")));
         storyID = OBUtils.coalesce(parameters.get("storyid") ,"1");
         font = StandardReadingFontOfSize(textSize);
     }
@@ -88,6 +88,8 @@ public class OC_Comprehension extends OC_SectionController
 
         qlab.setZPosition(10);
         qlab.setColour(Color.BLACK);
+        qlab.setAlignment(OBLABEL_ALIGN_LEFT);
+
         //qlab.setWrapped(true);
         qlab.setMaxWidth(questionRect.width());
         qlab.sizeToBoundingBox();
@@ -133,6 +135,7 @@ public class OC_Comprehension extends OC_SectionController
             f.right = f.left + (rect.width());
             gp.setFrame(f);
             gp.setBackgroundColor(Color.WHITE);
+            gp.outdent(applyGraphicScale(10f));
             anss.add(gp);
             gp.setProperty("answerno",(idx));
             //gp.hide();
