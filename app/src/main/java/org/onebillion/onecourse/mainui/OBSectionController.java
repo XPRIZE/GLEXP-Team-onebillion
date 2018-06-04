@@ -2573,5 +2573,9 @@ public class OBSectionController extends OBViewController
 
     }
 
+    public boolean aborting()
+    {
+        return _aborting;
+    }
 }
 

@@ -5,6 +5,8 @@ import android.graphics.Typeface;
 
 import org.onebillion.onecourse.utils.OBFont;
 
+import java.util.List;
+
 /**
  * Created by alan on 12/12/15.
  */
@@ -220,6 +222,14 @@ public class OBLabel extends OBControl
     {
         OBTextLayer tl = (OBTextLayer)layer;
         return tl.justification();
+    }
+
+    public void setBackgroundColourRanges(List<List<Integer>> backgroundColourRanges, int col)
+    {
+        OBTextLayer tl = (OBTextLayer)layer;
+        tl.setBackgroundColourRanges(backgroundColourRanges,col);
+        setNeedsRetexture();
+        invalidate();
     }
 
 }

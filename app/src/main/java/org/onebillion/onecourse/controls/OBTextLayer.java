@@ -11,7 +11,10 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.StaticLayout;
 import android.text.TextPaint;
+import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
+
+import java.util.List;
 
 /**
  * Created by alan on 21/04/16.
@@ -26,7 +29,7 @@ public class OBTextLayer extends OBLayer
     Typeface typeFace;
     float textSize;
     String text;
-    int colour;
+    int colour,bgColour;
     TextPaint textPaint;
     float lineOffset;
     int hiStartIdx=-1,hiEndIdx=-1;
@@ -37,6 +40,7 @@ public class OBTextLayer extends OBLayer
     SpannableString spanner;
     boolean displayObjectsValid = false;
     public float maxWidth = -1;
+    List<List<Integer>> backgroundColourRanges;
 
     public OBTextLayer()
     {
@@ -85,6 +89,15 @@ public class OBTextLayer extends OBLayer
         spanner = new SpannableString(text);
         if (hiStartIdx >= 0)
             spanner.setSpan(new ForegroundColorSpan(hiRangeColour),hiStartIdx,hiEndIdx, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (backgroundColourRanges != null && bgColour != 0)
+        {
+            for (List<Integer> range : backgroundColourRanges)
+            {
+                int st = range.get(0);
+                int en = range.get(1);
+                spanner.setSpan(new BackgroundColorSpan(bgColour),st,en,Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+        }
         float mw = maxw > 0?maxw:(just==JUST_CENTRE)?bounds().width():4000;
         stLayout = new StaticLayout(spanner,textPaint,(int)Math.ceil(mw),
                 (just==JUST_CENTRE)?Layout.Alignment.ALIGN_CENTER:Layout.Alignment.ALIGN_NORMAL,
@@ -273,5 +286,12 @@ public class OBTextLayer extends OBLayer
     public int justification()
     {
         return justification;
+    }
+
+    public void setBackgroundColourRanges(List<List<Integer>> backgroundColourRanges,int col)
+    {
+        this.backgroundColourRanges = backgroundColourRanges;
+        bgColour = col;
+        displayObjectsValid = false;
     }
 }
