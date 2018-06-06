@@ -77,11 +77,11 @@ public class OC_Lg4 extends OC_Lg
         return arr;
     }
 
-    public OBControl loadTargetForPhoneme(PointF loc, OBPhoneme phon, int type)
+    public OBControl loadTargetForPhoneme(OBPhoneme phon, OBControl bg, int type, Map<String,Object> data)
     {
         OBImage image = loadImageWithName(((OBWord) phon).imageName,new PointF(0, 0),new RectF(bounds()),false);
         image.setRasterScale(0.5f);
-        image.setPosition(loc);
+        image.setPosition(bg.position());
         return image;
     }
 

@@ -17,6 +17,7 @@ import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimBlock;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBMisc;
 import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBSyllable;
 import org.onebillion.onecourse.utils.OBUtils;
@@ -243,25 +244,26 @@ public class OC_Lg extends OC_SectionController
                 }
             }
 
-            shutters.add(controlsGrid.get(r).get(c));
+            OBGroup shutter = controlsGrid.get(r).get(c);
+            shutters.add(shutter);
             OBPhoneme phon = eventPhonemes.get(i);
-            OBControl shutter = controlsGrid.get(r).get(c);
             PointF loc = OC_Generic.copyPoint(((OBControl)shutter.propertyValue("bg")).position());
-            OBControl control = loadTargetForPhoneme(loc, phon, type);
+            OBControl control = loadTargetForPhoneme(phon,(OBControl)shutter.propertyValue("bg"), type, data);
             control.setZPosition(10);
 
             attachControl(control);
             control.setProperty("correct",phon == targetPhoneme);
             control.setProperty("shutter",shutter);
-            control.setProperty("phoneme",phon);
             control.setProperty("bg",shutter.propertyValue("bg"));
-            if(control.width() > shutter.width())
+            if(fitControls())
             {
-                control.setScale((shutter.width())*0.9f/control.width());
-            }
+                if (control.width() > shutter.width()) {
+                    control.setScale((shutter.width()) * 0.9f / control.width());
+                }
 
-            if(control.scale() < minScale)
-                minScale = control.scale();
+                if (control.scale() < minScale)
+                    minScale = control.scale();
+            }
 
             targets.add(control);
         }
@@ -360,12 +362,13 @@ public class OC_Lg extends OC_SectionController
     }
 
 
-    public OBControl loadTargetForPhoneme(PointF loc, OBPhoneme phon,int type)
+    public OBControl loadTargetForPhoneme(OBPhoneme phon, OBControl bg, int type, Map<String,Object> data)
     {
         Typeface font  = OBUtils.standardTypeFace();
         float fontSize = fontSizeForType(type);
         OBLabel letterLabel = new OBLabel(phon.text,font,fontSize);
         letterLabel.setColour(Color.WHITE);
+        PointF loc = OBMisc.copyPoint(bg.position());
         if(!phon.text.substring(0,1).toUpperCase().equals(phon.text.substring(0,1)))
             loc.y -= OBUtils.getFontCapHeight(font, fontSize) / 2.0 - OBUtils.getFontXHeight(font, fontSize) / 2.0;
 
@@ -634,7 +637,9 @@ public class OC_Lg extends OC_SectionController
             int size = (int)data.get("size")-1;
             if(size < 1)
                 size = 1;
-            eventsData.get(currentPhase).add(currentEvent+1,eventForData(size,(OBPhoneme)data.get("target")));
+            Map<String,Object> insertData = eventForData(size,(OBPhoneme)data.get("target"));
+            insertData.put("retry",true);
+            eventsData.get(currentPhase).add(currentEvent+1,insertData);
         }
         else
         {
@@ -662,7 +667,6 @@ public class OC_Lg extends OC_SectionController
 
         for (OBControl con : targets)
             detachControl(con);
-
 
         for (int i = 0; i < controlsGrid.size(); i++)
         {
@@ -707,12 +711,7 @@ public class OC_Lg extends OC_SectionController
                 controlsGrid.get(i).get(j).maskControl = null;
             }
         }
-
-
         waitForSecs(1f);
-
-
-
     }
 
     public void animateStarsTwinkle(final List<OBControl> stars)
@@ -739,6 +738,11 @@ public class OC_Lg extends OC_SectionController
 
             OBAnimationGroup.runAnims(anims,0.3,true,OBAnim.ANIM_LINEAR,this);
         }
+    }
+
+    public boolean fitControls()
+    {
+        return true;
     }
 
     public void demo() throws Exception
