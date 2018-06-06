@@ -26,9 +26,10 @@ import java.util.Map;
 
 public class OC_Pws3 extends OC_Pws
 {
-    Map<String,List<OBLabel>> rimeColumns;
+    Map<String,List<OBLabel>> patternColumns;
     Map<String,OBControl> screenColumns;
     Map<String,OBControl> screenColumnsHeaders;
+    boolean patternAtEnd;
     float fontSize = 55;
 
     public String eventName()
@@ -53,45 +54,50 @@ public class OC_Pws3 extends OC_Pws
 
     public PointF demomatchDropTargetLoc(OBLabel target)
     {
-        String rime = (String)target.propertyValue("rime");
-        OBControl cont = screenColumns.get(rime);
+        String pattern = (String)target.propertyValue("pattern");
+        OBControl cont = screenColumns.get(pattern);
         return OBMisc.copyPoint(cont.position());
     }
 
     public void prepare()
     {
         super.prepare();
-        String[] rimeGroups = parameters.get("words").split(";");
-        Map<String,List<String>> rimeDict = new ArrayMap();
-        for(String rimeString : rimeGroups)
+        patternAtEnd = true;
+        if(parameters.containsKey("location"))
+            patternAtEnd = !parameters.get("location").equals("start");
+        if(!patternAtEnd)
+            mergeAudioScenesForPrefix("ALT");
+        String[] patternGroups = parameters.get("words").split(";");
+        Map<String,List<String>> patternDict = new ArrayMap();
+        for(String rimeString : patternGroups)
         {
             String[] arr = rimeString.split(":");
             if(arr.length > 1)
             {
                 String[] wordIds = arr[1].split(",");
-                rimeDict.put(arr[0], Arrays.asList(wordIds));
+                patternDict.put(arr[0], Arrays.asList(wordIds));
             }
         }
-        prepareLabelsForRimeDict(rimeDict);
+        prepareLabelsForPatternDict(patternDict);
         loadTable();
         wordBag.prepareWithObjects((List<OBControl>)(Object)targetLabels);
         loadEventList(OBUtils.getBooleanValue(parameters.get("pattern")),false);
     }
 
-    public void prepareLabelsForRimeDict(Map<String,List<String>> rimeDict)
+    public void prepareLabelsForPatternDict(Map<String,List<String>> patternDict)
     {
         targetLabels = new ArrayList<>();
         targetLabelsDict = new ArrayMap<>();
         Map<String,List<OBLabel>> tempDict =new ArrayMap<>();
-        rimeColumns = new LinkedHashMap<>();
+        patternColumns = new LinkedHashMap<>();
         float minScale = 1;
         OBControl fitBox = objectDict.get("word_size");
         OBFont font = OBUtils.StandardReadingFontOfSize(fontSize);
-        for(String key : rimeDict.keySet())
+        for(String key : patternDict.keySet())
         {
-            rimeColumns.put(key,new ArrayList<OBLabel>());
+            patternColumns.put(key,new ArrayList<OBLabel>());
             tempDict.put(key,new ArrayList<OBLabel>());
-            for(String phonemeid : rimeDict.get(key))
+            for(String phonemeid : patternDict.get(key))
             {
                 if(componentDict.containsKey(phonemeid))
                 {
@@ -99,7 +105,7 @@ public class OC_Pws3 extends OC_Pws
                     OBLabel targetLabel = new OBLabel(pho.text,font);
                     targetLabel.setColour(eventColours.get("normal"));
                     targetLabel.enable();
-                    targetLabel.setProperty("rime",key);
+                    targetLabel.setProperty("pattern",key);
                     targetLabel.setProperty("audio",pho.audio());
                     targetLabel.setPosition(OB_Maths.locationForRect(0.5f,0.5f,this.bounds()));
                     targetLabel.setProperty("drop_loc",OBMisc.copyPoint(objectDict.get("drop_area").position()));
@@ -109,7 +115,7 @@ public class OC_Pws3 extends OC_Pws
                     targetLabel.setZPosition(10);
                     attachControl(targetLabel);
                     targetLabelsDict.put(phonemeid,targetLabel);
-                    rimeColumns.get(key).add(targetLabel);
+                    patternColumns.get(key).add(targetLabel);
                     tempDict.get(key).add(targetLabel);
                     if(minScale > targetLabel.scale())
                         minScale = targetLabel.scale();
@@ -156,11 +162,11 @@ public class OC_Pws3 extends OC_Pws
                 maxWidth = con.width();
         }
         long maxRows = -1;
-        List<String> keys = new ArrayList<>(rimeColumns.keySet());
+        List<String> keys = new ArrayList<>(patternColumns.keySet());
         for(String key : keys)
         {
-            if(maxRows < 0 || maxRows < rimeColumns.get(key).size())
-                maxRows = rimeColumns.get(key).size();
+            if(maxRows < 0 || maxRows < patternColumns.get(key).size())
+                maxRows = patternColumns.get(key).size();
         }
         OBControl workRect = objectDict.get("word_rect");
         float columnWidth = workRect.width()*0.33f;
@@ -169,14 +175,14 @@ public class OC_Pws3 extends OC_Pws
         float headerHeight = maxHeight*extraHeight;
         float distFromHeader = 0.25f * headerHeight;
         float columnHeight = maxRows*maxHeight*extraHeight + headerHeight + distFromHeader*2;
-        long columnCount = rimeColumns.keySet().size();
+        long columnCount = patternColumns.keySet().size();
         float columnDist = applyGraphicScale(4);
         float fullWidth = columnWidth*columnCount + columnDist*(columnCount-1);
         float left = workRect.position().x -(fullWidth/2);
 
         for(int i=0; i<columnCount; i++)
         {
-            String rime = keys.get(i);
+            String pattern = keys.get(i);
             int colour = eventColours.get(String.format("column_%d",i+1));
             OBControl columnBox = new OBControl();
             columnBox.setFrame(new RectF(0, 0, columnWidth, columnHeight));
@@ -185,7 +191,7 @@ public class OC_Pws3 extends OC_Pws
             columnBox.setLeft(left);
             columnBox.setZPosition(1);
             attachControl(columnBox);
-            screenColumns.put(rime,columnBox);
+            screenColumns.put(pattern,columnBox);
             left += columnWidth + columnDist;
             OBControl headerBox = columnBox.copy();
             headerBox.setFrame(new RectF(0, 0, columnWidth, headerHeight));
@@ -193,23 +199,31 @@ public class OC_Pws3 extends OC_Pws
             headerBox.setTop(columnBox.top());
             headerBox.setZPosition(1.2f);
             attachControl(headerBox);
-            screenColumnsHeaders.put(rime,headerBox);
+            screenColumnsHeaders.put(pattern,headerBox);
             columnBox.setOpacity(0.2f);
-            OBLabel label = new OBLabel(String.format("_%s",rime), OBUtils.StandardReadingFontOfSize(fontSize));
+            OBLabel label = new OBLabel(String.format(patternAtEnd ? "_%s" : "%s_",pattern), OBUtils.StandardReadingFontOfSize(fontSize));
             label.setColour(eventColours.get("normal"));
             label.setPosition(headerBox.position());
-            label.setRight (headerBox.right() -(0.1f * headerBox.width()));
+            if(patternAtEnd)
+                label.setRight(headerBox.right() -(0.1f * headerBox.width()));
+            else
+                label.setLeft(headerBox.left() +(0.1f * headerBox.width()));
+
             label.setZPosition(1.5f);
             attachControl(label);
-            colourLabel(label,rime);
+            colourLabel(label,pattern,patternAtEnd);
             float top = headerBox.bottom() + distFromHeader;
             float right = label.right();
-            for(int j=0; j<rimeColumns.get(rime).size(); j++)
+            for(int j=0; j<patternColumns.get(pattern).size(); j++)
             {
-                OBLabel con = rimeColumns.get(rime).get(j);
+                OBLabel con = patternColumns.get(pattern).get(j);
                 OBLabel copy = (OBLabel)con.copy();
                 copy.setTop(top);
-                copy.setRight(right);
+                if(patternAtEnd)
+                    copy.setRight(label.right());
+                else
+                    copy.setLeft(label.left());
+
                 copy.hide();
                 con.setProperty("target",copy);
                 attachControl(copy);
@@ -219,16 +233,16 @@ public class OC_Pws3 extends OC_Pws
         }
     }
 
-    public void colourLabel(OBLabel label,String rime)
+    public void colourLabel(OBLabel label,String pattern, boolean atEnd)
     {
-        int index = label.text().lastIndexOf(rime);
-        label.setHighRange(index,index+rime.length(),eventColours.get("pattern"));
+        int index = atEnd ? label.text().lastIndexOf(pattern) : label.text().indexOf(pattern);
+        label.setHighRange(index,index+pattern.length(),eventColours.get("pattern"));
     }
 
     public boolean checkTargetDrop(OBLabel target)
     {
-        String rime = (String)target.propertyValue("rime");
-        OBControl columnBox = screenColumns.get(rime);
+        String pattern = (String)target.propertyValue("pattern");
+        OBControl columnBox = screenColumns.get(pattern);
         return columnBox.frame.contains(target.position().x, target.position().y);
     }
 
@@ -262,13 +276,13 @@ public class OC_Pws3 extends OC_Pws
     public void highlightAndAudio(OBLabel label) throws Exception
     {
         label.setColour(eventColours.get("highlight"));
-        String rime = (String)label.propertyValue("rime");
+        String pattern = (String)label.propertyValue("pattern");
         playAudio((String)label.propertyValue("audio"));
         waitAudio();
         waitForSecs(0.3f);
         lockScreen();
         label.setColour(eventColours.get("normal"));
-        colourLabel(label,rime);
+        colourLabel(label,pattern, patternAtEnd);
         unlockScreen();
         waitForSecs(0.3f);
     }
@@ -276,12 +290,12 @@ public class OC_Pws3 extends OC_Pws
     public void demopattern() throws Exception
     {
         loadPointer(POINTER_LEFT);
-        List<String> keys = new ArrayList<>(rimeColumns.keySet());
+        List<String> keys = new ArrayList<>(patternColumns.keySet());
         for(int i=0; i<keys.size(); i++)
         {
             String rime = keys.get(i);
             OBControl column = screenColumns.get(rime);
-            List<OBLabel> labels = rimeColumns.get(rime);
+            List<OBLabel> labels = patternColumns.get(rime);
             movePointerToPoint(OB_Maths.locationForRect(0.7f,1.15f,column.frame()),-30,0.5f,true);
             if(i==0)
                 playAudioQueuedScene("DEMO",300,true);
