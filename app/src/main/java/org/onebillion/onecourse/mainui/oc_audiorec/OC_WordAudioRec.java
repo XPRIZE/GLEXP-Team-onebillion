@@ -15,6 +15,7 @@ import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBAudioManager;
 import org.onebillion.onecourse.utils.OBAudioRecorder;
+import org.onebillion.onecourse.utils.OBFont;
 import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OBWord;
@@ -29,34 +30,26 @@ import java.util.Map;
 /**
  * Created by michal on 07/07/16.
  */
-public class OC_WordAudioRec extends OC_SectionController
+public class OC_WordAudioRec extends OC_AudioRecSection
 {
 
     static int MODE_LETTER=0,
-            MODE_LETTERS=1,
+            MODE_SYLLABLE=1,
             MODE_WORD=2;
 
-    OBAudioRecorder audioRecorder;
-    OBLabel fullWordLabel, partWordLabel;
+    OBLabel targetLabel, feedbackLabel;
     List<Map<String,Object>> eventsData;
-    double recordDuration;
-    int currentWord, currentMode;
-    List<String> modeDict;
     OBControl screenImage;
-    OBPhoneme partWordPhoneme;
-    OBWord fullWord;
+    OBPhoneme targetPhoneme, feedbackPhoneme;
     boolean wordFeedback;
-    OBGroup nextButton;
+    int currentMode;
+
 
 
 
     public void prepare()
     {
-        setStatus(STATUS_BUSY);
         super.prepare();
-        loadFingers();
-        loadEvent("master");
-        modeDict = Arrays.asList("l","s","w");
 
         Map<String,OBPhoneme> componentDict = OBUtils.LoadWordComponentsXML(true);
 
@@ -66,142 +59,103 @@ public class OC_WordAudioRec extends OC_SectionController
         shutter.setAnchorPoint(new PointF(0f, 0.5f));
         shutter.setProperty("start_width",shutter.width());
 
-        audioRecorder = new OBAudioRecorder(OBUtils.getFilePathForTempFile(this),this);
         objectDict.get("bg").show();
+
+        if(parameters.get("mode").equals("letter"))
+        {
+            currentMode = MODE_LETTER;
+
+        }
+        else if(parameters.get("mode").equals("syllable"))
+        {
+            currentMode = MODE_SYLLABLE;
+
+        }
+        else
+        {
+            currentMode = MODE_WORD;
+
+        }
 
         eventsData = new ArrayList<>();
 
         wordFeedback = parameters.get("wordfeedback").equals("true");
 
+        loadAudioXML(getConfigPath(currentMode == MODE_WORD ? "wrec1audio.xml" : "wrec2audio.xml"));
+
         String[] arr = parameters.get("words").split(";");
+        List<String> eventsList = new ArrayList<>();
+        int index = 1;
         for(String param : arr)
         {
             String[] par = param.split(",");
-            Map<String,Object> dict = new ArrayMap<>();
-            OBWord word = (OBWord)componentDict.get(par[0]);
-            if(word == null)
-                continue;
+            Map<String,Object> dict = new ArrayMap();
 
-            dict.put("word",word);
-            int mode;
+            if(!componentDict.containsKey(par[0]))
+                continue;
+            OBPhoneme word = componentDict.get(par[0]);
+            dict.put("image",word);
             if(par.length == 1)
             {
-                mode = MODE_WORD;
+                dict.put("target",word);
+
             }
             else
             {
                 OBPhoneme pho = componentDict.get(par[1]);
                 if(pho == null)
                     continue;
-
-                dict.put("display",pho);
-
-                if(par[1].length() == 1)
-                mode = MODE_LETTER;
-                else
-                mode = MODE_LETTERS;
-
+                dict.put("target",pho);
+                dict.put("feedback",word);
             }
-
-            dict.put("mode",mode);
+            eventsList.add(eventForSceneNum(index));
+            index++;
             eventsData.add(dict);
         }
-
-        currentWord = 1;
-
-
-        nextButton = loadVectorWithName("arrow_next", new PointF(0, 0), new RectF(bounds()));
-        nextButton.setScale((bounds().height() * 0.1f) / nextButton.height());
-        nextButton.setBottom(bounds().height() - applyGraphicScale(10));
-        nextButton.setRight(bounds().width() - applyGraphicScale(10));
-        attachControl(nextButton);
-        nextButton.hide();
-        setWordScene(currentWord);
-
+        events = eventsList;
+        setSceneXX(currentEvent());
     }
 
-    public int buttonFlags()
+    @Override
+    public void setSceneXX(String scene)
     {
-        return OBMainViewController.SHOW_TOP_LEFT_BUTTON|0|0|0;
-    }
-
-
-    public void start()
-    {
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-        {
-            @Override
-            public void run() throws Exception
-            {
-                doMainXX();
-            }
-        });
-    }
-
-    public void setWordScene(int wordNum)
-    {
-        Map<String,Object> curWord = eventsData.get(wordNum-1);
-        currentMode = (int)curWord.get("mode");
+        super.setSceneXX(scene);
+        Map<String,Object> curWord = eventsData.get(eventIndex);
 
         Typeface font = OBUtils.standardTypeFace();
         float textSize = currentMode == MODE_WORD ? applyGraphicScale(120) : applyGraphicScale(140);
-
+        OBFont obFont = new OBFont(font,textSize);
         if(screenImage != null)
             detachControl(screenImage);
 
-        hideAndResetLeftButtons();
+       // hideAndResetLeftButtons();
 
-        fullWord = (OBWord)curWord.get("word");
-        OBControl textBox = objectDict.get("textbox");
-        if(currentMode == MODE_WORD || wordFeedback)
+        targetPhoneme = (OBPhoneme) curWord.get("target");
+        if(targetLabel == null)
         {
-            fullWordLabel = new OBLabel(fullWord.text,font,textSize);
-            fullWordLabel.setColour(Color.BLACK);
-
-            fullWordLabel.setPosition(textBox.position());
-            fullWordLabel.hide();
-            attachControl(fullWordLabel);
-            if(fullWordLabel.width()>textBox.width())
-                fullWordLabel.setScale(1.0f - ((fullWordLabel.width()-textBox.width())*1.0f/fullWordLabel.width()));
+            targetLabel = labelForText(targetPhoneme.text, obFont);
         }
 
-        if(currentMode != MODE_WORD && (!displayWordSameAsPrevious(wordNum) || wordFeedback))
+
+        if(currentMode != MODE_WORD)
         {
-            partWordPhoneme = (OBPhoneme)curWord.get("display");
-            partWordLabel = new OBLabel(partWordPhoneme.text,font,textSize);
-            partWordLabel.setColour(Color.BLACK);
-
-            OBAudioManager.audioManager.prepareForChannel(partWordPhoneme.audio(), "special");
-
-
-            partWordLabel.setPosition(textBox.position());
-            partWordLabel.hide();
-            attachControl(partWordLabel);
+            feedbackPhoneme = (OBPhoneme)curWord.get("feedback");
+            feedbackLabel =  labelForText(targetPhoneme.text, obFont);
 
             if(wordFeedback)
             {
-                int index = fullWord.text.indexOf(partWordPhoneme.text);
-                int len = partWordPhoneme.text.length();
-                RectF bb = OBUtils.getBoundsForSelectionInLabel(index,index+len,fullWordLabel);
+                int index = targetPhoneme.text.indexOf(feedbackPhoneme.text);
+                int len = feedbackPhoneme.text.length();
+                RectF bb = OBUtils.getBoundsForSelectionInLabel(index,index+len,targetLabel);
                 float left = bb.left;
 
-
-                fullWordLabel.setHighRange(index,index+len,Color.BLUE);
-                partWordLabel.setProperty("dest_left",left);
-
-
+                targetLabel.setHighRange(index,index+len,Color.BLUE);
+                feedbackLabel.setProperty("dest_left",left);
             }
         }
 
-        if(currentMode == MODE_WORD)
-        {
-            OBAudioManager.audioManager.prepareForChannel(fullWord.audio(), "special");
-        }
-
-
-
-        recordDuration = OBAudioManager.audioManager.durationForChannel("special");
-        screenImage = loadImageWithName(fullWord.ImageFileName(), new PointF(0,0), new RectF(bounds()));
+        OBWord imagePhoneme = (OBWord)curWord.get("image");
+        screenImage = loadImageWithName(imagePhoneme.ImageFileName(), new PointF(0,0), new RectF(bounds()));
         OBControl bg = objectDict.get("bg");
         screenImage.setScale(applyGraphicScale(1));
         if(screenImage.width() > bg.width())
@@ -211,127 +165,62 @@ public class OC_WordAudioRec extends OC_SectionController
         screenImage.setZPosition(5);
         screenImage.setPosition(bg.position());
 
+        prepareForRecordingEvent(targetPhoneme.audio());
     }
 
     public void doMainXX() throws Exception
     {
         waitForSecs(0.3f);
-        OBLabel curLabel = currentMode == MODE_WORD ? fullWordLabel: partWordLabel;
-        wordShow(curLabel);
-        String currentScene = String.format("%d%s",currentWord, modeDict.get(currentMode));
-
-        if(currentWord == 1 )
-        {
-            List<String> demoAudio = getSceneAudio("DEMO");
-            if(((String)parameters.get("demo")).equalsIgnoreCase("true"))
-            {
-                playAudio(demoAudio.get(0));
-                waitAudio();
-                waitForSecs(0.3f);
-                loadPointer(POINTER_LEFT);
-                movePointerToPoint(OB_Maths.locationForRect(0.8f,1.1f,curLabel.frame()),-40,0.5f,true);
-                playAudio(demoAudio.get(1));
-                waitAudio();
-                waitForSecs(0.5f);
-                thePointer.hide();
-            }
-            else
-            {
-                playAudioQueued(OBUtils.insertAudioInterval(getSceneAudio("DEMO2"), 300),true);
-            }
-        }
-
+        wordShow(targetLabel);
         waitForSecs(0.3f);
-
-
-        if(getAudioForScene(currentScene,"PROMPT2") != null && displayWordSameAsPrevious(currentWord))
+        demoSceneStart(targetLabel);
+        waitForSecs(0.3f);
+        if(getAudioForScene(currentEvent() ,"PROMPT2") != null && displayWordSameAsPrevious(eventIndex))
         {
-            playSceneAudio("PROMPT2",true);
+            playStartAudio("PROMPT2",true);
+
         }
         else
         {
-            playSceneAudio("PROMPT",true);
-        }
+            playStartAudio("PROMPT",true);
 
-        setStatus(STATUS_AWAITING_CLICK);
-        waitForSecs(currentMode == MODE_WORD ? 1.5 : 1);
-        performRecordingEvent(curLabel,0);
-    }
-
-    public void nextWord() throws Exception
-    {
-        currentWord++;
-        if(currentWord > eventsData.size())
-        {
-            fin();
         }
-        else
-        {
-            lockScreen();
-            setWordScene(currentWord);
-            unlockScreen();
-            doMainXX();
-        }
+        waitForSecs(0.3f);
+        startRecordingEvent(targetLabel);
     }
 
     public void fin()
     {
+        List<String> audio = getEventAudio("finale","DEMO");
         try
         {
-
             waitForSecs(0.3f);
-            playAudioQueued(OBUtils.insertAudioInterval(getAudioForScene(String.format("finale%s", modeDict.get(currentMode)),"DEMO"),300),true);
+            playAudioQueued(OBUtils.insertAudioInterval(audio,300),true);
             MainActivity.mainActivity.fatController.completeEvent(this);
         }
-        catch (Exception exception)
+        catch(Exception exception)
         {
-        }
 
-    }
-
-    public void cleanUp()
-    {
-        onPause();
-        OBUtils.cleanUpTempFiles(this);
-        super.cleanUp();
-    }
-
-    public void replayAudio()
-    {
-        if(status() != STATUS_BUSY)
-        {
-            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-            {
-
-                @Override
-                public void run() throws Exception
-                {
-                    replayWordAudio();
-                }
-            });
-
-
-        }
-
-    }
-
-    @Override
-    public void touchDownAtPoint(PointF pt, View v)
-    {
-        if(status() == STATUS_AWAITING_CLICK &&
-                finger(0,2,(List<OBControl>)(Object)Collections.singletonList(nextButton),pt) != null)
-        {
-            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-            {
-                @Override
-                public void run() throws Exception
-                {
-                    nextButtonClicked();
-                }
-            });
         }
     }
 
+    public void playTargetAudio() throws Exception
+    {
+        targetPhoneme.playAudio(this,true);
+    }
+
+    public OBLabel labelForText(String text,OBFont font)
+    {
+        OBControl textBox = objectDict.get("textbox");
+        OBLabel label = new OBLabel(text,font);
+        label.setColour(Color.BLACK);
+        label.setPosition(textBox.position());
+        label.hide();
+        attachControl(label);
+        if(label.width()>textBox.width())
+            label.setScale(1.0f -((label.width()-textBox.width())*1.0f/label.width()));
+        return label;
+    }
 
     public void animateShutter(boolean open) throws Exception
     {
@@ -347,267 +236,145 @@ public class OC_WordAudioRec extends OC_SectionController
 
     public boolean displayWordSameAsPrevious(int index)
     {
-        index--;
-        if(index == 0 || eventsData.size() <= index)
+        if(index == 0 || eventsData.size() <index)
             return false;
-
         Map<String,Object> cur = eventsData.get(index);
         Map<String,Object> prev = eventsData.get(index-1);
-
-        if((int)cur.get("mode") == MODE_WORD
-                || (int)prev.get("mode")  == MODE_WORD
-                || cur.get("display") == null || prev.get("display") == null)
-        return false;
-
-        return cur.get("display") == prev.get("display");
+        if(cur.get("target") == null || prev.get("target") == null)
+            return false;
+        return cur.get("target") == prev.get("target");
     }
 
-    public void performRecordingEvent(OBLabel curLabel,int count) throws Exception
+    public void recordingEventFinished() throws Exception
     {
-        wordRecordStart(curLabel,true);
-        setStatus(STATUS_AWAITING_CLICK);
-        startRecording();
-        audioRecorder.waitForRecord();
-        audioRecorder.stopRecording();
-        checkSuspendLock();
-        if(count < 2 && !audioRecorder.audioRecorded())
+        if(currentMode != MODE_WORD)
         {
-            gotItWrong();
-            setStatus(STATUS_BUSY);
-            curLabel.setColour(Color.BLACK);
-
-            if(count == 0 || getSceneAudio("REMINDER2") == null)
+            mainLabelAudioAndHighlight();
+            waitForSecs(0.7f);
+            List<String> audio = getAudioForScene(currentEvent() ,"FINAL2");
+            if(audio != null)
             {
-                playAudioQueued(OBUtils.insertAudioInterval(getSceneAudio("REMINDER"), 300),true);
+                playAudio(audio.get(0));
+                waitForAudio();
+                waitForSecs(1.5f);
             }
-            else
-            {
-                playAudioQueued(OBUtils.insertAudioInterval(getSceneAudio("REMINDER2"), 300),true);
-            }
-
-            count++;
-            waitForSecs(0.5f);
-            performRecordingEvent(curLabel,count);
+        }
+        animateShutter(true);
+        waitForSecs(0.3f);
+        if(currentMode == MODE_WORD)
+        {
+            mainLabelAudioAndHighlight();
+            targetLabel.setColour(Color.BLACK);
+            waitForSecs(1f);
+            super.recordingEventFinished();
         }
         else
         {
-            gotItRight();
-            setStatus(STATUS_BUSY);
-            wordRecordStop(curLabel);
-            if(getSceneAudio("FINAL") != null)
-            {
-                playAudio(getSceneAudio("FINAL").get(0));
-                waitAudio();
-            }
+            if(wordFeedback)
+                animatePartWordSlide();
+            waitForSecs(0.3f);
+            targetPhoneme.playAudio(this,true);
             waitForSecs(0.5f);
-            audioRecorder.playRecording();
-            waitAudio();
+            feedbackPhoneme.playAudio(this,true);
             waitForSecs(0.3f);
-
-            if(currentMode != MODE_WORD)
+            if(!wordFeedback)
+                targetLabel.setColour(Color.BLACK);
+            if(!isLastEvent())
             {
-                partWordLabel.setColour(Color.BLUE);
-                waitForSecs(0.3f);
-                partWordPhoneme.playAudio(this,true);
-                waitForSecs(0.5f);
-            }
-
-
-            animateShutter(true);
-            waitForSecs(0.3f);
-
-            if(currentMode == MODE_WORD)
-            {
-                fullWordLabel.setColour(Color.BLUE);
+                waitForSecs(1f);
+                showNextButtonWithAudio();
             }
             else
             {
-                if(wordFeedback)
-                    animatePartWordSlide();
-            }
-
-            waitForSecs(0.3f);
-            fullWord.playAudio(this,true);
-            waitForSecs(0.3f);
-            if(currentMode == MODE_WORD)
-            {
-                fullWordLabel.setColour(Color.BLACK);
-            }
-            else
-            {
-                if(wordFeedback)
-                {
-                    //[colourEntireLabel:fullWordLabel colour:.get(Color.BLACK]);
-                }
-                else
-                {
-                    partWordLabel.setColour(Color.BLACK);
-                }
-            }
-            waitForSecs(1f);
-
-
-            if(!isLastWord())
-            {
-                showLeftButtons();
-                playSfxAudio("arrowon",true);
-                playSceneAudio("ARROW",false);
-                flashNextButton(setStatus(STATUS_AWAITING_CLICK));
-            }
-            else
-            {
-                nextWord();
+                nextScene();
             }
         }
     }
 
-    public void replayWordAudio()
+    public void mainLabelAudioAndHighlight() throws Exception
     {
+        targetLabel.setColour(Color.BLUE);
+        waitForSecs(0.3f);
+        targetPhoneme.playAudio(this, true);
+        waitForSecs(0.5f);
+    }
 
+    public void replayModelAudio() throws Exception
+    {
+        boolean colourLabel =(currentMode == MODE_WORD) || !wordFeedback;
         long  token = takeSequenceLockInterrupt(true);
         try
         {
-            if (token == sequenceToken)
+            if(token == sequenceToken)
             {
-                if(currentMode != MODE_WORD)
-                {
-                    partWordLabel.setColour(Color.BLUE);
-                    partWordPhoneme.playAudio(this,true);
-                    checkSequenceToken(token);
-                    waitForSecs(0.5f);
-                    checkSequenceToken(token);
-                }
-                else
-                {
-                    fullWordLabel.setColour(Color.BLUE);
-                }
-
-                fullWord.playAudio(this,true);
+                if(colourLabel)
+                    targetLabel.setColour(Color.BLUE);
+                targetPhoneme.playAudio(this,true);
                 checkSequenceToken(token);
                 waitForSecs(0.3f);
                 checkSequenceToken(token);
-
+                if(wordFeedback)
+                {
+                    feedbackPhoneme.playAudio(this, true);
+                    checkSequenceToken(token);
+                    waitForSecs(0.3f);
+                    checkSequenceToken(token);
+                }
             }
         }
-        catch (Exception exception)
-        {
+        catch(Exception exception) {
         }
-        if(currentMode == MODE_WORD)
-        {
-            fullWordLabel.setColour(Color.BLACK);
-        }
-        else
-        {
-            if(!wordFeedback)
-            {
-                partWordLabel.setColour(Color.BLACK);
-            }
-        }
-
+        if(colourLabel)
+            targetLabel.setColour(Color.BLACK);
         sequenceLock.unlock();
-
     }
 
     public void wordShow(OBLabel curLabel) throws Exception
     {
-        if(curLabel.hidden)
+        if (curLabel.hidden)
         {
-            playSfxAudio("texton",false);
+            playSfxAudio("texton", false);
             curLabel.show();
             waitSFX();
         }
     }
 
-
-    public void wordRecordStart(OBLabel curLabel,boolean pulse) throws Exception
+    public void nextButtonPressed() throws Exception
     {
-        playSfxAudio("ping",false);
-        curLabel.setColour(Color.RED);
-        if(pulse)
-            animateWordPulse(curLabel);
-
-        waitSFX();
-    }
-
-    public void wordRecordStop(OBLabel curLabel) throws Exception
-    {
-        playSfxAudio("click",false);
-        curLabel.setColour(Color.BLACK);
-        waitSFX();
-    }
-
-    public void startRecording()
-    {
-        audioRecorder.startRecording(recordDuration * 1.5 + 1);
-    }
-
-
-    public void stopRecoding()
-    {
-        audioRecorder.stopRecording();
-    }
-
-    public void nextButtonClicked() throws Exception
-    {
-
-        setStatus(STATUS_BUSY);
-        nextButton.highlight();
-        takeSequenceLockInterrupt(true);
-        sequenceLock.unlock();
-        if(!isLastWord())
+        if(!isLastEvent())
         {
             lockScreen();
-            if(currentMode != MODE_WORD && (!displayWordSameAsPrevious(currentWord+1)  || wordFeedback))
+            if(!displayWordSameAsPrevious(eventIndex+1) || wordFeedback)
             {
-                detachControl(partWordLabel);
-                partWordLabel = null;
+                detachControl(targetLabel);
+                targetLabel = null;
             }
-            if(currentMode == MODE_WORD || wordFeedback)
+            if(feedbackLabel != null)
             {
-                detachControl(fullWordLabel);
-                fullWordLabel = null;
+                detachControl(feedbackLabel);
+                feedbackLabel = null;
             }
-            hideAndResetLeftButtons();
-            unlockScreen();
+            nextButton.hide();
 
+            unlockScreen();
             waitForSecs(0.5f);
             animateShutter(false);
             waitForSecs(0.5f);
         }
-
-        nextWord();
-
-
-    }
-
-    public boolean isLastWord()
-    {
-        return currentWord == eventsData.size();
-    }
-
-
-    public void animateWordPulse(OBLabel wordLabel)
-    {
-        float startScale = wordLabel.scale();
-        OBAnimationGroup.chainAnimations(Arrays.asList(Collections.singletonList(OBAnim.scaleAnim(startScale*1.2f,wordLabel)),
-                Collections.singletonList(OBAnim.scaleAnim(startScale,wordLabel))),
-                Arrays.asList(0.2f,0.2f), false,
-                Arrays.asList(OBAnim.ANIM_EASE_IN_EASE_OUT,OBAnim.ANIM_EASE_IN_EASE_OUT),1,this);
     }
 
     public void animatePartWordSlide() throws Exception
     {
         List<OBAnim> anims = new ArrayList<>();
-        if(fullWordLabel.scale() != partWordLabel.scale())
+        if(feedbackLabel.scale() != targetLabel.scale())
         {
-            anims.add(OBAnim.scaleAnim(fullWordLabel.scale(),partWordLabel));
+            anims.add(OBAnim.scaleAnim(feedbackLabel.scale(),targetLabel));
         }
-        anims.add(OBAnim.propertyAnim("left",(float)partWordLabel.settings.get("dest_left"),partWordLabel));
-
+        anims.add(OBAnim.propertyAnim("left",(float)targetLabel.propertyValue("dest_left") ,targetLabel));
         OBAnimationGroup.runAnims(anims,0.4,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
         lockScreen();
-        fullWordLabel.show();
-        partWordLabel.hide();
+        feedbackLabel.show();
+        targetLabel.hide();
         playSfxAudio("texton",false);
         unlockScreen();
         waitSFX();
@@ -615,87 +382,73 @@ public class OC_WordAudioRec extends OC_SectionController
 
     public List<String> getSceneAudio(String audio)
     {
-        String currentScene = String.format("%d%s",currentWord, modeDict.get(currentMode));
-        if(audioScenes.get(currentScene) != null)
+        return getEventAudio(currentEvent(),audio);
+    }
+
+    public List<String> getEventAudio(String event,String category)
+    {
+        if(currentMode == MODE_WORD)
         {
-            return getAudioForScene(currentScene,audio);
+            return getAudioForScene(event,category);
         }
         else
         {
-            return getAudioForScene(String.format("default%s", modeDict.get(currentMode)),audio);
+            String prefix =(currentMode == MODE_LETTER) ? "ALT" : "ALT2";
+
+            List<String> altAudio = getAudioForScene(event,String.format("%s.%", prefix, category));
+            if(((currentMode == MODE_LETTER && targetPhoneme.text.length() > 1) ||
+                    currentMode == MODE_SYLLABLE) && altAudio != null)
+            {
+                return altAudio;
+            }
+            else
+            {
+                return getAudioForScene(event,category);
+            }
         }
     }
 
-    public void playSceneAudio(String name, boolean wait) throws Exception
+    public String eventForSceneNum(int sceneNum)
     {
-        setReplayAudio(OBUtils.insertAudioInterval(getSceneAudio(String.format("%s.REPEAT",name)),300));
-        playAudioQueued(OBUtils.insertAudioInterval(getSceneAudio(name),300), wait);
-
-    }
-
-    public void showLeftButtons()
-    {
-        lockScreen();
-        nextButton.show();
-        nextButton.setOpacity(1);
-        MainViewController().topRightButton.show();
-        MainViewController().topRightButton.setOpacity(1);
-
-
-        unlockScreen();
-    }
-
-    public void hideAndResetLeftButtons()
-    {
-        lockScreen();
-        nextButton.hide();
-        nextButton.lowlight();
-        nextButton.setOpacity(1);
-        MainViewController().topRightButton.hide();
-        MainViewController().topRightButton.setOpacity(0);
-        unlockScreen();
-    }
-
-    public void flashNextButton(final long time)
-    {
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        String currentScene = String.format("%d",sceneNum);
+        if(audioScenes.get(currentScene) != null)
         {
-            @Override
-            public void run() throws Exception
-            {
-                try
-                {
-                    waitForSecs(3f);
-                    if(time == statusTime && !_aborting)
-                    {
-                        nextButton.setOpacity(1);
-                    }
-                    waitForSecs(0.5f);
-                    for (int i = 0;i < 2;i++)
-                    {
-                        if(time == statusTime && !_aborting)
-                        {
-                            nextButton.setOpacity(0.2f);
-                        }
-                        waitForSecs(0.3f);
-                        if(time == statusTime && !_aborting)
-                        {
-                            nextButton.setOpacity(1);
-                        }
-                        waitForSecs(0.3f);
-                    }
-                    if(time == statusTime && !_aborting)
-                    {
-                        flashNextButton(statusTime);
-                    }
+            return currentScene;
+        }
+        else
+        {
+            return "default";
+        }
+    }
 
-                }
-                catch (Exception exception)
-                {
-                    nextButton.setOpacity(1);
-                }
-            }
-        });
+    public void playStartAudio(String name,boolean wait) throws Exception
+    {
+        setReplayAudio(OBUtils.insertAudioInterval(getSceneAudio(String.format("%s.REPEAT",name)) , 300));
+        playAudioQueued(OBUtils.insertAudioInterval(getSceneAudio(name) , 300),wait);
+    }
+
+    public String audioNameForCategory(String category)
+    {
+        if(currentMode != MODE_WORD)
+            category = String.format((currentMode == MODE_LETTER) ? "ALT.%s" : "ALT2.%s", category);
+        return category;
+    }
+
+    public void demoEvent1() throws Exception
+    {
+        demoEvent1AudioCategory(audioNameForCategory("DEMO"));
+    }
+
+    public void demoEvent2() throws Exception
+    {
+        if(getAudioForScene(currentEvent() ,"DEMO2") != null && displayWordSameAsPrevious(eventIndex))
+        {
+            demoPointForLabel(targetLabel,"DEMO2");
+        }
+        else
+        {
+            demoPointForLabel(targetLabel,audioNameForCategory("DEMO"));
+        }
     }
 
     @Override
@@ -715,10 +468,7 @@ public class OC_WordAudioRec extends OC_SectionController
 
         } catch(Exception e)
         {
-
         }
-
     }
-
 
 }
