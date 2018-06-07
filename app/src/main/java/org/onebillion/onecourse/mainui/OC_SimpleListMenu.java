@@ -261,7 +261,9 @@ public class OC_SimpleListMenu extends OBSectionController
 
             for (int i = 0; i < masterList.size(); i++) {
                 if (masterList.get(i).key.toLowerCase().contains(constraint.toString().toLowerCase()) ||
-                        masterList.get(i).params.toLowerCase().contains(constraint.toString().toLowerCase())) {
+                        masterList.get(i).params.toLowerCase().contains(constraint.toString().toLowerCase()) ||
+                        masterList.get(i).target.toLowerCase().contains(constraint.toString().toLowerCase())
+                        ) {
                     resultList.add(masterList.get(i));
                 }
             }

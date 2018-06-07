@@ -106,8 +106,21 @@ public class OC_Lg extends OC_SectionController
             controlsGrid.add(new ArrayList<OBGroup>());
             for(int j=0; j<columns; j++)
             {
-                OBGroup shutter = (OBGroup)objectDict.get(String.format("top_%d_%d",i,j));
-                OBGroup strokes = (OBGroup)shutter.objectDict.get("strokes");
+                OBControl control =  objectDict.get(String.format("top_%d_%d",i,j));
+
+                OBGroup shutter = null;
+                if(control.getClass() == OBGroup.class)
+                {
+                    shutter = (OBGroup)control;
+                }
+                else
+                {
+                    OBGroup group = new OBGroup(Arrays.asList(control));
+                    attachControl(group);
+                    shutter = group;
+                    shutter.objectDict.put("colour",control);
+                }
+
                 RectF frame = new RectF(shutter.frame());
                 frame.left = Math.round(frame.left);
                 frame.right = Math.round(frame.right);
@@ -117,8 +130,9 @@ public class OC_Lg extends OC_SectionController
                 shutter.setHeight(frame.height());
                 shutter.setPosition(frame.centerX(),frame.centerY());
 
-                if(strokes != null)
+                if(shutter.objectDict.containsKey("strokes"))
                 {
+                    OBGroup strokes = (OBGroup)shutter.objectDict.get("strokes");
                     strokes.recalculateFrameForPath(strokes.members);
                 }
 
@@ -331,7 +345,7 @@ public class OC_Lg extends OC_SectionController
         highlightTarget(targ);
         if((boolean)targ.settings.get("correct"))
         {
-            gotItRight();
+            correctTarget();
             nextEvent(targ);
         }
         else
@@ -352,7 +366,8 @@ public class OC_Lg extends OC_SectionController
                 if(!(boolean)con.settings.get("correct"))
                     con.hide();
             }
-            insertEasierEventForCurrent();
+            if(repeatFailedQuestion())
+                insertEasierEventForCurrent();
             unlockScreen();
 
             setStatus(STATUS_AWAITING_CLICK);
@@ -361,6 +376,10 @@ public class OC_Lg extends OC_SectionController
         }
     }
 
+    public void correctTarget() throws Exception
+    {
+        gotItRight();
+    }
 
     public OBControl loadTargetForPhoneme(OBPhoneme phon, OBControl bg, int type, Map<String,Object> data)
     {
@@ -384,6 +403,11 @@ public class OC_Lg extends OC_SectionController
         else if(type == TARGET_SYLLABLE)
             fontSize = 90;
         return applyGraphicScale(fontSize);
+    }
+
+    public boolean repeatFailedQuestion()
+    {
+        return false;
     }
 
     public boolean keepTargetsSameSize()
