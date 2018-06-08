@@ -700,7 +700,6 @@ public class OC_Lg extends OC_SectionController
                 {
                     OBGroup shutter = controlsGrid.get(i).get(j);
 
-
                     OBGroup starCopy = (OBGroup) star.copy();
                     OBPath starPath = (OBPath) starCopy.objectDict.get("star");
                     if(shutter.propertyValue("colour") != null)

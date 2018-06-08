@@ -140,17 +140,17 @@ public class OC_WordAudioRec extends OC_AudioRecSection
         if(currentMode != MODE_WORD)
         {
             feedbackPhoneme = (OBPhoneme)curWord.get("feedback");
-            feedbackLabel =  labelForText(targetPhoneme.text, obFont);
+            feedbackLabel =  labelForText(feedbackPhoneme.text, obFont);
 
             if(wordFeedback)
             {
-                int index = targetPhoneme.text.indexOf(feedbackPhoneme.text);
-                int len = feedbackPhoneme.text.length();
-                RectF bb = OBUtils.getBoundsForSelectionInLabel(index,index+len,targetLabel);
+                int index = feedbackPhoneme.text.indexOf(targetPhoneme.text);
+                int len = targetPhoneme.text.length();
+                RectF bb = OBUtils.getBoundsForSelectionInLabel(index,index+len,feedbackLabel);
                 float left = bb.left;
 
-                targetLabel.setHighRange(index,index+len,Color.BLUE);
-                feedbackLabel.setProperty("dest_left",left);
+                feedbackLabel.setHighRange(index,index+len,Color.BLUE);
+                targetLabel.setProperty("dest_left",left);
             }
         }
 
@@ -207,19 +207,6 @@ public class OC_WordAudioRec extends OC_AudioRecSection
     public void playTargetAudio() throws Exception
     {
         targetPhoneme.playAudio(this,true);
-    }
-
-    public OBLabel labelForText(String text,OBFont font)
-    {
-        OBControl textBox = objectDict.get("textbox");
-        OBLabel label = new OBLabel(text,font);
-        label.setColour(Color.BLACK);
-        label.setPosition(textBox.position());
-        label.hide();
-        attachControl(label);
-        if(label.width()>textBox.width())
-            label.setScale(1.0f -((label.width()-textBox.width())*1.0f/label.width()));
-        return label;
     }
 
     public void animateShutter(boolean open) throws Exception
@@ -395,7 +382,7 @@ public class OC_WordAudioRec extends OC_AudioRecSection
         {
             String prefix =(currentMode == MODE_LETTER) ? "ALT" : "ALT2";
 
-            List<String> altAudio = getAudioForScene(event,String.format("%s.%", prefix, category));
+            List<String> altAudio = getAudioForScene(event,String.format("%s.%s", prefix, category));
             if(((currentMode == MODE_LETTER && targetPhoneme.text.length() > 1) ||
                     currentMode == MODE_SYLLABLE) && altAudio != null)
             {
