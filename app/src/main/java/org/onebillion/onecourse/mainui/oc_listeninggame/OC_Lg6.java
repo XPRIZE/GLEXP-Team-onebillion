@@ -78,6 +78,8 @@ public class OC_Lg6 extends OC_Lg
         if(currentMode == MODE_SUBTRACT)        rangeMaxVal--;
         List<OBPhoneme> numberList = phonemesForRangeFrom(rangeMinVal,rangeMaxVal);
         addToDistrators(numberList);
+        OBPath eqBox =(OBPath) objectDict.get("eq_box");
+        eqBox.sizeToBoundingBoxIncludingStroke();
         int size = OBUtils.getIntValue(parameters.get("size"));
         setupEventForEquations(numberList,size);
         finalisePrepare();

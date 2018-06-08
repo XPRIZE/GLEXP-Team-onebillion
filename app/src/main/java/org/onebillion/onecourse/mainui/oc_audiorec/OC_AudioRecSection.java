@@ -14,6 +14,7 @@ import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBAudioManager;
 import org.onebillion.onecourse.utils.OBAudioRecorder;
+import org.onebillion.onecourse.utils.OBFont;
 import org.onebillion.onecourse.utils.OBMisc;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
@@ -236,6 +237,18 @@ public class OC_AudioRecSection extends OC_SectionController
         }
     }
 
+    @Override
+    public void touchMovedToPoint(PointF pt,View v)
+    {
+
+    }
+
+    @Override
+    public void touchUpAtPoint(PointF pt,View v)
+    {
+
+    }
+
     public void cleanUpRecorder()
     {
         OBUtils.cleanUpTempFiles(this);
@@ -252,6 +265,19 @@ public class OC_AudioRecSection extends OC_SectionController
         super.setSceneXX(scene);
         nextButton.hide();
         currentRecordingAttempt = 1;
+    }
+
+    public OBLabel labelForText(String text,OBFont font)
+    {
+        OBControl textBox = objectDict.get("textbox");
+        OBLabel label = new OBLabel(text,font);
+        label.setColour(Color.BLACK);
+        label.setPosition(textBox.position());
+        label.hide();
+        attachControl(label);
+        if(label.width()>textBox.width())
+            label.setScale(1.0f -((label.width()-textBox.width())*1.0f/label.width()));
+        return label;
     }
 
     public void animateWordRecordStart(OBLabel curLabel,boolean pulse) throws Exception

@@ -330,7 +330,7 @@ public class OBMisc
         presenter.control.setZPosition(200);
         presenter.control.setPosition(startLoc);
         presenter.control.setRight(0);
-        PointF loc = presenter.control.position();
+        PointF loc = copyPoint(presenter.control.position());
         presenter.control.show();
         loc.x = 0.5f*controller.bounds().width();
         presenter.walk(loc);
