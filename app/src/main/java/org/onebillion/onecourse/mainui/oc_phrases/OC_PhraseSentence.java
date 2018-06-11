@@ -50,7 +50,7 @@ public class OC_PhraseSentence extends OC_Reading
 
     public Map loadComponent(String comp,String xmlPath)
     {
-        fontSize = applyGraphicScale(76);
+        fontSize = getFontSize();
         Map<String,Map> dict = new HashMap<>();
         OBXMLNode xmlNode = null;
         try
@@ -79,6 +79,11 @@ public class OC_PhraseSentence extends OC_Reading
         {
         }
         return dict;
+    }
+
+    public float getFontSize()
+    {
+        return applyGraphicScale(76);
     }
 
     public void miscSetUp()
