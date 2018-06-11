@@ -223,9 +223,9 @@ public class OC_PrepMWithVideo extends OC_SectionController
         currentEquation =(OBGroup)objectDict.get("equation");
         OC_Numberlines_Additions.hideEquation(currentEquation,this);
         List<Integer> choices = new ArrayList<>();
-        for(int i=1; i<=maxNum; i++)
+        for(int i=result-4; i<=result+4; i++)
         {
-            if(i!=result)
+            if(i!=result && i>0)
                 choices.add(i);
         }
         List<Integer> randChoices = OBUtils.randomlySortedArray(choices);

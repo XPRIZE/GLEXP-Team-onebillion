@@ -108,7 +108,7 @@ public class OC_PrepM5 extends OC_PrepMWithVideo
                         if(objectDict.get("q_image").frame().contains(pt.x, pt.y))
                         {
                             playAudio(null);
-                            playAudioQueued(OBUtils.insertAudioInterval(currentQuestionAudio, 300));
+                            playAudioQueued(OBUtils.insertAudioInterval(currentQuestionAudio, 600));
                         }
                     }
                 } );
@@ -132,7 +132,7 @@ public class OC_PrepM5 extends OC_PrepMWithVideo
         objectDict.get("q_image").show();
         playSfxAudio("image",true);
         waitForSecs(0.3f);
-        List<Object> audio = OBUtils.insertAudioInterval(currentQuestionAudio,300);
+        List<Object> audio = OBUtils.insertAudioInterval(currentQuestionAudio,600);
         setReplayAudio(audio);
         playAudioQueued(audio,true);
         waitForSecs(0.3f);

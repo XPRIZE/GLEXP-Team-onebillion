@@ -77,9 +77,9 @@ public class OC_PrepM6 extends OC_SectionController
         maxNum = OBUtils.getIntValue(eventAttributes.get("max"));
         correctAnswer = multiplyMode ?(num1 * num2) : num2/num1;
         List<Integer> choices = new ArrayList<>();
-        for(int i=1; i<=maxNum; i++)
+        for(int i=correctAnswer-4; i<=correctAnswer+4; i++)
         {
-            if(i != correctAnswer)
+            if(i!=correctAnswer && i>0)
                 choices.add(i);
         }
         currentButtons = new ArrayList<>();
