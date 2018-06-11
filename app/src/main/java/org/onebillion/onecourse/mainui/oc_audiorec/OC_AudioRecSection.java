@@ -91,32 +91,32 @@ public class OC_AudioRecSection extends OC_SectionController
 
     public long statusSetWaitRecordStart()
     {
-        return setStatus(STATUS_WAITING_FOR_DRAG);
+        return setStatus(STATUS_AWAITING_CLICK);
     }
 
     public long statusSetWaitRecordStop()
     {
-        return setStatus(STATUS_DRAGGING);
+        return setStatus(STATUS_RECORDING);
     }
 
     public long statusSetWaitNextButton()
     {
-        return setStatus(STATUS_AWAITING_CLICK);
+        return setStatus(STATUS_AWAITING_ARROW_CLICK);
     }
 
     public boolean statusWaitRecordStart()
     {
-        return status() == STATUS_WAITING_FOR_DRAG;
+        return status() == STATUS_AWAITING_CLICK;
     }
 
     public boolean statusWaitRecordStop()
     {
-        return status() == STATUS_DRAGGING;
+        return status() == STATUS_RECORDING;
     }
 
     public boolean statusWaitNextButton()
     {
-        return status() == STATUS_AWAITING_CLICK;
+        return status() == STATUS_AWAITING_ARROW_CLICK;
     }
 
 

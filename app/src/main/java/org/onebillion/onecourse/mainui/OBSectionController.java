@@ -65,7 +65,8 @@ public class OBSectionController extends OBViewController
             STATUS_EDITING = 17,
             STATUS_IDLE = 18,
             STATUS_BUSY = 19,
-            STATUS_WAITING_FOR_ANSWER = 20;
+            STATUS_WAITING_FOR_ANSWER = 20,
+            STATUS_RECORDING = 21;
     public static final int POINTER_ZPOS = 1000;
     public static final int POINTER_BOTLEFT = 0,
             POINTER_BOTRIGHT = 1,
