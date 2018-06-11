@@ -77,6 +77,13 @@ public class OC_PhraseSentenceAudioRec extends OC_PhraseSentence
     }
 
     @Override
+    public void cleanUp()
+    {
+        OBUtils.cleanUpTempFiles(this);
+        super.cleanUp();
+    }
+
+    @Override
     public void miscSetUp()
     {
         setStatus(STATUS_BUSY);
