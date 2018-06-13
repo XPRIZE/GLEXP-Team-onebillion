@@ -397,7 +397,7 @@ public class OC_AudioRecSection extends OC_SectionController
         nextButton.setOpacity(1);
         nextButton.show();
         playSfxAudio("arrowon",true);
-        playAudioQueuedScene("ARROW",300,false);
+        playAudioQueuedScene("ARROW",0.3f,false);
         flashNextButton(nextButton,statusSetWaitNextButton(),this);
     }
 
@@ -428,7 +428,7 @@ public class OC_AudioRecSection extends OC_SectionController
     public void playStartAudio(String name,boolean wait) throws Exception
     {
         setReplayAudio(OBUtils.insertAudioInterval(getAudioForScene(currentEvent() ,String.format("%s.REPEAT",name)) , 300));
-        playAudioQueuedScene(name,300,true);
+        playAudioQueuedScene(name,0.3f,true);
     }
 
     public void playTargetAudio() throws Exception

@@ -293,7 +293,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
         {
             if (!alreadyPlayedReminder)
             {
-                playAudioQueuedScene("REMINDER", 300, false); // Slide the words to their correct places.;
+                playAudioQueuedScene("REMINDER", 0.3f, false); // Slide the words to their correct places.;
                 alreadyPlayedReminder = true;
             }
             List<OBLabel> labels = new ArrayList<>();
@@ -1782,7 +1782,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
         hidePointer();
         waitForSecs(2.5f);
         //
-        playAudioQueuedScene("FINAL", 300, true);
+        playAudioQueuedScene("FINAL", 0.3f, true);
         waitForSecs(0.7f);
         //
         nextScene();

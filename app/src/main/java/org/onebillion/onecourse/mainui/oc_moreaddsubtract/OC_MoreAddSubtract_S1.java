@@ -179,7 +179,7 @@ public class OC_MoreAddSubtract_S1 extends OC_SectionController
             waitSFX();
             row.lowlight();
             if(time == statusTime)
-                playAudioQueuedScene("INCORRECT",300,false);
+                playAudioQueuedScene("INCORRECT",0.3f,false);
         }
     }
 
@@ -203,7 +203,7 @@ public class OC_MoreAddSubtract_S1 extends OC_SectionController
             {
                 OBGroup equ = (OBGroup)objectDict.get(String.format("box_%d",currentEquation));
                 OC_Numberlines_Additions.colourEquation(equ, 1, 5, Color.RED, this);
-                playAudioQueuedScene("FINAL",300,true);
+                playAudioQueuedScene("FINAL",0.3f,true);
                 waitForSecs(0.3f);
                 resetEquation(equ);
             }
@@ -232,7 +232,7 @@ public class OC_MoreAddSubtract_S1 extends OC_SectionController
             waitSFX();
             box.objectDict.get("box").setBackgroundColor(Color.WHITE);
             if(time == statusTime)
-                playAudioQueuedScene("INCORRECT",300,false);
+                playAudioQueuedScene("INCORRECT",0.3f,false);
         }
     }
 
@@ -248,7 +248,7 @@ public class OC_MoreAddSubtract_S1 extends OC_SectionController
 
         waitForSecs(0.3f);
         OC_Numberlines_Additions.colourEquation(equation, 1, 5, Color.RED, this);
-        playAudioQueuedScene("FINAL",300,true);
+        playAudioQueuedScene("FINAL",0.3f,true);
         waitForSecs(0.3f);
         resetEquation(equation);
         waitForSecs(1f);
@@ -453,7 +453,7 @@ public class OC_MoreAddSubtract_S1 extends OC_SectionController
 
     public void demo1j() throws Exception
     {
-        playAudioQueuedScene("DEMO",300,true);
+        playAudioQueuedScene("DEMO",0.3f,true);
         waitForSecs(0.2f);
         for(int i=4; i<8; i++)
         {
@@ -469,7 +469,7 @@ public class OC_MoreAddSubtract_S1 extends OC_SectionController
 
     public void demo1n() throws Exception
     {
-        playAudioQueuedScene("DEMO",300,true);
+        playAudioQueuedScene("DEMO",0.3f,true);
         waitForSecs(0.2f);
         for(int i=8; i<11; i++)
         {

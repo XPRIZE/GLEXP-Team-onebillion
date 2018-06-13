@@ -146,7 +146,7 @@ public class OC_Counting7To10_S4 extends OC_Generic_DragNumbersToSlots
     {
         if (audioForScene("CORRECT").size() == 1)
         {
-            playAudioQueuedScene("CORRECT", 300, true);
+            playAudioQueuedScene("CORRECT", 0.3f, true);
         }
         else
         {

@@ -142,7 +142,7 @@ public class OC_2dShapes_S2 extends OC_SectionController
             waitSFX();
             targ.setShadowOpacity(0);
             if(time == statusTime)
-                playAudioQueuedScene("INCORRECT",300,false);
+                playAudioQueuedScene("INCORRECT",0.3f,false);
         }
     }
 

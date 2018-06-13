@@ -39,7 +39,7 @@ public class OC_Diagnostics_TouchCorrectWord_InitialSyllable extends OC_Diagnost
         //
         setReplayAudio(replayAudio);
         MainActivity.log("Correct answer is [%s]", word.text);
-        playAudioQueuedScene("PROMPT", 300, true);
+        playAudioQueuedScene("PROMPT", 0.3f, true);
         firstSyllable.playAudio(this, false);
     }
 

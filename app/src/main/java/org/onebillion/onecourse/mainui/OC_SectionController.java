@@ -83,7 +83,7 @@ public class OC_SectionController extends OBSectionController {
         lock.unlock();
     }
 
-    public OBConditionLock playAudioQueuedScene(String scene,String event, float interval,boolean wait) throws Exception
+    public OBConditionLock playAudioQueuedScene(String scene,String event, float intervalSecs,boolean wait) throws Exception
     {
         if (audioScenes == null)
             return new OBConditionLock(PROCESS_DONE);
@@ -91,16 +91,16 @@ public class OC_SectionController extends OBSectionController {
         Map<String,List<String>> sc = (Map<String,List<String>>)audioScenes.get(scene);
         if (sc != null)
         {
-            List<Object> arr = OBUtils.insertAudioInterval((List<Object>)(Object)sc.get(event), Math.round(interval*1000)); //yuk!
+            List<Object> arr = OBUtils.insertAudioInterval((List<Object>)(Object)sc.get(event), Math.round(intervalSecs*1000)); //yuk!
             if (arr != null)
                 return playAudioQueued(arr, wait);
         }
         return new OBConditionLock(PROCESS_DONE);
     }
 
-    public OBConditionLock playAudioQueuedScene(String audioCategory, float interval, boolean wait) throws Exception
+    public OBConditionLock playAudioQueuedScene(String audioCategory, float intervalSecs, boolean wait) throws Exception
     {
-        return playAudioQueuedScene(currentEvent(),audioCategory,interval, wait);
+        return playAudioQueuedScene(currentEvent(),audioCategory,intervalSecs, wait);
     }
 
     public OBConditionLock playAudioQueuedScene(String audioCategory,boolean wait) throws Exception

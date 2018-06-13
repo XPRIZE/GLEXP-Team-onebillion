@@ -247,7 +247,7 @@ public class OC_AddSubtract_S1 extends OC_SectionController
                 if(time == statusTime)
                 {
                     int phase = subtractMode ? currentPhase : 0;
-                    playAudioQueuedScene(phase == 0 ? "INCORRECT" :  "INCORRECT2",300,false);
+                    playAudioQueuedScene(phase == 0 ? "INCORRECT" :  "INCORRECT2",0.3f,false);
                 }
             }
         }

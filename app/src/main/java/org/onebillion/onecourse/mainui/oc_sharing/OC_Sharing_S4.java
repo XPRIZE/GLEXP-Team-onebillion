@@ -242,7 +242,7 @@ public class OC_Sharing_S4 extends OC_Generic_Event
         });
         setStatus(STATUS_WAITING_FOR_OBJ_CLICK);
         //
-        playAudioQueuedScene("PROMPT2", 300, false);
+        playAudioQueuedScene("PROMPT2", 0.3f, false);
         setReplayAudio((List<Object>) (Object) getAudioForScene(currentEvent(), "REPEAT2"));
     }
 
@@ -259,10 +259,10 @@ public class OC_Sharing_S4 extends OC_Generic_Event
             waitForSecs(0.3f);
             if (!performSel("finDemo", currentEvent()))
             {
-                playAudioQueuedScene("CORRECT", 300, true);
+                playAudioQueuedScene("CORRECT", 0.3f, true);
                 waitForSecs(0.3f);
                 //
-                playAudioQueuedScene("FINAL", 300, true);
+                playAudioQueuedScene("FINAL", 0.3f, true);
             }
             nextScene();
         }
@@ -271,7 +271,7 @@ public class OC_Sharing_S4 extends OC_Generic_Event
             gotItWrongWithSfx();
             waitForSecs(0.3f);
             //
-            playAudioQueuedScene("INCORRECT", 300, false);
+            playAudioQueuedScene("INCORRECT", 0.3f, false);
             action_hiliteNumber(null);
             setStatus(STATUS_WAITING_FOR_OBJ_CLICK);
         }

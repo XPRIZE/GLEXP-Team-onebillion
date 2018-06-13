@@ -213,7 +213,7 @@ public class OC_MoreNumbers_S2 extends OC_SectionController
             waitSFX();
             mask.setBackgroundColor ( maskcolour);
             setStatus(STATUS_AWAITING_CLICK);
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
         }
     }
 

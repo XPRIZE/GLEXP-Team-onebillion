@@ -98,7 +98,7 @@ public class OC_2dShapes_S1k extends OC_SectionController
                     {
                         playAudio("wrong");
                         waitAudio();
-                        playAudioQueuedScene("INCORRECT", 300, false);
+                        playAudioQueuedScene("INCORRECT", 0.3f, false);
                     }
                 });
             }
@@ -144,7 +144,7 @@ public class OC_2dShapes_S1k extends OC_SectionController
                     if (playIncorrectAudio && time == statusTime)
                     {
                         playIncorrectAudio = false;
-                        playAudioQueuedScene("INCORRECT2", 300, false);
+                        playAudioQueuedScene("INCORRECT2", 0.3f, false);
                     }
                 }
             });
@@ -236,7 +236,7 @@ public class OC_2dShapes_S1k extends OC_SectionController
                     @Override
                     public void run() throws Exception
                     {
-                        playAudioQueuedScene("INCORRECT2",300,false);
+                        playAudioQueuedScene("INCORRECT2",0.3f,false);
                     }
                 });
             }

@@ -395,7 +395,7 @@ public class OC_AddSubtract_S4e extends OC_SectionController
         stopAnimation();
         moveEquationsToBoxes();
         waitForSecs(0.3f);
-        playAudioQueuedScene("FINAL",300,true);
+        playAudioQueuedScene("FINAL",0.3f,true);
         waitForSecs(0.3f);
         demoEquations(true, false);
     }
@@ -405,7 +405,7 @@ public class OC_AddSubtract_S4e extends OC_SectionController
         stopAnimation();
         moveEquationsToBoxes();
         waitForSecs(0.3f);
-        playAudioQueuedScene("FINAL",300,true);
+        playAudioQueuedScene("FINAL",0.3f,true);
         waitForSecs(0.3f);
         demoEquations(false, false);
     }

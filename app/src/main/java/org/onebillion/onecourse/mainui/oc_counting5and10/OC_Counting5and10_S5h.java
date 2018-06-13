@@ -243,10 +243,10 @@ public class OC_Counting5and10_S5h extends OC_Generic_Event
                         OBAnimationGroup.runAnims(animations, 0.3, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
                         waitForSecs(0.3f);
                     }
-                    playAudioQueuedScene("CORRECT", 300, true);
+                    playAudioQueuedScene("CORRECT", 0.3f, true);
                     waitForSecs(0.3f);
                     //
-                    playAudioQueuedScene("FINAL", 300, true);
+                    playAudioQueuedScene("FINAL", 0.3f, true);
                     //
                     nextScene();
                     //
@@ -258,7 +258,7 @@ public class OC_Counting5and10_S5h extends OC_Generic_Event
                 gotItWrongWithSfx();
                 waitForSecs(0.3f);
                 //
-                playAudioQueuedScene("INCORRECT2", 300, false);
+                playAudioQueuedScene("INCORRECT2", 0.3f, false);
                 //
                 bigNumber.setString(currentAnswer);
             }

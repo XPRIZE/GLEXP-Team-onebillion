@@ -29,7 +29,7 @@ public class OC_Diagnostics_TouchCorrectNumber_Counters extends OC_Diagnostics_T
         //
         MainActivity.log("Correct answer is [%s]", number);
         //
-        playAudioQueuedScene("PROMPT", 300, false);
+        playAudioQueuedScene("PROMPT", 0.3f, false);
     }
 
 

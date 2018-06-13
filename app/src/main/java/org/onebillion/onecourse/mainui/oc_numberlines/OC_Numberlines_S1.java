@@ -197,7 +197,7 @@ public class OC_Numberlines_S1 extends OC_SectionController
             waitSFX();
             tar.lowlight();
             setStatus(STATUS_AWAITING_CLICK);
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
         }
     }
 
@@ -217,7 +217,7 @@ public class OC_Numberlines_S1 extends OC_SectionController
             waitSFX();
             tar.setColour(Color.BLACK);
             setStatus(STATUS_AWAITING_CLICK);
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
         }
     }
 
@@ -227,7 +227,7 @@ public class OC_Numberlines_S1 extends OC_SectionController
         loadPointer(POINTER_LEFT);
         movePointerToPoint(OB_Maths.locationForRect(0.8f,1f,cont.frame()),0.4f,true);
         cont.highlight();
-        playAudioQueuedScene("DEMO",300,true);
+        playAudioQueuedScene("DEMO",0.3f,true);
         waitForSecs(0.2f);
         thePointer.hide();
         startScene();
@@ -367,14 +367,14 @@ public class OC_Numberlines_S1 extends OC_SectionController
 
     public void demoFin1f() throws Exception
     {
-        playAudioQueuedScene("FINAL",300,true);
+        playAudioQueuedScene("FINAL",0.3f,true);
         waitForSecs(0.5f);
         hideObjects(false);
     }
 
     public void demoFin1i() throws Exception
     {
-        playAudioQueuedScene("FINAL",300,true);
+        playAudioQueuedScene("FINAL",0.3f,true);
         waitForSecs(0.5f);
         hideObjects(true);
         waitForSecs(0.5f);
@@ -388,7 +388,7 @@ public class OC_Numberlines_S1 extends OC_SectionController
 
     public void demoFin1n() throws Exception
     {
-        playAudioQueuedScene("FINAL",300,true);
+        playAudioQueuedScene("FINAL",0.3f,true);
         waitForSecs(0.5f);
         hideObjects(true);
     }

@@ -222,11 +222,11 @@ public class OC_BiggerNumberAudioRec extends OC_AudioRecSection
         targetLabel.setColour(highlightColour);
         playTargetAudio();
         waitForSecs(1f);
-        playAudioQueuedScene("FINAL2",300,false);
+        playAudioQueuedScene("FINAL2",0.3f,false);
         targetLabelFlash();
         waitForAudio();
         waitForSecs(1f);
-        playAudioQueuedScene("FINAL3",300,true);
+        playAudioQueuedScene("FINAL3",0.3f,true);
         waitForSecs(0.5f);
         if(!isLastEvent())
         {

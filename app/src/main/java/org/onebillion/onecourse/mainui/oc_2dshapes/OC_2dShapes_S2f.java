@@ -199,7 +199,7 @@ public class OC_2dShapes_S2f extends OC_SectionController
                 long time = setStatus(STATUS_WAITING_FOR_DRAG);
                 waitSFX();
                 if (time == statusTime)
-                    playAudioQueuedScene("INCORRECT", 300, false);
+                    playAudioQueuedScene("INCORRECT", 0.3f, false);
             }
         }
         else

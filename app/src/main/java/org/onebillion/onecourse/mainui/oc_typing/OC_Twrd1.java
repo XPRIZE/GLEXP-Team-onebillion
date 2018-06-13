@@ -157,7 +157,7 @@ public class OC_Twrd1 extends OC_Twrd
     {
         if(time == statusTime() && !_aborting)
         {
-            playAudioQueuedScene("REMIND",300,false);
+            playAudioQueuedScene("REMIND",0.3f,false);
             typewriterManager.animateFlash(time);
         }
     }
@@ -166,7 +166,7 @@ public class OC_Twrd1 extends OC_Twrd
     {
         setReplayAudio(OBUtils.insertAudioInterval(getAudioForScene("1","PROMPT.REPEAT") ,300));
         long time =  typewriterManager.unlock();
-        playAudioQueuedScene("PROMPT",300,true);
+        playAudioQueuedScene("PROMPT",0.3f,true);
         prepareReminder(time);
     }
 

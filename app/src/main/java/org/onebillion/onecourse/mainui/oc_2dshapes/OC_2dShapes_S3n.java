@@ -163,7 +163,7 @@ public class OC_2dShapes_S3n extends OC_SectionController
             if(!performSel("demoFin",currentEvent()))
             {
                 animateLines();
-                playAudioQueuedScene("FINAL",300,true);
+                playAudioQueuedScene("FINAL",0.3f,true);
             }
             waitForSecs(0.3f);
             if(events.get(events.size()-1) != currentEvent())
@@ -183,7 +183,7 @@ public class OC_2dShapes_S3n extends OC_SectionController
             waitSFX();
             targ.lowlight();
             if(time == statusTime)
-                playAudioQueuedScene("INCORRECT",300,false);
+                playAudioQueuedScene("INCORRECT",0.3f,false);
         }
     }
 

@@ -385,7 +385,7 @@ public class OC_Twrd_Text extends OC_Twrd
             showImage();
             waitForSecs(0.3f);
         }
-        playAudioQueuedScene("DEMO",300,true);
+        playAudioQueuedScene("DEMO",0.3f,true);
     }
 
     public void startEvent() throws Exception
@@ -396,7 +396,7 @@ public class OC_Twrd_Text extends OC_Twrd
         List<Object> repeatAudio = audioWithMainWord(repeatScene);
         setReplayAudio(repeatAudio);
         long time = typewriterManager.unlock();
-        playAudioQueuedScene(promptScene,300,true);
+        playAudioQueuedScene(promptScene,0.3f,true);
         List<Object> remindAudio = audioWithMainWord(remindScene);
         doReminder(remindAudio,time);
 

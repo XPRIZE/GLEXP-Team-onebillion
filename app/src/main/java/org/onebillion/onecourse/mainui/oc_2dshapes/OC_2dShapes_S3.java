@@ -268,7 +268,7 @@ public class OC_2dShapes_S3 extends OC_SectionController
             waitSFX();
             targ.setColour(Color.BLACK);
             if(time == statusTime)
-                playAudioQueuedScene("INCORRECT",300,false);
+                playAudioQueuedScene("INCORRECT",0.3f,false);
         }
     }
 
@@ -285,7 +285,7 @@ public class OC_2dShapes_S3 extends OC_SectionController
         if(targ != null)
             targ.hide();
         if(time == statusTime)
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
     }
 
 
@@ -380,7 +380,7 @@ public class OC_2dShapes_S3 extends OC_SectionController
     {
         OBControl obj = objectDict.get("obj");
         movePointerToPoint(OB_Maths.locationForRect(new PointF(1.2f, 0.7f) ,obj.getWorldFrame()),0.5f,true);
-        playAudioQueuedScene("FINAL2",300,true);
+        playAudioQueuedScene("FINAL2",0.3f,true);
         waitForSecs(0.5f);
         thePointer.hide();
         waitForSecs(0.5f);

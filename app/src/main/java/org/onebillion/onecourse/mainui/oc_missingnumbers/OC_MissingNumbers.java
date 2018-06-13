@@ -914,7 +914,7 @@ public class OC_MissingNumbers extends OC_Generic_Event
                         waitSFX();
                         waitForSecs(0.3f);
                         //
-                        playAudioQueuedScene("INCORRECT", 300, false);
+                        playAudioQueuedScene("INCORRECT", 0.3f, false);
                     }
                 });
                 //
@@ -1357,7 +1357,7 @@ public class OC_MissingNumbers extends OC_Generic_Event
     {
         setStatus(STATUS_BUSY);
         loadPointer(POINTER_MIDDLE);
-        playAudioQueuedScene("DEMO", 300, false);
+        playAudioQueuedScene("DEMO", 0.3f, false);
         moveScenePointer(new PointF(0.9f * bounds().width(), 0.7f * bounds().height()), 0.6f, null, 0.0f);
         waitAudio();
         waitForSecs(0.3f);
@@ -1562,7 +1562,7 @@ public class OC_MissingNumbers extends OC_Generic_Event
 
     public void demof () throws Exception
     {
-        playAudioQueuedScene("FINAL", 300, true);
+        playAudioQueuedScene("FINAL", 0.3f, true);
         waitForSecs(0.3f);
         //
         nextScene();

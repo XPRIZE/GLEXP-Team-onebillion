@@ -145,7 +145,7 @@ public class OC_2dShapes_S1 extends OC_SectionController
                 {
                     gotItRightBigTick(true);
                     waitForSecs(0.3f);
-                    playAudioQueuedScene("FINAL", 300, true);
+                    playAudioQueuedScene("FINAL", 0.3f, true);
                     waitForSecs(0.3f);
                 }
 
@@ -176,7 +176,7 @@ public class OC_2dShapes_S1 extends OC_SectionController
             waitSFX();
             cont.setFillColor(fill);
             setStatus(STATUS_AWAITING_CLICK);
-            playAudioQueuedScene("INCORRECT", 300, false);
+            playAudioQueuedScene("INCORRECT", 0.3f, false);
         }
     }
 

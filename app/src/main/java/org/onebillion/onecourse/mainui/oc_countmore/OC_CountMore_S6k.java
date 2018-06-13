@@ -220,7 +220,7 @@ public class OC_CountMore_S6k extends OC_SectionController
             {
                 waitSFX();
                 if(time == statusTime)
-                    playAudioQueuedScene(wrongBox == 1 ? "INCORRECT" : "INCORRECT2",300,false);
+                    playAudioQueuedScene(wrongBox == 1 ? "INCORRECT" : "INCORRECT2",0.3f,false);
             }
         }
     }

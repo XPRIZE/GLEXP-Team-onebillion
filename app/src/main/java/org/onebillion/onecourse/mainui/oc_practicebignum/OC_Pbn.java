@@ -170,7 +170,7 @@ public class OC_Pbn extends OC_SectionController
         }
         waitForSecs(0.3f);
         label.setColour(Color.BLACK);
-        playAudioQueuedScene(correct ? "CORRECT" : "INCORRECT",300,true);
+        playAudioQueuedScene(correct ? "CORRECT" : "INCORRECT",0.3f,true);
         waitForSecs(0.3f);
         if(!playOnlyWrongDemo || !correct)
             demoCount();
@@ -184,7 +184,7 @@ public class OC_Pbn extends OC_SectionController
     {
         if(withDemoAudio)
         {
-            playAudioQueuedScene("DEMO",300,true);
+            playAudioQueuedScene("DEMO",0.3f,true);
             waitForSecs(0.3f);
 
         }

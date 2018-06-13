@@ -143,7 +143,7 @@ public class OC_Shapes_S6 extends OC_Generic_Event
                 //
                 performSel("finDemo", currentEvent());
                 //
-                playAudioQueuedScene("FINAL", 300, true);
+                playAudioQueuedScene("FINAL", 0.3f, true);
                 nextScene();
             }
             else

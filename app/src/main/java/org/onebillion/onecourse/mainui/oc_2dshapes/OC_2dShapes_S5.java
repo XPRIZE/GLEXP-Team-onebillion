@@ -149,7 +149,7 @@ public class OC_2dShapes_S5 extends OC_SectionController
             {
                 displayTick();
                 waitForSecs(0.3f);
-                playAudioQueuedScene("FINAL", 300, true);
+                playAudioQueuedScene("FINAL", 0.3f, true);
 
             }
             waitForSecs(0.5f);
@@ -161,7 +161,7 @@ public class OC_2dShapes_S5 extends OC_SectionController
             long time = setStatus(STATUS_AWAITING_CLICK);
             waitSFX();
             if (time == statusTime)
-                playAudioQueuedScene("INCORRECT", 300, false);
+                playAudioQueuedScene("INCORRECT", 0.3f, false);
         }
     }
 
@@ -210,7 +210,7 @@ public class OC_2dShapes_S5 extends OC_SectionController
             if(dropped)
             {
                 waitSFX();
-                playAudioQueuedScene("INCORRECT",300,false);
+                playAudioQueuedScene("INCORRECT",0.3f,false);
             }
         }
     }

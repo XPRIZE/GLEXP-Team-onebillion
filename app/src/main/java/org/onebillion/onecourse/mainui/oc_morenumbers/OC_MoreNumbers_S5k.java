@@ -153,7 +153,7 @@ public class OC_MoreNumbers_S5k extends OC_SectionController
             gotItRightBigTick(true);
             OC_MoreNumbers_Additions.buttonSet(2,this);
             waitForSecs(0.2f);
-            playAudioQueuedScene("FINAL",300,true);
+            playAudioQueuedScene("FINAL",0.3f,true);
             waitForSecs(0.3f);
             if(currentEvent() != events.get(events.size()-1))
             {
@@ -168,7 +168,7 @@ public class OC_MoreNumbers_S5k extends OC_SectionController
             waitSFX();
             OC_MoreNumbers_Additions.buttonSet(0,this);
             setStatus(STATUS_WAITING_FOR_DRAG);
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
 
         }
     }

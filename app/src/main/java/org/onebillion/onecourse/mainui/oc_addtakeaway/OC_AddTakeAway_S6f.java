@@ -303,10 +303,10 @@ public class OC_AddTakeAway_S6f extends OC_Generic_Event
                     }
                     else
                     {
-                        playAudioQueuedScene("CORRECT", 300, true);
+                        playAudioQueuedScene("CORRECT", 0.3f, true);
                         waitForSecs(0.3f);
                         //
-                        playAudioQueuedScene("FINAL", 300, true);
+                        playAudioQueuedScene("FINAL", 0.3f, true);
                         //
                         nextScene();
                         //

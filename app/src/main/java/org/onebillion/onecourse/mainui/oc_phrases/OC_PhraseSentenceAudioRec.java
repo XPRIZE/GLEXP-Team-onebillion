@@ -296,7 +296,7 @@ public class OC_PhraseSentenceAudioRec extends OC_PhraseSentence
         List<String> repeat = getAudioForScene(currentEvent() ,"PROMPT.REPEAT");
         if(repeat != null)
             setReplayAudio(OBUtils.insertAudioInterval(repeat,300));
-        playAudioQueuedScene("PROMPT",300,true);
+        playAudioQueuedScene("PROMPT",0.3f,true);
         waitForSecs(0.3f);
         recordingButtonReady();
         recordingButton.flash(statusSetWaitRecordStart(),8);
@@ -417,7 +417,7 @@ public class OC_PhraseSentenceAudioRec extends OC_PhraseSentence
         {
             if(audioRecorder.audioRecorded())
             {
-                playAudioQueuedScene("FINAL",300,true);
+                playAudioQueuedScene("FINAL",0.3f,true);
                 waitAudio();
                 waitForSecs(0.5f);
                 audioRecorder.playRecording();
@@ -438,7 +438,7 @@ public class OC_PhraseSentenceAudioRec extends OC_PhraseSentence
                 }
                 nextButton.show();
                 playSfxAudio("arrowon",true);
-                playAudioQueuedScene("ARROW",300,false);
+                playAudioQueuedScene("ARROW",0.3f,false);
                 OC_AudioRecSection.flashNextButton(nextButton,statusSetWaitNextButton(),this);
             }
             else

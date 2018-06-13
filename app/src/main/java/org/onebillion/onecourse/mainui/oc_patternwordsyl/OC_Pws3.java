@@ -298,7 +298,7 @@ public class OC_Pws3 extends OC_Pws
             List<OBLabel> labels = patternColumns.get(rime);
             movePointerToPoint(OB_Maths.locationForRect(0.7f,1.15f,column.frame()),-30,0.5f,true);
             if(i==0)
-                playAudioQueuedScene("DEMO",300,true);
+                playAudioQueuedScene("DEMO",0.3f,true);
             waitForSecs(0.3f);
             for(OBLabel label : labels)
                 super.highlightAndAudio(label);

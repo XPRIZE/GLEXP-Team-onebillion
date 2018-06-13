@@ -229,7 +229,7 @@ public class OC_ParagraphAudioRec extends OC_AudioRecSection
     {
         passageLabel.setBackgroundColourRanges(null,Color.WHITE);
         waitForSecs(0.5f);
-        playAudioQueuedScene("end","DEMO", 300,true);
+        playAudioQueuedScene("end","DEMO", 0.3f,true);
         waitForSecs(0.6f);
         for(int i=0; i<currPassage.sentences.size(); i++)
         {

@@ -134,7 +134,7 @@ public class OC_Egrid1 extends OC_Egrid
         }
         else
         {
-            playAudioQueuedScene("DEMO2",300,true);
+            playAudioQueuedScene("DEMO2",0.3f,true);
             waitForSecs(0.3f);
         }
         startScene();
@@ -142,7 +142,7 @@ public class OC_Egrid1 extends OC_Egrid
 
     public void demo2() throws Exception
     {
-        playAudioQueuedScene("DEMO",300,true);
+        playAudioQueuedScene("DEMO",0.3f,true);
         waitForSecs(0.3f);
         startScene();
 

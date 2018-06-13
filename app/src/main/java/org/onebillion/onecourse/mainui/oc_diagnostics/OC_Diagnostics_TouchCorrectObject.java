@@ -117,7 +117,7 @@ public class OC_Diagnostics_TouchCorrectObject extends OC_Diagnostics
         //
         setReplayAudio(replayAudio);
         MainActivity.log("Correct answer is [%s]", phoneme.text);
-        playAudioQueuedScene("PROMPT", 300, true);
+        playAudioQueuedScene("PROMPT", 0.3f, true);
         //
         phoneme.playAudio(this, false);
     }

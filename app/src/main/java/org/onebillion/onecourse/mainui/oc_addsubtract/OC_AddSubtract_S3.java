@@ -253,7 +253,7 @@ public class OC_AddSubtract_S3 extends OC_SectionController
             waitSFX();
             box.objectDict.get("box").setBackgroundColor(eventColour.get("box"));
             if(time == statusTime)
-                playAudioQueuedScene("INCORRECT2",300,false);
+                playAudioQueuedScene("INCORRECT2",0.3f,false);
         }
     }
 
@@ -311,7 +311,7 @@ public class OC_AddSubtract_S3 extends OC_SectionController
     }
     public void demo3d() throws Exception
     {
-        playAudioQueuedScene("DEMO",300,true);
+        playAudioQueuedScene("DEMO",0.3f,true);
         showSecondPhase();
         waitForSecs(0.3f);
         currentPhase = 2;

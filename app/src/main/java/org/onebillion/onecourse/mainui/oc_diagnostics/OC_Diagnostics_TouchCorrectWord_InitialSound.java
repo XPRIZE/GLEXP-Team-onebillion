@@ -35,7 +35,7 @@ public class OC_Diagnostics_TouchCorrectWord_InitialSound extends OC_Diagnostics
         //
         setReplayAudio(replayAudio);
         MainActivity.log("Correct answer is [%s]", word.text);
-        playAudioQueuedScene("PROMPT", 300, true);
+        playAudioQueuedScene("PROMPT", 0.3f, true);
         firstPhoneme.playAudio(this, false);
     }
 

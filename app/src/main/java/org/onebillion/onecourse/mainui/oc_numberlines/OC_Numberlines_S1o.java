@@ -220,7 +220,7 @@ public class OC_Numberlines_S1o extends OC_SectionController
             waitSFX();
             tar.lowlight();
             setStatus(STATUS_AWAITING_CLICK);
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
         }
     }
 
@@ -241,7 +241,7 @@ public class OC_Numberlines_S1o extends OC_SectionController
             waitSFX();
             tar.setColour(Color.BLACK);
             setStatus(STATUS_AWAITING_CLICK);
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
         }
     }
 

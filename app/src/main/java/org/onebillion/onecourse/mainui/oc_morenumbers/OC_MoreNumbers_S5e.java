@@ -223,7 +223,7 @@ public class OC_MoreNumbers_S5e extends OC_SectionController
                 currentControl = null;
                 flyObjBack(groupNum);
                 waitSFX();
-                playAudioQueuedScene("INCORRECT",300,false);
+                playAudioQueuedScene("INCORRECT",0.3f,false);
                 setStatus(STATUS_WAITING_FOR_DRAG);
             }
 

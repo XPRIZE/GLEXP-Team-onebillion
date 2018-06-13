@@ -108,7 +108,7 @@ public class OC_CountMore_S5 extends OC_SectionController
             playSfxAudio("number_on",true);
         }
         waitForSecs(0.2f);
-        playAudioQueuedScene("DEMO",300,true);
+        playAudioQueuedScene("DEMO",0.3f,true);
         waitForSecs(0.3f);
         startScene();
     }
@@ -180,7 +180,7 @@ public class OC_CountMore_S5 extends OC_SectionController
         {
             gotItRightBigTick(true);
             waitForSecs(0.3f);
-            playAudioQueuedScene("FINAL", 300, true);
+            playAudioQueuedScene("FINAL", 0.3f, true);
             waitForSecs(0.3f);
             if (events.get(events.size()-1) != currentEvent())
             {
@@ -214,7 +214,7 @@ public class OC_CountMore_S5 extends OC_SectionController
 
             long time = setStatus(STATUS_WAITING_FOR_DRAG);
             waitSFX();
-            if (time == statusTime) playAudioQueuedScene("INCORRECT", 300, false);
+            if (time == statusTime) playAudioQueuedScene("INCORRECT", 0.3f, false);
         }
     }
 

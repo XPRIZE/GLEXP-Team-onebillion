@@ -132,7 +132,7 @@ public class OC_2dShapes_S6p extends OC_SectionController
                 long time = setStatus(STATUS_AWAITING_CLICK);
                 waitSFX();
                 if(time == statusTime)
-                    playAudioQueuedScene("INCORRECT2",300,false);
+                    playAudioQueuedScene("INCORRECT2",0.3f,false);
             }
             else
             {
@@ -157,7 +157,7 @@ public class OC_2dShapes_S6p extends OC_SectionController
             long time = setStatus(STATUS_AWAITING_CLICK);
             waitSFX();
             if(time == statusTime)
-                playAudioQueuedScene("INCORRECT2",300,false);
+                playAudioQueuedScene("INCORRECT2",0.3f,false);
 
         }
         else if(tagPots.get(tag) != null && tagPots.get(tag) != currentPot)
@@ -166,7 +166,7 @@ public class OC_2dShapes_S6p extends OC_SectionController
             long time = setStatus(STATUS_AWAITING_CLICK);
             waitSFX();
             if(time == statusTime)
-                playAudioQueuedScene("INCORRECT",300,false);
+                playAudioQueuedScene("INCORRECT",0.3f,false);
 
         }
         else
@@ -186,7 +186,7 @@ public class OC_2dShapes_S6p extends OC_SectionController
                 waitForSecs(0.4f);
                 displayTick();
                 waitForSecs(1f);
-                playAudioQueuedScene("FINAL",300,true);
+                playAudioQueuedScene("FINAL",0.3f,true);
                 waitForSecs(1f);
                 nextScene();
             }

@@ -181,7 +181,7 @@ public class OC_2dShapes_S4 extends OC_SectionController
             waitForSecs(0.3f);
             if (getAudioForScene(currentEvent(),"FINAL") != null)
             {
-                playAudioQueuedScene("FINAL", 300, true);
+                playAudioQueuedScene("FINAL", 0.3f, true);
                 waitForSecs(0.3f);
             }
 
@@ -194,7 +194,7 @@ public class OC_2dShapes_S4 extends OC_SectionController
                     waitForSecs(0.2f);
                 }
             }
-            playAudioQueuedScene("FINAL3", 300, true);
+            playAudioQueuedScene("FINAL3", 0.3f, true);
             waitForSecs(0.5f);
             nextScene();
         }
@@ -205,7 +205,7 @@ public class OC_2dShapes_S4 extends OC_SectionController
             waitSFX();
             targ.setColour(Color.BLACK);
             if (time == statusTime)
-                playAudioQueuedScene("INCORRECT", 300, false);
+                playAudioQueuedScene("INCORRECT", 0.3f, false);
         }
     }
 
@@ -221,7 +221,7 @@ public class OC_2dShapes_S4 extends OC_SectionController
             {
                 gotItRightBigTick(true);
                 waitForSecs(0.3f);
-                playAudioQueuedScene("FINAL", 300, true);
+                playAudioQueuedScene("FINAL", 0.3f, true);
                 waitForSecs(0.3f);
                 nextScene();
             }
@@ -238,7 +238,7 @@ public class OC_2dShapes_S4 extends OC_SectionController
             waitSFX();
             targ.setFillColor(fillColour);
             if (time == statusTime)
-                playAudioQueuedScene("INCORRECT", 300, false);
+                playAudioQueuedScene("INCORRECT", 0.3f, false);
         }
     }
 

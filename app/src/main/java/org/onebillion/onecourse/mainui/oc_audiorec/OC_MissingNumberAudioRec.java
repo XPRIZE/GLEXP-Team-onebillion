@@ -272,7 +272,7 @@ public class OC_MissingNumberAudioRec extends OC_AudioRecSection
         waitForSecs(0.5f);
         if(getAudioForScene(currentEvent() ,"FINAL2") != null)
         {
-            playAudioQueuedScene("FINAL2",300,true);
+            playAudioQueuedScene("FINAL2",0.3f,true);
             waitForSecs(1f);
         }
         if(playFeedback)
@@ -422,7 +422,7 @@ public class OC_MissingNumberAudioRec extends OC_AudioRecSection
     public void demoEvent3() throws Exception
     {
         waitForSecs(0.3f);
-        playAudioQueuedScene("DEMO",300,true);
+        playAudioQueuedScene("DEMO",0.3f,true);
         waitForSecs(0.3f);
         thePointer.hide();
     }
@@ -434,7 +434,7 @@ public class OC_MissingNumberAudioRec extends OC_AudioRecSection
 
     public void demoFeedback() throws Exception
     {
-        playAudioQueuedScene("FINAL3",300,true);
+        playAudioQueuedScene("FINAL3",0.3f,true);
         for(OBLabel label : screenLabels)
         {
             String audio = (String)label.propertyValue("audio");

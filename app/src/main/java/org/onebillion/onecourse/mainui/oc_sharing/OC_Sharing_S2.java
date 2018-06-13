@@ -332,7 +332,7 @@ public class OC_Sharing_S2 extends OC_Generic_Event
                         if (!performSel("midDemo", currentEvent()))
                         {
                             setReplayAudio((List<Object>) (Object) getAudioForScene(currentEvent(), "REPEAT2"));
-                            playAudioQueuedScene("PROMPT2", 300, false);
+                            playAudioQueuedScene("PROMPT2", 0.3f, false);
                         }
                     }
                 }
@@ -370,7 +370,7 @@ public class OC_Sharing_S2 extends OC_Generic_Event
             {
                 gotItWrongWithSfx();
                 waitForSecs(0.3f);
-                playAudioQueuedScene("INCORRECT2", 300, false);
+                playAudioQueuedScene("INCORRECT2", 0.3f, false);
                 action_hiliteNumber(null);
                 setStatus(STATUS_AWAITING_CLICK);
             }

@@ -333,7 +333,7 @@ public class OC_Numberlines_S2f extends OC_SectionController
             else
                 cont.setColour(numColour);
             setStatus(STATUS_AWAITING_CLICK);
-            playAudioQueuedScene("INCORRECT", 300, false);
+            playAudioQueuedScene("INCORRECT", 0.3f, false);
         }
     }
 
@@ -415,7 +415,7 @@ public class OC_Numberlines_S2f extends OC_SectionController
                 waitSFX();
             setStatus(STATUS_WAITING_FOR_DRAG);
             if(doAudio)
-                playAudioQueuedScene("INCORRECT", 300, false);
+                playAudioQueuedScene("INCORRECT", 0.3f, false);
         }
     }
 
@@ -445,7 +445,7 @@ public class OC_Numberlines_S2f extends OC_SectionController
             waitForSecs(0.2f);
             if(!performSel("demoFin",currentEvent()))
             {
-                playAudioQueuedScene("FINAL",300,true);
+                playAudioQueuedScene("FINAL",0.3f,true);
                 waitForSecs(0.5f);
 
             }
@@ -575,7 +575,7 @@ public class OC_Numberlines_S2f extends OC_SectionController
         float startHeight = divline.height();
         OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("strokeEnd",1,tempLine)),0.6,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
         OBAnimationGroup.runAnims(Arrays.asList(OBAnim.opacityAnim(1,arrow)),0.5,true,OBAnim.ANIM_LINEAR,this);
-        playAudioQueuedScene("FINAL",300,true);
+        playAudioQueuedScene("FINAL",0.3f,true);
         OBAnimationGroup.runAnims(Arrays.asList(OBAnim.opacityAnim(0,arrow)),0.5,true,OBAnim.ANIM_LINEAR,this);
         OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("strokeEnd",0,tempLine)),0.6,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
         tempLine.hide();

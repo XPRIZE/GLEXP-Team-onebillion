@@ -262,10 +262,10 @@ public class OC_Sharing_S3 extends OC_Generic_Event
                 gotItRightBigTick(true);
                 waitForSecs(0.3f);
                 //
-                playAudioQueuedScene("CORRECT", 300, true);
+                playAudioQueuedScene("CORRECT", 0.3f, true);
                 waitForSecs(0.3f);
                 //
-                playAudioQueuedScene("FINAL", 300, true);
+                playAudioQueuedScene("FINAL", 0.3f, true);
                 waitForSecs(0.3f);
                 //
                 if (performSel("finDemo", currentEvent()))
@@ -283,7 +283,7 @@ public class OC_Sharing_S3 extends OC_Generic_Event
     public void action_wrongAnswer (OBControl target) throws Exception
     {
         gotItWrongWithSfx();
-        playAudioQueuedScene("INCORRECT", 300, false);
+        playAudioQueuedScene("INCORRECT", 0.3f, false);
     }
 
 
@@ -331,7 +331,7 @@ public class OC_Sharing_S3 extends OC_Generic_Event
                         gotItRightBigTick(false);
                         waitSFX();
                         setReplayAudio((List<Object>) (Object) getAudioForScene(currentEvent(), "REPEAT2"));
-                        playAudioQueuedScene("PROMPT2", 300, false);
+                        playAudioQueuedScene("PROMPT2", 0.3f, false);
                     }
                 }
                 else
@@ -369,7 +369,7 @@ public class OC_Sharing_S3 extends OC_Generic_Event
                 gotItWrongWithSfx();
                 waitForSecs(0.3f);
                 //
-                playAudioQueuedScene("INCORRECT2", 300, false);
+                playAudioQueuedScene("INCORRECT2", 0.3f, false);
                 action_hiliteNumber(null);
                 setStatus(STATUS_AWAITING_CLICK);
             }

@@ -62,7 +62,7 @@ public class OC_AddTakeAway_S6 extends OC_Generic_Tracing
                 {
                     if (!performSel("demo", currentEvent()))
                     {
-                        playAudioQueuedScene("DEMO", 300, true);
+                        playAudioQueuedScene("DEMO", 0.3f, true);
                         doAudio(currentEvent());
                     }
                 }
@@ -76,7 +76,7 @@ public class OC_AddTakeAway_S6 extends OC_Generic_Tracing
                     {
                         if (!statusChanged(startStatusTime))
                         {
-                            playAudioQueuedScene("REMIND", 300, false);
+                            playAudioQueuedScene("REMIND", 0.3f, false);
                         }
                     }
                 });

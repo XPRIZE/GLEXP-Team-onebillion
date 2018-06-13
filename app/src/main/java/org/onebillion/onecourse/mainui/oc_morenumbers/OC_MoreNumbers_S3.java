@@ -209,7 +209,7 @@ public class OC_MoreNumbers_S3 extends OC_SectionController
                 @Override
                 public void run() throws Exception
                 {
-                    playAudioQueuedScene("INCORRECT",300,false);
+                    playAudioQueuedScene("INCORRECT",0.3f,false);
                     setStatus(STATUS_WAITING_FOR_DRAG);
                 }
             });
@@ -233,7 +233,7 @@ public class OC_MoreNumbers_S3 extends OC_SectionController
                 if(!performSel("demoFin",currentEvent()))
                 {
                     waitForSecs(0.2f);
-                    playAudioQueuedScene("FINAL2",300,true);
+                    playAudioQueuedScene("FINAL2",0.3f,true);
                     waitForSecs(0.4f);
 
                 }
@@ -252,7 +252,7 @@ public class OC_MoreNumbers_S3 extends OC_SectionController
             waitSFX();
             cont.setBackgroundColor(Color.WHITE);
             setStatus(STATUS_AWAITING_CLICK);
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
         }
     }
 
@@ -275,7 +275,7 @@ public class OC_MoreNumbers_S3 extends OC_SectionController
             waitSFX();
             numCont.setColour ( textcolour);
             setStatus(STATUS_AWAITING_CLICK);
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
 
         }
     }
@@ -304,7 +304,7 @@ public class OC_MoreNumbers_S3 extends OC_SectionController
             {
                 gotItRightBigTick(true);
                 waitForSecs(0.5f);
-                playAudioQueuedScene("FINAL",300,true);
+                playAudioQueuedScene("FINAL",0.3f,true);
                 nextScene();
 
             }
@@ -320,7 +320,7 @@ public class OC_MoreNumbers_S3 extends OC_SectionController
             waitSFX();
             cont.setBackgroundColor(Color.WHITE);
             setStatus(STATUS_AWAITING_CLICK);
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
 
         }
     }
@@ -342,7 +342,7 @@ public class OC_MoreNumbers_S3 extends OC_SectionController
             long time = setStatus(STATUS_WAITING_FOR_DRAG);
             waitSFX();
             if(time == statusTime)
-                playAudioQueuedScene("INCORRECT2",300,false);
+                playAudioQueuedScene("INCORRECT2",0.3f,false);
 
         }
     }
@@ -413,7 +413,7 @@ public class OC_MoreNumbers_S3 extends OC_SectionController
             waitForSecs(0.5f);
             gotItRightBigTick(true);
             waitForSecs(0.2f);
-            playAudioQueuedScene("FINAL2",300,true);
+            playAudioQueuedScene("FINAL2",0.3f,true);
             waitForSecs(0.5f);
             resetGrid(true);
             waitForSecs(0.5f);

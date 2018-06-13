@@ -165,10 +165,10 @@ public class OC_Patterns_S4 extends OC_Generic_Event
                 gotItRightBigTick(true);
                 waitForSecs(0.3f);
                 //
-                playAudioQueuedScene("CORRECT", 300, true);
+                playAudioQueuedScene("CORRECT", 0.3f, true);
                 waitForSecs(0.3f);
                 //
-                playAudioQueuedScene("FINAL", 300, true);
+                playAudioQueuedScene("FINAL", 0.3f, true);
                 //
                 lockScreen();
                 for (OBPath path : (List<OBPath>) (Object) filterControls("line.*"))
@@ -186,7 +186,7 @@ public class OC_Patterns_S4 extends OC_Generic_Event
             gotItWrongWithSfx();
             waitForSecs(0.3f);
             //
-            playAudioQueuedScene("INCORRECT", 300, false);
+            playAudioQueuedScene("INCORRECT", 0.3f, false);
             action_lowlightPath(line);
         }
         //

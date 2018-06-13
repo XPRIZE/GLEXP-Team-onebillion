@@ -210,7 +210,7 @@ public class OC_AddSubtract_S5 extends OC_SectionController
             box.objectDict.get("box").setBackgroundColor(eventColour.get("box"));
             OC_Numberlines_Additions.showEquation((OBGroup)objectDict.get("equation"),4,5,"equation",this);
             waitForSecs(0.3f);
-            playAudioQueuedScene("FINAL",300,true);
+            playAudioQueuedScene("FINAL",0.3f,true);
             waitForSecs(0.8f);
             nextScene();
 
@@ -222,7 +222,7 @@ public class OC_AddSubtract_S5 extends OC_SectionController
             waitSFX();
             box.objectDict.get("box").setBackgroundColor(eventColour.get("box"));
             if(time == statusTime)
-                playAudioQueuedScene("INCORRECT",300,false);
+                playAudioQueuedScene("INCORRECT",0.3f,false);
 
         }
     }

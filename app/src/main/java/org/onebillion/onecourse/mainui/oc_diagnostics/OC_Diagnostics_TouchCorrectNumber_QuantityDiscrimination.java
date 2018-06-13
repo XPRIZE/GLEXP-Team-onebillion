@@ -27,7 +27,7 @@ public class OC_Diagnostics_TouchCorrectNumber_QuantityDiscrimination extends OC
         //
         List promptAudio = getAudioForScene(scene, "PROMPT");
         setReplayAudio(promptAudio);
-        playAudioQueuedScene("PROMPT", 300, false);
+        playAudioQueuedScene("PROMPT", 0.3f, false);
     }
 
 

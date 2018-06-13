@@ -35,7 +35,7 @@ public class OC_Diagnostics_TouchCorrectNumber_MissingNumber extends OC_Diagnost
         List promptAudio = getAudioForScene(scene, "PROMPT");
         setReplayAudio(promptAudio);
         //
-        playAudioQueuedScene("PROMPT", 300, false);
+        playAudioQueuedScene("PROMPT", 0.3f, false);
     }
 
 

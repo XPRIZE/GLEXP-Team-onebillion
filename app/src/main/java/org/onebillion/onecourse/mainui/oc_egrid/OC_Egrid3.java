@@ -89,7 +89,7 @@ public class OC_Egrid3 extends OC_Egrid
 
     public void doMainXX() throws Exception
     {
-        playAudioQueuedScene("DEMO",300,true);
+        playAudioQueuedScene("DEMO",0.3f,true);
         highlightLabel(currentLabel);
         startScene();
     }
@@ -106,7 +106,7 @@ public class OC_Egrid3 extends OC_Egrid
 
             if(getAudioForScene(currentEvent(),"CORRECT") != null)
             {
-                playAudioQueuedScene("CORRECT",300,true);
+                playAudioQueuedScene("CORRECT",0.3f,true);
                 waitForSecs(2f);
             }
             disableLabel(currentLabel);

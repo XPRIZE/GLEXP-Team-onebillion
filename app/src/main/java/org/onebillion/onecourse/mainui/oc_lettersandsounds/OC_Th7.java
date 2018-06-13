@@ -154,7 +154,7 @@ public class OC_Th7 extends OC_TalkingHead
             {
                 buttonShowState("active");
             }
-            playAudioQueuedScene("DEMO", 300, true);
+            playAudioQueuedScene("DEMO", 0.3f, true);
             setStatus(STATUS_AWAITING_CLICK);
             doAudio(currentEvent());
         }
@@ -265,7 +265,7 @@ public class OC_Th7 extends OC_TalkingHead
     public void demofinale() throws Exception
     {
         setStatus(STATUS_BUSY);
-        playAudioQueuedScene("FINAL", 300, true);
+        playAudioQueuedScene("FINAL", 0.3f, true);
         waitForSecs(0.3f);
         //
         nextScene();
