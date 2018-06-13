@@ -115,8 +115,13 @@ public class OC_Pbn extends OC_SectionController
         Map<String,Object> data = eventData.get(eventIndex);
         playOnlyWrongDemo = (boolean)data.get("wrong_only_demo");
         List<Integer> nums = (List<Integer>)data.get("targets");
-        int correct = nums.get(0);
-        nums = OBUtils.randomlySortedArray(nums);
+        int correct = -1;
+        for(int num : nums)
+        {
+            if(correct < num)
+            correct = num;
+        }
+
         for(int i=0; i<2; i++)
         {
             int currentMode = nums.get(i).intValue();

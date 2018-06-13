@@ -38,8 +38,8 @@ public class OC_GridAudioRec extends OC_AudioRecSection
         setStatus(STATUS_BUSY);
         super.prepare();
         String[] sizes = parameters.get("size").split(",");
-        gridSizeX = OBUtils.getIntValue(sizes[0]);
-        gridSizeY = OBUtils.getIntValue(sizes[1]);
+        gridSizeY = OBUtils.getIntValue(sizes[0]);
+        gridSizeX = OBUtils.getIntValue(sizes[1]);
         loadEvent("master");
         currentMode = MODE_WORD;
         String mode = parameters.get("mode");

@@ -83,7 +83,7 @@ public class MainActivity extends Activity
     public static OBLocationManager locationManager;
     public static MainActivity mainActivity;
     public static OBMainViewController mainViewController;
-    public static Typeface standardTypeFace;
+    public static Typeface standardTypeFace, writingTypeFace;
 
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
