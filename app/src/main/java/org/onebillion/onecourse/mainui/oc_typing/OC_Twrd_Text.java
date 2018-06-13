@@ -492,16 +492,15 @@ public class OC_Twrd_Text extends OC_Twrd
 
     public void showImage() throws Exception
     {
-        lockScreen();
         if(imageMode && picture != null && picture.hidden)
         {
+            lockScreen();
             picture.show();
             picturebg.show();
-
+            playSfxAudio("wordon",false);
+            unlockScreen();
+            waitSFX();
         }
-        playSfxAudio("wordon",false);
-        unlockScreen();
-        waitSFX();
     }
 
     public void hideWordLetters()
@@ -553,9 +552,9 @@ public class OC_Twrd_Text extends OC_Twrd
     {
         if(currentLetterIndex +1 >= currentWordData.size())
             return;
-
-        PointF loc = (PointF)currentWordData.get(currentLetterIndex).get("line_loc");
-        float width = (float)currentWordData.get(currentLetterIndex).get("line_width");
+        deregisterAnimationGroupWithName("line_move");
+        PointF loc = (PointF)currentWordData.get(currentLetterIndex+1).get("line_loc");
+        float width = (float)currentWordData.get(currentLetterIndex+1).get("line_width");
 
         List<OBAnim> anims = new ArrayList<>();
         anims.add(OBAnim.moveAnim(loc, screenLine));
@@ -563,7 +562,8 @@ public class OC_Twrd_Text extends OC_Twrd
         {
             anims.add(OBAnim.propertyAnim("width", width, screenLine));
         }
-        OBAnimationGroup.runAnims(anims, 0.2, false, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+        OBAnimationGroup animGroup = OBAnimationGroup.runAnims(anims, 0.2, false, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+        registerAnimationGroup(animGroup, "line_move");
     }
 
     public void disableRowsOfKeyboard() throws Exception

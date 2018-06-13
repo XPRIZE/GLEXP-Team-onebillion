@@ -35,7 +35,8 @@ public class OC_Twrd extends OC_SectionController implements OC_TypewriterReceiv
                 sfxList != null ? sfxList.get(0) : null, this);
         boolean capitalMode = OBUtils.getBooleanValue(parameters.get("capitalmode"));
         typewriterManager.setCapitalMode(capitalMode);
-        typewriterManager.lockKeysForString("q,x");
+        if(parameters.containsKey("locked"))
+            typewriterManager.lockKeysForString(parameters.get("locked"));
         OBControl bg = objectDict.get("keyboard_bg");
         typewriterManager.fitBackground(bg);
     }

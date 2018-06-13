@@ -78,8 +78,10 @@ public class OC_TypewriterManager
     }
     public void setSpecialAudio(String audio,String keyCode)
     {
-        OBControl key = keyboardKeys.get(keyCode);
-        key.setProperty("special_audio",audio);
+        if(keyboardKeys.containsKey(keyCode)) {
+            OBControl key = keyboardKeys.get(keyCode);
+            key.setProperty("special_audio", audio);
+        }
     }
 
     public void animateFlash(final long time)
