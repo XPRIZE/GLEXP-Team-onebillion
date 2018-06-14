@@ -347,14 +347,9 @@ public class OC_AddSubtract_S1 extends OC_SectionController
         {
             for(OBControl cont : leftControls)
                 cont.show();
-            try
-            {
-                OC_Numberlines_Additions.showEquation((OBGroup) objectDict.get("equation"), 1, 1, null, this);
-            }
-            catch (Exception e)
-            {
 
-            }
+            OC_Numberlines_Additions.showEquation((OBGroup) objectDict.get("equation"), 1, 1, this);
+
         }
         unlockScreen();
     }

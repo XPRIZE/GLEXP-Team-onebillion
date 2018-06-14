@@ -354,6 +354,16 @@ public class OC_Numberlines_Additions
 
     }
 
+    public static void showEquation(OBGroup equation,int from, int to, OC_SectionController controller)
+    {
+        controller.lockScreen();
+        for(int i = from; i<=to; i++)
+        {
+            equation.objectDict.get(String.format("part%d",i)).show();
+        }
+        controller.unlockScreen();
+    }
+
     public static void hideEquation(OBGroup equation, OC_SectionController controller)
     {
 

@@ -255,13 +255,8 @@ public class OC_EquationAudioRec extends OC_AudioRecSection
         String sign = addition ? "+" : "–";
         OC_Numberlines_Additions.loadEquation(String.format("%d %s %d = %d",num1,sign,num2,result) ,"equation",objectDict.get("eq_box") , Color.BLACK,false,this);
         currentEquation =(OBGroup)objectDict.get("equation");
-        try
-        {
-            OC_Numberlines_Additions.showEquation(currentEquation,1,5,null,this);
-        }catch (Exception e)
-        {
 
-        }
+        OC_Numberlines_Additions.showEquation(currentEquation,1,5,this);
         OC_Numberlines_Additions.colourEquation(currentEquation,5,5,Color.BLUE,this);
         currentEquation.hide();
         targetLabel = OC_Numberlines_Additions.getLabelForEquation(5, currentEquation);

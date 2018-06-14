@@ -233,20 +233,13 @@ public class OC_AddSubtract_S4 extends OC_SectionController
 
     public void showPhase()
     {
-        try
-        {
-            lockScreen();
-            if (currentBox == 1)
-                showControls("drag_.*");
-            showControls(String.format("obj_%d_.*", currentBox));
-            objectDict.get(String.format("box_%d", currentBox)).show();
-            OC_Numberlines_Additions.showEquation((OBGroup) objectDict.get(String.format("equation_%d", currentBox)), 1, 1, null, this);
-            unlockScreen();
-        }
-        catch (Exception e)
-        {
-
-        }
+        lockScreen();
+        if (currentBox == 1)
+            showControls("drag_.*");
+        showControls(String.format("obj_%d_.*", currentBox));
+        objectDict.get(String.format("box_%d", currentBox)).show();
+        OC_Numberlines_Additions.showEquation((OBGroup) objectDict.get(String.format("equation_%d", currentBox)), 1, 1,  this);
+        unlockScreen();
     }
 
     public void demo4a() throws Exception
