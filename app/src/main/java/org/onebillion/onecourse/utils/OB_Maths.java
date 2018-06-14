@@ -499,6 +499,21 @@ public class OB_Maths
         return area / 2.0f;
     }
 
+    static PointF Centroid(PointF[] points,int count)
+    {
+        float xsum = 0;
+        float ysum = 0;
+        float area = PolygonArea(points,count);
+        for(int i = 0; i < count; i++)
+        {
+            int j =(i + 1) % count;
+            float factor = (points[i].x * points[j].y - points[j].x * points[i].y);
+            xsum += ((points[i].x + points[j].x) * factor);
+            ysum += ((points[i].y + points[j].y) * factor);
+        }
+        return new PointF(xsum/(6.0f*area) ,ysum/(6.0f*area));
+    }
+
     public static Boolean lineSegmentsIntersect(PointF a,PointF b,PointF c,PointF d, PointF intersectPoint)
     {
         float s,t,num,denom;

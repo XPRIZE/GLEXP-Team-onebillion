@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.os.Handler;
 import android.util.ArrayMap;
 import android.view.View;
 
@@ -50,6 +51,9 @@ public class OC_PhraseSentenceType extends OC_PhraseSentence implements OC_Typew
     int lowlightColour, lineColour;
     boolean hiddenMode, showExample, showPresenter;
 
+    private Handler reminderHandler;
+    private Runnable reminderRunnable;
+
     @Override
     public float getFontSize()
     {
@@ -68,6 +72,7 @@ public class OC_PhraseSentenceType extends OC_PhraseSentence implements OC_Typew
         showPresenter = OBUtils.getBooleanValue(parameters.get("presenter"));
         currentMode = OBUtils.getIntValue(parameters.get("type"));
         lowlightColour = OBUtils.colorFromRGBString(eventAttributes.get("colour_lowlight"));
+        reminderHandler = new Handler();
         screenLine.hide();
         Map<String,Map<String,Object>> components = new ArrayMap<>();
         if(parameters.get("mode").equals("phrase"))
@@ -732,9 +737,12 @@ public class OC_PhraseSentenceType extends OC_PhraseSentence implements OC_Typew
 
     public void flashLineTime(final long time,final float delay)
     {
-        OBUtils.runOnOtherThreadDelayed(delay,new OBUtils.RunLambda()
-        {
-            public void run() throws Exception {
+        if(reminderRunnable != null)
+            reminderHandler.removeCallbacks(reminderRunnable);
+
+        reminderRunnable = new Runnable() {
+            @Override
+            public void run() {
                 try {
                     while (!statusChanged(time)) {
                         for (int i = 0;
@@ -760,7 +768,8 @@ public class OC_PhraseSentenceType extends OC_PhraseSentence implements OC_Typew
                     screenLine.setStrokeColor(lineColour);
                 }
             }
-        });
+        };
+        reminderHandler.postDelayed(reminderRunnable, (long)(delay * 1000));
     }
 
     public void demoIntro1() throws Exception

@@ -41,6 +41,7 @@ import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.controls.OBTextLayer;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
+import org.onebillion.onecourse.mainui.OC_SectionController;
 
 
 public class OBUtils
@@ -1497,5 +1498,22 @@ public class OBUtils
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         return calendar.getTimeInMillis();
+    }
+
+    public static PointF centroidForPath(String event, String pathName, OC_SectionController controller)
+    {
+        UPath deconPath = controller.deconstructedPath(event, pathName);
+        USubPath subPath = deconPath.subPaths.get(deconPath.subPaths.size()-1);
+        List<ULine> elements = subPath.elements;
+        if(elements.size() ==0)
+            return new PointF(0,0);
+        PointF[] pts = new PointF[elements.size()+1];
+        pts[0] = elements.get(0).pt0;
+        int i = 1;
+        for(ULine l : elements)
+            pts[i++] = l.pt1;
+        PointF centroid = OB_Maths.Centroid(pts,(int) elements.size() + 1);
+        return centroid;
+
     }
 }
