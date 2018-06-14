@@ -27,10 +27,10 @@ import static org.onebillion.onecourse.utils.OBUtils.StandardReadingFontOfSize;
 
 public class OC_Morphology extends OC_Reading
 {
-    Map sentenceDict;
+    Map<String,ocm_sentence> sentenceDict;
     OBFont font;
     float textSize;
-    List sentenceIds;
+    List<String> sentenceIds;
     List sentenceGroups;
     String group,mtype;
     OBPresenter presenter;
@@ -43,7 +43,7 @@ public class OC_Morphology extends OC_Reading
     public class ocm_sentence extends Object
     {
         String sid,text;
-        Map markups;
+        Map<String,List> markups;
         List<ocm_word>words;
         public ocm_sentence(String sid,String tx)
         {
@@ -142,7 +142,8 @@ public class OC_Morphology extends OC_Reading
                         String k = String.format("%s+%",mtype,group);
                         se.markups.put(k,rs);
                     }
-                }            }
+                }
+            }
             catch(Exception e)
             {
 
