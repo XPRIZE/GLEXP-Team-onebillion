@@ -224,6 +224,7 @@ public class OC_WordProblems extends OC_SectionController
         equationBg.show();
 
         currentEquation = new OBGroup(Arrays.asList(equationBg,equation));
+        currentEquation.settings.putAll(equation.settings);
         currentEquation.objectDict.putAll(equation.objectDict);
         currentEquation.objectDict.put("bg", equationBg);
         attachControl(currentEquation);
