@@ -42,6 +42,8 @@ import static org.onebillion.onecourse.mainui.OBViewController.MainViewControlle
 
 /**
  * Created by michal on 02/08/2017.
+ * Fat Controller is the main source of logic of the software. It contains current user, session,
+ * setups up units, menus etc. It's a single point decision that tells system what screen to display.
  */
 
 public class OCM_FatController extends OBFatController implements OBSystemsManager.TimeSynchronizationReceiver

@@ -17,6 +17,12 @@ import java.util.Map;
 
 /**
  * Created by michal on 02/08/2017.
+ * MlUnitInstance - Masterlist Unit Instance
+ * This is individual instance of MlUnit. Every time a Unit is opened, an instance is created and
+ * saved in the database. It contains all the progress details, such as score, start/end time,
+ * reason of completion (STATUS). Some units contain extra data saved as json in DB. This is used
+ * so analysis like wrong answers chosen, timings between actions
+ *
  */
 
 public class OCM_MlUnitInstance extends DBObject

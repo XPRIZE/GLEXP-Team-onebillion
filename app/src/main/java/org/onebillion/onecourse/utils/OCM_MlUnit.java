@@ -12,6 +12,11 @@ import java.util.Map;
 
 /**
  * Created by michal on 09/08/16.
+ * MlUnit - Masterlist Unit
+ * Units are grouped up into various masterlist like study, playzone, library
+ * Each unit contains information required by the system to set it up, like what class to call
+ * and what parameters to provide.
+ *
  */
 public class OCM_MlUnit extends DBObject
 {

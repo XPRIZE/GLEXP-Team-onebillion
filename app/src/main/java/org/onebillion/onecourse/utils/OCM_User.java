@@ -1,9 +1,5 @@
 package org.onebillion.onecourse.utils;
 
-/**
- * Created by michal on 02/08/2017.
- */
-
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.util.ArrayMap;
@@ -12,7 +8,8 @@ import java.util.Arrays;
 import java.util.Map;
 
 /**
- * Created by michal on 18/01/2017.
+ * Created by michal on 02/08/2017.
+ * Class describes tablet user and what masterlists the users use.
  */
 
 public class OCM_User extends DBObject
