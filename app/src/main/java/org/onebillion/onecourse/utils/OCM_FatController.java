@@ -4,26 +4,19 @@ import android.app.AlarmManager;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.CursorIndexOutOfBoundsException;
-import android.graphics.Color;
 import android.graphics.PointF;
-import android.graphics.RectF;
 import android.os.Handler;
 import android.util.ArrayMap;
 import android.widget.Toast;
 
-import org.json.JSONObject;
 import org.onebillion.onecourse.R;
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
-import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OBSectionController;
-import org.onebillion.onecourse.mainui.OBUnitAdapter;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.mainui.oc_playzone.OC_PlayZoneAsset;
-import org.onebillion.onecourse.receivers.OBBatteryReceiver;
 
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -129,7 +122,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         public void run (OCM_MlUnitInstance unitInstance, boolean success);
     }
 
-
+    /**
+     * Loads masterlist from xml into database
+     * @param masterlistid int number the masterlist should have in db
+     * @param mlname name of the masterlist(and folder in masterlist folder that contains the xml)
+     */
     public void loadMasterListIntoDB(int masterlistid, String mlname)
     {
 
@@ -357,6 +354,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         }
     }
 
+    /**
+     * Get amount of days since the first day of usage(Start Day). This is the base for calculations
+     * of current weeks and masterlist weeks below.
+     * @return days since Start Day starting from 1(1 is Start Day)
+     */
     public int getDaysSinceStartDate()
     {
         if(startDate == null)
@@ -381,11 +383,19 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         return dayDif;
     }
 
+    /**
+     * Current week since Start Day.
+     * @return int starting from 1(first week of usage)
+     */
     public int getCurrentWeek()
     {
         return (int)Math.ceil(getCurrentDay() / 7.0f);
     }
 
+    /**
+     * Gets current day of the week for the child menu.
+     * @return int 1-7 where 1 - Monday
+     */
     public int getCurrentDayOfWeek()
     {
         Calendar calendar = Calendar.getInstance();
@@ -718,32 +728,92 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         OCM_MlUnit mlUnit = null;
         int currentWeek = getCurrentWeek();
         int materlistWeek = getMasterlistWeek();
+        int firstDay = ((currentWeek-1)*7)+1;
+        int lastDay = currentWeek*7;
+        Cursor cursor = null;
 
-        //check for uncompleted remedial units
+        //calculate current remedial unit
+        cursor = db.prepareRawQuery(String.format("SELECT U.unitid AS unitid, S.sessionid AS sessionid, " +
+                        "CASE WHEN (UI.seqNo >= ? OR UI.statusid IN (?,?)) THEN 1 ELSE 0 AS completed " +
+                        "FROM %s AS U "+
+                        "LEFT JOIN %s AS UI ON UI.unitid = U.unitid AND U.userid = UI.userid "+
+                        "LEFT JOIN %s AS S ON S.sessionid = UI.sessionid AND S.userid = UI.userid "+
+                        "WHERE U.week = ? AND U.userid = ?  AND S.day >= ? AND S.day <= ?",
+                 DBSQL.TABLE_EXTRA_UNITS,DBSQL.TABLE_UNIT_INSTANCES,DBSQL.TABLE_SESSIONS),
+                Arrays.asList(String.valueOf(lastDay),String.valueOf(unitAttemptsCount-1),String.valueOf(OCM_MlUnitInstance.STATUS_COMPLETED),
+                        String.valueOf(OCM_MlUnitInstance.STATUS_FAILURE),String.valueOf(currentWeek),
+                        String.valueOf(currentUser.studylistid),String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_STUDY),
+                        String.valueOf(currentUser.userid),String.valueOf(firstDay)));
 
-        //search for a next unit for current days of the week
-        Cursor cursor = db.prepareRawQuery(String.format("SELECT MAX(unitIndex) AS unitIndex FROM %s AS U "+
-                "JOIN %s AS UI ON UI.unitid = U.unitid AND U.masterlistid = ? "+
-                "JOIN %s AS S ON S.sessionid = UI.sessionid AND S.userid = UI.userid "+
-                "WHERE UI.userid = ? AND U.level = ?  AND S.day > ? AND S.day <= ?"+
-                "AND (UI.seqNo >= ? OR UI.statusid IN (?,?))", DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES,DBSQL.TABLE_SESSIONS),
-                Arrays.asList(String.valueOf(currentUser.studylistid),String .valueOf(currentUser.userid),
-                String.valueOf(materlistWeek),String.valueOf((currentWeek-1)*7),
-                String.valueOf(currentWeek*7),String.valueOf(unitAttemptsCount-1),String.valueOf(OCM_MlUnitInstance.STATUS_COMPLETED),
+
+
+        if(cursor.moveToFirst())
+        {
+            int totalExtraUnits = cursor.getCount();
+            int totalDayCount = (int)Math.ceil(totalExtraUnits/2.0f);
+            int unitIdIndex = cursor.getColumnIndex("unitid");
+            int sessionIdIndex = cursor.getColumnIndex("sessionid");
+            int completedIndex =  cursor.getColumnIndex("completed");
+            while (cursor.isAfterLast() == false)
+            {
+
+               //parse the extra units here
+                cursor.moveToNext();
+            }
+            if(!cursor.isNull(unitIdIndex))
+                mlUnit = OCM_MlUnit.mlUnitforUnitIDFromDB(db,cursor.getLong(unitIdIndex));
+        }
+        cursor.close();
+
+
+
+        //check for uncompleted remedial units for this week
+        cursor = db.prepareRawQuery(String.format("SELECT U.unitid AS unitid FROM %s AS U "+
+                        "JOIN %s AS UI ON UI.unitid = U.unitid AND UI.typeid = ? "+
+                        "JOIN %s AS S ON S.sessionid = UI.sessionid AND S.userid = UI.userid "+
+                        "WHERE UI.userid = ?  AND S.day >= ? AND S.day <= ?"+
+                        "AND NOT (UI.seqNo >= ? OR UI.statusid IN (?,?)) LIMIT 1", DBSQL.TABLE_EXTRA_UNITS,DBSQL.TABLE_UNIT_INSTANCES,DBSQL.TABLE_SESSIONS),
+                Arrays.asList(String.valueOf(currentUser.studylistid),String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_STUDY),
+                        String .valueOf(currentUser.userid),String.valueOf(firstDay),
+                        String.valueOf(lastDay),String.valueOf(unitAttemptsCount-1),String.valueOf(OCM_MlUnitInstance.STATUS_COMPLETED),
                         String.valueOf(OCM_MlUnitInstance.STATUS_FAILURE)));
 
         if(cursor.moveToFirst())
         {
-            int columnIndex = cursor.getColumnIndex("unitIndex");
+            int columnIndex = cursor.getColumnIndex("unitid");
             if(!cursor.isNull(columnIndex))
-                mlUnit = OCM_MlUnit.nextMlUnitFromDB(db,currentUser.studylistid, cursor.getInt(columnIndex));
+                mlUnit = OCM_MlUnit.mlUnitforUnitIDFromDB(db,cursor.getLong(columnIndex));
         }
         cursor.close();
 
+        //if no unit found search the masterlist for the next study one
         if(mlUnit == null)
         {
-            //if no unit found, this means it's a new week
-            //check is diagnostic test was performed yet
+            //search for a next study unit for current days of the week
+            cursor = db.prepareRawQuery(String.format("SELECT MAX(unitIndex) AS unitIndex FROM %s AS U " +
+                            "JOIN %s AS UI ON UI.unitid = U.unitid AND U.masterlistid = ? AND UI.typeid = ? " +
+                            "JOIN %s AS S ON S.sessionid = UI.sessionid AND S.userid = UI.userid " +
+                            "WHERE UI.userid = ? AND U.level = ?  AND S.day >= ? AND S.day <= ?" +
+                            "AND (UI.seqNo >= ? OR UI.statusid IN (?,?))", DBSQL.TABLE_UNITS, DBSQL.TABLE_UNIT_INSTANCES, DBSQL.TABLE_SESSIONS),
+                    Arrays.asList(String.valueOf(currentUser.studylistid), String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_STUDY)
+                            , String.valueOf(currentUser.userid),
+                            String.valueOf(materlistWeek), String.valueOf(firstDay),
+                            String.valueOf(lastDay), String.valueOf(unitAttemptsCount - 1), String.valueOf(OCM_MlUnitInstance.STATUS_COMPLETED),
+                            String.valueOf(OCM_MlUnitInstance.STATUS_FAILURE)));
+
+            if (cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndex("unitIndex");
+                if (!cursor.isNull(columnIndex))
+                    mlUnit = OCM_MlUnit.nextMlUnitFromDB(db, currentUser.studylistid, cursor.getInt(columnIndex));
+            }
+            cursor.close();
+        }
+
+        //if no unit found, this means it's a new week
+        if(mlUnit == null)
+        {
+
+            //check if diagnostic test was performed yet
 
             //pick first units for that period
             cursor = db.prepareRawQuery(String.format("SELECT MIN(unitIndex) AS unitIndex FROM %s AS U WHERE U.level = ? AND U.masterlistid = ?", DBSQL.TABLE_UNITS),
@@ -1161,18 +1231,20 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             db = new DBSQL(false);
             Cursor cursor = db.prepareRawQuery(String.format("SELECT * FROM %s "+
                             "WHERE unitid IN (SELECT unitid FROM %s "+
-                            "WHERE userid = ? AND sessionid = ?) AND masterlistid = ? "+
+                            "WHERE userid = ? AND sessionid = ?) AND masterlistid = ? AND typeid = ?"+
                             "GROUP BY unitid ORDER BY unitIndex ASC",DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES),
-                    Arrays.asList(String.valueOf(currentUser.userid),String.valueOf(currentSessionId),String.valueOf(currentUser.studylistid)));
+                    Arrays.asList(String.valueOf(currentUser.userid),String.valueOf(currentSessionId),
+                            String.valueOf(currentUser.studylistid),String.valueOf(OCM_MlUnit.TYPE_STANDARD)));
 
             if(cursor.getCount() != SESSION_UNIT_COUNT)
             {
                 cursor.close();
                 cursor = db.prepareRawQuery(String.format("SELECT * FROM %s "+
                                 "WHERE unitid IN (SELECT unitid FROM %s "+
-                                "WHERE level = ? AND masterlistid = ? ORDER BY unitIndex DESC LIMIT %d) AND masterlistid = ? "+
+                                "WHERE level = ? AND masterlistid = ? AND typeid = ? ORDER BY unitIndex DESC LIMIT %d) AND masterlistid = ? "+
                                 "GROUP BY unitid ORDER BY unitIndex ASC",DBSQL.TABLE_UNITS,DBSQL.TABLE_UNITS,SESSION_UNIT_COUNT),
-                        Arrays.asList(String.valueOf(getMasterlistWeek()),String.valueOf(currentUser.studylistid),String.valueOf(currentUser.studylistid)));
+                        Arrays.asList(String.valueOf(getMasterlistWeek()),String.valueOf(currentUser.studylistid),
+                                String.valueOf(OCM_MlUnit.TYPE_STANDARD),String.valueOf(currentUser.studylistid)));
             }
 
             if(cursor.moveToFirst())
@@ -1345,8 +1417,8 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                         "WHERE UI.userid = ? AND UI.sessionid = ? AND UI.starColour > 0 AND UI.typeid = ? "+
                         "GROUP BY UI.unitid) AS TAB ON UI.unitid = TAB.unitid AND UI.seqNo = TAB.seqNo "+
                         "WHERE UI.userid = ? AND UI.sessionid = ? AND UI.typeid =?",DBSQL.TABLE_UNIT_INSTANCES,DBSQL.TABLE_UNIT_INSTANCES,DBSQL.TABLE_UNITS),
-                Arrays.asList(String.valueOf(currentUser.studylistid),String.valueOf(currentUser.userid),String.valueOf(sessionid),String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_REVIEW),
-                        String.valueOf(currentUser.userid),String.valueOf(sessionid),String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_REVIEW)));
+                Arrays.asList(String.valueOf(currentUser.studylistid),String.valueOf(currentUser.userid),String.valueOf(sessionid),String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_COMMUNITY),
+                        String.valueOf(currentUser.userid),String.valueOf(sessionid),String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_COMMUNITY)));
         if(cursor.moveToFirst())
         {
             while (cursor.isAfterLast() == false)
@@ -1610,7 +1682,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     public void startSectionByUnit(final OCM_MlUnit unit, boolean study, final SectionOpeningCallback openingCallback)
     {
-        startUnit(unit,study ? OCM_MlUnitInstance.INSTANCE_TYPE_STUDY : OCM_MlUnitInstance.INSTANCE_TYPE_REVIEW,openingCallback);
+        startUnit(unit,study ? OCM_MlUnitInstance.INSTANCE_TYPE_STUDY : OCM_MlUnitInstance.INSTANCE_TYPE_COMMUNITY,openingCallback);
     }
 
     /**
@@ -2015,9 +2087,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
         Cursor cursor = db.prepareRawQuery(String.format("SELECT COUNT(DISTINCT(UI.unitid)) AS count FROM %s AS U "+
                 "JOIN %s AS UI ON UI.unitid = U.unitid AND U.masterlistid = ? "+
-                "WHERE UI.userid = ? AND UI.sessionid = ? "+
-                "AND (UI.seqNo >= ? OR UI.statusid IN (?,?))",DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES),Arrays.asList(String.valueOf(masterlistid),
-                String.valueOf(userid),String.valueOf(sessionid),String.valueOf(unitAttemptsCount-1),String.valueOf(OCM_MlUnitInstance.STATUS_COMPLETED),
+                "WHERE UI.userid = ? AND UI.sessionid = ? AND U.typeid = ? "+
+                "AND (UI.seqNo >= ? OR UI.statusid IN (?,?))",DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES),
+                Arrays.asList(String.valueOf(masterlistid), String.valueOf(userid),String.valueOf(sessionid),
+                String.valueOf(OCM_MlUnit.TYPE_STANDARD),
+                String.valueOf(unitAttemptsCount-1),String.valueOf(OCM_MlUnitInstance.STATUS_COMPLETED),
                 String.valueOf(OCM_MlUnitInstance.STATUS_FAILURE)));
 
         int columnIndex = cursor.getColumnIndex("count");
@@ -2350,5 +2424,41 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             currentUnitInstance.addExtraData(tag, data);
     }
 
+    /*
+    extra units handling
+     */
+
+    private void saveExtraUnitsIntoDb(DBSQL db, int userid, int level, List<Integer> unitList)
+    {
+        db.beginTransaction();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("userid", userid);
+        contentValues.put("level", level);
+        for(int unitid : unitList)
+        {
+            contentValues.put("unitid", unitid);
+            db.doInsertOnTable(DBSQL.TABLE_EXTRA_UNITS, contentValues);
+        }
+        db.commitTransaction();
+    }
+
+    public void saveExtraUnitsForCurrentUser( List<Integer> unitList)
+    {
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(true);
+            saveExtraUnitsIntoDb(db, currentUser.userid, getCurrentWeek(), unitList);
+        }
+        catch(Exception e)
+        {
+            MainActivity.log("OCM_FatController: database access error: " + e.getMessage());
+        }
+        finally
+        {
+            if(db != null)
+                db.close();
+        }
+    }
 
 }

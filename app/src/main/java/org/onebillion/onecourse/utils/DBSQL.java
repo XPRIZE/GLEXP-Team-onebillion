@@ -24,6 +24,7 @@ public class DBSQL
     public final static String TABLE_STARS = "stars";
     public final static String TABLE_PLAYZONE_ASSETS = "playzoneassets";
     public final static String TABLE_ANALYTICS = "analytics";
+    public final static String TABLE_EXTRA_UNITS = "extraunits";
 
     private static SQLiteDatabase database = null;
 

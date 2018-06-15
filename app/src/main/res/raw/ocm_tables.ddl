@@ -26,6 +26,14 @@ create table masterlists
     token big unsigned int not null default 0
 );
 
+create tablet extraunits
+{
+    userid integer not null references users(userid) on delete no action,
+    level integer not null,
+    unitid integer not null,
+    constraint pkey primary key (userid,level,unitid) on conflict fail
+};
+
 create table unitinstances
 (
     userid integer not null references users(userid) on delete no action,
