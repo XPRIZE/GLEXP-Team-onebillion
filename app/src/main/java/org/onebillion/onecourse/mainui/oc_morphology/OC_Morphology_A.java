@@ -36,7 +36,7 @@ public class OC_Morphology_A extends OC_Morphology
             String[] comps = screentxt.split(",");
             ocm_screen scr = new ocm_screen();
             scr.imageID = (comps[0]);
-            scr.sentenceIDs = Arrays.asList(Arrays.copyOfRange(comps,1, comps.length - 1));
+            scr.sentenceIDs = Arrays.asList(Arrays.copyOfRange(comps,1, comps.length));
             scrs.add(scr);
         }
         screens = scrs;
@@ -108,7 +108,7 @@ public class OC_Morphology_A extends OC_Morphology
                 detachControl(mainPic);
             mainPic = loadImageWithName(screens.get(screenNo).imageID,new PointF(0.5f, 0.5f),boundsf());
             //objectDict.setGet("mainpic")(mainPic);
-            mainPic.setZPosition(objectDict.get("textbox").zPosition() - 0.01f);
+            mainPic.setZPosition(objectDict.get("textbox_0").zPosition() - 0.01f);
             scalePicToBox();
             mainPic.hide();
         }
@@ -162,8 +162,9 @@ public class OC_Morphology_A extends OC_Morphology
     public void setUpScene()
     {
         deleteControls(".*");
-        for(OBControl c : labels)
-            detachControl(c);
+        if (labels != null)
+            for(OBControl c : labels)
+                detachControl(c);
         loadEvent("a");
         OBControl bullet = bullet(0);
         hiColour = bullet.fillColor();
@@ -174,7 +175,7 @@ public class OC_Morphology_A extends OC_Morphology
         labels = new ArrayList<>();
         for(int i = 0;i < skeys.size();i++)
         {
-            String[] cmps = skeys.get(i).split(".");
+            String[] cmps = skeys.get(i).split("\\.");
             String sid = cmps[1];
             ocm_sentence se = sentenceDict.get(sid);
             OBControl rect = objectDict.get(String.format("textbox_%d",i));
@@ -191,7 +192,7 @@ public class OC_Morphology_A extends OC_Morphology
             setBulletInactive(i);
         }
 
-        RectF fu = bullet.frame();
+        RectF fu = new RectF(bullet.frame());
         for(OBControl l : labels)
             fu.union(l.frame());
         float diff =(bounds().width() / 2) - fu.centerX();
@@ -259,7 +260,7 @@ public class OC_Morphology_A extends OC_Morphology
         sentenceIds = arr;
         for(String k : sentenceIds)
         {
-            String[] karr = k.split(".");
+            String[] karr = k.split("\\.");
             String sid = karr[1];
             ocm_sentence se = sentenceDict.get(sid);
             OBLabel lab = createLabelFromText(se.text,textbox1);
@@ -526,7 +527,7 @@ public class OC_Morphology_A extends OC_Morphology
         int idx = 0;
         for(String cid : screens.get(screenNo) .sentenceIDs)
         {
-            String[] sarr = cid.split(".");
+            String[] sarr = cid.split("\\.");
             String sid = sarr[1];
             ocm_sentence se = sentenceDict.get(sid);
             String mkey = String.format("%s+%s",mtype,sarr[0]);
@@ -595,7 +596,7 @@ public class OC_Morphology_A extends OC_Morphology
             lab.show();
             waitForSecs(0.2f);
             waitSFX();
-            String sek = sentenceIds.get(idx).split(".")[(1)];
+            String sek = sentenceIds.get(idx).split("\\.")[(1)];
             lab.setColour(Color.RED);
             playAudioQueued((List)Arrays.asList(sek),true);
             lab.setColour(Color.BLACK);
@@ -614,10 +615,10 @@ public class OC_Morphology_A extends OC_Morphology
         for(OBLabel lab : labels)
         {
             String k = sentenceIds.get(idx);
-            String[] karr = k.split(".");
+            String[] karr = k.split("\\.");
             String sid = karr[1];
             ocm_sentence se = sentenceDict.get(sid);
-            String mkey = String.format("%s+%",mtype,karr[0]);
+            String mkey = String.format("%s+%s",mtype,karr[0]);
             List<List<Integer>> av = se.markups.get(mkey);
             for(List<Integer>v : av)
             {
@@ -689,7 +690,7 @@ public class OC_Morphology_A extends OC_Morphology
             playSfxAudio("sentence",false);
             labels.get(buttonNo).show();
             String sek = screens.get(screenNo) .sentenceIDs.get(buttonNo);
-            String sid = sek.split(".")[1];
+            String sid = sek.split("\\.")[1];
             sequenceToken = 0;
             readWords(sentenceDict.get(sid).words,labels.get(buttonNo),sid,0,false);
             setBulletDone(buttonNo);

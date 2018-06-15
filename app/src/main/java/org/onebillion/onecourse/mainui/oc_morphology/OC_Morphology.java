@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.onebillion.onecourse.controls.OBLabel.OBLABEL_ALIGN_LEFT;
 import static org.onebillion.onecourse.utils.OBUtils.StandardReadingFontOfSize;
 
 public class OC_Morphology extends OC_Reading
@@ -43,7 +44,7 @@ public class OC_Morphology extends OC_Reading
     public class ocm_sentence extends Object
     {
         String sid,text;
-        Map<String,List> markups;
+        Map<String,List> markups = new HashMap<>();
         List<ocm_word>words;
         public ocm_sentence(String sid,String tx)
         {
@@ -94,7 +95,7 @@ public class OC_Morphology extends OC_Reading
 
                 for(OBXMLNode pNode : root.childrenOfType("phrase"))
                 {
-                    String sid = pNode.attributeStringValue("Object");
+                    String sid = pNode.attributeStringValue("id");
                     ocm_sentence se = new ocm_sentence(sid,pNode.contents);
                     dict.put(sid,se);
                 }
@@ -139,7 +140,7 @@ public class OC_Morphology extends OC_Reading
                             }
                             rs.add(Arrays.asList(st,en));
                         }
-                        String k = String.format("%s+%",mtype,group);
+                        String k = String.format("%s+%s",mtype,group);
                         se.markups.put(k,rs);
                     }
                 }
@@ -267,6 +268,7 @@ public class OC_Morphology extends OC_Reading
 
         lab.setZPosition(10);
         //lab.setWrapped(true);
+        lab.setAlignment(OBLABEL_ALIGN_LEFT);
         lab.sizeToBoundingBoxMaxWidth(rect.width());
         lab.setLeft(rect.left());
         lab.setTop(rect.top());
