@@ -394,6 +394,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         return day;
     }
 
+    /**
+     * Get day for study masterlist.
+     * This day loops up back to MASTERLIST_RESTART_WEEK once the date is beyond the lenght of masterlist
+     * @return int day number since start date
+     */
     public int getMasterlistDay()
     {
         int lastDay = currentStudyListMaxWeek * 7;
@@ -412,6 +417,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         }
     }
 
+    /**
+     *   Get day for playzone masterlist.
+     *   Playzone days loop up just like study masterlist days do.
+     * @return int day number since start date
+     */
     public int getPlayzoneDay()
     {
         int currentDay = getMasterlistDay();
@@ -475,6 +485,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     UnitInstance timeout
      */
 
+    /**
+     * Starts timer (as handler) for unit instances timeout
+     * @param unitInstance
+     */
     public void startUnitInstanceTimeout(final OCM_MlUnitInstance unitInstance)
     {
         cancelTimeout();
@@ -493,7 +507,6 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         };
 
         timeoutHandler.postDelayed(timeoutRunnable,(int)(unitInstance.mlUnit.targetDuration)*1000);
-
     }
 
     public void cancelTimeout()
@@ -503,6 +516,12 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
         timeoutRunnable = null;
     }
+
+    /**
+     * Checks if timeout for unit instance should be allowed
+     * @param unitInstance
+     * @return
+     */
     public boolean checkTimeout(OCM_MlUnitInstance unitInstance)
     {
         if (!allowsTimeOuts)
@@ -528,6 +547,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         return true;
     }
 
+    /**
+     * triggers timeouts for the unit instance if possible
+     * @param unitInstance
+     */
     public void timeOutUnit(OCM_MlUnitInstance unitInstance)
     {
         if(currentSessionLocked())
@@ -569,6 +592,13 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         unitInstance.sectionController = null;
     }
 
+    /**
+     * Sets all the fields for unit instance such us score, end time, elapsed time
+     * @param unitInstance
+     * @param statusid of unit completion. Aside from standard completion, the unit instance
+     *                 might be closed because of timeout, low battery status, night time etc
+     *                 (Full list of statuses on top of OCM_MlUnitInstance file)
+     */
     private void setUnitInstanceStatus(OCM_MlUnitInstance unitInstance, int statusid)
     {
         unitInstance.statusid = statusid;
@@ -582,6 +612,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             unitInstance.elapsedTime = unitInstance.mlUnit.targetDuration;
     }
 
+    /**
+     * Completes current unit instance if valid
+     * @param statusid explained above
+     * @param sectionController current event screen that it is triggered from
+     */
     public void closeCurrentUnitInstance(int statusid, OBSectionController sectionController)
     {
         OCM_MlUnitInstance unitInstance = currentUnitInstance;
@@ -596,7 +631,6 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                 }
             }
         }
-
         if(unitInstance != null)
         {
             DBSQL db = null;
@@ -669,11 +703,23 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         }
     }
 
+    /**
+     * Gets next unit that user should do. This calculation is based on amount of day it has passed since the start
+     * and units done during current week. Each week is a "fresh" start of next level in masterlist,
+     * however following days within the week will have units based on progress/diagnostic results.
+     *
+     * @param db object
+     * @return unit
+     */
     public OCM_MlUnit getNextUnitFromDB(DBSQL db)
     {
         OCM_MlUnit mlUnit = null;
         int currentWeek = getCurrentWeek();
         int materlistWeek = getMasterlistWeek();
+
+        //check for uncompleted remedial units
+
+        //search for a next unit for current days of the week
         Cursor cursor = db.prepareRawQuery(String.format("SELECT MAX(unitIndex) AS unitIndex FROM %s AS U "+
                 "JOIN %s AS UI ON UI.unitid = U.unitid AND U.masterlistid = ? "+
                 "JOIN %s AS S ON S.sessionid = UI.sessionid AND S.userid = UI.userid "+
@@ -694,6 +740,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
         if(mlUnit == null)
         {
+            //if no unit found, this means it's a new week
+            //check is diagnostic test was performed yet
+
+            //pick first units for that period
             cursor = db.prepareRawQuery(String.format("SELECT MIN(unitIndex) AS unitIndex FROM %s AS U WHERE U.level = ? AND U.masterlistid = ?", DBSQL.TABLE_UNITS),
                     Arrays.asList(String.valueOf(materlistWeek),String.valueOf(currentUser.studylistid)));
 
@@ -1037,6 +1087,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     Data for menu
      */
 
+    /**
+     * Information provided to the child menu to generate the current screen
+     * @return Map containing information about next unit, community mode state
+     */
     public Map<String,Object> getNextUnitData()
     {
         Map<String,Object> dict = new ArrayMap<>();
@@ -1092,6 +1146,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         }
     }
 
+    /**
+     *
+     * @return list of units for community mode(after 15 study units have been completed)
+     */
     public List<OCM_MlUnit> getUnitsForGrid()
     {
         List<OCM_MlUnit> unitsList = new ArrayList<>();
@@ -1139,6 +1197,13 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     }
 
+    /**
+     *
+     * @return int 0-30
+     * 0 - new moon(no moon visible)
+     * 15 - full moon
+     * 1-14, 16-30 part moon visible
+     */
     public int getCurrentMoonPhase()
     {
         Calendar calendar = Calendar.getInstance();
@@ -1233,6 +1298,12 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     Stars functions
      */
 
+    /**
+     * List of stars to display on the top of child menu screen in study mode
+     * @param db
+     * @param sessionid
+     * @return list of stars colours(as integers)
+     */
     public List<Integer> getStarsForSessionFromDB(DBSQL db,int sessionid)
     {
         List<Integer> coloursList = new ArrayList<>();
@@ -1255,9 +1326,14 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         }
         cursor.close();
         return coloursList;
-
     }
 
+    /**
+     * Stars to display on units in community(grid) mode
+     * @param db
+     * @param sessionid
+     * @return list of stars colours(as integers)
+     */
     public List<Integer> getGridStarsForSessionFromDB(DBSQL db, int sessionid)
     {
         List<Integer> coloursList = new ArrayList<>();
@@ -1301,6 +1377,13 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         return coloursList;
     }
 
+    /**
+     * Get next possible star colour for current mode(either study or community). There are 20(COLOUR_COUNT) possible
+     * colours and no 2 stars should have the same colour on one screen
+     * @param db
+     * @param type
+     * @return int star colour
+     */
     public int nextStarColourFromDB(DBSQL db,int type)
     {
         List<Integer> starColours = null;
@@ -1317,6 +1400,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     }
 
 
+    /**
+     * Check and fix any missing starts in case of failure when it was not awarded(etc when battery low was triggered)
+     * @param sessionId
+     */
     public void fixMissingStars(int sessionId)
     {
         DBSQL db = null;
@@ -1394,6 +1481,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         initScores();
     }
 
+    /**
+     * Start section without any tracking for testing purposes(via xprize menu)
+     * @param unit
+     */
     public void startSectionByUnitNoUser(final OCM_MlUnit unit)
     {
         final String lastAppCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
@@ -1438,6 +1529,12 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         }.run();
     }
 
+    /**
+     * Setup and start unit for current user.
+     * @param unit
+     * @param instanceType
+     * @param openingCallback callback triggered after opening or failing to open the unit
+     */
     public void startUnit(final OCM_MlUnit unit, final int instanceType, final SectionOpeningCallback openingCallback)
     {
         sectionStartedWithUnit(unit, instanceType);
@@ -1514,6 +1611,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         startUnit(unit,study ? OCM_MlUnitInstance.INSTANCE_TYPE_STUDY : OCM_MlUnitInstance.INSTANCE_TYPE_REVIEW,openingCallback);
     }
 
+    /**
+     * Open Play Zone screen
+     * @param transfer true if Play Zone will start with transfer animation (box opening)
+     * @param first true if first time entering Play Zone during current session
+     */
     public void startPlayZone(final boolean transfer,final boolean first)
     {
         OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.PLAY_ZONE);
@@ -1551,7 +1653,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         }.run();
     }
 
-
+    /**
+     * Pull list of units for current day of the week for playzone
+     * @return list of units
+     */
     public List<OCM_MlUnit> getUnitsForPlayzone()
     {
         List<OCM_MlUnit> unitsList = new ArrayList<>();
@@ -1584,6 +1689,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         return unitsList;
     }
 
+    /**
+     * Lock units are units that have to be done from time to time in Play Zone.
+     * Picks unit that haven't been done in a while. Play Zone menu will lock to it.
+     * @return unit id of the unit to lock to.
+     */
     public int getPlayzoneLockUnitId()
     {
         int playZoneFunTime = playzoneLockTimeout * 60;
@@ -1649,7 +1759,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         return returnUnitId;
     }
 
-
+    /**
+     * Get list of units for library
+     * @return list of levels and units for that level, there are 3 levels
+     */
     public Map<Integer,List<OCM_MlUnit>> getUnitsForLibrary()
     {
         Map<Integer,List<OCM_MlUnit>> unitsMap = new ArrayMap();
@@ -1711,6 +1824,14 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         return unitCompletedByUser(db,currentUser.userid, unit.masterlistid, unit.unitIndex);
     }
 
+    /**
+     * Check is certain units was completed by used before.
+     * @param db
+     * @param userid
+     * @param masterlistid
+     * @param unitIndex
+     * @return true if completed
+     */
     public boolean unitCompletedByUser(DBSQL db, int userid, int masterlistid, int unitIndex)
     {
         Cursor cursor = db.prepareRawQuery(String.format("SELECT U.unitid FROM %s AS U JOIN %s AS UI ON UI.unitid = U.unitid " +
@@ -1732,6 +1853,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
      Sessions functions
      */
 
+    /**
+     * Checks if new sessio can be started, if yes, it sets up all the values for current session
+     * @return
+     */
     public boolean checkAndPrepareNewSession()
     {
         if(currentSessionLocked())
@@ -1783,6 +1908,12 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         return false;
     }
 
+
+    /**
+     * Check if current time is outside of allowed time then
+     * the screen will display moon and stars(night mode)
+     * @return true if locked
+     */
     public boolean currentSessionLocked()
     {
         if(disallowEndHour == disallowStartHour)
@@ -1800,7 +1931,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         return hourIsBetween;
     }
 
-
+    /**
+     * Check if current session is vailable or not
+     * @return false if no session setup or current session locked
+     */
     public boolean currentSessionFinished()
     {
         if(currentSessionId < 0)
@@ -1809,7 +1943,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         return currentSessionEndTime > 0;
     }
 
-
+    /**
+     * Load latest session from the database and setup values for it.
+     * @param db
+     * @param userid
+     */
     private void loadLastSessionFromDB(DBSQL db, int userid)
     {
         Map<String,String> whereMap  = new ArrayMap<>();
@@ -1837,6 +1975,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         }
     }
 
+    /**
+     *
+     * @return amount of study units completed for current session
+     */
     public int currentSessionUnitCount()
     {
         if(currentSessionId < 0)
@@ -2011,6 +2153,14 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         return  db.doUpdateOnTable(DBSQL.TABLE_SESSIONS,whereMap, contentValues) > 0;
     }
 
+    /**
+     * Checks if no start date of the tablet usage, based on this date the units from masterlist will be picked up. If no date, set it up.
+     * Start Day is different to Setup Day. Trial Start is aproximate date the trial started at. If today
+     * is 14 day away from Setup Day, Start Day is setup to Setup Day. Otherwise it's set up to today.
+     * This system assures that reusing different tablet will bring the child experience as close to previous progress as possible,
+     * as long as it's setup to the same Start Day in xprize menu.
+     * @return false if date already setup, true if date just setup
+     */
     public boolean checkAndSetupStartDay()
     {
         if(startDate == null)
@@ -2061,6 +2211,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     /*
     Play zone assets functions
+     */
+
+    /**
+     * Lists of various creations of the child that display at the bottom of playzone menu.
+     * @return List of assets
      */
     public List<OC_PlayZoneAsset> getPlayZoneAssetForCurrentUser()
     {
@@ -2177,6 +2332,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         DBSQL.deleteDB();
         MainActivity.mainActivity.restartApplication();
     }
+
+    /*
+    extra data collection for units
+     */
 
     public boolean shouldCollectMiscData()
     {
