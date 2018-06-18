@@ -20,7 +20,7 @@ import java.util.Map;
  */
 public class OCM_MlUnit extends DBObject
 {
-    public static final int TYPE_STANDARD=0,TYPE_PLAYZONE_STUDY=1,TYPE_PLAYZONE_FUN=2,TYPE_DIAGNOSTIC=5;
+    public static final int TYPE_STANDARD=0,TYPE_PLAYZONE_STUDY=1,TYPE_PLAYZONE_FUN=2,TYPE_DIAGNOSTIC=5,TYPE_EXTRA=6;
     public String key, icon, params, config, target, lang;
     public float passThreshold;
     public int masterlistid, catAudio, level, unitid, unitIndex, targetDuration, typeid, showBack;

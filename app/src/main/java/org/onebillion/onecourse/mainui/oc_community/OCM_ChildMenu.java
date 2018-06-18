@@ -538,7 +538,6 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
                         if (communityModeActive)
                         {
                             demo_community_star_award();
-
                         }
                         else
                         {
@@ -563,11 +562,11 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
                         else if (unitData.get("unit") != null)
                         {
                             loadBigIconForUnit((OCM_MlUnit)unitData.get("unit"));
-                            lastUnitOrder = (int) unitData.get("unitOrder");
                         }
                         if(unitData.get("unitOrder") != null)
                         {
-                            String eventName = String.format("unit_%d", (int) unitData.get("unitOrder"));
+                            lastUnitOrder = (int) unitData.get("unitOrder");
+                            String eventName = String.format("unit_%d", lastUnitOrder);
                             String demoPrefix = currentDay > 4 ? "demo_default_" : "demo_start_";
                             if (!(audioAvailable(eventName) && performSel(demoPrefix, eventName)))
                             {
@@ -1720,7 +1719,6 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
             waitSFX();
             waitForSecs(0.3f);
             presenter.speak((List<Object>) (Object) Arrays.asList(getAudioForScene("unit_1", "DEMO2").get(dayNum - 1)), this);
-
             waitForSecs(0.3f);
         }
         List<String> audios =  getAudioForScene("unit_1","DEMO3");
@@ -1737,7 +1735,6 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         lockScreen();
         showControls("top_bar_star_.*");
         playSfxAudio("allstar",false);
-
         unlockScreen();
         waitSFX();
         waitForSecs(0.3f);
@@ -1755,7 +1752,6 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
             walkPresenterOut();
         if(!statusChanged(time))
             playUnitButtonAudio("unit_1",time);
-
     }
 
 
