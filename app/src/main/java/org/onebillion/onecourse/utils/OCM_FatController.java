@@ -1171,21 +1171,28 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         try
         {
             db = new DBSQL(false);
-            int count = sessionUnitCountDB(db,currentSessionId,currentUser.userid, currentUser.studylistid);
-            if(count >= SESSION_UNIT_COUNT)
+            Map<Integer, Integer> countMap = sessionUnitCountDB(db,currentSessionId,currentUser.userid,
+                    currentUser.studylistid);
+            if(countMap.get(OCM_MlUnit.TYPE_STANDARD) >= SESSION_UNIT_COUNT)
             {
                 dict.put("community",true);
             }
             else
             {
+                int fullCount = 1;
+                for(int val : countMap.values())
+                    fullCount += val;
 
-                count++;
-                dict.put("unitOrder",count);
+                dict.put("unitOrder",fullCount);
                 OCM_MlUnit currentUnit = getNextUnitFromDB(db);
                 if(currentUnit != null)
                 {
                     dict.put("community",false);
                     dict.put("unit", currentUnit);
+                    if(currentUnit.typeid == OCM_MlUnit.TYPE_DIAGNOSTIC)
+                        currentUnit.starOrder = -1;
+                    else
+                        currentUnit.starOrder = countMap.get(OCM_MlUnit.TYPE_STANDARD)+1;
                 }
                 else
                 {
@@ -1328,7 +1335,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     public boolean communityModeActive()
     {
-        if(currentSessionUnitCount() >= SESSION_UNIT_COUNT)
+        if(currentSessionStandardUnitCount() >= SESSION_UNIT_COUNT)
         {
             return true;
         }
@@ -1969,7 +1976,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             if(currentTimeIsDirty())
             {
 
-                int count = currentSessionUnitCount();
+                int count = currentSessionStandardUnitCount();
                 if(count < SESSION_VALID_COUNT)
                 {
                     currentSessionWorkTime = getCurrentTime();
@@ -2068,7 +2075,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
      *
      * @return amount of study units completed for current session
      */
-    public int currentSessionUnitCount()
+    public int currentSessionStandardUnitCount()
     {
         if(currentSessionId < 0)
             return 0;
@@ -2079,7 +2086,8 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         try
         {
             db = new DBSQL(false);
-            result =  sessionUnitCountDB(db, currentSessionId, currentUser.userid, currentUser.studylistid);
+            Map<Integer,Integer> countMap =  sessionUnitCountDB(db, currentSessionId, currentUser.userid, currentUser.studylistid);
+            result = countMap.get(OCM_MlUnit.TYPE_STANDARD);
         }
         catch(Exception e)
         {
@@ -2093,28 +2101,40 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         return result;
     }
 
-    private int sessionUnitCountDB(DBSQL db, int sessionid, int userid, int masterlistid)
+    private Map<Integer,Integer> sessionUnitCountDB(DBSQL db, int sessionid, int userid, int masterlistid)
     {
+        Map<Integer,Integer> countMap = new ArrayMap<>();
+        countMap.put(OCM_MlUnit.TYPE_STANDARD, 0);
         if(sessionid < 0)
-            return 0;
+            return countMap;
 
-        int result = 0;
 
-        Cursor cursor = db.prepareRawQuery(String.format("SELECT COUNT(DISTINCT(UI.unitid)) AS count FROM %s AS U "+
-                "JOIN %s AS UI ON UI.unitid = U.unitid AND U.masterlistid = ? "+
-                "WHERE UI.userid = ? AND UI.sessionid = ? AND U.typeid = ? "+
-                "AND (UI.seqNo >= ? OR UI.statusid IN (?,?))",DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES),
+        Cursor cursor = db.prepareRawQuery(String.format("SELECT U.typeid as typeid, COUNT(DISTINCT(UI.unitid)) AS count " +
+                        "FROM %s AS U "+
+                        "JOIN %s AS UI ON UI.unitid = U.unitid AND U.masterlistid = ? "+
+                        "WHERE UI.userid = ? AND UI.sessionid = ?  "+
+                        "AND (UI.seqNo >= ? OR UI.statusid IN (?,?)) " +
+                        "GROUP BY U.typeid",
+                DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES),
                 Arrays.asList(String.valueOf(masterlistid), String.valueOf(userid),String.valueOf(sessionid),
-                String.valueOf(OCM_MlUnit.TYPE_STANDARD),
-                String.valueOf(unitAttemptsCount-1),String.valueOf(OCM_MlUnitInstance.STATUS_COMPLETED),
+                        String.valueOf(unitAttemptsCount-1),String.valueOf(OCM_MlUnitInstance.STATUS_COMPLETED),
                 String.valueOf(OCM_MlUnitInstance.STATUS_FAILURE)));
 
-        int columnIndex = cursor.getColumnIndex("count");
-        if(cursor.moveToFirst() && !cursor.isNull(columnIndex))
-            result = cursor.getInt(columnIndex);
-
+        int columnIndex1 = cursor.getColumnIndex("typeid");
+        int columnIndex2 = cursor.getColumnIndex("count");
+        if(cursor.moveToFirst())
+        {
+            while(cursor.isAfterLast())
+            {
+                if(!cursor.isNull(columnIndex1))
+                {
+                    countMap.put(cursor.getInt(columnIndex1), cursor.getInt(columnIndex2));
+                }
+                cursor.moveToNext();
+            }
+        }
         cursor.close();
-        return result;
+        return countMap;
     }
 
     public void prepareNewSessionUser(int userid)

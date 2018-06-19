@@ -23,7 +23,7 @@ public class OCM_MlUnit extends DBObject
     public static final int TYPE_STANDARD=0,TYPE_PLAYZONE_STUDY=1,TYPE_PLAYZONE_FUN=2,TYPE_DIAGNOSTIC=5,TYPE_EXTRA=6;
     public String key, icon, params, config, target, lang;
     public float passThreshold;
-    public int masterlistid, catAudio, level, unitid, unitIndex, targetDuration, typeid, showBack;
+    public int masterlistid, catAudio, level, unitid, unitIndex, targetDuration, typeid, showBack, starOrder;
 
     private static final String[] stringFields = {"key","icon","target","params","config","lang"};
     private static final String[] intFields = {"masterlistid","unitid","level","targetDuration","unitIndex","typeid","showBack"};

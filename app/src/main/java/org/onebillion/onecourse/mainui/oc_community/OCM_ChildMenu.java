@@ -1570,7 +1570,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
 
         }
         boolean playDemo = getAudioForScene(eventName,"FINAL") != null;
-        animateAwardStar(lastUnitOrder,lastUnitInstance.starColour);
+        animateAwardStar(lastUnitInstance.mlUnit.starOrder,lastUnitInstance.starColour);
         if(playDemo)
         {
             walkPresenterIn((PointF)presenter.control.propertyValue("start_loc"));
