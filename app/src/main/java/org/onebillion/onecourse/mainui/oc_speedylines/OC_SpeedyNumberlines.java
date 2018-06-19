@@ -274,6 +274,8 @@ public class OC_SpeedyNumberlines extends OC_SectionController
         int y1 = OBUtils.getIntValue(ranges[2]) , y2 = OBUtils.getIntValue(ranges[3]);
         List<Integer> numList = OBMisc.integerList(x1,x2);
         numList = OBUtils.randomlySortedArray(numList);
+        if(count > numList.size())
+            count = numList.size();
         List<Integer> selectedNumbers = numList.subList(0, count);
         Collections.sort(selectedNumbers);
 
