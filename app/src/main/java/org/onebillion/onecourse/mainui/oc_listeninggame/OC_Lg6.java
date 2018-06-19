@@ -74,8 +74,10 @@ public class OC_Lg6 extends OC_Lg
         String[] arr = parameters.get("range").split(",");
         int rangeMinVal = minVal = OBUtils.getIntValue(arr[0]);
         int rangeMaxVal = maxVal = OBUtils.getIntValue(arr[1]);
-        if(currentMode == MODE_ADD)        rangeMinVal++;
-        if(currentMode == MODE_SUBTRACT)        rangeMaxVal--;
+        if(currentMode == MODE_ADD)
+            rangeMinVal++;
+        if(currentMode == MODE_SUBTRACT)
+            rangeMaxVal--;
         List<OBPhoneme> numberList = phonemesForRangeFrom(rangeMinVal,rangeMaxVal);
         addToDistrators(numberList);
         OBPath eqBox =(OBPath) objectDict.get("eq_box");
@@ -158,7 +160,7 @@ public class OC_Lg6 extends OC_Lg
         else if(currentMode == MODE_MIXED)
         {
             addMode = eventNum % 2 == 0;
-            if((addMode && result == minVal) ||(!addMode && result == maxVal))
+            if((addMode && result == minVal) || (!addMode && result == maxVal))
                 addMode = !addMode;
         }
         int num1, num2;
