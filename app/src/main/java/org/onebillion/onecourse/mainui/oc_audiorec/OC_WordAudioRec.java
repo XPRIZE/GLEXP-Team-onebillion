@@ -79,7 +79,7 @@ public class OC_WordAudioRec extends OC_AudioRecSection
 
         eventsData = new ArrayList<>();
 
-        wordFeedback = parameters.get("wordfeedback").equals("true");
+        wordFeedback = OBUtils.getBooleanValue(parameters.get("wordfeedback"));
 
         loadAudioXML(getConfigPath(currentMode == MODE_WORD ? "wrec1audio.xml" : "wrec2audio.xml"));
 

@@ -517,11 +517,10 @@ public class OC_Cwys1 extends OC_Cwys
         waitForSecs(0.3f);
         loadPointer(POINTER_LEFT);
         moveScenePointer(OB_Maths.locationForRect(1.1f,1.15f,block.getWorldFrame()),-30,0.5f,"DEMO",0,0.3f);
-        lowLightCurrentBlocks();
         waitForSecs(0.3f);
         List<OBAnim> anims = new ArrayList<>();
         float centerX = block.bounds.width()/2.0f;
-        float unitWidth = objectDict.get("unit").width();
+        float unitWidth = objectDict.get("unit").width()-objectDict.get("unit").lineWidth();
         for(int i=0; i<10; i++)
         {
             OBGroup column =(OBGroup)block.objectDict.get(String.format("column_%d",i+1));
@@ -688,8 +687,8 @@ public class OC_Cwys1 extends OC_Cwys
         boolean modeB = currentMode.equals("b");
         if(blocks.size() > 0)
         {
-            PointF loc1 = blocks.get(0).position();
-            PointF loc2 = blocks.get(blocks.size()-1).position();
+            PointF loc1 = blocks.get(0).getWorldPosition();
+            PointF loc2 = blocks.get(blocks.size()-1).getWorldPosition();
             PointF loc = OB_Maths.locationForRect(0.5f,1.15f,blocks.get(0).getWorldFrame());
             loc.x = loc1.x +(loc2.x - loc1.x) /2.0f;
             moveScenePointer(loc,-30,0.5f,"DEMO",1,0.3f);

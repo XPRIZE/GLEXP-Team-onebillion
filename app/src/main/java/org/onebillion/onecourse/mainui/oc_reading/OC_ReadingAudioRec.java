@@ -131,13 +131,19 @@ public class OC_ReadingAudioRec extends OC_Reading
             {
                 public void run() throws Exception
                 {
-                    readPage();
+                    readTargetParagraph();
                 }
             });
         }
         else if(statusWaitRecordStart())
         {
-            _replayAudio();
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                public void run() throws Exception
+                {
+                    _replayAudio();
+                }
+            });
         }
     }
 
@@ -192,6 +198,13 @@ public class OC_ReadingAudioRec extends OC_Reading
 
     }
 
+    @Override
+    public void nextPage()
+    {
+        if(statusWaitNextButton())
+            super.nextPage();
+    }
+
     public void startScene() throws Exception
     {
         waitForSecs(0.5f);
@@ -230,7 +243,6 @@ public class OC_ReadingAudioRec extends OC_Reading
             reading = true;
             readParagraph(targetParagraph-1,token,true);
             waitForSecs(0.6f);
-            setStatus(STATUS_AWAITING_CLICK);
         }
         catch(Exception exception)
         {
@@ -281,9 +293,8 @@ public class OC_ReadingAudioRec extends OC_Reading
                 showNextArrowAndRA(true);
                 if(pageNo == 0)
                     demoArrow();
-                setStatus(STATUS_AWAITING_CLICK);
-                waitForSecs(4f);
-                flashContinuouslyAfter(2.5f);
+                statusSetWaitNextButton();
+                flashContinuouslyAfter(6.5f);
             }
             else
             {
@@ -298,8 +309,8 @@ public class OC_ReadingAudioRec extends OC_Reading
         lockScreen();
         highlightCurrentParagraph(Color.RED);
         playSfxAudio("ping",false);
-        unlockScreen();waitSFX();
-
+        unlockScreen();
+        waitSFX();
     }
 
     public void animateWordRecordStop() throws Exception
