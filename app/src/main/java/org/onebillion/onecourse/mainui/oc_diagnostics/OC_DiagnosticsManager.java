@@ -7,6 +7,7 @@ import android.util.ArrayMap;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OBSectionController;
+import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OBXMLManager;
@@ -16,6 +17,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -63,11 +66,11 @@ public class OC_DiagnosticsManager
     static String kLowercase = "lowercase";                                 //
     static String kRemedialUnits = "remedial_units";                        // Array containing the required filters to retrive the units that are related to each exercise
 
-    Map<String, Map> allEvents;                  // Collection of all available events
+    Map<String, Map> allEvents;     // Collection of all available events
     List remedialUnits_day1;        // Units that are added to day 1 whenever the user fails to correctly answer a question
     List remedialUnits_day2;        // Units that are added to day 2 whenever the user fails to correctly answer a question
-    List<Boolean> progress;                  // True / False array that shows the progress of the user throughout the diagnostics
-    List<Map> unitsFromMasterlist;       // Filtered units that go up to the week to extract parameters from
+    List<Boolean> progress;         // True / False array that shows the progress of the user throughout the diagnostics
+    List<Map> unitsFromMasterlist;  // Filtered units that go up to the week to extract parameters from
     Map wordComponents;             // Word Dabase for all phonemes, syllables and words (NOTE: no alphabet)
     List questionEvents;            // Sequence of events with the questions for the diagnostics
     String startingParameters;      // Parameters that were received from the masterlist that will generated all of the exercises
@@ -77,6 +80,7 @@ public class OC_DiagnosticsManager
     int currentQuestionIndex;       // current question to keep track of progress
     int maxWrongAnswers;            // maximum number of wrong answers a user can get before getting removed from the unit
     boolean debugEnabled;           // flag to either show the final feedback from Presenter or show the debug menu with the remedial units
+    int lastLoadedWeek;             // last loaded week for performance issues (if loadMasterlist is called with the same lastWeek, it's skipped)
 
     public static OC_DiagnosticsManager sharedManager()
     {
@@ -199,6 +203,13 @@ public class OC_DiagnosticsManager
 
     public List loadMasterlist(int lastWeek)
     {
+        if (lastLoadedWeek == lastWeek && unitsFromMasterlist != null)
+        {
+            return unitsFromMasterlist;
+        }
+        //
+        lastLoadedWeek = lastWeek;
+        //
         String masterListFolder = OBConfigManager.sharedManager.getMasterlist();
         //
         if (masterListFolder == null || masterListFolder.length() == 0)
@@ -226,11 +237,19 @@ public class OC_DiagnosticsManager
                         List<OBXMLNode> nodes = levelNode.childrenOfType("unit");
                         for (OBXMLNode unitNode : nodes)
                         {
+                            String unitUUID = unitNode.attributeStringValue("id");
+                            //
+                            if (unitUUID.contains(".repeat"))
+                            {
+                                continue; // skip the repeat units to prevent duplication;
+                            }
+                            //
                             Map<String, Object> unitAttributes = new ArrayMap<>();
-                            unitAttributes.put("id", unitNode.attributeStringValue("id"));
+                            unitAttributes.put("id", unitUUID);
                             unitAttributes.put("target", unitNode.attributeStringValue("target"));
                             unitAttributes.put("config", unitNode.attributeStringValue("config"));
                             unitAttributes.put("params", unitNode.attributeStringValue("params"));
+                            //
                             result.add(unitAttributes);
                         }
                     }
@@ -274,27 +293,71 @@ public class OC_DiagnosticsManager
         return selectedEvents;
     }
 
-
-    public List<String> extractValuesFromParameters(List parameterNames, Map unit, String valuePrefix)
+    public List<String> getParameterPairsFromUnit(Map unit)
     {
-        List result = new ArrayList<>();
-        String parameterString = (String) unit.get("params");
-        List<String> pairs = Arrays.asList(parameterString.split("/"));
-        for (String pair : pairs)
+        List<String> pairs = (List<String>) unit.get("parameterPairs");
+        if (pairs == null)
         {
-            List split = Arrays.asList(pair.split("="));
-            if (parameterNames.contains(split.get(0)))
+            String parameterString = (String) unit.get("params");
+            pairs = Arrays.asList(parameterString.split("/"));
+            unit.put("parameterPairs", pairs);
+        }
+        return pairs;
+    }
+
+
+    public Map<String, List> getParametersFromUnit(Map unit)
+    {
+        Map<String, List> parameters = (Map<String, List>) unit.get("parameters");
+        if (parameters == null)
+        {
+            parameters = new HashMap<>();
+            //
+            List<String> pairs = getParameterPairsFromUnit(unit);
+            for (String pair : pairs)
             {
-                String[] values = ((String) split.get(split.size() - 1)).split(";|,| ");
-                for (String value : values)
+                List<String> split = Arrays.asList(pair.split("="));
+                if (split.size() == 1)
                 {
-                    if (valuePrefix != null && valuePrefix.length() > 0 && !value.startsWith(valuePrefix)) continue;
-                    if (result.contains(value)) continue;
-                    result.add(value);
+                    parameters.put(split.get(0), new ArrayList());
+                }
+                else if (split.size() == 2)
+                {
+                    String key = split.get(0);
+                    String valueString = split.get(1);
+                    //
+                    List<String> values = Arrays.asList(valueString.split(";|,| "));
+                    parameters.put(key, values);
                 }
             }
+            //
+            unit.put("parameters", parameters);
         }
-        return result;
+        return parameters;
+    }
+
+
+    public List<String> extractValuesFromParameters(List<String> parameterNames, Map unit, String valuePrefix)
+    {
+        List result = new ArrayList<>();
+        //
+        Map<String, List> parameters = getParametersFromUnit(unit);
+        //
+        for (String parameterName : parameterNames)
+        {
+            List<String> values = parameters.get(parameterName);
+            if (values == null) continue;
+            //
+            for (String value : values)
+            {
+                if (valuePrefix != null && valuePrefix.length() > 0 && !value.startsWith(valuePrefix))
+                {
+                    continue;
+                }
+                result.add(value);
+            }
+        }
+        return new ArrayList<>(new HashSet<String>(result));
     }
 
 
@@ -506,7 +569,7 @@ public class OC_DiagnosticsManager
     {
         List<Map> availableUnits = availableUnitsForEvent(eventUUID);
         Map eventParameters = parametersForEvent(eventUUID);
-        List unitParameters = Arrays.asList((String[])eventParameters.get(kParameterFilter));
+        List unitParameters = Arrays.asList((String[]) eventParameters.get(kParameterFilter));
         String parameterPrefix = (String) eventParameters.get(kParameterPrefix);
         Map<String, List> unitsUsedForParameter = new ArrayMap<>();
         //
@@ -540,19 +603,16 @@ public class OC_DiagnosticsManager
         //
         for (Map unitAttributes : unitsFromMasterlist)
         {
-            String unitUUID = (String) unitAttributes.get("id");
             String unitTarget = ((String) unitAttributes.get(kTarget)).toLowerCase();
-            //
-            if (unitUUID.contains(".repeat"))
-                continue;                         // skip the repeat units to prevent duplication;
-            //
-            if (!unitTarget.equalsIgnoreCase(target.toLowerCase())) continue;
+            if (!unitTarget.equalsIgnoreCase(target.toLowerCase()))
+            {
+                continue;
+            }
             //
             if (parameterConditions.size() > 0)
             {
                 int conditionsMet = 0;
-                String parameterString = (String) unitAttributes.get("params");
-                List<String> pairs = Arrays.asList(parameterString.split("/"));
+                List<String> pairs = getParameterPairsFromUnit(unitAttributes);
                 //
                 for (String condition : parameterConditions)
                 {
@@ -561,8 +621,11 @@ public class OC_DiagnosticsManager
                         conditionsMet++;
                     }
                 }
+                //
                 if (conditionsMet != parameterConditions.size())
+                {
                     continue;      // this unit didnt match the necessary conditions for the filter;
+                }
             }
             //
             if (parameterNames.size() > 0)
@@ -595,14 +658,17 @@ public class OC_DiagnosticsManager
             List parameterConditions = (List) remedialUnitsData.get(3);
             List relevantUnits = new ArrayList<>();
             List possibleUnits = new ArrayList<>();
+            //
             List<Map> result = unitsWithTarget(target, parameters, parameterFilter, parameterConditions);
             //
             for (Map unit : result)
             {
-                List extractedValues = extractValuesFromParameters(parameters, unit, parameterFilter);
-                boolean unitWasRelevant = false;
                 if (relevantParameters != null)
                 {
+                    boolean unitWasRelevant = false;
+                    //
+                    List extractedValues = extractValuesFromParameters(parameters, unit, parameterFilter);
+                    //
                     for (String value : relevantParameters)
                     {
                         List<String> possibleValues = Arrays.asList(value, String.format("is_%s", value), String.format("isyl_%s", value), String.format("fc_%s", value), String.format("nw_%s", value));
@@ -618,8 +684,12 @@ public class OC_DiagnosticsManager
                         }
                         if (unitWasRelevant) break;     // no more work to be done here;
                     }
+                    if (!unitWasRelevant)
+                    {
+                        possibleUnits.add(unit.get("id"));
+                    }
                 }
-                if (!unitWasRelevant)
+                else
                 {
                     possibleUnits.add(unit.get("id"));
                 }
@@ -632,8 +702,8 @@ public class OC_DiagnosticsManager
             {
                 remedialUnitsCollection.add(OBUtils.randomlySortedArray(relevantUnits));
             }
-
         }
+        //
         List<String> remedialUnits = new ArrayList<>();
         for (int i = 0; i < remedialUnitsTemplate.size(); i++)
         {

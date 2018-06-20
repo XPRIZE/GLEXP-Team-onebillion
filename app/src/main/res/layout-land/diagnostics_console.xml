@@ -265,6 +265,11 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
+                <ProgressBar
+                    android:id="@+id/runTests_progress"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
             </LinearLayout>
 
             <LinearLayout
@@ -273,6 +278,12 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
+                <TextView
+                    android:id="@+id/runTests_remaining"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="00:00"
+                    android:textSize="28sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -307,8 +318,20 @@
 
             <ListView
                 android:id="@+id/question_list"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#ffffff" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <ListView
+                android:id="@+id/unitIndex_list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:background="#ffffff" />
         </LinearLayout>
 
@@ -319,8 +342,8 @@
 
             <ListView
                 android:id="@+id/remedialUnits_list"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:background="#ffffff" />
         </LinearLayout>
 

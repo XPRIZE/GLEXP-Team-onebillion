@@ -1,5 +1,6 @@
 package org.onebillion.onecourse.mainui;
 
+import android.text.format.DateUtils;
 import android.text.style.QuoteSpan;
 import android.view.MotionEvent;
 import android.view.View;
@@ -8,6 +9,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -27,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
 
 /**
@@ -35,13 +38,16 @@ import static android.view.View.VISIBLE;
 
 public class OC_DiagnosticsConsole extends OBSectionController
 {
-    private ListView remedialUnits_list, question_list;
+    private ListView remedialUnits_list, question_list, unitIndex_list;
     private SeekBar week_slider, wrongAnswers_slider, totalRuns_slider;
-    private TextView week_value, wrongAnswers_value, totalRuns_value;
+    private TextView week_value, wrongAnswers_value, totalRuns_value, runTests_remaining;
     private Button runDiagnostics, runTests;
+    private ProgressBar runTests_progress;
+    //
+    private String selectedQuestionUUID;
     //
     private final ArrayList<String> question_array = new ArrayList(Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p"));
-    private Map<String,List<String>> remedialUnitsTestResults;
+    private Map<String,Map> remedialUnitsTestResults;
 
 
     public OC_DiagnosticsConsole()
@@ -60,6 +66,12 @@ public class OC_DiagnosticsConsole extends OBSectionController
     public void initScreen()
     {
         MainActivity.mainActivity.setContentView(R.layout.diagnostics_console);
+        //
+        runTests_progress = (ProgressBar) MainActivity.mainActivity.findViewById(R.id.runTests_progress);
+        runTests_progress.setVisibility(INVISIBLE);
+        //
+        runTests_remaining = (TextView) MainActivity.mainActivity.findViewById(R.id.runTests_remaining);
+        runTests_remaining.setVisibility(INVISIBLE);
         //
         runDiagnostics = (Button) MainActivity.mainActivity.findViewById(R.id.diagnostics_button);
         runDiagnostics.setOnClickListener(new View.OnClickListener()
@@ -81,6 +93,9 @@ public class OC_DiagnosticsConsole extends OBSectionController
             public void onClick(View v)
             {
                 MainActivity.log("Running Tests");
+                question_list.setVisibility(INVISIBLE);
+                remedialUnits_list.setVisibility(INVISIBLE);
+                //
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
                     @Override
@@ -93,8 +108,8 @@ public class OC_DiagnosticsConsole extends OBSectionController
         });
         //
         week_slider = (SeekBar) MainActivity.mainActivity.findViewById(R.id.week_slider);
-        week_slider.setProgress(24);
         week_slider.setMax(36);
+        week_slider.setProgress(36);
         //
         week_slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
         {
@@ -121,8 +136,8 @@ public class OC_DiagnosticsConsole extends OBSectionController
         week_value.setText(String.valueOf(week_slider.getProgress()));
         //
         wrongAnswers_slider = (SeekBar) MainActivity.mainActivity.findViewById(R.id.wrongAnwers_slider);
-        wrongAnswers_slider.setProgress(1);
         wrongAnswers_slider.setMax(3);
+        wrongAnswers_slider.setProgress(1);
         //
         wrongAnswers_slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
         {
@@ -149,8 +164,8 @@ public class OC_DiagnosticsConsole extends OBSectionController
         wrongAnswers_value.setText(String.valueOf(wrongAnswers_slider.getProgress()));
         //
         totalRuns_slider = (SeekBar) MainActivity.mainActivity.findViewById(R.id.totalRuns_slider);
-        totalRuns_slider.setProgress(1);
         totalRuns_slider.setMax(1000);
+        totalRuns_slider.setProgress(10);
         //
         totalRuns_slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
         {
@@ -184,12 +199,17 @@ public class OC_DiagnosticsConsole extends OBSectionController
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id)
             {
-                String question = (String) parent.getItemAtPosition(position);
+                selectedQuestionUUID = (String) parent.getItemAtPosition(position);
                 //
-                MainActivity.log("Select Remedial units for question " + question);
+                MainActivity.log("Select Remedial units for question " + selectedQuestionUUID);
                 //
-                final List<String> resultsForQuestion = remedialUnitsTestResults.get(question);
-                ArrayAdapter remedialUnit_arrayAdapter = new ArrayAdapter<String>(MainActivity.mainActivity, android.R.layout.simple_list_item_1, resultsForQuestion)
+                List<Integer> entriesForQuestion = new ArrayList(remedialUnitsTestResults.get(selectedQuestionUUID).keySet());
+                Collections.sort(entriesForQuestion);
+                final List<Integer> resultsForQuestion = entriesForQuestion;
+                //
+                if (resultsForQuestion == null) return;
+                //
+                ArrayAdapter unitIndex_arrayAdapter = new ArrayAdapter<Integer>(MainActivity.mainActivity, android.R.layout.simple_list_item_1, resultsForQuestion)
                 {
                     @Override
                     public View getView(int position, View convertView, ViewGroup parent)
@@ -205,16 +225,8 @@ public class OC_DiagnosticsConsole extends OBSectionController
                         return view;
                     }
                 };
-                remedialUnits_list.setAdapter(remedialUnit_arrayAdapter);
-                remedialUnits_list.setVisibility(VISIBLE);
-            }
-        });
-        question_list.setOnTouchListener(new View.OnTouchListener()
-        {
-            @Override
-            public boolean onTouch(View v, MotionEvent event)
-            {
-                return false;
+                unitIndex_list.setAdapter(unitIndex_arrayAdapter);
+                unitIndex_list.setVisibility(VISIBLE);
             }
         });
         //
@@ -235,25 +247,93 @@ public class OC_DiagnosticsConsole extends OBSectionController
             }
         };
         question_list.setAdapter(question_arrayAdapter);
-        question_list.setVisibility(View.INVISIBLE);
+        question_list.setVisibility(INVISIBLE);
+        //
+        unitIndex_list = (ListView) MainActivity.mainActivity.findViewById(R.id.unitIndex_list);
+        unitIndex_list.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+        unitIndex_list.setSelector(android.R.color.darker_gray);
+        unitIndex_list.setVisibility(INVISIBLE);
+        unitIndex_list.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+            {
+                Integer entry = (Integer) parent.getItemAtPosition(position);
+                //
+                MainActivity.log("Select Unit Entry " + entry);
+                Map<String, List> entriesForQuestionUUID = remedialUnitsTestResults.get(selectedQuestionUUID);
+                List entriesForEntry = entriesForQuestionUUID.get(entry);
+                //
+                final List<String> resultsForQuestion = entriesForEntry;
+                if (resultsForQuestion == null) return;
+                //
+                ArrayAdapter remedialUnit_arrayAdapter = new ArrayAdapter<String>(MainActivity.mainActivity, android.R.layout.simple_list_item_1, resultsForQuestion)
+                {
+                    @Override
+                    public View getView(int position, View convertView, ViewGroup parent)
+                    {
+                        String entry = "  " + getItem(position) + "  ";
+                        //
+                        TextView view = (TextView) super.getView(position, convertView, parent);
+                        view.setTextSize(32);
+                        ViewGroup.LayoutParams params = view.getLayoutParams();
+                        params.height = 150;
+                        view.setText(entry);
+                        //
+                        return view;
+                    }
+                };
+                remedialUnits_list.setAdapter(remedialUnit_arrayAdapter);
+                remedialUnits_list.setVisibility(VISIBLE);
+            }
+        });
         //
         remedialUnits_list = (ListView) MainActivity.mainActivity.findViewById(R.id.remedialUnits_list);
         remedialUnits_list.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         remedialUnits_list.setSelector(android.R.color.darker_gray);
-        remedialUnits_list.setVisibility(View.INVISIBLE);
+        remedialUnits_list.setVisibility(INVISIBLE);
+        //
     }
 
 
     private void runTests()
     {
-        int week = week_slider.getProgress();
-        int totalRuns = totalRuns_slider.getProgress();
+        int week = (week_slider.getProgress() > 0) ? week_slider.getProgress() : 1;
+        final int totalRuns = (totalRuns_slider.getProgress() > 0) ? totalRuns_slider.getProgress() : 1;
+        //
+        OBUtils.runOnMainThread(new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                question_list.setVisibility(INVISIBLE);
+                remedialUnits_list.setVisibility(INVISIBLE);
+                unitIndex_list.setVisibility(INVISIBLE);
+                //
+                runTests_progress.setVisibility(VISIBLE);
+                runTests_progress.setProgress(0);
+                runTests_progress.setMax(totalRuns * question_array.size());
+                //
+                runTests_remaining.setVisibility(VISIBLE);
+                runTests_remaining.setText("");
+                //
+                totalRuns_slider.setEnabled(false);
+                week_slider.setEnabled(false);
+                wrongAnswers_slider.setEnabled(false);
+                //
+                runDiagnostics.setEnabled(false);
+                runTests.setEnabled(false);
+            }
+        });
         //
         remedialUnitsTestResults = new HashMap<>();
         Map<String, Map> statistics = new HashMap<>();
         Map<String, Double> loadTimes = new HashMap<>();
         //
         OC_DiagnosticsManager.sharedManager().resetDiagnostics(10, week, "", question_array, false);
+        int progressCounter = 0;
+        double totalTime = 0.0;
+        double lastTimeRemainingTimeWasRefreshed = OC_Generic.currentTime();
         //
         for (String questionUUID : question_array)
         {
@@ -262,10 +342,11 @@ public class OC_DiagnosticsConsole extends OBSectionController
             //
             for (int i = 0; i < totalRuns; i++)
             {
-                MainActivity.log("Running test " + i + " for question " + questionUUID);
+                runTests_progress.setProgress(progressCounter);
+                progressCounter++;
                 //
                 double start = OC_Generic.currentTime();
-                List<String> remedialUnits = OC_DiagnosticsManager.sharedManager().retrieveRemedialUnitsForEvent(questionUUID, new ArrayList<String>());
+                List<String> remedialUnits = OC_DiagnosticsManager.sharedManager().retrieveRemedialUnitsForEvent(questionUUID, null);
                 double elapsed = OC_Generic.currentTime() - start;
                 //
                 for (int index = 0; index < remedialUnits.size(); index++)
@@ -287,12 +368,31 @@ public class OC_DiagnosticsConsole extends OBSectionController
                     unitUsage.put(remedialUnit, usages + 1);
                 }
                 //
-                Double totalTime = loadTimes.get(questionUUID);
-                if (totalTime == null)
+                Double totalTimeForQuestion = loadTimes.get(questionUUID);
+                if (totalTimeForQuestion == null)
                 {
-                    totalTime = new Double(0);
+                    totalTimeForQuestion = new Double(0);
                 }
-                loadTimes.put(questionUUID, totalTime + elapsed);
+                loadTimes.put(questionUUID, totalTimeForQuestion + elapsed);
+                //
+                totalTime += elapsed;
+                double average = totalTime / progressCounter;
+                final double remaining = ((totalRuns * question_array.size()) - progressCounter) * average;
+                //
+                double elapsedRefresh = OC_Generic.currentTime() - lastTimeRemainingTimeWasRefreshed;
+                if (elapsedRefresh > 1.0)
+                {
+                    lastTimeRemainingTimeWasRefreshed = OC_Generic.currentTime();
+                    //
+                    OBUtils.runOnMainThread(new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run() throws Exception
+                        {
+                            runTests_remaining.setText(DateUtils.formatElapsedTime((long) remaining));
+                        }
+                    });
+                }
             }
             //
             statistics.put(questionUUID, entries);
@@ -301,8 +401,12 @@ public class OC_DiagnosticsConsole extends OBSectionController
         List<String> questions = new ArrayList(statistics.keySet());
         Collections.sort(questions, String.CASE_INSENSITIVE_ORDER);
         //
+        remedialUnitsTestResults = new HashMap();
+        //
         for (String questionUUID : questions)
         {
+            Map<Integer, List> testResultsForQuestion = new HashMap<>();
+            //
             Map<Integer, Map> entries = statistics.get(questionUUID);
             List<Integer> sortedEntries = new ArrayList(entries.keySet());
             Collections.sort(sortedEntries);
@@ -313,13 +417,30 @@ public class OC_DiagnosticsConsole extends OBSectionController
                 List<String> sortedUnits = new ArrayList(units.keySet());
                 Collections.sort(sortedUnits, String.CASE_INSENSITIVE_ORDER);
                 //
+                int totalUsages = 0;
+                //
+                for (String unit : sortedUnits)
+                {
+                    totalUsages += units.get(unit);
+                }
+                //
+                List<String> testResultsForEntry = new ArrayList();
+                //
                 for (String unit : sortedUnits)
                 {
                     Integer usages = units.get(unit);
+                    float percentage = (100.0f * usages) / (float) totalUsages;
                     //
-                    MainActivity.log(questionUUID + " " + entry + " " + unit + " " + usages);
+                    String output = String.format("%s (%02.2f%%) (%d)", unit, percentage, usages);
+                    //
+                    testResultsForEntry.add(output);
+                    MainActivity.log(questionUUID + " " + output);
                 }
+                //
+                testResultsForQuestion.put(entry, testResultsForEntry);
             }
+            //
+            remedialUnitsTestResults.put(questionUUID, testResultsForQuestion);
         }
         //
         for (String questionUUID : questions)
@@ -337,7 +458,18 @@ public class OC_DiagnosticsConsole extends OBSectionController
             @Override
             public void run() throws Exception
             {
+                runTests_progress.setVisibility(INVISIBLE);
+                //
+                runTests_remaining.setVisibility(INVISIBLE);
+                //
                 question_list.setVisibility(VISIBLE);
+                //
+                totalRuns_slider.setEnabled(true);
+                week_slider.setEnabled(true);
+                wrongAnswers_slider.setEnabled(true);
+                //
+                runDiagnostics.setEnabled(true);
+                runTests.setEnabled(true);
             }
         });
     }
