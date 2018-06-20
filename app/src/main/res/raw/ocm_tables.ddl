@@ -26,15 +26,6 @@ create table masterlists
     token big unsigned int not null default 0
 );
 
-create table extraunits
-(
-    userid integer not null references users(userid) on delete no action,
-    level integer not null,
-    orderIndex integer not null,
-    unitid integer not null,
-    constraint pkey primary key (userid,level,orderIndex) on conflict fail
-);
-
 create table unitinstances
 (
     userid integer not null references users(userid) on delete no action,
@@ -76,6 +67,15 @@ create table users
     librarylistid int not null,
     name text not null,
     deleted int not null default 0
+);
+
+create table extraunits
+(
+    userid integer not null references users(userid) on delete no action,
+    level integer not null,
+    orderIndex integer not null,
+    unitid integer not null,
+    constraint pkey primary key (userid,level,orderIndex) on conflict fail
 );
 
 create table preferences

@@ -37,6 +37,7 @@ public class OC_BiggerNumberAudioRec extends OC_AudioRecSection
         super.prepare();
         loadEvent("master");
         screenLine =(OBPath)objectDict.get("line");
+        screenLine.sizeToBoundingBoxIncludingStroke();
         highlightColour = Color.BLUE;
         flashColour = OBUtils.colorFromRGBString("0,180,100");
         lineColour = screenLine.strokeColor();

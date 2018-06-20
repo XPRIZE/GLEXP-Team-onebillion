@@ -737,10 +737,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         cursor = db.prepareRawQuery(String.format("SELECT EU.unitid AS unitid, S.sessionid AS sessionid, " +
                         "(CASE WHEN (UI.seqNo >= ? OR UI.statusid IN (?,?)) THEN 1 ELSE 0 END) AS completed " +
                         "FROM %s AS EU " +
-                        "JOIN %s AS U ON U.unitid = EU.unitid AND AND EU.userid = ? AND EU.level = ? "+
+                        "JOIN %s AS U ON U.unitid = EU.unitid AND EU.userid = ? AND EU.level = ? "+
                         "LEFT JOIN %s AS UI ON UI.unitid = EU.unitid AND EU.userid = UI.userid AND UI.typeid = ? "+
                         "LEFT JOIN %s AS S ON S.sessionid = UI.sessionid AND S.userid = UI.userid "+
-                        "WHERE  AND S.day >= ? AND S.day <= ? " +
+                        "WHERE S.day >= ? AND S.day <= ? " +
                         "ORDER BY EU.orderIndex ASC",
                  DBSQL.TABLE_EXTRA_UNITS,DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES,DBSQL.TABLE_SESSIONS),
                 Arrays.asList(
@@ -1639,7 +1639,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                 {
 
                     //TEST PARAMS
-                  /*  unit.config = "oc-community";
+                    /*unit.config = "oc-community";
                     unit.target = "OCM_TestEvent";
                     unit.params = "test";*/
 
@@ -1950,7 +1950,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
      */
 
     /**
-     * Checks if new sessio can be started, if yes, it sets up all the values for current session
+     * Checks if new session can be started, if yes, it sets up all the values for current session
      * @return
      */
     public boolean checkAndPrepareNewSession()
@@ -2124,7 +2124,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         int columnIndex2 = cursor.getColumnIndex("count");
         if(cursor.moveToFirst())
         {
-            while(cursor.isAfterLast())
+            while(cursor.isAfterLast() == false)
             {
                 if(!cursor.isNull(columnIndex1))
                 {

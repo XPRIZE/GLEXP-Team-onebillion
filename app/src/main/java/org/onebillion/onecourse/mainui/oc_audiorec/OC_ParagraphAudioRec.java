@@ -106,7 +106,7 @@ public class OC_ParagraphAudioRec extends OC_AudioRecSection
 
     public String audioForSentence(int sno)
     {
-        return String.format("lc_%s_p_p_%d",currPassage.passageID,sno + 1);
+        return String.format("comp_%s_p_p_%d",currPassage.passageID,sno + 1);
     }
 
     public void setUpPassage()
