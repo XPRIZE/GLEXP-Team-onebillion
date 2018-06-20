@@ -243,6 +243,16 @@ android {
                     appIcon: "@mipmap/icon_child"
             ]
         }
+        diagnostics_testing_ {
+            applicationId 'org.onebillion.onecourse.diagnostics.testing'
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "Diagnostics"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_diagnostics.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/icon_child"
+            ]
+        }
 
     }
 

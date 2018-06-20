@@ -29,7 +29,10 @@ public class OC_DiagnosticsIntro extends OC_Diagnostics
         super.prepare();
         String endValue = parameters.get("end");
         endSequence = endValue != null && endValue.equals("true");
-        fixedEvents = Arrays.asList(parameters.get("events").split(","));
+        if (parameters.get("events") != null)
+        {
+            fixedEvents = Arrays.asList(parameters.get("events").split(","));
+        }
         String debugValue = parameters.get("debug");
         boolean debugFlag = (debugValue != null) && debugValue.equals("true");
         if (!endSequence)
@@ -112,7 +115,7 @@ public class OC_DiagnosticsIntro extends OC_Diagnostics
     public void demointro() throws Exception
     {
         setStatus(STATUS_BUSY);
-        presenter.walk((PointF) presenter.control.settings.get("respos"));
+        presenter.walk((PointF) presenter.control.settings.get("restpos"));
         presenter.faceFront();
         waitForSecs(0.2f);
         //

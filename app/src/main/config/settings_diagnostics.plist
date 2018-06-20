@@ -42,7 +42,7 @@
 
 	<!-- LOCALISATIONS -->
 	<key>localisation_skin_colour_index</key>
-	<integer>7</integer>
+	<integer>3</integer>
 	<!--  -->
 	<key>localisation_cloth_colour</key>
 	<string>177,33,254</string>
@@ -62,7 +62,7 @@
 	<string>oc-setup</string>
 	<!--  -->
 	<key>setup_menu_class</key>
-	<string>OBSetupMenu</string>
+	<string>OC_SimpleListMenu</string>
 
 
 	<!-- BRIGHTNESS -->
@@ -139,7 +139,7 @@
 
 	<!-- BATTERY -->
 	<key>battery_manager_enabled</key>
-	<string>true</string>
+	<string>false</string>
 	<!--  -->
 	<key>battery_levels</key>
 	<dict>
@@ -244,16 +244,16 @@
 
 	<!-- DEBUG -->
 	<key>debug_enabled</key>
-	<string>false</string>
+	<string>true</string>
 	<!--  -->
 	<key>debug_show_test_menu</key>
-	<string>false</string>
+	<string>true</string>
 	<!--  -->
 	<key>debug_show_back_arrow</key>
 	<string>true</string>
 	<!--  -->
 	<key>debug_show_unit_id</key>
-	<string>false</string>
+	<string>true</string>
 	<!--  -->
 	<key>debug_build_number</key>
 	<string>0012</string>
@@ -264,29 +264,21 @@
 	<string>oc-gen</string>
 	<!--  -->
 	<key>app_main_folder</key>
-	<string>oc-jmenu</string>
+	<string>oc-alan</string>
 	<!--  -->
 	<key>app_menu_class</key>
-	<string>OC_JMenu</string>
+	<string>OC_DiagnosticsConsole</string>
 	<!--  -->
 	<key>app_fat_controller_class</key>
-	<string>OC_FatController</string>
-
-	
-	<!-- CUSTOM APP VALUES FOR JUDGES MENU -->
-	<key>showMenuPopup</key>
-	<string>true</string>
+	<string>OBFatController</string>
 	<!--  -->
-	<key>app_languages</key>
-    <array>
-        <string>sw</string>
-        <string>en</string>
-    </array>
+	<key>app_masterlist</key>
+	<string>community_sw</string>
 	<!--  -->
-    <key>app_language_names</key>
-    <array>
-        <string>Swahili</string>
-        <string>English</string>
-    </array>
+	<key>app_masterlist_playzone</key>
+	<string>playzone_enGB</string>
+	<!--  -->
+	<key>app_masterlist_library</key>
+	<string>library_enGB</string>
 </dict>
 </plist>

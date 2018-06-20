@@ -1843,6 +1843,8 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             File[] externalMediaFolders = MainActivity.mainActivity.getBaseContext().getExternalMediaDirs();
             for (File externalMediaFolder : externalMediaFolders)
             {
+                if (externalMediaFolder == null) continue;
+                //
                 File parentFolder = externalMediaFolder.getParentFile().getParentFile().getParentFile();
                 externalAssets = new File(parentFolder + "/" + externalAssetsFolderPath);
                 //

@@ -630,7 +630,7 @@ public class OBSectionController extends OBViewController
             }
             if (attrs.get("fill") != null)
             {
-                int col = OBUtils.colorFromRGBString((String) attrs.get("fill"));
+                int col = OBUtils.colorFromRGBString((String)attrs.get("fill"));
                 ((OBGroup) im).substituteFillForAllMembers("col.*", col);
             }
         }
