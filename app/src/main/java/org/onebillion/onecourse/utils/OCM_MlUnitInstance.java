@@ -27,8 +27,12 @@ import java.util.Map;
 
 public class OCM_MlUnitInstance extends DBObject
 {
-    public final static int INSTANCE_TYPE_STUDY = 1, INSTANCE_TYPE_COMMUNITY = 2, INSTANCE_TYPE_PLAYZONE=3, INSTANCE_TYPE_PZ_LOCKED=4, INSTANCE_TYPE_LIBRARY=5,
-    INSTANCE_TYPE_REMEDIAL=6;
+    public final static int INSTANCE_TYPE_STUDY = 1,
+            INSTANCE_TYPE_COMMUNITY = 2,
+            INSTANCE_TYPE_PLAYZONE=3,
+            INSTANCE_TYPE_PZ_LOCKED=4,
+            INSTANCE_TYPE_LIBRARY=5,
+            INSTANCE_TYPE_EXTRA=6;
     public final static int STATUS_STARTED = 1,
             STATUS_COMPLETED = 2,
             STATUS_USER_CLOSED =3,

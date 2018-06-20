@@ -75,7 +75,7 @@ public class OC_EquationAudioRec extends OC_AudioRecSection
         int x, y, z;
         if(addMode)
         {
-            if(level == 1)
+            if(level <= 1)
             {
                 List<List<Integer>> eqList = new ArrayList<>();
                 z = OB_Maths.randomInt(3, 5);
@@ -167,7 +167,7 @@ public class OC_EquationAudioRec extends OC_AudioRecSection
         }
         else
         {
-            if(level == 1)
+            if(level <= 1)
             {
                 for(int i=0; i<5; i++)
                 {
@@ -210,6 +210,16 @@ public class OC_EquationAudioRec extends OC_AudioRecSection
                 }
             }
         }
+
+        if(level == 0)
+        {
+            int splitIndex = eventsData.size()/2;
+            List<List<Integer>> subList1 = OBUtils.randomlySortedArray(eventsData.subList(0,splitIndex)).subList(0,3);
+            List<List<Integer>> subList2 = OBUtils.randomlySortedArray(eventsData.subList(splitIndex,eventsData.size())).subList(0,3);
+            eventsData = subList1;
+            eventsData.addAll(subList2);
+        }
+
         List<String> eventsList = new ArrayList<>();
         for(int i=0; i<eventsData.size(); i++)
         {

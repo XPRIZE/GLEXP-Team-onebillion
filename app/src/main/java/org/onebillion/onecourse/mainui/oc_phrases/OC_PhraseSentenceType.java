@@ -242,11 +242,17 @@ public class OC_PhraseSentenceType extends OC_PhraseSentence implements OC_Typew
     }
 
 
+    @Override
     public void touchDownAtPoint(PointF pt, View v)
     {
         typewriterManager.touchDownAtPoint(pt);
     }
 
+    @Override
+    public void touchMovedToPoint(PointF pt,View v) {
+    }
+
+    @Override
     public void touchUpAtPoint(PointF pt,View v)
     {
         typewriterManager.touchUpAtPoint(pt);
@@ -743,30 +749,37 @@ public class OC_PhraseSentenceType extends OC_PhraseSentence implements OC_Typew
         reminderRunnable = new Runnable() {
             @Override
             public void run() {
-                try {
-                    while (!statusChanged(time)) {
-                        for (int i = 0;
-                             i < 4 && !statusChanged(time);
-                             i++) {
-                            screenLine.setStrokeColor(Color.RED);
-                            if (statusChanged(time))
-                                break;
-                            waitForSecs(0.6f);
+                if(statusChanged(time))
+                    return;
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
+                    @Override
+                    public void run() throws Exception {
+                        try {
+                            while (!statusChanged(time)) {
+                                for (int i = 0;
+                                     i < 4 && !statusChanged(time);
+                                     i++) {
+                                    screenLine.setStrokeColor(Color.RED);
+                                    if (statusChanged(time))
+                                        break;
+                                    waitForSecs(0.6f);
+                                    screenLine.setStrokeColor(lineColour);
+                                    if (statusChanged(time))
+                                        break;
+                                    waitForSecs(0.6f);
+                                }
+                                screenLine.setStrokeColor(lineColour);
+                            }
+
+                        } catch (Exception exception) {
+
+                        } finally {
                             screenLine.setStrokeColor(lineColour);
-                            if (statusChanged(time))
-                                break;
-                            waitForSecs(0.6f);
                         }
-                        screenLine.setStrokeColor(lineColour);
                     }
+                });
 
-                } catch (Exception exception) {
 
-                }
-                finally
-                {
-                    screenLine.setStrokeColor(lineColour);
-                }
             }
         };
         reminderHandler.postDelayed(reminderRunnable, (long)(delay * 1000));

@@ -42,7 +42,7 @@ public class OC_ParagraphAudioRec extends OC_AudioRecSection
         textBackgroundColour = OBUtils.colorFromRGBString("235,235,235");
         textSize = 32;
         lineSpacing = 27;
-        String storyId = OBUtils.coalesce(parameters.get("target") , "1");
+        String storyId = parameters.get("target");
         currPassage = storyDict.get(storyId);
         font = OBUtils.StandardReadingFontOfSize(textSize);
         setUpPassage();
