@@ -123,7 +123,7 @@ public class OC_DiagnosticsIntro extends OC_Diagnostics
         presenter.speak(audioFiles, 0.3f, this);
         PointF currPos = OC_Generic.copyPoint(presenter.control.position());
         OBControl front = presenter.control.objectDict.get("front");
-        PointF destPos = new PointF(bounds().width() + front.width(), currPos.y);
+        PointF destPos = new PointF(bounds().width() + 1.5f * front.width(), currPos.y);
         presenter.walk(destPos);
         //
         OC_DiagnosticsManager.sharedManager().loadCurrentQuestion();
@@ -144,7 +144,7 @@ public class OC_DiagnosticsIntro extends OC_Diagnostics
         presenter.speak(audioFiles, 0.3f, this);
         PointF currPos = OC_Generic.copyPoint(presenter.control.position());
         OBControl front = presenter.control.objectDict.get("front");
-        PointF destPos = new PointF(0 - front.width(), currPos.y);
+        PointF destPos = new PointF(0 - 1.5f * front.width(), currPos.y);
         presenter.walk(destPos);
         exitEvent();
     }

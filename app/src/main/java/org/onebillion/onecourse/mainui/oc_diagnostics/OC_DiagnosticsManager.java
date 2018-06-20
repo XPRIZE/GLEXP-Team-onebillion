@@ -107,7 +107,10 @@ public class OC_DiagnosticsManager
     {
         allEvents = new ArrayMap();
         OBXMLManager xmlManager = new OBXMLManager();
-        OBXMLNode rootNode = xmlManager.parseFile(OBUtils.getInputStreamForPath(OBUtils.getConfigFile("exercises.xml"))).get(0);
+        String path = OBUtils.getConfigFile("exercises.xml");
+        InputStream is = OBUtils.getInputStreamForPath(path);
+        List<OBXMLNode> nodeList = xmlManager.parseFile(is);
+        OBXMLNode rootNode = nodeList.get(0);
         for (OBXMLNode exerciseNode : rootNode.children)
         {
             Map<String, Object> attributes = new ArrayMap<>();
@@ -654,7 +657,7 @@ public class OC_DiagnosticsManager
         {
             if (unitCollection.size() == 0)
             {
-                MainActivity.log("OC_DiagnosticsManager.retrieveRemedialUnitsForEvent:withRelevantParameters --> unit collection is empty!");
+                //MainActivity.log("OC_DiagnosticsManager.retrieveRemedialUnitsForEvent:withRelevantParameters --> unit collection is empty!");
                 continue;
             }
             //
@@ -690,13 +693,13 @@ public class OC_DiagnosticsManager
             }
         }
         //
-        MainActivity.log("Remedial Units calculated for event %s", eventUUID);
-        int index = 1;
-        for (String unit : remedialUnits)
-        {
-            MainActivity.log("%2d: %s", index, unit);
-            index++;
-        }
+//        MainActivity.log("Remedial Units calculated for event %s", eventUUID);
+//        int index = 1;
+//        for (String unit : remedialUnits)
+//        {
+//            MainActivity.log("%2d: %s", index, unit);
+//            index++;
+//        }
         return remedialUnits;
     }
 }

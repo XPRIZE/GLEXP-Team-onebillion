@@ -5,6 +5,7 @@
     android:orientation="vertical">
 
     <LinearLayout
+        android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="80dp"
         android:orientation="horizontal">
@@ -20,6 +21,7 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/week"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:orientation="vertical">
@@ -96,6 +98,7 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/total_runs"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:orientation="vertical">
@@ -165,14 +168,17 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/wrong_questions"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:visibility="gone">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="visible">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -235,6 +241,7 @@
 
 
     <LinearLayout
+        android:id="@+id/run_test"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:orientation="vertical">
@@ -288,13 +295,36 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/results"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <ListView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+        <LinearLayout
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <ListView
+                android:id="@+id/question_list"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="#ffffff" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <ListView
+                android:id="@+id/remedialUnits_list"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="#ffffff" />
+        </LinearLayout>
+
+
     </LinearLayout>
 
 </LinearLayout>
