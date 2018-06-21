@@ -125,7 +125,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
             {
                 lastUnitInstance = (OCM_MlUnitInstance)params.get("instance");
                 if(lastCommand == OCM_FatController.OFC_UNIT_FAILED && lastUnitInstance.starColour >0)
-                    colourStarNum(lastUnitOrder,lastUnitInstance.starColour);
+                    colourStarNum(lastUnitInstance.mlUnit.starOrder,lastUnitInstance.starColour);
             }
         }
         else
@@ -890,7 +890,8 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
     public void colourStarNum(int starNum,int colourNum)
     {
         OBGroup star = (OBGroup)objectDict.get(String.format("top_bar_star_%d",starNum));
-        if(star == null)        return;
+        if(star == null)
+            return;
         colourStar(star,colourNum);
     }
 
