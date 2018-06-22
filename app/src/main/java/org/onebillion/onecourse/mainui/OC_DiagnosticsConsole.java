@@ -201,8 +201,6 @@ public class OC_DiagnosticsConsole extends OBSectionController
             {
                 selectedQuestionUUID = (String) parent.getItemAtPosition(position);
                 //
-                MainActivity.log("Select Remedial units for question " + selectedQuestionUUID);
-                //
                 List<Integer> entriesForQuestion = new ArrayList(remedialUnitsTestResults.get(selectedQuestionUUID).keySet());
                 Collections.sort(entriesForQuestion);
                 final List<Integer> resultsForQuestion = entriesForQuestion;
@@ -217,7 +215,7 @@ public class OC_DiagnosticsConsole extends OBSectionController
                         String questionUUID = "  " + getItem(position) + "  ";
                         //
                         TextView view = (TextView) super.getView(position, convertView, parent);
-                        view.setTextSize(40);
+                        view.setTextSize(28);
                         ViewGroup.LayoutParams params = view.getLayoutParams();
                         params.height = 150;
                         view.setText(questionUUID);
@@ -227,6 +225,8 @@ public class OC_DiagnosticsConsole extends OBSectionController
                 };
                 unitIndex_list.setAdapter(unitIndex_arrayAdapter);
                 unitIndex_list.setVisibility(VISIBLE);
+                //
+                remedialUnits_list.setVisibility(INVISIBLE);
             }
         });
         //
@@ -238,7 +238,7 @@ public class OC_DiagnosticsConsole extends OBSectionController
                 String questionUUID = "  " + getItem(position) + "  ";
                 //
                 TextView view = (TextView) super.getView(position, convertView, parent);
-                view.setTextSize(40);
+                view.setTextSize(28);
                 ViewGroup.LayoutParams params = view.getLayoutParams();
                 params.height = 150;
                 view.setText(questionUUID);
@@ -260,7 +260,6 @@ public class OC_DiagnosticsConsole extends OBSectionController
             {
                 Integer entry = (Integer) parent.getItemAtPosition(position);
                 //
-                MainActivity.log("Select Unit Entry " + entry);
                 Map<String, List> entriesForQuestionUUID = remedialUnitsTestResults.get(selectedQuestionUUID);
                 List entriesForEntry = entriesForQuestionUUID.get(entry);
                 //
@@ -275,7 +274,7 @@ public class OC_DiagnosticsConsole extends OBSectionController
                         String entry = "  " + getItem(position) + "  ";
                         //
                         TextView view = (TextView) super.getView(position, convertView, parent);
-                        view.setTextSize(32);
+                        view.setTextSize(18);
                         ViewGroup.LayoutParams params = view.getLayoutParams();
                         params.height = 150;
                         view.setText(entry);
@@ -398,10 +397,10 @@ public class OC_DiagnosticsConsole extends OBSectionController
             statistics.put(questionUUID, entries);
         }
         //
-        List<String> questions = new ArrayList(statistics.keySet());
+        List<String> questions = new ArrayList<>(statistics.keySet());
         Collections.sort(questions, String.CASE_INSENSITIVE_ORDER);
         //
-        remedialUnitsTestResults = new HashMap();
+        remedialUnitsTestResults = new HashMap<>();
         //
         for (String questionUUID : questions)
         {
@@ -424,17 +423,25 @@ public class OC_DiagnosticsConsole extends OBSectionController
                     totalUsages += units.get(unit);
                 }
                 //
-                List<String> testResultsForEntry = new ArrayList();
+                List<String> testResultsForEntry = new ArrayList<>();
                 //
                 for (String unit : sortedUnits)
                 {
                     Integer usages = units.get(unit);
                     float percentage = (100.0f * usages) / (float) totalUsages;
                     //
-                    String output = String.format("%s (%02.2f%%) (%d)", unit, percentage, usages);
+                    Map<String,Object> unitAttributes = OC_DiagnosticsManager.sharedManager().getUnitAttributes(unit);
+                    if (unitAttributes == null)
+                    {
+                        MainActivity.log("ERROR --> found empty unit for " + questionUUID + " " + entry);
+                        continue;
+                    }
+                    //
+                    String parameters = (String) unitAttributes.get("params");
+                    String output = String.format("%02.2f%% (%03d) - %s - %s", percentage, usages, unit, parameters);
                     //
                     testResultsForEntry.add(output);
-                    MainActivity.log(questionUUID + " " + output);
+                    //MainActivity.log(questionUUID + " " + output);
                 }
                 //
                 testResultsForQuestion.put(entry, testResultsForEntry);

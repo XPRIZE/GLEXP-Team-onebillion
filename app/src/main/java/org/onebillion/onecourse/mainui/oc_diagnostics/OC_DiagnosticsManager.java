@@ -81,6 +81,8 @@ public class OC_DiagnosticsManager
     int maxWrongAnswers;            // maximum number of wrong answers a user can get before getting removed from the unit
     boolean debugEnabled;           // flag to either show the final feedback from Presenter or show the debug menu with the remedial units
     int lastLoadedWeek;             // last loaded week for performance issues (if loadMasterlist is called with the same lastWeek, it's skipped)
+    Map<String,List> unitsByTarget; // units sorted by Target to make it easier to access the units
+    Map<String,Map> unitsByUUID;    // units sorted by UUID to make it easier to access directly the unit
 
     public static OC_DiagnosticsManager sharedManager()
     {
@@ -180,7 +182,6 @@ public class OC_DiagnosticsManager
         remedialUnits_day1 = new ArrayList<>();
         remedialUnits_day2 = new ArrayList<>();
         progress = new ArrayList<>();
-        unitsFromMasterlist = new ArrayList<>();
         thresholdWeek = week;
         currentQuestionIndex = 0;
         startingParameters = parameters;
@@ -209,6 +210,9 @@ public class OC_DiagnosticsManager
         }
         //
         lastLoadedWeek = lastWeek;
+        //
+        unitsByTarget = new HashMap<>();
+        unitsByUUID = new HashMap<>();
         //
         String masterListFolder = OBConfigManager.sharedManager.getMasterlist();
         //
@@ -245,12 +249,24 @@ public class OC_DiagnosticsManager
                             }
                             //
                             Map<String, Object> unitAttributes = new ArrayMap<>();
+                            String target = unitNode.attributeStringValue("target");
+                            //
                             unitAttributes.put("id", unitUUID);
-                            unitAttributes.put("target", unitNode.attributeStringValue("target"));
+                            unitAttributes.put("target", target);
                             unitAttributes.put("config", unitNode.attributeStringValue("config"));
                             unitAttributes.put("params", unitNode.attributeStringValue("params"));
                             //
                             result.add(unitAttributes);
+                            //
+                            List unitsList = unitsByTarget.get(target);
+                            if (unitsList == null)
+                            {
+                                unitsList = new ArrayList();
+                            }
+                            unitsList.add(unitAttributes);
+                            unitsByTarget.put(target, unitsList);
+                            //
+                            unitsByUUID.put(unitUUID, unitAttributes);
                         }
                     }
                 }
@@ -466,6 +482,11 @@ public class OC_DiagnosticsManager
     public List AvailableUnits()
     {
         return unitsFromMasterlist;
+    }
+
+    public Map<String, Object> getUnitAttributes(String unitUUID)
+    {
+        return unitsByUUID.get(unitUUID);
     }
 
 

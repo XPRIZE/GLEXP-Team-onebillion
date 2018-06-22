@@ -7,7 +7,7 @@
     <LinearLayout
         android:id="@+id/title"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="60dp"
         android:orientation="horizontal">
 
         <TextView
@@ -312,7 +312,7 @@
         android:orientation="horizontal">
 
         <LinearLayout
-            android:layout_width="150dp"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
@@ -320,11 +320,11 @@
                 android:id="@+id/question_list"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#ffffff" />
+                android:background="@android:color/holo_orange_dark" />
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="150dp"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
@@ -332,7 +332,7 @@
                 android:id="@+id/unitIndex_list"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#ffffff" />
+                android:background="@android:color/holo_orange_light" />
         </LinearLayout>
 
         <LinearLayout
@@ -344,7 +344,7 @@
                 android:id="@+id/remedialUnits_list"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#ffffff" />
+                android:background="@android:color/white" />
         </LinearLayout>
 
 
