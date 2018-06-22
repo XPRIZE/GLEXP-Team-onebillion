@@ -97,15 +97,6 @@ public class OC_Library extends OC_Menu
         fatController = (OCM_FatController)MainActivity.mainActivity.fatController;;
         Map<Integer,List<OCM_MlUnit>> libraryUnits = fatController.getUnitsForLibrary();
         loadBooksForUnits(libraryUnits);
-        int index = 0;
-        for(OBGroup bookLine : levelGroups)
-        {
-            if(bookLine.isEnabled())
-            {
-                setBookLine(bookLine, lineLocation(bookLine,1).x);
-                index++;
-            }
-        }
     }
 
     public void start()
@@ -416,29 +407,30 @@ public class OC_Library extends OC_Menu
             OBGroup group = new OBGroup(bookIcons);
             group.setShouldTexturise(false);
 
-
             attachControl(group);
 
             group.setZPosition(20);
             levelGroups.add(group);
+            int currentLoc = OB_Maths.randomInt(1, booksLevel.size()>7 ? booksLevel.size()-6 : 1);
             if (group.width() < limitRight - limitLeft)
             {
                 PointF loc = OBMisc.copyPoint(group.position());
                 loc.x = OB_Maths.locationForRect(0.5f, 0.5f, this.bounds()).x;
                 group.setPosition(loc);
                 group.disable();
-
-            } else
+            }
+            else
             {
-                setBookLine(group, lineLocation(group, locIndex == 1 ? 2 : 0).x);
+                setBookLine(group, lineLocation(group,currentLoc).x);
                 locIndex++;
                 group.enable();
-
             }
             levelControl.setProperty("books", group);
             group.setProperty("snap_loc", startPoint);
             group.setProperty("start_loc", OBMisc.copyPoint(group.position()));
             level++;
+            if(group.isEnabled())
+                setBookLine(group, lineLocation(group,locIndex%2 == 0 ? currentLoc - 1 : currentLoc +1 ).x);
 
         }
     }
@@ -480,7 +472,6 @@ public class OC_Library extends OC_Menu
         OBControl icon = objectDict.get("icon");
         bigic.setScale(bigic.scale() * icon.width()/bigic.width());
         return bigic;
-
     }
 
     public void startLibraryTimeout()
@@ -495,7 +486,6 @@ public class OC_Library extends OC_Menu
             }
         };
         timeoutHandler.postDelayed(timeoutRunnable,LIBRARY_TIMEOUT*1000);
-
     }
 
     public void stopLibraryTimeout()

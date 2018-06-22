@@ -1671,9 +1671,9 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                 {
 
                     //TEST PARAMS
-                    unit.config = "oc-community";
+                    /*unit.config = "oc-community";
                     unit.target = "OCM_TestEvent";
-                    unit.params = "test";
+                    unit.params = "test";*/
 
                     OBConfigManager.sharedManager.updateConfigPaths(unit.config, false, unit.lang);
                     if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
