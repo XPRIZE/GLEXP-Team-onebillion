@@ -813,7 +813,13 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                 }
                 cursor.close();
             }
+
+            //normally the unit has to be the same week as current week, but in this case we skip this check as it's unit from the past
+            if(mlUnit != null)
+                return mlUnit;
         }
+
+
 
         //if no unit found search the masterlist for the next study one
         if(mlUnit == null)
@@ -853,8 +859,8 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             }
             cursor.close();
         }
-      /*  if(mlUnit.level != materlistWeek)
-            return null;*/
+       if(mlUnit.level != materlistWeek)
+            return null;
         return mlUnit;
     }
 
@@ -1237,8 +1243,14 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         while(!(boolean)dict.get("community"))
         {
             OCM_MlUnit unit = (OCM_MlUnit)dict.get("unit");
-            sectionStartedWithUnit(unit,OCM_MlUnitInstance.INSTANCE_TYPE_STUDY);
+            int typeId;
+            if(unit.typeid == OCM_MlUnit.TYPE_EXTRA)
+                typeId = OCM_MlUnitInstance.INSTANCE_TYPE_EXTRA;
+            else
+                typeId = OCM_MlUnitInstance.INSTANCE_TYPE_STUDY;
+            sectionStartedWithUnit(unit,typeId);
             updateScores();
+            currentUnitInstance = null;
             dict = getNextUnitData();
         }
     }
@@ -1367,7 +1379,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                 int unitIndex = -1;
                 Cursor cursor = db.prepareRawQuery(String.format("SELECT MAX(unitIndex) as unitIndex FROM %s " +
                                 "WHERE level = ? AND masterlistid = ?",DBSQL.TABLE_UNITS)
-                        ,Arrays.asList(String.valueOf(getCurrentWeek()),String.valueOf(currentUser.studylistid)));
+                        ,Arrays.asList(String.valueOf(getMasterlistWeek()),String.valueOf(currentUser.studylistid)));
 
                 if(cursor.moveToFirst())
                 {
@@ -2487,15 +2499,30 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     {
         db.beginTransaction();
         try {
-            ContentValues contentValues = new ContentValues();
-            contentValues.put("userid", userid);
-            contentValues.put("level", level);
-            for (int i = 0; i < unitList.size(); i++) {
-                contentValues.put("orderIndex", i);
-                contentValues.put("unitid", unitList.get(i));
-                db.doInsertOnTable(DBSQL.TABLE_EXTRA_UNITS, contentValues);
+            Map<String,String> whereMap = new ArrayMap<>();
+            whereMap.put("userid", String.valueOf(userid));
+            whereMap.put("level", String.valueOf(level));
+            Cursor cursor = db.doSelectOnTable(DBSQL.TABLE_EXTRA_UNITS,Arrays.asList("COUNT(*) as count"),whereMap);
+            int count = 0;
+            if(cursor.moveToFirst())
+            {
+                int index = cursor.getColumnIndex("count");
+                if(!cursor.isNull(index))
+                    count = cursor.getInt(index);
+
             }
-            db.setTransactionSuccessful();
+
+            if(count == 0) {
+                ContentValues contentValues = new ContentValues();
+                contentValues.put("userid", userid);
+                contentValues.put("level", level);
+                for (int i = 0; i < unitList.size(); i++) {
+                    contentValues.put("orderIndex", i);
+                    contentValues.put("unitid", unitList.get(i));
+                    db.doInsertOnTable(DBSQL.TABLE_EXTRA_UNITS, contentValues);
+                }
+                db.setTransactionSuccessful();
+            }
         }
         catch (Exception e) {
 
@@ -2529,7 +2556,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         if(currentUnitInstance.mlUnit.typeid == OCM_MlUnit.TYPE_DIAGNOSTIC)
         {
             List<Integer> units = new ArrayList<>();
-            for(int i=0; i<20; i++)
+            for(int i=0; i<10; i++)
                 units.add(2+i);
 
             saveExtraUnitsForCurrentUser(units);

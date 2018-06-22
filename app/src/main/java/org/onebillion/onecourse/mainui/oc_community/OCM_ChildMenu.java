@@ -83,7 +83,6 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
     Map<String,Integer> coloursDict;
     OBControl emitter, screenOverlay;
     boolean communityModeActive, playZoneOpened;
-    boolean communityModeActiveOverride, playZoneActiveOverride;
     List<OBGroup> communityModeIcons;
 
     RectF secretBoxLeft, secretBoxRight;
@@ -174,7 +173,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         refreshCurrentDayAndAudio();
         receiveCommand(fatController.getCurrentCommand());
         //
-        communityModeActive = fatController.communityModeActive() || communityModeActiveOverride;
+        communityModeActive = fatController.communityModeActive();
         //
         playZoneOpened = false;
         initScreen();
@@ -926,7 +925,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
     }
     public void loadPlayZoneBox(boolean show)
     {
-        boolean active = fatController.playZoneActive() || playZoneActiveOverride;
+        boolean active = fatController.playZoneActive() ;
         //
         OBGroup box = (OBGroup)objectDict.get("box");
         box.setProperty("touched",false);
@@ -959,7 +958,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         OBGroup box = (OBGroup)objectDict.get("box");
         if(!box.isEnabled())
         {
-            if(fatController.playZoneActive() || playZoneActiveOverride)
+            if(fatController.playZoneActive())
             {
                 enablePlayZoneBox();
                 return true;
@@ -1021,7 +1020,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
                 }
             });
         }
-        else if(fatController.playZoneActive() || playZoneActiveOverride)
+        else if(fatController.playZoneActive() )
         {
             shakePlayZoneBoxOnce(true);
         }
@@ -1550,7 +1549,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         presenter.moveHandfromIndex(4,2,0.2);
         presenter.speak((List<Object>)(Object)getAudioForScene("grid","DEMO2"),this);
         waitForSecs(0.3f);
-        if(!fatController.playZoneActive() && !playZoneActiveOverride)
+        if(!fatController.playZoneActive())
         {
             presenter.speak((List<Object>)(Object)getAudioForScene("grid","DEMO3"),this);
         }
@@ -1933,72 +1932,8 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         }
         else if (OBConfigManager.sharedManager.isActivateCommunityModeOverridePasswordCorrect(pass))
         {
-            communityModeActive = true;
-            //
-            lockScreen();
-            try
-            {
-                List<OBControl> controls = new ArrayList<OBControl>();
-                controls.addAll(attachedControls);
-                for (OBControl control : controls)
-                {
-                    detachControl(control);
-                }
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-            communityModeActiveOverride = true;
-            playZoneActiveOverride = true;
-            prepare();
-            unlockScreen();
-            //
-            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
-            {
-                @Override
-                public void run () throws Exception
-                {
-                    start();
-                }
-            });
-            //
-//            fatController.jumpToCommunity();
-//            closeThisMenuAndOpen(OCM_ChildMenu.class);
-        }
-        else if (OBConfigManager.sharedManager.isRevertCommunityModePasswordCorrect(pass))
-        {
-            lockScreen();
-            try
-            {
-                List<OBControl> controls = new ArrayList<OBControl>();
-                controls.addAll(attachedControls);
-                for (OBControl control : controls)
-                {
-                    detachControl(control);
-                }
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-            communityModeActiveOverride = false;
-            playZoneActiveOverride = false;
-            prepare();
-            unlockScreen();
-            //
-            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
-            {
-                @Override
-                public void run () throws Exception
-                {
-                    start();
-                }
-            });
-        }
-        else if (OBConfigManager.sharedManager.isChangeDatePasswordCorrect(pass))
-        {
-            showPickDateDialog(this, null);
+           fatController.jumpToCommunity();
+           closeThisMenuAndOpen(OCM_ChildMenu.class);
         }
     }
 
