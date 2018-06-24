@@ -14,6 +14,7 @@ import android.text.TextPaint;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,8 +33,6 @@ public class OBTextLayer extends OBLayer
     int colour,bgColour;
     TextPaint textPaint;
     float lineOffset;
-    int hiStartIdx=-1,hiEndIdx=-1;
-    int hiRangeColour;
     float letterSpacing,lineSpaceMultiplier=1.0f,lineSpaceAdd;
     public int justification = JUST_CENTRE;
     Rect tempRect;
@@ -41,6 +40,19 @@ public class OBTextLayer extends OBLayer
     boolean displayObjectsValid = false;
     public float maxWidth = -1;
     List<List<Integer>> backgroundColourRanges;
+
+    public class ColourRange
+    {
+        int st,en,col;
+        public ColourRange(int colourStart,int colourEnd,int colour)
+        {
+            st = colourStart;
+            en = colourEnd;
+            col = colour;
+        }
+    }
+
+    List<ColourRange> colourRanges = new ArrayList<>();
 
     public OBTextLayer()
     {
@@ -73,11 +85,9 @@ public class OBTextLayer extends OBLayer
         obj.letterSpacing = letterSpacing;
         obj.lineSpaceMultiplier = lineSpaceMultiplier;
         obj.lineSpaceAdd = lineSpaceAdd;
-        obj.hiStartIdx = hiStartIdx;
-        obj.hiEndIdx = hiEndIdx;
-        obj.hiRangeColour = hiRangeColour;
         obj.justification = justification;
         obj.maxWidth = maxWidth;
+        obj.colourRanges = new ArrayList<>(colourRanges);
         return obj;
     }
 
@@ -87,8 +97,12 @@ public class OBTextLayer extends OBLayer
         textPaint.setTypeface(typeFace);
         textPaint.setColor(colour);
         spanner = new SpannableString(text);
-        if (hiStartIdx >= 0)
-            spanner.setSpan(new ForegroundColorSpan(hiRangeColour),hiStartIdx,hiEndIdx, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        //if (hiStartIdx >= 0)
+          //  spanner.setSpan(new ForegroundColorSpan(hiRangeColour),hiStartIdx,hiEndIdx, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        for (ColourRange cr : colourRanges)
+            spanner.setSpan(new ForegroundColorSpan(cr.col),cr.st,cr.en, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
         if (backgroundColourRanges != null && bgColour != 0)
         {
             for (List<Integer> range : backgroundColourRanges)
@@ -119,20 +133,6 @@ public class OBTextLayer extends OBLayer
         canvas.translate(l,0);
         stLayout.draw(canvas);
         canvas.restore();
-    }
-    public void drawo(Canvas canvas)
-    {
-        textPaint.setTextSize(textSize);
-        textPaint.setTypeface(typeFace);
-        textPaint.setColor(colour);
-        if (letterSpacing != 0)
-            textPaint.setLetterSpacing(letterSpacing / textSize);
-        textPaint.getTextBounds(text, 0, text.length(), tempRect);
-        if (letterSpacing != 0)
-            tempRect.right += (text.length() * letterSpacing);
-        float textStart = (bounds().right - tempRect.right) / 2;
-        canvas.drawText(text,textStart,lineOffset,textPaint);
-        hiStartIdx = 0;hiEndIdx = text.length();
     }
 
     public float baselineOffset()
@@ -208,9 +208,19 @@ public class OBTextLayer extends OBLayer
 
     public void setHighRange(int st,int en,int colour)
     {
-        hiStartIdx = st;
-        hiEndIdx = en;
-        hiRangeColour = colour;
+        //hiStartIdx = st;
+        //hiEndIdx = en;
+        //hiRangeColour = colour;
+        colourRanges.clear();
+        if (st >= 0)
+            colourRanges.add(new ColourRange(st,en,colour));
+        displayObjectsValid = false;
+    }
+
+    public void addColourRange(int st,int en,int colour)
+    {
+        if (st >= 0)
+            colourRanges.add(new ColourRange(st,en,colour));
         displayObjectsValid = false;
     }
 
@@ -267,7 +277,7 @@ public class OBTextLayer extends OBLayer
     public void setColour(int colour)
     {
         this.colour = colour;
-        hiStartIdx = hiEndIdx = -1;
+        colourRanges.clear();
         displayObjectsValid = false;
     }
 

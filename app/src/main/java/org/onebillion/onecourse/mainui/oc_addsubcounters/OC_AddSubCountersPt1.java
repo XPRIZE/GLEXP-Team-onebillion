@@ -5,14 +5,18 @@ import android.graphics.RectF;
 import android.text.TextUtils;
 
 import org.onebillion.onecourse.controls.OBControl;
+import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPresenter;
+import org.onebillion.onecourse.mainui.oc_lettersandsounds.OC_Wordcontroller;
 import org.onebillion.onecourse.utils.OBFont;
 import org.onebillion.onecourse.utils.OBUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.onebillion.onecourse.utils.OBUtils.StandardReadingFontOfSize;
 
@@ -188,5 +192,183 @@ public class OC_AddSubCountersPt1 extends OC_AddSubCounters
         }
     }
 
+    public List<OBLabel> layOutBottomLabels(List<Integer> numbers)
+    {
+        OBControl swatch = objectDict.get("bottomnumberswatch");
+        int col = swatch.fillColor();
+        List<OBLabel>labs = new ArrayList<>();
+        for(Integer n : numbers)
+        {
+            OBLabel l = new OBLabel(String.format("%d",n.intValue()),panelfont);
+            l.setColour(col);
+            attachControl(l);
+            labs.add(l);
+            l.hide();
+        }
+        List<OBLabel> blabs = OBUtils.randomlySortedArray(labs);
+        List<Map> comps = new ArrayList<>();
+        Map ds = new HashMap();
+        ds.put("fixed",false);
+        ds.put("width",2.0f);
+        comps.add(ds);
+        Map spacer = null;
+        for(OBLabel l : labs)
+        {
+            if(spacer != null)
+                comps.add(spacer);
+            Map d = new HashMap();
+            d.put("fixed",true);
+            d.put("width",l.width());
+            d.put("obj",l);
+            comps.add(d);
+            spacer = new HashMap();
+            spacer.put("fixed",false);
+            spacer.put("width",1.0f);
+        }
+        comps.add(ds);
+        RectF frme = objectDict.get("bottomrect").frame();
+        float totwidth = 0;
+        float totvariable = 0;
+        for(Map d : comps)
+        {
+            boolean fixed = (Boolean)d.get("fixed");
+            if(fixed)
+                totwidth += (Float)d.get("width");
+            else
+                totvariable += (Float)d.get("width");
+        }
+        float multiplier =(frme.width() - totwidth) / totvariable;
+        float y = frme.top + frme.height() / 2;
+        float x = 0;
+        for(Map d : comps)
+        {
+            OBLabel l = (OBLabel)d.get("obj");
+            if(l != null)
+            {
+                float tempx = x + l.width() / 2;
+                PointF pos = new PointF(tempx, y);
+                l.setPosition(pos);
+                l.setProperty("botpos",(pos));
+                x += l.width();
+            }
+            else
+            {
+                x += (Float)d.get("width") * multiplier;
+            }
+        }
+
+        return labs;
+    }
+
+    public void positionRedLine(String op)
+    {
+        float l = equLabel.left();
+        String str = equLabel.text();
+        int rst = str.indexOf(op);
+        String str2 = str.substring(0,rst + 2);
+        float w2 = OC_Wordcontroller.boundingBoxForText(str2, equfont) .width();
+        float x = l + w2;
+        OBControl c = objectDict.get("redline");
+        c.setLeft(x);
+        c.hide();
+    }
+
+    public List bottomNumbers(int correctone)
+    {
+        List<Integer> nos = new ArrayList<>();
+        for(int i = 1;i <= 4;i++)
+        {
+            nos.add((correctone + i));
+            int n = correctone - i;
+            if(n >= 0)
+                nos.add((n));
+        }
+        List rana = OBUtils.randomlySortedArray(nos);
+        return Arrays.asList((correctone) ,rana.get(0) ,rana.get(1));
+    }
+
+    public void showButtonSign(boolean show)
+    {
+        OBGroup sign =(OBGroup) objectDict.get("sign");
+        if(show)
+            sign.showMembers("sign");
+        else
+            sign.hideMembers("sign");
+    }
+
+    public void setUpScene()
+    {
+        ocasc_equation eq = equations.get(currNo);
+        String ev = eq.isPlus?"plus":"minus";
+        loadEvent(ev);
+        layOutEquation(eq,objectDict.get("equationbox").frame());
+        layOutCountersLeft(eq.lh,eq.isPlus?eq.rh:0);
+        int val = eq.lh;
+        val +=(eq.isPlus?1:-1) * eq.rh;
+        bottomLabels = layOutBottomLabels(bottomNumbers(val));
+        positionRedLine("=");
+        showButtonSign(false);
+
+        hideControls("sign");
+        showResult(false);
+    }
+
+    public void setScenea()
+    {
+        loadEvent("anna");
+        presenter = OBPresenter.characterWithGroup((OBGroup) objectDict.get("anna"));
+        presenter.control.setZPosition(200);
+        PointF pos = new PointF();
+        pos.set(presenter.control.position());
+        presenter.control.setProperty("restpos",pos);
+        presenter.control.setRight(0);
+        presenter.control.show();
+        setUpScene();
+
+    }
+
+    public void setScenec()
+    {
+    }
+
+    public void setScened()
+    {
+    }
+
+    public void setSceneepref()
+    {
+    }
+
+    public void setScenee()
+    {
+        targets = Arrays.asList(objectDict.get("sign"));
+    }
+
+    public void setSceneXX(String scene)
+    {
+        setUpScene();
+        targets = Arrays.asList(objectDict.get("sign"));
+    }
+
+    public void setButtonActive(boolean act)
+    {
+        float op = act?1:0.5f;
+        OBControl but = objectDict.get("sign");
+        lockScreen();
+        but.setOpacity(op);
+        but.lowlight();
+        unlockScreen();
+    }
+
+    public void showResult(boolean show)
+    {
+        int col = show?Color.BLACK :Color.TRANSPARENT;
+        String txt = equLabel.text();
+        int rst = txt.indexOf("=");
+        int idx =(int) rst + 2;
+        lockScreen();
+        equLabel.setHighRange(idx,txt.length(),col);
+        unlockScreen();
+    }
 
 }

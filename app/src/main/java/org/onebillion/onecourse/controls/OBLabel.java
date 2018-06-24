@@ -123,6 +123,15 @@ public class OBLabel extends OBControl
         }
      }
 
+    public void addColourRange(int st,int en,int colour)
+    {
+        if (layer != null)
+        {
+            ((OBTextLayer)layer).addColourRange(st,en,colour);
+            setNeedsRetexture();
+            invalidate();
+        }
+    }
     public String text()
     {
         return ((OBTextLayer)layer).text;
