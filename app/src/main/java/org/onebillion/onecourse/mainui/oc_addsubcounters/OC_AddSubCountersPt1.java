@@ -3,15 +3,18 @@ import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.text.TextUtils;
+import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPresenter;
 import org.onebillion.onecourse.mainui.oc_lettersandsounds.OC_Wordcontroller;
+import org.onebillion.onecourse.utils.OBAnim;
+import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBFont;
 import org.onebillion.onecourse.utils.OBUtils;
-
+import org.onebillion.onecourse.utils.OB_Maths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -369,6 +372,631 @@ public class OC_AddSubCountersPt1 extends OC_AddSubCounters
         lockScreen();
         equLabel.setHighRange(idx,txt.length(),col);
         unlockScreen();
+    }
+
+    public void highlightLh(boolean high)
+    {
+        int col = high?Color.RED :Color.BLACK;
+        int rst = equLabel.text().indexOf(" ");
+        equLabel.addColourRange(0, rst,col);
+    }
+
+    public void highlightrh(boolean high)
+    {
+        int col = high?Color.RED :Color.BLACK;
+        String tx = equLabel.text();
+        int rst = tx.indexOf("+");
+        if (rst < 0)
+            rst = tx.indexOf("–");
+        int st = rst;
+        rst = tx.indexOf(" ",st + 2);
+        equLabel.addColourRange(st,rst,col);
+    }
+
+    public void setAnswerColour(int col)
+    {
+        String tx = equLabel.text();
+        int rst = equLabel.text().indexOf("=");
+        int st = (int)(rst + 2);
+        equLabel.addColourRange(st, tx.length(),col);
+    }
+
+    public void slideOnBottomLabels() throws Exception
+    {
+        playSfxAudio("slide",false);
+        List anims = new ArrayList<>();
+        lockScreen();
+        for(OBLabel lab : bottomLabels)
+        {
+            PointF pos = new PointF();
+            pos.set(lab.position());
+            lab.setPosition(new PointF(pos.x + bounds() .width(), pos.y));
+            anims.add(OBAnim.moveAnim(pos,lab));
+            lab.show();
+        }
+        unlockScreen();
+        OBAnimationGroup.runAnims(anims,0.4,true,OBAnim.ANIM_EASE_IN_EASE_OUT,null);
+    }
+
+    public void hideBottomLabels() throws Exception
+    {
+        List anims = new ArrayList<>();
+        lockScreen();
+        for(OBLabel lab : bottomLabels)
+        {
+            anims.add(OBAnim.opacityAnim(0,lab));
+        }
+        unlockScreen();
+        OBAnimationGroup.runAnims(anims,0.4,true,OBAnim.ANIM_EASE_IN_EASE_OUT,null);
+        lockScreen();
+        for(OBLabel lab : bottomLabels)
+        {
+            lab.hide();
+            lab.setOpacity(1);
+        }
+        unlockScreen();
+    }
+
+    public void clearOff()
+    {
+        List<OBControl> arr = new ArrayList<>(leftCounters);
+        arr.addAll(bottomLabels);
+        arr.addAll(rightCounters);
+        lockScreen();
+        for(OBControl c : arr)
+            detachControl(c);
+        detachControl(equLabel);
+        deleteControls("redline");
+        unlockScreen();
+    }
+
+    public void readEquation()throws Exception
+    {
+        readEquation(equLabel,equations.get(currNo),Color.RED);
+    }
+
+    public void showThings() throws Exception
+    {
+        showEqu();
+        waitForSecs(0.1f);
+        waitSFX();
+        waitForSecs(0.9f);
+        showSign();
+    }
+
+    public void doMainXX() throws Exception
+    {
+        if(equLabel.hidden())
+        {
+            showThings();
+            waitForSecs(0.1f);
+            waitSFX();
+            waitForSecs(0.1f);
+            playAudioQueuedScene("PROMPT",false);
+        }
+        setReplayAudio((List)currentAudio("PROMPT.REPEAT"));
+    }
+
+    public void endBody()
+    {
+        flashButton(statusTime());
+    }
+
+    public void flashButton(final long stt)
+    {
+        reprompt(stt, null, 5, new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception
+            {
+                OBControl c = objectDict.get("sign");
+                try
+                {
+                    {
+                        for(int i = 0;i < 3 && statusTime() == stt;i++)
+                        {
+                            c.highlight();
+                            waitForSecs(0.2f);
+                            c.lowlight();
+                            waitForSecs(0.2f);
+                        }
+                    }
+                }
+                catch(Exception e)
+                {
+                    c.lowlight();
+                }
+                if(!aborting())
+                    flashButton(stt);
+            }
+        });
+    }
+
+    public void demoa() throws Exception
+    {
+        presenter.walk((PointF) presenter.control.settings.get("restpos"));
+        presenter.faceFront();
+        waitForSecs(0.2f);
+        List aud = currentAudio("DEMO");
+        presenter.speak(Arrays.asList(aud.get(0)),this);
+        waitForSecs(0.5f);
+        presenter.speak(Arrays.asList(aud.get(1)),this);
+
+        OBControl head = presenter.control.objectDict.get("head");
+        PointF right = convertPointFromControl(new PointF(head.width(), 0),head);
+        PointF currPos = presenter.control.position();
+        float margin = right.x - currPos.x + applyGraphicScale(20);
+        PointF edgepos = new PointF(bounds() .width() - margin, currPos.y);
+        presenter.walk(edgepos);
+        presenter.faceFront();
+        waitForSecs(0.2f);
+        presenter.speak(Arrays.asList(aud.get(2)),this);
+        waitForSecs(0.5f);
+        OBControl faceright = presenter.control.objectDict.get("faceright");
+        PointF lp = presenter.control.convertPointFromControl(new PointF(0, 0),faceright);
+        PointF destpos = new PointF(bounds() .width() + lp.x + 1, currPos.y);
+        presenter.walk(destpos);
+        detachControl(presenter.control);
+        presenter = null;
+
+        PointF destpoint = OB_Maths.locationForRect(new PointF(0.8f,0.85f) ,bounds());
+        PointF startpt = pointForDestPoint(destpoint,2);
+        loadPointerStartPoint(startpt,destpoint);
+        movePointerToPoint(destpoint,-1,true);
+        nextScene();
+    }
+
+    public void demob() throws Exception
+    {
+        PointF destpoint = OB_Maths.locationForRect(new PointF(0.8f,0.85f) ,bounds());
+        PointF startpt = pointForDestPoint(destpoint,15);
+        loadPointerStartPoint(startpt,destpoint);
+        movePointerToPoint(destpoint,-1,true);
+        playAudioQueuedScene("DEMO",1,true);
+        nextScene();
+    }
+
+    public void showEqu() throws Exception
+    {
+        playSfxAudio("eqnon",false);
+        lockScreen();
+        showControls("redline");
+        equLabel.show();
+        unlockScreen();
+    }
+
+    public void showSign() throws Exception
+    {
+        playSfxAudio("button_on",false);
+        lockScreen();
+        showControls("sign");
+        unlockScreen();
+    }
+
+    public void democ() throws Exception
+    {
+        showEqu();
+        waitForSecs(0.1f);
+        waitSFX();
+        waitForSecs(0.2f);
+        showSign();
+        PointF destpoint = OB_Maths.locationForRect(new PointF(0.5f,3) ,objectDict.get("redline").frame());
+        movePointerToPoint(destpoint,-1,true);
+        waitForSecs(0.2f);
+        playAudioQueuedScene("DEMO",1,true);
+        destpoint = OB_Maths.locationForRect(new PointF(0.8f,0.85f) ,bounds());
+        waitForSecs(0.2f);
+        movePointerToPoint(destpoint,-1,true);
+        nextScene();
+    }
+
+    public void showLeftCounters() throws Exception
+    {
+        playSfxAudio("beep_1",false);
+        highlightLh(true);
+        waitForSecs(0.7f);
+
+        playSfxAudio("counter_1",false);
+        lockScreen();
+        for(OBControl c : leftCounters)
+        {
+            c.show();
+        }
+        unlockScreen();
+        waitForSecs(0.4f);
+        highlightLh(false);
+    }
+
+    public void showRightCounters() throws Exception
+    {
+        playSfxAudio("beep_1",false);
+        highlightrh(true);
+        waitForSecs(0.7f);
+        ocasc_equation eq = equations.get(currNo);
+        if(eq.isPlus)
+        {
+            for(OBControl c : rightCounters)
+            {
+                playSfxAudio("counter_2",false);
+                c.show();
+                waitForSecs(0.3f);
+            }
+        }
+        else
+        {
+            OBControl pb = objectDict.get("counterb1");
+            int col = pb.fillColor();
+            int ct = eq.rh;
+            for(int i = 0;i < ct;i++)
+            {
+                playSfxAudio("counter_2",false);
+                OBControl c = leftCounters.get(leftCounters.size() - 1 - i);
+                c.setProperty("origcol",c.fillColor());
+                c.setFillColor(col);
+                waitForSecs(0.3f);
+            }
+        }
+        highlightrh(false);
+    }
+
+    public void demod() throws Exception
+    {
+        playAudioScene("DEMO",0,true);
+        waitForSecs(0.2f);
+        waitForSecs(0.1f);
+        waitSFX();
+        waitForSecs(0.2f);
+
+        final OBControl button = objectDict.get("sign");
+        final PointF restpoint = OB_Maths.locationForRect(new PointF(1.5f, 0.8f) , button.frame());
+        movePointerToPoint(restpoint,-1,true);
+        waitForSecs(0.4f);
+        playAudioScene("DEMO",1,true);
+        movePointerToPoint(button.position(),-1,true);
+        button.highlight();
+        OBUtils.runOnOtherThreadDelayed(0.3f,new OBUtils.RunLambda()
+        {
+            public void run() throws Exception
+            {
+                button.lowlight();
+                setButtonActive(false);
+                movePointerToPoint(restpoint,-0.5f,false);
+            }
+        });
+        showLeftCounters();
+
+        waitForSecs(1.3f);
+
+        playSfxAudio("buttonactive_1",false);
+        lockScreen();
+        showButtonSign(true);
+        setButtonActive(true);
+        unlockScreen();
+        playAudioQueuedScene("DEMO2",true);
+        movePointerToPoint(button.position(),-1,true);
+        button.highlight();
+        OBUtils.runOnOtherThreadDelayed(0.3f,new OBUtils.RunLambda()
+        {
+            public void run() throws Exception
+            {
+                button.lowlight();
+                setButtonActive(false);
+                movePointerToPoint(restpoint,-0.5f,false);
+            }
+        });
+
+
+        showRightCounters();
+
+        hideControls("sign");
+
+        OBControl o =(rightCounters.size() > 0?rightCounters:leftCounters).get((rightCounters.size() > 0?rightCounters:leftCounters).size()-1);
+
+        PointF destpoint = OB_Maths.locationForRect(new PointF(0f, 1.5f) , o.frame());
+        destpoint.x = (bounds() .width() / 2);
+
+        movePointerToPoint(destpoint,-1,true);
+        waitForSecs(0.3f);
+        playAudioQueuedScene("DEMO3",true);
+
+        //destpoint.setX(bounds() .width() - applyGraphicScale(40));
+        destpoint = OB_Maths.locationForRect(new PointF(0.85f, 0.66f) , bounds());
+        movePointerToPoint(destpoint,-1,true);
+
+        slideOnBottomLabels();
+
+        destpoint.y = (objectDict.get("bottomrect").frame().centerY());
+
+        movePointerToPoint(destpoint,-1,true);
+
+        playAudioQueuedScene("DEMO4",true);
+
+        movePointerToPoint(bottomLabels.get(0).position(),-1,true);
+        waitForSecs(0.1f);
+
+        playSfxAudio("choose",false);
+        bottomLabels.get(0).highlight();
+        final PointF fdp = new PointF(destpoint.x,destpoint.y);
+        OBUtils.runOnOtherThreadDelayed(0.3f,new OBUtils.RunLambda()
+        {
+            public void run() throws Exception
+            {
+                bottomLabels.get(0).lowlight();
+                setButtonActive(false);
+                movePointerToPoint(fdp,-1,false);
+            }
+        });
+        waitForSecs(0.3f);
+        playSfxAudio("final",false);
+        setAnswerColour(Color.RED);
+        objectDict.get("redline").hide();
+        waitForSecs(0.3f);
+        setAnswerColour(Color.BLACK);
+        hideBottomLabels();
+
+        waitForSecs(0.3f);
+
+        readEquation();
+
+        waitForSecs(0.8f);
+        playSfxAudio("alloff",false);
+        lockScreen();
+        List<OBControl> arr = new ArrayList(leftCounters);
+        arr.addAll(rightCounters);
+        for(OBControl c : arr)
+        {
+            c.hide();
+            Object col = c.propertyValue("origcol");
+            if(col != null)
+                c.setFillColor((Integer)col);
+        }
+        showResult(false);
+        objectDict.get("redline").show();
+        unlockScreen();
+        setButtonActive(true);
+        showButtonSign(false);
+        showSign();
+        waitForSecs(0.2f);
+        playAudioQueuedScene("DEMO5",true);
+        nextScene();
+    }
+
+    public void demoepref() throws Exception
+    {
+        playSfxAudio("buttonactive_1",false);
+        setButtonActive(true);
+        waitForSecs(0.4f);
+        OBControl button = objectDict.get("sign");
+        PointF restpoint = OB_Maths.locationForRect(new PointF(1.1f, 0.8f) , button.frame());
+        movePointerToPoint(restpoint,-1,true);
+        waitForSecs(0.2f);
+        playAudioQueuedScene("DEMO",true);
+        waitForSecs(0.1f);
+        thePointer.hide();
+        nextScene();
+
+    }
+
+    public void e2Demo() throws Exception
+    {
+        slideOnBottomLabels();
+
+        OBControl o =(rightCounters.size() > 0?rightCounters:leftCounters).get((rightCounters.size() > 0?rightCounters:leftCounters).size()-1);
+        PointF destpoint = OB_Maths.locationForRect(new PointF(0f, 1.5f) , o.frame());
+        destpoint.x = (bounds() .width() / 2);
+        PointF startpt = pointForDestPoint(destpoint,10);
+
+        loadPointerStartPoint(startpt,destpoint);
+        movePointerToPoint(destpoint,-1,true);
+        playAudioScene("DEMO",0,true);
+
+        destpoint = OB_Maths.locationForRect(new PointF(0.8f,0.6f) ,objectDict.get("bottomrect").frame());
+        movePointerToPoint(destpoint,-1,true);
+        playAudioScene("DEMO",1,true);
+
+        thePointer.hide();
+    }
+
+    public void fin()
+    {
+        if(standalone)
+        {
+            super.fin();
+        }
+        else
+        {
+            try
+            {
+                waitForSecs(0.3f);
+            }
+            catch(Exception e)
+            {
+
+            }
+            List ps = new ArrayList(Arrays.asList(((String)params).split("/")));
+            ps.remove(0);
+            ps.add(0,"addsubcounterspt2");
+            goToCard(OC_AddSubCountersPt2.class,TextUtils.join("/",ps),false);
+        }
+    }
+
+    public void stage2() throws Exception
+    {
+        waitForSecs(0.3f);
+        if(currentEvent().equals("e"))
+            e2Demo();
+        else
+        {
+            List aud = currentAudio("STAGE2");
+            if(aud.size() > 0)
+                playAudioQueued(Arrays.asList(aud.get(0)),true);
+            slideOnBottomLabels();
+            if(aud.size() > 1)
+                playAudioQueued(Arrays.asList(aud.get(1)),false);
+        }
+        setReplayAudio((List)currentAudio("STAGE2.REPEAT"));
+        targets = new ArrayList<OBControl>(bottomLabels);
+        setStatus(STATUS_WAITING_FOR_ANSWER);
+    }
+
+    public void checkAnswer(final OBControl targ)
+    {
+        try
+        {
+            playSfxAudio("choose",false);
+            targ.highlight();
+            OBUtils.runOnOtherThreadDelayed(0.3f,new OBUtils.RunLambda()
+            {
+                public void run() throws Exception
+                {
+                    targ.lowlight();
+                }
+            });
+            if(targ == bottomLabels.get(0))
+            {
+                waitForSecs(0.3f);
+                playSfxAudio("final",false);
+                setAnswerColour(Color.BLACK);
+                objectDict.get("redline").hide();
+                waitForSecs(0.3f);
+                //setAnswerColour(Color.black());
+                hideBottomLabels();
+                gotItRightBigTick(false);
+                waitForSecs(1.3f);
+                readEquation();
+                waitForSecs(2f);
+                nextEquation();
+            }
+            else
+            {
+                gotItWrongWithSfx();
+                waitForSecs(0.2f);
+                playAudioQueuedScene("INCORRECT",false);
+                setStatus(STATUS_WAITING_FOR_ANSWER);
+            }
+        }
+        catch(Exception e)
+        {
+        }
+
+    }
+
+    public void nextEquation() throws Exception
+    {
+        if(eventIndex + 1 < events.size())
+            clearOff();
+        else
+        {
+            waitForSecs(0.4f);
+            gotItRightBigTick(true);
+            waitForSecs(0.2f);
+        }
+        currNo++;
+        nextScene();
+    }
+
+    public void checkButton2() throws Exception
+    {
+        final OBControl button = objectDict.get("sign");
+        button.highlight();
+        OBUtils.runOnOtherThreadDelayed(0.5f,new OBUtils.RunLambda()
+        {
+            public void run() throws Exception
+            {
+                button.lowlight();
+                setButtonActive(false);
+            }
+        });
+
+        showRightCounters();
+
+        hideControls("sign");
+
+        stage2();
+    }
+
+    public void button2() throws Exception
+    {
+        playSfxAudio("buttonactive_1",false);
+        lockScreen();
+        showButtonSign(true);
+        setButtonActive(true);
+        unlockScreen();
+        waitForSecs(0.1f);
+        waitSFX();
+        playAudioQueuedScene("BUTTON2",false);
+        setStatus(STATUS_AWAITING_CLICK2);
+        flashButton(statusTime());
+    }
+
+    public void checkButton()
+    {
+        try
+        {
+            final OBControl button = objectDict.get("sign");
+            button.highlight();
+            OBUtils.runOnOtherThreadDelayed(0.5f,new OBUtils.RunLambda()
+            {
+                public void run() throws Exception
+                {
+                    button.lowlight();
+                    setButtonActive(false);
+                }
+            });
+             showLeftCounters();
+            button2();
+        }
+        catch(Exception e)
+        {
+        }
+    }
+    public void touchDownAtPoint(PointF pt,View v)
+    {
+        if(status() == STATUS_WAITING_FOR_BUTTON_CLICK)
+        {
+            Object obj = findTarget(pt);
+            if(obj != null)
+            {
+                setStatus(STATUS_CHECKING);
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    public void run() throws Exception
+                    {
+                        checkButton();
+                    }
+                });
+            }
+        }
+        else if(status() == STATUS_AWAITING_CLICK2)
+        {
+            Object obj = findTarget(pt);
+            if(obj != null)
+            {
+                setStatus(STATUS_CHECKING);
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    public void run() throws Exception
+                    {
+                        checkButton2();
+                    }
+                });
+            }
+        }
+        else if(status() == STATUS_WAITING_FOR_ANSWER)
+        {
+            final OBControl obj = (OBControl) findTarget(pt);
+            if(obj != null)
+            {
+                setStatus(STATUS_CHECKING);
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                {
+                    public void run() throws Exception
+                    {
+                        checkAnswer(obj);
+                    }
+                });
+            }
+        }
+
     }
 
 }
