@@ -168,7 +168,7 @@ public class OBBrightnessManager
         if (MainActivity.mainViewController.topController() == null) return false;
         //
         int status = MainActivity.mainViewController.topController().status();
-        if (status == OBSectionController.STATUS_DOING_DEMO || status == OBSectionController.STATUS_CHECKING || status == OBSectionController.STATUS_DRAGGING)
+        if (status == OBSectionController.STATUS_DOING_DEMO || status == OBSectionController.STATUS_CHECKING)
         {
             return loop && !paused;
         }
