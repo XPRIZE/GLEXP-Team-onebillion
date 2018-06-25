@@ -1678,7 +1678,6 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                     OBConfigManager.sharedManager.updateConfigPaths(unit.config, false, unit.lang);
                     if(MainViewController().pushViewControllerWithNameConfig(unit.target,unit.config,true,true,unit.params))
                     {
-                        //currentUnitInstance.sectionController = MainViewController().topController();
                         unitInstancesList.add(currentUnitInstance);
                         if (OBConfigManager.sharedManager.isDebugEnabled())
                         {
@@ -1686,7 +1685,6 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                         }
                         startUnitInstanceTimeout(currentUnitInstance);
                         openingCallback.run(currentUnitInstance, true);
-
                     }
                     else
                     {
@@ -1699,7 +1697,6 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                         openingCallback.run(currentUnitInstance, false);
                         signalUnitSucceeded();
                         closeCurrentUnitInstance(OCM_MlUnitInstance.STATUS_FAILURE, null);
-
                     }
                 }
                 catch (Exception ex)

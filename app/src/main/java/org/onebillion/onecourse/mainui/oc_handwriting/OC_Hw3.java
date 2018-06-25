@@ -348,6 +348,7 @@ public class OC_Hw3 extends OC_Hw
         currentPhase++;
         if(currentPhase >= 6)
         {
+            gotItRight();
             lockScreen();
             colourPaths(Color.BLACK,currentMenuItem);
             currentMenuItem.setOpacity(0.3f);

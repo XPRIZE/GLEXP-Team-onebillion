@@ -96,6 +96,7 @@ public class OC_Hw1 extends OC_Hw
 
     public void arrowButtonClick() throws Exception
     {
+        gotItRight();
         playSfxAudio("arrow",true);
         waitForSecs(0.3f);
         hideArrowButton();

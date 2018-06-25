@@ -268,10 +268,11 @@ public class OC_Lg extends OC_SectionController
             attachControl(control);
             control.setProperty("correct",phon == targetPhoneme);
             control.setProperty("shutter",shutter);
+            control.setProperty("phoneme", phon);
             control.setProperty("bg",shutter.propertyValue("bg"));
             if(fitControls())
             {
-                if (control.width() > shutter.width()) {
+                if (control.width() > shutter.width()* 0.9f ) {
                     control.setScale((shutter.width()) * 0.9f / control.width());
                 }
 
@@ -354,8 +355,11 @@ public class OC_Lg extends OC_SectionController
             {
                 if(!wrongMap.containsKey(targetPhoneme.text))
                     wrongMap.put(targetPhoneme.text, new ArrayList<String>());
-                OBPhoneme pho = (OBPhoneme)targ.propertyValue("phoneme");
-                wrongMap.get(targetPhoneme.text).add(pho.text);
+                if(targ.propertyValue("phoneme") != null)
+                {
+                    OBPhoneme pho = (OBPhoneme) targ.propertyValue("phoneme");
+                    wrongMap.get(targetPhoneme.text).add(pho.text);
+                }
             }
             gotItWrongWithSfx();
             waitSFX();
