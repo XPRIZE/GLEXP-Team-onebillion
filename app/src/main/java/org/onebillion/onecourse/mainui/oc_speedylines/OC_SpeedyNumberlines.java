@@ -81,6 +81,7 @@ public class OC_SpeedyNumberlines extends OC_SectionController
         mainLine = lineFrom(startLoc,endLoc,"main");
         mainLine.hide();
         eqLine =(OBPath)objectDict.get("eq_line");
+        eqLine.sizeToBoundingBoxIncludingStroke();
         loadEventEquations();
         setSceneXX(currentEvent());
     }
@@ -722,20 +723,23 @@ public class OC_SpeedyNumberlines extends OC_SectionController
             public void run() throws Exception {
                 try
                 {
+                    if(statusChanged(time))
+                        return;
                     while (!statusChanged(time))
                     {
                         for (int i = 0; i < 3 && !statusChanged(time); i++) {
                             lockScreen();
                             colourTargetLabels(colour1);
-
                             unlockScreen();
+
                             if (statusChanged(time)) break;
                             waitForSecs(0.4f);
                             if (statusChanged(time)) break;
+
                             lockScreen();
                             colourTargetLabels(colour2);
-
                             unlockScreen();
+
                             if (statusChanged(time)) break;
                             waitForSecs(0.4f);
                             if (statusChanged(time)) break;
@@ -745,6 +749,8 @@ public class OC_SpeedyNumberlines extends OC_SectionController
                             waitForSecs(7f);
 
                     }
+
+                    colourTargetLabels(colour2);
 
                 } catch (Exception exception) {
 

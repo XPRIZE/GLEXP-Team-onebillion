@@ -44,6 +44,8 @@ public class OC_WordProblems extends OC_SectionController
     List<String> questionAudio, feedbackAudio;
     int numColour;
 
+    List<List<Integer>> wrongAnsList;
+
     @Override
     public void prepare()
     {
@@ -51,6 +53,7 @@ public class OC_WordProblems extends OC_SectionController
         super.prepare();
         eventsDict = loadXML(getLocalPath(String.format("%s.xml",sectionName())));
         loadFingers();
+        wrongAnsList = new ArrayList<>();
         loadEvent("master");
         OBPath path = (OBPath) objectDict.get("button");
         path.sizeToBoundingBoxInset(-path.lineWidth() -path.getShadowOffsetY());
@@ -207,6 +210,7 @@ public class OC_WordProblems extends OC_SectionController
             OBGroup group = new OBGroup(Arrays.asList(numLabel, buttonCopy));
             group.objectDict.put("label",numLabel);
             group.objectDict.put("bg",buttonCopy);
+            group.setProperty("val",num);
             group.hide();
             attachControl(group);
             currentButtons.add(group);
@@ -321,6 +325,17 @@ public class OC_WordProblems extends OC_SectionController
             playCurrentAudio("INCORRECT",1,true);
             waitForSecs(0.5f);
             performSel("demoFeedback",String.format("%d",currentQuestionType));
+            if(shouldCollectMiscData())
+            {
+                List<Integer> ans = new ArrayList<>();
+                ans.add(currentQuestionType);
+                ans.add(currentQuestionNum);
+                ans.add(eqPart1);
+                ans.add(eqPart2);
+                ans.add((int)targ.propertyValue("val"));
+                wrongAnsList.add(ans);
+                collectMiscData("wrong", wrongAnsList);
+            }
             nextScene();
         }
     }
