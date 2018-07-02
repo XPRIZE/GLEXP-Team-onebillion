@@ -382,7 +382,7 @@ public class OBConfigManager
         return internalVideoSearchPaths;
     }
 
-    public List<String> getVideoSearchPaths (String appDir, String genDir)
+    public List<String> getVideoSearchPaths (String appDir, String genDir, String languageCode)
     {
         List result = new ArrayList();
         List<String> searchPaths = generateSearchPathsForFolders(appDir, genDir);
@@ -392,6 +392,12 @@ public class OBConfigManager
             if (dir == null) continue;
             //
             String newPath = OBUtils.stringByAppendingPathComponent(dir, "/img/movies");
+            if (OBUtils.assetsDirectoryExists(newPath))
+            {
+                result.add(newPath);
+            }
+            //
+            newPath = OBUtils.stringByAppendingPathComponent(dir, String.format("/local/%s", languageCode));
             if (OBUtils.assetsDirectoryExists(newPath))
             {
                 result.add(newPath);
@@ -469,7 +475,7 @@ public class OBConfigManager
         internalImageSearchPaths = getImageSearchPaths(currentActivityFolder, genFolder);
         internalConfigSearchPaths = getConfigSearchPaths(currentActivityFolder, genFolder);
         internalVectorSearchPaths = getVectorSearchPaths(currentActivityFolder, genFolder);
-        internalVideoSearchPaths = getVideoSearchPaths(currentActivityFolder, genFolder);
+        internalVideoSearchPaths = getVideoSearchPaths(currentActivityFolder, genFolder, currentLanguage);
         //
         OBImageManager.sharedImageManager().clearCaches();
         //

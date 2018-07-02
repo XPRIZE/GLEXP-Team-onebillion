@@ -136,9 +136,12 @@ public class OC_LoopMenu extends OC_Menu implements OC_FatReceiver
                             startSectionForUnit(unit);
                             waitForSecs(1);
                             fatController.completeEvent3();
-                        }catch (Exception e)
+                        }
+                        catch (Exception e)
                         {
                             MainActivity.log(e.getLocalizedMessage());
+                            e.printStackTrace();
+                            MainActivity.log("Aborting!");
                         }
 
                     }

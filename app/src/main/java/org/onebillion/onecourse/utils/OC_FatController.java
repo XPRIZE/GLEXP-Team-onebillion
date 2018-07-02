@@ -530,7 +530,10 @@ public class OC_FatController extends OBFatController
 
         currentUnitInstance = null;
 
-        cont.exitEvent();
+        if (cont != null)
+        {
+            cont.exitEvent();
+        }
     }
 
     public void triggerTimeout()

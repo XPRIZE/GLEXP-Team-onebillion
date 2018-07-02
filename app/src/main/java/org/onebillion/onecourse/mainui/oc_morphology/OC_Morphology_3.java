@@ -89,7 +89,7 @@ public class OC_Morphology_3 extends OC_Morphology
         events.add(annaIntro?"a":"b");
         events.add("n");
         events.add("o");
-        List ev2 = Arrays.asList("o2","p","q","r");
+        List ev2 = new ArrayList(Arrays.asList("o2","p","q","r"));
         while(ev2.size() < instances.size())
             ev2.add(ev2.get(ev2.size() - 1));
         while(ev2.size() > instances.size())
