@@ -1,6 +1,7 @@
 package org.onebillion.onecourse.mainui.oc_diagnostics;
 
 
+import android.database.Cursor;
 import android.text.TextUtils;
 import android.util.ArrayMap;
 
@@ -8,10 +9,15 @@ import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBMainViewController;
 import org.onebillion.onecourse.mainui.OBSectionController;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
+import org.onebillion.onecourse.utils.DBSQL;
 import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OBXMLManager;
 import org.onebillion.onecourse.utils.OBXMLNode;
+import org.onebillion.onecourse.utils.OCM_FatController;
+import org.onebillion.onecourse.utils.OCM_MlUnit;
+import org.onebillion.onecourse.utils.OCM_MlUnitInstance;
+import org.onebillion.onecourse.utils.OCM_User;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -67,8 +73,8 @@ public class OC_DiagnosticsManager
     static String kRemedialUnits = "remedial_units";                        // Array containing the required filters to retrive the units that are related to each exercise
 
     Map<String, Map> allEvents;     // Collection of all available events
-    List remedialUnits_day1;        // Units that are added to day 1 whenever the user fails to correctly answer a question
-    List remedialUnits_day2;        // Units that are added to day 2 whenever the user fails to correctly answer a question
+    List<String> remedialUnits_day1;        // Units that are added to day 1 whenever the user fails to correctly answer a question
+    List<String> remedialUnits_day2;        // Units that are added to day 2 whenever the user fails to correctly answer a question
     List<Boolean> progress;         // True / False array that shows the progress of the user throughout the diagnostics
     List<Map> unitsFromMasterlist;  // Filtered units that go up to the week to extract parameters from
     Map wordComponents;             // Word Dabase for all phonemes, syllables and words (NOTE: no alphabet)
@@ -81,8 +87,8 @@ public class OC_DiagnosticsManager
     int maxWrongAnswers;            // maximum number of wrong answers a user can get before getting removed from the unit
     boolean debugEnabled;           // flag to either show the final feedback from Presenter or show the debug menu with the remedial units
     int lastLoadedWeek;             // last loaded week for performance issues (if loadMasterlist is called with the same lastWeek, it's skipped)
-    Map<String,List> unitsByTarget; // units sorted by Target to make it easier to access the units
-    Map<String,Map> unitsByUUID;    // units sorted by UUID to make it easier to access directly the unit
+    Map<String, List> unitsByTarget; // units sorted by Target to make it easier to access the units
+    Map<String, Map> unitsByUUID;    // units sorted by UUID to make it easier to access directly the unit
 
     public static OC_DiagnosticsManager sharedManager()
     {
@@ -188,7 +194,7 @@ public class OC_DiagnosticsManager
         debugEnabled = debugValue;
         idleTimeout = 18;
         maxWrongAnswers = 3;
-        unitsFromMasterlist = loadMasterlist(thresholdWeek);
+        unitsFromMasterlist = loadMasterlistFromDB(thresholdWeek);
         fixedEvents = events;
         //
         if (fixedEvents != null)
@@ -200,6 +206,61 @@ public class OC_DiagnosticsManager
             questionEvents = generateRandomEvents(totalQuestions);
         }
     }
+
+
+
+    public List loadMasterlistFromDB(int lastWeek)
+    {
+        if (lastLoadedWeek == lastWeek && unitsFromMasterlist != null)
+        {
+            return unitsFromMasterlist;
+        }
+        //
+        lastLoadedWeek = lastWeek;
+        //
+        unitsByTarget = new HashMap<>();
+        unitsByUUID = new HashMap<>();
+        OCM_FatController fatController = (OCM_FatController) MainActivity.mainActivity.fatController;
+        //
+        List<Map> result = new ArrayList<>();
+        //
+        List<OCM_MlUnit> units = fatController.getUnitsForWeek(1, lastWeek);
+        //
+        for (OCM_MlUnit unit : units)
+        {
+            String unitUUID = String.valueOf(unit.unitid);
+            String unitIndex = String.valueOf(unit.unitIndex);
+            //
+            if (unitUUID.contains(".repeat"))
+            {
+                continue; // skip the repeat units to prevent duplication;
+            }
+            //
+            Map<String, Object> unitAttributes = new ArrayMap<>();
+            String target = unit.target;
+            //
+            unitAttributes.put("id", unitUUID);
+            unitAttributes.put("index", unitIndex);
+            unitAttributes.put("target", target);
+            unitAttributes.put("config", unit.config);
+            unitAttributes.put("params", unit.params);
+            //
+            result.add(unitAttributes);
+            //
+            List unitsList = unitsByTarget.get(target);
+            if (unitsList == null)
+            {
+                unitsList = new ArrayList();
+            }
+            unitsList.add(unitAttributes);
+            unitsByTarget.put(target, unitsList);
+            //
+            unitsByUUID.put(unitUUID, unitAttributes);
+        }
+        //
+        return result;
+    }
+
 
 
     public List loadMasterlist(int lastWeek)
@@ -417,6 +478,18 @@ public class OC_DiagnosticsManager
                 finalParameters.concat(String.format("/events=%s", TextUtils.join(",", fixedEvents)));
             }
             MainActivity.log("OC_DiagnosticsManager --> loadCurrentQuestion --> Reached the end of the questions");
+            //
+            OCM_FatController fatController = (OCM_FatController) MainActivity.mainActivity.fatController;
+            List<Integer> unitUUIDs = new ArrayList();
+            for (String uuid : remedialUnits_day1)
+            {
+                unitUUIDs.add(Integer.parseInt(uuid));
+            }
+            for (String uuid : remedialUnits_day2)
+            {
+                unitUUIDs.add(Integer.parseInt(uuid));
+            }
+            fatController.saveExtraUnitsForCurrentUser(unitUUIDs);
             //
             OBUtils.runOnOtherThreadDelayed(0.1f, new OBUtils.RunLambda()
             {
@@ -665,7 +738,7 @@ public class OC_DiagnosticsManager
 
     public List retrieveRemedialUnitsForEvent(String eventUUID, List<String> relevantParameters)
     {
-        unitsFromMasterlist = loadMasterlist(-1);
+        unitsFromMasterlist = loadMasterlistFromDB(-1);
         //
         Map exerciseData = parametersForEvent(eventUUID);
         List<List> remedialUnitsTemplate = (List) exerciseData.get(kRemedialUnits);

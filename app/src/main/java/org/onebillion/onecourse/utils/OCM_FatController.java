@@ -2560,4 +2560,53 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         }
     }
 
+
+    public List<OCM_MlUnit> getUnitsForWeek(int start, int end)
+    {
+        List<OCM_MlUnit> result = new ArrayList<>();
+        //
+        DBSQL db = null;
+        try
+        {
+            db = new DBSQL(false);
+            Cursor cursor = null;
+            if (start == -1 || end ==  -1)
+            {
+                cursor = db.prepareRawQuery(String.format("SELECT unitIndex AS unitIndex FROM %s AS U WHERE U.masterlistid = ?", DBSQL.TABLE_UNITS),
+                        Arrays.asList(String.valueOf(currentUser.studylistid)));
+            }
+            else
+            {
+                cursor = db.prepareRawQuery(String.format("SELECT unitIndex AS unitIndex FROM %s AS U WHERE U.level >= ? AND U.level <= ? AND U.masterlistid = ?", DBSQL.TABLE_UNITS),
+                        Arrays.asList(String.valueOf(start), String.valueOf(end), String.valueOf(currentUser.studylistid)));
+            }
+            //
+            if (cursor.moveToFirst())
+            {
+                do
+                {
+                    int columnIndex = cursor.getColumnIndex("unitIndex");
+                    if (!cursor.isNull(columnIndex))
+                    {
+                        result.add(OCM_MlUnit.mlUnitforMasterlistIDFromDB(db, currentUser.studylistid, cursor.getInt(columnIndex)));
+                    }
+                }
+                while(cursor.moveToNext());
+            }
+            cursor.close();
+            //
+            return result;
+        }
+        catch (Exception e)
+        {
+            MainActivity.log("OC_DiagnosticsManager: database access error: " + e.getMessage());
+        }
+        finally
+        {
+            if (db != null)
+                db.close();
+        }
+        return null;
+    }
+
 }

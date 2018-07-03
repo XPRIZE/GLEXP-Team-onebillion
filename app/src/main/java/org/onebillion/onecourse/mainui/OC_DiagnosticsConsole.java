@@ -108,8 +108,8 @@ public class OC_DiagnosticsConsole extends OBSectionController
         });
         //
         week_slider = (SeekBar) MainActivity.mainActivity.findViewById(R.id.week_slider);
-        week_slider.setMax(36);
-        week_slider.setProgress(36);
+        week_slider.setMax(60);
+        week_slider.setProgress(60);
         //
         week_slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
         {

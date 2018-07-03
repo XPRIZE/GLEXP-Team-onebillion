@@ -256,7 +256,7 @@
 	<string>true</string>
 	<!--  -->
 	<key>debug_build_number</key>
-	<string>0009</string>
+	<string>0010</string>
 
 	<!-- ANALYTICS MANAGER -->
 	<key>analytics_enabled</key>
