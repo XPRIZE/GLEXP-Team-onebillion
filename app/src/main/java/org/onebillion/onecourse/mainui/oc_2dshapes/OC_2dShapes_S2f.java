@@ -37,6 +37,7 @@ public class OC_2dShapes_S2f extends OC_SectionController
         super.prepare();
         loadFingers();
         loadEvent("master2");
+        this.localisations = loadLocalisations(getLocalPath("_localisations.xml"));
         textColour = OBUtils.colorFromRGBString(eventAttributes.get("colour_text"));
         dropObjs = new ArrayMap<>();
         events = Arrays.asList(eventAttributes.get("scenes").split(","));
@@ -93,7 +94,7 @@ public class OC_2dShapes_S2f extends OC_SectionController
         if(eventAttributes.get("caption") != null)
         {
             OBControl box2 = objectDict.get("text_box");
-            caption = new OBLabel(eventAttributes.get("caption"),OBUtils.StandardReadingFontOfSize(90));
+            caption = new OBLabel(this.localisations.get(eventAttributes.get("caption")),OBUtils.StandardReadingFontOfSize(90));
             caption.setColour(textColour);
             attachControl(caption);
             caption.setPosition(box2.position());

@@ -215,7 +215,7 @@ public class OC_AddSubCountersPt1 extends OC_AddSubCounters
         ds.put("width",2.0f);
         comps.add(ds);
         Map spacer = null;
-        for(OBLabel l : labs)
+        for(OBLabel l : blabs)
         {
             if(spacer != null)
                 comps.add(spacer);

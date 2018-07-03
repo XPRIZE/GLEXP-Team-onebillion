@@ -42,6 +42,7 @@ public class OC_2dShapes_S1k extends OC_SectionController
         super.prepare();
         loadFingers();
         loadEvent("master2");
+        this.localisations = loadLocalisations(getLocalPath("_localisations.xml"));
         textColour = OBUtils.colorFromRGBString(eventAttributes.get("colour_text"));
         events = Arrays.asList(eventAttributes.get("scenes").split(","));
         setSceneXX(currentEvent());
@@ -68,7 +69,7 @@ public class OC_2dShapes_S1k extends OC_SectionController
         mainPath.setStrokeEnd(0);
         mainPath.show();
         OBControl box = objectDict.get("text_box");
-        caption = new OBLabel(eventAttributes.get("caption"), OBUtils.StandardReadingFontOfSize(90));
+        caption = new OBLabel(this.localisations.get(eventAttributes.get("caption")), OBUtils.StandardReadingFontOfSize(90));
         caption.setColour(textColour);
         attachControl(caption);
         caption.setPosition(box.position());
