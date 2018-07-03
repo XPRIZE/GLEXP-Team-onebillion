@@ -178,8 +178,9 @@ public class OC_Morphology_3 extends OC_Morphology
         {
             textBox.removeMemberAtIndex(i);
         }
-        for(OBControl bl : bottomLabels)
-            detachControl(bl);
+        if (bottomLabels != null)
+            for(OBControl bl : bottomLabels)
+                detachControl(bl);
         setUpPic(instance.imageName);
         ocm_sentence se = instance.sentence;
         OBReadingPara para = new OBReadingPara(se.text,1);
@@ -544,7 +545,8 @@ public class OC_Morphology_3 extends OC_Morphology
         lockScreen();
         for(OBLabel lab : bottomLabels)
         {
-            PointF pos = lab.position();
+            PointF pos = new PointF();
+            pos.set(lab.position());
             lab.setPosition(new PointF(pos.x + bounds() .width(), pos.y));
             anims.add(OBAnim.moveAnim(pos,lab));
             lab.show();
@@ -555,7 +557,7 @@ public class OC_Morphology_3 extends OC_Morphology
 
     public void bringOnThings() throws Exception
     {
-        if(mainPic.hidden())
+        if(mainPic != null && mainPic.hidden())
         {
             playSfxAudio("picon",false);
             mainPic.show();
@@ -681,7 +683,7 @@ public class OC_Morphology_3 extends OC_Morphology
         OBAnimationGroup.runAnims(anims,0.4,true,OBAnim.ANIM_EASE_IN_EASE_OUT,null);
     }
 
-    public OBControl finger(final int startidx,final int endidx,final List targets,final PointF pt)
+   /* public OBControl finger(final int startidx,final int endidx,final List targets,final PointF pt)
     {
         final Map<String,OBControl> resd = new HashMap<>();
         OBUtils.runOnMainThread(new OBUtils.RunLambda() {
@@ -693,7 +695,7 @@ public class OC_Morphology_3 extends OC_Morphology
             }
         });
         return resd.get("res");
-    }
+    }*/
 
     public void doIncorrect()
     {
@@ -757,8 +759,8 @@ public class OC_Morphology_3 extends OC_Morphology
         try
         {
             OBLabel targ =(OBLabel) target;
-            PointF pos = convertPointToControl(targ.position(),dash.parent);
-            if(finger(-1,3,Arrays.asList(dash),pos) == null)
+            //PointF pos = convertPointToControl(targ.position(),dash.parent);
+            if(finger(-1,3,Arrays.asList(dash),pt) == null)
             {
                 moveToOriginalPosition(targ);
                 switchStatus(currentEvent());
