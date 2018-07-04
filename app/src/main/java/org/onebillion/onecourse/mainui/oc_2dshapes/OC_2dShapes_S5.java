@@ -147,6 +147,7 @@ public class OC_2dShapes_S5 extends OC_SectionController
             gotItRight();
             if (!performSel("demoFin", currentEvent()))
             {
+                playAudio(null);
                 displayTick();
                 waitForSecs(0.3f);
                 playAudioQueuedScene("FINAL", 0.3f, true);
@@ -171,6 +172,7 @@ public class OC_2dShapes_S5 extends OC_SectionController
         if(dropped && targets.contains(targ))
         {
             targ.disable();
+            playAudio(null);
             playSfxAudio("drop",false);
             OBAnimationGroup.runAnims(Arrays.asList(OBAnim.moveAnim(locationForLine(currentLine, targ) ,targ))                                  ,0.15,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
             waitSFX();
@@ -441,11 +443,12 @@ public class OC_2dShapes_S5 extends OC_SectionController
         final OBPath square =(OBPath)objectDict.get("obj_4");
         OBPath rectangle =(OBPath)objectDict.get("obj_3");
         final float startHeight = square.height();
-        final float targetHeight = rectangle.height();
+        final float targetHeight = rectangle.height() - 2*rectangle.lineWidth()*rectangle.scale();
         final float difHeight = targetHeight - startHeight;
-        final RectF startBounds = square.bounds();
+        final RectF startBounds = new RectF(square.bounds());
+        startBounds.inset(square.lineWidth(), square.lineWidth());
         square.setAnchorPoint(new PointF(0.5f, 1));
-        final PointF startPoint = square.position();
+        final PointF startPoint = OBMisc.copyPoint(square.position());
         for(int i=0; i<6; i++)
         {
             playSfxAudio(i%2==0?"stretch":"shrink",false);
