@@ -42,7 +42,7 @@ public class OC_Comprehension extends OC_SectionController
 
     public void miscSetUp()
     {
-        audioPrefix = "lc";
+        audioPrefix = "comp";
         storyDict = LoadPassagesXML(getLocalPath("passages.xml"));
         loadEvent("mastera");
         playQuestionAudio = OBUtils.coalesce(parameters.get("quaudio") ,"false").equals("true");
@@ -309,7 +309,7 @@ public class OC_Comprehension extends OC_SectionController
                 playSfxAudio("newquestion",false);
                 questionLabel.show();
                 waitForSecs(0.3f);
-                playAudioQueued(Arrays.asList((Object)fn),true);
+                audioLock = playAudioQueued(Arrays.asList((Object)fn),true);
 
                 waitForSecs(0.2f);
 

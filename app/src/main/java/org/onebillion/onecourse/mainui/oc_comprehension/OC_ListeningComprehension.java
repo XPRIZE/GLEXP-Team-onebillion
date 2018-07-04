@@ -78,8 +78,9 @@ public class OC_ListeningComprehension extends OC_Comprehension {
         loadEvent("question");
         if (questionLabel != null)
             detachControl(questionLabel);
-        for (OBControl c : answerControls)
-            detachControl(c);
+        if (answerControls != null)
+            for (OBControl c : answerControls)
+                detachControl(c);
 
         setUpQuestion(questionNo);
     }
