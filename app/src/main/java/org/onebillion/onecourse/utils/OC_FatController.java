@@ -335,17 +335,34 @@ public class OC_FatController extends OBFatController
                     OBConfigManager.sharedManager.updateConfigPaths(originalAppCode, true);
                 }
                 //
-                String menuClassName = OBConfigManager.sharedManager.getMenuClassName();
-                String appCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
-                //
-                MainActivity.log("OC_FatController:startUp: pushing view controller [%s] [%s]", menuClassName, appCode);
-                //
-                if (menuClassName != null && appCode != null)
+                if (OBConfigManager.sharedManager.hasSplashScreen())
                 {
-                    OBBrightnessManager.sharedManager.onContinue();
-                    if (!MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null))
+                    String menuClassName = "OC_SplashScreen";
+                    String appCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
+                    //
+                    if (menuClassName != null && appCode != null)
                     {
-                        MainActivity.log("OC_FatController:startUp:unable to load view controller [%s] [%s]", menuClassName, appCode);
+                        OBBrightnessManager.sharedManager.onContinue();
+                        if (!MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null))
+                        {
+                            MainActivity.log("OC_FatController:startUp:unable to load view controller [%s] [%s]", menuClassName, appCode);
+                        }
+                    }
+                }
+                else
+                {
+                    String menuClassName = OBConfigManager.sharedManager.getMenuClassName();
+                    String appCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
+                    //
+                    MainActivity.log("OC_FatController:startUp: pushing view controller [%s] [%s]", menuClassName, appCode);
+                    //
+                    if (menuClassName != null && appCode != null)
+                    {
+                        OBBrightnessManager.sharedManager.onContinue();
+                        if (!MainViewController().pushViewControllerWithNameConfig(menuClassName, appCode, false, false, null))
+                        {
+                            MainActivity.log("OC_FatController:startUp:unable to load view controller [%s] [%s]", menuClassName, appCode);
+                        }
                     }
                 }
             }

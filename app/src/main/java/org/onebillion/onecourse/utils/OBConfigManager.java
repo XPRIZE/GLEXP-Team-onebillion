@@ -105,6 +105,7 @@ public class OBConfigManager
     private static String DEBUG_ACTIVATE_COMMUNITY_MODE_OVERRIDE_PASSWORD = "debug_activate_community_mode_override_password";
     private static String DEBUG_REVERT_COMMUNITY_MODE_PASSWORD = "debug_revert_community_mode_password";
     //
+    private static String APP_SPLASH_SCREEN = "splash_screen";
     private static String APP_GEN_FOLDER = "app_gen_folder";
     private static String APP_MAIN_FOLDER = "app_main_folder";
     private static String APP_MENU_CLASS = "app_menu_class";
@@ -986,6 +987,11 @@ public class OBConfigManager
     public String getMenuClassName ()
     {
         return getStringValue(APP_MENU_CLASS);
+    }
+
+    public Boolean hasSplashScreen()
+    {
+        return getBooleanValue(APP_SPLASH_SCREEN);
     }
 
     public String getFatControllerClassName ()
