@@ -53,12 +53,12 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     public static float FIRST_REMINDER_DELAY = 6.0f;
     public static float SECOND_REMINDER_DELAY = 6.0f;
 
-    public OC_Mwyh1 ()
+    public OC_Mwyh1()
     {
         super();
     }
 
-    public void miscSetup ()
+    public void miscSetup()
     {
         super.miscSetup();
         //
@@ -85,7 +85,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
 
 
     @Override
-    public void prepare ()
+    public void prepare()
     {
         super.prepare();
         //
@@ -96,18 +96,27 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
         int totalEvents = main_getTotalEvents();
         //
         events = new ArrayList(Arrays.asList("c", "d", "e"));
-        while (events.size() < totalEvents) events.add(events.get(events.size() - 1));
-        while (events.size() > totalEvents) events.remove(events.get(events.size() - 1));
+        while (events.size() < totalEvents)
+        {
+            events.add(events.get(events.size() - 1));
+        }
+        while (events.size() > totalEvents)
+        {
+            events.remove(events.get(events.size() - 1));
+        }
         //
         events.add("finale");
-        if (needDemo) events.add(0, "b");
+        if (needDemo)
+        {
+            events.add(0, "b");
+        }
 //        events.add(0, "a");
         //
         doVisual(currentEvent());
     }
 
     @Override
-    public void doMainXX () throws Exception
+    public void doMainXX() throws Exception
     {
         doIntro(false);
         //
@@ -117,7 +126,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
 
 
     @Override
-    public void doAudio (String scene) throws Exception
+    public void doAudio(String scene) throws Exception
     {
         List audio = getAudioForScene(currentEvent(), "PROMPT");
         List replayAudio = Arrays.asList(main_getMainLabelAudioFile());
@@ -127,7 +136,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
             @Override
-            public void run () throws Exception
+            public void run() throws Exception
             {
                 doReminder();
             }
@@ -135,16 +144,22 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
     @Override
-    public void doReminderWithStatusTime (final long stTime, Boolean playAudio) throws Exception
+    public void doReminderWithStatusTime(final long stTime, Boolean playAudio) throws Exception
     {
-        if (statusChanged(stTime)) return;
+        if (statusChanged(stTime))
+        {
+            return;
+        }
         //
         OBUtils.runOnOtherThreadDelayed(SECOND_REMINDER_DELAY, new OBUtils.RunLambda()
         {
             @Override
-            public void run () throws Exception
+            public void run() throws Exception
             {
-                if (statusChanged(stTime)) return;
+                if (statusChanged(stTime))
+                {
+                    return;
+                }
                 //
                 action_playFinalWord();
                 action_flashLine();
@@ -155,7 +170,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public void doIntro (Boolean demo) throws Exception
+    public void doIntro(Boolean demo) throws Exception
     {
         if (showPicture)
         {
@@ -182,7 +197,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
                 @Override
-                public void run () throws Exception
+                public void run() throws Exception
                 {
                     waitAudio();
                     waitForSecs(0.3);
@@ -193,7 +208,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public String main_getMainLabelAudioFile ()
+    public String main_getMainLabelAudioFile()
     {
         if (mode == 1)
         {
@@ -216,7 +231,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public void action_playComponentsAudioForLabel (OBLabel label) throws Exception
+    public void action_playComponentsAudioForLabel(OBLabel label) throws Exception
     {
         if (mode == 1)
         {
@@ -296,7 +311,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public void main_loadParameters ()
+    public void main_loadParameters()
     {
         String ws[] = parameters.get("words").split(",");
         //
@@ -327,7 +342,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public int main_getTotalEvents ()
+    public int main_getTotalEvents()
     {
         if (mode == 1)
         {
@@ -345,7 +360,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public String main_getMainLabelText ()
+    public String main_getMainLabelText()
     {
         if (mode == 1)
         {
@@ -366,7 +381,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public List<OBPhoneme> main_getMainLabelComponents ()
+    public List<OBPhoneme> main_getMainLabelComponents()
     {
         if (mode == 1)
         {
@@ -386,7 +401,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
         return null;
     }
 
-    public Boolean main_isLastWord ()
+    public Boolean main_isLastWord()
     {
         if (mode == 1)
         {
@@ -407,7 +422,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public Boolean main_isLastPlacement ()
+    public Boolean main_isLastPlacement()
     {
         int placedControls = action_getPlacedObjects();
         //
@@ -431,9 +446,12 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
 
 
     @Override
-    public void setSceneXX (String scene)
+    public void setSceneXX(String scene)
     {
-        if (scene.compareTo("finale") == 0) return;
+        if (scene.compareTo("finale") == 0)
+        {
+            return;
+        }
         //
         super.setSceneXX(scene);
         //
@@ -560,7 +578,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public void demoa () throws Exception
+    public void demoa() throws Exception
     {
         setStatus(STATUS_DOING_DEMO);
         //
@@ -599,7 +617,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public void demob () throws Exception
+    public void demob() throws Exception
     {
         setStatus(STATUS_DOING_DEMO);
         //
@@ -692,7 +710,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public void democ () throws Exception
+    public void democ() throws Exception
     {
         setStatus(STATUS_DOING_DEMO);
         //
@@ -720,7 +738,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public void demofinale () throws Exception
+    public void demofinale() throws Exception
     {
         setStatus(STATUS_DOING_DEMO);
         //
@@ -731,7 +749,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public void action_generateComponents (List<OBPhoneme> components)
+    public void action_generateComponents(List<OBPhoneme> components)
     {
         String text = mainLabel.text();
         //
@@ -809,14 +827,14 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
  */
 
 
-    public void action_segmentComponents ()
+    public void action_segmentComponents()
     {
         final float normalWidth = mainLabel.width();
         final float maxGap = MAX_GAP_FACTOR * textSize;
         OBAnim anim = new OBAnimBlock()
         {
             @Override
-            public void runAnimBlock (float frac)
+            public void runAnimBlock(float frac)
             {
                 for (OBLabel label : destinations)
                 {
@@ -832,14 +850,14 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public void action_joinComponents ()
+    public void action_joinComponents()
     {
         final float normalWidth = mainLabel.width();
         final float maxGap = MAX_GAP_FACTOR * textSize;
         OBAnim anim = new OBAnimBlock()
         {
             @Override
-            public void runAnimBlock (float frac)
+            public void runAnimBlock(float frac)
             {
                 for (OBLabel label : destinations)
                 {
@@ -855,13 +873,13 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public void action_playFinalWord ()
+    public void action_playFinalWord()
     {
         playAudio(main_getMainLabelAudioFile());
     }
 
 
-    public void action_endOfEvent () throws Exception
+    public void action_endOfEvent() throws Exception
     {
         waitForSecs(0.3);
         //
@@ -895,29 +913,38 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public void action_markLine ()
+    public void action_markLine()
     {
-        if (main_isLastPlacement()) return;
+        if (main_isLastPlacement())
+        {
+            return;
+        }
         //
         OBPath line = lines.get(action_getPlacedObjects());
         line.setStrokeColor(Color.RED);
     }
 
 
-    public int action_getPlacedObjects ()
+    public int action_getPlacedObjects()
     {
         int placedControls = 0;
         for (OBControl touchable : touchables)
         {
-            if (!touchable.isEnabled()) placedControls++;
+            if (!touchable.isEnabled())
+            {
+                placedControls++;
+            }
         }
         return placedControls;
     }
 
 
-    public void action_flashLine () throws Exception
+    public void action_flashLine() throws Exception
     {
-        if (main_isLastPlacement()) return;
+        if (main_isLastPlacement())
+        {
+            return;
+        }
         //
         OBPath line = lines.get(action_getPlacedObjects());
         for (int i = 0; i < 3; i++)
@@ -935,7 +962,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public void action_introTouchables () throws Exception
+    public void action_introTouchables() throws Exception
     {
         float duration = 0.6f;
         playSfxAudio("letterson", false);
@@ -951,7 +978,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public void action_introLines () throws Exception
+    public void action_introLines() throws Exception
     {
         for (OBPath line : lines)
         {
@@ -962,7 +989,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public void action_exitAll () throws Exception
+    public void action_exitAll() throws Exception
     {
         playSfxAudio("picoff", false);
         //
@@ -981,7 +1008,10 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
         }
         mainLabel.hide();
         //
-        if (image != null) image.hide();
+        if (image != null)
+        {
+            image.hide();
+        }
         //
         unlockScreen();
         //
@@ -989,18 +1019,21 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public Boolean action_verifyDropPosition (PointF position) throws Exception
+    public Boolean action_verifyDropPosition(PointF position) throws Exception
     {
+        if (target == null) return false;
+        //
+        int placedObjectsCount = action_getPlacedObjects();
+        if (placedObjectsCount >= destinations.size()) return false;
+        //
         OBLabel label = (OBLabel) target;
-        OBLabel correctLabel = destinations.get(action_getPlacedObjects());
+        OBLabel correctLabel = destinations.get(placedObjectsCount);
         //
         if (correctLabel.text().compareTo(label.text()) == 0)
         {
             if (OBUtils.RectOverlapRatio(correctLabel.frame, label.frame) > 0.2)
             {
                 setStatus(STATUS_CHECKING);
-                //
-                target = null;
                 //
                 playSfxAudio("click", false);
                 OBPath line = lines.get(action_getPlacedObjects());
@@ -1012,7 +1045,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
                     moveBackAnimationGroup.flags = OBAnimationGroup.ANIM_CANCEL;
                 }
                 OBAnim anim = OBAnim.moveAnim(OC_Generic.copyPoint(correctLabel.position()), label);
-                OBAnimationGroup.runAnims(Arrays.asList(anim), 0.3f, true, OBAnim.ANIM_EASE_IN_EASE_OUT,this);
+                OBAnimationGroup.runAnims(Arrays.asList(anim), 0.3f, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
                 //
                 lockScreen();
                 correctLabel.show();
@@ -1021,58 +1054,33 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
                 action_markLine();
                 unlockScreen();
                 //
-                if (main_isLastPlacement())
-                {
-                    action_playComponentsAudioForLabel(label);
-                    action_endOfEvent();
-                    //
-                    gotItRightBigTick(true);
-                    waitForSecs(0.3);
-                    //
-                    playSceneAudio("FINAL", true);
-                    //
-                    if (!main_isLastWord())
-                    {
-                        action_exitAll();
-                        waitForSecs(0.3);
-                    }
-                    //
-                    currNo++;
-                    nextScene();
-                    //
-                    return true;
-                }
-                else
-                {
-                    OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-                    {
-                        @Override
-                        public void run () throws Exception
-                        {
-                            doReminder();
-                        }
-                    });
-                    //
-                    setStatus(STATUS_AWAITING_CLICK);
-                    //
-                    action_playComponentsAudioForLabel(label);
-                    label.setColour(Color.BLACK);
-                    //
-                    return false;
-                }
+                return true;
             }
         }
         return false;
     }
 
 
-    public void checkTouchableAtPosition (PointF position, long timeStamp)
+    public void checkTouchableAtPosition(PointF position, long timeStamp)
     {
-        if (statusChanged(timeStamp)) return;
+        if (statusChanged(timeStamp))
+        {
+            return;
+        }
         //
         try
         {
-            action_verifyDropPosition(position);
+            if (!target.isEnabled()) return;
+            //
+            if (action_verifyDropPosition(position))
+            {
+                if (target != null)
+                {
+                    OBLabel label = (OBLabel) target;
+                    target = null;
+                    checkForLastPlacement(label);
+                }
+            }
         }
         catch (Exception e)
         {
@@ -1081,20 +1089,70 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public void checkTouchableDropAtPosition (PointF position, long timeStamp)
+    public void checkForLastPlacement(OBLabel label) throws Exception
     {
-        if (statusChanged(timeStamp)) return;
+        if (main_isLastPlacement())
+        {
+            action_playComponentsAudioForLabel(label);
+            action_endOfEvent();
+            //
+            gotItRightBigTick(true);
+            waitForSecs(0.3);
+            //
+            playSceneAudio("FINAL", true);
+            //
+            if (!main_isLastWord())
+            {
+                action_exitAll();
+                waitForSecs(0.3);
+            }
+            //
+            currNo++;
+            nextScene();
+        }
+        else
+        {
+            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    doReminder();
+                }
+            });
+            //
+            setStatus(STATUS_AWAITING_CLICK);
+            //
+            action_playComponentsAudioForLabel(label);
+            label.setColour(Color.BLACK);
+        }
+    }
+
+
+    public void checkTouchableDropAtPosition(PointF position, long timeStamp)
+    {
+        if (statusChanged(timeStamp))
+        {
+            return;
+        }
         //
         setStatus(STATUS_CHECKING);
         //
         try
         {
             OBLabel label = (OBLabel) target;
+            if (!label.isEnabled()) return;
+            //
             if (label != null)
             {
                 label.setColour(Color.BLACK);
                 //
-                if (!action_verifyDropPosition(position))
+                if (action_verifyDropPosition(position))
+                {
+                    target = null;
+                    checkForLastPlacement(label);
+                }
+                else
                 {
                     OBAnim anim = OBAnim.moveAnim((PointF) label.propertyValue("originalPosition"), label);
                     moveBackAnimationGroup = OBAnimationGroup.runAnims(Arrays.asList(anim), 0.3f, false, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
@@ -1103,8 +1161,9 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
                     waitForSecs(0.3);
                     //
                     action_playFinalWord();
+                    //
+                    setStatus(STATUS_AWAITING_CLICK);
                 }
-                setStatus(STATUS_AWAITING_CLICK);
             }
         }
         catch (Exception e)
@@ -1114,7 +1173,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public void checkDragTarget (OBControl targ, PointF pt)
+    public void checkDragTarget(OBControl targ, PointF pt)
     {
         super.checkDragTarget(targ, pt);
         //
@@ -1125,13 +1184,13 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
         }
     }
 
-    public OBControl findTouchable (PointF pt)
+    public OBControl findTouchable(PointF pt)
     {
         return finger(-1, 2, (List<OBControl>) (Object) touchables, pt, true);
     }
 
     @Override
-    public void touchDownAtPoint (final PointF pt, View v)
+    public void touchDownAtPoint(final PointF pt, View v)
     {
         if (status() == STATUS_AWAITING_CLICK)
         {
@@ -1141,7 +1200,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
                     @Override
-                    public void run () throws Exception
+                    public void run() throws Exception
                     {
                         checkDragTarget(obj, pt);
                     }
@@ -1151,14 +1210,14 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
     @Override
-    public void touchUpAtPoint (final PointF pt, View v)
+    public void touchUpAtPoint(final PointF pt, View v)
     {
         if (status() == STATUS_DRAGGING)
         {
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
                 @Override
-                public void run () throws Exception
+                public void run() throws Exception
                 {
                     checkTouchableDropAtPosition(pt, statusTime);
                 }
@@ -1167,16 +1226,19 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
     @Override
-    public void touchMovedToPoint (final PointF pt, View v)
+    public void touchMovedToPoint(final PointF pt, View v)
     {
-        super.touchMovedToPoint(pt, v);
+        if (target != null)
+        {
+            super.touchMovedToPoint(pt, v);
+        }
         //
         if (status() == STATUS_DRAGGING)
         {
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
                 @Override
-                public void run () throws Exception
+                public void run() throws Exception
                 {
                     checkTouchableAtPosition(pt, statusTime);
                 }
