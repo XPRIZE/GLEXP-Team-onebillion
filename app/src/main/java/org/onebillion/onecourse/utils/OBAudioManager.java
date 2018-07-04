@@ -84,8 +84,8 @@ public class OBAudioManager
                         }
                         phrasegroups.put(pgkey, phrases);
                         String volk = xmlphrasegroup.attributeStringValue("vol");
-                        if (volk != null)
-                            sfxvols.put(pgkey, Float.parseFloat(volk));
+                        if (volk != null && phrases.size() > 0)
+                            sfxvols.put((String)phrases.get(phrases.size()-1), Float.parseFloat(volk));
                     }
                     phrasegroups.put("__keys", (List<Object>) (Object) groupList);
                     audioDict.put(ekey, phrasegroups);
