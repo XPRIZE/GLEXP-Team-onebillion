@@ -798,7 +798,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
         //
         lockScreen();
         label.setColour(remainingColour);
-        label.setHighRange(startIdx, length, colour);
+        label.setHighRange(startIdx, startIdx + length, colour);
         unlockScreen();
     }
 
