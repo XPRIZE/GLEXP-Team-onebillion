@@ -29,7 +29,7 @@ public class OBAudioRecorder
     protected long expectedAudioLength;
     protected long timeLastSound, timeRecordingStart, timeFirstSound;
     protected WeakReference<OBSectionController> sectionControllerWeakReference;
-    protected int passThreshold = 1500;
+    protected int passThreshold = 2500;
     public float silenceTimming = 3.0f;
     protected Condition condition;
 
@@ -50,7 +50,7 @@ public class OBAudioRecorder
     {
         recordingTimer = null;
         mediaRecorder = new MediaRecorder();
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         mediaRecorder.setAudioEncodingBitRate(128000);
@@ -176,7 +176,7 @@ public class OBAudioRecorder
             endTime = timeLastSound-timeRecordingStart+400;
             waitTime = endTime-startTime;
         }
-        player.startPlayingAtTime(OBUtils.getAssetFileDescriptorForPath(recordedPath),startTime);
+        player.startPlayingAtTimeVolume(OBUtils.getAssetFileDescriptorForPath(recordedPath),startTime, 1.0f);
         sectionControllerWeakReference.get().waitForSecs(waitTime/1000f);
         player.stopPlaying();
     }
