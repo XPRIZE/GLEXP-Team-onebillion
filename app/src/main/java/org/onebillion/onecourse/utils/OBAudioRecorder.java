@@ -29,7 +29,7 @@ public class OBAudioRecorder
     protected long expectedAudioLength;
     protected long timeLastSound, timeRecordingStart, timeFirstSound;
     protected WeakReference<OBSectionController> sectionControllerWeakReference;
-    protected int passThreshold = 1500;
+    protected int passThreshold = 2500;
     public float silenceTimming = 3.0f;
     protected Condition condition;
 
