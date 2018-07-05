@@ -53,6 +53,15 @@ public class OC_Morphology extends OC_Reading
             this.text = tx;
         }
      }
+    public static boolean WordCharacter(String s,int idx)
+    {
+        if (OBReadingWord.isWordCharacter(s.charAt(idx)))
+            return true;
+        if (s.charAt(idx) == '’')
+            return true;
+        return false;
+    }
+
     public static boolean WordCharacter(char ch)
     {
         return OBReadingWord.isWordCharacter(ch);
@@ -65,7 +74,7 @@ public class OC_Morphology extends OC_Reading
         int wordno = -1;
         while(chno < s.length())
         {
-            if(WordCharacter(s.charAt(chno)))
+            if(WordCharacter(s,chno))
             {
                 if(boundary)
                 {
@@ -122,7 +131,7 @@ public class OC_Morphology extends OC_Reading
                                 int wno = Integer.parseInt(divs.get(0));
                                 int wordstart = CharNoForWordi(text, wno);
                                 int wordend = wordstart;
-                                while(wordend < text.length() && WordCharacter(text.charAt(wordend)))
+                                while(wordend < text.length() && WordCharacter(text,wordend))
                                     wordend++;
                                 List<String> vals = Arrays.asList(divs.get(1).split("-"));
                                 int v0 = Integer.parseInt(vals.get(0));
@@ -159,10 +168,10 @@ public class OC_Morphology extends OC_Reading
         int st = 0;
         while(st < sentence.length())
         {
-            while(st < sentence.length() && !WordCharacter(sentence.charAt(st)))
+            while(st < sentence.length() && !WordCharacter(sentence,st))
                 st++;
             int en = st;
-            while(en < sentence.length() && WordCharacter(sentence.charAt(en)))
+            while(en < sentence.length() && WordCharacter(sentence,en))
                 en++;
             if(en > st)
             {
@@ -295,12 +304,16 @@ public class OC_Morphology extends OC_Reading
             if(waitTime > 0.0)
                 waitForSecs(waitTime);
             checkSequenceToken(token);
+            lockScreen();
             label.setHighRange(w.st,w.en,Color.RED);
+            unlockScreen();
             currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
             waitTime = w.endTime - currTime;
             if(waitTime > 0.0 && token == sequenceToken)
                 waitForSecs(waitTime);
+            lockScreen();
             label.setColour(Color.BLACK);
+            unlockScreen();
             if(canInterrupt)
                 checkSequenceToken(token);
         }

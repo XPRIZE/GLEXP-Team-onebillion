@@ -106,7 +106,7 @@ public class OC_EchoBox extends OC_SectionController
         miscSetup();
         events = new ArrayList<>(Arrays.asList("a","b","c","d","e","f","g"));
         doVisual(currentEvent());
-        //processAnchors();
+        processAnchors();
         sectionStartTime = SystemClock.uptimeMillis();
 
     }
@@ -350,7 +350,7 @@ public class OC_EchoBox extends OC_SectionController
         {
         }
     }
-
+*/
     public void processAnchors()
     {
         OBGroup tiger =(OBGroup) objectDict.get("tiger");
@@ -361,7 +361,7 @@ public class OC_EchoBox extends OC_SectionController
         OBGroup earright =(OBGroup) head.objectDict.get("earright");
         earright.setAnchorPointFromAnchor();
     }
-
+/*
     public void tigerLeanHeadAnim(boolean anim) throws Exception
     {
         OBGroup tiger =(OBGroup) objectDict.get("tiger");
@@ -953,7 +953,7 @@ public class OC_EchoBox extends OC_SectionController
         timer = null;
     });
     }
-
+*/
     public void replayAudio()
     {
         if(busyStatuses.contains((status())))
@@ -966,7 +966,7 @@ public class OC_EchoBox extends OC_SectionController
             {
                 public void run() throws Exception
                 {
-                    toucanSpeak(aud);
+                    // *toucanSpeak(aud);
                 }
             });
         }
@@ -978,7 +978,7 @@ public class OC_EchoBox extends OC_SectionController
         {
             takeSequenceLockInterrupt(true);
             unlockSequenceLock();
-            recordingProcess();
+            // *recordingProcess();
         }
         catch(Exception e)
         {
@@ -1013,9 +1013,9 @@ public class OC_EchoBox extends OC_SectionController
             if(targ != null)
             {
                 setStatus(STATUS_CHECKING);
-                recordingFinished();
+                // *recordingFinished();
             }
         }
     }
-*/
+
 }
