@@ -9,6 +9,7 @@ import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
+import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.mainui.generic.OC_Generic_Event;
 import org.onebillion.onecourse.utils.OBAnim;
@@ -280,29 +281,6 @@ public class OC_Counting5and10_S6 extends OC_Generic_Event
             }
         };
         OBAnimationGroup.runAnims(Arrays.asList(pathAnim), duration, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
-//        long starttime = SystemClock.uptimeMillis();
-//        float frac = 0;
-//        while (frac <= 1.0)
-//        {
-//            try
-//            {
-//                long currtime = SystemClock.uptimeMillis();
-//                frac = (float) (currtime - starttime) / (duration * 1000);
-//                final float t = (frac);
-//                new OBRunnableSyncUI()
-//                {
-//                    public void ex ()
-//                    {
-//                        line.setStrokeEnd(t);
-//                    }
-//                }.run();
-//                waitForSecs(0.02f);
-//            }
-//            catch (Exception e)
-//            {
-//                break;
-//            }
-//        }
         //
         line.setStrokeColor(Color.BLACK);
         OBAudioManager.audioManager.stopPlayingSFX();
@@ -334,9 +312,9 @@ public class OC_Counting5and10_S6 extends OC_Generic_Event
                 lockScreen();
                 for (OBControl control : filterControls("dot.*"))
                 {
-                    ((OBPath) control).setFillColor(Color.BLACK);
+                    control.setFillColor(Color.BLACK);
                 }
-                ((OBPath) dot).setFillColor(Color.RED);
+                dot.setFillColor(Color.RED);
                 selectedNumber.setColour(Color.RED);
                 if (previousNumber != null)
                 {
@@ -368,7 +346,7 @@ public class OC_Counting5and10_S6 extends OC_Generic_Event
             else
             {
                 lockScreen();
-                ((OBPath) dot).setFillColor(Color.RED);
+                dot.setFillColor(Color.RED);
                 selectedNumber.setColour(Color.RED);
                 unlockScreen();
                 //
@@ -376,7 +354,7 @@ public class OC_Counting5and10_S6 extends OC_Generic_Event
                 waitForSecs(0.3);
                 //
                 lockScreen();
-                ((OBPath) dot).setFillColor(Color.BLACK);
+                dot.setFillColor(Color.BLACK);
                 selectedNumber.setColour(Color.BLACK);
                 unlockScreen();
                 //

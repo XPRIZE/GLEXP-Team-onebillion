@@ -188,15 +188,18 @@ public class MainActivity extends Activity
         }
         //getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         //
-        // this flag disables screenshots
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
-        //
         mainActivity = this;
         //
         configManager = new OBConfigManager();
         //
         analyticsManager = new OBAnalyticsManager(this);
         locationManager = new OBLocationManager(this);
+        //
+        // this flag disables screenshots
+        if (!OBConfigManager.sharedManager.isDebugEnabled())
+        {
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
+        }
         //
         if (OBConfigManager.sharedManager.shouldPinApplication())
         {
