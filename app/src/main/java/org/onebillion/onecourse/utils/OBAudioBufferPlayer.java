@@ -175,7 +175,12 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
         playerLock.unlock();
     }
 
-    public void stopPlaying ()
+    public void stopPlaying()
+    {
+        stopPlaying(false);
+    }
+
+    public void stopPlaying (boolean stopNow)
     {
         if (isPlaying())
         {

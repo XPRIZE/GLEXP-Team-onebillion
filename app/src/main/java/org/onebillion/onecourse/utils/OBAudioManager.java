@@ -99,7 +99,7 @@ public class OBAudioManager
     public void stopPlayingOnChannel (String ch)
     {
         OBGeneralAudioPlayer player = players.get(ch);
-        player.stopPlaying();
+        player.stopPlaying(true);
     }
 
     public void stopPlaying ()

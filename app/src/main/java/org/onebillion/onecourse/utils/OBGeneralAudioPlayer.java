@@ -35,6 +35,7 @@ public abstract class OBGeneralAudioPlayer
     public abstract void waitPrepared ();
     public abstract void waitUntilPlaying ();
     public abstract void stopPlaying ();
+    public abstract void stopPlaying (boolean stopNow);
     public abstract void play();
     public abstract void prepare(AssetFileDescriptor afd);
     public abstract void startPlaying (AssetFileDescriptor afd);

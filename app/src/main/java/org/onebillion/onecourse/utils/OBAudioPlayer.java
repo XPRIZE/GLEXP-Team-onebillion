@@ -29,80 +29,100 @@ public class OBAudioPlayer extends OBGeneralAudioPlayer implements MediaPlayer.O
         setState(OBAP_IDLE);
     }
 
-    public void stopPlaying ()
+    public void stopPlaying()
     {
-        setState(OBAP_IDLE);
-        if (player != null)
+        stopPlaying(false);
+    }
+
+    public void stopPlaying (boolean stopNow)
+    {
+        synchronized (this)
         {
-            final MediaPlayer cpplayer = player;
-            player = null;
-            try
+            setState(OBAP_IDLE);
+            if (player != null)
             {
-                cpplayer.setOnPreparedListener(null);
-                cpplayer.setOnCompletionListener(null);
-                cpplayer.setOnSeekCompleteListener(null);
-            }
-            catch (Exception e)
-            {
-                // do nothing
-            }
-            try
-            {
-                if (cpplayer.isPlaying())
-                    cpplayer.stop();
-            }
-            catch (Exception e)
-            {
-                // do nothing
-            }
-            playerLock.lock();
-            condition.signalAll();
-            playerLock.unlock();
-            try
-            {
-                Runnable runnable = new Runnable()
+                final MediaPlayer cpplayer = player;
+                player = null;
+                try
                 {
-                    @Override
-                    public void run()
+                    cpplayer.setOnPreparedListener(null);
+                    cpplayer.setOnCompletionListener(null);
+                    cpplayer.setOnSeekCompleteListener(null);
+                }
+                catch (Exception e)
+                {
+                    // do nothing
+                }
+                try
+                {
+                    if (cpplayer.isPlaying())
+                        cpplayer.stop();
+                }
+                catch (Exception e)
+                {
+                    // do nothing
+                }
+                playerLock.lock();
+                condition.signalAll();
+                playerLock.unlock();
+                //
+                if (stopNow)
+                {
+                    cpplayer.reset();
+                    cpplayer.release();
+                }
+                else
+                {
+                    try
                     {
-                        cpplayer.reset();
-                        cpplayer.release();
+                        Runnable runnable = new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                cpplayer.reset();
+                                cpplayer.release();
+                            }
+                        };
+                        Handler handler = new Handler();
+                        handler.postDelayed(runnable, 250);
                     }
-                };
-                Handler handler = new Handler();
-                handler.postDelayed(runnable,250);
-            }
-            catch (java.lang.RuntimeException runTimeException)
-            {
-                // do nothing --> prevent spam of "Can't create handler inside thread that has not called Looper.prepare()"
-            }
-            catch (Exception e)
-            {
-                // if it's something else, then show it on logs
-                e.printStackTrace();
+                    catch (java.lang.RuntimeException runTimeException)
+                    {
+                        // do nothing --> prevent spam of "Can't create handler inside thread that has not called Looper.prepare()"
+                    }
+                    catch (Exception e)
+                    {
+                        // if it's something else, then show it on logs
+                        e.printStackTrace();
+                    }
+                }
             }
         }
     }
 
     public void startPlaying (AssetFileDescriptor afd)
     {
-        if (isPlaying())
-            stopPlaying();
-        fromTime = -1;
-        player = new MediaPlayer();
-        player.setOnPreparedListener(this);
-        player.setOnCompletionListener(this);
-        try
+        synchronized (this)
         {
-            state = OBAP_PREPARING;
-            player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-            player.prepareAsync();
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            setState(OBAP_IDLE);
-            return;
+            if (isPlaying())
+                stopPlaying(true);
+            fromTime = -1;
+            player = new MediaPlayer();
+            player.setOnPreparedListener(this);
+            player.setOnCompletionListener(this);
+            try
+            {
+                state = OBAP_PREPARING;
+                player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+                player.prepareAsync();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                setState(OBAP_IDLE);
+                return;
+            }
         }
     }
 
