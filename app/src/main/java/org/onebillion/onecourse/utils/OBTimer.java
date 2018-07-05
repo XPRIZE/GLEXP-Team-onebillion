@@ -4,6 +4,12 @@ import android.os.Handler;
 
 public class OBTimer
 {
+    public class OBTimerRunnable
+    {
+        Object arg;
+        int result;
+
+    }
     private Runnable timerRunnable;
     private Handler timerHandler = new Handler();
     float delay;
