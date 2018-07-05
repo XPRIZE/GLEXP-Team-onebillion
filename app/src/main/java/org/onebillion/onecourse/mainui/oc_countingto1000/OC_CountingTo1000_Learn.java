@@ -297,7 +297,7 @@ public class OC_CountingTo1000_Learn extends OC_CountingTo1000
         {
             OBGroup set = (OBGroup) addedSetsOfBlocks.get(i);
             destination = new PointF(bounds().width() * 0.5f, bounds().height() * 0.5f);
-            destination.x -= set.width() * (5 - i);
+            destination.x -= (set.width() - block10Template.lineWidth() * 2) * (5 - i);
             OBAnim moveAnim = OBAnim.moveAnim(destination, set);
             animations.add(moveAnim);
             for (OBPath block : (List<OBPath>) (Object) set.members)

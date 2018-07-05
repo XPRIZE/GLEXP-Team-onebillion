@@ -121,6 +121,8 @@ public class OC_CountingTo1000 extends OC_SectionController
         colourNumberBoxSelected = objectDict.get("colour_number_box_selected").fillColor();
         //
         titleBox = (OBPath) objectDict.get("title_box");
+        titleBox.sizeToBoundingBoxIncludingStroke();
+        //
         titleBoxLabel = OC_Generic.action_createLabelForControl(titleBox, "0000", 1.0f, false, OBUtils.standardTypeFace(), colourTextNormal, this);
         titleBoxLabel.setZPosition(titleBox.zPosition() + 0.1f);
         attachControl(titleBoxLabel);
@@ -181,6 +183,7 @@ public class OC_CountingTo1000 extends OC_SectionController
         }
         //
         block10 = new OBGroup(blocks);
+        block10.outdent(block10Template.lineWidth());
         block10.shouldTexturise = true;
         //
         blocks = new ArrayList<>();
@@ -194,6 +197,7 @@ public class OC_CountingTo1000 extends OC_SectionController
             }
         }
         block100 = new OBGroup(blocks);
+        block100.outdent(block100Template.lineWidth());
         block100.shouldTexturise = true;
         //
         block1Template.hide();
@@ -212,6 +216,7 @@ public class OC_CountingTo1000 extends OC_SectionController
             box.setPosition(new PointF(i * box.width() - box.lineWidth() * 0.5f, 0f));
             box.setProperty("number", number);
             box.setFillColor(colourNumberBoxNormal);
+            box.sizeToBoundingBoxIncludingStroke();
             numberGrid.add(box);
             attachControl(box);
         }
@@ -698,7 +703,6 @@ public class OC_CountingTo1000 extends OC_SectionController
                 }
                 questionIndexForThirdPhase++;
                 wrongAudio = getAudioForScene(currentEvent(), "INCORRECT").get(1);
-                audio = OBUtils.insertAudioInterval(Arrays.asList(wrongAudio, String.format("n_%s", questionsForThirdPhase.get(questionIndexForThirdPhase))), 300);
                 if (questionIndexForThirdPhase >= questionsForThirdPhase.size())
                 {
                     gotItRightBigTick(true);
@@ -708,6 +712,8 @@ public class OC_CountingTo1000 extends OC_SectionController
                 }
                 else
                 {
+                    audio = OBUtils.insertAudioInterval(Arrays.asList(wrongAudio, String.format("n_%s", questionsForThirdPhase.get(questionIndexForThirdPhase))), 300);
+                    //
                     thirdPhaseWrongAnswerCount = 0;
                     playAudioQueued(audio);
                 }
