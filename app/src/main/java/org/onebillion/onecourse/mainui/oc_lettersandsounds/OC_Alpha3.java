@@ -265,7 +265,12 @@ public class OC_Alpha3 extends OC_Alpha
             label.show();
             unlockScreen();
             //
-            playAudioQueued(new ArrayList(Arrays.asList(String.format("alph_%s", letters.get(i).toLowerCase()))), false);
+            String letterAudioName = letters.get(i).toLowerCase();
+            if (!letterAudioName.startsWith("alph_"))
+            {
+                letterAudioName = String.format("alph_%s", letterAudioName);
+            }
+            playAudioQueued(new ArrayList(Arrays.asList(letterAudioName)), false);
             //
             elapsed = OC_Generic.currentTime() - currentTime;
 //            elapsed = OC_Generic.currentTime() - startTime;
@@ -351,7 +356,12 @@ public class OC_Alpha3 extends OC_Alpha
             label.show();
             unlockScreen();
             //
-            playAudioQueued(new ArrayList(Arrays.asList(String.format("alph_%s", letters.get(i).toLowerCase()))), false);
+            String letterAudioName = letters.get(i).toLowerCase();
+            if (!letterAudioName.startsWith("alph_"))
+            {
+                letterAudioName = String.format("alph_%s", letterAudioName);
+            }
+            playAudioQueued(new ArrayList(Arrays.asList(letterAudioName)), false);
             //
             elapsed = OC_Generic.currentTime() - currentTime;
 //            elapsed = OC_Generic.currentTime() - startTime;
