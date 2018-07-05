@@ -273,7 +273,7 @@ public class OC_Morphology_3 extends OC_Morphology
         usedSet.add(fragment);
         for(ocm_sinstance sinn : instances)
         {
-            String frag = sinn.sentence.text.substring(sin.rst,sin.ren);
+            String frag = sinn.sentence.text.substring(sinn.rst,sinn.ren);
             if(!usedSet.contains(frag))
             {
                 usedSet.add(frag);
