@@ -32,6 +32,7 @@ public class OC_Patterns_S5 extends OC_Generic_Event
 {
     int totalLines;
     int placedLines;
+    List<OBControl> availablePlacements;
 
 
     public void fin ()
@@ -57,6 +58,8 @@ public class OC_Patterns_S5 extends OC_Generic_Event
         }
         showControls("place.*");
         showControls("obj.*");
+        //
+        availablePlacements = filterControls("place.*");
     }
 
     public void demo5a () throws Exception
@@ -393,7 +396,7 @@ public class OC_Patterns_S5 extends OC_Generic_Event
         //
         try
         {
-            OBControl placement = finger(0, 2, filterControls("place.*"), pt, true);
+            OBControl placement = finger(0, 2, availablePlacements, pt, true);
             OBControl control = target;
             target = null;
             if (placement != null)
@@ -401,6 +404,9 @@ public class OC_Patterns_S5 extends OC_Generic_Event
                 MainActivity.log("OC_Patterns_S5.found placement. checking if correct");
                 if (placement.attributes().get("type").equals(control.attributes().get("type")))
                 {
+                    // remove placement from the available list
+                    availablePlacements.remove(placement);
+                    //
                     control.disable();
                     control.moveToPoint(placement.getWorldPosition(), 0.1f, false);
                     //
