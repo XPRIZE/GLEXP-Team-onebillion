@@ -48,6 +48,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     int mode;
     Boolean showPicture;
     OBAnimationGroup moveBackAnimationGroup;
+    double lastUserInteractionTimeStamp;
 
     public static final float MAX_GAP_FACTOR = 1.8f;
     public static float FIRST_REMINDER_DELAY = 6.0f;
@@ -144,29 +145,47 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
     @Override
-    public void doReminderWithStatusTime(final long stTime, Boolean playAudio) throws Exception
+    public void doReminder () throws Exception
     {
-        if (statusChanged(stTime))
-        {
-            return;
-        }
+        final double timeStamp = OC_Generic.currentTime();
+        lastUserInteractionTimeStamp = timeStamp;
         //
-        OBUtils.runOnOtherThreadDelayed(SECOND_REMINDER_DELAY, new OBUtils.RunLambda()
+        waitForSecs(FIRST_REMINDER_DELAY);
+        doReminderWithStatusTime(timeStamp, true);
+    }
+
+    public void doReminderWithStatusTime(final double timeStamp, final Boolean playAudio) throws Exception
+    {
+        if (timeStamp == lastUserInteractionTimeStamp && status() != STATUS_CHECKING && status() != STATUS_DOING_DEMO)
         {
-            @Override
-            public void run() throws Exception
+            OBUtils.runOnOtherThreadDelayed(SECOND_REMINDER_DELAY, new OBUtils.RunLambda()
             {
-                if (statusChanged(stTime))
+                @Override
+                public void run() throws Exception
                 {
-                    return;
+                    if (timeStamp != lastUserInteractionTimeStamp)
+                    {
+                        return;
+                    }
+                    //
+                    if (playAudio)
+                    {
+                        action_playFinalWord();
+                    }
+                    action_flashLine(timeStamp);
+                    //
+                    lastUserInteractionTimeStamp = OC_Generic.currentTime();
+                    final double newTimeStamp = lastUserInteractionTimeStamp;
+                    //
+                    doReminderWithStatusTime(newTimeStamp, false);
                 }
-                //
-                action_playFinalWord();
-                action_flashLine();
-                //
-                doReminderWithStatusTime(stTime, false);
-            }
-        });
+            });
+        }
+        else
+        {
+            final double newTimeStamp = lastUserInteractionTimeStamp;
+            doReminderWithStatusTime(newTimeStamp, playAudio);
+        }
     }
 
 
@@ -939,7 +958,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     }
 
 
-    public void action_flashLine() throws Exception
+    public void action_flashLine(double timeStamp) throws Exception
     {
         if (main_isLastPlacement())
         {
@@ -953,11 +972,13 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
             line.setStrokeColor((int) line.propertyValue("originalColour"));
             unlockScreen();
             waitForSecs(0.3);
+            if (timeStamp != lastUserInteractionTimeStamp) break;
             //
             lockScreen();
             line.setStrokeColor(Color.RED);
             unlockScreen();
             waitForSecs(0.3);
+            if (timeStamp != lastUserInteractionTimeStamp) break;
         }
     }
 
@@ -1021,43 +1042,52 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
 
     public Boolean action_verifyDropPosition(PointF position) throws Exception
     {
-        if (target == null) return false;
-        //
-        int placedObjectsCount = action_getPlacedObjects();
-        if (placedObjectsCount >= destinations.size()) return false;
-        //
-        OBLabel label = (OBLabel) target;
-        OBLabel correctLabel = destinations.get(placedObjectsCount);
-        //
-        if (correctLabel.text().compareTo(label.text()) == 0)
+        synchronized (this)
         {
-            if (OBUtils.RectOverlapRatio(correctLabel.frame, label.frame) > 0.2)
+            if (target == null) return false;
+            if (!target.isEnabled()) return false;
+            //
+            int placedObjectsCount = action_getPlacedObjects();
+            if (placedObjectsCount >= destinations.size()) return false;
+            //
+            OBLabel label = (OBLabel) target;
+            OBLabel correctLabel = destinations.get(placedObjectsCount);
+            //
+            if (correctLabel.text().compareTo(label.text()) == 0)
             {
-                setStatus(STATUS_CHECKING);
-                //
-                playSfxAudio("click", false);
-                OBPath line = lines.get(action_getPlacedObjects());
-                line.hide();
-                label.disable();
-                //
-                if (moveBackAnimationGroup != null)
+                if (OBUtils.RectOverlapRatio(correctLabel.frame, label.frame) > 0.2)
                 {
-                    moveBackAnimationGroup.flags = OBAnimationGroup.ANIM_CANCEL;
+                    setStatus(STATUS_CHECKING);
+                    //
+                    playSfxAudio("click", false);
+                    if (action_getPlacedObjects() < lines.size())
+                    {
+                        OBPath line = lines.get(action_getPlacedObjects());
+                        lockScreen();
+                        line.hide();
+                        label.disable();
+                        unlockScreen();
+                    }
+                    //
+                    if (moveBackAnimationGroup != null)
+                    {
+                        moveBackAnimationGroup.flags = OBAnimationGroup.ANIM_CANCEL;
+                    }
+                    OBAnim anim = OBAnim.moveAnim(OC_Generic.copyPoint(correctLabel.position()), label);
+                    OBAnimationGroup.runAnims(Arrays.asList(anim), 0.1f, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
+                    //
+                    lockScreen();
+                    correctLabel.show();
+                    label.hide();
+                    label.disable();
+                    action_markLine();
+                    unlockScreen();
+                    //
+                    return true;
                 }
-                OBAnim anim = OBAnim.moveAnim(OC_Generic.copyPoint(correctLabel.position()), label);
-                OBAnimationGroup.runAnims(Arrays.asList(anim), 0.3f, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
-                //
-                lockScreen();
-                correctLabel.show();
-                label.hide();
-                label.disable();
-                action_markLine();
-                unlockScreen();
-                //
-                return true;
             }
+            return false;
         }
-        return false;
     }
 
 
@@ -1212,6 +1242,8 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     @Override
     public void touchUpAtPoint(final PointF pt, View v)
     {
+        lastUserInteractionTimeStamp = OC_Generic.currentTime();
+        //
         if (status() == STATUS_DRAGGING)
         {
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
