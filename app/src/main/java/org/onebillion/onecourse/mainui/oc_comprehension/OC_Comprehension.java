@@ -127,17 +127,28 @@ public class OC_Comprehension extends OC_SectionController
             //lab.setWrapped(true);
             lab.setAlignment(OBLABEL_ALIGN_LEFT);
             lab.sizeToBoundingBoxMaxWidth(rect.width());
+
+            RectF bb = new RectF(lab.bounds());
+            if (bb.width() < rect.width())
+            {
+                bb.right = rect.width();
+                lab.setBounds(bb);
+            }
             lab.setLeft(rect.left());
             lab.setTop(rect.top());
 
             OBGroup gp = new OBGroup(Arrays.asList(but,lab));
             RectF f = new RectF(gp.frame());
             f.right = f.left + (rect.width());
-            gp.setFrame(f);
+            //gp.setFrame(f);
             gp.setBackgroundColor(Color.WHITE);
             gp.outdent(applyGraphicScale(10f));
             anss.add(gp);
             gp.setProperty("answerno",(idx));
+
+            //gp.setBorderColor(Color.BLACK);
+            //gp.setBorderWidth(1f);
+
             //gp.hide();
             idx++;
         }
