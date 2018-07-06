@@ -3,6 +3,7 @@ package org.onebillion.onecourse.mainui.oc_echobox;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
@@ -13,6 +14,7 @@ import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBAudioBufferPlayer;
 import org.onebillion.onecourse.utils.OBAudioManager;
 import org.onebillion.onecourse.utils.OBAudioPlayer;
 import org.onebillion.onecourse.utils.OBFont;
@@ -20,6 +22,7 @@ import org.onebillion.onecourse.utils.OBGeneralAudioRecorder;
 import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBReadingPara;
 import org.onebillion.onecourse.utils.OBReadingWord;
+import org.onebillion.onecourse.utils.OBTimer;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OBXMLManager;
 import org.onebillion.onecourse.utils.OBXMLNode;
@@ -49,8 +52,8 @@ public class OC_EchoBox extends OC_SectionController
         STATUS_PLAYING_RECORDING = 1025;
 
     OBGeneralAudioRecorder recorder;
-    //NSTimer timer;
-    OBAudioPlayer effectPlayer;
+    OBTimer timer;
+    OBAudioBufferPlayer effectPlayer;
     long timeLastSound,timeRecordingStart,timeFirstSound,sectionStartTime,recordingDuration;
     boolean shouldFlickEars,finalStage;
     List<Integer>wfColours;
@@ -62,6 +65,31 @@ public class OC_EchoBox extends OC_SectionController
     Map<String,Map > sentenceDict;
     OBLabel mainLabel;
     String currKey;
+
+    static Map LoadWordAndSentenceXML(String xmlPath)
+    {
+        Map dict = new HashMap();
+        try {
+            if (xmlPath != null) {
+                OBXMLManager xmlman = new OBXMLManager();
+                List<OBXMLNode> xl = xmlman.parseFile(OBUtils.getInputStreamForPath(xmlPath));
+                OBXMLNode root = xl.get(0);
+
+                List<OBXMLNode> nodes = root.childrenOfType("prompt");
+                for (OBXMLNode promptNode : nodes) {
+                    String audioid = promptNode.attributeStringValue("Object");
+                    String content = promptNode.contents;
+
+                    dict.put(audioid,content);
+                }
+            }
+        }
+        catch(Exception e)
+        {
+
+        }
+        return dict;
+    }
 
     public Map loadComponent(String comp,String xmlPath)
     {
@@ -212,7 +240,7 @@ public class OC_EchoBox extends OC_SectionController
             }
         }
     }
-/*
+
     public void speakEffectFile(String audioFile,float fromSecs,float toSecs,Map od,List<String> keys)
     {
         List<Integer> indices = new ArrayList<>();
@@ -221,7 +249,7 @@ public class OC_EchoBox extends OC_SectionController
         try
         {
             long token = takeSequenceLockInterrupt(true);
-            playFile(audioFile,fromSecs,toSecs,2.0);
+            playFile(audioFile,fromSecs,toSecs,2.0f);
             int idx = 0;
             while(effectPlayer.getState() < OBAP_PLAYING)
             {
@@ -268,7 +296,7 @@ public class OC_EchoBox extends OC_SectionController
             for(String audioFile : (List<String>)audioFiles)
             {
                 //playAudio(audioFile);
-                playFile(NSURL.fileURLWithPath(audioMan.getAudioPath(audioFile)),0,-1,1.0);
+                playFile(audioFile,0,-1,1.0f);
                 int idx = 0;
                 //while(audioMan.isPlaying())
                 while(effectPlayer.getState() < OBAP_PLAYING)
@@ -341,7 +369,7 @@ public class OC_EchoBox extends OC_SectionController
                 List sh = new ArrayList(lsplit.get(0));
                 sh.addAll(rsplit.get(0));
                 List hi = new ArrayList(lsplit.get(1));
-                sh.addAll(rsplit.get(1));
+                hi.addAll(rsplit.get(1));
                 oDict(toucan.objectDict,sh,hi);
                 waitForSecs(0.1f);
             }
@@ -350,7 +378,7 @@ public class OC_EchoBox extends OC_SectionController
         {
         }
     }
-*/
+
     public void processAnchors()
     {
         OBGroup tiger =(OBGroup) objectDict.get("tiger");
@@ -361,7 +389,7 @@ public class OC_EchoBox extends OC_SectionController
         OBGroup earright =(OBGroup) head.objectDict.get("earright");
         earright.setAnchorPointFromAnchor();
     }
-/*
+
     public void tigerLeanHeadAnim(boolean anim) throws Exception
     {
         OBGroup tiger =(OBGroup) objectDict.get("tiger");
@@ -658,11 +686,18 @@ public class OC_EchoBox extends OC_SectionController
 
     public void recordingProcess()
     {
-        tigerLeanHeadAnim(true);
-        tigerBlinker();
-        setStatus(STATUS_BUSY);
-        effectPlayer.stopPlaying();
-        startRecording();
+        try
+        {
+            tigerLeanHeadAnim(true);
+            tigerBlinker();
+            setStatus(STATUS_BUSY);
+            effectPlayer.stopPlaying();
+            startRecording();
+        }
+        catch(Exception e)
+        {
+
+        }
     }
 
     public void startRecording()
@@ -712,20 +747,24 @@ public class OC_EchoBox extends OC_SectionController
         playFile(url,0,-1,1);
     }
 
-    public void playFile(String url,float fromSecs,float toSecs,float vol)
+    public void playFile(final String fileName,final float fromSecs,final float toSecs,float vol)
     {
-        DoOnMainThreadSync(^{
-        if(effectPlayer == null)
-            effectPlayer = OBAudioEffectPlayer.alloc().initWithOptions(OBAE_ALTER_PITCH|OBAE_DO_METERING);
-        effectPlayer.stopPlaying();
-        effectPlayer.changePitchAmt(350);
-        effectPlayer.setVolume(vol);
-        __weak Object weak=
-        [effectPlayer setCompletionBlock:^(OBAudioEffectPlayer player) {
-        weakplaybackFinished();
-    }];
-        effectPlayer.playURL(url,fromSecs,toSecs);
-    });
+        //OBUtils.runOnMainThread(new OBUtils.RunLambda() {
+           // @Override
+           // public void run() throws Exception
+            {
+                if(effectPlayer == null)
+                    effectPlayer = new OBAudioBufferPlayer();
+                effectPlayer.stopPlaying();
+                //effectPlayer.changePitchAmt(350);
+                //effectPlayer.setVolume(vol);
+        //effectPlayer setCompletionBlock:^(OBAudioEffectPlayer player) {
+          //      weakplaybackFinished();
+                AssetFileDescriptor fd = OBAudioManager.audioManager.getAudioPathFD(fileName);
+                effectPlayer.startPlaying(fd, fromSecs,toSecs);
+
+            }
+       // });
     }
 
     public boolean doneEnough()
@@ -748,7 +787,7 @@ public class OC_EchoBox extends OC_SectionController
                 waitForSecs(0.3f);
                 toucanSpreadWings();
                 waitForSecs(0.3f);
-                toucanSpeak(audioScenes.get("final") .get("DEMO"));
+                toucanSpeak(audioForEvent("final","DEMO"));
                 waitForSecs(0.3f);
             }
             recordingProcess();
@@ -763,14 +802,14 @@ public class OC_EchoBox extends OC_SectionController
          try
         {
             waitForSecs(0.3f);
-            OBUtils.runOnOtherThreadDelayed(0.3,new OBUtils.RunLambda()
+            OBUtils.runOnOtherThreadDelayed(0.3f,new OBUtils.RunLambda()
             {
                 public void run() throws Exception
                 {
                     tigerTailTwitcher();
                 }
             });
-            tigerSpeak(recorder.recordingURL(),fromSecs,toSecs);
+            tigerSpeak(recorder.recordingPath,fromSecs,toSecs);
             setStatus(STATUS_CHECKING);
         }
         catch(Exception e)
@@ -781,14 +820,14 @@ public class OC_EchoBox extends OC_SectionController
 
     public void cleanUp()
     {
-        if(timer )
+        if(timer != null)
         {
             stopTimer();
         }
         if(recorder != null)
             recorder.stopRecording();
         recorder = null;
-        if(effectPlayer != null && effectPlayer.state() != OBAP_FINISHED)
+        if(effectPlayer != null && effectPlayer.getState() != OBAP_FINISHED)
         {
             effectPlayer.stopPlaying();
         }
@@ -805,10 +844,10 @@ public class OC_EchoBox extends OC_SectionController
     {
         wordDict = LoadWordComponentsXML(true);
         String s = parameters.get("words");
-        words = s.split(",");
+        words = Arrays.asList(s.split(","));
         sentenceDict = loadComponent("sentence",getLocalPath("sentences.xml"));
         s = parameters.get("sentences");
-        sentences = s.split(",");
+        sentences = Arrays.asList(s.split(","));
 
         wordAndSentenceDict = LoadWordAndSentenceXML(getLocalPath("words.xml"));
     }
@@ -817,7 +856,7 @@ public class OC_EchoBox extends OC_SectionController
     {
         part2 = true;
         setUpPart2();
-        events = Arrays.asList("2a","2b").mutableCopy();
+        events = new ArrayList(Arrays.asList("2a","2b"));
         int ct =(int) Math.min(words.size() , sentences.size());
         for(int i = 0;i < ct - 1;i++)
             events.addAll(Arrays.asList("2c","2d"));
@@ -887,7 +926,6 @@ public class OC_EchoBox extends OC_SectionController
                 }
                 if(part2)
                 {
-                    //toucanSpeak(Arrays.asList(currKey));
                     toucanSpeak(Arrays.asList(String.format("ebws_%",currKey)));
                     waitForSecs(1f);
                 }
@@ -896,7 +934,7 @@ public class OC_EchoBox extends OC_SectionController
         });
     }
 
-    public void timerFire(NSTimer t)
+    public void timerFire(OBTimer t)
     {
         if(t == timer)
         {
@@ -908,10 +946,10 @@ public class OC_EchoBox extends OC_SectionController
             long currentTime = SystemClock.uptimeMillis();
             recordingDuration = currentTime - timeRecordingStart;
             float val = recorder.getAveragePower();
-            NSLog("%g",val);
+            //NSLog("%g",val);
             if(val > AUDIBLE_THRESHOLD)
             {
-                NSLog("currenttime %g",recordingDuration);
+                //NSLog("currenttime %g",recordingDuration);
                 timeLastSound = currentTime;
                 if(timeFirstSound == 0)
                     timeFirstSound = timeLastSound;
@@ -938,22 +976,38 @@ public class OC_EchoBox extends OC_SectionController
 
     public void startTimer()
     {
-        DoOnMainThreadSync(^{
-        if(timer)
-            timer.invalidate();
-        timer = NSTimer.scheduledTimerWithTimeInterval(0.03 target:selector:@selector(timerFire:) userInfo:null repeats:true);
-    });
+        OBUtils.runOnMainThread(new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception
+            {
+                if(timer != null)
+                    timer.invalidate();
+                timer = new OBTimer(0.03f)
+                {
+                    @Override
+                    public int timerEvent(OBTimer timer)
+                    {
+                        timerFire(timer);
+                        return 0;
+                    }
+                };
+            }
+        });
     }
 
     public void stopTimer()
     {
-        DoOnMainThreadSync(^{
-        if(timer)
-            timer.invalidate();
-        timer = null;
-    });
+        OBUtils.runOnMainThread(new OBUtils.RunLambda() {
+            @Override
+            public void run() throws Exception
+            {
+                if(timer != null)
+                    timer.invalidate();
+                timer = null;
+            }
+        });
     }
-*/
+
     public void replayAudio()
     {
         if(busyStatuses.contains((status())))
@@ -966,7 +1020,7 @@ public class OC_EchoBox extends OC_SectionController
             {
                 public void run() throws Exception
                 {
-                    // *toucanSpeak(aud);
+                    toucanSpeak(aud);
                 }
             });
         }
@@ -978,7 +1032,7 @@ public class OC_EchoBox extends OC_SectionController
         {
             takeSequenceLockInterrupt(true);
             unlockSequenceLock();
-            // *recordingProcess();
+            recordingProcess();
         }
         catch(Exception e)
         {
@@ -1013,7 +1067,7 @@ public class OC_EchoBox extends OC_SectionController
             if(targ != null)
             {
                 setStatus(STATUS_CHECKING);
-                // *recordingFinished();
+                recordingFinished();
             }
         }
     }

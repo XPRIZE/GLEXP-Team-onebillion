@@ -7,7 +7,7 @@ import java.io.IOException;
 public class OBGeneralAudioRecorder extends Object implements MediaRecorder.OnErrorListener, MediaRecorder.OnInfoListener
 {
     MediaRecorder audioRecorder;
-    String recordingPath;
+    public String recordingPath;
     OBConditionLock recorderLock;
     static int ST_UNINIT = 0,
     ST_PREPARED = 1,

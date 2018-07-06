@@ -50,6 +50,7 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
     float pitchData[];
     ByteBuffer tempBuffer;
     PitchShifter pitchShifter;
+    public long playToken;
 
     public class SimpleBuffer extends Object
     {
@@ -205,7 +206,7 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
 
     void cleanUp()
     {
-
+        playToken = 0;
         if(audioTrack != null)
         {
             audioTrack.flush();
@@ -571,6 +572,7 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
         if (isPlaying())
             stopPlaying();
         playWhenReady = true;
+        playToken = System.currentTimeMillis();
         prepare(afd);
     }
 
@@ -592,6 +594,9 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
         startPlaying(afd);
     }
 
-
+    public float averagePower()
+    {
+        return 0;
+    }
 
 }

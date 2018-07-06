@@ -1929,6 +1929,14 @@ public class OBSectionController extends OBViewController
         return eventd.get(audioCategory);
     }
 
+    public List<Object> audioForEvent (String event,String audioCategory)
+    {
+        Map<String, List> eventd = (Map<String, List>) audioScenes.get(event);
+        if (eventd == null)
+            return null;
+        return eventd.get(audioCategory);
+    }
+
     public void playAudioQueuedo (List<Object> qu, final boolean wait) throws Exception
     {
         if(qu == null)
