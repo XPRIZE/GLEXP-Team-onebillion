@@ -178,7 +178,7 @@ public class OBAudioRecorder
         }
         player.startPlayingAtTimeVolume(OBUtils.getAssetFileDescriptorForPath(recordedPath),startTime, 1.0f);
         sectionControllerWeakReference.get().waitForSecs(waitTime/1000f);
-        player.stopPlaying();
+        player.stopPlaying(true);
     }
 
 
