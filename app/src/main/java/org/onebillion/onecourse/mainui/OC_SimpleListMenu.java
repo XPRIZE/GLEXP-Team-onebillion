@@ -3,6 +3,7 @@ package org.onebillion.onecourse.mainui;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.MotionEvent;
@@ -223,7 +224,9 @@ public class OC_SimpleListMenu extends OBSectionController
                             }
                         }
                         if(position > -1)
-                            listView.smoothScrollToPositionFromTop(position,-1,-1);
+                        {
+                            listView.setSelectionFromTop(position, 0);
+                        }
                     }
                 });
             }
