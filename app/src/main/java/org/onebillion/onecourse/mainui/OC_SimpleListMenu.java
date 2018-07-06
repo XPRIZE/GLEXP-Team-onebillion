@@ -196,6 +196,37 @@ public class OC_SimpleListMenu extends OBSectionController
                     masterlistFilter.filter(text);
                 }
             });
+
+            final EditText positionText = (EditText) MainActivity.mainActivity.findViewById(R.id.positionText);
+            if(positionText != null) {
+                positionText.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        String text = positionText.getText().toString().toLowerCase();
+                        int position = -1;
+                        for (int i=0;i<arrayAdapter.getCount();i++){
+                            MlUnit ml = arrayAdapter.getItem(i);
+                            if (ml.key.toLowerCase().contains(text.toString().toLowerCase()))
+                            {
+                                position = i;
+                                break;
+                            }
+                        }
+                        if(position > -1)
+                            listView.smoothScrollToPositionFromTop(position,-1,-1);
+                    }
+                });
+            }
         }
     }
 
@@ -203,30 +234,30 @@ public class OC_SimpleListMenu extends OBSectionController
     {
         List<MlUnit> arr = new ArrayList<>();
         if(xmlPath != null)
-    {
-        OBXMLManager xmlManager = new OBXMLManager();
-        OBXMLNode xmlNode = null;
-        try
         {
-            List<OBXMLNode> xl = xmlManager.parseFile(OBUtils.getInputStreamForPath(xmlPath));
-            xmlNode = xl.get(0);
-            for(OBXMLNode xmlLevel :  xmlNode.childrenOfType("level"))
+            OBXMLManager xmlManager = new OBXMLManager();
+            OBXMLNode xmlNode = null;
+            try
             {
-                List<OBXMLNode> xmlunits = xmlLevel.childrenOfType("unit");
-                for(OBXMLNode n : xmlunits)
+                List<OBXMLNode> xl = xmlManager.parseFile(OBUtils.getInputStreamForPath(xmlPath));
+                xmlNode = xl.get(0);
+                for(OBXMLNode xmlLevel :  xmlNode.childrenOfType("level"))
                 {
-                    MlUnit m = MlUnit.mlUnitFromXMLNode(n);
-                    m.key = n.attributeStringValue("id");
-                    arr.add(m);
+                    List<OBXMLNode> xmlunits = xmlLevel.childrenOfType("unit");
+                    for(OBXMLNode n : xmlunits)
+                    {
+                        MlUnit m = MlUnit.mlUnitFromXMLNode(n);
+                        m.key = n.attributeStringValue("id");
+                        arr.add(m);
+                    }
                 }
             }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
         }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
-    return arr;
+        return arr;
     }
 
     void loadUnits()
