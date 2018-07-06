@@ -316,7 +316,7 @@ public class OC_AddSubCountersPt2 extends OC_AddSubCounters
         {
             waitForSecs(0.3f);
             Map<String, List> eventd = (Map<String, List>) audioScenes.get(String.format("finale%d",standalone?1:2));
-            playAudioQueued(eventd.get(String.format("DEMO%",isPlus?"":"2")),true);
+            playAudioQueued(eventd.get(String.format("DEMO%s",isPlus?"":"2")),true);
             MainActivity.mainActivity.fatController.completeEvent(this);
         }
         catch(Exception exception)
