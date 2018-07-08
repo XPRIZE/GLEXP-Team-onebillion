@@ -5,9 +5,11 @@ import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.os.SystemClock;
 import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
@@ -15,6 +17,7 @@ import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPresenter;
 import org.onebillion.onecourse.utils.OBAnim;
+import org.onebillion.onecourse.utils.OBAnimBlock;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBConditionLock;
 import org.onebillion.onecourse.utils.OBFont;
@@ -41,19 +44,19 @@ public class OC_PrepR4Trace extends OC_SectionController
     String setext;
     Map<String,String> sentenceDict;
     List<String> words;
-    List timings;
+    List<List<Float>> timings;
     float letterrecth;
     OBImage blobImage;
     List<OBGroup> groupList,hollowList;
     float spaceWidth;
-    OBControl back;
+    OBImage back;
     Bitmap bitmapContext,bitmapContextR;
     boolean maskNeedsUpdate;
     OBTimer timer;
     OBGroup hollowGroupGroup;
     OBConditionLock traceLock;
     int fillablePixelCount,fillablePixelCountPeriod;
-    OBControl redLayer;
+    OBImage redLayer;
     OBControl arrow;
     String sentenceid;
 
@@ -267,7 +270,7 @@ public class OC_PrepR4Trace extends OC_SectionController
         hollowGroupGroup.setZPosition(150);
         // *createBackFromGroup(hollowGroupGroup);
     }
-/*
+
     public void showRedPartsInclude(RectF includeRect,RectF excludeRect)
     {
         int x0,y0,xmax,ymax;
@@ -275,40 +278,21 @@ public class OC_PrepR4Trace extends OC_SectionController
         y0 = (int)includeRect.top;
         xmax = (int)(x0 + includeRect.width());
         ymax = (int)(y0 + includeRect.height());
-        unsigned char *data = CGBitmapContextGetData(bitmapContext);
-        unsigned char *data2 = CGBitmapContextGetData(bitmapContextR);
-        int bytesPerRow = CGBitmapContextGetBytesPerRow(bitmapContext);
         for(int i = y0;i < ymax;i++)
         {
-            unsigned char *row = data + i * bytesPerRow;
-            unsigned char *row2 = data2 + i * bytesPerRow;
-            unsigned char *ptr = row + x0 * 4;
-            unsigned char *ptr2 = row2 + x0 * 4;
             for(int j = x0;j < xmax;j++)
             {
-                if(!excludeRect.contains(new PointF(j, i.x, new PointF(j, i.y))))
+                if(!excludeRect.contains(j,i))
                 {
-                    if(*ptr > 25)
-                    {
-                    *ptr2 = 255;
-                    *(ptr2 + 3) = 255;
-                    }
-                else
-                    {
-                    *(ptr2) = 0;
-                    *(ptr2 + 1) = 0;
-                    *(ptr2 + 2) = 0;
-                    *(ptr2 + 3) = 0;
-                    }
+                    int px = bitmapContext.getPixel(i, j);
+                    if (Color.red(px) > 25)
+                        bitmapContextR.setPixel(i, j, Color.RED);
+                    else
+                        bitmapContextR.setPixel(i, j, 0);
                 }
-                ptr +=4;
-                ptr2 +=4;
             }
         }
-        CGImageRef iref = CGBitmapContextCreateImage(bitmapContextR);
-        redLayer.layer.setContents((__bridge Object) iref);
-        CGImageRelease(iref);
-
+        redLayer.setContents(bitmapContextR);
     }
 
     public void showRedParts()
@@ -322,29 +306,22 @@ public class OC_PrepR4Trace extends OC_SectionController
                 int px = bitmapContext.getPixel(i,j);
                 if(Color.red(px) > 25)
                 {
-                *ptr2 = 255;
-                *(ptr2 + 3) = 255;
+                    bitmapContextR.setPixel(i,j,Color.RED);
                 }
             else
                 {
-                *(ptr2 + 3) = 0;
+                    bitmapContextR.setPixel(i,j,0);
                 }
-                ptr +=4;
-                ptr2 +=4;
             }
         }
-        CGImageRef iref = CGBitmapContextCreateImage(bitmapContextR);
-        redLayer.layer.setContents((__bridge Object) iref);
+        redLayer.setContents(bitmapContextR);
     }
 
     public void createRedLayerWithFrame(RectF f)
     {
-        redLayer = OBControl.alloc().init();
+        bitmapContextR = Bitmap.createBitmap((int)f.width(), (int)f.height(), Bitmap.Config.ARGB_8888);
+        redLayer = new OBImage(bitmapContextR);
         redLayer.setFrame(f);
-        bitmapContextR = CreateBitmapContextWithColour(f.width(), f.height(),Color.clear());
-        CGImageRef iref = CGBitmapContextCreateImage(bitmapContextR);
-        redLayer.layer.setContents((__bridge Object) iref);
-        CGImageRelease(iref);
         redLayer.setZPosition(back.zPosition() + 1);
         attachControl(redLayer);
     }
@@ -352,23 +329,21 @@ public class OC_PrepR4Trace extends OC_SectionController
     public void createBackFromGroup(OBGroup g)
     {
         RectF f = g.frame();
-        back = new OBControl();
-        back.setFrame(f);
         g.setFrame(g.bounds());
-        back.setZPosition(100);
         RectF b = g.bounds();
-        bitmapContext = CreateBitmapContextWithColour(f.width(), f.height(),Color.black());
-        CGContextDrawImage(bitmapContext, b, g.renderedImage().CGImage());
-        CGContextSetBlendMode(bitmapContext, kCGBlendModeNormal);
+        bitmapContext = Bitmap.createBitmap((int)f.width(), (int)f.height(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas();
+        canvas.drawARGB(255,0,0,0);
+        g.drawLayer(canvas,0);
         fillablePixelCount = countFilledPixels(bitmapContext);
         fillablePixelCountPeriod = countFilledPeriodPixels(bitmapContext);
-        CGImageRef iref = CGBitmapContextCreateImage(bitmapContext);
-        back.layer.setContents((__bridge Object) iref);
-        CGImageRelease(iref);
+        back = new OBImage(bitmapContext);
+        back.setFrame(f);
+        back.setZPosition(100);
         back.setMaskControl(hollowGroupGroup);
         attachControl(back);
     }
-*/
+
     public void setUpScene()
     {
         layOutSentence(setext);
@@ -376,7 +351,7 @@ public class OC_PrepR4Trace extends OC_SectionController
         arrow.hide();
     }
 
-    public List loadTimings(String xmlPath)
+    public List<List<Float>> loadTimings(String xmlPath)
     {
         try
         {
@@ -387,7 +362,7 @@ public class OC_PrepR4Trace extends OC_SectionController
                 List<OBXMLNode> arr = xmlNode.childrenOfType("timings");
                 if(arr.size() > 0)
                 {
-                    List mtimings = new ArrayList<>();
+                    List<List<Float>> mtimings = new ArrayList<>();
                     OBXMLNode elem = arr.get(0);
                     for(OBXMLNode tnode : elem.childrenOfType("timing"))
                     {
@@ -412,6 +387,327 @@ public class OC_PrepR4Trace extends OC_SectionController
         for(OBControl c : groupList)
             c.hide();
         back.hide();
+    }
+
+    public String filePrefix()
+    {
+        return "egrast4s1_";
+    }
+
+    public void fadeInHollow() throws Exception
+    {
+        lockScreen();
+        back.show();
+        for(OBGroup g : hollowList)
+            for(OBPath p : (List<OBPath>)(List)g.members)
+            {
+                p.setProperty("origlw",(p.lineWidth()));
+                p.setLineWidth(0);
+            }
+        unlockScreen();
+        OBAnim blockAnim = new OBAnimBlock() {
+            @Override
+            public void runAnimBlock(float frac) {
+                frac = OB_Maths.clamp01(frac);
+                for(OBGroup g : hollowList)
+                    for(OBPath p : (List<OBPath>)(List)g.members)
+                    {
+                        float lw = (Float)p.propertyValue("origlw");
+                        p.setLineWidth(lw * frac);
+                    }
+            }
+        };
+        OBAnimationGroup.runAnims(Arrays.asList(blockAnim),0.3f,true,OBAnim.ANIM_EASE_IN_EASE_OUT,null);
+    }
+
+    public void bringOnThings(String audioFileName) throws Exception
+    {
+        timings = loadTimings(getLocalPath(String.format("%s%s.etpa",filePrefix() ,sentenceid)));
+        playAudio(audioFileName);
+        long startTime = SystemClock.uptimeMillis();
+        int nextch = 0;
+        for(int i = 0;i < words.size();i++)
+        {
+            double currTime = (SystemClock.uptimeMillis() - startTime) / 1000.0;
+            List<Float> times = timings.get(i);
+            float st = times.get(0).floatValue();
+            double waitTime = st - currTime;
+            if(waitTime > 0.0)
+                waitForSecs(waitTime);
+            int wlen = words.get(i).length();
+            List<OBGroup> wordGroups = groupList.subList(nextch, nextch + wlen);
+            lockScreen();
+            for(OBControl g : wordGroups)
+                g.show();
+            unlockScreen();
+            nextch += wlen;
+        }
+        waitAudio();
+        waitForSecs(1f);
+        fadeInHollow();
+    }
+
+    public void doMaintracing() throws Exception
+    {
+        waitForSecs(0.2f);
+        playAudioQueuedScene("PROMPT",true);
+        waitForSecs(0.4f);
+        String fileName = String.format("%s%",filePrefix() ,sentenceid);
+        bringOnThings(fileName);
+        setReplayAudio(Arrays.asList((Object)fileName));
+        OBUtils.runOnOtherThreadDelayed(5,new OBUtils.RunLambda()
+        {
+            public void run() throws Exception
+            {
+                arrow.show();
+            }
+        });
+    }
+
+    public void updateBack()
+    {
+        back.setContents(bitmapContext);
+    }
+
+    public void doFrame(OBTimer tmr)
+    {
+        if(maskNeedsUpdate)
+        {
+            updateBack();
+            maskNeedsUpdate = false;
+        }
+    }
+
+    public void startTimer()
+    {
+        timer = new OBTimer(0.02f) {
+            @Override
+            public int timerEvent(OBTimer timer) {
+                doFrame(timer);
+                return 0;
+            }
+        };
+    }
+
+    public void stopTimer()
+    {
+        if (timer != null)
+        {
+            timer.invalidate();
+            timer = null;
+        }
+        if(bitmapContext != null)
+        {
+            bitmapContext = null;
+        }
+    }
+
+    public void cleanUp()
+    {
+        stopTimer();
+        super.cleanUp();
+    }
+
+    public void stampImage(OBImage img,PointF point)
+    {
+        RectF f = back.bounds();
+        //CGContextTranslateCTM(bitmapContext, 0 ,f.height() );
+        //CGContextScaleCTM(bitmapContext, 1, -1);
+        PointF bottomLeft = new PointF(point.x - img.width() * 0.5f,
+                point.y - img.height() * 0.5f );
+        //CGContextTranslateCTM(bitmapContext, bottomLeft.x, bottomLeft.y);
+
+
+        //CGContextSetBlendMode(bitmapContext, kCGBlendModeDestinationOut);
+        Canvas canvas = new Canvas(bitmapContext);
+        canvas.translate( bottomLeft.x, bottomLeft.y);
+        img.drawLayer(canvas,0);
+
+        maskNeedsUpdate = true;
+    }
+
+    public int countFilledPixels(Bitmap bcontext)
+    {
+        int w = bcontext.getWidth();
+        int h = bcontext.getHeight();
+        int tot = 0;
+        for(int i = 0;i < h;i++)
+        {
+            for(int j = 0;j < w;j++)
+            {
+                int px = bcontext.getPixel(j,i);
+                if(Color.red(px) > 25)
+                {
+                    tot++;
+                }
+            }
+        }
+        return tot;
+    }
+
+    public int countFilledPeriodPixels(Bitmap bcontext)
+    {
+        OBControl period = hollowList.get(hollowList.size()-1);
+        RectF f = hollowGroupGroup.convertRectFromControl(period.bounds(),period);
+        int tot = 0;
+        for(int i = (int)f.top;i < f.top + f.height();i++)
+        {
+            for(int j = (int)f.left;j < f.left + f.width();j++)
+            {
+                int px = bcontext.getPixel(j,i);
+                if(Color.red(px) > 25)
+                {
+                    tot++;
+                }
+            }
+        }
+        return tot;
+    }
+
+    public void findUnfilledPixels()
+    {
+        RectF f = back.bounds();
+        float minx = f.width();
+        float miny = f.height();
+        float maxx = 0;
+        float maxy = 0;
+        for(int i = (int)f.top;i < f.top + f.height();i++)
+        {
+            for(int j = (int)f.left;j < f.left + f.width();j++)
+            {
+                int px = bitmapContext.getPixel(j,i);
+                if(Color.red(px) > 25)                {
+                    if(j < minx)
+                        minx = j;
+                    if(j > maxx)
+                        maxx = j;
+                    if(i < miny)
+                        miny = i;
+                    if(i > maxy)
+                        maxy = i;
+                }
+            }
+        }
+    }
+
+    public void touchMovedToPoint(PointF pt,View v)
+    {
+        if(status() == STATUS_TRACING)
+        {
+            PointF tpt = convertPointToControl(pt,back);
+            stampImage(blobImage,tpt);
+        }
+    }
+
+    public void checkTraceStart(PointF pt)
+    {
+        setStatus(STATUS_CHECKING);
+        startTimer();
+        PointF tpt = convertPointToControl(pt,back);
+        stampImage(blobImage,tpt);
+        setStatus(STATUS_TRACING);
+    }
+
+    public void touchUpAtPoint(PointF pt,View v)
+    {
+        if(status() == STATUS_TRACING)
+        {
+            setStatus(STATUS_CHECKING);
+            traceLock.lock();
+            int cond = traceLock.conditionValue();
+            traceLock.unlockWithCondition((cond & ~TRACING));
+            setStatus(STATUS_WAITING_FOR_TRACE);
+        }
+    }
+
+    public void flashRed() throws Exception
+    {
+        for(int i = 0;i < 5;i++)
+        {
+            redLayer.show();
+            waitForSecs(0.3f);
+            redLayer.hide();
+            waitForSecs(0.3f);
+        }
+    }
+
+    static float PIXEL_THRESHOLD = 0.03f;
+
+    public void finishTrace()
+    {
+        findUnfilledPixels();
+        final int allPeriodUnfilledPixels = countFilledPeriodPixels(bitmapContext);
+        final int allUnfilledPixels = countFilledPixels(bitmapContext) - allPeriodUnfilledPixels;
+        final int origUnfilledPixels = fillablePixelCount - fillablePixelCountPeriod;
+        final int origUnfilledPixelsPeriod = fillablePixelCountPeriod;
+        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        {
+            public void run() throws Exception
+            {
+                try
+                {
+                    if(allUnfilledPixels * 1.0 / origUnfilledPixels < PIXEL_THRESHOLD && allPeriodUnfilledPixels * 1.0 / origUnfilledPixelsPeriod < PIXEL_THRESHOLD)
+                    {
+                        gotItRightBigTick(true);
+                        waitForSecs(0.3f);
+                        playAudioQueuedScene("CORRECT",true);
+                    }
+                    else
+                    {
+                        OBControl period = hollowList.get(hollowList.size()-1);
+                        RectF pf = hollowGroupGroup.convertRectFromControl(period.bounds(),period);
+                        if(allUnfilledPixels * 1.0 / origUnfilledPixels >= PIXEL_THRESHOLD)
+                        {
+                            lockScreen();
+                            createRedLayerWithFrame(back.frame());
+                            showRedPartsInclude(new RectF(0, 0, (bitmapContext.getWidth()) , (bitmapContext.getHeight())),pf);
+                            redLayer.hide();
+                            unlockScreen();
+                            playAudioQueuedScene("INCORRECT",true);
+                            flashRed();
+                        }
+                        if(allPeriodUnfilledPixels * 1.0 / origUnfilledPixelsPeriod >= PIXEL_THRESHOLD)
+                        {
+                            lockScreen();
+                            createRedLayerWithFrame(back.frame());
+                            showRedPartsInclude(pf,new RectF());
+                            redLayer.hide();
+                            unlockScreen();
+                            playAudioQueuedScene("INCORRECT2",true);
+                            flashRed();
+                        }
+                    }
+                    waitForSecs(0.5f);
+                    back.hide();
+                    nextScene();
+
+                }
+                catch(Exception e)
+                {
+
+                }
+            }
+        });
+    }
+
+    public void touchDownAtPoint(PointF pt,View v)
+    {
+        if(status() == STATUS_WAITING_FOR_TRACE)
+        {
+            if(!arrow.hidden())
+            {
+                if(finger(-1,3,Arrays.asList(arrow),pt) != null)
+                {
+                    setStatus(STATUS_CHECKING);
+                    finishTrace();
+                    return;
+                }
+            }
+            traceLock.lock();
+            int cond = traceLock.conditionValue();
+            traceLock.unlockWithCondition(cond | TRACING);
+            checkTraceStart(pt);
+        }
     }
 
 }
