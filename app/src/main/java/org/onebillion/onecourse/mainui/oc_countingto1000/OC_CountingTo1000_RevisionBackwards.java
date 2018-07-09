@@ -6,6 +6,7 @@ import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class OC_CountingTo1000_RevisionBackwards extends OC_CountingTo1000_Revision
@@ -29,11 +30,11 @@ public class OC_CountingTo1000_RevisionBackwards extends OC_CountingTo1000_Revis
         //
         List<String> audioFiles = getAudioForScene(currentEvent(), "DEMO");
         String presenterAudio = audioFiles.get(0);                                  // Let’s practise counting to one thousand, in hundreds!;
-        presenter.speak((List<Object>) (Object) presenterAudio, 0.3f, this);
+        presenter.speak((List<Object>) (Object) Arrays.asList(presenterAudio), 0.3f, this);
         waitForSecs(0.7f);
         //
         presenterAudio = audioFiles.get(1);                                         // This time we’ll count backwards!;
-        presenter.speak((List<Object>) (Object) presenterAudio, 0.3f, this);
+        presenter.speak((List<Object>) (Object) Arrays.asList(presenterAudio), 0.3f, this);
         waitForSecs(0.3f);
         //
         PointF currPos = OC_Generic.copyPoint(presenter.control.position());
@@ -42,7 +43,7 @@ public class OC_CountingTo1000_RevisionBackwards extends OC_CountingTo1000_Revis
         presenter.walk(destPos);
         presenter.faceFront();
         presenterAudio = audioFiles.get(2);                               // Are you ready?;
-        presenter.speak((List<Object>) (Object) presenterAudio, 0.3f, this);
+        presenter.speak((List<Object>) (Object) Arrays.asList(presenterAudio), 0.3f, this);
         waitForSecs(0.3f);
         //
         currPos = presenter.control.position();

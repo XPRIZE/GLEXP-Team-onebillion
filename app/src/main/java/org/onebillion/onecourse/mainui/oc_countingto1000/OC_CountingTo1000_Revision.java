@@ -198,6 +198,7 @@ public class OC_CountingTo1000_Revision extends OC_CountingTo1000
                     {
                         highlightCell(hilitedCell, false, false, true);
                         label.moveToPoint(hilitedCell.position(), 0.1f, false);
+                        label.disable();
                         gotItRightBigTick(false);
                         waitForSecs(0.3f);
                         //
