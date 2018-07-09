@@ -186,9 +186,14 @@ public class OC_Pbn extends OC_SectionController
         {
             playAudioQueuedScene("DEMO",0.3f,true);
             waitForSecs(0.3f);
-
+            OBMisc.doSceneAudio(4,setStatus(STATUS_AWAITING_CLICK), this);
         }
-        OBMisc.doSceneAudio(4,setStatus(STATUS_AWAITING_CLICK), this);
+        else
+        {
+            setReplayAudio(OBUtils.insertAudioInterval(getAudioForScene(currentEvent(), "PROMPT.REPEAT"), 300));
+            reprompt(setStatus(STATUS_AWAITING_CLICK),OBUtils.insertAudioInterval(getAudioForScene(currentEvent(), "REMIND"), 300),5);
+        }
+
     }
 
     public Map<String,Object> eventDataForNumbers(String[] nums, boolean wrongOnlyDemo)
