@@ -248,7 +248,9 @@ public class OC_AddSubtract_S4 extends OC_SectionController
         moveScenePointer(OB_Maths.locationForRect(0.4f,1.05f,objectDict.get("box_1").frame()),-15,0.6f,"DEMO",0,0.3f);
         moveScenePointer(OB_Maths.locationForRect(0.8f,1.05f,objectDict.get("box_1").frame()),-12,0.6f,"DEMO",1,0.3f);
         moveScenePointer(OB_Maths.locationForRect(0.5f,0.6f,objectDict.get("drag_1_1").frame()),-15,0.6f,"DEMO",2,0.3f);
-        OBMisc.moveControlWithAttached(objectDict.get("drag_1_1"),Arrays.asList(thePointer),dropLocs.get(0).get(0) ,0.6f,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
+        OBControl dragCon = objectDict.get("drag_1_1");
+        OBMisc.moveControlWithAttached(dragCon,Arrays.asList(thePointer),dropLocs.get(0).get(0) ,0.6f,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
+        dragCon.disable();
         playSfxAudio("drop",false);
         movePointerToPoint(OB_Maths.locationForRect(0.8f,1.05f,objectDict.get("box_1").frame()),0.3f,true);
         waitForSecs(0.3f);
