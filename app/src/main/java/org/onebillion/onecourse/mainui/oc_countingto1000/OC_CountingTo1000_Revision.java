@@ -294,7 +294,7 @@ public class OC_CountingTo1000_Revision extends OC_CountingTo1000
         //
         List<String> audioFiles = getAudioForScene(currentEvent(), "DEMO");
         String presenterAudio = audioFiles.get(0);                          // Let’s practise counting in hundreds, to one thousand;
-        presenter.speak((List<Object>) (Object) presenterAudio, 0.3f, this);
+        presenter.speak((List<Object>) (Object) Arrays.asList(presenterAudio), 0.3f, this);
         waitForSecs(0.3f);
         //
         PointF currPos = OC_Generic.copyPoint(presenter.control.position());
@@ -303,7 +303,7 @@ public class OC_CountingTo1000_Revision extends OC_CountingTo1000
         presenter.walk(destPos);
         presenter.faceFront();
         presenterAudio = audioFiles.get(1);                                 // Are you ready?;
-        presenter.speak((List<Object>) (Object) presenterAudio, 0.3f, this);
+        presenter.speak((List<Object>) (Object) Arrays.asList(presenterAudio), 0.3f, this);
         waitForSecs(0.3f);
         //
         currPos = presenter.control.position();
