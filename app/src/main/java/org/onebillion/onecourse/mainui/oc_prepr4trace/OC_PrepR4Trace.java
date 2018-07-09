@@ -523,16 +523,7 @@ public class OC_PrepR4Trace extends OC_SectionController
     public void stampImage(OBImage img,PointF point)
     {
         RectF f = back.bounds();
-        //CGContextTranslateCTM(bitmapContext, 0 ,f.height() );
-        //CGContextScaleCTM(bitmapContext, 1, -1);
-        PointF bottomLeft = new PointF(point.x - img.width() * 0.5f,
-                point.y - img.height() * 0.5f );
-        //CGContextTranslateCTM(bitmapContext, bottomLeft.x, bottomLeft.y);
-
-
-        //CGContextSetBlendMode(bitmapContext, kCGBlendModeDestinationOut);
         Canvas canvas = new Canvas(bitmapContext);
-        //canvas.translate( bottomLeft.x, bottomLeft.y);
         canvas.translate( point.x, point.y);
         canvas.scale(img.scaleX(),img.scaleY());
         canvas.translate(-img.width()/2f,-img.height()/2f);
