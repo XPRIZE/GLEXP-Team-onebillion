@@ -8,6 +8,7 @@ import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
+import org.onebillion.onecourse.controls.OBImage;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.mainui.MainActivity;
@@ -173,12 +174,21 @@ public class OC_CountingPractice extends OC_Generic_Event
         if (mode.equals(kModeAutomaticCount) || mode.equals(kModeChildCountReachTarget))
         {
             totalObjectsForUnit = Integer.parseInt(parameters.get(kTotalObjects));
+            if (totalObjectsForUnit < startingObjectsInContainer)
+            {
+                totalObjectsForUnit += startingObjectsInContainer;
+            }
             hasDemo = parameters.get(kDemo).equalsIgnoreCase(kConstantTrue);
         }
         else if (mode.equals(kModeChildCountChooseAnswer))
         {
             totalObjectsForUnit = Integer.parseInt(parameters.get(kTotalObjects));
-//            totalObjectsForUnit = clumpOfObjectsForUnit * maxClumpsOnScreen;
+            //
+            if (totalObjectsForUnit < startingObjectsInContainer)
+            {
+                totalObjectsForUnit += startingObjectsInContainer;
+            }
+            //
             hasDemo = true;
         }
         //
@@ -263,18 +273,23 @@ public class OC_CountingPractice extends OC_Generic_Event
             OBControl peaTemplate = objectDict.get("pea");
             double absoluteLeft = jar.left() + 1.2f * peaTemplate.width();
             double absoluteRight = jar.right() - 1.2f * peaTemplate.width();
-            double absoluteBottom = jar.bottom() - 1.2f * peaTemplate.height();
+            double absoluteBottom = jar.bottom() - 1.4f * peaTemplate.height();
+            double absoluteTop = jar.bottom() - 0.78f * jar.height();
             PointF newPosition = new PointF((float) absoluteLeft, (float) absoluteBottom);
             for (int i = 0; i < startingObjectsInContainer; i++)
             {
                 OBControl newPea = peaTemplate.copy();
                 newPea.setProperty(kPhysicsFixed, true);
                 newPea.setPosition(newPosition);
-                newPea.show();
                 newPea.disable();
-                attachControl(newPea);
-                startPhysicsWithControl(newPea, false);
-                clumps.add((OBGroup) newPea);
+                //
+                if (newPosition.y > absoluteTop)
+                {
+                    // only if the pea is within the bounds of the jar, it has physics applied to it and it's added to the scene
+                    newPea.show();
+                    attachControl(newPea);
+                }
+                //
                 newPosition.x += interactionForceFactor * peaTemplate.width() * 0.7f;
                 if (newPosition.x > absoluteRight)
                 {
@@ -282,6 +297,8 @@ public class OC_CountingPractice extends OC_Generic_Event
                     newPosition.y -= interactionForceFactor * peaTemplate.width() * 0.6f;
                 }
                 //
+                startPhysicsWithControl(newPea, false);
+                clumps.add((OBGroup) newPea);
                 startingObjectsInJar.add(newPea);
             }
         }
