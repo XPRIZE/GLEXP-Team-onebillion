@@ -181,7 +181,7 @@ public class OC_PlayZoneTrace extends OC_SectionController
         back.setZPosition(BACK_ZPOS);
         fillablePixelCount = countFilledPixels(bitmapContext);
 
-        bitmapContext = Bitmap.createBitmap((int)b.width(),(int) b.height(),Bitmap.Config.ARGB_8888);
+        bitmapContextR = Bitmap.createBitmap((int)b.width(),(int) b.height(),Bitmap.Config.ARGB_8888);
         redLayer = new OBImage(bitmapContextR);
         redLayer.setBounds(b);
         redLayer.setPosition(groupList.get(idx).position());
@@ -194,6 +194,21 @@ public class OC_PlayZoneTrace extends OC_SectionController
         attachControl(redLayer);
     }
 
+    public RectF corRectUnion(RectF f1,RectF f2)
+    {
+        if (f1 == null)
+        {
+            f1 = new RectF(f2);
+            return f1;
+        }
+        float minx = Math.min(f1.left,f2.left);
+        float miny = Math.min(f1.top,f2.top);
+        float maxx = Math.max(f1.right,f2.right);
+        float maxy = Math.max(f1.bottom,f2.bottom);
+        f1.set(minx,miny,maxx,maxy);
+        return f1;
+    }
+
     public OBGroup letterGroup(String l,String rectName)
     {
         OBControl lrect = objectDict.get(rectName);
@@ -201,7 +216,8 @@ public class OC_PlayZoneTrace extends OC_SectionController
         objectDict.put("letterrect",lrect);
         List arr = loadEvent(l);
         List memberlist = new ArrayList<>();
-        RectF f = new RectF();
+        //RectF f = new RectF();
+        RectF f = null;
         for(OBControl c : filterControls("Path.*"))
         {
             if(arr.contains(c))
@@ -216,9 +232,12 @@ public class OC_PlayZoneTrace extends OC_SectionController
                     lineWidth = lw;
                 }
                 memberlist.add(p);
-                f.union(p.boundingBox());
+                RectF f2 = p.boundingBox();
+                //f.union(f2);
+                f = corRectUnion(f,f2);
             }
         }
+        f.inset(-lineWidth,-lineWidth);
         OBGroup g = new OBGroup(memberlist,f);
         return g;
     }
@@ -303,7 +322,11 @@ public class OC_PlayZoneTrace extends OC_SectionController
 
     public void updateBack()
     {
+        lockScreen();
         back.setContents(bitmapContext);
+        back.setNeedsRetexture();
+        back.invalidate();
+        unlockScreen();
     }
 
     public void doFrame(OBTimer tmr)
@@ -329,8 +352,10 @@ public class OC_PlayZoneTrace extends OC_SectionController
 
     public void stopTimer()
     {
-        timer.invalidate();
-        timer = null;
+        if (timer != null) {
+            timer.invalidate();
+            timer = null;
+        }
     }
 
     public void cleanUp()
