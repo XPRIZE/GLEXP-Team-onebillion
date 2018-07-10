@@ -1,10 +1,15 @@
 package org.onebillion.onecourse.mainui;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.net.Uri;
 import android.os.Handler;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.MotionEvent;
 import android.view.View;
@@ -30,6 +35,7 @@ import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OBXMLManager;
 import org.onebillion.onecourse.utils.OBXMLNode;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,6 +51,7 @@ public class OC_SimpleListMenu extends OBSectionController
     ArrayAdapter<MlUnit> arrayAdapter;
     private MasterlistFilter masterlistFilter = new MasterlistFilter();
     List<String> checkedList;
+    String currentBuild;
 
 
     public OC_SimpleListMenu ()
@@ -117,6 +124,21 @@ public class OC_SimpleListMenu extends OBSectionController
             }
         });
 
+        listView.setLongClickable(true);
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener(){
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                hideKeyboard();
+
+                MlUnit m = (MlUnit) parent.getItemAtPosition(position);
+                setStatus(STATUS_BUSY);
+
+                askForUnitReport(m);
+                setStatus(STATUS_IDLE);
+                return true;
+            }
+        });
+
 
         listView.setOnTouchListener(new View.OnTouchListener()
         {
@@ -139,6 +161,7 @@ public class OC_SimpleListMenu extends OBSectionController
                 buildNumberValue = "Missing BuildNo";
             }
             buildNumber.setText(buildNumberValue);
+            currentBuild = buildNumberValue;
 
         }
         //
@@ -274,6 +297,64 @@ public class OC_SimpleListMenu extends OBSectionController
         setStatus(STATUS_IDLE);
         loadUnits();
         initScreen();
+    }
+
+    public void askForUnitReport(final MlUnit unit)
+    {
+        final AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.mainActivity);
+        alert.setTitle("Unit Report");
+        alert.setMessage("Do you want to report unit "+unit.key+" ?");
+        alert.setPositiveButton("YES", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialog, int which)
+            {
+                prepareBugReportForUnit(unit);
+            }
+        });
+
+        alert.setNegativeButton("NO", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialog, int which)
+            {
+                dialog.cancel();
+            }
+        });
+
+        final AlertDialog dialog = alert.show();
+        OBUtils.runOnOtherThreadDelayed(10, new OBUtils.RunLambda()
+        {
+            @Override
+            public void run() throws Exception
+            {
+                if(dialog != null && dialog.isShowing())
+                {
+                    dialog.cancel();
+                }
+            }
+        });
+    }
+
+    public void prepareBugReportForUnit(MlUnit unit)
+    {
+        try {
+
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("https://github.com/onebillionchildren/XPRIZE-ob-android/issues/new?");
+            stringBuilder.append("title="+URLEncoder.encode("Build "+currentBuild+" - "+unit.key+" - TYPE ISSUE HERE", "UTF-8"));
+            stringBuilder.append("&body=%23%23%23%23%23%20Component%0D%0Akey%20%3D%20"+URLEncoder.encode(unit.key, "UTF-8")+"%0D%0Atarget%20%3D%20"+URLEncoder.encode(unit.target, "UTF-8")
+                    +"%0D%0Aconfig%20%3D%20"+URLEncoder.encode(unit.config, "UTF-8")+"%0D%0Aparams%20%3D%20"+URLEncoder.encode(unit.params, "UTF-8")
+                    +"%0D%0A%23%23%23%23%23%20Description%0D%0ADescribe%20the%20issue%20clearly%2C%20with%20steps%20to%20reproduce.%0D%0AAttach%20a%20screenshot%20if%20applicable.%0D%0A%23%23%23%23%23%20Severity%0D%0A-%20%5B%20%5D%20Low%0D%0A-%20%5B%20%5D%20Medium%0D%0A-%20%5B%20%5D%20High%0D%0A");
+            stringBuilder.append("&assignee=KaMpErTuGa");
+            stringBuilder.append("&milestone=onecourse+-+upload+3");
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(stringBuilder.toString()));
+            MainActivity.mainActivity.startActivity(browserIntent);
+        }
+        catch (Exception e)
+        {
+
+        }
     }
 
     public void hideKeyboard()
