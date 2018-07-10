@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.util.ArrayMap;
 import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
@@ -45,12 +46,11 @@ public class OC_Hw3 extends OC_Hw
     {
         super.prepare();
         eraser.show();
-
+        audioScenes = new ArrayMap<>();
         String mode = parameters.get("mode");
         boolean dualLetterMode = mode.equals("capitals");
         numbersMode = mode.equals("numbers");
         loadAudioXML(getConfigPath(numbersMode ? "hw3baudio.xml" :  "hw3aaudio.xml"));
-
         if(numbersMode)
         {
             Map<String,Object> ed = loadXML(getConfigPath(String.format("%s.xml","tracingnumbers")));
@@ -462,9 +462,11 @@ public class OC_Hw3 extends OC_Hw
         {
             List<OBControl> paths = exampleGroup.filterMembers("Path.*",true);
             for(OBControl path : paths)
-                ((OBPath)path).setStrokeEnd(0);
+            {
+                path.hide();
+                ((OBPath) path).setStrokeEnd(0);
+            }
             hideLines();
-
         }
         hideArrowButton();
         if(menuItem != null)
@@ -494,9 +496,7 @@ public class OC_Hw3 extends OC_Hw
                     playAudio((String)currentMenuItem.propertyValue("audio"));
                     waitAudio();
                     waitForSecs(0.3f);
-
                 }
-
             }
             index++;
             //paths = exampleGroup.filterMembers(String.format("Path%d.*",index),true);
@@ -573,10 +573,8 @@ public class OC_Hw3 extends OC_Hw
             currentMenuItem = null;
             playAudioScene("DEMO2",4,true);
             waitForSecs(0.3f);
-
         }
         nextScene();
-
     }
 
     public void demotrace_1_1() throws Exception
@@ -602,33 +600,33 @@ public class OC_Hw3 extends OC_Hw
         thePointer.hide();
         hideArrowButton();
         arrowButton.setOpacity(1);
-
     }
+
     public void demotrace_default_1() throws Exception
     {
         demotrace2();
-
     }
+
     public void demotrace_1_2() throws Exception
     {
         demotrace2();
-
     }
+
     public void demotrace_1_3() throws Exception
     {
         demotrace2();
-
     }
+
     public void demotrace_default_2() throws Exception
     {
         demotrace2();
-
     }
+
     public void demotrace_default_3() throws Exception
     {
         demotrace2();
-
     }
+
     public void demotrace2() throws Exception
     {
         playAudioQueued(OBUtils.insertAudioInterval(getAudioForPhase("DEMO"),300),true);
@@ -636,26 +634,29 @@ public class OC_Hw3 extends OC_Hw
         demoLetterPaths();
         waitForSecs(0.3f);
         showLinesAndGuide(guideGroup);
-
     }
+
     public void demowrite_1_1() throws Exception
     {
         demowrite(true);
-
     }
+
     public void demowrite_default_1() throws Exception
     {
         demowrite(false);
-
     }
+
     public void demowrite(boolean pointer) throws Exception
     {
         lockScreen();
         List<OBControl> paths = exampleGroup.filterMembers("Path.*",true);
         for(OBControl path : paths)
-            ((OBPath)path).setStrokeEnd(1);
-
+        {
+            path.show();
+            ((OBPath) path).setStrokeEnd(1);
+        }
         unlockScreen();
+
         playSfxAudio("guideon",false);
         animateLinesOn();
         waitSFX();
@@ -668,15 +669,12 @@ public class OC_Hw3 extends OC_Hw
             waitAudio();
             waitForSecs(0.3f);
             thePointer.hide();
-
         }
         if(!pointer)
         {
             playAudioQueued(OBUtils.insertAudioInterval(getAudioForPhase("DEMO"),300),true);
             waitForSecs(0.3f);
-
         }
-
     }
 
     public void demoPointerTracePath() throws Exception
@@ -685,7 +683,10 @@ public class OC_Hw3 extends OC_Hw
         demoGuideGroup.setPosition( guideGroup.position());
         List<OBControl> paths = demoGuideGroup.filterMembers("Path.*",true);
         for(OBControl p : paths)
-            ((OBPath)p).setStrokeEnd(0);
+        {
+            p.hide();
+            ((OBPath) p).setStrokeEnd(0);
+        }
 
         demoGuideGroup.setZPosition(5);
         attachControl(demoGuideGroup);
@@ -705,7 +706,7 @@ public class OC_Hw3 extends OC_Hw
                 }
             };
 
-
+            p.show();
             OBAnimationGroup.runAnims(Collections.singletonList(anim), p.length()*4/theMoveSpeed,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
         }
     }
