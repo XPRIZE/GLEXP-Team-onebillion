@@ -49,6 +49,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     Boolean showPicture;
     OBAnimationGroup moveBackAnimationGroup;
     double lastUserInteractionTimeStamp;
+    Boolean reminderActive;
 
     public static final float MAX_GAP_FACTOR = 1.8f;
     public static float FIRST_REMINDER_DELAY = 6.0f;
@@ -119,6 +120,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     @Override
     public void doMainXX() throws Exception
     {
+        setStatus(STATUS_DOING_DEMO);
         doIntro(false);
         //
         setStatus(STATUS_AWAITING_CLICK);
@@ -134,57 +136,75 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
         setReplayAudio(replayAudio);
         playAudioQueued(audio);
         //
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-        {
-            @Override
-            public void run() throws Exception
-            {
-                doReminder();
-            }
-        });
+        doReminder(scene);
     }
+
 
     @Override
-    public void doReminder () throws Exception
+    public void doReminder() throws Exception
     {
-        final double timeStamp = OC_Generic.currentTime();
-        lastUserInteractionTimeStamp = timeStamp;
-        //
-        waitForSecs(FIRST_REMINDER_DELAY);
-        doReminderWithStatusTime(timeStamp, true);
+        //MainActivity.log("overridden doReminder was called");
+        // do nothing
     }
 
-    public void doReminderWithStatusTime(final double timeStamp, final Boolean playAudio) throws Exception
+    public void doReminder (final String scene) throws Exception
     {
-        if (timeStamp == lastUserInteractionTimeStamp && status() != STATUS_CHECKING && status() != STATUS_DOING_DEMO)
+        lastUserInteractionTimeStamp = OC_Generic.currentTime();
+        reminderActive = true;
+        //
+        doReminderWithStatusTime(scene, true);
+    }
+
+
+
+    public void doReminderWithStatusTime(final String eventName, final Boolean playAudio) throws Exception
+    {
+        if (!reminderActive)
         {
-            OBUtils.runOnOtherThreadDelayed(SECOND_REMINDER_DELAY, new OBUtils.RunLambda()
+            //MainActivity.log("Reminder killed");
+            return;
+        }
+        //
+        if (!eventName.equalsIgnoreCase(currentEvent()))
+        {
+            //MainActivity.log("Reminder killed, wrong event: " + eventName + " " + currentEvent());
+            return;
+        }
+        //
+        double currentTime = OC_Generic.currentTime();
+        Boolean thresholdTimeReached = currentTime - lastUserInteractionTimeStamp >= FIRST_REMINDER_DELAY;
+        Boolean statusNotBusy = status() != STATUS_CHECKING && status() != STATUS_DOING_DEMO;
+        //
+        if (thresholdTimeReached && statusNotBusy)
+        {
+            if (playAudio)
+            {
+                //MainActivity.log("Reminder audio playing " + eventName + " " + currentEvent());
+                action_playFinalWord();
+            }
+            action_flashLine(lastUserInteractionTimeStamp);
+            //
+            lastUserInteractionTimeStamp = OC_Generic.currentTime();
+            //
+            OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
             {
                 @Override
                 public void run() throws Exception
                 {
-                    if (timeStamp != lastUserInteractionTimeStamp)
-                    {
-                        return;
-                    }
-                    //
-                    if (playAudio)
-                    {
-                        action_playFinalWord();
-                    }
-                    action_flashLine(timeStamp);
-                    //
-                    lastUserInteractionTimeStamp = OC_Generic.currentTime();
-                    final double newTimeStamp = lastUserInteractionTimeStamp;
-                    //
-                    doReminderWithStatusTime(newTimeStamp, false);
+                    doReminderWithStatusTime(eventName, false);
                 }
             });
         }
         else
         {
-            final double newTimeStamp = lastUserInteractionTimeStamp;
-            doReminderWithStatusTime(newTimeStamp, playAudio);
+            OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    doReminderWithStatusTime(eventName, playAudio);
+                }
+            });
         }
     }
 
@@ -210,6 +230,8 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
             waitAudio();
             waitForSecs(0.3);
             action_markLine();
+            //
+            lastUserInteractionTimeStamp = OC_Generic.currentTime();
         }
         else
         {
@@ -221,6 +243,8 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
                     waitAudio();
                     waitForSecs(0.3);
                     action_markLine();
+                    //
+                    lastUserInteractionTimeStamp = OC_Generic.currentTime();
                 }
             });
         }
@@ -259,8 +283,9 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
             {
                 if (phoneme.text.compareTo(label.text()) == 0)
                 {
-                    playAudio(phoneme.audio());
-                    waitAudio();
+                    phoneme.playAudio(this, true);
+//                    playAudio(phoneme.audio());
+//                    waitAudio();
                     return;
                 }
             }
@@ -1123,6 +1148,8 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     {
         if (main_isLastPlacement())
         {
+            reminderActive = false;
+            //
             action_playComponentsAudioForLabel(label);
             action_endOfEvent();
             //
@@ -1142,15 +1169,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
         }
         else
         {
-            OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-            {
-                @Override
-                public void run() throws Exception
-                {
-                    doReminder();
-                }
-            });
-            //
+            lastUserInteractionTimeStamp = OC_Generic.currentTime();
             setStatus(STATUS_AWAITING_CLICK);
             //
             action_playComponentsAudioForLabel(label);
@@ -1161,20 +1180,18 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
 
     public void checkTouchableDropAtPosition(PointF position, long timeStamp)
     {
-        if (statusChanged(timeStamp))
+        synchronized (this)
         {
-            return;
-        }
-        //
-        setStatus(STATUS_CHECKING);
-        //
-        try
-        {
-            OBLabel label = (OBLabel) target;
-            if (!label.isEnabled()) return;
+            if (statusChanged(timeStamp)) return;
             //
-            if (label != null)
+            if (target == null) return;
+            if (!target.isEnabled()) return;
+            //
+            setStatus(STATUS_CHECKING);
+            //
+            try
             {
+                OBLabel label = (OBLabel) target;
                 label.setColour(Color.BLACK);
                 //
                 if (action_verifyDropPosition(position))
@@ -1184,21 +1201,37 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
                 }
                 else
                 {
-                    OBAnim anim = OBAnim.moveAnim((PointF) label.propertyValue("originalPosition"), label);
-                    moveBackAnimationGroup = OBAnimationGroup.runAnims(Arrays.asList(anim), 0.3f, false, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
-                    //
                     gotItWrongWithSfx();
-                    waitForSecs(0.3);
                     //
-                    action_playFinalWord();
+                    if (moveBackAnimationGroup != null)
+                    {
+                        moveBackAnimationGroup.flags = OBAnimationGroup.ANIM_CANCEL;
+                    }
+                    OBAnim anim = OBAnim.moveAnim((PointF) label.propertyValue("originalPosition"), label);
+                    moveBackAnimationGroup = OBAnimationGroup.runAnims(Arrays.asList(anim), 0.1f, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
                     //
                     setStatus(STATUS_AWAITING_CLICK);
+                    //
+                    final double lastTimeStamp = lastUserInteractionTimeStamp;
+                    final long lastStatusTime = statusTime;
+                    //
+                    OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run() throws Exception
+                        {
+                            if (lastUserInteractionTimeStamp != lastTimeStamp) return;
+                            if (statusChanged(lastStatusTime)) return;
+                            //
+                            action_playFinalWord();
+                        }
+                    });
                 }
             }
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -1224,6 +1257,8 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     {
         if (status() == STATUS_AWAITING_CLICK)
         {
+            lastUserInteractionTimeStamp = OC_Generic.currentTime();
+            //
             final OBControl obj = findTouchable(pt);
             if (obj != null)
             {
@@ -1242,10 +1277,10 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     @Override
     public void touchUpAtPoint(final PointF pt, View v)
     {
-        lastUserInteractionTimeStamp = OC_Generic.currentTime();
-        //
         if (status() == STATUS_DRAGGING)
         {
+            lastUserInteractionTimeStamp = OC_Generic.currentTime();
+            //
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
                 @Override
@@ -1260,13 +1295,17 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
     @Override
     public void touchMovedToPoint(final PointF pt, View v)
     {
-        if (target != null)
-        {
-            super.touchMovedToPoint(pt, v);
-        }
-        //
         if (status() == STATUS_DRAGGING)
         {
+            if (target != null)
+            {
+                lockScreen();
+                target.setPosition(OB_Maths.AddPoints(pt, dragOffset));
+                unlockScreen();
+            }
+            //
+            lastUserInteractionTimeStamp = OC_Generic.currentTime();
+            //
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
                 @Override

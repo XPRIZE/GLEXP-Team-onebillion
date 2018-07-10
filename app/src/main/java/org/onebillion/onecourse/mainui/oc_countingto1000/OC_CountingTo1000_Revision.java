@@ -247,6 +247,10 @@ public class OC_CountingTo1000_Revision extends OC_CountingTo1000
                 }
                 else
                 {
+                    // just return
+                    PointF originalPosition = OC_Generic.copyPoint((PointF) label.propertyValue("original_position"));
+                    OBAnim moveAnim = OBAnim.moveAnim(originalPosition, label);
+                    OBAnimationGroup.runAnims(Arrays.asList(moveAnim), 0.3, false, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
                     setStatus(STATUS_AWAITING_CLICK);
                 }
             }
