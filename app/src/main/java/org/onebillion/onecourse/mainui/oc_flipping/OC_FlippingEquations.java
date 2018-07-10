@@ -848,8 +848,9 @@ public class OC_FlippingEquations extends OC_SectionController
                     label.setColour(originalColour);
                 }
             });
+            //
+            setStatus(STATUS_AWAITING_CLICK);
         }
-        setStatus(STATUS_AWAITING_CLICK);
     }
 
     public void checkUnderline(OBPath line) throws Exception
