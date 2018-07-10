@@ -281,6 +281,8 @@ public class OC_Morphology_3 extends OC_Morphology
                 labs.add(labb);
             }
         }
+        if(labs.size() > 4)
+            labs = labs.subList(0, 4);
         float zpos = objectDict.get("bottombar").zPosition() + 1;
         int col = objectDict.get("labelswatch").fillColor();
         for(OBLabel labi : labs)
