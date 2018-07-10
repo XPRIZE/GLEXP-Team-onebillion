@@ -2,6 +2,7 @@ package org.onebillion.onecourse.mainui.oc_prepr4trace;
 
 import org.onebillion.onecourse.controls.OBImage;
 import org.onebillion.onecourse.controls.OBPath;
+import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 
 import android.graphics.Bitmap;
@@ -78,7 +79,7 @@ public class OC_PrepR4Trace extends OC_SectionController
 
                 for(OBXMLNode pNode : root.childrenOfType("sentence"))
                 {
-                    String sid = pNode.attributeStringValue("Object");
+                    String sid = pNode.attributeStringValue("id");
                     dict.put(sid,pNode.contents.trim());
                 }
             }
@@ -156,7 +157,7 @@ public class OC_PrepR4Trace extends OC_SectionController
         loadEvent("_n");
         OBControl xbox = objectDict.get("xbox");
         float f = xbox.width();
-        deleteControls("(Path|xbox) .*");
+        deleteControls("(Path|xbox).*");
         return f;
     }
 
@@ -191,7 +192,8 @@ public class OC_PrepR4Trace extends OC_SectionController
         float xdiff = xbox.left() - left;
         if(xdiff != 0 || ydiff != 0)
         {
-            PointF pos = g.position();
+            PointF pos = new PointF();
+            pos.set(g.position());
             pos.y -= ydiff;
             pos.x -= xdiff;
             g.setPosition(pos);
@@ -268,7 +270,7 @@ public class OC_PrepR4Trace extends OC_SectionController
         }
         hollowGroupGroup = new OBGroup((List)hollowList);
         hollowGroupGroup.setZPosition(150);
-        // *createBackFromGroup(hollowGroupGroup);
+        createBackFromGroup(hollowGroupGroup);
     }
 
     public void showRedPartsInclude(RectF includeRect,RectF excludeRect)
@@ -278,17 +280,22 @@ public class OC_PrepR4Trace extends OC_SectionController
         y0 = (int)includeRect.top;
         xmax = (int)(x0 + includeRect.width());
         ymax = (int)(y0 + includeRect.height());
+        int w = xmax - x0;
+        int pixels[] = new int[w];
         for(int i = y0;i < ymax;i++)
         {
+            bitmapContext.getPixels(pixels, 0, bitmapContext.getWidth(), x0, i, w, 1);
+
             for(int j = x0;j < xmax;j++)
             {
                 if(!excludeRect.contains(j,i))
                 {
-                    int px = bitmapContext.getPixel(i, j);
+                    //int px = bitmapContext.getPixel(j,i);
+                    int px = pixels[j - x0];
                     if (Color.red(px) > 25)
-                        bitmapContextR.setPixel(i, j, Color.RED);
+                        bitmapContextR.setPixel(j,i, Color.RED);
                     else
-                        bitmapContextR.setPixel(i, j, 0);
+                        bitmapContextR.setPixel(j,i, 0);
                 }
             }
         }
@@ -328,11 +335,11 @@ public class OC_PrepR4Trace extends OC_SectionController
 
     public void createBackFromGroup(OBGroup g)
     {
-        RectF f = g.frame();
+        RectF f = new RectF(g.frame());
         g.setFrame(g.bounds());
         RectF b = g.bounds();
         bitmapContext = Bitmap.createBitmap((int)f.width(), (int)f.height(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas();
+        Canvas canvas = new Canvas(bitmapContext);
         canvas.drawARGB(255,0,0,0);
         g.drawLayer(canvas,0);
         fillablePixelCount = countFilledPixels(bitmapContext);
@@ -415,6 +422,8 @@ public class OC_PrepR4Trace extends OC_SectionController
                         float lw = (Float)p.propertyValue("origlw");
                         p.setLineWidth(lw * frac);
                     }
+                back.setNeedsRetexture();
+                back.invalidate();
             }
         };
         OBAnimationGroup.runAnims(Arrays.asList(blockAnim),0.3f,true,OBAnim.ANIM_EASE_IN_EASE_OUT,null);
@@ -452,7 +461,7 @@ public class OC_PrepR4Trace extends OC_SectionController
         waitForSecs(0.2f);
         playAudioQueuedScene("PROMPT",true);
         waitForSecs(0.4f);
-        String fileName = String.format("%s%",filePrefix() ,sentenceid);
+        String fileName = String.format("%s%s",filePrefix() ,sentenceid);
         bringOnThings(fileName);
         setReplayAudio(Arrays.asList((Object)fileName));
         OBUtils.runOnOtherThreadDelayed(5,new OBUtils.RunLambda()
@@ -467,6 +476,8 @@ public class OC_PrepR4Trace extends OC_SectionController
     public void updateBack()
     {
         back.setContents(bitmapContext);
+        back.setNeedsRetexture();
+        back.invalidate();
     }
 
     public void doFrame(OBTimer tmr)
@@ -484,9 +495,10 @@ public class OC_PrepR4Trace extends OC_SectionController
             @Override
             public int timerEvent(OBTimer timer) {
                 doFrame(timer);
-                return 0;
+                return 1;
             }
         };
+        timer.scheduleTimerEvent();
     }
 
     public void stopTimer()
@@ -496,10 +508,10 @@ public class OC_PrepR4Trace extends OC_SectionController
             timer.invalidate();
             timer = null;
         }
-        if(bitmapContext != null)
+        /*if(bitmapContext != null)
         {
             bitmapContext = null;
-        }
+        }*/
     }
 
     public void cleanUp()
@@ -511,16 +523,10 @@ public class OC_PrepR4Trace extends OC_SectionController
     public void stampImage(OBImage img,PointF point)
     {
         RectF f = back.bounds();
-        //CGContextTranslateCTM(bitmapContext, 0 ,f.height() );
-        //CGContextScaleCTM(bitmapContext, 1, -1);
-        PointF bottomLeft = new PointF(point.x - img.width() * 0.5f,
-                point.y - img.height() * 0.5f );
-        //CGContextTranslateCTM(bitmapContext, bottomLeft.x, bottomLeft.y);
-
-
-        //CGContextSetBlendMode(bitmapContext, kCGBlendModeDestinationOut);
         Canvas canvas = new Canvas(bitmapContext);
-        canvas.translate( bottomLeft.x, bottomLeft.y);
+        canvas.translate( point.x, point.y);
+        canvas.scale(img.scaleX(),img.scaleY());
+        canvas.translate(-img.width()/2f,-img.height()/2f);
         img.drawLayer(canvas,0);
 
         maskNeedsUpdate = true;
@@ -531,11 +537,13 @@ public class OC_PrepR4Trace extends OC_SectionController
         int w = bcontext.getWidth();
         int h = bcontext.getHeight();
         int tot = 0;
+        int pixels[] = new int[w];
         for(int i = 0;i < h;i++)
         {
+            bcontext.getPixels(pixels, 0, w, 0, i, w, 1);
             for(int j = 0;j < w;j++)
             {
-                int px = bcontext.getPixel(j,i);
+                int px = pixels[j];
                 if(Color.red(px) > 25)
                 {
                     tot++;
@@ -635,7 +643,7 @@ public class OC_PrepR4Trace extends OC_SectionController
 
     public void finishTrace()
     {
-        findUnfilledPixels();
+        //findUnfilledPixels();
         final int allPeriodUnfilledPixels = countFilledPeriodPixels(bitmapContext);
         final int allUnfilledPixels = countFilledPixels(bitmapContext) - allPeriodUnfilledPixels;
         final int origUnfilledPixels = fillablePixelCount - fillablePixelCountPeriod;
@@ -684,7 +692,7 @@ public class OC_PrepR4Trace extends OC_SectionController
                 }
                 catch(Exception e)
                 {
-
+                    MainActivity.log("here");
                 }
             }
         });

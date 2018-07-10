@@ -186,9 +186,14 @@ public class OC_Pbn extends OC_SectionController
         {
             playAudioQueuedScene("DEMO",0.3f,true);
             waitForSecs(0.3f);
-
+            OBMisc.doSceneAudio(4,setStatus(STATUS_AWAITING_CLICK), this);
         }
-        OBMisc.doSceneAudio(4,setStatus(STATUS_AWAITING_CLICK), this);
+        else
+        {
+            setReplayAudio(OBUtils.insertAudioInterval(getAudioForScene(currentEvent(), "PROMPT.REPEAT"), 300));
+            reprompt(setStatus(STATUS_AWAITING_CLICK),OBUtils.insertAudioInterval(getAudioForScene(currentEvent(), "REMIND"), 300),5);
+        }
+
     }
 
     public Map<String,Object> eventDataForNumbers(String[] nums, boolean wrongOnlyDemo)
@@ -368,12 +373,12 @@ public void higlightAndSayLabel(OBLabel label) throws Exception
             presenter.walk(loc);
             presenter.faceFront();
             waitForSecs(0.3f);
-            presenter.speak(Arrays.asList((Object)getAudioForScene(currentEvent(),"DEMO").get(0)),this);
+            presenter.speak(Arrays.asList((Object)getAudioForScene("p1_1","DEMO").get(0)),this);
             waitForSecs(0.3f);
             loc.x = 0.87f*this.bounds().width();
             presenter.walk(loc);
             presenter.faceFront();
-            presenter.speak(Arrays.asList((Object)getAudioForScene(currentEvent(),"DEMO").get(1)),this);
+            presenter.speak(Arrays.asList((Object)getAudioForScene("p1_1","DEMO").get(1)),this);
             waitForSecs(0.3f);
             loc.x = 1.2f*this.bounds().width();
             presenter.walk(loc);
@@ -381,8 +386,8 @@ public void higlightAndSayLabel(OBLabel label) throws Exception
             waitForSecs(0.4f);
         }
         loadPointer(POINTER_LEFT);
-        moveScenePointer(OB_Maths.locationForRect(0.9f,0.9f,this.bounds()),-30,0.5f,"DEMO2",0,0.3f);
-        playAudioScene("DEMO2",1,true);
+        movePointerToPoint(OB_Maths.locationForRect(0.9f,0.9f,this.bounds()),-30,0.5f, true);
+        playAudioQueuedScene("p1_1", "DEMO2", 0.3f, true);
         waitForSecs(0.5f);
         thePointer.hide();
         startScene(false);
