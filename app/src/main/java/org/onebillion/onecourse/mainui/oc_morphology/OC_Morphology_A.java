@@ -641,7 +641,7 @@ public class OC_Morphology_A extends OC_Morphology
         try
         {
             waitForSecs(0.3f);
-            String params = String.format("morphology3;morphologya/sentencegroups(%s",parameters.get("sentencegroups"));
+            String params = String.format("morphology3;morphologya/sentencegroups=%s",parameters.get("sentencegroups"));
             goToCard(OC_Morphology_3.class,params,false);
         }
         catch(Exception e)
