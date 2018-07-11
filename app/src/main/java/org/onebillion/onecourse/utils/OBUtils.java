@@ -1516,4 +1516,20 @@ public class OBUtils
         return centroid;
 
     }
+
+    public static RectF corRectUnion(RectF f1,RectF f2)
+    {
+        if (f1 == null)
+        {
+            f1 = new RectF(f2);
+            return f1;
+        }
+        float minx = Math.min(f1.left,f2.left);
+        float miny = Math.min(f1.top,f2.top);
+        float maxx = Math.max(f1.right,f2.right);
+        float maxy = Math.max(f1.bottom,f2.bottom);
+        f1.set(minx,miny,maxx,maxy);
+        return f1;
+    }
+
 }
