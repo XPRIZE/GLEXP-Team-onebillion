@@ -155,7 +155,7 @@ public class OC_DiagnosticsManager
                 List<String> filter = new ArrayList<>();
                 if (filterString.length() > 0)
                 {
-                    filter.addAll(Arrays.asList(filterString.split("\\|")));
+                    filter.addAll(Arrays.asList(filterString.split("/")));
                 }
                 List<Object> remedialUnitFilter = new ArrayList<>();
                 remedialUnitFilter.add(target);
