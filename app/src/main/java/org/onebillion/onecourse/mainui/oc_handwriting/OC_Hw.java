@@ -407,6 +407,7 @@ public class OC_Hw extends OC_SectionController
         erasingPaint = new Paint();
         erasingPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OUT));
         eraserBitmap = eraser2.drawn();
+        eraserBitmap.prepareToDraw();
     }
 
     public float drawPathWidth()

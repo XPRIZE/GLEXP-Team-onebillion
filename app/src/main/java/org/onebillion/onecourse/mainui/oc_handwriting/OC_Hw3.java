@@ -526,14 +526,15 @@ public class OC_Hw3 extends OC_Hw
         waitForSecs(0.3f);
         playAudioQueuedScene("DEMO",true);
         waitForSecs(0.3f);
+
         lockScreen();
         for(OBGroup gr : menuItems)
             gr.show();
         playSfxAudio("menu",false);
-
         unlockScreen();
         waitSFX();
         waitForSecs(0.3f);
+
         if(OBUtils.getBooleanValue(parameters.get("demo")))
         {
             loadPointer(POINTER_LEFT);
@@ -543,12 +544,13 @@ public class OC_Hw3 extends OC_Hw
             movePointerToPoint(OB_Maths.locationForRect(0.7f,1.1f,menuItem.frame()),-40,0.5f,true);
             waitForSecs(0.3f);
             movePointerToPoint(OB_Maths.locationForRect(0.5f,0.5f,menuItem.frame()),-40,0.2f,true);
+
             lockScreen();
             colourPaths(highlightColour,menuItem);
             setupEventLetterForText((String)menuItem.propertyValue("text"));
             currentMenuItem = menuItem;
-
             unlockScreen();
+
             playSfxAudio("choose",true);
             movePointerToPoint(OB_Maths.locationForRect(0.9f,0.9f,this.bounds()),-20,0.7f,true);
             waitForSecs(0.3f);
