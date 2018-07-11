@@ -105,7 +105,7 @@ public class OC_Morphology extends OC_Reading
                 for(OBXMLNode pNode : root.childrenOfType("phrase"))
                 {
                     String sid = pNode.attributeStringValue("id");
-                    ocm_sentence se = new ocm_sentence(sid,pNode.contents);
+                    ocm_sentence se = new ocm_sentence(sid,pNode.contents.trim());
                     dict.put(sid,se);
                 }
                 for(OBXMLNode mNode : root.childrenOfType("markup"))

@@ -194,20 +194,6 @@ public class OC_PlayZoneTrace extends OC_SectionController
         attachControl(redLayer);
     }
 
-    public RectF corRectUnion(RectF f1,RectF f2)
-    {
-        if (f1 == null)
-        {
-            f1 = new RectF(f2);
-            return f1;
-        }
-        float minx = Math.min(f1.left,f2.left);
-        float miny = Math.min(f1.top,f2.top);
-        float maxx = Math.max(f1.right,f2.right);
-        float maxy = Math.max(f1.bottom,f2.bottom);
-        f1.set(minx,miny,maxx,maxy);
-        return f1;
-    }
 
     public OBGroup letterGroup(String l,String rectName)
     {
@@ -234,7 +220,7 @@ public class OC_PlayZoneTrace extends OC_SectionController
                 memberlist.add(p);
                 RectF f2 = p.boundingBox();
                 //f.union(f2);
-                f = corRectUnion(f,f2);
+                f = OBUtils.corRectUnion(f,f2);
             }
         }
         f.inset(-lineWidth,-lineWidth);
@@ -311,13 +297,13 @@ public class OC_PlayZoneTrace extends OC_SectionController
 
     public void highlightAndPlay(int i) throws Exception
     {
-        setLetterHollow(i,true);
+        setLetterHigh(i,true);
         waitForSecs(0.3f);
         playLetterSound(letter);
         waitForSecs(0.2f);
         waitAudio();
         waitForSecs(0.5f);
-        setLetterHollow(i,false);
+        setLetterHigh(i,false);
     }
 
     public void updateBack()
@@ -548,7 +534,8 @@ public class OC_PlayZoneTrace extends OC_SectionController
     {
         lockScreen();
         redLayer.hide();
-        hollow.hide();
+        //hollow.hide();
+        back.hide();
         unlockScreen();
         waitForSecs(0.4f);
         highlightAndPlay(currNo);
