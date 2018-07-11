@@ -648,17 +648,17 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
 
     public void refreshStatus()
     {
-        String info = String.format("Build:%s    Bat:%s    Br:%s    Vol:%s    %s%s%s",
-                OBConfigManager.sharedManager.getBuildNumber(),
-                batteryReceiver.printStatus(),
-                brightnessManager.printStatus(),
-                settingsContentObserver.printVolumeStatus(),
-                currentUnit != null ? String.format("Unit:%s   ", currentUnit) : "",
-                currentWeek != null ? String.format("Week:%s   ", currentWeek) : "",
-                currentDay != null ? String.format("Day:%s   ", currentDay) : "");
-        //
         if (statusLabel != null)
         {
+            String info = String.format("Build:%s    Bat:%s    Br:%s    Vol:%s    %s%s%s",
+                    OBConfigManager.sharedManager.getBuildNumber(),
+                    batteryReceiver.printStatus(),
+                    brightnessManager.printStatus(),
+                    settingsContentObserver.printVolumeStatus(),
+                    currentUnit != null ? String.format("Unit:%s   ", currentUnit) : "",
+                    currentWeek != null ? String.format("Week:%s   ", currentWeek) : "",
+                    currentDay != null ? String.format("Day:%s   ", currentDay) : "");
+            //
             statusLabel.setString(info);
         }
     }

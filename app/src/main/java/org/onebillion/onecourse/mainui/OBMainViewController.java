@@ -75,16 +75,19 @@ public class OBMainViewController extends OBViewController
         {
             c.setShadow(0,0.3f,amt,amt,Color.BLACK);
         }
-
-        Typeface tf = OBUtils.standardTypeFace();
-        topLabel = new OBLabel("ALL WORK AND NO PLAY MAKES JACK A DULL BOY. ALL WORK AND NO PLAY MAKES JACK A DULL BOY. ALL WORK AND NO PLAY MAKES JACK A DULL BOY", tf, applyGraphicScale(15));
-        topLabel.setColour(Color.BLACK);
-        topLabel.controller = this;
-        topLabel.sizeToBoundingBox();
-        topLabel.setPosition(bounds().centerX(), bounds().centerY());
-        topLabel.setJustification(OBTextLayer.JUST_CENTRE);
-        topLabel.setTop(0);
-        OBSystemsManager.sharedManager.setStatusLabel(topLabel);
+        //
+        if (OBConfigManager.sharedManager.isDebugEnabled())
+        {
+            Typeface tf = OBUtils.standardTypeFace();
+            topLabel = new OBLabel("ALL WORK AND NO PLAY MAKES JACK A DULL BOY. ALL WORK AND NO PLAY MAKES JACK A DULL BOY. ALL WORK AND NO PLAY MAKES JACK A DULL BOY", tf, applyGraphicScale(15));
+            topLabel.setColour(Color.BLACK);
+            topLabel.controller = this;
+            topLabel.sizeToBoundingBox();
+            topLabel.setPosition(bounds().centerX(), bounds().centerY());
+            topLabel.setJustification(OBTextLayer.JUST_CENTRE);
+            topLabel.setTop(0);
+            OBSystemsManager.sharedManager.setStatusLabel(topLabel);
+        }
     }
 
     public void setBottomRightButton(String itype)
@@ -131,12 +134,6 @@ public class OBMainViewController extends OBViewController
             bottomRightButton.setOpacity(0.0f);
         else
             bottomRightButton.setOpacity(1.0f);
-
-        if (OBConfigManager.sharedManager.isDebugEnabled())
-            topLabel.setOpacity(1.0f);
-        else
-            topLabel.setOpacity(0.0f);
-
     }
 
     public void showHideButtons (int flags)
@@ -600,7 +597,11 @@ public class OBMainViewController extends OBViewController
         topRightButton.render(renderer, this, renderer.projectionMatrix);
         bottomRightButton.render(renderer, this, renderer.projectionMatrix);
         bottomLeftButton.render(renderer, this, renderer.projectionMatrix);
-        topLabel.render(renderer, this, renderer.projectionMatrix);
+        //
+        if (topLabel != null)
+        {
+            topLabel.render(renderer, this, renderer.projectionMatrix);
+        }
     }
 
     public void onResume()
