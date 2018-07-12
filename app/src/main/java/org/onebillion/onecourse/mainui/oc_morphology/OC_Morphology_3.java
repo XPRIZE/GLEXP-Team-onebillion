@@ -582,16 +582,20 @@ public class OC_Morphology_3 extends OC_Morphology
     public void readSentenceHighlightingAll(boolean high) throws Exception
     {
         if(high)
+        {
             lockScreen();
-        for(OBLabel lab : substitutedLabels)
-            lab.setColour(Color.RED);
-        unlockScreen();
+            for (OBLabel lab : substitutedLabels)
+                lab.setColour(Color.RED);
+            unlockScreen();
+        }
         playAudioQueued((List)Arrays.asList(currentSentence().sid),true);
         if(high)
+        {
             lockScreen();
-        for(OBLabel lab : substitutedLabels)
-            lab.setColour(Color.BLACK);
-        unlockScreen();
+            for (OBLabel lab : substitutedLabels)
+                lab.setColour(Color.BLACK);
+            unlockScreen();
+        }
     }
 
     public void doMainXX() throws Exception
@@ -710,7 +714,7 @@ public class OC_Morphology_3 extends OC_Morphology
             if(token == sequenceToken)
             {
                 List aud = currentAudio("INCORRECT");
-                if(aud.size() > 0)
+                if(aud != null && aud.size() > 0)
                     playAudioQueued(Arrays.asList(aud.get(0)),true);
                 checkSequenceToken(token);
                 if(playFirstAudio)
