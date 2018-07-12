@@ -138,6 +138,8 @@ public class OC_Morphology_3 extends OC_Morphology
     {
         rst -= rw.index;
         ren -= rw.index;
+        if (ren > rw.text.length())
+            ren = rw.text.length();
         OBReadingWord rw0 = OBReadingWord.wordFromString(rw.text,0, rst, WORD_SPEAKABLE,0);
         OBReadingWord rw1 = OBReadingWord.wordFromString(rw.text,rst,ren,WORD_SPEAKABLE,0);
         OBReadingWord rw2 = OBReadingWord.wordFromString(rw.text,ren,rw.text.length(),WORD_SPEAKABLE,0);

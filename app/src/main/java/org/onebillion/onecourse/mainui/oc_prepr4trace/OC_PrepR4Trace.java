@@ -398,7 +398,7 @@ public class OC_PrepR4Trace extends OC_SectionController
 
     public String filePrefix()
     {
-        return "egrast4s1_";
+        return "prepr4s1_";
     }
 
     public void fadeInHollow() throws Exception
