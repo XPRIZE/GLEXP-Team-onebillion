@@ -19,6 +19,7 @@ import org.onebillion.onecourse.utils.OBReadingWord;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -31,7 +32,7 @@ public class OC_ReadingAudioRec extends OC_Reading
     OBAudioRecorder audioRecorder;
     OBLabel wordLabel;
     float recordDuration;
-    int targetParagraph, currentRecordingAttempt;
+    int currentRecordingAttempt;
     OC_AudioRecordingButton recordingButton;
 
     public long statusSetWaitRecordStart()
@@ -67,7 +68,6 @@ public class OC_ReadingAudioRec extends OC_Reading
     @Override
     public void prepare()
     {
-        targetParagraph = 1;
         setStatus(STATUS_DOING_DEMO);
         super.prepare();
         objectDict.get("wordback").hide();
@@ -181,8 +181,11 @@ public class OC_ReadingAudioRec extends OC_Reading
     {
         OBUtils.cleanUpTempFiles(this);
         super.setUpScene();
-        OBAudioManager.audioManager.prepareForChannel(currentAudio(),"special");
-        recordDuration = (float)OBAudioManager.audioManager.durationForChannel("special");
+        recordDuration = 0;
+        for(String audio : currentAudio()) {
+            OBAudioManager.audioManager.prepareForChannel(audio, "special");
+            recordDuration += (float) OBAudioManager.audioManager.durationForChannel("special");
+        }
         showNextArrowAndRA(false);
     }
 
@@ -219,18 +222,21 @@ public class OC_ReadingAudioRec extends OC_Reading
         recordingButton.flash(statusSetWaitRecordStart(),8);
     }
 
-    public String currentAudio()
+    public List<String> currentAudio()
     {
-        return String.format("p%d_%d",pageNo,targetParagraph);
+        List<String> audios = new ArrayList<>();
+        for(int i=0; i<paragraphs.size(); i++)
+            audios.add(String.format("p%d_%d",pageNo,i+1));
+        return audios;
     }
 
     public void highlightCurrentParagraph(int colour)
     {
-        OBReadingPara para = paragraphs.get(targetParagraph-1);
-        for(OBReadingWord w : para.words)
-        {
-            if(w.label != null)
-                w.label.setColour(colour);
+        for(OBReadingPara para : paragraphs) {
+            for (OBReadingWord w : para.words) {
+                if (w.label != null)
+                    w.label.setColour(colour);
+            }
         }
     }
 
@@ -239,10 +245,17 @@ public class OC_ReadingAudioRec extends OC_Reading
         long token = -1;
         try
         {
-            token = takeSequenceLockInterrupt(true);
             reading = true;
-            readParagraph(targetParagraph-1,token,true);
-            waitForSecs(0.6f);
+            token = takeSequenceLockInterrupt(true);
+            for(int i=0; i<paragraphs.size(); i++) {
+                checkSequenceToken(token);
+                readParagraph(i, token, true);
+                for (int j = 0;j < 6;j++)
+                {
+                    checkSequenceToken(token);
+                    waitForSecs(0.1);
+                }
+            }
         }
         catch(Exception exception)
         {
@@ -288,19 +301,13 @@ public class OC_ReadingAudioRec extends OC_Reading
             waitForSecs(1f);
             playAudioQueued(OBUtils.insertAudioInterval(getPageAudio("FINAL2"),300),true);
             waitForSecs(1.5f);
-            if(targetParagraph >= paragraphs.size())
-            {
-                showNextArrowAndRA(true);
-                if(pageNo == 0)
-                    demoArrow();
-                statusSetWaitNextButton();
-                flashContinuouslyAfter(6.5f);
-            }
-            else
-            {
-                targetParagraph++;
-                start();
-            }
+
+            showNextArrowAndRA(true);
+            if(pageNo == 0)
+                demoArrow();
+            statusSetWaitNextButton();
+            flashContinuouslyAfter(6.5f);
+
         }
     }
 
@@ -404,7 +411,7 @@ public class OC_ReadingAudioRec extends OC_Reading
 
     public void demoStart() throws Exception
     {
-        if(pageNo == 0 && targetParagraph == 1)
+        if(pageNo == 0 )
         {
             demoIntro1();
             waitForSecs(0.3f);
@@ -418,8 +425,8 @@ public class OC_ReadingAudioRec extends OC_Reading
                 waitForSecs(0.3f);
             }
         }
-        if(targetParagraph == 1)
-            performSel("demoPage",String.format("%d",pageNo));
+
+        performSel("demoPage",String.format("%d",pageNo));
     }
 
     public void demoExample() throws Exception
@@ -445,8 +452,7 @@ public class OC_ReadingAudioRec extends OC_Reading
         recordingButton.setState(OC_AudioRecordingButton.BUTTON_STATE_ACTIVE);
         recordingButton.startRecordingAnimation();
         waitForSecs(0.5f);
-        playAudio(currentAudio());
-        waitAudio();
+        playAudioQueued(OBUtils.insertAudioInterval(currentAudio(), 300), true);
         waitForSecs(0.5f);
         playAudio(getAudioForScene("example","DEMO") .get(2));
         waitAudio();
@@ -527,7 +533,7 @@ public class OC_ReadingAudioRec extends OC_Reading
 
     public List<String> getPageAudio(String audio)
     {
-        String currentPage = String.format("%d_%d",pageNo, targetParagraph);
+        String currentPage = String.format("%d_%d",pageNo, 1);
         if(audioScenes.containsKey(currentPage))
         {
             return getAudioForScene(currentPage,audio);
