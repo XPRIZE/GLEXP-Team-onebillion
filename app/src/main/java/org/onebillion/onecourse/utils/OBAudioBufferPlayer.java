@@ -492,7 +492,7 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
         }
         catch(Exception e)
         {
-
+            e.printStackTrace();
         }
     }
 

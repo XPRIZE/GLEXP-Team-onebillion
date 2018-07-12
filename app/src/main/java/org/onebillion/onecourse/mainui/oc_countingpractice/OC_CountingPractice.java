@@ -518,7 +518,7 @@ public class OC_CountingPractice extends OC_Generic_Event
                 unlockScreen();
                 waitSFX();
             }
-            maxClumpsOnScreen = totalClumpsForSecondStage();
+            maxClumpsOnScreen = Math.min(20 - clumpOfObjectsForUnit + 1, totalClumpsForSecondStage());
             populatePeasWithAnimation();
             if (currentEvent().equals("c"))
             {
