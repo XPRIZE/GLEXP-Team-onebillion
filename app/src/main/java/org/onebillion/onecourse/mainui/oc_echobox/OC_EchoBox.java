@@ -1,6 +1,7 @@
 package org.onebillion.onecourse.mainui.oc_echobox;
 
 import org.onebillion.onecourse.controls.OBGroup;
+import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 
 import android.content.res.AssetFileDescriptor;
@@ -284,7 +285,6 @@ public class OC_EchoBox extends OC_SectionController
 
     public void speak(List audioFiles,Map od,List<String> keys)
     {
-        OBAudioManager audioMan = OBAudioManager.audioManager;
         List<Integer> indices = new ArrayList<>();
         for(int i = 0;i < keys.size();i++)
             indices.add((i));
@@ -295,10 +295,8 @@ public class OC_EchoBox extends OC_SectionController
             long token = takeSequenceLockInterrupt(true);
             for(String audioFile : (List<String>)audioFiles)
             {
-                //playAudio(audioFile);
                 playFile(audioFile,0,-1,1.0f);
                 int idx = 0;
-                //while(audioMan.isPlaying())
                 while(effectPlayer.getState() < OBAP_PLAYING)
                 {
                     checkSequenceToken(token);
@@ -662,20 +660,25 @@ public class OC_EchoBox extends OC_SectionController
     }
     public void endBody()
     {
-        List aud = currentAudio("PROMPT.REMINDER");
+        final List aud = currentAudio("PROMPT.REMINDER");
         if(aud != null)
         {
             try
             {
                 final long stt = statusTime();
-                reprompt(stt, aud, 5, new OBUtils.RunLambda()
+                reprompt(stt, null, 5, new OBUtils.RunLambda()
                 {
                     public void run() throws Exception
                     {
-                        tigerRemind(stt);
+                        OBUtils.runOnOtherThread(new OBUtils.RunLambda() {
+                            @Override
+                            public void run() throws Exception {
+                                tigerRemind(stt);
+                            }
+                        });
+                        toucanSpeak(aud);
                     }
                 });
-                toucanSpeak(aud);
             }
             catch(Exception e)
             {
@@ -754,7 +757,7 @@ public class OC_EchoBox extends OC_SectionController
            // public void run() throws Exception
             {
                 if(effectPlayer == null)
-                    effectPlayer = new OBAudioBufferPlayer();
+                    effectPlayer = new OBAudioBufferPlayer(false,true);
                 effectPlayer.stopPlaying();
                 //effectPlayer.changePitchAmt(350);
                 //effectPlayer.setVolume(vol);
@@ -946,10 +949,10 @@ public class OC_EchoBox extends OC_SectionController
             long currentTime = SystemClock.uptimeMillis();
             recordingDuration = currentTime - timeRecordingStart;
             float val = recorder.getAveragePower();
-            //NSLog("%g",val);
+            MainActivity.log("%g",val);
             if(val > AUDIBLE_THRESHOLD)
             {
-                //NSLog("currenttime %g",recordingDuration);
+                MainActivity.log("currenttime %g",recordingDuration);
                 timeLastSound = currentTime;
                 if(timeFirstSound == 0)
                     timeFirstSound = timeLastSound;
@@ -988,7 +991,7 @@ public class OC_EchoBox extends OC_SectionController
                     public int timerEvent(OBTimer timer)
                     {
                         timerFire(timer);
-                        return 0;
+                        return 1;
                     }
                 };
             }
