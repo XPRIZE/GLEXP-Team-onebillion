@@ -411,7 +411,7 @@ public class OC_Lg extends OC_SectionController
 
     public boolean repeatFailedQuestion()
     {
-        return false;
+        return true;
     }
 
     public boolean keepTargetsSameSize()
