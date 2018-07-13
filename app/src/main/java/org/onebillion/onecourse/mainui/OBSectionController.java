@@ -1692,7 +1692,7 @@ public class OBSectionController extends OBViewController
     {
         updateAudioQueueToken();
         final long aqtCopy = audioQueueToken;
-        OBAudioBufferPlayer player = new OBAudioBufferPlayer(false);
+        OBAudioBufferPlayer player = new OBAudioBufferPlayer();
         AssetFileDescriptor afd = OBAudioManager.audioManager.getAudioPathFD(fileName);
         player.startPlaying(afd,fromTime,toTime);
         return player;

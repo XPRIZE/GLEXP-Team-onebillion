@@ -22,11 +22,11 @@ public abstract class OBGeneralAudioPlayer
     int state;
     float volume = 1.0f;
 
-    public synchronized int getState ()
+    public int getState ()
     {
         return state;
     }
-    synchronized void setState (int st)
+    void setState (int st)
     {
         state = st;
     }

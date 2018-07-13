@@ -24,6 +24,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import static android.media.AudioFormat.CHANNEL_OUT_MONO;
 import static android.media.AudioFormat.ENCODING_PCM_16BIT;
 import static android.media.MediaCodec.BUFFER_FLAG_END_OF_STREAM;
+import static android.media.MediaFormat.KEY_SAMPLE_RATE;
 
 /**
  * Created by alan on 13/07/17.
@@ -42,7 +43,7 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
     long presentationTimeus = 0, durationus = -1;
     Boolean playWhenReady;
     int bufferSequenceNo = 0,nextBufIdx=0;
-    boolean wantsFFTData;
+    boolean wantsFFTData,wantsMetrics;
     SimpleBuffer buffers[] = new SimpleBuffer[NO_BUFFERS];
     AudioTimestamp timeStamp = new AudioTimestamp();
     int sampleRate = 44100;
@@ -107,12 +108,18 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
 
     public OBAudioBufferPlayer (boolean withFFT)
     {
+        this(withFFT,false);
+    }
+
+    public OBAudioBufferPlayer (boolean withFFT,boolean withMetrics)
+    {
         mediaExtractor = new MediaExtractor();
         playerLock = new ReentrantLock();
         condition = playerLock.newCondition();
         setState(OBAP_IDLE);
         wantsFFTData = withFFT;
-        if (wantsFFTData)
+        wantsMetrics = withMetrics;
+        if (wantsFFTData || wantsMetrics)
             for (int i = 0;i < NO_BUFFERS;i++)
                 buffers[i] = new SimpleBuffer();
         fromTime = 0.0;
@@ -394,9 +401,11 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
             fileAmtRead = 0;
             mediaExtractor.setDataSource(fd,fOffset,fileLength);
             mediaExtractor.selectTrack(0);
+            MediaFormat mediaFormat = mediaExtractor.getTrackFormat(0);
             AudioFormat.Builder afb = new AudioFormat.Builder();
             afb.setChannelMask(CHANNEL_OUT_MONO);
             afb.setEncoding(AudioFormat.ENCODING_PCM_16BIT);
+            sampleRate = mediaFormat.getInteger(KEY_SAMPLE_RATE);
             afb.setSampleRate(sampleRate);
             AudioAttributes.Builder aab = new AudioAttributes.Builder();
             aab.setUsage(AudioAttributes.USAGE_MEDIA);
@@ -447,7 +456,7 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
                         int framesEnd = (int)(amtWritten + bytesInBuffer) / 2;
                         audioTrack.setNotificationMarkerPosition(framesEnd);
                     }
-                    if (wantsFFTData)
+                    if (wantsFFTData || wantsMetrics)
                         writeOutputBufferToBuffers(outputBuffer,info.presentationTimeUs,amtWritten / 2);
                     int res;
                     if (pitch != 1f)
@@ -596,7 +605,14 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
 
     public float averagePower()
     {
-        return 0;
+        int ct = buffers[0].bufferSize;
+        float[] mfloats = new float[ct];
+        getCurrentBufferFloats(mfloats);
+        double tot = 0;
+        for (int i = 0;i < ct;i++)
+            tot += Math.sqrt(mfloats[i] * mfloats[i]);
+        double avg = tot / ct;
+        return (float)avg;
     }
 
 }
