@@ -125,6 +125,8 @@ public class OC_EchoBox extends OC_SectionController
     public void miscSetup()
     {
         textSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("textsize")));
+        OBGroup tiger = (OBGroup) objectDict.get("tiger");
+        tiger.outdent(tiger.width()/3);
     }
 
     public void prepare()

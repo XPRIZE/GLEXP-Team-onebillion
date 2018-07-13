@@ -560,7 +560,9 @@ public class OC_PrepR4Trace extends OC_SectionController
         int tot = 0;
         for(int i = (int)f.top;i < f.top + f.height();i++)
         {
-            for(int j = (int)f.left;j < f.left + f.width();j++)
+            int maxx = (int)(f.left + f.width());
+            maxx = Math.max(maxx,bcontext.getWidth());
+            for(int j = (int)f.left;j < maxx;j++)
             {
                 int px = bcontext.getPixel(j,i);
                 if(Color.red(px) > 25)
