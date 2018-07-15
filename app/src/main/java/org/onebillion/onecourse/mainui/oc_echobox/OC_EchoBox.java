@@ -252,7 +252,8 @@ public class OC_EchoBox extends OC_SectionController
         try
         {
             long token = takeSequenceLockInterrupt(true);
-            playFile(audioFile,fromSecs,toSecs,2.0f);
+            AssetFileDescriptor fd = OBUtils.getAssetFileDescriptorForPath(audioFile);
+            playFile(fd,fromSecs,toSecs,2.0f);
             int idx = 0;
             while(effectPlayer.getState() < OBAP_PLAYING)
             {
@@ -297,7 +298,8 @@ public class OC_EchoBox extends OC_SectionController
             long token = takeSequenceLockInterrupt(true);
             for(String audioFile : (List<String>)audioFiles)
             {
-                playFile(audioFile,0,-1,1.0f);
+                AssetFileDescriptor fd = OBAudioManager.audioManager.getAudioPathFD(audioFile);
+                playFile(fd,0,-1,1.0f);
                 int idx = 0;
                 while(effectPlayer.getState() < OBAP_PLAYING)
                 {
@@ -747,25 +749,25 @@ public class OC_EchoBox extends OC_SectionController
         //NSLog("finished play");
     }
 
-    public void playFile(String url)
+    public void playFile(AssetFileDescriptor fd)
     {
-        playFile(url,0,-1,1);
+        playFile(fd,0,-1,1);
     }
 
-    public void playFile(final String fileName,final float fromSecs,final float toSecs,float vol)
+    public void playFile(final AssetFileDescriptor fd,final float fromSecs,final float toSecs,float vol)
     {
         //OBUtils.runOnMainThread(new OBUtils.RunLambda() {
            // @Override
            // public void run() throws Exception
             {
-                if(effectPlayer == null)
+                //if(effectPlayer == null)
                     effectPlayer = new OBAudioBufferPlayer(false,true);
                 effectPlayer.stopPlaying();
                 //effectPlayer.changePitchAmt(350);
                 //effectPlayer.setVolume(vol);
         //effectPlayer setCompletionBlock:^(OBAudioEffectPlayer player) {
           //      weakplaybackFinished();
-                AssetFileDescriptor fd = OBAudioManager.audioManager.getAudioPathFD(fileName);
+
                 effectPlayer.startPlaying(fd, fromSecs,toSecs);
 
             }
@@ -913,8 +915,8 @@ public class OC_EchoBox extends OC_SectionController
                     setStatus(STATUS_PLAYING_RECORDING);
                     try
                     {
-                        long startsecs = timeFirstSound - timeRecordingStart;
-                        long endsecs = timeLastSound - timeRecordingStart;
+                        float startsecs = (timeFirstSound - timeRecordingStart)/1000f;
+                        float endsecs = (timeLastSound - timeRecordingStart) / 1000f;
                         startsecs -= 0.25;
                         if(startsecs < 0)
                             startsecs = 0;
@@ -931,7 +933,7 @@ public class OC_EchoBox extends OC_SectionController
                 }
                 if(part2)
                 {
-                    toucanSpeak(Arrays.asList(String.format("ebws_%",currKey)));
+                    toucanSpeak(Arrays.asList(String.format("ebws_%s",currKey)));
                     waitForSecs(1f);
                 }
                 nextScene();
@@ -954,21 +956,21 @@ public class OC_EchoBox extends OC_SectionController
             MainActivity.log("%g",val);
             if(val > AUDIBLE_THRESHOLD)
             {
-                MainActivity.log("currenttime %g",recordingDuration);
+                MainActivity.log("currenttime %d",recordingDuration);
                 timeLastSound = currentTime;
                 if(timeFirstSound == 0)
                     timeFirstSound = timeLastSound;
             }
             else
             {
-                if(currentTime - timeRecordingStart > 5 && timeLastSound == 0)
+                if(currentTime - timeRecordingStart > 5000 && timeLastSound == 0)
                 {
                     stopTimer();
                     recorder.stopRecording();
                     recordingFinished();
                     return;
                 }
-                if(timeLastSound > 0 && currentTime - timeRecordingStart > 3 && currentTime - timeLastSound > 3)
+                if(timeLastSound > 0 && currentTime - timeRecordingStart > 3000 && currentTime - timeLastSound > 3000)
                 {
                     recorder.stopRecording();
                     recordingFinished();
@@ -996,6 +998,7 @@ public class OC_EchoBox extends OC_SectionController
                         return 1;
                     }
                 };
+                timer.scheduleTimerEvent();
             }
         });
     }

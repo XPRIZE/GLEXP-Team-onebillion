@@ -51,6 +51,7 @@ public class OBGeneralAudioRecorder extends Object implements MediaRecorder.OnEr
         audioRecorder.setMaxDuration((int)(secs * 1000));
         prepare();
         audioRecorder.start();
+        state = ST_RECORDING;
     }
 
     public void stopRecording()
