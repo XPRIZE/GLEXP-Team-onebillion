@@ -134,6 +134,18 @@ public class OC_Hw extends OC_SectionController
         setupCanvas();
     }
 
+    public void alighGroupAroundXbox(OBGroup guideGroup)
+    {
+        if(guideGroup.objectDict.containsKey("xbox1"))
+        {
+            OBControl xbox = guideGroup.objectDict.get("xbox1");
+            PointF xboxLoc = xbox.getWorldPosition();
+            PointF loc = OBMisc.copyPoint(guideGroup.position());
+            loc.y += loc.y - xboxLoc.y;
+            guideGroup.setPosition(loc);
+        }
+    }
+
     public int buttonFlags()
     {
         return OBMainViewController.SHOW_TOP_LEFT_BUTTON|OBMainViewController.SHOW_TOP_RIGHT_BUTTON|0|0;
@@ -487,23 +499,23 @@ public class OC_Hw extends OC_SectionController
                 if(arr.size() > 0)
                 {
                     RectF fp = OBUtils.PathsUnionRect(arr);
-                    fp.top -= f.top;
-                    if (fp.top < miny)
-                        miny = fp.top;
-                    float thismaxy = fp.top + fp.height();
+                    fp.bottom -= f.bottom;
+                    if (fp.bottom > miny)
+                        miny = fp.bottom;
+                    float thismaxy = fp.bottom;
                     if (thismaxy > maxy)
                         maxy = thismaxy;
                 }
             }
             float pathsheight = maxy - miny;
             float diff = (this.bounds().height() - pathsheight) / 2.0f;
-            float xboxtop = diff - miny;
+            float xboxbottom = diff - miny;
             float left = (this.bounds().width() - xboxeswidth) / 2.0f;
             for (int i = 0;i < xboxes.size();i++)
             {
                 OBControl xb = xboxes.get(i);
                 float xdiff = left - xb.left();
-                float ydiff = xboxtop - xb.top();
+                float ydiff = xboxbottom - xb.bottom();
                 xb.setPosition(OB_Maths.OffsetPoint(xb.position(), xdiff, ydiff));
                 for (OBPath p : letterPaths.get(i))
                     p.setPosition(OB_Maths.OffsetPoint(p.position(), xdiff, ydiff));

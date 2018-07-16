@@ -419,15 +419,20 @@ public class OC_Hw3 extends OC_Hw
         if(exampleGroup != null)
             detachControl(exampleGroup);
 
+        String firstChar = text.substring(0,1);
+        boolean useXbox = numbersMode || !firstChar.equals(firstChar.toUpperCase());
+
         exampleGroup = loadPaths(text,Color.WHITE,applyGraphicScale(20),true);
 
         if(exampleGroup.width() > 0.35f*board.width())
             exampleGroup.setScale(0.35f*board.width()/exampleGroup.width());
 
         exampleGroup.setPosition(OB_Maths.locationForRect(0.25f,0.5f,board.frame()));
+        if(useXbox)
+            alighGroupAroundXbox(exampleGroup);
         exampleGroup.setZPosition(4);
-        String firstChar = text.substring(0,1);
-        setupLinesForGroup(exampleGroup,numbersMode || !firstChar.equals(firstChar.toUpperCase()));
+
+        setupLinesForGroup(exampleGroup,useXbox);
 
         if(guideGroup != null)
             detachControl(guideGroup);
@@ -436,6 +441,7 @@ public class OC_Hw3 extends OC_Hw
         attachControl(guideGroup);
         guideGroup.setOpacity(0.3f);
         guideGroup.setPosition(OB_Maths.locationForRect(0.75f,0.5f,objectDict.get("board").frame()));
+        guideGroup.setBottom(exampleGroup.bottom());
         guideGroup.hide();
         showAllStrokes(guideGroup);
 

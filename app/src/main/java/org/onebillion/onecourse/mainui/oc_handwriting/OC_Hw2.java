@@ -9,6 +9,7 @@ import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimBlock;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
+import org.onebillion.onecourse.utils.OBMisc;
 import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OBWord;
@@ -126,6 +127,7 @@ public class OC_Hw2 extends OC_Hw
             guideGroup.setScale(guideGroup.scale() * 0.9f*board.width()/guideGroup.width());
 
         guideGroup.setPosition(OB_Maths.locationForRect(0.5f,0.5f,board.frame()));
+        alighGroupAroundXbox(guideGroup);
         guideGroup.setZPosition(4);
 
 
