@@ -68,8 +68,18 @@ public class OC_EquationWithPic extends OC_SectionController
         OBPath picFrame = (OBPath)objectDict.get("pic_frame");
         picFrame.setZPosition(0.5f);
         String[] picNums = parameters.get("pic").split(",");
-        int picNum = OB_Maths.randomInt(OBUtils.getIntValue(picNums[0]) , OBUtils.getIntValue(picNums[1]));
+
+        int picFrom = OBUtils.getIntValue(picNums[0]);
+        int picTo = OBUtils.getIntValue(picNums[1]);
+        if(picFrom>48)
+            picFrom = 1;
+        if(picTo>48)
+            picTo = 48;
+
+        int picNum = OB_Maths.randomInt(picFrom ,picTo);
         OBImage screenImage = loadImageWithName(String.format("eqpic_%d",picNum),new PointF(0.5f, 0.5f),picFrame.frame());
+        if(screenImage == null)
+            screenImage = loadImageWithName(String.format("eqpic_%d",OB_Maths.randomInt(1,48)),new PointF(0.5f, 0.5f),picFrame.frame());
         if(picFrame.width()/picFrame.height() < screenImage.width()/screenImage.height())
         {
             screenImage.setScale(picFrame.height()/screenImage.height());

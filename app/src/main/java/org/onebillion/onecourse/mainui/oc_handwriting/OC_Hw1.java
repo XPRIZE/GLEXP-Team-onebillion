@@ -46,6 +46,7 @@ public class OC_Hw1 extends OC_Hw
             exampleGroup.setScale(0.35f*board.width()/exampleGroup.width());
 
         exampleGroup.setPosition(OB_Maths.locationForRect(0.25f,0.5f,board.frame()));
+        alighGroupAroundXbox(exampleGroup);
         exampleGroup.setZPosition(4);
 
         setupLinesForGroup(exampleGroup);
@@ -55,6 +56,7 @@ public class OC_Hw1 extends OC_Hw
         showAllStrokes(guideGroup);
         guideGroup.setOpacity(0.3f);
         guideGroup.setPosition(OB_Maths.locationForRect(0.75f,0.5f,objectDict.get("board").frame()));
+        guideGroup.setBottom(exampleGroup.bottom());
         guideGroup.hide();
 
         setGroupPaths(guideGroup,applyGraphicScale(15));
@@ -62,12 +64,8 @@ public class OC_Hw1 extends OC_Hw
         if (targetPhoneme.text.length() > 1)
             mergeAudioScenesForPrefix("ALT");
 
-
-        guideGroup.setScreenMaskControl(boardMask);
-
         preparePaintForDrawing();
         preparePaintForErasing();
-
 
         setSceneXX(currentEvent());
     }
