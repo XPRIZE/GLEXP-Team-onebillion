@@ -645,6 +645,7 @@ public class OC_PrepR4Trace extends OC_SectionController
 
     public void finishTrace()
     {
+        objectDict.get("arrow").highlight();
         //findUnfilledPixels();
         final int allPeriodUnfilledPixels = countFilledPeriodPixels(bitmapContext);
         final int allUnfilledPixels = countFilledPixels(bitmapContext) - allPeriodUnfilledPixels;
