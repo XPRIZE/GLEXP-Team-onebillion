@@ -78,7 +78,7 @@ public class OC_EchoBox extends OC_SectionController
 
                 List<OBXMLNode> nodes = root.childrenOfType("prompt");
                 for (OBXMLNode promptNode : nodes) {
-                    String audioid = promptNode.attributeStringValue("Object");
+                    String audioid = promptNode.attributeStringValue("id");
                     String content = promptNode.contents;
 
                     dict.put(audioid,content);
@@ -777,7 +777,7 @@ public class OC_EchoBox extends OC_SectionController
     public boolean doneEnough()
     {
         long currTime = SystemClock.uptimeMillis();
-        return(currTime - sectionStartTime > 300.0);
+        return(currTime - sectionStartTime > 300000.0);
     }
     public void nextRecording()
     {
@@ -877,7 +877,7 @@ public class OC_EchoBox extends OC_SectionController
         long timeElapsed = SystemClock.uptimeMillis() - sectionStartTime;
         if(!part2)
         {
-            if(timeElapsed > 60 || eventIndex >= events.size())
+            if(timeElapsed > 60000 || eventIndex >= events.size())
             {
                 goToPart2();
             }
@@ -1075,6 +1075,8 @@ public class OC_EchoBox extends OC_SectionController
             if(targ != null)
             {
                 setStatus(STATUS_CHECKING);
+                stopTimer();
+                recorder.stopRecording();
                 recordingFinished();
             }
         }

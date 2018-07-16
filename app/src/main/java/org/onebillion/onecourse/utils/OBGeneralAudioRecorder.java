@@ -28,6 +28,13 @@ public class OBGeneralAudioRecorder extends Object implements MediaRecorder.OnEr
         audioRecorder.setAudioEncodingBitRate(128000);
         audioRecorder.setAudioSamplingRate(44100);
         audioRecorder.setOutputFile(recordingPath);
+        audioRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
+            @Override
+            public void onInfo(MediaRecorder mediaRecorder, int i, int i1)
+            {
+                stopRecording();
+            }
+        });
     }
 
     void prepare()
@@ -56,11 +63,15 @@ public class OBGeneralAudioRecorder extends Object implements MediaRecorder.OnEr
 
     public void stopRecording()
     {
-        audioRecorder.stop();
+        if (audioRecorder == null)
+            audioRecorder.stop();
         state = ST_FINISHED;
-        audioRecorder.reset();
-        audioRecorder.release();
-        audioRecorder = null;
+        if (audioRecorder == null)
+        {
+            audioRecorder.reset();
+            audioRecorder.release();
+            audioRecorder = null;
+        }
     }
 
     public boolean recording()
