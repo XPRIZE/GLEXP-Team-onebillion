@@ -180,7 +180,7 @@ public class OC_ReadingComprehension extends OC_Comprehension
         try {
             if (currentEvent().equals("b2")) {
                 final long stt = statusTime();
-                reprompt(stt, null, 5.0f, new OBUtils.RunLambda() {
+                reprompt(stt, null, 75.0f, new OBUtils.RunLambda() {
                     @Override
                     public void run() throws Exception {
                         tickDemo1(stt, currentAudio("PROMPT.REMINDER"), 1);

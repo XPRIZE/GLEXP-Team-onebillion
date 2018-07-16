@@ -458,6 +458,7 @@ public class OC_Morphology_3 extends OC_Morphology
         waitForSecs(0.2f);
         bringOnThings();
         waitForSecs(0.2f);
+        String audn = "DEMO2";
         if(playFirstAudio)
         {
             playAudioQueuedScene("DEMO2",true);
@@ -466,8 +467,9 @@ public class OC_Morphology_3 extends OC_Morphology
             waitForSecs(0.2f);
             readSentenceHighlightingAll(true);
             waitForSecs(0.2f);
+            audn = "DEMO3";
         }
-        playAudioScene("DEMO3",0,true);
+        playAudioScene(audn,0,true);
         waitForSecs(0.2f);
 
         OBLabel dlab = correctLabel();
@@ -496,7 +498,7 @@ public class OC_Morphology_3 extends OC_Morphology
         waitForSecs(0.5f);
         thePointer.hide();
         waitForSecs(0.5f);
-        playAudioScene("DEMO3",1,true);
+        playAudioScene(audn,1,true);
         nextScene();
     }
 
