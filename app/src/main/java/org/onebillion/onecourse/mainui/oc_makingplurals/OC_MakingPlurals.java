@@ -564,7 +564,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
         return null;
     }
 
-    public void checkButton() throws Exception
+    public synchronized void checkButton() throws Exception
     {
         setStatus(STATUS_CHECKING);
         hidePointer();
