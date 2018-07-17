@@ -63,10 +63,10 @@ public class OBGeneralAudioRecorder extends Object implements MediaRecorder.OnEr
 
     public void stopRecording()
     {
-        if (audioRecorder == null)
+        if (audioRecorder != null)
             audioRecorder.stop();
         state = ST_FINISHED;
-        if (audioRecorder == null)
+        if (audioRecorder != null)
         {
             audioRecorder.reset();
             audioRecorder.release();
