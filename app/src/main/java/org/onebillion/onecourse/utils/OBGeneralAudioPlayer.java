@@ -63,4 +63,9 @@ public abstract class OBGeneralAudioPlayer
         return getState() == OBAP_IDLE;
     }
 
+    public void setVolume(float v)
+    {
+        volume = v;
+    }
+
 }

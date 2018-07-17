@@ -124,7 +124,8 @@ public class OC_EchoBox extends OC_SectionController
 
     public void miscSetup()
     {
-        textSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("textsize")));
+        //textSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("textsize")));
+        textSize = (Float.parseFloat(eventAttributes.get("textsize")));
         OBGroup tiger = (OBGroup) objectDict.get("tiger");
         tiger.outdent(tiger.width()/3);
     }
@@ -557,7 +558,7 @@ public class OC_EchoBox extends OC_SectionController
         mainLabel = new OBLabel(txt,font);
         mainLabel.setColour(Color.BLACK);
         mainLabel.setPosition(objectDict.get("paper").position());
-        mainLabel.setZPosition(objectDict.get("paper").zPosition() +1);
+        mainLabel.setZPosition(objectDict.get("paper").zPosition() + 1);
         attachControl(mainLabel);
     }
 
@@ -764,7 +765,7 @@ public class OC_EchoBox extends OC_SectionController
                     effectPlayer = new OBAudioBufferPlayer(false,true);
                 effectPlayer.stopPlaying();
                 //effectPlayer.changePitchAmt(350);
-                //effectPlayer.setVolume(vol);
+                effectPlayer.setVolume(vol);
         //effectPlayer setCompletionBlock:^(OBAudioEffectPlayer player) {
           //      weakplaybackFinished();
 
