@@ -60,13 +60,14 @@ public class OC_WordAudioRec extends OC_AudioRecSection
         shutter.setProperty("start_width",shutter.width());
 
         objectDict.get("bg").show();
-
-        if(parameters.get("mode").equals("letter"))
+        String mode = parameters.get("mode");
+        //
+        if(mode != null && mode.equals("letter"))
         {
             currentMode = MODE_LETTER;
 
         }
-        else if(parameters.get("mode").equals("syllable"))
+        else if(mode != null && mode.equals("syllable"))
         {
             currentMode = MODE_SYLLABLE;
 
@@ -74,7 +75,6 @@ public class OC_WordAudioRec extends OC_AudioRecSection
         else
         {
             currentMode = MODE_WORD;
-
         }
 
         eventsData = new ArrayList<>();

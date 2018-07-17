@@ -686,6 +686,7 @@ public class MainActivity extends Activity
 
     public static void log (String message)
     {
+        if (message == null) return;
         Log.v(TAG, message);
     }
 
