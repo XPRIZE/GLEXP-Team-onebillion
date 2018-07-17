@@ -361,8 +361,8 @@ public class OC_MakingPlurals extends OC_Wordcontroller
     {
         if (!performSel("demo", currentEvent()))
         {
-            setStatus(STATUS_AWAITING_CLICK);
             waitForSecs(0.6f);
+            setStatus(STATUS_AWAITING_CLICK);
             doAudio(currentEvent());
         }
     }
@@ -484,7 +484,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
         if (fullClear)
         {
             button.hide();
-            //button.disable();
+            button.disable();
             boxSingular.hide();
             boxPlural.hide();
             if (underlines != null)
@@ -597,7 +597,6 @@ public class OC_MakingPlurals extends OC_Wordcontroller
             lastActionTakenTimestamp = OC_Generic.currentTime();
             currNo++;
             nextScene();
-            setStatus(STATUS_AWAITING_CLICK);
         }
     }
 

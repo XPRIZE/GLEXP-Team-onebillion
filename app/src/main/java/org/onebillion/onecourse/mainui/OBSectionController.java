@@ -1571,7 +1571,9 @@ public class OBSectionController extends OBViewController
     void _playAudio (String fileName)
     {
         if (Looper.myLooper() == Looper.getMainLooper())
+        {
             OBAudioManager.audioManager.startPlaying(fileName);
+        }
         else
         {
             if (fileName != null)

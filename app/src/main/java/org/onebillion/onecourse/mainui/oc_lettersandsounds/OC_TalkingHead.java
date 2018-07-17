@@ -16,6 +16,7 @@ import org.onebillion.onecourse.mainui.generic.OC_Generic_WordsEvent;
 import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBAudioManager;
+import org.onebillion.onecourse.utils.OBConditionLock;
 import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBSyllable;
@@ -123,6 +124,8 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
         events.add(0, "a");
         //
         doVisual(currentEvent());
+        //
+        setStatus(STATUS_BUSY);
     }
 
 
@@ -213,11 +216,22 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
 
     public void demoa () throws Exception
     {
-        setStatus(STATUS_DOING_DEMO);
-        //
-        playSceneAudio("DEMO", true); // Let's listen, then pick out what she said!
-        //
-        nextScene();
+        try
+        {
+            setStatus(STATUS_DOING_DEMO);
+            //
+            //OBConditionLock lock = playSceneAudio("DEMO", false); // Let's listen, then pick out what she said!
+            //waitForSecs(0.3);
+            //waitAudioQueue(lock);
+            //
+            playSceneAudio("DEMO", true); // Let's listen, then pick out what she said!
+            //
+            nextScene();
+        }
+        catch (Exception e)
+        {
+            MainActivity.log("HELLO");
+        }
     }
 
 
@@ -444,10 +458,14 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
                 //
                 avatarShowMouthFrameForText(sound.text, false);
                 waitForSecs(0.15);
+                if (_aborting) return;
+                //
                 avatarShowMouthFrameForText(sound.text, true);
                 waitAudio();
+                if (_aborting) return;
                 //
                 waitForSecs(0.15);
+                if (_aborting) return;
                 //
                 avatarShowMouthFrame("mouth_2");
                 //
@@ -460,7 +478,6 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
             //
             Double startTime = OC_Generic.currentTime();
             Integer startRange = 0;
-            int i = 0;
             //
             for (OBPhoneme sound : breakdown)
             {
@@ -470,33 +487,42 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
                 Double currTime = OC_Generic.currentTime() - startTime;
                 Double waitTime = timeStart - currTime;
                 if (waitTime > 0.0) waitForSecs(waitTime);
+                if (_aborting) return;
                 //
                 Integer endRange = startRange + sound.text.length();
                 action_highlightWord(correctAnswer, label, startRange, endRange, true);
                 //
                 avatarShowMouthFrameForText(sound.text, false);
                 waitForSecs(0.15);
+                if (_aborting) return;
+                //
                 avatarShowMouthFrameForText(sound.text, true);
                 waitForSecs(0.15);
+                if (_aborting) return;
                 //
                 currTime = OC_Generic.currentTime();
                 waitTime = timeEnd - currTime;
                 if (waitTime > 0) waitForSecs(waitTime);
+                if (_aborting) return;
                 //
                 avatarShowMouthFrame("mouth_2");
                 //
                 startRange += sound.text.length();
-                i++;
             }
             waitAudio();
+            if (_aborting) return;
         }
         //
         action_highlightWord(correctAnswer, label, 0, correctAnswer.text.length(), false);
         avatarShowMouthFrame("mouth_0");
         //
         waitForSecs(0.3);
+        if (_aborting) return;
+        //
         avatarSay_word(true);
+        //
         waitForSecs(0.3);
+        if (_aborting) return;
     }
 
 
@@ -514,7 +540,6 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
             //
             Double startTime = OC_Generic.currentTime();
             Integer startRange = 0;
-            int i = 0;
             //
             for (OBSyllable syllable : breakdown)
             {
@@ -524,31 +549,39 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
                 Double currTime = OC_Generic.currentTime() - startTime;
                 Double waitTime = timeStart - currTime;
                 if (waitTime > 0.0) waitForSecs(waitTime);
+                if (_aborting) return;
                 //
                 Integer endRange = startRange + syllable.text.length();
                 action_highlightWord(correctAnswer, label, startRange, endRange, true);
                 //
                 avatarShowMouthFrameForText(syllable.text, false);
                 waitForSecs(0.15);
+                if (_aborting) return;
+                //
                 avatarShowMouthFrameForText(syllable.text, true);
                 waitForSecs(0.15);
+                if (_aborting) return;
                 //
                 currTime = OC_Generic.currentTime();
                 waitTime = timeEnd - currTime;
                 if (waitTime > 0) waitForSecs(waitTime);
+                if (_aborting) return;
                 //
                 avatarShowMouthFrame("mouth_2");
                 //
                 startRange += syllable.text.length();
-                i++;
             }
             waitAudio();
             action_highlightWord(correctAnswer, label, 0, correctAnswer.text.length(), false);
             avatarShowMouthFrame("mouth_0");
             //
             waitForSecs(0.3);
+            if (_aborting) return;
+            //
             avatarSay_word(true);
+            //
             waitForSecs(0.3);
+            if (_aborting) return;
         }
         catch (Exception e)
         {
@@ -578,14 +611,17 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
                 Double currTime = OC_Generic.currentTime() - startTime;
                 Double waitTime = timePerSyllable * i - currTime;
                 if (waitTime > 0) waitForSecs(waitTime);
+                if (_aborting) return;
                 //
                 avatarShowMouthFrameForText(syllable.text, false);
                 waitForSecs(0.1);
+                if (_aborting) return;
                 if (i < correctAnswer.syllables().size())
                     avatarShowMouthFrameForText(syllable.text, true);
                 i++;
             }
             waitAudio();
+            if (_aborting) return;
             action_highlightLabel(label, false);
         }
         else
@@ -594,8 +630,10 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
             action_highlightLabel(label, highlight);
             avatarShowMouthFrameForText(answer.text, false);
             waitAudio();
+            if (_aborting) return;
             avatarShowMouthFrameForText(answer.text, true);
             waitForSecs(0.1);
+            if (_aborting) return;
             //
             waitAudio();
             action_highlightLabel(label, false);
@@ -693,10 +731,9 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
 
     public void checkButton ()
     {
-        setStatus(STATUS_CHECKING);
-        //
         try
         {
+            setStatus(STATUS_CHECKING);
             playSfxAudio("touchbutton", false);
             lockScreen();
             buttonShowState("selected");
