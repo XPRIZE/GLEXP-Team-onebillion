@@ -496,7 +496,7 @@ public class OC_Morphology_3 extends OC_Morphology
 
         moveEverythingBack(dlab);
         waitForSecs(0.5f);
-        thePointer.hide();
+        //thePointer.hide();
         waitForSecs(0.5f);
         playAudioScene(audn,1,true);
         nextScene();
@@ -504,10 +504,14 @@ public class OC_Morphology_3 extends OC_Morphology
 
     public void demoo() throws Exception
     {
-        PointF destpoint = OB_Maths.locationForRect(new PointF(0.8f,0.85f) ,bounds());
-        PointF startpt = pointForDestPoint(destpoint,2);
-        loadPointerStartPoint(startpt,destpoint);
-        movePointerToPoint(destpoint,-1,true);
+        PointF destpoint;
+        if (thePointer == null)
+        {
+            destpoint = OB_Maths.locationForRect(new PointF(0.8f,0.85f) ,bounds());
+            PointF startpt = pointForDestPoint(destpoint,2);
+            loadPointerStartPoint(startpt,destpoint);
+            movePointerToPoint(destpoint,-1,true);
+        }
 
         List aud = currentAudio("DEMO");
         int i =(int) aud.size() - 3;

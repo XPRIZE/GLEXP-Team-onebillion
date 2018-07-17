@@ -765,7 +765,7 @@ public class OC_EchoBox extends OC_SectionController
                     effectPlayer = new OBAudioBufferPlayer(false,true);
                 effectPlayer.stopPlaying();
                 //effectPlayer.changePitchAmt(350);
-                //effectPlayer.setVolume(vol);
+                effectPlayer.setVolume(vol);
         //effectPlayer setCompletionBlock:^(OBAudioEffectPlayer player) {
           //      weakplaybackFinished();
 
