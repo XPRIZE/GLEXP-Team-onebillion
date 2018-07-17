@@ -484,6 +484,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
         if (fullClear)
         {
             button.hide();
+            //button.disable();
             boxSingular.hide();
             boxPlural.hide();
             if (underlines != null)
@@ -564,9 +565,8 @@ public class OC_MakingPlurals extends OC_Wordcontroller
         return null;
     }
 
-    public synchronized void checkButton() throws Exception
+    public void checkButton() throws Exception
     {
-        setStatus(STATUS_CHECKING);
         hidePointer();
         playSfxAudio("buttontouch", false);
         hiliteButton();
@@ -595,9 +595,9 @@ public class OC_MakingPlurals extends OC_Wordcontroller
             enableButton();
             playSfxAudio("buttonactive", false);
             lastActionTakenTimestamp = OC_Generic.currentTime();
-            setStatus(STATUS_AWAITING_CLICK);
             currNo++;
             nextScene();
+            setStatus(STATUS_AWAITING_CLICK);
         }
     }
 
@@ -674,6 +674,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
             Object obj = findButton(pt);
             if (obj != null)
             {
+                setStatus(STATUS_CHECKING);
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
                     public void run() throws Exception
@@ -753,10 +754,10 @@ public class OC_MakingPlurals extends OC_Wordcontroller
     {
         for (List<OBLabel> pair : words)
         {
-            OBLabel plural = pair.get(pair.size() - 1);
-            OBWord pluralWord = (OBWord) plural.propertyValue("word");
-            int deltaFromRootPlural = (int) pluralWord.text.length() - (int) pluralWord.Root.length();
-            if (deltaFromRootPlural > 1)
+            OBLabel singular = pair.get(0);
+            OBWord singularWord = (OBWord) singular.propertyValue("word");
+            int deltaFromRootSingular = singularWord.text.length() - singularWord.Root.length();
+            if (deltaFromRootSingular > 1)
             {
                 return true;
             }
@@ -932,6 +933,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
             underline.setLineWidth(applyGraphicScale(3.0f));
             underline.setStrokeColor(colourLine);
             underline.setZPosition(31.0f);
+            underline.sizeToBoundingBoxIncludingStroke();
             attachControl(underline);
             underlines.add(underline);
             unlockScreen();
@@ -971,6 +973,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
             underline.setLineWidth(applyGraphicScale(3.0f));
             underline.setStrokeColor(colourLine);
             underline.setZPosition(31.0f);
+            underline.sizeToBoundingBoxIncludingStroke();
             attachControl(underline);
             underlines.add(underline);
             unlockScreen();
@@ -1156,7 +1159,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
 
     public void demoh() throws Exception
     {
-        setStatus(STATUS_BUSY);
+        setStatus(STATUS_DOING_DEMO);
         loadPointer(POINTER_MIDDLE);
         //
         playAudioScene("DEMO", 0, true);        // Here are those words again.;
@@ -1487,7 +1490,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
 
     public void demoi() throws Exception
     {
-        setStatus(STATUS_BUSY);
+        setStatus(STATUS_DOING_DEMO);
         loadPointer(POINTER_MIDDLE);
         //
         playAudioScene("DEMO", 0, false);       // Now let’s try this.
@@ -1643,7 +1646,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
 
     public void demoj() throws Exception
     {
-        setStatus(STATUS_BUSY);
+        setStatus(STATUS_DOING_DEMO);
         loadPointer(POINTER_MIDDLE);
         //
         movePointerToRestingPosition(0.3f, true);
