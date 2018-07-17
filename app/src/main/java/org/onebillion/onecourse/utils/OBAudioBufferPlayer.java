@@ -441,7 +441,8 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
                 }
 
                 @Override
-                public void onOutputBufferAvailable(MediaCodec mc, int outputBufferId, MediaCodec.BufferInfo info) {
+                public void onOutputBufferAvailable(MediaCodec mc, int outputBufferId, MediaCodec.BufferInfo info)
+                {
                     ByteBuffer outputBuffer = codec.getOutputBuffer(outputBufferId);
                     MediaFormat bufferFormat = codec.getOutputFormat(outputBufferId);
                     int bytesInBuffer = outputBuffer.limit();
@@ -454,26 +455,30 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
                     if (endOfStream)
                     {
                         int framesEnd = (int)(amtWritten + bytesInBuffer) / 2;
-                        audioTrack.setNotificationMarkerPosition(framesEnd);
+                        if (state != OBAP_FINISHED)
+                            audioTrack.setNotificationMarkerPosition(framesEnd);
                     }
                     if (wantsFFTData || wantsMetrics)
                         writeOutputBufferToBuffers(outputBuffer,info.presentationTimeUs,amtWritten / 2);
-                    int res;
-                    if (pitch != 1f)
+                    if (state != OBAP_FINISHED)
                     {
-                        ByteBuffer tb = pitchShift(outputBuffer);
-                        for (int i = 0;i < tb.limit();i++)
+                        int res;
+                        if (pitch != 1f)
                         {
-                            Byte a = outputBuffer.get(i);
-                            Byte b = tb.get(i);
-                            if (a != b)
-                                res = -1;
+                            ByteBuffer tb = pitchShift(outputBuffer);
+                            for (int i = 0;i < tb.limit();i++)
+                            {
+                                Byte a = outputBuffer.get(i);
+                                Byte b = tb.get(i);
+                                if (a != b)
+                                    res = -1;
+                            }
+                            res = audioTrack.write(tb,bytesInBuffer,AudioTrack.WRITE_BLOCKING);
                         }
-                        res = audioTrack.write(tb,bytesInBuffer,AudioTrack.WRITE_BLOCKING);
+                        else
+                            res = audioTrack.write(outputBuffer,bytesInBuffer,AudioTrack.WRITE_BLOCKING);
+                        amtWritten += res;
                     }
-                    else
-                        res = audioTrack.write(outputBuffer,bytesInBuffer,AudioTrack.WRITE_BLOCKING);
-                    amtWritten += res;
                     if (state == OBAP_PREPARING && amtWritten > 300)
                     {
                         finishedPrepare();
