@@ -854,6 +854,7 @@ public class OC_DiagnosticsManager
             {
                 if (remedialUnits.get(index).equals(""))
                 {
+                    MainActivity.log("WARNING --> added remedial unit as a fail safe --> " + unitCollection.get(0));
                     remedialUnits.set(index, unitCollection.get(0));
                 }
             }
