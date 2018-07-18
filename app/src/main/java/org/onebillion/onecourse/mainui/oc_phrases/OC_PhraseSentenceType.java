@@ -919,7 +919,6 @@ public class OC_PhraseSentenceType extends OC_PhraseSentence implements OC_Typew
         if(moveTo)        movePointerToPoint(OB_Maths.locationForRect(0.6f,1.05f,key.frame()),-35,-1,true);
         movePointerToPoint(OB_Maths.locationForRect(0.5f,0.65f,key.frame()),-35,0.1f,true);
         lockScreen();
-        lockScreen();
         typewriterManager.touchDownKey(key,true);
         highlightCurrentLetter(Color.BLACK);
         currentLetterIndex++;
