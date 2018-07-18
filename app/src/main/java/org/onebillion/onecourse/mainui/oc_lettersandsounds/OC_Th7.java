@@ -136,7 +136,7 @@ public class OC_Th7 extends OC_TalkingHead
             public void run () throws Exception
             {
                 promptAudioLock = playAudioQueued(_replayAudio, false);
-                doReminder(true, statusTime);
+                playReminder(true);
             }
         });
     }

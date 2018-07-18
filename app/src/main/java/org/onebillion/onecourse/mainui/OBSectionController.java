@@ -2142,7 +2142,7 @@ public class OBSectionController extends OBViewController
     public void exitEvent ()
     {
         setStatus(STATUS_EXITING);
-        playAudio(null);
+        //playAudio(null);
         if (!_aborting)
         {
             cleanUp();
@@ -2158,7 +2158,6 @@ public class OBSectionController extends OBViewController
                     {
                         MainActivity.mainViewController.popViewController();
                     }
-
                 }
             }.run();
         }
@@ -2166,8 +2165,8 @@ public class OBSectionController extends OBViewController
 
     public void cleanUp ()
     {
-        stopAllAudio();
         _aborting = true;
+        stopAllAudio();
         for(OBControl con : attachedControls)
             con.cleanUp();
     }
