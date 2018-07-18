@@ -28,6 +28,7 @@ import org.onebillion.onecourse.utils.OB_MutInt;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -87,10 +88,17 @@ public class OC_PhraseSentenceType extends OC_PhraseSentence implements OC_Typew
         }
         loadAudioXML(getConfigPath(String.format(sentenceMode ? "tst%daudio.xml" : "tph%daudio.xml",currentMode)));
         componentDict = components;
-        textBox = new OBGroup(Arrays.asList(objectDict.get("textbox")));
+
+
+        OBControl tb = objectDict.get("textbox");
+        textBoxOriginalPos = new PointF();
+        textBoxOriginalPos.set(tb.position());
+        detachControl(tb);
+        textBox = new OBGroup(Collections.singletonList(tb));
+        tb.hide();
         textBox.setShouldTexturise(false);
         attachControl(textBox);
-        textBoxOriginalPos = textBox.position();
+
         String[] idList = parameters.get("targets").split(",");
         loadEventsForList(Arrays.asList(idList));
         highlightColour = Color.RED;
@@ -121,7 +129,7 @@ public class OC_PhraseSentenceType extends OC_PhraseSentence implements OC_Typew
         paragraphs = Arrays.asList(para);
         layOutText();
         calcWordFrames();
-        adjustTextPosition();
+        //adjustTextPosition();
         List<String> curAudios = new ArrayList<>();
         int i=1;
         for(OBReadingPara parag : paragraphs)
@@ -352,6 +360,8 @@ public class OC_PhraseSentenceType extends OC_PhraseSentence implements OC_Typew
         }
         demoCapitalise();
         performSel("demoEvent",currentEvent());
+        if(thePointer != null)
+            thePointer.hide();
         waitForSecs(0.f);
         int curAud = eventIndex%3;
         boolean isDefault = currentEvent().equals("default");
@@ -908,6 +918,7 @@ public class OC_PhraseSentenceType extends OC_PhraseSentence implements OC_Typew
         OBGroup key = currentDemoKey();
         if(moveTo)        movePointerToPoint(OB_Maths.locationForRect(0.6f,1.05f,key.frame()),-35,-1,true);
         movePointerToPoint(OB_Maths.locationForRect(0.5f,0.65f,key.frame()),-35,0.1f,true);
+        lockScreen();
         lockScreen();
         typewriterManager.touchDownKey(key,true);
         highlightCurrentLetter(Color.BLACK);
