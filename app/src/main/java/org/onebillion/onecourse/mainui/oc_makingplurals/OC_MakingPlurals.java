@@ -751,15 +751,22 @@ public class OC_MakingPlurals extends OC_Wordcontroller
 
     public boolean wereRequiredMultipleLettersForPlural(List<List<OBLabel>> words)
     {
-        for (List<OBLabel> pair : words)
+        try
         {
-            OBLabel singular = pair.get(0);
-            OBWord singularWord = (OBWord) singular.propertyValue("word");
-            int deltaFromRootSingular = singularWord.text.length() - singularWord.Root.length();
-            if (deltaFromRootSingular > 1)
+            for (List<OBLabel> pair : words)
             {
-                return true;
+                OBLabel singular = pair.get(0);
+                OBWord singularWord = (OBWord) singular.propertyValue("word");
+                int deltaFromRootSingular = singularWord.text.length() - singularWord.Root.length();
+                if (deltaFromRootSingular > 1)
+                {
+                    return true;
+                }
             }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
         }
         return false;
     }
