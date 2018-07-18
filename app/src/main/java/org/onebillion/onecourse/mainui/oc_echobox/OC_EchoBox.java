@@ -48,7 +48,7 @@ import static org.onebillion.onecourse.utils.OB_Maths.rndom;
 
 public class OC_EchoBox extends OC_SectionController
 {
-    static int AUDIBLE_THRESHOLD = -30,
+    static int AUDIBLE_THRESHOLD = 1200,
         STATUS_RECORDING = 1024,
         STATUS_PLAYING_RECORDING = 1025;
 
@@ -264,7 +264,9 @@ public class OC_EchoBox extends OC_SectionController
             long playToken = effectPlayer.playToken;
             while(effectPlayer.getState() == OBAP_PLAYING && playToken == effectPlayer.playToken)
             {
-                if(effectPlayer.averagePower() < 0.01)
+                float av = effectPlayer.averagePower();
+                MainActivity.log("av %g",av);
+                if(av < 0.01)
                     idx = 0;
                 int fno = indices.get(idx);
                 List<List>split = splitSequence(keys,fno);
@@ -696,6 +698,7 @@ public class OC_EchoBox extends OC_SectionController
     {
         try
         {
+            playSfxAudio("beep",false);
             tigerLeanHeadAnim(true);
             tigerBlinker();
             setStatus(STATUS_BUSY);
@@ -710,14 +713,7 @@ public class OC_EchoBox extends OC_SectionController
 
     public void startRecording()
     {
-        try
-        {
-            setStatus(STATUS_RECORDING);
-            playSfxAudio("beep",true);
-        }
-        catch(Exception e)
-        {
-        }
+        setStatus(STATUS_RECORDING);
         final OC_SectionController weakthis = this;
         runOnMainThread(new OBUtils.RunLambda() {
             @Override
@@ -845,7 +841,7 @@ public class OC_EchoBox extends OC_SectionController
 
     public long maximumDuration()
     {
-        return 300;
+        return 300000;
     }
 
     public void setUpPart2()
@@ -1055,6 +1051,7 @@ public class OC_EchoBox extends OC_SectionController
 
     public void touchDownAtPoint(PointF pt,View v)
     {
+        MainActivity.log(">>>>>>>>>>>>>");
         if(status() == STATUS_AWAITING_CLICK)
         {
             final Object targ = findTarget(pt);

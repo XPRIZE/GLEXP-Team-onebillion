@@ -620,4 +620,19 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
         return (float)avg;
     }
 
+    public float maxPower()
+    {
+        int ct = buffers[0].bufferSize;
+        float[] mfloats = new float[ct];
+        getCurrentBufferFloats(mfloats);
+        double maxx = 0;
+        for (int i = 0;i < ct;i++)
+        {
+            double samp = Math.sqrt(mfloats[i] * mfloats[i]);
+            if (samp > maxx)
+                maxx = samp;
+        }
+        return (float)maxx;
+    }
+
 }
