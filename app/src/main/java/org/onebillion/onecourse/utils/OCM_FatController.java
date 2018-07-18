@@ -1065,6 +1065,12 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     @Override
     public void completeEvent(OBSectionController cont)
     {
+        completeEventWithStar(cont, true);
+    }
+
+
+    public void completeEventWithStar(OBSectionController cont, boolean stars)
+    {
         OBSystemsManager.sharedManager.setCurrentUnit(null);
         cancelTimeout();
         int starColour = -1;
@@ -1081,15 +1087,16 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             currentUnitInstance.sectionController = null;
             currentUnitInstance = null;
         }
-        try
+        if(stars)
         {
-            if(cont instanceof OC_SectionController && starColour > 0)
-                ((OC_SectionController)cont).displayAward2(colourDict.get(String.format("star_%d",starColour)));
-            else
-                cont.displayAward();
-        }catch (Exception e)
-        {
-            e.printStackTrace();
+            try {
+                if (cont instanceof OC_SectionController && starColour > 0)
+                    ((OC_SectionController) cont).displayAward2(colourDict.get(String.format("star_%d", starColour)));
+                else
+                    cont.displayAward();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         if(!cont._aborting)
             cont.exitEvent();
