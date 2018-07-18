@@ -440,6 +440,8 @@ public class OC_DiagnosticsManager
 
     public void markQuestion(String eventUUID, boolean value, List parameters)
     {
+        if (eventUUID == null) return;
+        //
         MainActivity.log("OC_DiagnosticsManager --> markQuestionWithValueAndRelevantParameters --> [%s]", value ? "CORRECT" : "WRONG");
         progress.add(value);
         currentQuestionIndex++;

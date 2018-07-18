@@ -8,6 +8,7 @@ import org.onebillion.onecourse.controls.OBPresenter;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.utils.OBUtils;
+import org.onebillion.onecourse.utils.OCM_FatController;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,8 +38,15 @@ public class OC_DiagnosticsIntro extends OC_Diagnostics
         boolean debugFlag = (debugValue != null) && debugValue.equals("true");
         if (!endSequence)
         {
-            int totalQuestions = Integer.parseInt(parameters.get("questions"));
-            int thresholdWeek = Integer.parseInt(parameters.get("week"));
+            int totalQuestions = 10;
+            String totalQuestionsParameter = parameters.get("questions");
+            if (totalQuestionsParameter != null) totalQuestions = Integer.parseInt(totalQuestionsParameter);
+            //
+            OCM_FatController fatController = (OCM_FatController) MainActivity.mainActivity.fatController;
+            int thresholdWeek = fatController.getCurrentWeek();
+            String thresholdWeekParameter = parameters.get("week");
+            if (thresholdWeekParameter != null) thresholdWeek = Integer.parseInt(thresholdWeekParameter);
+            //
             OC_DiagnosticsManager.sharedManager().resetDiagnostics(totalQuestions, thresholdWeek, (String) params, fixedEvents, debugFlag);
         }
         OBGroup presenterControl = (OBGroup) objectDict.get("presenter");
