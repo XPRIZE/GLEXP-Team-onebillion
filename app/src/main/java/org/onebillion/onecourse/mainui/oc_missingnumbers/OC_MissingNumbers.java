@@ -267,7 +267,7 @@ public class OC_MissingNumbers extends OC_Generic_Event
         unlockScreen();
         if (needsNewScene)
         {
-            introScene(true);
+            introScene(false);
         }
         try
         {
@@ -633,7 +633,10 @@ public class OC_MissingNumbers extends OC_Generic_Event
             {
                 public void run () throws Exception
                 {
-                    if (playDashAudio) playSfxAudio("dash_hilite", false);
+                    if (playDashAudio)
+                    {
+                        playSfxAudio("dash_hilite", false);
+                    }
                     lockScreen();
                     refreshDashes();
                     unlockScreen();
@@ -645,13 +648,7 @@ public class OC_MissingNumbers extends OC_Generic_Event
         {
             public void run () throws Exception
             {
-                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-                {
-                    public void run () throws Exception
-                    {
-                        doReminder(currentQuestionCounter);
-                    }
-                });
+                doReminder(currentQuestionCounter);
             }
         });
     }
@@ -1460,7 +1457,7 @@ public class OC_MissingNumbers extends OC_Generic_Event
             resetScene();
             unlockScreen();
             //
-            introScene(true);
+            introScene(false);
         }
         OBPath box = (OBPath) numberBoxes.get(hiddenNumberIndex);
         if (mode.equals(kModeDrag))
