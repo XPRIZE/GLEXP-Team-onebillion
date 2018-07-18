@@ -44,7 +44,10 @@ public class OBSyllable extends OBPhoneme
         //
         for (OBPhoneme phoneme : phonemes)
         {
-            phonemesClone.add(phoneme.copy());
+            if (phoneme != null)
+            {
+                phonemesClone.add(phoneme.copy());
+            }
         }
         return new OBSyllable(text, soundid, timings, phonemesClone);
     }
