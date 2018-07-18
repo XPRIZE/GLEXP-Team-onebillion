@@ -740,7 +740,7 @@ public class OC_DiagnosticsManager
 
     public List retrieveRemedialUnitsForEvent(String eventUUID, List<String> relevantParameters)
     {
-        unitsFromMasterlist = loadMasterlistFromDB(-1);
+        //unitsFromMasterlist = loadMasterlistFromDB(-1);
         //
         Map exerciseData = parametersForEvent(eventUUID);
         List<List> remedialUnitsTemplate = (List) exerciseData.get(kRemedialUnits);
