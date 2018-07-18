@@ -79,6 +79,18 @@ public class OC_DiagnosticsIntro extends OC_Diagnostics
         showQuestionProgress(!endSequence);
     }
 
+    public void finishEvent()
+    {
+        if(MainActivity.mainActivity.fatController.getClass() == OCM_FatController.class)
+        {
+            OCM_FatController fatController = (OCM_FatController)MainActivity.mainActivity.fatController;
+            fatController.completeEventWithStar(this,false);
+        }
+        else
+        {
+            fin();
+        }
+    }
 
     public void start()
     {
@@ -88,7 +100,7 @@ public class OC_DiagnosticsIntro extends OC_Diagnostics
             if (endSequence)
             {
                 MainActivity.log("OC_DiagnosticsIntro --> fixed events detected --> exit event");
-                exitEvent();
+                finishEvent();
             }
             else
             {
@@ -154,8 +166,10 @@ public class OC_DiagnosticsIntro extends OC_Diagnostics
         OBControl front = presenter.control.objectDict.get("front");
         PointF destPos = new PointF(0 - 2.5f * front.width(), currPos.y);
         presenter.walk(destPos);
-        exitEvent();
+        finishEvent();
     }
+
+
 
 
 }
