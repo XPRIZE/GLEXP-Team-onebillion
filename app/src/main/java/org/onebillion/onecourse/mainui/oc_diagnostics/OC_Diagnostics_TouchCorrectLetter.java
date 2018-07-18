@@ -119,6 +119,7 @@ public class OC_Diagnostics_TouchCorrectLetter extends OC_Diagnostics_TouchCorre
         //
         int totalQuestions = Integer.parseInt((String) exerciseData.get(kTotalQuestions));
         int possibleAnswerCount = Integer.parseInt((String) exerciseData.get(kTotalAvailableOptions));
+        String letterCase = (String) exerciseData.get(kLetterCase);
         //
         if (allParameters.size() < possibleAnswerCount)
         {
@@ -140,6 +141,15 @@ public class OC_Diagnostics_TouchCorrectLetter extends OC_Diagnostics_TouchCorre
             List selectedParameters = new ArrayList<>();
             for (String letterName : randomParameters)
             {
+                if (letterCase.equalsIgnoreCase(kLowercase))
+                {
+                    letterName = letterName.toLowerCase();
+                }
+                if (letterCase.equalsIgnoreCase(kUppercase))
+                {
+                    letterName = OC_Generic.toTitleCase(letterName);
+                }
+                //
                 boolean exclusionTriggered = false;
                 for (List<String> exclusionList : letterExclusions)
                 {
@@ -160,6 +170,8 @@ public class OC_Diagnostics_TouchCorrectLetter extends OC_Diagnostics_TouchCorre
                 {
                     continue;
                 }
+                if (selectedParameters.contains(letterName)) continue;
+                //
                 selectedParameters.add(letterName);
                 if (selectedParameters.size() == possibleAnswerCount)
                 {

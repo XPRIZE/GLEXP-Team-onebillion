@@ -740,7 +740,7 @@ public class OC_DiagnosticsManager
 
     public List retrieveRemedialUnitsForEvent(String eventUUID, List<String> relevantParameters)
     {
-        unitsFromMasterlist = loadMasterlistFromDB(-1);
+        //unitsFromMasterlist = loadMasterlistFromDB(-1);
         //
         Map exerciseData = parametersForEvent(eventUUID);
         List<List> remedialUnitsTemplate = (List) exerciseData.get(kRemedialUnits);
@@ -854,6 +854,7 @@ public class OC_DiagnosticsManager
             {
                 if (remedialUnits.get(index).equals(""))
                 {
+                    MainActivity.log("WARNING --> added remedial unit as a fail safe --> " + unitCollection.get(0));
                     remedialUnits.set(index, unitCollection.get(0));
                 }
             }

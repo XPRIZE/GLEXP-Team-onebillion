@@ -5,6 +5,7 @@ import android.util.ArrayMap;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
+import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
@@ -307,6 +308,9 @@ public class OC_Diagnostics extends OC_SectionController
         lockScreen();
         icon.hideMembers(".*");
         icon.showMembers("inactive");
+        OBPath inactive = (OBPath) icon.objectDict.get("inactive");
+        inactive.sizeToBoundingBoxIncludingStroke();
+        icon.sizeToMember(inactive);
         unlockScreen();
     }
 
@@ -316,7 +320,10 @@ public class OC_Diagnostics extends OC_SectionController
         lockScreen();
         icon.hideMembers(".*");
         icon.showMembers("active");
-        icon.outdent(applyGraphicScale(10));
+//        icon.outdent(applyGraphicScale(10));
+        OBPath active = (OBPath) icon.objectDict.get("active");
+        active.sizeToBoundingBoxIncludingStroke();
+        icon.sizeToMember(active);
         unlockScreen();
     }
 
@@ -326,6 +333,9 @@ public class OC_Diagnostics extends OC_SectionController
         lockScreen();
         icon.hideMembers(".*");
         icon.showMembers("complete");
+        OBPath complete = (OBPath) icon.objectDict.get("complete");
+        complete.sizeToBoundingBoxIncludingStroke();
+        icon.sizeToMember(complete);
         unlockScreen();
     }
 
