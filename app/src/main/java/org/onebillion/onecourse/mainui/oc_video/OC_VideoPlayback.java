@@ -930,6 +930,9 @@ public class OC_VideoPlayback extends OC_SectionController
 
     private void handleVideoPress (PointF pt)
     {
+        if (videoPlayer == null) return;
+        if (videoPlayer.player == null) return;
+        //
         if (intro_video_state == ivs_before_play)
         {
             lockScreen();
