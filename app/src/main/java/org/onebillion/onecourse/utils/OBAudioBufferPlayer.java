@@ -437,7 +437,16 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
                     boolean fin = fillBuffer(inputBuffer);
                     //MainActivity.log(String.format("%d bytes read",inputBuffer.limit()));
                     inputBuffer.rewind();
-                    codec.queueInputBuffer(inputBufferId,0,inputBuffer.limit(),presentationTimeus,fin?BUFFER_FLAG_END_OF_STREAM:0);
+                    try
+                    {
+                        codec.queueInputBuffer(inputBufferId,0,inputBuffer.limit(),presentationTimeus,fin?BUFFER_FLAG_END_OF_STREAM:0);
+                    }
+                    catch (Exception e)
+                    {
+                        MainActivity.log("codec.queueInputBuffer player state %d",state);
+                        if (state < OBAP_FINISHED)
+                            e.printStackTrace();
+                    }
                 }
 
                 @Override
