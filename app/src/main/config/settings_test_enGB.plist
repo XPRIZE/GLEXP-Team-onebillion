@@ -247,7 +247,7 @@
 	<string>true</string>
 	<!--  -->
 	<key>debug_show_test_menu</key>
-	<string>true</string>
+	<string>false</string>
 	<!--  -->
 	<key>debug_show_back_arrow</key>
 	<string>true</string>
@@ -256,10 +256,13 @@
 	<string>true</string>
 	<!--  -->
 	<key>debug_build_number</key>
-	<string>0004 - English</string>
+	<string>0016 - English</string>
 
 
 	<!-- APP -->
+	<key>splash_screen</key>
+	<string>true</string>
+	<!-- -->
 	<key>app_gen_folder</key>
 	<string>oc-gen</string>
 	<!--  -->
@@ -270,10 +273,10 @@
 	<string>OC_SimpleListMenu</string>
 	<!--  -->
 	<key>app_fat_controller_class</key>
-	<string>OBFatController</string>
+	<string>OC_FatController</string>
 	<!--  -->
 	<key>app_masterlist</key>
-	<string>maths_enGB</string>
+	<string>test_enGB</string>
 	<!--  -->
 	<key>app_masterlist_playzone</key>
 	<string>playzone_enGB</string>
