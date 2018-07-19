@@ -422,11 +422,14 @@ public class OC_PrepR3 extends OC_Reading
                     unionRect.union(rw.label.frame());
                 }
             }
-            OBControl rect = new OBControl();
-            rect.setFrame(unionRect);
-            rect.setFillColor(hiColour);
-            textGroup.insertMember(rect,0,"rect");
-            rects.add(rect);
+            if (unionRect.width() > 0)
+            {
+                OBControl rect = new OBControl();
+                rect.setFrame(unionRect);
+                rect.setFillColor(hiColour);
+                textGroup.insertMember(rect,0,"rect");
+                rects.add(rect);
+            }
         }
         return rects;
     }
@@ -560,6 +563,8 @@ public class OC_PrepR3 extends OC_Reading
             //layOutBox.layer.setNeedsDisplay();
             for (OBControl c : backingRects)
                 c.show();
+            textGroup.setNeedsRetexture();
+            textGroup.invalidate();
             unlockScreen();
             playSfxAudio("tap",false);
             waitForSecs(0.7f);
