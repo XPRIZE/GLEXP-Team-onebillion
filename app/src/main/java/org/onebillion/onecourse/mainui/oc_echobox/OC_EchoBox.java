@@ -751,11 +751,11 @@ public class OC_EchoBox extends OC_SectionController
         playFile(fd,0,-1,1);
     }
 
-    public void playFile(final AssetFileDescriptor fd,final float fromSecs,final float toSecs,float vol)
+    public void playFile(final AssetFileDescriptor fd,final float fromSecs,final float toSecs,final float vol)
     {
-        //OBUtils.runOnMainThread(new OBUtils.RunLambda() {
+        OBUtils.runOnMainThread(new OBUtils.RunLambda() {
            // @Override
-           // public void run() throws Exception
+            public void run() throws Exception
             {
                 //if(effectPlayer == null)
                     effectPlayer = new OBAudioBufferPlayer(false,true);
@@ -768,7 +768,7 @@ public class OC_EchoBox extends OC_SectionController
                 effectPlayer.startPlaying(fd, fromSecs,toSecs);
 
             }
-       // });
+        });
     }
 
     public boolean doneEnough()
@@ -1002,15 +1002,9 @@ public class OC_EchoBox extends OC_SectionController
 
     public void stopTimer()
     {
-        OBUtils.runOnMainThread(new OBUtils.RunLambda() {
-            @Override
-            public void run() throws Exception
-            {
-                if(timer != null)
-                    timer.invalidate();
-                timer = null;
-            }
-        });
+        if(timer != null)
+            timer.invalidate();
+        timer = null;
     }
 
     public void replayAudio()
@@ -1046,26 +1040,29 @@ public class OC_EchoBox extends OC_SectionController
     }
     public Object findTarget(PointF pt)
     {
-        return(finger(-1,3,targets,pt));
+        return(finger(-1,1,targets,pt));
     }
 
-    public void touchDownAtPoint(PointF pt,View v)
+    public void touchDownAtPoint(final PointF pt,View v)
     {
-        MainActivity.log(">>>>>>>>>>>>>");
+        //MainActivity.log(">>>>>>>>>>>>>");
         if(status() == STATUS_AWAITING_CLICK)
         {
-            final Object targ = findTarget(pt);
-            if(targ != null)
+            setStatus(STATUS_CHECKING);
+            runOnOtherThread(new OBUtils.RunLambda()
             {
-                setStatus(STATUS_CHECKING);
-                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+                @Override
+                public void run() throws Exception
                 {
-                    public void run() throws Exception
+                    final Object targ = findTarget(pt);
+                    if(targ != null)
                     {
                         checkAnswer((OBControl) targ);
                     }
-                });
-            }
+                    else
+                        setStatus(STATUS_AWAITING_CLICK);
+                }
+            });
         }
         else if(status() == STATUS_RECORDING)
         {
