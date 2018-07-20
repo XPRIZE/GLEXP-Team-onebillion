@@ -859,6 +859,7 @@ public class OC_FlappyWord extends OC_SectionController
             }
         }
         int searchStart =0;
+        float maxLabelWidth = -1;
         for(int i=0; i<parts.size(); i++)
         {
             OBPhoneme partPhoeneme = parts.get(i);
@@ -890,12 +891,15 @@ public class OC_FlappyWord extends OC_SectionController
                 attachControl(bigPartLabel);
                 attachControl(partLabel);
                 lettersSelection.add(partLabel);
+
+                if(maxLabelWidth < partLabel.width())
+                    maxLabelWidth = partLabel.width();
             }
         }
         bigWordLabel.setScale(lettersSelection.get(0).height()/bigWordLabel.height());
         bigWordLabel.hide();
         float gapSize = applyGraphicScale(10);
-        float lineLength = applyGraphicScale(55);
+        float lineLength = maxLabelWidth;
         PointF midLoc = OB_Maths.locationForRect(0.5f,0.5f,bigWordLabel.frame());
         float startLeft =  midLoc.x - (lineLength * lettersSelection.size() + gapSize * (lettersSelection.size()-1))/2.0f;
         float right = 0;
