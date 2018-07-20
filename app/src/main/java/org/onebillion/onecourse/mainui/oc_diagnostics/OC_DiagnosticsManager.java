@@ -451,15 +451,26 @@ public class OC_DiagnosticsManager
             for (int i = 0; i < 5; i++)
             {
                 String unit = units.get(i);
-                if (unit.equals("")) unit = "Missing data to pick unit";
-                remedialUnits_day1.add(unit);
-
+                if (unit.equals(""))
+                {
+                    MainActivity.log("ERROR --> unable find a remedial unit for " + eventUUID + " " + i);
+                }
+                else
+                {
+                    remedialUnits_day1.add(unit);
+                }
             }
             for (int i = 5; i < 10; i++)
             {
                 String unit = units.get(i);
-                if (unit.equals("")) unit = "Missing data to pick unit";
-                remedialUnits_day2.add(unit);
+                if (unit.equals(""))
+                {
+                    MainActivity.log("ERROR --> unable find a remedial unit for " + eventUUID + " " + i);
+                }
+                else
+                {
+                    remedialUnits_day2.add(unit);
+                }
             }
         }
         loadCurrentQuestion();

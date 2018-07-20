@@ -149,6 +149,7 @@ public class OC_PlayZoneTrace2 extends OC_PlayZoneTrace
         lockScreen();
         redLayer.hide();
         hollow.hide();
+        back.hide();
         unlockScreen();
         waitForSecs(0.4f);
         nextLetter();
