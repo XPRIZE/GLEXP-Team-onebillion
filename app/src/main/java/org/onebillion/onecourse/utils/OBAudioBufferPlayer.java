@@ -464,6 +464,7 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
                     if (endOfStream)
                     {
                         int framesEnd = (int)(amtWritten + bytesInBuffer) / 2;
+                        MainActivity.log("endofstream %d %d",state,framesEnd);
                         if (state != OBAP_FINISHED)
                             audioTrack.setNotificationMarkerPosition(framesEnd);
                     }
