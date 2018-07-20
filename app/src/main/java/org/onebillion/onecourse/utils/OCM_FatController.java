@@ -755,12 +755,12 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                     "SUM(CASE WHEN sessionid = %d THEN 1 ELSE 0 END) as sessionCount " +
                     "FROM (SELECT EU.unitid AS unitid,  EU.orderIndex AS orderIndex, MAX(S.sessionid) as sessionid " +
                     "FROM %s AS EU " +
-                    "JOIN %s AS UI ON UI.unitid = EU.unitid AND EU.userid = UI.userid " +
+                    "JOIN %s AS UI ON UI.unitid = EU.unitid AND EU.userid = UI.userid AND EU.extraunitid = UI.extraunitid " +
                     "AND EU.userid = ? AND EU.level = ? AND UI.typeid = ? " +
                     "JOIN %s AS S ON S.sessionid = UI.sessionid AND S.userid = UI.userid " +
                     "AND S.day >= ? AND S.day <= ? " +
                     "WHERE (UI.seqNo >= ? OR UI.statusid IN (?,?)) " +
-                    "GROUP BY EU.userid, EU.level, EU.unitid ) TAB",currentSessionId,
+                    "GROUP BY EU.userid, EU.level, EU.extraunitid ) TAB",currentSessionId,
                     DBSQL.TABLE_EXTRA_UNITS,DBSQL.TABLE_UNIT_INSTANCES,DBSQL.TABLE_SESSIONS),
                     Arrays.asList(String.valueOf(currentUser.userid),
                             String.valueOf(currentWeek),String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_EXTRA),
@@ -797,21 +797,30 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             //otherwise pick the next of extra list
             if(currentSessionExtraCount < totalExtraDayCount && completedExtraCount < totalExtraUnitCount)
             {
-                cursor = db.prepareRawQuery(String.format("SELECT * FROM %s " +
-                        "WHERE unitid IN (" +
-                        "SELECT unitid FROM %s " +
-                        "WHERE userid = ? AND level = ? AND orderIndex > ? " +
-                        "ORDER BY orderIndex LIMIT 1)",
-                        DBSQL.TABLE_UNITS, DBSQL.TABLE_EXTRA_UNITS),
+                cursor = db.prepareRawQuery(String.format("SELECT unitid, extraunitid FROM %s " +
+                                "WHERE userid = ? AND level = ? AND orderIndex > ? " +
+                                "ORDER BY orderIndex LIMIT 1",
+                         DBSQL.TABLE_EXTRA_UNITS),
                         Arrays.asList(String.valueOf(currentUser.userid), String.valueOf(currentWeek),
                                 String.valueOf(lastOrderIndex)));
-
                 if(cursor.moveToFirst())
                 {
-                    mlUnit = OCM_MlUnit.mlUnitFromCursor(cursor);
-                    mlUnit.typeid = OCM_MlUnit.TYPE_EXTRA;
+                    int columnIndex1 = cursor.getColumnIndex("unitid");
+                    int columnIndex2 = cursor.getColumnIndex("extraunitid");
+                    if(!cursor.isNull(columnIndex1) && !cursor.isNull(columnIndex2))
+                    {
+                        long unitid = cursor.getLong(columnIndex1);
+                        int extraunitid = cursor.getInt(columnIndex2);
+                        if(unitid > 0)
+                        {
+                            mlUnit = OCM_MlUnit.mlUnitforUnitIDFromDB(db, unitid);
+                            mlUnit.extraunitid = extraunitid;
+                        }
+                    }
                 }
                 cursor.close();
+
+
             }
 
             //normally the unit has to be the same week as current week, but in this case we skip this check as it's unit from the past
@@ -828,11 +837,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             cursor = db.prepareRawQuery(String.format("SELECT MAX(unitIndex) AS unitIndex FROM %s AS U " +
                             "JOIN %s AS UI ON UI.unitid = U.unitid AND U.masterlistid = ? AND UI.typeid = ? " +
                             "JOIN %s AS S ON S.sessionid = UI.sessionid AND S.userid = UI.userid " +
-                            "WHERE UI.userid = ? AND U.level = ?  AND S.day >= ? AND S.day <= ? " +
+                            "WHERE UI.userid = ? AND UI.extraunitid = 0 AND U.level = ?  AND S.day >= ? AND S.day <= ? " +
                             "AND (UI.seqNo >= ? OR UI.statusid IN (?,?))", DBSQL.TABLE_UNITS, DBSQL.TABLE_UNIT_INSTANCES, DBSQL.TABLE_SESSIONS),
-                    Arrays.asList(String.valueOf(currentUser.studylistid), String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_STUDY)
-                            , String.valueOf(currentUser.userid),
-                            String.valueOf(materlistWeek), String.valueOf(firstDay),
+                    Arrays.asList(String.valueOf(currentUser.studylistid), String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_STUDY),
+                            String.valueOf(currentUser.userid), String.valueOf(materlistWeek), String.valueOf(firstDay),
                             String.valueOf(lastDay), String.valueOf(unitAttemptsCount - 1), String.valueOf(OCM_MlUnitInstance.STATUS_COMPLETED),
                             String.valueOf(OCM_MlUnitInstance.STATUS_FAILURE)));
 
@@ -1251,7 +1259,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         {
             OCM_MlUnit unit = (OCM_MlUnit)dict.get("unit");
             int typeId;
-            if(unit.typeid == OCM_MlUnit.TYPE_EXTRA)
+            if(unit.extraunitid > 0)
                 typeId = OCM_MlUnitInstance.INSTANCE_TYPE_EXTRA;
             else
                 typeId = OCM_MlUnitInstance.INSTANCE_TYPE_STUDY;
@@ -1273,17 +1281,19 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         try
         {
             db = new DBSQL(false);
-            Cursor cursor = db.prepareRawQuery(String.format("SELECT * FROM %s "+
-                            "WHERE unitid IN (SELECT unitid FROM %s "+
-                            "WHERE userid = ? AND sessionid = ?) AND masterlistid = ? AND typeid = ?"+
-                            "GROUP BY unitid ORDER BY rowid ASC",DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES),
-                    Arrays.asList(String.valueOf(currentUser.userid),String.valueOf(currentSessionId),
-                            String.valueOf(currentUser.studylistid),String.valueOf(OCM_MlUnit.TYPE_STANDARD)));
+            Cursor cursor = db.prepareRawQuery(String.format("SELECT U.unitid as unitid, UI.extraunitid as extraunitid FROM %s U "+
+                            "JOIN %s UI ON U.unitid = UI.unitid AND U.masterlistid = ? AND U.typeid = ? "+
+                            "WHERE UI.userid = ? AND UI.sessionid = ? " +
+                            "GROUP BY UI.unitid, UI.extraunitid "+
+                            "ORDER BY UI.rowid ASC",DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES),
+                    Arrays.asList(String.valueOf(currentUser.studylistid),String.valueOf(OCM_MlUnit.TYPE_STANDARD),
+                            String.valueOf(currentUser.userid),String.valueOf(currentSessionId)
+                            ));
 
             if(cursor.getCount() != SESSION_UNIT_COUNT)
             {
                 cursor.close();
-                cursor = db.prepareRawQuery(String.format("SELECT * FROM %s "+
+                cursor = db.prepareRawQuery(String.format("SELECT unitid, unitIndex, 0 as extraunitid FROM %s "+
                                 "WHERE unitid IN (SELECT unitid FROM %s "+
                                 "WHERE level = ? AND masterlistid = ? AND typeid = ? ORDER BY unitIndex DESC LIMIT %d) AND masterlistid = ? "+
                                 "GROUP BY unitid ORDER BY unitIndex ASC",DBSQL.TABLE_UNITS,DBSQL.TABLE_UNITS,SESSION_UNIT_COUNT),
@@ -1293,13 +1303,23 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
             if(cursor.moveToFirst())
             {
+                int columnIndex1 = cursor.getColumnIndex("unitid");
+                int columnIndex2 = cursor.getColumnIndex("extraunitid");
                 while (cursor.isAfterLast() == false)
                 {
-                    unitsList.add(OCM_MlUnit.mlUnitFromCursor(cursor));
+                    if(!cursor.isNull(columnIndex1) && !cursor.isNull(columnIndex2)) {
+                        OCM_MlUnit unit = OCM_MlUnit.mlUnitforUnitIDFromDB(db, cursor.getLong(columnIndex1));
+                        if(unit != null)
+                        {
+                            unit.extraunitid = cursor.getInt(columnIndex2);
+                            unitsList.add(unit);
+                        }
+                    }
                     cursor.moveToNext();
                 }
             }
             cursor.close();
+
         }catch (Exception e)
         {
             MainActivity.log("OCM_FatController.getUnitsForGrid. exception caught: " + e.getMessage());
@@ -1397,7 +1417,8 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                 cursor.close();
 
                 if(unitIndex >= 0)
-                    listWeekEndReached = unitCompletedByUser(db, currentUser.userid, currentUser.studylistid, unitIndex);
+                    listWeekEndReached = unitCompletedByUser(db, currentUser.userid, currentUser.studylistid,
+                            unitIndex, 0, OCM_MlUnitInstance.INSTANCE_TYPE_STUDY);
 
             }
             catch (Exception e)
@@ -1429,7 +1450,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                         "JOIN %s AS U ON U.unitid = UI.unitid " +
                         "WHERE UI.userid = ? AND UI.sessionid = ? AND U.masterlistid = ? " +
                         "AND UI.starColour > 0 AND UI.typeid IN (?,?) " +
-                        "GROUP BY UI.unitid ORDER BY UI.rowid ASC", DBSQL.TABLE_UNIT_INSTANCES, DBSQL.TABLE_UNITS),
+                        "GROUP BY UI.unitid,UI.extraunitid ORDER BY UI.rowid ASC", DBSQL.TABLE_UNIT_INSTANCES, DBSQL.TABLE_UNITS),
                 Arrays.asList(String.valueOf(currentUser.userid),String.valueOf(sessionid),
                         String.valueOf(currentUser.studylistid),String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_STUDY),
                         String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_EXTRA)));
@@ -1458,11 +1479,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     {
         List<Integer> coloursList = new ArrayList<>();
         Cursor cursor = db.prepareRawQuery(String.format("SELECT UI.starColour as starColour FROM %s AS UI "+
-                        "JOIN (SELECT UI.unitid as unitid, MAX(UI.seqNo) as seqNo FROM %s AS UI " +
+                        "JOIN (SELECT UI.unitid as unitid, UI.extraunitid as extraunitid, MAX(UI.seqNo) as seqNo FROM %s AS UI " +
                         "JOIN %s AS U on U.unitid = UI.unitid AND U.masterlistid = ? "+
                         "WHERE UI.userid = ? AND UI.sessionid = ? AND UI.starColour > 0 AND UI.typeid = ? "+
-                        "GROUP BY UI.unitid) AS TAB ON UI.unitid = TAB.unitid AND UI.seqNo = TAB.seqNo "+
-                        "WHERE UI.userid = ? AND UI.sessionid = ? AND UI.typeid =?",DBSQL.TABLE_UNIT_INSTANCES,DBSQL.TABLE_UNIT_INSTANCES,DBSQL.TABLE_UNITS),
+                        "GROUP BY UI.unitid, UI.extraunitid) AS TAB ON UI.unitid = TAB.unitid AND UI.seqNo = TAB.seqNo AND UI.extraunitid = TAB.extraunitid "+
+                        "WHERE UI.userid = ? AND UI.sessionid = ? AND UI.typeid = ?",DBSQL.TABLE_UNIT_INSTANCES,DBSQL.TABLE_UNIT_INSTANCES,DBSQL.TABLE_UNITS),
                 Arrays.asList(String.valueOf(currentUser.studylistid),String.valueOf(currentUser.userid),String.valueOf(sessionid),String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_COMMUNITY),
                         String.valueOf(currentUser.userid),String.valueOf(sessionid),String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_COMMUNITY)));
         if(cursor.moveToFirst())
@@ -1531,12 +1552,12 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         try
         {
             db = new DBSQL(true);
-            Cursor cursor = db.prepareRawQuery(String.format("SELECT UI.unitid as unitid, UI.typeid as typeid, MAX(UI.seqNo) as seqNo " +
+            Cursor cursor = db.prepareRawQuery(String.format("SELECT UI.unitid as unitid, UI.extraunitid as extraunitid, UI.typeid as typeid, MAX(UI.seqNo) as seqNo " +
                             "FROM %s AS UI " +
                             "JOIN %s AS U ON U.unitid = UI.unitid "+
                             "WHERE UI.userid = ? AND UI.sessionid = ? AND UI.typeid IN (?,?)"+
                             "AND (UI.seqNo >= ? OR UI.statusid IN(?,?)) AND UI.starColour < 0 AND U.typeid <> ? "+
-                            "GROUP BY UI.unitid, UI.typeid", DBSQL.TABLE_UNIT_INSTANCES, DBSQL.TABLE_UNITS),
+                            "GROUP BY UI.unitid, UI.extraunitid, UI.typeid", DBSQL.TABLE_UNIT_INSTANCES, DBSQL.TABLE_UNITS),
                     Arrays.asList(String.valueOf(currentUser.userid),String.valueOf(sessionId),
                             String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_STUDY),String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_EXTRA)
                             ,String.valueOf(unitAttemptsCount-1),
@@ -1551,12 +1572,14 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                     int columnIndex = cursor.getColumnIndex("unitid");
                     int columnIndex2 = cursor.getColumnIndex("seqNo");
                     int columnIndex3 = cursor.getColumnIndex("typeid");
+                    int columnIndex4 = cursor.getColumnIndex("extraunitid");
                     if(!cursor.isNull(columnIndex) && !cursor.isNull(columnIndex2) )
                     {
                         Map<String,Integer> unitData = new ArrayMap<>();
                         unitData.put("unitid", cursor.getInt(columnIndex));
                         unitData.put("seqNo", cursor.getInt(columnIndex2));
                         unitData.put("typeid", cursor.getInt(columnIndex3));
+                        unitData.put("extraunitid", cursor.getInt(columnIndex4));
                         fixUnits.add(unitData);
                     }
                     cursor.moveToNext();
@@ -1579,6 +1602,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
                     whereMap.put("typeid",String.valueOf(unitData.get("typeid")));
                     whereMap.put("unitid",String.valueOf(unitData.get("unitid")));
                     whereMap.put("seqNo",String.valueOf(unitData.get("seqNo")));
+                    whereMap.put("extraunitid",String.valueOf(unitData.get("extraunitid")));
                     ContentValues contentValues = new ContentValues();
                     int starColour = availableColours.size() > index ? availableColours.get(index) : OB_Maths.randomInt(1, COLOUR_COUNT);
                     contentValues.put("starColour",starColour);
@@ -1735,7 +1759,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         int typeId = OCM_MlUnitInstance.INSTANCE_TYPE_COMMUNITY;
         if(studyMode)
         {
-            if(unit.typeid == OCM_MlUnit.TYPE_EXTRA)
+            if(unit.extraunitid > 0)
                 typeId = OCM_MlUnitInstance.INSTANCE_TYPE_EXTRA;
             else
                 typeId = OCM_MlUnitInstance.INSTANCE_TYPE_STUDY;
@@ -1838,8 +1862,8 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
             Cursor cursor = db.prepareRawQuery(String.format(
                     "SELECT SUM(elapsedTime) as elapsed FROM %s AS UI " +
-                            "JOIN %s AS U ON U.unitid = UI.unitid AND U.masterlistid = ?" +
-                            "WHERE  UI.sessionid = ? AND U.typeid = ? " +
+                            "JOIN %s AS U ON U.unitid = UI.unitid AND U.masterlistid = ? " +
+                            "WHERE UI.sessionid = ? AND U.typeid = ? " +
                             "AND UI.startTime > (SELECT IFNULL(MAX(startTime),0) " +
                             "FROM %s WHERE sessionid = UI.sessionid AND typeid = ?)",
                     DBSQL.TABLE_UNIT_INSTANCES, DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES),
@@ -1933,44 +1957,25 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     /*
         unit check stuff
      */
-    public int unitAttemptsCountInDB(DBSQL db, int userid, int masterlistid, int unitIndex)
-    {
-        Cursor cursor = db.prepareRawQuery(String.format("SELECT MAX(seqNo) as count FROM %s AS U " +
-                        "JOIN %s AS UI ON UI.unitid = U.unitid " +
-                        "WHERE UI.userid = ? AND U.masterlistid = ? AND U.unitIndex = ?",
-                DBSQL.TABLE_UNITS,  DBSQL.TABLE_UNIT_INSTANCES),
-                Arrays.asList(String.valueOf(userid),String.valueOf(masterlistid),String.valueOf(unitIndex)));
-        int count = 0;
 
-        int columnIndex = cursor.getColumnIndex("count");
-        if(cursor.moveToFirst() && !cursor.isNull(columnIndex))
-            count = cursor.getInt(columnIndex);
-
-        cursor.close();
-
-        return count;
-    }
-
-    public  boolean unitCompletedByCurrentUser(DBSQL db, OCM_MlUnit unit)
-    {
-        return unitCompletedByUser(db,currentUser.userid, unit.masterlistid, unit.unitIndex);
-    }
 
     /**
-     * Check is certain units was completed by used before.
+     * Check is certain units was completed by user before.
      * @param db
      * @param userid
      * @param masterlistid
      * @param unitIndex
+     * @param extraunitid
+     * @param instancetypeid
      * @return true if completed
      */
-    public boolean unitCompletedByUser(DBSQL db, int userid, int masterlistid, int unitIndex)
+    public boolean unitCompletedByUser(DBSQL db, int userid, int masterlistid, int unitIndex, int extraunitid, int instancetypeid)
     {
         Cursor cursor = db.prepareRawQuery(String.format("SELECT U.unitid FROM %s AS U JOIN %s AS UI ON UI.unitid = U.unitid " +
-                        "WHERE UI.userid = ? AND U.masterlistid = ? AND U.unitIndex = ? AND (UI.seqNo >= ? OR UI.statusid IN(?,?))",
+                        "WHERE UI.userid = ? AND U.masterlistid = ? AND U.unitIndex = ? AND UI.extraunitid = ? AND UI.typeid = ? AND (UI.seqNo >= ? OR UI.statusid IN(?,?))",
                 DBSQL.TABLE_UNITS,  DBSQL.TABLE_UNIT_INSTANCES),
                 Arrays.asList(String.valueOf(userid),String.valueOf(masterlistid),
-                        String.valueOf(unitIndex),String.valueOf(unitAttemptsCount-1),
+                        String.valueOf(unitIndex),String.valueOf(extraunitid),String.valueOf(instancetypeid),String.valueOf(unitAttemptsCount-1),
                         String.valueOf(OCM_MlUnitInstance.STATUS_COMPLETED),String.valueOf(OCM_MlUnitInstance.STATUS_FAILURE)));
 
         boolean rowExists = cursor.moveToFirst();
@@ -2145,12 +2150,13 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             return countMap;
 
 
-        Cursor cursor = db.prepareRawQuery(String.format("SELECT U.typeid as typeid, COUNT(DISTINCT(UI.unitid)) AS count " +
+        Cursor cursor = db.prepareRawQuery(String.format("SELECT typeid, COUNT(*) as count FROM " +
+                        "(SELECT U.typeid as typeid, UI.unitid AS unitid " +
                         "FROM %s AS U "+
                         "JOIN %s AS UI ON UI.unitid = U.unitid AND U.masterlistid = ? "+
                         "WHERE UI.userid = ? AND UI.sessionid = ?  "+
-                        "AND (UI.seqNo >= ? OR UI.statusid IN (?,?)) " +
-                        "GROUP BY U.typeid",
+                        "AND (UI.seqNo >= ? OR UI.statusid IN (?,?)) GROUP BY UI.typeid, UI.unitid, UI.extraunitid) TAB " +
+                        "GROUP BY typeid",
                 DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES),
                 Arrays.asList(String.valueOf(masterlistid), String.valueOf(userid),String.valueOf(sessionid),
                         String.valueOf(unitAttemptsCount-1),String.valueOf(OCM_MlUnitInstance.STATUS_COMPLETED),
@@ -2561,7 +2567,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         {
             List<Integer> units = new ArrayList<>();
             for(int i=0; i<10; i++)
-                units.add(2+i);
+                units.add(5);
 
             saveExtraUnitsForCurrentUser(units);
         }

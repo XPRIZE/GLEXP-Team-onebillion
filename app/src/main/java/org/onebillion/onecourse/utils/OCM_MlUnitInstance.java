@@ -41,7 +41,7 @@ public class OCM_MlUnitInstance extends DBObject
             STATUS_BATTERY_LOW = 12,
             STATUS_FAILURE = 20;
 
-    public long unitid, assetid;
+    public long assetid;
     public int userid, sessionid, seqNo, elapsedTime, typeid, starColour, statusid;
     public int scoreCorrect, scoreWrong;
     public long startTime, endTime;
@@ -51,7 +51,7 @@ public class OCM_MlUnitInstance extends DBObject
     public OCM_MlUnit mlUnit;
 
     private static final String[] intFields = {"userid","sessionid","seqNo","elapsedTime","statusid","typeid","starColour","scoreCorrect", "scoreWrong"};
-    private static final String[] longFields = {"startTime","endTime","unitid","assetid"};
+    private static final String[] longFields = {"startTime","endTime","assetid"};
 
     public OCM_MlUnitInstance()
     {
@@ -76,7 +76,6 @@ public class OCM_MlUnitInstance extends DBObject
     {
         OCM_MlUnitInstance mlui = new OCM_MlUnitInstance();
         mlui.userid = userid;
-        mlui.unitid = unit.unitid;
         mlui.sessionid = sessionid;
         mlui.mlUnit = unit;
         mlui.typeid = typeid;
@@ -85,11 +84,11 @@ public class OCM_MlUnitInstance extends DBObject
         try
         {
             db = new DBSQL(true);
-            Cursor cursor = db.prepareRawQuery(String.format("SELECT MAX(seqNo)as seqNo FROM %s AS UI " +
+            Cursor cursor = db.prepareRawQuery(String.format("SELECT MAX(seqNo) as seqNo FROM %s AS UI " +
                     "JOIN %s AS S ON S.userid = UI.userid AND S.sessionid = UI.sessionid " +
-                            "WHERE UI.userid = ? AND UI.unitid = ? AND UI.typeid = ? AND S.day > ? AND S.day <= ?",
+                            "WHERE UI.userid = ? AND UI.unitid = ? AND UI.extraunitid = ? AND UI.typeid = ? AND S.day > ? AND S.day <= ?",
                     DBSQL.TABLE_UNIT_INSTANCES, DBSQL.TABLE_SESSIONS),
-                    Arrays.asList(String.valueOf(userid), String.valueOf(unit.unitid),String.valueOf(typeid)
+                    Arrays.asList(String.valueOf(userid), String.valueOf(unit.unitid),String.valueOf(unit.extraunitid),String.valueOf(typeid)
                             ,String.valueOf((week-1)*7),String.valueOf(week*7)));
 
             int columnIndex = cursor.getColumnIndex("seqNo");
@@ -123,10 +122,11 @@ public class OCM_MlUnitInstance extends DBObject
     {
         Map<String,String> whereMap = new ArrayMap<>();
         whereMap.put("userid",String.valueOf(userid));
-        whereMap.put("unitid",String.valueOf(unitid));
+        whereMap.put("unitid",String.valueOf(mlUnit.unitid));
         whereMap.put("seqNo",String.valueOf(seqNo));
         whereMap.put("sessionid",String.valueOf(sessionid));
         whereMap.put("typeid",String.valueOf(typeid));
+        whereMap.put("extraunitid",String.valueOf(mlUnit.extraunitid));
 
         ContentValues contentValues = new ContentValues();
         contentValues.put("endTime",endTime);
@@ -155,6 +155,8 @@ public class OCM_MlUnitInstance extends DBObject
     public Boolean saveToDB(DBSQL db)
     {
         ContentValues contentValues = getContentValues(null,intFields,longFields,null);
+        contentValues.put("unitid", mlUnit.unitid);
+        contentValues.put("extraunitid", mlUnit.extraunitid);
         boolean result = db.doInsertOnTable(DBSQL.TABLE_UNIT_INSTANCES,contentValues) > 0;
         return result;
     }

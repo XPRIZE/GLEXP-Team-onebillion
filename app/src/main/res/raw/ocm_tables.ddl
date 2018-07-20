@@ -33,6 +33,7 @@ create table unitinstances
     typeid integer not null,
     seqNo int not null,
     sessionid integer not null,
+    extraunitid int not null default 0,
     scoreCorrect int not null default 0,
     scoreWrong int not null default 0,
     elapsedTime int not null default 0,
@@ -43,7 +44,7 @@ create table unitinstances
     extra text,
     assetid integer not null default -1,
     foreign key(userid,sessionid) references sessions(userid,sessionid),
-    constraint pkey primary key (userid,sessionid,unitid,typeid,seqno) on conflict fail
+    constraint pkey primary key (userid,sessionid,unitid,typeid,seqno,extraunitid) on conflict fail
 );
 
 create index unitid_index ON unitinstances(unitid);
@@ -71,11 +72,11 @@ create table users
 
 create table extraunits
 (
+    extraunitid integer primary key,
     userid integer not null references users(userid) on delete no action,
     level integer not null,
     orderIndex integer not null,
-    unitid integer not null,
-    constraint pkey primary key (userid,level,orderIndex) on conflict fail
+    unitid integer not null
 );
 
 create table preferences
