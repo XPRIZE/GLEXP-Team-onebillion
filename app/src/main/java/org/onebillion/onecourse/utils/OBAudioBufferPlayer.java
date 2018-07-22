@@ -433,17 +433,17 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
                 @Override
                 public void onInputBufferAvailable(MediaCodec mc, int inputBufferId)
                 {
-                    ByteBuffer inputBuffer = codec.getInputBuffer(inputBufferId);
-                    boolean fin = fillBuffer(inputBuffer);
-                    //MainActivity.log(String.format("%d bytes read",inputBuffer.limit()));
-                    inputBuffer.rewind();
                     try
                     {
+                        ByteBuffer inputBuffer = codec.getInputBuffer(inputBufferId);
+                        boolean fin = fillBuffer(inputBuffer);
+                        //MainActivity.log(String.format("%d bytes read",inputBuffer.limit()));
+                        inputBuffer.rewind();
                         codec.queueInputBuffer(inputBufferId,0,inputBuffer.limit(),presentationTimeus,fin?BUFFER_FLAG_END_OF_STREAM:0);
                     }
                     catch (Exception e)
                     {
-                        MainActivity.log("codec.queueInputBuffer player state %d",state);
+                        MainActivity.log("codec.onInputBufferAvailable player state %d",state);
                         if (state < OBAP_FINISHED)
                             e.printStackTrace();
                     }
@@ -452,49 +452,55 @@ public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
                 @Override
                 public void onOutputBufferAvailable(MediaCodec mc, int outputBufferId, MediaCodec.BufferInfo info)
                 {
-                    ByteBuffer outputBuffer = codec.getOutputBuffer(outputBufferId);
-                    MediaFormat bufferFormat = codec.getOutputFormat(outputBufferId);
-                    int bytesInBuffer = outputBuffer.limit();
-                    if (((amtWritten + bytesInBuffer) / 2) > endFrame)
+                    try
                     {
-                        long framesToWrite = endFrame - (amtWritten / 2);
-                        bytesInBuffer = ((int)framesToWrite*2);
-                    }
-                    boolean endOfStream = ((info.flags & BUFFER_FLAG_END_OF_STREAM) != 0) || state == OBAP_FINISHED;
-                    if (endOfStream)
-                    {
-                        int framesEnd = (int)(amtWritten + bytesInBuffer) / 2;
-                        MainActivity.log("endofstream %d %d",state,framesEnd);
-                        if (state != OBAP_FINISHED)
-                            audioTrack.setNotificationMarkerPosition(framesEnd);
-                    }
-                    if (wantsFFTData || wantsMetrics)
-                        writeOutputBufferToBuffers(outputBuffer,info.presentationTimeUs,amtWritten / 2);
-                    if (state != OBAP_FINISHED)
-                    {
-                        int res;
-                        if (pitch != 1f)
+                        ByteBuffer outputBuffer = codec.getOutputBuffer(outputBufferId);
+                        MediaFormat bufferFormat = codec.getOutputFormat(outputBufferId);
+                        int bytesInBuffer = outputBuffer.limit();
+                        if (((amtWritten + bytesInBuffer) / 2) > endFrame)
                         {
-                            ByteBuffer tb = pitchShift(outputBuffer);
-                            for (int i = 0;i < tb.limit();i++)
-                            {
-                                Byte a = outputBuffer.get(i);
-                                Byte b = tb.get(i);
-                                if (a != b)
-                                    res = -1;
-                            }
-                            res = audioTrack.write(tb,bytesInBuffer,AudioTrack.WRITE_BLOCKING);
+                            long framesToWrite = endFrame - (amtWritten / 2);
+                            bytesInBuffer = ((int)framesToWrite*2);
                         }
-                        else
-                            res = audioTrack.write(outputBuffer,bytesInBuffer,AudioTrack.WRITE_BLOCKING);
-                        amtWritten += res;
+                        boolean endOfStream = ((info.flags & BUFFER_FLAG_END_OF_STREAM) != 0) || state == OBAP_FINISHED;
+                        if (endOfStream)
+                        {
+                            int framesEnd = (int)(amtWritten + bytesInBuffer) / 2;
+                            MainActivity.log("endofstream %d %d",state,framesEnd);
+                            if (state != OBAP_FINISHED)
+                                audioTrack.setNotificationMarkerPosition(framesEnd);
+                        }
+                        if (wantsFFTData || wantsMetrics)
+                            writeOutputBufferToBuffers(outputBuffer,info.presentationTimeUs,amtWritten / 2);
+                        if (state != OBAP_FINISHED)
+                        {
+                            int res;
+                            if (pitch != 1f)
+                            {
+                                ByteBuffer tb = pitchShift(outputBuffer);
+                                for (int i = 0;i < tb.limit();i++)
+                                {
+                                    Byte a = outputBuffer.get(i);
+                                    Byte b = tb.get(i);
+                                    if (a != b)
+                                        res = -1;
+                                }
+                                res = audioTrack.write(tb,bytesInBuffer,AudioTrack.WRITE_BLOCKING);
+                            }
+                            else
+                                res = audioTrack.write(outputBuffer,bytesInBuffer,AudioTrack.WRITE_BLOCKING);
+                            amtWritten += res;
+                        }
+                        if (state == OBAP_PREPARING && amtWritten > 300)
+                        {
+                            finishedPrepare();
+                        }
+                        codec.releaseOutputBuffer(outputBufferId,true);
                     }
-                    if (state == OBAP_PREPARING && amtWritten > 300)
+                    catch(Exception e)
                     {
-                        finishedPrepare();
+                        e.printStackTrace();
                     }
-                    //MainActivity.log(String.format("%d bytes written",res));
-                    codec.releaseOutputBuffer(outputBufferId,true);
                 }
 
                 @Override

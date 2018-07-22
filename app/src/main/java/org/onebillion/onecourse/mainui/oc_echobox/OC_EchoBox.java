@@ -673,6 +673,7 @@ public class OC_EchoBox extends OC_SectionController
             try
             {
                 final long stt = statusTime();
+                effectPlayer.waitAudio();
                 reprompt(stt, null, 5, new OBUtils.RunLambda()
                 {
                     public void run() throws Exception
