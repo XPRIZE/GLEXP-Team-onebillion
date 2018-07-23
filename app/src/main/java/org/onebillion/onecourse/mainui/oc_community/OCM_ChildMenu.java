@@ -791,6 +791,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
 
     public void loadBigIconForUnit(OCM_MlUnit unit)
     {
+        lockScreen();
         previousBigIcon = currentBigIcon;
         currentBigIcon = loadIconForUnit(unit,false);
         currentBigIcon.setZPosition(20);
@@ -798,6 +799,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         currentBigIcon.show();
         attachControl(currentBigIcon);
         refreshCurrentLabel(unit);
+        unlockScreen();
     }
 
     public OBImage loadIconForUnit(OCM_MlUnit unit,boolean small)
