@@ -326,10 +326,14 @@ public class OC_PlayZoneTrace extends OC_SectionController
 
     public void startTimer()
     {
+        if (timer != null)
+            stopTimer();
         timer = new OBTimer(0.02f) {
             @Override
             public int timerEvent(OBTimer timer) {
                 doFrame(timer);
+                if (_aborting)
+                    return 0;
                 return 1;
             }
         };
@@ -548,6 +552,7 @@ public class OC_PlayZoneTrace extends OC_SectionController
         if(status() == STATUS_TRACING)
         {
             setStatus(STATUS_CHECKING);
+            stopTimer();
             boolean done =(pixelsLeft(PIXEL_THRESHOLD));
             traceLock.lock();
             if(done)
