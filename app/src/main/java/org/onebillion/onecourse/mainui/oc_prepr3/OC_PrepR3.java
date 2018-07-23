@@ -551,7 +551,7 @@ public class OC_PrepR3 extends OC_Reading
         setStatus(STATUS_DOING_DEMO);
         waitForSecs(0.4f);
         playAudioQueuedScene("DEMO",true);
-        playSfxAudio("tap",false);
+        //playSfxAudio("tap",false);
         waitForSecs(0.7f);
         Est3_Question qu = currPassage.questions.get(questionNo);
         for(Integer n : qu.sentenceIndices)
