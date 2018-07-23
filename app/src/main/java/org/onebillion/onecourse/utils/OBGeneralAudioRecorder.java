@@ -2,6 +2,8 @@ package org.onebillion.onecourse.utils;
 
 import android.media.MediaRecorder;
 
+import org.onebillion.onecourse.mainui.MainActivity;
+
 import java.io.IOException;
 
 public class OBGeneralAudioRecorder extends Object implements MediaRecorder.OnErrorListener, MediaRecorder.OnInfoListener
@@ -63,13 +65,26 @@ public class OBGeneralAudioRecorder extends Object implements MediaRecorder.OnEr
 
     public void stopRecording()
     {
-        if (audioRecorder != null)
-            audioRecorder.stop();
+        try
+        {
+            if (audioRecorder != null)
+                audioRecorder.stop();
+        }
+        catch(Exception e)
+        {
+            MainActivity.log("OBGeneralAudioRecorder error in stopRecording");
+        }
         state = ST_FINISHED;
         if (audioRecorder != null)
         {
-            audioRecorder.reset();
-            audioRecorder.release();
+            try
+            {
+                audioRecorder.reset();
+                audioRecorder.release();
+            }
+            catch(Exception e)
+            {
+            }
             audioRecorder = null;
         }
     }
