@@ -262,6 +262,16 @@ public class OC_PrepR4Trace extends OC_SectionController
                 }
             }
         }
+        OBControl lastGroup = groupList.get(groupList.size()-1);
+        OBControl arrow = objectDict.get("arrow");
+        if (lastGroup.bottom() > arrow.position().y)
+        {
+            float diff = lastGroup.bottom() - arrow.position().y;
+            for (OBControl c : groupList)
+            {
+                c.setPosition(c.position().x,c.position().y - diff);
+            }
+        }
         hollowList = new ArrayList<>();
         for(OBGroup g : groupList)
         {
