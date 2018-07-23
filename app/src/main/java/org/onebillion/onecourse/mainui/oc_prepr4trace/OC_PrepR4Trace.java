@@ -491,10 +491,14 @@ public class OC_PrepR4Trace extends OC_SectionController
 
     public void startTimer()
     {
+        if (timer != null)
+            stopTimer();
         timer = new OBTimer(0.02f) {
             @Override
             public int timerEvent(OBTimer timer) {
                 doFrame(timer);
+                if (_aborting)
+                    return 0;
                 return 1;
             }
         };
@@ -627,6 +631,7 @@ public class OC_PrepR4Trace extends OC_SectionController
             int cond = traceLock.conditionValue();
             traceLock.unlockWithCondition((cond & ~TRACING));
             setStatus(STATUS_WAITING_FOR_TRACE);
+            stopTimer();
         }
     }
 
