@@ -441,6 +441,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         return ((currentDay-1)%currentPlayzoneListMaxDay)+1;
     }
 
+    public int getMaxStudyWeek()
+    {
+        return currentStudyListMaxWeek;
+    }
+
     public int getMasterlistWeek()
     {
         return (int)Math.ceil(getMasterlistDay() / 7.0f);
