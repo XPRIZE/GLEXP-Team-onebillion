@@ -289,6 +289,24 @@ public class OC_EchoBox extends OC_SectionController
         oDict(od,split.get(0),split.get(1));
     }
 
+    public long takeSequenceLockInterrupt (boolean interrupt)
+    {
+        long token = SystemClock.uptimeMillis();
+        if (interrupt)
+        {
+            sequenceToken = token;
+            if (effectPlayer != null && effectPlayer.isPlaying())
+                effectPlayer.stopPlaying();
+            sequenceLock.lock();
+        }
+        else
+        {
+            sequenceLock.lock();
+            sequenceToken = token;
+        }
+        return token;
+    }
+
     public void speak(List audioFiles,Map od,List<String> keys)
     {
         List<Integer> indices = new ArrayList<>();
@@ -758,9 +776,10 @@ public class OC_EchoBox extends OC_SectionController
            // @Override
             public void run() throws Exception
             {
+                if (effectPlayer != null && effectPlayer.isPlaying())
+                    effectPlayer.stopPlaying();
                 //if(effectPlayer == null)
                     effectPlayer = new OBAudioBufferPlayer(false,true);
-                effectPlayer.stopPlaying();
                 //effectPlayer.changePitchAmt(350);
                 effectPlayer.setVolume(vol);
         //effectPlayer setCompletionBlock:^(OBAudioEffectPlayer player) {
@@ -1011,7 +1030,7 @@ public class OC_EchoBox extends OC_SectionController
     public void replayAudio()
     {
         if(busyStatuses.contains((status())))
-        return;
+            return;
         setStatus(status());
         final List aud = currentAudio("PROMPT.REPEAT");
         if(aud != null)
