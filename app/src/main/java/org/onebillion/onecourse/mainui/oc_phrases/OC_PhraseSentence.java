@@ -438,7 +438,7 @@ public class OC_PhraseSentence extends OC_Reading
             {
                 boolean withBackground = jumpOffset > 0;
                 highlightWordWithBackground(w,true,withBackground);
-                if(syllablesIfPoss && syllableAudioExistsForWord(w,currComponentKey) )
+                if(syllablesIfPoss && syllableAudioExistsForWord(w,currComponentKey) && w.syllables != null)
                 {
                     List arr = SplitToPrefixSuffix(currComponentKey);
                     String fileName = String.format("%ssyl%s_%s",arr.get(0),arr.get(1),CrunchedString(w.text));

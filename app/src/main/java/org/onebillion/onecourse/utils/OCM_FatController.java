@@ -441,6 +441,11 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         return ((currentDay-1)%currentPlayzoneListMaxDay)+1;
     }
 
+    public int getMaxStudyWeek()
+    {
+        return currentStudyListMaxWeek;
+    }
+
     public int getMasterlistWeek()
     {
         return (int)Math.ceil(getMasterlistDay() / 7.0f);
@@ -2016,9 +2021,9 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         {
             if(currentTimeIsDirty())
             {
-
+                // Dirty time fallback. If enough units have been done and the date has changed, move on to the next expected day
                 int count = currentSessionStandardUnitCount();
-                if(count < SESSION_VALID_COUNT)
+                if(count < SESSION_VALID_COUNT && !communityModeActive())
                 {
                     currentSessionWorkTime = getCurrentTime();
                     DBSQL db = null;

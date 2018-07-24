@@ -262,6 +262,16 @@ public class OC_PrepR4Trace extends OC_SectionController
                 }
             }
         }
+        OBControl lastGroup = groupList.get(groupList.size()-1);
+        OBControl arrow = objectDict.get("arrow");
+        if (lastGroup.bottom() > arrow.position().y)
+        {
+            float diff = lastGroup.bottom() - arrow.position().y;
+            for (OBControl c : groupList)
+            {
+                c.setPosition(c.position().x,c.position().y - diff);
+            }
+        }
         hollowList = new ArrayList<>();
         for(OBGroup g : groupList)
         {
@@ -491,10 +501,14 @@ public class OC_PrepR4Trace extends OC_SectionController
 
     public void startTimer()
     {
+        if (timer != null)
+            stopTimer();
         timer = new OBTimer(0.02f) {
             @Override
             public int timerEvent(OBTimer timer) {
                 doFrame(timer);
+                if (_aborting)
+                    return 0;
                 return 1;
             }
         };
@@ -627,6 +641,7 @@ public class OC_PrepR4Trace extends OC_SectionController
             int cond = traceLock.conditionValue();
             traceLock.unlockWithCondition((cond & ~TRACING));
             setStatus(STATUS_WAITING_FOR_TRACE);
+            stopTimer();
         }
     }
 
