@@ -1099,8 +1099,24 @@ public class OBUtils
                                 }
                             }
                         }
+
+                        List<OBPhoneme> phonemes = null;
+                        String phonemeAttr = wordNode.attributeStringValue("phonemes");
+                        if (phonemeAttr != null)
+                        {
+                            phonemes = new ArrayList<>();
+                            for (String phonemeID : phonemeAttr.split("/"))
+                            {
+                                OBPhoneme pho =  (OBPhoneme)dictionary.get(phonemeID);
+                                if (pho != null)
+                                {
+                                    phonemes.add(pho);
+                                }
+                            }
+                        }
+
                         String image = wordNode.attributeStringValue("image");
-                        OBWord wor = new OBWord(fullText, audioID, null, syllables, image);
+                        OBWord wor = new OBWord(fullText, audioID, null, phonemes, syllables, image);
                         //
                         String root = wordNode.attributeStringValue("root");
                         if (root != null)

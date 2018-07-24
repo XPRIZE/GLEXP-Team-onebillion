@@ -46,6 +46,15 @@ public class OBWord extends OBSyllable
         this.imageName = (imageName == null) ? soundID : imageName;
     }
 
+    public OBWord (String text, String soundID, List<Object> timings, List<OBPhoneme> phonemes, List<OBSyllable> syllables, String imageName)
+    {
+        super(text, soundID, timings, phonemes);
+        this.syllablesChecked = false;
+        this.phonemesChecked = false;
+        this.syllables = (syllables == null) ? new ArrayList<OBSyllable>() : new ArrayList<OBSyllable>(syllables);
+//        this.imageName = (imageName == null) ? null : (imageName.equals("true")) ? soundID : imageName;
+        this.imageName = (imageName == null) ? soundID : imageName;
+    }
 
 
     public String ImageFileName()
