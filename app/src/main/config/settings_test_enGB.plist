@@ -118,7 +118,7 @@
 	<string>false</string>
 	<!--  -->
 	<key>startup_request_device_owner</key>
-	<string>true</string>
+	<string>false</string>
 	<!--  -->
 	<key>startup_pin_application</key>
 	<string>true</string>
