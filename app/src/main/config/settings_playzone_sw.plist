@@ -256,7 +256,7 @@
 	<string>true</string>
 	<!--  -->
 	<key>debug_build_number</key>
-	<string>00017 - Playzone</string>
+	<string>00018 - Playzone</string>
 
 	<!-- ANALYTICS MANAGER -->
 	<key>analytics_enabled</key>
