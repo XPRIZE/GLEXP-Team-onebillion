@@ -225,13 +225,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
             {
                 public void run() throws Exception
                 {
-                    OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-                    {
-                        public void run() throws Exception
-                        {
-                            doReminderForEvent(event, FOLLOWING_DELAY, block);
-                        }
-                    });
+                    doReminderForEvent(event, FOLLOWING_DELAY, block);
                 }
             });
         }
@@ -241,13 +235,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
             {
                 public void run() throws Exception
                 {
-                    OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-                    {
-                        public void run() throws Exception
-                        {
-                            doReminderForEvent(event, FOLLOWING_DELAY, block);
-                        }
-                    });
+                    doReminderForEvent(event, FOLLOWING_DELAY, block);
                 }
             });
         }
@@ -565,7 +553,7 @@ public class OC_MakingPlurals extends OC_Wordcontroller
         return null;
     }
 
-    public void checkButton() throws Exception
+    public synchronized void checkButton() throws Exception
     {
         hidePointer();
         playSfxAudio("buttontouch", false);
