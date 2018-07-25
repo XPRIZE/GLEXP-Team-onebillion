@@ -40,12 +40,20 @@ public class OC_AddTakeAway_S3 extends OC_Generic_SelectCorrectObject
         if (redraw)
         {
             List<OBControl> controls = filterControls("number.*");
+            //
+            float smallestFontSize = 1000000000;
             numbers = new HashMap<String, OBLabel>();
             for (OBControl control : controls)
             {
                 OBLabel label = action_createLabelForControl(control, 1.2f, false);
                 control.hide();
                 numbers.put((String) control.attributes().get("id"), label);
+                if (label.fontSize() < smallestFontSize) smallestFontSize = label.fontSize();
+            }
+            for (OBLabel label : numbers.values())
+            {
+                label.setFontSize(smallestFontSize);
+                label.sizeToBoundingBox();
             }
             //
             controls = sortedFilteredControls("label.*");

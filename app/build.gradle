@@ -194,6 +194,16 @@ android {
                     appIcon: "@mipmap/child_en_gb"
             ]
         }
+        enGB_playzone_ {
+            applicationId 'org.onebillion.onecourse.child.en_GB.playzone'
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "Playzone - enGB"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_playzone_enGB.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/child_en_gb"
+            ]
+        }
         ny_community_ {
             applicationId 'org.onebillion.onecourse.child.ny'
             versionCode 1
