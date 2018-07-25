@@ -802,10 +802,12 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             //otherwise pick the next of extra list
             if(currentSessionExtraCount < totalExtraDayCount && completedExtraCount < totalExtraUnitCount)
             {
-                cursor = db.prepareRawQuery(String.format("SELECT unitid, extraunitid FROM %s " +
-                                "WHERE userid = ? AND level = ? AND orderIndex > ? " +
-                                "ORDER BY orderIndex LIMIT 1",
-                         DBSQL.TABLE_EXTRA_UNITS),
+                cursor = db.prepareRawQuery(String.format("SELECT EU.unitid as unitid, extraunitid " +
+                                "FROM %s EU " +
+                                "JOIN %s U ON U.unitid = EU.unitid " +
+                                "WHERE EU.userid = ? AND EU.level = ? AND EU.orderIndex > ? " +
+                                "ORDER BY EU.orderIndex LIMIT 1",
+                         DBSQL.TABLE_EXTRA_UNITS, DBSQL.TABLE_UNITS),
                         Arrays.asList(String.valueOf(currentUser.userid), String.valueOf(currentWeek),
                                 String.valueOf(lastOrderIndex)));
                 if(cursor.moveToFirst())

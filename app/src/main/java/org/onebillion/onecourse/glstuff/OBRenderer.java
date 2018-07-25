@@ -40,7 +40,7 @@ import static android.opengl.Matrix.orthoM;
 public class OBRenderer implements GLSurfaceView.Renderer
 {
     public final int[] textureObjectIds = new int[4];
-    public List<TextureUnit> textureUnits = new ArrayList<>();
+    public List<TextureUnit> textureUnits;
     public ShaderProgram colourProgram,textureProgram, maskProgram, surfaceProgram, shadowProgram;
     public TextureRect textureRect;
     public GradientRect gradientRect;
@@ -86,6 +86,7 @@ public class OBRenderer implements GLSurfaceView.Renderer
         bindExternalTextureForId(textureObjectIds[2]);
         bindStandardTextureForId(textureObjectIds[3]);
         //
+        textureUnits = new ArrayList<>();
         for (int i = 0;i < textureObjectIds.length;i++)
         {
             textureUnits.add(new TextureUnit(textureObjectIds[i]));
