@@ -698,11 +698,14 @@ public class OC_MissingNumbers extends OC_Generic_Event
             else if (mode.equals(kModeType))
             {
                 int shownDashes = Math.max(1, Math.min(currentAnswer.length() + 1, numberSequence.get(hiddenNumberIndex).toString().length()));
-                OBPath dash = dashes.get(shownDashes - 1);
+                OBPath currentDash = dashes.get(shownDashes - 1);
                 for (int i = 0; i < 3; i++)
                 {
                     lockScreen();
-                    dash.setStrokeColor(colourDashNormal);
+                    for (OBPath dash : dashes)
+                    {
+                        dash.setStrokeColor(colourDashNormal);
+                    }
                     unlockScreen();
                     waitForSecs(0.3f);
                     //
@@ -711,7 +714,17 @@ public class OC_MissingNumbers extends OC_Generic_Event
                         break;
                     }
                     lockScreen();
-                    dash.setStrokeColor(colourDashHilite);
+                    for (OBPath dash : dashes)
+                    {
+                        if (dash.equals(currentDash))
+                        {
+                            dash.setStrokeColor(colourDashHilite);
+                        }
+                        else
+                        {
+                            dash.setStrokeColor(colourDashNormal);
+                        }
+                    }
                     unlockScreen();
                     waitForSecs(0.3f);
                     //
@@ -726,17 +739,14 @@ public class OC_MissingNumbers extends OC_Generic_Event
             }
             lastActionTakenTimestamp = new Date().getTime();
         }
+        //
+        if (this.aborting()) return;
+        //
         OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
         {
             public void run () throws Exception
             {
-                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-                {
-                    public void run () throws Exception
-                    {
-                        doReminder(currentQuestion);
-                    }
-                });
+                doReminder(currentQuestion);
             }
         });
     }
@@ -892,6 +902,10 @@ public class OC_MissingNumbers extends OC_Generic_Event
         for (OBControl button : numberButtons)
         {
             toggleNumberButton(button, button.equals(target));
+        }
+        for (OBPath dash : dashes)
+        {
+            dash.setStrokeColor(colourDashNormal);
         }
         unlockScreen();
         //
