@@ -88,6 +88,7 @@ public class OBConfigManager
     private static String FAT_CONTROLLER_PLAYZONE_ACTIVE_HOUR = "fat_controller_playzone_active_hour";
     private static String FAT_CONTROLLER_SHOW_USER_NAME = "fat_controller_show_user_name";
     private static String FAT_CONTROLLER_LOCK_TIMEOUT = "fat_controller_playzone_lock_timeout";
+    private static String FAT_CONTROLLER_STUDY_LOOP_WEEK = "fat_controller_study_loop_week";
     //
     private static String ASSETS_EXTERNAL_PATH = "assets_external_path";
     private static String ASSETS_LOOK_FOR_ZIPPED_FILES = "assets_look_for_zipped_files";
@@ -910,6 +911,10 @@ public class OBConfigManager
         return getIntValue(FAT_CONTROLLER_LOCK_TIMEOUT);
     }
 
+    public int getFatControllerStudyLoopWeek()
+    {
+        return getIntValue(FAT_CONTROLLER_STUDY_LOOP_WEEK);
+    }
 
 
     public String getAssetsExternalPath ()

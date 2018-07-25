@@ -235,7 +235,9 @@
 	<!--  -->
 	<key>fat_controller_playzone_active_hour</key>
 	<integer>12</integer>
-
+	<!--  -->
+    <key>fat_controller_study_loop_week</key>
+    <integer>1</integer>
 
 	<!-- ASSETS -->
 	<key>assets_external_path</key>

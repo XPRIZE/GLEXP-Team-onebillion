@@ -53,7 +53,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     public OCM_FatReceiver menu;
 
     private float lockBatteryLevel;
-    private int unitAttemptsCount, disallowStartHour, disallowEndHour, playzoneActiveHour, playzoneLockTimeout;
+    private int unitAttemptsCount, disallowStartHour, disallowEndHour, playzoneActiveHour, playzoneLockTimeout, studyListLoopWeek;
     private OCM_MlUnitInstance currentUnitInstance;
     private OCM_User currentUser;
     private int currentSessionId, currentSessionDay;
@@ -74,7 +74,6 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     public static final int SESSION_UNIT_COUNT = 15,
             SESSION_VALID_COUNT = 10,
             COLOUR_COUNT = 20,
-            MASTERLIST_RESTART_WEEK = 15,
             MAX_PZ_ASSETS = 30;
 
     public static final int OFC_UNIT_SUCCEEDED = 1,
@@ -409,7 +408,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     /**
      * Get day for study masterlist.
-     * This day loops up back to MASTERLIST_RESTART_WEEK once the date is beyond the lenght of masterlist
+     * This day loops up back to studyListLoopWeek once the date is beyond the lenght of masterlist
      * @return int day number since start date
      */
     public int getMasterlistDay()
@@ -422,7 +421,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         }
         else
         {
-            int currentRestartWeek = MASTERLIST_RESTART_WEEK;
+            int currentRestartWeek = studyListLoopWeek;
             if(currentRestartWeek > currentStudyListMaxWeek)
                 currentRestartWeek = 1;
             int restartDay = (currentRestartWeek-1)*7 + 1;
@@ -443,7 +442,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
 
     public int getMaxStudyWeek()
     {
-        return currentStudyListMaxWeek;
+        return currentStudyListMaxWeek < 68 ? 68 : currentStudyListMaxWeek;
     }
 
     public int getMasterlistWeek()
@@ -958,6 +957,8 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             playzoneActiveHour = OBConfigManager.sharedManager.getFatControllerPlayzoneActiveHour();
             lockBatteryLevel = OBConfigManager.sharedManager.getBatteryMaxValueForLevel(OBConfigManager.BATTERY_LEVEL_CRITICAL);
             playzoneLockTimeout = OBConfigManager.sharedManager.getFatControllerPlayzoneLockTimeout();
+            studyListLoopWeek = OBConfigManager.sharedManager.getFatControllerStudyLoopWeek();
+            if (studyListLoopWeek < 0) studyListLoopWeek = 1;
             if (lockBatteryLevel < 0) lockBatteryLevel = 10;
         }
         catch (Exception e)
@@ -970,6 +971,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             playzoneActiveHour = 12;
             lockBatteryLevel = 10;
             playzoneLockTimeout = 10;
+            studyListLoopWeek = 1;
         }
         initDB();
         //

@@ -238,6 +238,9 @@
 	<!--  -->
     <key>fat_controller_playzone_lock_timeout</key>
     <integer>10</integer>
+    <!--  -->
+    <key>fat_controller_study_loop_week</key>
+    <integer>1</integer>
 
 
 	<!-- ASSETS -->
