@@ -438,7 +438,7 @@ public class OC_Pws extends OC_SectionController
         {
             public void run() throws Exception
             {
-                while(con.isEnabled() && animateWobble)
+                while(con.isEnabled() && animateWobble && !controller._aborting)
                 {
                     OBAnimationGroup.runAnims(Arrays.asList(blockAnim),1.5,true
                             ,OBAnim.ANIM_LINEAR,controller);
