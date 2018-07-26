@@ -551,8 +551,16 @@ public class OC_CountingPractice_Grid extends OC_SectionController
                 }
                 else
                 {
+                    String numberAudio = String.format("n_%s", numbersForPhase2.get(phase2QuestionIndex));
                     wrongAudio = getAudioForSceneIndex(currentEvent(), "INCORRECT", 1);                     // Now find the next one!;
-                    audio = OBUtils.insertAudioInterval(Arrays.asList(wrongAudio, String.format("n_%s", numbersForPhase2.get(phase2QuestionIndex))), 300);
+                    audio = OBUtils.insertAudioInterval(Arrays.asList(wrongAudio, numberAudio), 300);
+                    //
+                    List<String> replayAudio = new ArrayList<>();
+                    replayAudio.addAll(getAudioForScene(currentEvent(), "REPEAT"));
+                    replayAudio.add(numberAudio);
+                    //
+                    setReplayAudio(OBUtils.insertAudioInterval(replayAudio, 300));
+                    //
                     phase2WrongAnswerCount = 0;
                     playAudioQueued(audio);
                 }
