@@ -1,7 +1,11 @@
 package org.onebillion.onecourse.mainui.oc_numbers1to10;
 
+import android.graphics.Color;
+import android.graphics.PointF;
+
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBLabel;
+import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.mainui.generic.OC_Generic_CompleteSequence;
 import org.onebillion.onecourse.utils.OBAnim;
@@ -29,11 +33,21 @@ public class OC_Numbers1To10_S2 extends OC_Generic_CompleteSequence
     {
         super.action_prepareScene(scene, redraw);
         List<OBLabel> createdLabels = new ArrayList<>();
-        float smallestFontSize = 1000000000;
+        //
+        OBControl templateBox = objectDict.get("label_template");
+        OBLabel templateLabel = action_createLabelForControl(templateBox);
+        detachControl(templateLabel);
+        detachControl(templateBox);
+        //
+        float defaultFontSize = templateLabel.fontSize() * 0.8f;
         //
         for (OBControl number : filterControls("obj.*"))
         {
             OBLabel label = action_createLabelForControl(number);
+            label.setFontSize(defaultFontSize);
+            label.sizeToBoundingBox();
+            label.setPosition(number.position());
+            //
             label.setProperty("originalPosition", OC_Generic.copyPoint(label.position()));
             OC_Generic.sendObjectToTop(label, this);
             label.setProperty("number", number.attributes().get("number"));
@@ -51,14 +65,7 @@ public class OC_Numbers1To10_S2 extends OC_Generic_CompleteSequence
             objectDict.put((String) number.attributes().get("id"), label);
             detachControl(number);
             //
-            if (label.fontSize() < smallestFontSize) smallestFontSize = label.fontSize();
             createdLabels.add(label);
-        }
-        //
-        for (OBLabel label : createdLabels)
-        {
-            label.setFontSize(smallestFontSize);
-            label.sizeToBoundingBox();
         }
     }
 
