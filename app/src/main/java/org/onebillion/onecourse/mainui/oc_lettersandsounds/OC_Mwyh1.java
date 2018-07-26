@@ -159,6 +159,8 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
 
     public void doReminderWithStatusTime(final String eventName, final Boolean playAudio) throws Exception
     {
+        if (this.aborting()) return;
+        //
         if (!reminderActive)
         {
             //MainActivity.log("Reminder killed");
@@ -186,6 +188,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
             //
             lastUserInteractionTimeStamp = OC_Generic.currentTime();
             //
+            if (this.aborting()) return;
             OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
             {
                 @Override
@@ -197,6 +200,7 @@ public class OC_Mwyh1 extends OC_Generic_WordsEvent
         }
         else
         {
+            if (this.aborting()) return;
             OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
             {
                 @Override
