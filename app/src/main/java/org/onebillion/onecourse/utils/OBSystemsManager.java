@@ -441,6 +441,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
                     File decompressedFolder = new File(externalAssetsFolderPath + assetsFolderName);
                     if (decompressedFolder.exists() && decompressedFolder.isDirectory()) continue;
                     priorityFiles.add(zippedFilePath);
+                    MainActivity.log("OBSystemsManager.unzipAssetsIfFound. Found " + zippedFilePath);
                 }
             }
             //

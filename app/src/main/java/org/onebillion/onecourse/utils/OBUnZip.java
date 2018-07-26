@@ -102,6 +102,8 @@ public class OBUnZip extends AsyncTask<Void, Integer, Integer>
             //
             for (String zipFile : _zipFiles)
             {
+                MainActivity.log("OBUnzip.doInBackground. unzipping " + zipFile);
+                //
                 FileInputStream fin = new FileInputStream(zipFile);
                 ZipInputStream zin = new ZipInputStream(fin);
                 ZipEntry ze = null;
