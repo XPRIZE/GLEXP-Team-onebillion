@@ -430,12 +430,13 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             if (!tempFolderPath.endsWith("/")) tempFolderPath += "/";
             //
             final String externalAssetsFolderPath = tempFolderPath;
-            //=
+            //
             final List<String> priorityFiles = new ArrayList();
             //
             for (String assetsFolderName : priorityList)
             {
                 final String zippedFilePath = externalAssetsFolderPath + assetsFolderName + ".zip";
+                MainActivity.log("OBSystemsManager.unzipAssetsIfFound.Looking for " + zippedFilePath);
                 if (OBUtils.fileExistsAtPath(zippedFilePath))
                 {
                     File decompressedFolder = new File(externalAssetsFolderPath + assetsFolderName);
