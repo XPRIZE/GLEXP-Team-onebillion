@@ -250,6 +250,9 @@
 	<key>assets_look_for_zipped_files</key>
 	<string>true</string>
 	<!-- -->
+	<key>assets_unzip_all_on_startup</key>
+	<string>true</string>
+	<!-- -->
 	<key>assets_priority_folders</key>
 	<string>oc-gen,oc-setup,oc-community,masterlists</string>
 

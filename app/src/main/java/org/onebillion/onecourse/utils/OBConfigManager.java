@@ -92,6 +92,7 @@ public class OBConfigManager
     //
     private static String ASSETS_EXTERNAL_PATH = "assets_external_path";
     private static String ASSETS_LOOK_FOR_ZIPPED_FILES = "assets_look_for_zipped_files";
+    private static String ASSETS_UNZIP_ALL_ON_STARTUP = "assets_unzip_all_on_startup";
     private static String ASSETS_PRIORITY_FOLDERS = "assets_priority_folders";
     private static String ASSETS_READY_TO_BE_USED = "assets_ready_to_be_used";
     //
@@ -934,6 +935,11 @@ public class OBConfigManager
     public Boolean shouldLookForZippedAsssets()
     {
         return getBooleanValue(ASSETS_LOOK_FOR_ZIPPED_FILES);
+    }
+
+    public Boolean shouldUnzipAllAssetsOnStartup()
+    {
+        return getBooleanValue(ASSETS_UNZIP_ALL_ON_STARTUP);
     }
 
     public List<String> getZippedAssetsPriorityFolders()

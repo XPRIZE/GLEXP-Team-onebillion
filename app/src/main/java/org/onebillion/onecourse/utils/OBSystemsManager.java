@@ -422,6 +422,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
         {
             OBBrightnessManager.sharedManager.onSuspend();
             //
+            Boolean unzipAll = OBConfigManager.sharedManager.shouldUnzipAllAssetsOnStartup();
             List<String> priorityList = OBConfigManager.sharedManager.getZippedAssetsPriorityFolders();
             List<File> assetsFolders = OBSystemsManager.sharedManager.getExternalAssetsFolders();
             //
@@ -433,30 +434,82 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             //
             final List<String> priorityFiles = new ArrayList();
             //
-            for (String assetsFolderName : priorityList)
+            if (unzipAll)
             {
-                final String zippedFilePath = externalAssetsFolderPath + assetsFolderName + ".zip";
-                MainActivity.log("OBSystemsManager.unzipAssetsIfFound.Looking for " + zippedFilePath);
-                if (OBUtils.fileExistsAtPath(zippedFilePath))
+                List<String> otherFiles = Arrays.asList(externalAssetsFolder.list(new FilenameFilter()
                 {
-                    File decompressedFolder = new File(externalAssetsFolderPath + assetsFolderName);
-                    if (decompressedFolder.exists() && decompressedFolder.isDirectory()) continue;
-                    priorityFiles.add(zippedFilePath);
-                    MainActivity.log("OBSystemsManager.unzipAssetsIfFound. Found " + zippedFilePath);
+                    @Override
+                    public boolean accept(File dir, String filename)
+                    {
+                        return filename.toLowerCase().endsWith(".zip");
+                    }
+                }));
+                //
+                // Start unzipping the rest
+                List<String> decompressList = new ArrayList<>();
+                for (String file : otherFiles)
+                {
+                    String zippedFilePath = externalAssetsFolderPath + file; // already has the .zip extension
+                    String folderPath = zippedFilePath.replaceAll(".zip", "");
+                    //
+                    if (OBUtils.fileExistsAtPath(zippedFilePath))
+                    {
+                        File decompressedFolder = new File(folderPath);
+                        if (decompressedFolder.exists() && decompressedFolder.isDirectory())
+                        {
+                            // already extracted
+                            continue;
+                        }
+                        decompressList.add(zippedFilePath);
+                    }
                 }
+                OBUnZip unzipPriority = new OBUnZip(decompressList, externalAssetsFolderPath, new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run() throws Exception
+                    {
+                        // enable "Test onecourse" button in setup menu
+                        MainActivity.log("OBSystemsManager.unZipAssetsIfFound.assets are now ready to be used");
+                        OBConfigManager.sharedManager.setAssetsReadyToBeUsed(true);
+                        //
+                        // Files have been unzip, can continue with operations
+                        OBUtils.runOnMainThread(completionBlock);
+                        OBBrightnessManager.sharedManager.onContinue();
+                    }
+                }, true);
+                //
+                MainActivity.log("unzipping: " + decompressList);
+                //
+                unzipPriority.execute();
             }
-            //
-            OBUnZip unzipPriority = new OBUnZip(priorityFiles, externalAssetsFolderPath, new OBUtils.RunLambda()
+            else
             {
-                @Override
-                public void run() throws Exception
+                for (String assetsFolderName : priorityList)
                 {
-                    // Files have been unzip, can continue with operations
-                    OBUtils.runOnMainThread(completionBlock);
-                    OBBrightnessManager.sharedManager.onContinue();
+                    final String zippedFilePath = externalAssetsFolderPath + assetsFolderName + ".zip";
+                    MainActivity.log("OBSystemsManager.unzipAssetsIfFound.Looking for " + zippedFilePath);
+                    if (OBUtils.fileExistsAtPath(zippedFilePath))
+                    {
+                        File decompressedFolder = new File(externalAssetsFolderPath + assetsFolderName);
+                        if (decompressedFolder.exists() && decompressedFolder.isDirectory())
+                            continue;
+                        priorityFiles.add(zippedFilePath);
+                        MainActivity.log("OBSystemsManager.unzipAssetsIfFound. Found " + zippedFilePath);
+                    }
                 }
-            }, true);
-            unzipPriority.execute();
+                //
+                OBUnZip unzipPriority = new OBUnZip(priorityFiles, externalAssetsFolderPath, new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run() throws Exception
+                    {
+                        // Files have been unzip, can continue with operations
+                        OBUtils.runOnMainThread(completionBlock);
+                        OBBrightnessManager.sharedManager.onContinue();
+                    }
+                }, true);
+                unzipPriority.execute();
+            }
         }
         else
         {
