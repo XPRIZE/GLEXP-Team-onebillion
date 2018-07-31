@@ -127,6 +127,7 @@ public class OC_EchoBox extends OC_SectionController
         //textSize = applyGraphicScale(Float.parseFloat(eventAttributes.get("textsize")));
         busyStatuses = new ArrayList<>(busyStatuses);
         busyStatuses.add(STATUS_RECORDING);
+        busyStatuses.add(STATUS_PLAYING_RECORDING);
         textSize = (Float.parseFloat(eventAttributes.get("textsize")));
         OBGroup tiger = (OBGroup) objectDict.get("tiger");
         tiger.outdent(tiger.width()/3);
@@ -329,7 +330,8 @@ public class OC_EchoBox extends OC_SectionController
                     checkSequenceToken(token);
                     waitForSecs(0.02f);
                 }
-                while(effectPlayer.getState() == OBAP_PLAYING)
+                long playToken = effectPlayer.playToken;
+                while(effectPlayer.getState() == OBAP_PLAYING && playToken == effectPlayer.playToken)
                 {
                     if(effectPlayer.averagePower() < 0.001)
                         idx = 0;
