@@ -1959,6 +1959,10 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
            fatController.jumpToCommunity();
            closeThisMenuAndOpen(OCM_ChildMenu.class);
         }
+        else if (OBConfigManager.sharedManager.isChangeDatePasswordCorrect(pass))
+        {
+            showPickDateDialog(this, null);
+        }
     }
 
 
