@@ -35,7 +35,7 @@ public class OC_Diagnostics_TouchCorrectLetter extends OC_Diagnostics_TouchCorre
         //
         OC_DiagnosticsQuestion currentQuestion = questions.get(currNo);
         String letterName = (String) currentQuestion.correctAnswers.get(0);
-        String phonemeAudio = String.format("is_%s", letterName);
+        String phonemeAudio = String.format("is_%s", letterName.toLowerCase());
         //
         List replayAudio = new ArrayList();
         replayAudio.addAll(getAudioForScene(scene, "PROMPT"));

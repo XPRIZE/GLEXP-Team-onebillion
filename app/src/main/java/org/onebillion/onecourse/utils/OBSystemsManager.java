@@ -420,6 +420,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     {
         if (OBConfigManager.sharedManager.shouldLookForZippedAsssets())
         {
+            MainActivity.log("OBSystemsManager.unzipAssetsIfFound. looking for zipped assets");
             OBBrightnessManager.sharedManager.onSuspend();
             //
             Boolean unzipAll = OBConfigManager.sharedManager.shouldUnzipAllAssetsOnStartup();
@@ -428,6 +429,9 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             //
             final File externalAssetsFolder = assetsFolders.get(0);
             String tempFolderPath = externalAssetsFolder.getAbsolutePath();
+            //
+            MainActivity.log("looking at " + tempFolderPath);
+            //
             if (!tempFolderPath.endsWith("/")) tempFolderPath += "/";
             //
             final String externalAssetsFolderPath = tempFolderPath;
