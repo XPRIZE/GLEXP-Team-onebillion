@@ -9,6 +9,7 @@ import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OC_SectionController;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
+import org.onebillion.onecourse.utils.OBConditionLock;
 import org.onebillion.onecourse.utils.OBUtils;
 
 import java.util.ArrayList;
@@ -37,6 +38,7 @@ public class OC_Diagnostics extends OC_SectionController
     String eventUUID;                           // eventUUID from the Diagnostics Manager;
     List<OC_DiagnosticsQuestion> questions;     // questions generated at the start of the exercise;
     List relevantParametersForRemedialUnits;    // parameters that will be used to further filter the remedial units based on the correct answer and what the user answered;
+    OBConditionLock promptAudioLock;            // lock for the doAudio prompt
 
     double lastActionTimestamp;
     boolean promptWasRepeated;
@@ -149,14 +151,24 @@ public class OC_Diagnostics extends OC_SectionController
         //
         if (timeoutEnabled)
         {
+            final String currentEventUUID = eventUUID;
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
                 public void run() throws Exception
                 {
+                    if (promptAudioLock != null)
+                    {
+                        MainActivity.log("OC_Diagnotics.waiting for promptAudioLock to finish");
+                        waitAudioQueue(promptAudioLock);
+                        //
+                        MainActivity.log("OC_Diagnotics.promptAudioLock finished");
+                        updateLastActionTimeStamp(true);
+                    }
+                    //
                     boolean statusWasIdle = true;
                     //
                     promptWasRepeated = false;
-                    while (!_aborting)
+                    while (!_aborting && currentEventUUID.equals(eventUUID))
                     {
                         if (status() != STATUS_AWAITING_CLICK)
                         {
@@ -177,20 +189,32 @@ public class OC_Diagnostics extends OC_SectionController
                                 {
                                     MainActivity.log("OC_Diagnostics:doMainXX:Timeout occurred, marking as wrong answer");
                                     gotItWrongWithSfx();
-                                    OC_DiagnosticsManager.sharedManager().markQuestion(eventUUID, false, Arrays.asList());
+                                    OC_DiagnosticsManager.sharedManager().markQuestion(currentEventUUID, false, Arrays.asList());
                                     return;
                                 }
                                 else
                                 {
-                                    MainActivity.log("OC_Diagnostics:doMainXX:Timeout occured, repeating PROMPT");
+                                    MainActivity.log("OC_Diagnostics:doMainXX:Timeout occurred, repeating PROMPT");
+                                    updateLastActionTimeStamp(false);
+                                    //
                                     doAudio(currentEvent());
+                                    //
+                                    if (promptAudioLock != null)
+                                    {
+                                        MainActivity.log("OC_Diagnotics.waiting for promptAudioLock to finish");
+                                        waitAudioQueue(promptAudioLock);
+                                        //
+                                        MainActivity.log("OC_Diagnotics.promptAudioLock finished");
+                                    }
+                                    //
                                     promptWasRepeated = true;
                                     updateLastActionTimeStamp(false);
                                 }
                             }
                         }
-                        Thread.sleep(1000);
+                        Thread.sleep(250);
                     }
+                    MainActivity.log("Prompt loop now killed for event " + currentEventUUID + "/" + eventUUID + " aborting? " + _aborting);
                 }
             });
         }

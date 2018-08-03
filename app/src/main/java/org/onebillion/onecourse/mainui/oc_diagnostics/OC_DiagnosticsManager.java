@@ -482,6 +482,7 @@ public class OC_DiagnosticsManager
         final String appCode = OBConfigManager.sharedManager.getCurrentActivityFolder();
         OBSectionController currentController = MainViewController().viewControllers.get(MainViewController().viewControllers.size() - 1);
         currentController._aborting = true;
+        MainActivity.log("OC_DiagnosticsManager --> marking currentController as aborting");
         //
         if (questionEvents.size() <= currentQuestionIndex || WrongAnswers() >= maxWrongAnswers)
         {

@@ -54,7 +54,7 @@ public class OC_Diagnostics_TouchCorrectNumber_WordProblems extends OC_Diagnosti
         MainActivity.log("Correct answer is [%s]", number);
         //
         setReplayAudio(promptAudio);
-        playAudioQueued(promptAudio);
+        promptAudioLock = playAudioQueued(promptAudio, false);
     }
 
 

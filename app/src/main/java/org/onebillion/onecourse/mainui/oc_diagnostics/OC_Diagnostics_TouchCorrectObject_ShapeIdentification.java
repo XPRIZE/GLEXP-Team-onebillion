@@ -32,7 +32,7 @@ public class OC_Diagnostics_TouchCorrectObject_ShapeIdentification extends OC_Di
         //
         MainActivity.log("Correct answer is [%s]", currentQuestion.correctAnswers);
         MainActivity.log("Prompt Audio is [%s]", replayAudio);
-        playAudioQueued(replayAudio);
+        promptAudioLock = playAudioQueued(replayAudio, false);
     }
 
 

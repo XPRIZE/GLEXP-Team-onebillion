@@ -33,7 +33,7 @@ public class OC_Diagnostics_TouchCorrectNumber extends OC_Diagnostics_TouchCorre
         //
         String promptAudio = getAudioForScene(scene, "PROMPT").get(number + audioOffset);
         setReplayAudio((List<Object>) (Object) Arrays.asList(promptAudio));
-        playAudio(promptAudio);
+        promptAudioLock = playAudioQueued((List<Object>) (Object) Arrays.asList(promptAudio), false);
     }
 
 

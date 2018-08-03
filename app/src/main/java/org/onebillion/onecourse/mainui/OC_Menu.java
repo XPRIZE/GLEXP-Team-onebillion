@@ -11,7 +11,9 @@ import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.utils.OBConfigManager;
+import org.onebillion.onecourse.utils.OBFatController;
 import org.onebillion.onecourse.utils.OBUtils;
+import org.onebillion.onecourse.utils.OCM_FatController;
 
 import java.util.Arrays;
 import java.util.List;
@@ -68,6 +70,17 @@ public class OC_Menu extends OC_SectionController
             c.texturise(false,this);
 
         boolean permission1 = MainActivity.mainActivity.isAllPermissionGranted();
+        //
+        // Should you need to use the OCM_FatController for a normal build, this is how to prevent the constant session invalidation
+        /*
+        OBFatController fatcontroller = MainActivity.mainActivity.fatController;
+        if (fatcontroller instanceof OCM_FatController)
+        {
+            MainActivity.log("OC_Menu. Session starting");
+            OCM_FatController ocmfatcontroller = (OCM_FatController) fatcontroller;
+            ocmfatcontroller.startCurrentSession();
+        }
+        */
     }
 
     public int buttonFlags()

@@ -44,7 +44,7 @@ public class OC_Diagnostics_TouchCorrectLetter extends OC_Diagnostics_TouchCorre
         //
         MainActivity.log("Correct answer is [%s]", letterName);
         //
-        playAudioQueued(replayAudio, false);
+        promptAudioLock = playAudioQueued(replayAudio, false);
     }
 
 
