@@ -944,6 +944,7 @@ public class OC_FlappyWord extends OC_SectionController
     public void wordCompleted()
     {
         setStatus(STATUS_BUSY);
+        gotItRight();
         final OBSectionController controller = this;
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
