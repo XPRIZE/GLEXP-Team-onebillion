@@ -143,6 +143,8 @@ public class OC_Diagnostics_TouchCorrectObject extends OC_Diagnostics
                 return;
             }
             OBLabel phonemeLabel = OC_Generic.action_createLabelForControl(labelBox, phoneme.text, 1.0f, false, false, OBUtils.standardTypeFace(), fontSize, Color.BLACK, this);
+            phonemeLabel.setFontSize(fontSize);
+            phonemeLabel.sizeToBoundingBox();
             phonemeLabel.setProperty("phoneme", phoneme);
             touchables.add(phonemeLabel);
             attachControl(phonemeLabel);
