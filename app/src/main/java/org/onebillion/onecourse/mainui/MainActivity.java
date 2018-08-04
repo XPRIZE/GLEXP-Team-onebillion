@@ -206,6 +206,8 @@ public class MainActivity extends Activity
             OBSystemsManager.disableStatusBar();
         }
         //
+        OBSystemsManager.printBuildVersion();
+        //
         doGLStuff();
         //
         setupWindowVisibilityFlags();

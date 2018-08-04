@@ -278,6 +278,13 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
     }
 
 
+    public static void printBuildVersion()
+    {
+        String buildNumber = OBConfigManager.sharedManager.getBuildNumber();
+        MainActivity.log("Build Version: " + buildNumber);
+    }
+
+
     public void runChecks()
     {
         if (suspended)
