@@ -1291,11 +1291,12 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
         {
             db = new DBSQL(false);
             Cursor cursor = db.prepareRawQuery(String.format("SELECT U.unitid as unitid, UI.extraunitid as extraunitid FROM %s U "+
-                            "JOIN %s UI ON U.unitid = UI.unitid AND U.masterlistid = ? AND U.typeid = ? "+
+                            "JOIN %s UI ON U.unitid = UI.unitid AND U.masterlistid = ? AND U.typeid = ? AND UI.typeid IN (?,?) "+
                             "WHERE UI.userid = ? AND UI.sessionid = ? " +
                             "GROUP BY UI.unitid, UI.extraunitid "+
                             "ORDER BY UI.rowid ASC",DBSQL.TABLE_UNITS,DBSQL.TABLE_UNIT_INSTANCES),
                     Arrays.asList(String.valueOf(currentUser.studylistid),String.valueOf(OCM_MlUnit.TYPE_STANDARD),
+                            String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_STUDY),String.valueOf(OCM_MlUnitInstance.INSTANCE_TYPE_EXTRA),
                             String.valueOf(currentUser.userid),String.valueOf(currentSessionId)
                             ));
 
