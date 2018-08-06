@@ -433,9 +433,12 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     {
         playSfxAudio("wordon", false);
         lockScreen();
-        for (OBLabel label : labels)
+        if (labels != null)
         {
-            label.show();
+            for (OBLabel label : labels)
+            {
+                label.show();
+            }
         }
         buttonShowState("active");
         unlockScreen();
