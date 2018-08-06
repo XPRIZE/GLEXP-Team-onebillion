@@ -271,7 +271,7 @@
 	<string>true</string>
 	<!--  -->
 	<key>debug_activate_community_mode_override_password</key>
-	<string>pop</string>
+	<string>remus</string>
 	<!--  -->
 	<key>debug_revert_community_mode_password</key>
 	<string>opo</string>
