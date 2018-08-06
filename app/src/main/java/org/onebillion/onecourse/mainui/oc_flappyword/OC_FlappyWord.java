@@ -60,9 +60,11 @@ public class OC_FlappyWord extends OC_SectionController
     OBLabel letterBoxCounter, bigWordLabel;
     OBControl nest;
     boolean letterMode;
+    List<Integer> scoresList;
 
     public void prepare()
     {
+        scoresList = new ArrayList<>();
         componentDict = OBUtils.LoadWordComponentsXML(true);
         GRAVITY = applyGraphicScale(1000);
         SCROLL_ACCELERATION = applyGraphicScale(0.1f);
@@ -184,6 +186,12 @@ public class OC_FlappyWord extends OC_SectionController
                 setStatus(STATUS_AWAITING_CLICK);
             }
         });
+    }
+
+    @Override
+    public void cleanUp() {
+        collectScores();
+        super.cleanUp();
     }
 
     public void setSceneXX(String  scene)
@@ -944,7 +952,6 @@ public class OC_FlappyWord extends OC_SectionController
     public void wordCompleted()
     {
         setStatus(STATUS_BUSY);
-        gotItRight();
         final OBSectionController controller = this;
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
@@ -994,9 +1001,19 @@ public class OC_FlappyWord extends OC_SectionController
         }) ;
     }
 
+    public void collectScores()
+    {
+        if(shouldCollectMiscData())
+        {
+            scoresList.add(currentScore);
+            collectMiscData("scores", scoresList);
+        }
+    }
+
     public void gameLost()
     {
         setStatus(STATUS_BUSY);
+        collectScores();
         final OBSectionController controller = this;
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {
