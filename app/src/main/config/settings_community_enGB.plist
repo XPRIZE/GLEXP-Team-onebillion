@@ -238,6 +238,9 @@
 	<!--  -->
     <key>fat_controller_playzone_lock_timeout</key>
     <integer>10</integer>
+    <!--  -->
+    <key>fat_controller_study_loop_week</key>
+    <integer>1</integer>
 
 
 	<!-- ASSETS -->
@@ -268,13 +271,13 @@
 	<string>true</string>
 	<!--  -->
 	<key>debug_activate_community_mode_override_password</key>
-	<string>pop</string>
+	<string>remus</string>
 	<!--  -->
 	<key>debug_revert_community_mode_password</key>
 	<string>opo</string>
     <!--  -->
 	<key>debug_build_number</key>
-	<string>0005</string>
+	<string>RC2 - Community</string>
 
 
 	<!-- ANALYTICS MANAGER -->

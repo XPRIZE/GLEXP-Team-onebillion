@@ -132,7 +132,7 @@ public class OC_CountMore_S6 extends OC_SectionController
             waitSFX();
             colourCircle(cont, Color.WHITE);
             if(time == statusTime)
-                playAudioQueuedScene("INCORRECT",300,true);
+                playAudioQueuedScene("INCORRECT",0.3f,true);
 
         }
     }

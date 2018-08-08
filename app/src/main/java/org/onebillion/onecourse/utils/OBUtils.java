@@ -41,6 +41,7 @@ import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.controls.OBTextLayer;
 import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.OBSectionController;
+import org.onebillion.onecourse.mainui.OC_SectionController;
 
 
 public class OBUtils
@@ -725,8 +726,8 @@ public class OBUtils
         }
         else
         {
-            List<String> ls = (List<String>) audios;
-            for (String audio : ls)
+            List<Object> ls = (List<Object>) audios;
+            for (Object audio : ls)
             {
                 arr.add(audio);
                 if (ls.get(ls.size() - 1) != audio)
@@ -886,7 +887,7 @@ public class OBUtils
                 Math.round(Color.blue(colour) * 0.8f));
     }
 
-    static String getConfigFile (String fileName)
+    public static String getConfigFile (String fileName)
     {
         for (String path : OBConfigManager.sharedManager.getConfigSearchPaths())
         {
@@ -1098,8 +1099,30 @@ public class OBUtils
                                 }
                             }
                         }
+
+                        List<OBPhoneme> phonemes = null;
+                        String phonemeAttr = wordNode.attributeStringValue("phonemes");
+                        if (phonemeAttr != null)
+                        {
+                            phonemes = new ArrayList<>();
+                            for (String phonemeID : phonemeAttr.split("/"))
+                            {
+                                OBPhoneme pho =  (OBPhoneme)dictionary.get(phonemeID);
+                                if (pho != null)
+                                {
+                                    phonemes.add(pho);
+                                }
+                            }
+                        }
+
                         String image = wordNode.attributeStringValue("image");
-                        OBWord wor = new OBWord(fullText, audioID, null, syllables, image);
+                        OBWord wor = new OBWord(fullText, audioID, null, phonemes, syllables, image);
+                        //
+                        String root = wordNode.attributeStringValue("root");
+                        if (root != null)
+                        {
+                            wor.Root = root;
+                        }
                         //
                         dictionary.put(audioID, wor);
                     }
@@ -1492,4 +1515,37 @@ public class OBUtils
         calendar.set(Calendar.MILLISECOND, 0);
         return calendar.getTimeInMillis();
     }
+
+    public static PointF centroidForPath(String event, String pathName, OC_SectionController controller)
+    {
+        UPath deconPath = controller.deconstructedPath(event, pathName);
+        USubPath subPath = deconPath.subPaths.get(deconPath.subPaths.size()-1);
+        List<ULine> elements = subPath.elements;
+        if(elements.size() ==0)
+            return new PointF(0,0);
+        PointF[] pts = new PointF[elements.size()+1];
+        pts[0] = elements.get(0).pt0;
+        int i = 1;
+        for(ULine l : elements)
+            pts[i++] = l.pt1;
+        PointF centroid = OB_Maths.Centroid(pts,(int) elements.size() + 1);
+        return centroid;
+
+    }
+
+    public static RectF corRectUnion(RectF f1,RectF f2)
+    {
+        if (f1 == null)
+        {
+            f1 = new RectF(f2);
+            return f1;
+        }
+        float minx = Math.min(f1.left,f2.left);
+        float miny = Math.min(f1.top,f2.top);
+        float maxx = Math.max(f1.right,f2.right);
+        float maxy = Math.max(f1.bottom,f2.bottom);
+        f1.set(minx,miny,maxx,maxy);
+        return f1;
+    }
+
 }

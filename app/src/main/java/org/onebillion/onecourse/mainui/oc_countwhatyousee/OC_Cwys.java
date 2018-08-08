@@ -1,11 +1,14 @@
 package org.onebillion.onecourse.mainui.oc_countwhatyousee;
 
+import android.graphics.Color;
 import android.util.ArrayMap;
 
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
+import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
 import org.onebillion.onecourse.mainui.OC_SectionController;
+import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.OB_Maths;
 
 import java.util.ArrayList;
@@ -18,7 +21,7 @@ import java.util.Map;
 
 public class OC_Cwys extends OC_SectionController
 {
-    public List<OBGroup> currentBlocks;
+    public OBGroup currentBlockGroup;
 
     public void prepare()
     {
@@ -30,120 +33,17 @@ public class OC_Cwys extends OC_SectionController
 
     public void loadUnitsForNumber(int number)
     {
-        if(currentBlocks != null)
+        if(currentBlockGroup != null)
         {
-            for(OBGroup unitGroup  : currentBlocks)
-            {
-                detachControl(unitGroup);
-
-            }
-
+            detachControl(currentBlockGroup);
         }
-        currentBlocks = new ArrayList<>();
         OBControl unit = objectDict.get("unit");
         float blockDist = unit.width()*0.5f;
-        int blockCount = (int)Math.ceil(number/100.0);
-        OBGroup lastBlock = null;
-        for(int i=0; i<blockCount; i++)
-        {
-            boolean isLast = i==(blockCount-1) && number%100 != 0;
-            OBGroup unitBlock = createBlockForUnit((OBPath)unit, isLast?(number%100):100 ,isLast);
-            if(lastBlock != null)
-            {
-                unitBlock.setLeft(lastBlock.right() + blockDist);
-            }
-            else
-            {
-                unitBlock.setLeft(0);
-            }
-            lastBlock = unitBlock;
-            currentBlocks.add(unitBlock);
-        }
-        float lastRight = currentBlocks.get(currentBlocks.size()-1).right();
-        float centre = OB_Maths.locationForRect(0.5f,0.5f,objectDict.get("work_rect") .frame()).x;
-        float targLeft = centre - (0.5f*lastRight);
-        for(int i=0; i<currentBlocks.size(); i++)
-        {
-            OBGroup group = currentBlocks.get(i);
-            group.setLeft(group.left() + targLeft);
-        }
-    }
-
-    public OBGroup createBlockForUnit(OBPath unit, int val, boolean spread)
-    {
-        float columnDist = unit.width()*0.5f;
+        float centre = OB_Maths.locationForRect(0.5f,0.5f,objectDict.get("work_rect") .frame()) .x;
         float bottom = objectDict.get("work_rect").bottom();
-        Map<String,OBControl> columnDict = new ArrayMap<>();
-        OBGroup lastColumn = null;
-        for(int i=0; i<Math.ceil(val/10.0); i++)
-        {
-            Map<String,OBControl> unitDict = new ArrayMap<>();
-            OBControl lastUnit = null;
-            for(int j=0; j<10; j++)
-            {
-                OBPath unitCopy = (OBPath)unit.copy();
-                unitCopy.setZPosition(1+(i*10)+j);
-                if(lastUnit != null)
-                {
-                    unitCopy.setBottom(lastUnit.top()+unit.lineWidth());
-                }
-                else
-                {
-                    unitCopy.setBottom(bottom);
-                }
-                lastUnit = unitCopy;
-                if(((i*10) +j) <val)
-                    unitCopy.enable();
-                else
-                    unitCopy.disable();
-                unitCopy.hide();
-                unitDict.put(String.format("unit_%d",j+1),unitCopy);
-            }
-            OBGroup column = new OBGroup(new ArrayList<>(unitDict.values()));
-            column.objectDict = unitDict;
-            if(lastColumn != null)
-            {
-                column.setLeft(lastColumn.right() +(spread ? columnDist : -unit.lineWidth()));
-            }
-            lastColumn = column;
-            column.setZPosition(i+1);
-            columnDict.put(String.format("column_%d",i+1),column);
-        }
-        OBGroup completeBlock = new OBGroup(new ArrayList<>(columnDict.values()));
-        completeBlock.objectDict = columnDict;
-        attachControl(completeBlock);
-        return completeBlock;
-    }
 
-    public void showUnitsForColumn(OBGroup column)
-    {
-        for(OBControl con : column.filterMembers("unit_.*"))
-            if(con.isEnabled())
-                con.show();
-    }
+        currentBlockGroup = OC_Cwys_Additions.loadUnitsBlockForNumber(number,unit,blockDist,centre,bottom, this);
 
-    public void showUnitsForBlock(OBGroup block)
-    {
-        for(OBControl column : block.filterMembers("column_.*"))
-            showUnitsForColumn((OBGroup)column);
-    }
-
-    public void highlightUnit(OBControl con,boolean on)
-    {
-        con.setOpacity(on ? 0.6f : 1.0f);
-    }
-
-    public void highlightColumn(OBGroup column,boolean on)
-    {
-        for(OBControl con : column.filterMembers("unit_.*"))
-            if(con.isEnabled())
-                highlightUnit(con,on);
-    }
-
-    public void highlightBlock(OBGroup block,boolean on)
-    {
-        for(OBControl column : block.filterMembers("column_.*"))
-            highlightColumn((OBGroup)column,on);
     }
 
     public String eventNameForPrefix(String prefix,int num,boolean last)
@@ -162,6 +62,90 @@ public class OC_Cwys extends OC_SectionController
             return eventName;
         }
         return String.format("%sdefault",prefix);
+    }
+
+    public void demoCountUnitsInGroups(OBGroup blockGroup,OBLabel label) throws Exception
+    {
+        List<OBGroup> hundredBlocks = OC_Cwys_Additions.getHundredBlocksFromBlockGroup(blockGroup);
+        List<OBGroup> tenColumns = OC_Cwys_Additions.getTenColumnsFromBlockGroup(blockGroup);
+        List<OBControl> units = OC_Cwys_Additions.getUnitsFromBlockGroup(blockGroup);
+        if(hundredBlocks.size() != 0)
+        {
+            lockScreen();
+            label.setHighRange(0,1,Color.RED);
+            for(OBGroup block : hundredBlocks)
+                OC_Cwys_Additions.highlightBlock(block,true);
+
+            unlockScreen();
+            playAudio(String.format("plc100_%d",hundredBlocks.size()));
+            waitAudio();
+            waitForSecs(0.3f);
+            lockScreen();
+            label.setColour(Color.BLACK);
+            for(OBGroup block : hundredBlocks)
+                OC_Cwys_Additions.highlightBlock(block,false);
+
+            unlockScreen();
+            waitForSecs(0.3f);
+        }
+        int hiIndex = label.text().length() > 2 ? 1 : 0;
+        if(tenColumns.size() != 0)
+        {
+            lockScreen();
+            label.setHighRange(hiIndex,hiIndex+1,Color.RED);
+            for(OBGroup column : tenColumns)
+                OC_Cwys_Additions.highlightColumn(column,true);
+
+            unlockScreen();
+            playAudio(String.format("plc10_%d",tenColumns.size()));
+            waitAudio();
+            waitForSecs(0.3f);
+            lockScreen();
+            label.setColour(Color.BLACK);
+            for(OBGroup column : tenColumns)
+                OC_Cwys_Additions.highlightColumn(column,false);
+
+            unlockScreen();
+            waitForSecs(0.3f);
+        }
+        else if(hundredBlocks.size() != 0)
+        {
+            label.setHighRange(hiIndex,hiIndex+1,Color.RED);
+            playAudio("plc10_0");
+            waitAudio();
+            waitForSecs(0.3f);
+            label.setColour(Color.BLACK);
+            waitForSecs(0.3f);
+        }
+        hiIndex = label.text().length()-1;
+        if(units.size() != 0)
+        {
+            lockScreen();
+            label.setHighRange(hiIndex,hiIndex+1,Color.RED);
+            for(OBControl unit : units)
+                OC_Cwys_Additions.highlightUnit(unit,true);
+
+            unlockScreen();
+            playAudio(String.format("plc1_%d",units.size()));
+            waitAudio();
+            waitForSecs(0.3f);
+            lockScreen();
+            label.setColour(Color.BLACK);
+            for(OBControl unit : units)
+                OC_Cwys_Additions.highlightUnit(unit,false);
+
+            unlockScreen();
+            waitForSecs(0.3f);
+        }
+        else
+        {
+            label.setHighRange(hiIndex,hiIndex+1,Color.RED);
+            playAudio("plc1_0");
+            waitAudio();
+            waitForSecs(0.3f);
+            label.setColour(Color.BLACK);
+            waitForSecs(0.3f);
+        }
     }
 
 

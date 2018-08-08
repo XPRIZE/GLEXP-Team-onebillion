@@ -12,13 +12,18 @@ import java.util.Map;
 
 /**
  * Created by michal on 09/08/16.
+ * MlUnit - Masterlist Unit
+ * Units are grouped up into various masterlist like study, playzone, library
+ * Each unit contains information required by the system to set it up, like what class to call
+ * and what parameters to provide.
+ *
  */
 public class OCM_MlUnit extends DBObject
 {
-    public static final int TYPE_NONE=0,TYPE_PLAYZONE_STUDY=1,TYPE_PLAYZONE_FUN=2;
+    public static final int TYPE_STANDARD=0,TYPE_PLAYZONE_STUDY=1,TYPE_PLAYZONE_FUN=2,TYPE_DIAGNOSTIC=5;
     public String key, icon, params, config, target, lang;
     public float passThreshold;
-    public int masterlistid, catAudio, level, unitid, unitIndex, targetDuration, typeid, showBack;
+    public int masterlistid, catAudio, level, unitid, unitIndex, targetDuration, typeid, showBack, starOrder, extraunitid = 0;
 
     private static final String[] stringFields = {"key","icon","target","params","config","lang"};
     private static final String[] intFields = {"masterlistid","unitid","level","targetDuration","unitIndex","typeid","showBack"};

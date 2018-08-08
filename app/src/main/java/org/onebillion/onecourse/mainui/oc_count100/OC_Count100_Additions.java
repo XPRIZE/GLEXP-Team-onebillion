@@ -221,7 +221,7 @@ public class OC_Count100_Additions
     {
         Map<String,Object> colourEventDict =  (Map<String,Object>)controller.eventsDict.get("colours");
         Map<String,Object> eventAttrs =  (Map<String,Object>)colourEventDict.get("attrs");
-        return OBUtils.colorFromRGBString((String)eventAttrs.get(String.format("col%",index)));
+        return OBUtils.colorFromRGBString((String)eventAttrs.get(String.format("col%d",index)));
     }
 
 }

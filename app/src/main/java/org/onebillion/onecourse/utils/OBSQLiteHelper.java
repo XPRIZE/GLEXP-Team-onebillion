@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Environment;
 import android.text.format.DateFormat;
 
+import org.apache.commons.io.comparator.SizeFileComparator;
 import org.onebillion.onecourse.R;
 import org.onebillion.onecourse.mainui.MainActivity;
 
@@ -30,6 +31,7 @@ import java.util.Collections;
 public class OBSQLiteHelper extends SQLiteOpenHelper
 {
     public final static int DATABASE_VERSION = 1;
+    public final static int DATABASE_MAX_BACKUP_COUNT = 20;
     public final static String DATABASE_NAME = "unitDB";
     private Context cont;
 
@@ -259,6 +261,30 @@ public class OBSQLiteHelper extends SQLiteOpenHelper
         {
             File sd = new File(Environment.getExternalStorageDirectory(), "//onebillion//databases//");
             sd.mkdirs();
+            try
+            {
+                File[] fileList = sd.listFiles();
+                if(fileList != null)
+                {
+                    if(fileList.length >= DATABASE_MAX_BACKUP_COUNT)
+                    {
+                        //DELETE all files except for 3 largest
+                        Arrays.sort(fileList, SizeFileComparator.SIZE_COMPARATOR);
+                        for(int i=0; i<fileList.length-3; i++)
+                        {
+                            File file = fileList[i];
+                            if(file.isFile())
+                                file.delete();
+                        }
+                        MainActivity.log("Database backup folder clean up done");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+
+
+            }
             //
             File data = Environment.getDataDirectory();
 

@@ -211,7 +211,7 @@ public class OC_MoreNumbers_S3o extends OC_SectionController
     {
         if(oddBox.size() + evenBox.size() < eventTargets.size())
         {
-            playAudioQueuedScene(getPhase(), "INCORRECT",300, false);
+            playAudioQueuedScene(getPhase(), "INCORRECT",0.3f, false);
             setStatus(STATUS_WAITING_FOR_DRAG);
         }
         else
@@ -248,7 +248,7 @@ public class OC_MoreNumbers_S3o extends OC_SectionController
                 gotItRightBigTick(true);
                 OC_MoreNumbers_Additions.buttonSet(2,this);
                 robotController.setFaceExpression(OC_CountingRobot.ROBOT_HAPPY);
-                playAudioQueuedScene(getPhase(), "FINAL",300, true);
+                playAudioQueuedScene(getPhase(), "FINAL",0.3f, true);
                 if(currentEvent() != events.get(events.size()-1))
                 {
                     waitForSecs(0.7f);
@@ -277,7 +277,7 @@ public class OC_MoreNumbers_S3o extends OC_SectionController
                     anims.add(OBAnim.moveAnim((PointF)label.propertyValue("startloc") ,label));
                 OBAnimationGroup.runAnims(anims,0.25,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
                 OC_MoreNumbers_Additions.buttonSet(0,this);
-                playAudioQueuedScene(getPhase(), "INCORRECT2",300, false);
+                playAudioQueuedScene(getPhase(), "INCORRECT2",0.3f, false);
                 setStatus(STATUS_WAITING_FOR_DRAG);
             }
 

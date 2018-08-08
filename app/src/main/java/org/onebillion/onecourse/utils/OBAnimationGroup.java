@@ -15,6 +15,8 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 
+import static org.onebillion.onecourse.mainui.OBSectionController.PROCESS_DONE;
+import static org.onebillion.onecourse.mainui.OBSectionController.PROCESS_NOT_DONE;
 import static org.onebillion.onecourse.utils.OBAnim.ANIM_EASE_IN_EASE_OUT;
 
 /**
@@ -39,6 +41,7 @@ public class OBAnimationGroup
     RectF r1;
     RectF r2;
     boolean resetOnLoop;
+    public OBConditionLock lock;
 
     public static OBAnimationGroup runAnims(final List<OBAnim> anims,final double secs,boolean wait,final int timingFunction,final OBSectionController vc)
     {
@@ -203,12 +206,24 @@ public void applyAnimations(List<OBAnim>anims,double dur,int timingFunction,OBSe
             else
                 owner.waitForSecsNoThrow(0.01);
         }
+        if (this.lock != null)
+        {
+            this.lock.lock();
+            this.lock.unlockWithCondition(PROCESS_DONE);
+        }
     }
 
     public void applyAnimations(final List<OBAnim>anims,final double dur,boolean wait,final int timingFunction,final OBSectionController vc)
     {
         if (wait)
-            applyAnimations(anims,dur,timingFunction,vc);
+        {
+            lock = new OBConditionLock(PROCESS_NOT_DONE);
+            //
+            applyAnimations(anims, dur, timingFunction, vc);
+            //
+            lock.lockWhenCondition(PROCESS_DONE);
+            lock.unlock();
+        }
         else
             new AsyncTask<Void, Void, Void>()
             {

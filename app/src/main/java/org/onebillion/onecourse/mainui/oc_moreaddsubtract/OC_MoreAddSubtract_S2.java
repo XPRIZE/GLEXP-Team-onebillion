@@ -261,7 +261,7 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
                         }
                         else if(currentNum == 0)
                         {
-                            playAudioQueuedScene("FIRSTPRESS",300,false);
+                            playAudioQueuedScene("FIRSTPRESS",0.3f,false);
 
                         }
                     }
@@ -307,7 +307,7 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
             waitSFX();
             cont.setColour(Color.BLACK);
             if(time == statusTime)
-                playAudioQueuedScene("INCORRECT",300,false);
+                playAudioQueuedScene("INCORRECT",0.3f,false);
 
         }
     }
@@ -376,7 +376,7 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
                 waitForSecs(0.5f);
                 OBGroup equ =(OBGroup)objectDict.get("equation");
                 OC_Numberlines_Additions.colourEquation(equ,1,5,Color.RED,this);
-                playAudioQueuedScene("INCORRECT3",300,true);
+                playAudioQueuedScene("INCORRECT3",0.3f,true);
                 waitForSecs(0.3f);
                 OC_Numberlines_Additions.colourEquation(equ,1,5,equationColour,this);
                 clearAndNextScene();
@@ -385,7 +385,7 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
             {
                 buttonSet(0);
                 setStatus(STATUS_AWAITING_CLICK);
-                playAudioQueuedScene("INCORRECT",300,false);
+                playAudioQueuedScene("INCORRECT",0.3f,false);
             }
         }
     }
@@ -409,20 +409,20 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
     {
         String[] eqParts =  eventAttributes.get("equation").split(" ");
         correctNum = Integer.valueOf(eqParts[4]);
-        playAudioQueuedScene("DEMO2",300,true);
+        playAudioQueuedScene("DEMO2",0.3f,true);
         waitForSecs(0.3f);
         showNumbers();
         waitForSecs(0.3f);
         currentPhase = 1;
         setReplayAudio(OBUtils.insertAudioInterval(getAudioForScene(currentEvent(),"PROMPT2.REPEAT"), 300));
-        playAudioQueuedScene(currentEvent(), "PROMPT2", 300, false);
+        playAudioQueuedScene(currentEvent(), "PROMPT2", 0.3f, false);
         setStatus(STATUS_AWAITING_CLICK);
     }
 
     public void startButtonPhase() throws Exception
     {
         showFirstPart();
-        playAudioQueuedScene("DEMO",300,true);
+        playAudioQueuedScene("DEMO",0.3f,true);
         waitForSecs(0.3f);
         if(freeMode)
         {
@@ -546,7 +546,7 @@ public class OC_MoreAddSubtract_S2 extends OC_SectionController
             OBGroup equ = (OBGroup)objectDict.get("equation");
             OC_Numberlines_Additions.colourEquation(equ, 1, 5, Color.RED, this);
 
-            playAudioQueuedScene(freeMode?"FINAL":"FINAL2",300,true);
+            playAudioQueuedScene(freeMode?"FINAL":"FINAL2",0.3f,true);
             waitForSecs(0.3f);
             OC_Numberlines_Additions.colourEquation(equ, 1, 5, equationColour, this);
 

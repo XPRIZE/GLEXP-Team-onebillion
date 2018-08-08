@@ -322,5 +322,43 @@ public class OBMisc
 
     }
 
+    public static void standardDemoIntro1(OC_SectionController controller) throws Exception
+    {
+        OBGroup presenterGroup =(OBGroup)controller.objectDict.get("presenter");
+        PointF startLoc = copyPoint(presenterGroup.position());
+        OBPresenter presenter = OBPresenter.characterWithGroup(presenterGroup);
+        presenter.control.setZPosition(200);
+        presenter.control.setPosition(startLoc);
+        presenter.control.setRight(0);
+        PointF loc = copyPoint(presenter.control.position());
+        presenter.control.show();
+        loc.x = 0.5f*controller.bounds().width();
+        presenter.walk(loc);
+        presenter.faceFront();
+        controller.waitForSecs(0.3f);
+        presenter.speak((List<Object>)(Object)controller.getAudioForScene("intro1","DEMO"),0.3f, controller);
+        controller.waitForSecs(0.3f);
+        loc.x = 0.87f*controller.bounds().width();
+        presenter.walk(loc);
+        presenter.faceFront();
+        presenter.speak((List<Object>)(Object)controller.getAudioForScene("intro1","DEMO2"),0.3f, controller);
+        controller.waitForSecs(0.3f);
+        loc.x = 1.2f*controller.bounds().width();
+        presenter.walk(loc);
+        presenter.control.hide();
+        controller.waitForSecs(0.4f);
+    }
 
+    public static void standardDemoIntro2(PointF loc1,PointF loc2,OC_SectionController controller) throws Exception
+    {
+        controller.loadPointer(OC_SectionController.POINTER_LEFT);
+        controller.movePointerToPoint(loc1,-30,0.5f,true);
+        controller.playAudio(controller.getAudioForScene("intro2","DEMO").get(0));
+        controller.waitAudio();
+        controller.waitForSecs(0.3f);
+        controller.movePointerToPoint(loc2,-30,0.5f,true);
+        controller.playAudio(controller.getAudioForScene("intro2","DEMO").get(1));
+        controller.waitAudio();
+        controller.waitForSecs(0.5f);
+    }
 }

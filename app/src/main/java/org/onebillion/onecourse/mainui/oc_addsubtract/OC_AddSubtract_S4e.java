@@ -70,32 +70,25 @@ public class OC_AddSubtract_S4e extends OC_SectionController
         super.setSceneXX(scene);
         if(OBUtils.getBooleanValue(eventAttributes.get("reload")))
         {
-            try
+            targets.clear();
+            for (int i = 1; i <= 6; i++)
             {
-                targets.clear();
-                for (int i = 1; i <= 6; i++)
-                {
-                    OBControl eqBox = objectDict.get(String.format("eq_box_%d", i));
-                    String[] eqParts = ((String) eqBox.attributes().get("equation")).split(",");
-                    String equation = String.format("%s + %s = %s", eqParts[0], eqParts[1], eqParts[2]);
+                OBControl eqBox = objectDict.get(String.format("eq_box_%d", i));
+                String[] eqParts = ((String) eqBox.attributes().get("equation")).split(",");
+                String equation = String.format("%s + %s = %s", eqParts[0], eqParts[1], eqParts[2]);
 
-                    String equationName = String.format("equation_%d", i);
-                    OC_Numberlines_Additions.loadEquation(equation, equationName, eqBox, Color.BLACK, false, 0, 1, this);
-                    OBGroup eq = (OBGroup) objectDict.get(equationName);
-                    eq.setAnchorPoint(OB_Maths.relativePointInRectForLocation(eq.objectDict.get("part3").getWorldPosition(), eq.frame));
-                    OC_Numberlines_Additions.hideEquation(eq, this);
-                    OC_Numberlines_Additions.showEquation(eq, 1, 3, null, this);
-                    eq.setProperty("num_val", Integer.valueOf(eqParts[2]));
-                    eq.setProperty("colour", eqBox.fillColor());
-                    eq.setProperty("start_loc", OBMisc.copyPoint(eq.position()));
-                    targets.add(eq);
-                    eq.enable();
-                }
-            }catch (Exception e)
-            {
-
+                String equationName = String.format("equation_%d", i);
+                OC_Numberlines_Additions.loadEquation(equation, equationName, eqBox, Color.BLACK, false, 0, 1, this);
+                OBGroup eq = (OBGroup) objectDict.get(equationName);
+                eq.setAnchorPoint(OB_Maths.relativePointInRectForLocation(eq.objectDict.get("part3").getWorldPosition(), eq.frame));
+                OC_Numberlines_Additions.hideEquation(eq, this);
+                OC_Numberlines_Additions.showEquation(eq, 1, 3, this);
+                eq.setProperty("num_val", Integer.valueOf(eqParts[2]));
+                eq.setProperty("colour", eqBox.fillColor());
+                eq.setProperty("start_loc", OBMisc.copyPoint(eq.position()));
+                targets.add(eq);
+                eq.enable();
             }
-
         }
         selectedEquation = null;
 
@@ -395,7 +388,7 @@ public class OC_AddSubtract_S4e extends OC_SectionController
         stopAnimation();
         moveEquationsToBoxes();
         waitForSecs(0.3f);
-        playAudioQueuedScene("FINAL",300,true);
+        playAudioQueuedScene("FINAL",0.3f,true);
         waitForSecs(0.3f);
         demoEquations(true, false);
     }
@@ -405,7 +398,7 @@ public class OC_AddSubtract_S4e extends OC_SectionController
         stopAnimation();
         moveEquationsToBoxes();
         waitForSecs(0.3f);
-        playAudioQueuedScene("FINAL",300,true);
+        playAudioQueuedScene("FINAL",0.3f,true);
         waitForSecs(0.3f);
         demoEquations(false, false);
     }

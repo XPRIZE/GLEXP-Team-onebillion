@@ -428,6 +428,8 @@ public class OC_Segblend3 extends OC_Wordcontroller
             sequenceLock.unlock();
             playSfxAudio("touchbutton",false);
             setButtonSelected();
+            waitForSecs(0.1f);
+            waitSFX();
             OBUtils.runOnOtherThreadDelayed(0.4f,new OBUtils.RunLambda()
             {
                 public void run() throws Exception

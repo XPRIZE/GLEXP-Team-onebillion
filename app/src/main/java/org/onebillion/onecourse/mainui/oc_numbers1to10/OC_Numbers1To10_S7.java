@@ -51,12 +51,23 @@ public class OC_Numbers1To10_S7 extends OC_Generic_SelectCorrectObject
             numbers.clear();
         }
         numbers = new HashMap<String, OBLabel>();
+        List<OBLabel> createLabels = new ArrayList();
+        float smallestFontSize = 10000;
+        //
         for (OBPath control : controls)
         {
             OBLabel label = action_createLabelForControl(control, 1.0f, false);
             numbers.put((String) control.attributes().get("id"), label);
             label.setProperty("originalScale", label.scale());
             control.hide();
+            createLabels.add(label);
+            smallestFontSize = Math.min(smallestFontSize, label.fontSize());
+        }
+        //
+        for (OBLabel label : createLabels)
+        {
+            label.setFontSize(smallestFontSize);
+            label.sizeToBoundingBox();
         }
     }
 

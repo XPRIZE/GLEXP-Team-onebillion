@@ -107,7 +107,7 @@ public class OC_Shapes_S5 extends OC_Generic_Event
                             gotItRightBigTick(true);
                             waitForSecs(0.3f);
                             //
-                            playAudioQueuedScene("CORRECT", 300, true);
+                            playAudioQueuedScene("CORRECT", 0.3f, true);
                             waitForSecs(0.3f);
                             //
                             String finalDemo = String.format("fin%s", currentEvent());

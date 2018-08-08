@@ -59,13 +59,13 @@ public class OBFatController
         {
             updateScores();
             cont.displayAward();
-            cont.exitEvent();
         }
         catch (Exception e)
         {
 
         }
-        cont.exitEvent();
+        if(!cont._aborting)
+            cont.exitEvent();
     }
 
 

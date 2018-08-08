@@ -251,7 +251,7 @@ public class OC_Numbers1To10_S3 extends OC_Generic_Event
         OBAnimationGroup.runAnims(Arrays.asList(anim), 2.5, true, OBAnim.ANIM_EASE_IN, this);
         waitSFX();
         //
-        playAudioQueuedScene("FINAL", 300, true);
+        playAudioQueuedScene("FINAL", 0.3f, true);
     }
 
     public void setScene3c ()

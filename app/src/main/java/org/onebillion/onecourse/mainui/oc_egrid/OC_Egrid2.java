@@ -119,7 +119,7 @@ public class OC_Egrid2 extends OC_Egrid
         }
         else
         {
-            playAudioQueuedScene("DEMO2",300,true);
+            playAudioQueuedScene("DEMO2",0.3f,true);
             waitForSecs(0.3f);
         }
         startScene();

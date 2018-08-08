@@ -134,6 +134,18 @@ public class OC_Hw extends OC_SectionController
         setupCanvas();
     }
 
+    public void alighGroupAroundXbox(OBGroup guideGroup)
+    {
+        if(guideGroup.objectDict.containsKey("xbox1"))
+        {
+            OBControl xbox = guideGroup.objectDict.get("xbox1");
+            PointF xboxLoc = xbox.getWorldPosition();
+            PointF loc = OBMisc.copyPoint(guideGroup.position());
+            loc.y += loc.y - xboxLoc.y;
+            guideGroup.setPosition(loc);
+        }
+    }
+
     public int buttonFlags()
     {
         return OBMainViewController.SHOW_TOP_LEFT_BUTTON|OBMainViewController.SHOW_TOP_RIGHT_BUTTON|0|0;
@@ -142,6 +154,7 @@ public class OC_Hw extends OC_SectionController
     public void setupCanvas()
     {
         drawBitmap = Bitmap.createBitmap((int)board.width(), (int)board.height(), Bitmap.Config.ARGB_8888);
+        drawBitmap.prepareToDraw();
         drawOn.setContents(drawBitmap);
         canvas = new Canvas(drawBitmap);
     }
@@ -177,11 +190,9 @@ public class OC_Hw extends OC_SectionController
                             }
                         }
                     });
-
                 }
                 drawPoint(pt);
                 setStatus(STATUS_DRAGGING);
-
             }
             else if(finger(0,1,Collections.singletonList(objectDict.get("eraser")),pt) != null)
             {
@@ -210,10 +221,8 @@ public class OC_Hw extends OC_SectionController
                         arrowButtonClick();
                     }
                 });
-
             }
         }
-
     }
 
 
@@ -232,7 +241,6 @@ public class OC_Hw extends OC_SectionController
 
                 setStatus(STATUS_DRAGGING);
                 unlockScreen();
-
             }
             else
             {
@@ -248,23 +256,17 @@ public class OC_Hw extends OC_SectionController
                         loc.x = drawRect.right();
                     else if(pt.x < drawRect.left())
                         loc.x = drawRect.left();
-
                 }
 
                 drawPath(startPoint,pt);
-
                 startPoint = pt;
                 setStatus(STATUS_DRAGGING);
             }
-
         }
-
     }
-
 
     public void touchUpAtPoint(PointF pt,View v)
     {
-
         if(status() == STATUS_DRAGGING)
         {
             setStatus(STATUS_BUSY);
@@ -276,10 +278,7 @@ public class OC_Hw extends OC_SectionController
                     checkTouchUp();
                 }
             });
-
-
         }
-
     }
 
     public void checkTouchUp()
@@ -354,8 +353,6 @@ public class OC_Hw extends OC_SectionController
         lineBottom.setStrokeEnd(0);
         lineTop.show();
         lineBottom.show();
-
-
     }
 
     public void highlightPathsForGroup(OBGroup group,boolean on)
@@ -365,8 +362,8 @@ public class OC_Hw extends OC_SectionController
             ((OBPath)p).setStrokeColor( on ? Color.RED : Color.WHITE);
 
         unlockScreen();
-
     }
+
     public void startScene() throws Exception
     {
         setReplayAudioScene(currentEvent(),"PROMPT.REPEAT");
@@ -385,9 +382,7 @@ public class OC_Hw extends OC_SectionController
     {
         PointF pt1 = this.convertPointToControl(fromPoint, board);
         PointF pt2 = this.convertPointToControl(toPoint, board);
-
         canvas.drawLine(pt1.x, pt1.y, pt2.x, pt2.y, drawingPaint);
-
         refreshDrawingBoard();
     }
 
@@ -398,11 +393,9 @@ public class OC_Hw extends OC_SectionController
         drawOn.invalidate();
     }
 
-
     public void eraseAtEraserLoc()
     {
         RectF frame = this.convertRectToControl(eraser2.frame(), board);
-
         canvas.drawBitmap(eraserBitmap,(int)frame.left, (int)frame.top,erasingPaint);
         refreshDrawingBoard();
     }
@@ -426,6 +419,7 @@ public class OC_Hw extends OC_SectionController
         erasingPaint = new Paint();
         erasingPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OUT));
         eraserBitmap = eraser2.drawn();
+        eraserBitmap.prepareToDraw();
     }
 
     public float drawPathWidth()
@@ -437,6 +431,7 @@ public class OC_Hw extends OC_SectionController
     {
         float len = path.length();
         double duration = len * 2 / theMoveSpeed;
+        path.show();
         OBAnim anim = OBAnim.propertyAnim("strokeEnd",1,path);
         OBAnimationGroup.runAnims(Collections.singletonList(anim),duration,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
     }
@@ -444,17 +439,13 @@ public class OC_Hw extends OC_SectionController
 
     public void stampImage(OBPath path)
     {
-
         drawCanvasOnLayer();
     }
 
 
     public void eraseAtPoint(PointF point)
     {
-
-
         drawCanvasOnLayer();
-
     }
 
 
@@ -508,29 +499,28 @@ public class OC_Hw extends OC_SectionController
                 if(arr.size() > 0)
                 {
                     RectF fp = OBUtils.PathsUnionRect(arr);
-                    fp.top -= f.top;
-                    if (fp.top < miny)
-                        miny = fp.top;
-                    float thismaxy = fp.top + fp.height();
+                    fp.bottom -= f.bottom;
+                    if (fp.bottom > miny)
+                        miny = fp.bottom;
+                    float thismaxy = fp.bottom;
                     if (thismaxy > maxy)
                         maxy = thismaxy;
                 }
             }
             float pathsheight = maxy - miny;
             float diff = (this.bounds().height() - pathsheight) / 2.0f;
-            float xboxtop = diff - miny;
+            float xboxbottom = diff - miny;
             float left = (this.bounds().width() - xboxeswidth) / 2.0f;
             for (int i = 0;i < xboxes.size();i++)
             {
                 OBControl xb = xboxes.get(i);
                 float xdiff = left - xb.left();
-                float ydiff = xboxtop - xb.top();
+                float ydiff = xboxbottom - xb.bottom();
                 xb.setPosition(OB_Maths.OffsetPoint(xb.position(), xdiff, ydiff));
                 for (OBPath p : letterPaths.get(i))
                     p.setPosition(OB_Maths.OffsetPoint(p.position(), xdiff, ydiff));
                 left += xb.width();
             }
-
         }
         for (List<OBPath> arr : letterPaths)
         {
@@ -539,6 +529,8 @@ public class OC_Hw extends OC_SectionController
                 path.setStrokeColor(colour);
                 path.setLineWidth(size);
                 path.setStrokeEnd(prepare ? 0 : 1);
+                if(prepare)
+                    path.hide();
                 path.sizeToBoundingBoxIncludingStroke();
             }
         }
@@ -565,7 +557,6 @@ public class OC_Hw extends OC_SectionController
                 p.setProperty("attrs",dict);
                 p.setProperty("name",p.attributes().get("id"));
                 letterGrp.objectDict.put((String)p.attributes().get("id"),p);
-
             }
         }
 
@@ -658,10 +649,10 @@ public class OC_Hw extends OC_SectionController
         {
             OBPath path = (OBPath)p;
            // path.setStrokeStart(0);
+            path.show();
             path.setStrokeEnd(1);
         }
         unlockScreen();
-
     }
 
     public void resetGuideMask()
@@ -689,10 +680,8 @@ public class OC_Hw extends OC_SectionController
                         lineBottom.invalidate();
                         lineTop.invalidate();
                         guideGroup.invalidate();
-
                     }
                 }),0.5f,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
-
         hideLines();
         guideGroup.hide();
         resetGuideMask();

@@ -88,8 +88,13 @@ public class OBConfigManager
     private static String FAT_CONTROLLER_PLAYZONE_ACTIVE_HOUR = "fat_controller_playzone_active_hour";
     private static String FAT_CONTROLLER_SHOW_USER_NAME = "fat_controller_show_user_name";
     private static String FAT_CONTROLLER_LOCK_TIMEOUT = "fat_controller_playzone_lock_timeout";
+    private static String FAT_CONTROLLER_STUDY_LOOP_WEEK = "fat_controller_study_loop_week";
     //
     private static String ASSETS_EXTERNAL_PATH = "assets_external_path";
+    private static String ASSETS_LOOK_FOR_ZIPPED_FILES = "assets_look_for_zipped_files";
+    private static String ASSETS_UNZIP_ALL_ON_STARTUP = "assets_unzip_all_on_startup";
+    private static String ASSETS_PRIORITY_FOLDERS = "assets_priority_folders";
+    private static String ASSETS_READY_TO_BE_USED = "assets_ready_to_be_used";
     //
     private static String DEBUG_ENABLED = "debug_enabled";
     private static String DEBUG_SHOW_TEST_MENU = "debug_show_test_menu";
@@ -102,6 +107,7 @@ public class OBConfigManager
     private static String DEBUG_ACTIVATE_COMMUNITY_MODE_OVERRIDE_PASSWORD = "debug_activate_community_mode_override_password";
     private static String DEBUG_REVERT_COMMUNITY_MODE_PASSWORD = "debug_revert_community_mode_password";
     //
+    private static String APP_SPLASH_SCREEN = "splash_screen";
     private static String APP_GEN_FOLDER = "app_gen_folder";
     private static String APP_MAIN_FOLDER = "app_main_folder";
     private static String APP_MENU_CLASS = "app_menu_class";
@@ -118,6 +124,8 @@ public class OBConfigManager
     private static String ANALYTICS_DEVICE_STATUS_REFRESH_INTERVAL_MINUTES = "analytics_device_status_refresh_interval_minutes";
     //
     private static String LOCATION_ENABLED = "location_enabled";
+    //
+    private static String JUDGES_MENU_SHOW_POPUP = "showMenuPopup";
     //
     private Map<String, Object> internalConfig;
     //
@@ -165,7 +173,7 @@ public class OBConfigManager
         }
     }
 
-    private void loadConfigPLIST () throws Exception
+    public void loadConfigPLIST () throws Exception
     {
         String configPath = BuildConfig.SETTINGS_FILE;
         InputStream fileInputStream = MainActivity.mainActivity.getAssets().open(configPath);
@@ -377,7 +385,7 @@ public class OBConfigManager
         return internalVideoSearchPaths;
     }
 
-    public List<String> getVideoSearchPaths (String appDir, String genDir)
+    public List<String> getVideoSearchPaths (String appDir, String genDir, String languageCode)
     {
         List result = new ArrayList();
         List<String> searchPaths = generateSearchPathsForFolders(appDir, genDir);
@@ -387,6 +395,12 @@ public class OBConfigManager
             if (dir == null) continue;
             //
             String newPath = OBUtils.stringByAppendingPathComponent(dir, "/img/movies");
+            if (OBUtils.assetsDirectoryExists(newPath))
+            {
+                result.add(newPath);
+            }
+            //
+            newPath = OBUtils.stringByAppendingPathComponent(dir, String.format("/local/%s", languageCode));
             if (OBUtils.assetsDirectoryExists(newPath))
             {
                 result.add(newPath);
@@ -464,7 +478,7 @@ public class OBConfigManager
         internalImageSearchPaths = getImageSearchPaths(currentActivityFolder, genFolder);
         internalConfigSearchPaths = getConfigSearchPaths(currentActivityFolder, genFolder);
         internalVectorSearchPaths = getVectorSearchPaths(currentActivityFolder, genFolder);
-        internalVideoSearchPaths = getVideoSearchPaths(currentActivityFolder, genFolder);
+        internalVideoSearchPaths = getVideoSearchPaths(currentActivityFolder, genFolder, currentLanguage);
         //
         OBImageManager.sharedImageManager().clearCaches();
         //
@@ -898,6 +912,10 @@ public class OBConfigManager
         return getIntValue(FAT_CONTROLLER_LOCK_TIMEOUT);
     }
 
+    public int getFatControllerStudyLoopWeek()
+    {
+        return getIntValue(FAT_CONTROLLER_STUDY_LOOP_WEEK);
+    }
 
 
     public String getAssetsExternalPath ()
@@ -912,6 +930,32 @@ public class OBConfigManager
             internalAssetsSearchPaths = OBSystemsManager.sharedManager.getExternalAssetsFolders();
         }
         return internalAssetsSearchPaths;
+    }
+
+    public Boolean shouldLookForZippedAsssets()
+    {
+        return getBooleanValue(ASSETS_LOOK_FOR_ZIPPED_FILES);
+    }
+
+    public Boolean shouldUnzipAllAssetsOnStartup()
+    {
+        return getBooleanValue(ASSETS_UNZIP_ALL_ON_STARTUP);
+    }
+
+    public List<String> getZippedAssetsPriorityFolders()
+    {
+        String value = getStringValue(ASSETS_PRIORITY_FOLDERS);
+        return Arrays.asList(value.split(","));
+    }
+
+    public Boolean areAssetsReadyToBeUsed()
+    {
+        return getBooleanValue(ASSETS_READY_TO_BE_USED);
+    }
+
+    public void setAssetsReadyToBeUsed(Boolean value)
+    {
+        internalConfig.put(ASSETS_READY_TO_BE_USED, (value ? "true" : "false"));
     }
 
 
@@ -954,6 +998,11 @@ public class OBConfigManager
     public String getMenuClassName ()
     {
         return getStringValue(APP_MENU_CLASS);
+    }
+
+    public Boolean hasSplashScreen()
+    {
+        return getBooleanValue(APP_SPLASH_SCREEN);
     }
 
     public String getFatControllerClassName ()
@@ -1004,6 +1053,12 @@ public class OBConfigManager
             return internalSfxVolumes;
         else
             return new HashMap<>();
+    }
+
+
+    public Boolean getShowJudgesPopupMenu()
+    {
+        return getBooleanValue(JUDGES_MENU_SHOW_POPUP);
     }
 
 

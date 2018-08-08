@@ -267,13 +267,13 @@
 	<string>oc-pedro</string>
 	<!--  -->
 	<key>app_menu_class</key>
-	<string>OC_SimpleListMenu</string>
+	<string>OC_Menu</string>
 	<!--  -->
 	<key>app_fat_controller_class</key>
-	<string>OBFatController</string>
+	<string>OCM_FatController</string>
 	<!--  -->
 	<key>app_masterlist</key>
-	<string>early_listening_sw</string>
+	<string>community_sw</string>
 	<!--  -->
 	<key>app_masterlist_playzone</key>
 	<string>playzone_enGB</string>

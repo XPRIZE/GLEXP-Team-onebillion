@@ -170,7 +170,7 @@ public class OC_CountMore_S2l extends OC_SectionController
                 unlockScreen();
                 displayTick();
                 waitForSecs(0.3f);
-                playAudioQueuedScene("FINAL", 300, true);
+                playAudioQueuedScene("FINAL", 0.3f, true);
                 waitForSecs(0.5f);
 
             } else
@@ -245,7 +245,7 @@ public class OC_CountMore_S2l extends OC_SectionController
 
     public void demo2m() throws Exception
     {
-        playAudioQueuedScene("DEMO",300,true);
+        playAudioQueuedScene("DEMO",0.3f,true);
         waitForSecs(0.3f);
         startScene();
     }

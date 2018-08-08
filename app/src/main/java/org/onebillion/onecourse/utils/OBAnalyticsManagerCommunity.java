@@ -104,7 +104,8 @@ public class OBAnalyticsManagerCommunity extends OBAnalyticsManager
             contentValues.put("parameters", parameters.toString());
             db.doInsertOnTable(DBSQL.TABLE_ANALYTICS, contentValues);
             //
-            MainActivity.log("OBAnalyticsManagerCommunity.logEvent: " + currentTime + " " + eventName + " " + parameters.toString());
+            /// IMPORTANT: This is spamming the log --> needs to be improved
+            //MainActivity.log("OBAnalyticsManagerCommunity.logEvent: " + currentTime + " " + eventName + " " + parameters.toString());
         }
         catch (Exception e)
         {

@@ -146,7 +146,7 @@ public class OC_Shapes_S1 extends OC_Generic_Event
                 gotItRightBigTick(false);
                 //
                 control.moveToPoint(correctPlaceControl.position(), 0.2f, true);
-                playAudioQueuedScene("CORRECT", 300, false);
+                playAudioQueuedScene("CORRECT", 0.3f, false);
                 //
                 if (action_isPlacementOver())
                 {
@@ -182,7 +182,7 @@ public class OC_Shapes_S1 extends OC_Generic_Event
                     }
                     waitForSecs(0.3f);
                     //
-                    playAudioQueuedScene("FINAL", 300, true);
+                    playAudioQueuedScene("FINAL", 0.3f, true);
                     nextScene();
                 }
                 else

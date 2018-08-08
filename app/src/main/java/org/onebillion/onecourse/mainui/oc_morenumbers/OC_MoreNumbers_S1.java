@@ -253,7 +253,7 @@ public class OC_MoreNumbers_S1 extends OC_SectionController
             gotItWrongWithSfx();
             waitSFX();
             long time = setStatus(STATUS_WAITING_FOR_DRAG);
-            playAudioQueuedScene("INCORRECT",300,true);
+            playAudioQueuedScene("INCORRECT",0.3f,true);
             sendReprompt(time);
         }
     }
@@ -288,7 +288,7 @@ public class OC_MoreNumbers_S1 extends OC_SectionController
             gotItRightBigTick(true);
             peelMask(mask,0.4f);
             waitForSecs(0.3f);
-            playAudioQueuedScene("FINAL",300,true);
+            playAudioQueuedScene("FINAL",0.3f,true);
             waitForSecs(0.1f);
             hiliteColumn(targetColumn);
             waitForSecs(2f);
@@ -303,7 +303,7 @@ public class OC_MoreNumbers_S1 extends OC_SectionController
             waitSFX();
             mask.setBackgroundColor ( maskcolour);
             setStatus(STATUS_AWAITING_CLICK);
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
 
         }
     }

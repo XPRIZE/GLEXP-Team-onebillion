@@ -67,6 +67,7 @@ public class OCM_TestEvent extends OC_SectionController
                         if (targ == objectDict.get("button_correct"))
                         {
                             gotItRight();
+                            fatController.testExtraUnits();
                             fatController.completeEvent(controller);
                         }
                         else

@@ -66,7 +66,7 @@ public class OBReadingWord
         return ch <= ' ';
     }
 
-    static boolean isWordCharacter(char ch)
+    public static boolean isWordCharacter(char ch)
     {
         if (Character.isLetter(ch))
             return true;

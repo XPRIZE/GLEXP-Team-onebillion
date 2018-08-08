@@ -305,7 +305,7 @@ public class OC_Pws extends OC_SectionController
         waitSFX();
         if(playAudio && !statusChanged(time))
         {
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
         }
     }
 
@@ -387,7 +387,7 @@ public class OC_Pws extends OC_SectionController
         }
         else if(currentMode == MODE_FIND)
         {
-            playAudioQueuedScene("DEMO",300,true);
+            playAudioQueuedScene("DEMO",0.3f,true);
             waitForSecs(0.3f);
             OBControl targ = currentTarget();
             String wordAudio = (String)targ.propertyValue("audio");
@@ -438,7 +438,7 @@ public class OC_Pws extends OC_SectionController
         {
             public void run() throws Exception
             {
-                while(con.isEnabled() && animateWobble)
+                while(con.isEnabled() && animateWobble && !controller._aborting)
                 {
                     OBAnimationGroup.runAnims(Arrays.asList(blockAnim),1.5,true
                             ,OBAnim.ANIM_LINEAR,controller);

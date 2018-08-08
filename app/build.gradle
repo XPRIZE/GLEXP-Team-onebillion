@@ -1,7 +1,6 @@
 repositories {
-    maven {
-        url "https://jcenter.bintray.com"
-    }
+    google()
+    maven { url "https://jcenter.bintray.com" }
 //    jcenter()
 }
 
@@ -21,7 +20,7 @@ android {
     }
     */
     compileSdkVersion 23
-    buildToolsVersion '25.0.0'
+    buildToolsVersion '27.0.3'
     defaultConfig {
         multiDexEnabled true
         applicationId 'org.onebillion.onecourse'
@@ -55,10 +54,9 @@ android {
 
     }
     dependencies {
-        compile fileTree(dir: 'libs', include: ['*.jar'])
-        testCompile 'junit:junit:4.12'
-        compile 'com.android.support:appcompat-v7:23.1.1'
-//        compile 'com.android.support:appcompat-v7:22.0.0'
+        implementation fileTree(dir: 'libs', include: ['*.jar'])
+        testImplementation 'junit:junit:4.12'
+        implementation 'com.android.support:appcompat-v7:23.1.1'
     }
     dexOptions {
 //        javaMaxHeapSize "8192M"
@@ -69,16 +67,15 @@ android {
     sourceSets {
         main {
             assets.srcDirs = ['src/main/assets', 'src/main/config', 'src/main/fonts/']
-        }
-        res {
             res.srcDirs = ['src/main/res']
         }
-    }
+     }
+
+    flavorDimensions "ob"
+
     productFlavors {
         pedro_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.pedro'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Pedro"
@@ -88,9 +85,7 @@ android {
             ]
         }
         alan_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.alan'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - alan"
@@ -100,9 +95,7 @@ android {
             ]
         }
         michal_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.michal'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - michal"
@@ -112,9 +105,7 @@ android {
             ]
         }
         sw_judges_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.judges'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - Judges"
@@ -124,9 +115,7 @@ android {
             ]
         }
         ny_judges_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.judges.ny'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Judges - ny"
@@ -136,9 +125,7 @@ android {
             ]
         }
         sw_community_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - Child"
@@ -148,9 +135,7 @@ android {
             ]
         }
         sw_test_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.test'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Dev - sw"
@@ -160,9 +145,7 @@ android {
             ]
         }
         sw_library_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.library'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Library - sw"
@@ -172,9 +155,7 @@ android {
             ]
         }
         sw_playzone_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.playzone'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Playzone - sw"
@@ -184,9 +165,7 @@ android {
             ]
         }
         sw_loop_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.loop'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Loop - sw"
@@ -196,9 +175,7 @@ android {
             ]
         }
         enGB_community_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.en_GB'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - enGB"
@@ -208,9 +185,7 @@ android {
             ]
         }
         enGB_test_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.en_GB.test'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Dev - enGB"
@@ -219,10 +194,18 @@ android {
                     appIcon: "@mipmap/child_en_gb"
             ]
         }
+        enGB_playzone_ {
+            applicationId 'org.onebillion.onecourse.child.en_GB.playzone'
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "Playzone - enGB"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_playzone_enGB.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/child_en_gb"
+            ]
+        }
         ny_community_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.ny'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - ny"
@@ -232,9 +215,7 @@ android {
             ]
         }
         ny_test_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.child.ny.test'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Dev - ny"
@@ -244,13 +225,41 @@ android {
             ]
         }
         kenya_ {
-            minSdkVersion 23
             applicationId 'org.onebillion.onecourse.kenya'
-            targetSdkVersion 23
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "Kenya dev"
             buildConfigField 'String', 'SETTINGS_FILE', '"settings_kenya.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/icon_child"
+            ]
+        }
+        vso_demo_tablet_ {
+            applicationId 'org.onebillion.onecourse.demo'
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "onecourse"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_vso_demo_tablet.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/judges"
+            ]
+        }
+        demo_recording_ {
+            applicationId 'org.onebillion.onecourse.child.recording.demo'
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "Recording - sw"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_recording.plist"'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/icon_child"
+            ]
+        }
+        diagnostics_testing_ {
+            applicationId 'org.onebillion.onecourse.diagnostics.testing'
+            versionCode 1
+            versionName '1.0'
+            resValue "string", "app_name", "Diagnostics"
+            buildConfigField 'String', 'SETTINGS_FILE', '"settings_diagnostics.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/icon_child"
             ]
@@ -272,18 +281,12 @@ android {
 
 
 dependencies {
-    //    compile fileTree(dir: 'libs', include: ['*.jar'])
-    //    testCompile 'junit:junit:4.12'
-    //    compile 'com.android.support:appcompat-v7:23.0.1'
-    //    compile 'com.android.support:design:23.0.1'
-    //    compile 'org.apache.httpcomponents:httpcore:4.4.1'
-    //    compile 'org.apache.httpcomponents:httpclient:4.5'
-    //
-    compile files('libs/commons-io-2.5.jar')
-    compile files('libs/commons-net-3.6.jar')
+    implementation files('libs/commons-io-2.5.jar')
+    implementation files('libs/commons-net-3.6.jar')
 
-    compile 'com.parse:parse-android:1.15.8'
-    compile 'com.google.code.gson:gson:2.8.2'
+    implementation 'com.android.support:multidex:1.0.0'
+    implementation 'com.parse:parse-android:1.15.8'
+    implementation 'com.google.code.gson:gson:2.8.2'
 
 
 }

@@ -208,7 +208,7 @@ public class OC_Counting5and10_S5 extends OC_Generic_Event
                 gotItRightBigTick(true);
                 waitForSecs(0.3f);
                 //
-                playAudioQueuedScene("FINAL", 300, true);
+                playAudioQueuedScene("FINAL", 0.3f, true);
                 nextScene();
                 //
                 return;

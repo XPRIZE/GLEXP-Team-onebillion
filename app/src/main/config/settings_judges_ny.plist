@@ -283,6 +283,9 @@
 
 	
 	<!-- CUSTOM APP VALUES FOR JUDGES MENU -->
+	<key>showMenuPopup</key>
+	<string>true</string>
+	<!--  -->
 	<key>app_languages</key>
     <array>
         <string>ny</string>

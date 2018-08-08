@@ -60,9 +60,11 @@ public class OC_FlappyWord extends OC_SectionController
     OBLabel letterBoxCounter, bigWordLabel;
     OBControl nest;
     boolean letterMode;
+    List<Integer> scoresList;
 
     public void prepare()
     {
+        scoresList = new ArrayList<>();
         componentDict = OBUtils.LoadWordComponentsXML(true);
         GRAVITY = applyGraphicScale(1000);
         SCROLL_ACCELERATION = applyGraphicScale(0.1f);
@@ -184,6 +186,12 @@ public class OC_FlappyWord extends OC_SectionController
                 setStatus(STATUS_AWAITING_CLICK);
             }
         });
+    }
+
+    @Override
+    public void cleanUp() {
+        collectScores();
+        super.cleanUp();
     }
 
     public void setSceneXX(String  scene)
@@ -859,6 +867,7 @@ public class OC_FlappyWord extends OC_SectionController
             }
         }
         int searchStart =0;
+        float maxLabelWidth = -1;
         for(int i=0; i<parts.size(); i++)
         {
             OBPhoneme partPhoeneme = parts.get(i);
@@ -890,12 +899,15 @@ public class OC_FlappyWord extends OC_SectionController
                 attachControl(bigPartLabel);
                 attachControl(partLabel);
                 lettersSelection.add(partLabel);
+
+                if(maxLabelWidth < partLabel.width())
+                    maxLabelWidth = partLabel.width();
             }
         }
         bigWordLabel.setScale(lettersSelection.get(0).height()/bigWordLabel.height());
         bigWordLabel.hide();
         float gapSize = applyGraphicScale(10);
-        float lineLength = applyGraphicScale(55);
+        float lineLength = maxLabelWidth;
         PointF midLoc = OB_Maths.locationForRect(0.5f,0.5f,bigWordLabel.frame());
         float startLeft =  midLoc.x - (lineLength * lettersSelection.size() + gapSize * (lettersSelection.size()-1))/2.0f;
         float right = 0;
@@ -989,9 +1001,19 @@ public class OC_FlappyWord extends OC_SectionController
         }) ;
     }
 
+    public void collectScores()
+    {
+        if(shouldCollectMiscData())
+        {
+            scoresList.add(currentScore);
+            collectMiscData("scores", scoresList);
+        }
+    }
+
     public void gameLost()
     {
         setStatus(STATUS_BUSY);
+        collectScores();
         final OBSectionController controller = this;
         OBUtils.runOnOtherThread(new OBUtils.RunLambda()
         {

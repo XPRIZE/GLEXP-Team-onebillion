@@ -271,18 +271,12 @@
 	<!--  -->
 	<key>app_fat_controller_class</key>
 	<string>OC_FatController</string>
-	<!--  -->
-	<key>app_masterlist</key>
-	<string>community_ny</string>
-	<!--  -->
-	<key>app_masterlist_playzone</key>
-	<string>playzone_ny</string>
-	<!--  -->
-	<key>app_masterlist_library</key>
-	<string>library_ny</string>
 
 	
 	<!-- CUSTOM APP VALUES FOR JUDGES MENU -->
+	<key>showMenuPopup</key>
+	<string>true</string>
+	<!--  -->
 	<key>app_languages</key>
     <array>
         <string>sw</string>

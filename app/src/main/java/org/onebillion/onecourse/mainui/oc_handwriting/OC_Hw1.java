@@ -46,6 +46,7 @@ public class OC_Hw1 extends OC_Hw
             exampleGroup.setScale(0.35f*board.width()/exampleGroup.width());
 
         exampleGroup.setPosition(OB_Maths.locationForRect(0.25f,0.5f,board.frame()));
+        alighGroupAroundXbox(exampleGroup);
         exampleGroup.setZPosition(4);
 
         setupLinesForGroup(exampleGroup);
@@ -55,6 +56,7 @@ public class OC_Hw1 extends OC_Hw
         showAllStrokes(guideGroup);
         guideGroup.setOpacity(0.3f);
         guideGroup.setPosition(OB_Maths.locationForRect(0.75f,0.5f,objectDict.get("board").frame()));
+        guideGroup.setBottom(exampleGroup.bottom());
         guideGroup.hide();
 
         setGroupPaths(guideGroup,applyGraphicScale(15));
@@ -62,12 +64,8 @@ public class OC_Hw1 extends OC_Hw
         if (targetPhoneme.text.length() > 1)
             mergeAudioScenesForPrefix("ALT");
 
-
-        guideGroup.setScreenMaskControl(boardMask);
-
         preparePaintForDrawing();
         preparePaintForErasing();
-
 
         setSceneXX(currentEvent());
     }
@@ -96,6 +94,7 @@ public class OC_Hw1 extends OC_Hw
 
     public void arrowButtonClick() throws Exception
     {
+        gotItRight();
         playSfxAudio("arrow",true);
         waitForSecs(0.3f);
         hideArrowButton();
@@ -180,7 +179,10 @@ public class OC_Hw1 extends OC_Hw
         {
             List<OBControl> paths = exampleGroup.filterMembers("Path.*",true);
             for(OBControl path : paths)
-                ((OBPath)path).setStrokeEnd(0);
+            {
+                path.hide();
+                ((OBPath) path).setStrokeEnd(0);
+            }
 
             hideLines();
         }
@@ -278,7 +280,10 @@ public class OC_Hw1 extends OC_Hw
         demoGuideGroup.setPosition( guideGroup.position());
         List<OBControl> paths = demoGuideGroup.filterMembers("Path.*",true);
         for(OBControl p : paths)
-            ((OBPath)p).setStrokeEnd(0);
+        {
+            p.hide();
+            ((OBPath) p).setStrokeEnd(0);
+        }
 
         demoGuideGroup.setZPosition(5);
         attachControl(demoGuideGroup);
@@ -298,7 +303,7 @@ public class OC_Hw1 extends OC_Hw
                 }
             };
 
-
+            p.show();
             OBAnimationGroup.runAnims(Collections.singletonList(anim), p.length()*4/theMoveSpeed,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
         }
     }
@@ -308,9 +313,12 @@ public class OC_Hw1 extends OC_Hw
         lockScreen();
         List<OBControl> paths = exampleGroup.filterMembers("Path.*",true);
         for(OBControl path : paths)
-            ((OBPath)path).setStrokeEnd(1);
-
+        {
+            path.show();
+            ((OBPath) path).setStrokeEnd(1);
+        }
         unlockScreen();
+
         animateLinesOn();
         loadPointer(POINTER_LEFT);
         moveScenePointer(OB_Maths.locationForRect(0.75f,0.7f,objectDict.get("board").frame()),-40,0.5f,"DEMO",0,0.5f);

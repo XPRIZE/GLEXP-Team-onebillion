@@ -5,11 +5,19 @@ import android.graphics.Typeface;
 
 import org.onebillion.onecourse.utils.OBFont;
 
+import java.util.List;
+
 /**
  * Created by alan on 12/12/15.
  */
 public class OBLabel extends OBControl
 {
+    public static int OBLABEL_ALIGN_NATURAL = 1,
+            OBLABEL_ALIGN_CENTRE = 0,
+            OBLABEL_ALIGN_LEFT = 1,
+            OBLABEL_ALIGN_RIGHT = 2,
+            OBLABEL_ALIGN_FULL = 3;
+
     OBFont font;
 
     public OBLabel()
@@ -40,6 +48,14 @@ public class OBLabel extends OBControl
 
     public void sizeToBoundingBox()
     {
+        frameValid = false;
+        ((OBTextLayer)layer).sizeToBoundingBox();
+        setNeedsRetexture();
+        invalidate();
+    }
+    public void sizeToBoundingBoxMaxWidth(float w)
+    {
+        setMaxWidth(w);
         frameValid = false;
         ((OBTextLayer)layer).sizeToBoundingBox();
         setNeedsRetexture();
@@ -107,6 +123,15 @@ public class OBLabel extends OBControl
         }
      }
 
+    public void addColourRange(int st,int en,int colour)
+    {
+        if (layer != null)
+        {
+            ((OBTextLayer)layer).addColourRange(st,en,colour);
+            setNeedsRetexture();
+            invalidate();
+        }
+    }
     public String text()
     {
         return ((OBTextLayer)layer).text;
@@ -185,4 +210,35 @@ public class OBLabel extends OBControl
         OBTextLayer tl = (OBTextLayer)layer;
         tl.lineSpaceMultiplier = f;
     }
+    public float lineSpaceAdd()
+    {
+        OBTextLayer tl = (OBTextLayer)layer;
+        return tl.lineSpaceAdd;
+    }
+
+    public void setLineSpaceAdd(float f)
+    {
+        OBTextLayer tl = (OBTextLayer)layer;
+        tl.lineSpaceAdd = f;
+    }
+
+    public void setAlignment(int j)
+    {
+        setJustification(j);
+    }
+
+    public int alignment()
+    {
+        OBTextLayer tl = (OBTextLayer)layer;
+        return tl.justification();
+    }
+
+    public void setBackgroundColourRanges(List<List<Integer>> backgroundColourRanges, int col)
+    {
+        OBTextLayer tl = (OBTextLayer)layer;
+        tl.setBackgroundColourRanges(backgroundColourRanges,col);
+        setNeedsRetexture();
+        invalidate();
+    }
+
 }

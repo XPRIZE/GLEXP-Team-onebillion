@@ -79,11 +79,11 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
     OCM_MlUnitInstance lastUnitInstance;
     OBLabel currentLevelLabel;
     OBPresenter presenter;
+    OBGroup weekBar;
     int currentTarget;
     Map<String,Integer> coloursDict;
     OBControl emitter, screenOverlay;
     boolean communityModeActive, playZoneOpened;
-    boolean communityModeActiveOverride, playZoneActiveOverride;
     List<OBGroup> communityModeIcons;
 
     RectF secretBoxLeft, secretBoxRight;
@@ -125,7 +125,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
             {
                 lastUnitInstance = (OCM_MlUnitInstance)params.get("instance");
                 if(lastCommand == OCM_FatController.OFC_UNIT_FAILED && lastUnitInstance.starColour >0)
-                    colourStarNum(lastUnitOrder,lastUnitInstance.starColour);
+                    colourStarNum(lastUnitInstance.mlUnit.starOrder,lastUnitInstance.starColour);
             }
         }
         else
@@ -160,7 +160,6 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         coloursDict = OBMisc.loadEventColours(this);
         fatController = (OCM_FatController)MainActivity.mainActivity.fatController;
         fatController.menu = this;
-
         fatController.loadBatteryIcon(this);
         fatController.colourDict = coloursDict;
         presenter = OBPresenter.characterWithGroup((OBGroup)objectDict.get("presenter"));
@@ -171,10 +170,11 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         presenter.control.setProperty("end_loc",OBMisc.copyPoint(presenter.control.position()));
         lastUnitOrder = -1;
         lastUnitInstance = null;
+        loadWeekBar();
         refreshCurrentDayAndAudio();
         receiveCommand(fatController.getCurrentCommand());
         //
-        communityModeActive = fatController.communityModeActive() || communityModeActiveOverride;
+        communityModeActive = fatController.communityModeActive();
         //
         playZoneOpened = false;
         initScreen();
@@ -225,7 +225,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
 
             //
             hideStarBar();
-            loadTopBar(true,true);
+            setUpWeekBar(true,true);
             loadIconsGridForUnits(fatController.getUnitsForGrid(),true);
             loadPlayZoneBox(true);
             if(lastCommand == OCM_FatController.OFC_SESSION_NEW)
@@ -538,7 +538,6 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
                         if (communityModeActive)
                         {
                             demo_community_star_award();
-
                         }
                         else
                         {
@@ -554,7 +553,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
                             OBAnalyticsManager.sharedManager.enteredScreen(OBAnalytics.Screen.COMMUNITY_MODE);
                             communityModeActive = true;
                             loadIconsGridForUnits(fatController.getUnitsForGrid(),false);
-                            loadTopBar(false,currentDay % 7 != 0);
+                            setUpWeekBar(false,currentDay % 7 != 0);
                             loadPlayZoneBox(false);
                             currentTarget = TARGET_COMMUNITY;
                             demo_grid();
@@ -563,11 +562,11 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
                         else if (unitData.get("unit") != null)
                         {
                             loadBigIconForUnit((OCM_MlUnit)unitData.get("unit"));
-                            lastUnitOrder = (int) unitData.get("unitOrder");
                         }
                         if(unitData.get("unitOrder") != null)
                         {
-                            String eventName = String.format("unit_%d", (int) unitData.get("unitOrder"));
+                            lastUnitOrder = (int) unitData.get("unitOrder");
+                            String eventName = String.format("unit_%d", lastUnitOrder);
                             String demoPrefix = currentDay > 4 ? "demo_default_" : "demo_start_";
                             if (!(audioAvailable(eventName) && performSel(demoPrefix, eventName)))
                             {
@@ -687,9 +686,12 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
 
     public void refreshCurrentLabelArray(List<OCM_MlUnit> units)
     {
-        OCM_MlUnit unit1 = units.get(0);
-        OCM_MlUnit unit2 = units.get(units.size()-1);
-        currentLevelLabel.setString(String.format("%d - %d - %d", currentDay, unit1.unitIndex,  unit2.unitIndex));
+        if (units != null && units.size() > 0)
+        {
+            OCM_MlUnit unit1 = units.get(0);
+            OCM_MlUnit unit2 = units.get(units.size() - 1);
+            currentLevelLabel.setString(String.format("%d - %d - %d", currentDay, unit1.unitIndex, unit2.unitIndex));
+        }
     }
 
 
@@ -790,6 +792,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
 
     public void loadBigIconForUnit(OCM_MlUnit unit)
     {
+        lockScreen();
         previousBigIcon = currentBigIcon;
         currentBigIcon = loadIconForUnit(unit,false);
         currentBigIcon.setZPosition(20);
@@ -797,6 +800,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         currentBigIcon.show();
         attachControl(currentBigIcon);
         refreshCurrentLabel(unit);
+        unlockScreen();
     }
 
     public OBImage loadIconForUnit(OCM_MlUnit unit,boolean small)
@@ -832,17 +836,39 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         obj.setShadow(shadow.getShadowRadius(), shadow.getShadowOpacity(), shadow.getShadowOffsetX(), shadow.getShadowOffsetY(), shadow.getShadowColour());
     }
 
-    public void loadTopBar(boolean show,boolean fill)
+    public void loadWeekBar()
     {
-        OBGroup topBar = (OBGroup)objectDict.get("top_bar");
+        OBControl workRect = this.objectDict.get("week_bar_work_rect");
+        OBControl weekBlock = this.objectDict.get("week_bar_block");
+        int maxWeek = fatController.getMaxStudyWeek();
+        float startX = OB_Maths.relativePointInRectForLocation(weekBlock.position(), workRect.frame()).x;
+        float blockDist = (1-startX*2)/(maxWeek-1.0f);
+        Map<String,OBControl> blocks = new ArrayMap<>();
+        for(int i=1; i<=maxWeek; i++)
+        {
+            OBControl blockCopy = weekBlock.copy();
+            blockCopy.show();
+            blockCopy.setPosition(OB_Maths.locationForRect(startX + (i-1)*blockDist, 0.5f,workRect.frame()));
+            blocks.put(String.format("week_%d",i),blockCopy);
+        }
+
+        weekBar = new OBGroup(new ArrayList<OBControl>(blocks.values()));
+        weekBar.objectDict = blocks;
+        attachControl(weekBar);
+        weekBar.hide();
+
+    }
+
+    public void setUpWeekBar(boolean show,boolean fill)
+    {
         int week = fatController.getCurrentWeek();
-        if(!fill && week > 68)
+        if(!fill && week > fatController.getMaxStudyWeek())
             fill = true;
         if(currentDay%7 == 0)
             week++;
         for(int i=1; i<week; i++)
         {
-            OBControl weekSquare = topBar.objectDict.get(String.format("week_%d",i));
+            OBControl weekSquare = weekBar.objectDict.get(String.format("week_%d",i));
             if(weekSquare != null)
             {
                 int fillCol = coloursDict.get(String.format("week_%d",(i%4)+1));
@@ -851,9 +877,9 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
                     weekSquare.setFillColor(fillCol);
             }
         }
-        topBar.setNeedsRetexture();
+        weekBar.setNeedsRetexture();
         if(show)
-            topBar.show();
+            weekBar.show();
     }
 
     public void loadEmptyStarBar(boolean show)
@@ -888,7 +914,8 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
     public void colourStarNum(int starNum,int colourNum)
     {
         OBGroup star = (OBGroup)objectDict.get(String.format("top_bar_star_%d",starNum));
-        if(star == null)        return;
+        if(star == null)
+            return;
         colourStar(star,colourNum);
     }
 
@@ -923,7 +950,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
     }
     public void loadPlayZoneBox(boolean show)
     {
-        boolean active = fatController.playZoneActive() || playZoneActiveOverride;
+        boolean active = fatController.playZoneActive() ;
         //
         OBGroup box = (OBGroup)objectDict.get("box");
         box.setProperty("touched",false);
@@ -956,7 +983,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         OBGroup box = (OBGroup)objectDict.get("box");
         if(!box.isEnabled())
         {
-            if(fatController.playZoneActive() || playZoneActiveOverride)
+            if(fatController.playZoneActive())
             {
                 enablePlayZoneBox();
                 return true;
@@ -1018,7 +1045,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
                 }
             });
         }
-        else if(fatController.playZoneActive() || playZoneActiveOverride)
+        else if(fatController.playZoneActive() )
         {
             shakePlayZoneBoxOnce(true);
         }
@@ -1395,13 +1422,12 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
     }
 
 
-    public void animateTopBarFill() throws Exception
+    public void animateWeekBarFill() throws Exception
     {
-        OBGroup topBar = (OBGroup)objectDict.get("top_bar");
         final List<OBControl> animSquares = new ArrayList<>();
-        for(int i=1; i<=68; i++)
+        for(int i=1; i<=fatController.getMaxStudyWeek(); i++)
         {
-            OBControl square = topBar.objectDict.get(String.format("week_%d",i));
+            OBControl square = weekBar.objectDict.get(String.format("week_%d",i));
             if(square.propertyValue("fill") != null)
             {
                 int col = (int)square.propertyValue("fill");
@@ -1410,7 +1436,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
                 squareCopy.setScale(2);
                 squareCopy.setOpacity(0);
                 squareCopy.setBackgroundColor(col);
-                squareCopy.setZPosition(topBar.zPosition() + 1);
+                squareCopy.setZPosition(weekBar.zPosition() + 1);
                 attachControl(squareCopy);
                 squareCopy.setProperty("square",square);
                 animSquares.add(squareCopy);
@@ -1463,7 +1489,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
                 detachControl(con);
 
             }
-            topBar.setNeedsRetexture();
+            weekBar.setNeedsRetexture();
             unlockScreen();
         }
     }
@@ -1487,14 +1513,14 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         animateCommunityGrid();
         waitForSecs(0.3f);
         playSfxAudio("prog_sq_on",false);
-        objectDict.get("top_bar").show();
+        weekBar.show();
         waitSFX();
         walkPresenterIn((PointF)presenter.control.propertyValue("start_loc"));
         waitForSecs(0.3f);
         if(currentDay%7 == 0)
         {
             int week = currentDay/7;
-            if(week <= 68)
+            if(week <= fatController.getMaxStudyWeek())
             {
                 List<String> weekAudio1 = null;
                 List<String> weekAudio2 = null;
@@ -1521,7 +1547,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
                 waitForSecs(0.3f);
                 presenter.speak((List<Object>)(Object)weekAudio1,this);
                 waitForSecs(0.3f);
-                animateTopBarFill();
+                animateWeekBarFill();
                 waitForSecs(0.3f);
                 presenter.moveHandfromIndex(6,0,0.5);
                 waitForSecs(0.3f);
@@ -1547,7 +1573,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         presenter.moveHandfromIndex(4,2,0.2);
         presenter.speak((List<Object>)(Object)getAudioForScene("grid","DEMO2"),this);
         waitForSecs(0.3f);
-        if(!fatController.playZoneActive() && !playZoneActiveOverride)
+        if(!fatController.playZoneActive())
         {
             presenter.speak((List<Object>)(Object)getAudioForScene("grid","DEMO3"),this);
         }
@@ -1568,7 +1594,7 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
 
         }
         boolean playDemo = getAudioForScene(eventName,"FINAL") != null;
-        animateAwardStar(lastUnitOrder,lastUnitInstance.starColour);
+        animateAwardStar(lastUnitInstance.mlUnit.starOrder,lastUnitInstance.starColour);
         if(playDemo)
         {
             walkPresenterIn((PointF)presenter.control.propertyValue("start_loc"));
@@ -1717,7 +1743,6 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
             waitSFX();
             waitForSecs(0.3f);
             presenter.speak((List<Object>) (Object) Arrays.asList(getAudioForScene("unit_1", "DEMO2").get(dayNum - 1)), this);
-
             waitForSecs(0.3f);
         }
         List<String> audios =  getAudioForScene("unit_1","DEMO3");
@@ -1734,7 +1759,6 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         lockScreen();
         showControls("top_bar_star_.*");
         playSfxAudio("allstar",false);
-
         unlockScreen();
         waitSFX();
         waitForSecs(0.3f);
@@ -1752,7 +1776,6 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
             walkPresenterOut();
         if(!statusChanged(time))
             playUnitButtonAudio("unit_1",time);
-
     }
 
 
@@ -1933,65 +1956,8 @@ public class OCM_ChildMenu extends OC_Menu implements OCM_FatReceiver, TimePicke
         }
         else if (OBConfigManager.sharedManager.isActivateCommunityModeOverridePasswordCorrect(pass))
         {
-            communityModeActive = true;
-            //
-            lockScreen();
-            try
-            {
-                List<OBControl> controls = new ArrayList<OBControl>();
-                controls.addAll(attachedControls);
-                for (OBControl control : controls)
-                {
-                    detachControl(control);
-                }
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-            communityModeActiveOverride = true;
-            playZoneActiveOverride = true;
-            prepare();
-            unlockScreen();
-            //
-            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
-            {
-                @Override
-                public void run () throws Exception
-                {
-                    start();
-                }
-            });
-        }
-        else if (OBConfigManager.sharedManager.isRevertCommunityModePasswordCorrect(pass))
-        {
-            lockScreen();
-            try
-            {
-                List<OBControl> controls = new ArrayList<OBControl>();
-                controls.addAll(attachedControls);
-                for (OBControl control : controls)
-                {
-                    detachControl(control);
-                }
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-            communityModeActiveOverride = false;
-            playZoneActiveOverride = false;
-            prepare();
-            unlockScreen();
-            //
-            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
-            {
-                @Override
-                public void run () throws Exception
-                {
-                    start();
-                }
-            });
+           fatController.jumpToCommunity();
+           closeThisMenuAndOpen(OCM_ChildMenu.class);
         }
         else if (OBConfigManager.sharedManager.isChangeDatePasswordCorrect(pass))
         {

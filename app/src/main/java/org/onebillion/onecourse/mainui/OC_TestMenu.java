@@ -43,7 +43,7 @@ public class OC_TestMenu extends OBSectionController
 
     public OC_TestMenu ()
     {
-        super(MainActivity.mainActivity, false);
+        super(MainActivity.mainActivity, true);
     }
 
     public void initScreen()

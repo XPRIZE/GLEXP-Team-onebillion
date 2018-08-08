@@ -194,8 +194,11 @@ public class OC_Cwys1 extends OC_Cwys
     public void animateUnitsOn_a() throws Exception
     {
         lockScreen();
-        for(OBGroup group : currentBlocks)
-            showUnitsForBlock(group);
+        for(int i=0; i<currentBlockGroup.objectDict.size(); i++)
+        {
+            OBGroup group =(OBGroup)currentBlockGroup.objectDict.get(String.format("block_%d",i+1));
+            OC_Cwys_Additions.showUnitsForBlock(group);
+        }
         playSfxAudio("squareson",false);
         unlockScreen();
         waitSFX();
@@ -209,7 +212,7 @@ public class OC_Cwys1 extends OC_Cwys
         for(OBGroup block : hundredBlocks)
         {
             lockScreen();
-            showUnitsForBlock(block);
+            OC_Cwys_Additions.showUnitsForBlock(block);
             playSfxAudio("hundred",false);
             unlockScreen();
             waitSFX();
@@ -221,7 +224,7 @@ public class OC_Cwys1 extends OC_Cwys
         for(OBGroup column : tenColumns)
         {
             lockScreen();
-            showUnitsForColumn(column);
+            OC_Cwys_Additions.showUnitsForColumn(column);
             playSfxAudio("ten",false);
             unlockScreen();
             waitSFX();
@@ -300,11 +303,10 @@ public class OC_Cwys1 extends OC_Cwys
             for(OBControl con : currentTargets)
                 detachControl(con);
 
-        if(currentBlocks != null)
-            for(OBControl con : currentBlocks)
-                detachControl(con);
+        if(currentBlockGroup != null)
+            detachControl(currentBlockGroup);
         currentTargets = null;
-        currentBlocks = null;
+        currentBlockGroup = null;
         playSfxAudio("alloff",false);
         unlockScreen();
         waitSFX();
@@ -332,59 +334,25 @@ public class OC_Cwys1 extends OC_Cwys
     public void lowLightCurrentBlocks()
     {
         lockScreen();
-        for(OBGroup block : currentBlocks)
-            highlightBlock(block,false);
+        for(OBControl block : currentBlockGroup.filterMembers("block_.*"))
+            OC_Cwys_Additions.highlightBlock((OBGroup)block,false);
         unlockScreen();
     }
 
+
     public List<OBGroup> getCurrentHundredBlocks()
     {
-        List<OBGroup> hundredBlocks = new ArrayList<>();
-        long blockCount = correctNum%100 == 0 ? currentBlocks.size() : currentBlocks.size() -1;
-        for(int i=0; i<blockCount; i++)
-        {
-            hundredBlocks.add(currentBlocks.get(i));
-        }
-        return hundredBlocks;
+        return OC_Cwys_Additions.getHundredBlocksFromBlockGroup(currentBlockGroup);
     }
 
     public List<OBGroup> getCurrentTenColumns()
     {
-        List<OBGroup> tenColumns = new ArrayList<>();
-        OBGroup lastBlock = currentBlocks.get(currentBlocks.size()-1);
-        if(correctNum%100 == 0)
-            return tenColumns;
-
-        long columnCount = correctNum%10 == 0 ? lastBlock.objectDict.size() : lastBlock.objectDict.size()-1;
-        for(int i=0; i<columnCount; i++)
-        {
-            OBGroup column =(OBGroup)lastBlock.objectDict.get(String.format("column_%d",i+1));
-            tenColumns.add(column);
-        }
-        return tenColumns;
+        return OC_Cwys_Additions.getTenColumnsFromBlockGroup(currentBlockGroup);
     }
 
     public List<OBControl> getCurrentUnits()
     {
-        List<OBControl> units = new ArrayList<>();
-        if(correctNum%10 == 0)
-            return units;
-        OBGroup lastBlock = currentBlocks.get(currentBlocks.size()-1);
-        long columnCount = lastBlock.objectDict.size();
-        OBGroup lastColumn =(OBGroup)lastBlock.objectDict.get(String.format("column_%d",columnCount));
-        for(int i=0; i<10; i++)
-        {
-            OBControl unit = lastColumn.objectDict.get(String.format("unit_%d",i+1));
-            if(unit.isEnabled())
-            {
-                units.add(unit);
-            }
-            else
-            {
-                break;
-            }
-        }
-        return units;
+        return OC_Cwys_Additions.getUnitsFromBlockGroup(currentBlockGroup);
     }
 
 
@@ -403,9 +371,9 @@ public class OC_Cwys1 extends OC_Cwys
     public void countUnits_a() throws Exception
     {
         higlightAndSayCorrectLabel();
-        for(int i=0; i<currentBlocks.size(); i++)
+        for(int i=0; i<currentBlockGroup.objectDict.size(); i++)
         {
-            OBGroup block = currentBlocks.get(i);
+            OBGroup block =(OBGroup)currentBlockGroup.objectDict.get(String.format("block_%d",i+1));
             for(int j=0; j<block.objectDict.size(); j++)
             {
                 OBGroup column =(OBGroup)block.objectDict.get(String.format("column_%d",j+1));
@@ -415,7 +383,7 @@ public class OC_Cwys1 extends OC_Cwys
                     OBControl unit = column.objectDict.get(String.format("unit_%d",k+1));
                     if(unit.isEnabled())
                     {
-                        highlightUnit(unit,true);
+                        OC_Cwys_Additions.highlightUnit(unit,true);
                         playAudio(String.format("n_%d",num));
                         waitAudio();
                     }
@@ -436,15 +404,16 @@ public class OC_Cwys1 extends OC_Cwys
         if(phase1)
         {
             waitForSecs(0.5f);
-            for(int i=0; i<currentBlocks.size(); i++)
+            for(int i=0; i<currentBlockGroup.objectDict.size(); i++)
             {
-                OBGroup block = currentBlocks.get(i);
+                OBGroup block =(OBGroup)currentBlockGroup.objectDict.get(String.format("block_%d",i+1));
                 for(int j=0; j<block.objectDict.size(); j++)
                 {
                     int num = 100*i + 10*(j+1);
                     OBGroup column =(OBGroup)block.objectDict.get(String.format("column_%d",j+1));
                     lockScreen();
-                    highlightColumn(column,true);
+                    OC_Cwys_Additions.highlightColumn(column,true);
+
                     unlockScreen();
                     playAudio(String.format("n_%d",num));
                     waitAudio();
@@ -463,11 +432,12 @@ public class OC_Cwys1 extends OC_Cwys
         if(phase1)
         {
             waitForSecs(0.5f);
-            for(int i=0; i<currentBlocks.size(); i++)
+            for(int i=0; i<currentBlockGroup.objectDict.size(); i++)
             {
                 int num = 100*(i+1);
                 lockScreen();
-                highlightBlock(currentBlocks.get(i),true);
+                OC_Cwys_Additions.highlightBlock((OBGroup) currentBlockGroup.objectDict.get(String.format("block_%d",i+1)),true);
+
                 unlockScreen();
                 playAudio(String.format("n_%d",num));
                 waitAudio();
@@ -483,84 +453,10 @@ public class OC_Cwys1 extends OC_Cwys
     public void countUnitsInGroups() throws Exception
     {
         higlightAndSayCorrectLabel();
-        List<OBGroup> hundredBlocks = getCurrentHundredBlocks();
-        List<OBGroup> tenColumns = getCurrentTenColumns();
-        List<OBControl> units = getCurrentUnits();
-        if(hundredBlocks.size() != 0)
-        {
-            lockScreen();
-            correctLabel.setHighRange(0,1,Color.RED);
-            for(OBGroup block : hundredBlocks)
-                highlightBlock(block,true);
+        demoCountUnitsInGroups(currentBlockGroup,correctLabel);
 
-            unlockScreen();
-            playAudio(String.format("plc100_%d",hundredBlocks.size()));
-            waitAudio();
-            waitForSecs(0.3f);
-            lockScreen();
-            correctLabel.setHighRange(0,1,Color.BLACK);
-            for(OBGroup block : hundredBlocks)
-                highlightBlock(block,false);
-            unlockScreen();
-            waitForSecs(0.3f);
-        }
-
-        int hiIndex = correctLabel.text().length() > 2 ? 1 : 0;
-        if(tenColumns.size() != 0)
-        {
-            lockScreen();
-            correctLabel.setHighRange(hiIndex,hiIndex+1,Color.RED);
-            for(OBGroup column : tenColumns)
-                highlightColumn(column,true);
-            unlockScreen();
-            playAudio(String.format("plc10_%d",tenColumns.size()));
-            waitAudio();
-            waitForSecs(0.3f);
-            lockScreen();
-            correctLabel.setHighRange(hiIndex,hiIndex+1,Color.BLACK);
-            for(OBGroup column : tenColumns)
-                highlightColumn(column,false);
-            unlockScreen();
-            waitForSecs(0.3f);
-        }
-        else if(hundredBlocks.size() != 0)
-        {
-            correctLabel.setHighRange(hiIndex,hiIndex+1,Color.RED);
-            playAudio("plc10_0");
-            waitAudio();
-            waitForSecs(0.3f);
-            correctLabel.setHighRange(hiIndex,hiIndex+1,Color.BLACK);
-            waitForSecs(0.3f);
-        }
-        hiIndex = correctLabel.text().length()-1;
-        if(units.size() != 0)
-        {
-            lockScreen();
-            correctLabel.setHighRange(hiIndex,hiIndex+1,Color.RED);
-            for(OBControl unit : units)
-                highlightUnit(unit,true);
-
-            unlockScreen();
-            playAudio(String.format("plc1_%d",units.size()));
-            waitAudio();
-            waitForSecs(0.3f);
-            lockScreen();
-            correctLabel.setHighRange(hiIndex,hiIndex+1,Color.BLACK);
-            for(OBControl unit : units)
-                highlightUnit(unit,false);
-            unlockScreen();
-            waitForSecs(0.3f);
-        }
-        else
-        {
-            correctLabel.setHighRange(hiIndex,hiIndex+1,Color.RED);
-            playAudio("plc1_0");
-            waitAudio();
-            waitForSecs(0.3f);
-            correctLabel.setHighRange(hiIndex,hiIndex+1,Color.BLACK);
-            waitForSecs(0.3f);
-        }
     }
+
 
     public void showAllObjects() throws Exception
     {
@@ -571,7 +467,6 @@ public class OC_Cwys1 extends OC_Cwys
         waitForSecs(0.3f);
         showLine();
         waitForSecs(0.3f);
-
     }
 
     public void demo_demob() throws Exception
@@ -582,14 +477,16 @@ public class OC_Cwys1 extends OC_Cwys
         lockScreen();
         loadUnitsForNumber(10);
         unlockScreen();
+
         lockScreen();
-        showUnitsForBlock(currentBlocks.get(0));
+        OC_Cwys_Additions.showUnitsForBlock((OBGroup) currentBlockGroup.objectDict.get("block_1"));
         playSfxAudio("ten",false);
         unlockScreen();
         waitSFX();
+
         waitForSecs(0.3f);
         loadPointer(POINTER_LEFT);
-        moveScenePointer(OB_Maths.locationForRect(1.1f,1.15f,currentBlocks.get(0).frame()),-30,0.5f,"DEMO",0,0.3f);
+        moveScenePointer(OB_Maths.locationForRect(1.1f,1.15f,currentBlockGroup.objectDict.get("block_1").getWorldFrame()),-30,0.5f,"DEMO",0,0.3f);
         thePointer.hide();
         waitForSecs(0.3f);
         countUnits_a();
@@ -598,36 +495,37 @@ public class OC_Cwys1 extends OC_Cwys
         nextScene();
     }
 
+
+
     public void demo_democ() throws Exception
     {
         waitForSecs(0.3f);
         showBottomBar();
         waitForSecs(0.3f);
-        OBGroup block = createBlockForUnit((OBPath)objectDict.get("unit"),100,true);
-        currentBlocks  = new ArrayList<>();
-        currentBlocks.add(block);
+        OBGroup block = OC_Cwys_Additions.createBlockForUnit((OBPath)objectDict.get("unit"),100,objectDict.get("work_rect").bottom(),true);
+        attachControl(block);
+
         lockScreen();
-        showUnitsForBlock(block);
+        OC_Cwys_Additions.showUnitsForBlock(block);
         PointF loc = OBMisc.copyPoint(block.position());
         loc.x = OB_Maths.locationForRect(0.5f,0.5f,this.bounds()).x;
         block.setPosition(loc);
         playSfxAudio("hundred",false);
         unlockScreen();
         waitSFX();
+
         waitForSecs(0.3f);
         loadPointer(POINTER_LEFT);
-        moveScenePointer(OB_Maths.locationForRect(1.1f,1.15f,currentBlocks.get(0).frame()),-30,0.5f,"DEMO",0,0.3f);
-        lowLightCurrentBlocks();
+        moveScenePointer(OB_Maths.locationForRect(1.1f,1.15f,block.getWorldFrame()),-30,0.5f,"DEMO",0,0.3f);
         waitForSecs(0.3f);
         List<OBAnim> anims = new ArrayList<>();
         float centerX = block.bounds.width()/2.0f;
-        OBPath unit  = (OBPath)objectDict.get("unit");
-        float unitWidth = unit.width() - unit.lineWidth();
+        float unitWidth = objectDict.get("unit").width()-objectDict.get("unit").lineWidth();
         for(int i=0; i<10; i++)
         {
             OBGroup column =(OBGroup)block.objectDict.get(String.format("column_%d",i+1));
             lockScreen();
-            highlightColumn(column,true);
+            OC_Cwys_Additions.highlightColumn(column,true);
             unlockScreen();
             playAudio(String.format("n_%d",(i+1) *10));
             waitAudio();
@@ -635,25 +533,28 @@ public class OC_Cwys1 extends OC_Cwys
             anims.add(OBAnim.propertyAnim("left",centerX +((i-5) *unitWidth) ,column));
         }
         waitForSecs(0.3f);
-        lowLightCurrentBlocks();
+
+        lockScreen();
+        OC_Cwys_Additions.highlightBlock(block,false);
+        unlockScreen();
+
         waitForSecs(0.3f);
-        moveScenePointer(OB_Maths.locationForRect(0.6f,1.2f,currentBlocks.get(0).frame()),-30,0.5f,"DEMO",1,0.3f);
+        moveScenePointer(OB_Maths.locationForRect(0.6f,1.2f,block.getWorldFrame()),-30,0.5f,"DEMO",1,0.3f);
         playSfxAudio("makehundred",false);
         OBAnimationGroup.runAnims(anims,0.5,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
         waitSFX();
-        moveScenePointer(OB_Maths.locationForRect(0.8f,1.2f,currentBlocks.get(0).frame()),-30,0.5f,"DEMO",2,0.3f);
+        moveScenePointer(OB_Maths.locationForRect(0.8f,1.2f,block.getWorldFrame()),-30,0.5f,"DEMO",2,0.3f);
         thePointer.hide();
         waitForSecs(1.5f);
+        currentBlockGroup = block;
         clearScene();
         waitForSecs(0.3f);
         nextScene();
-
     }
 
     public void demo_p1_1a() throws Exception
     {
-        demo_p1_1(currentBlocks.get(0),false,true,"DEMO");
-
+        demo_p1_1((OBGroup)currentBlockGroup.objectDict.get("block_1"),false,true,"DEMO");
     }
 
     public void demo_p1_1b() throws Exception
@@ -678,9 +579,9 @@ public class OC_Cwys1 extends OC_Cwys
         {
             lockScreen();
             if(isColumn)
-                highlightColumn(pointGroup,true);
+                OC_Cwys_Additions.highlightColumn(pointGroup,true);
             else
-                highlightBlock(pointGroup,true);
+                OC_Cwys_Additions.highlightBlock(pointGroup,true);
 
             unlockScreen();
         }
@@ -690,12 +591,13 @@ public class OC_Cwys1 extends OC_Cwys
         {
             lockScreen();
             if(isColumn)
-                highlightColumn(pointGroup,false);
+                OC_Cwys_Additions.highlightColumn(pointGroup,false);
             else
-                highlightBlock(pointGroup,false);
+                OC_Cwys_Additions.highlightBlock(pointGroup,false);
             unlockScreen();
             index++;
-            moveScenePointer(OB_Maths.locationForRect(1.1f,1.15f,currentBlocks.get(currentBlocks.size()-1).getWorldFrame()),-20,0.5f,audioCategory,index,0.3f);
+            moveScenePointer(OB_Maths.locationForRect(1.10f,1.15f,currentBlockGroup.objectDict.get(String.format("block_%d",currentBlockGroup.objectDict.size())).getWorldFrame()),
+                    -20,0.5f,audioCategory,index,0.3f);
         }
         movePointerToPoint(OB_Maths.locationForRect(0.2f,0.9f,objectDict.get("bottom_bar") .frame()),-40,0.5f,true);
         index++;
@@ -718,23 +620,23 @@ public class OC_Cwys1 extends OC_Cwys
             movePointerToPoint(OB_Maths.locationForRect(0.5f,1.15f,pointGroup.getWorldFrame()),-30,0.5f,true);
             lockScreen();
             if(isColumn)
-                highlightColumn(pointGroup,true);
+                OC_Cwys_Additions.highlightColumn(pointGroup,true);
             else
-                highlightBlock(pointGroup,true);
+                OC_Cwys_Additions.highlightBlock(pointGroup,true);
 
             unlockScreen();
             playAudioScene("DEMO",0,true);
             waitForSecs(0.3f);
             lockScreen();
             if(isColumn)
-                highlightColumn(pointGroup,false);
+                OC_Cwys_Additions.highlightColumn(pointGroup,false);
             else
-                highlightBlock(pointGroup,false);
+                OC_Cwys_Additions.highlightBlock(pointGroup,false);
 
             unlockScreen();
 
         }
-        moveScenePointer(OB_Maths.locationForRect(1.1f,1.15f,currentBlocks.get(currentBlocks.size()-1).getWorldFrame()),-20,0.5f,"DEMO",1,0.5f);
+        moveScenePointer(OB_Maths.locationForRect(1.1f,1.15f,currentBlockGroup.objectDict.get(String.format("block_%d",currentBlockGroup.objectDict.size())).getWorldFrame()),-20,0.5f,"DEMO",1,0.5f);
         thePointer.hide();
         startScene(false);
 
@@ -747,7 +649,7 @@ public class OC_Cwys1 extends OC_Cwys
 
     public void demo_p1_2c() throws Exception
     {
-        demo_p1_2(currentBlocks.get(0),false);
+        demo_p1_2((OBGroup)currentBlockGroup.objectDict.get("block_1"),false);
     }
 
     public void demo_p2_1b() throws Exception
@@ -785,8 +687,8 @@ public class OC_Cwys1 extends OC_Cwys
         boolean modeB = currentMode.equals("b");
         if(blocks.size() > 0)
         {
-            PointF loc1 = blocks.get(0).position();
-            PointF loc2 = blocks.get(blocks.size()-1).position();
+            PointF loc1 = blocks.get(0).getWorldPosition();
+            PointF loc2 = blocks.get(blocks.size()-1).getWorldPosition();
             PointF loc = OB_Maths.locationForRect(0.5f,1.15f,blocks.get(0).getWorldFrame());
             loc.x = loc1.x +(loc2.x - loc1.x) /2.0f;
             moveScenePointer(loc,-30,0.5f,"DEMO",1,0.3f);

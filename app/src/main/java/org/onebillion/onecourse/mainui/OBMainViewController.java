@@ -40,6 +40,7 @@ public class OBMainViewController extends OBViewController
     OBControl downButton;
     public long lastTouchActivity = 0;
     private Integer currentTouchID;
+    private Handler lowlightButtonHandler = new Handler();
 
     public OBMainViewController (Activity a)
     {
@@ -74,16 +75,19 @@ public class OBMainViewController extends OBViewController
         {
             c.setShadow(0,0.3f,amt,amt,Color.BLACK);
         }
-
-        Typeface tf = OBUtils.standardTypeFace();
-        topLabel = new OBLabel("ALL WORK AND NO PLAY MAKES JACK A DULL BOY. ALL WORK AND NO PLAY MAKES JACK A DULL BOY. ALL WORK AND NO PLAY MAKES JACK A DULL BOY", tf, applyGraphicScale(15));
-        topLabel.setColour(Color.BLACK);
-        topLabel.controller = this;
-        topLabel.sizeToBoundingBox();
-        topLabel.setPosition(bounds().centerX(), bounds().centerY());
-        topLabel.setJustification(OBTextLayer.JUST_CENTRE);
-        topLabel.setTop(0);
-        OBSystemsManager.sharedManager.setStatusLabel(topLabel);
+        //
+        if (OBConfigManager.sharedManager.isDebugEnabled())
+        {
+            Typeface tf = OBUtils.standardTypeFace();
+            topLabel = new OBLabel("ALL WORK AND NO PLAY MAKES JACK A DULL BOY. ALL WORK AND NO PLAY MAKES JACK A DULL BOY. ALL WORK AND NO PLAY MAKES JACK A DULL BOY", tf, applyGraphicScale(15));
+            topLabel.setColour(Color.BLACK);
+            topLabel.controller = this;
+            topLabel.sizeToBoundingBox();
+            topLabel.setPosition(bounds().centerX(), bounds().centerY());
+            topLabel.setJustification(OBTextLayer.JUST_CENTRE);
+            topLabel.setTop(0);
+            OBSystemsManager.sharedManager.setStatusLabel(topLabel);
+        }
     }
 
     public void setBottomRightButton(String itype)
@@ -130,12 +134,6 @@ public class OBMainViewController extends OBViewController
             bottomRightButton.setOpacity(0.0f);
         else
             bottomRightButton.setOpacity(1.0f);
-
-        if (OBConfigManager.sharedManager.isDebugEnabled())
-            topLabel.setOpacity(1.0f);
-        else
-            topLabel.setOpacity(0.0f);
-
     }
 
     public void showHideButtons (int flags)
@@ -197,21 +195,33 @@ public class OBMainViewController extends OBViewController
         }
     }
 
+    void scheduleLowLightButton(final OBControl button)
+    {
+        Runnable runnable = (Runnable) button.propertyValue("lowlightrunnable");
+        if (runnable == null)
+        {
+            runnable = new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    button.lowlight();
+                    glView().requestRender();
+                }
+            };
+            button.setProperty("lowlightrunnable",runnable);
+        }
+        lowlightButtonHandler.removeCallbacks(runnable);
+        lowlightButtonHandler.postDelayed(runnable,300);
+    }
+
     public void touchUpAtPoint (float x, float y, OBGLView v)
     {
         setTouchTime();
         final OBControl db = downButton;
         if (db != null)
-            OBUtils.runOnOtherThreadDelayed(0.3f, new OBUtils.RunLambda()
-            {
-                @Override
-                public void run () throws Exception
-                {
-                    db.lowlight();
-                    glView().requestRender();
-                }
-            });
-        else
+            scheduleLowLightButton(db);
+         else
         {
             topController().touchUpAtPoint(new PointF(x, y), v);
             return;
@@ -587,7 +597,11 @@ public class OBMainViewController extends OBViewController
         topRightButton.render(renderer, this, renderer.projectionMatrix);
         bottomRightButton.render(renderer, this, renderer.projectionMatrix);
         bottomLeftButton.render(renderer, this, renderer.projectionMatrix);
-        topLabel.render(renderer, this, renderer.projectionMatrix);
+        //
+        if (topLabel != null)
+        {
+            topLabel.render(renderer, this, renderer.projectionMatrix);
+        }
     }
 
     public void onResume()

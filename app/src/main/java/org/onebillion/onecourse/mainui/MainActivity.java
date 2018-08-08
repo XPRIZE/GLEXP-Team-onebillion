@@ -83,7 +83,7 @@ public class MainActivity extends Activity
     public static OBLocationManager locationManager;
     public static MainActivity mainActivity;
     public static OBMainViewController mainViewController;
-    public static Typeface standardTypeFace;
+    public static Typeface standardTypeFace, writingTypeFace;
 
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -149,7 +149,6 @@ public class MainActivity extends Activity
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
         systemsManager = new OBSystemsManager(this);
-
         //
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler()
         {
@@ -189,9 +188,6 @@ public class MainActivity extends Activity
         }
         //getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         //
-        // this flag disables screenshots
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
-        //
         mainActivity = this;
         //
         configManager = new OBConfigManager();
@@ -199,10 +195,18 @@ public class MainActivity extends Activity
         analyticsManager = new OBAnalyticsManager(this);
         locationManager = new OBLocationManager(this);
         //
+        // this flag disables screenshots
+        if (!OBConfigManager.sharedManager.isDebugEnabled())
+        {
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
+        }
+        //
         if (OBConfigManager.sharedManager.shouldPinApplication())
         {
             OBSystemsManager.disableStatusBar();
         }
+        //
+        OBSystemsManager.printBuildVersion();
         //
         doGLStuff();
         //
@@ -217,10 +221,10 @@ public class MainActivity extends Activity
         try
         {
             new OBAudioManager();
+            //
             setUpConfig();
             checkForFirstSetupAndRun();
-            //glSurfaceView.controller = mainViewController;
-
+            //
             ((ThreadPoolExecutor) AsyncTask.THREAD_POOL_EXECUTOR).setCorePoolSize(20);
             log("onCreate ended");
         }
@@ -387,8 +391,16 @@ public class MainActivity extends Activity
                 //
                 OBPreferenceManager.setPreference("firstSetupComplete", true);
                 //
-                runChecksAndLoadMainViewController();
-
+                OBSystemsManager.sharedManager.unzipAssetsIfFound(new OBUtils.RunLambda()
+                {
+                    @Override
+                    public void run () throws Exception
+                    {
+                        OBConfigManager.sharedManager.updateConfigPaths(OBConfigManager.sharedManager.getMainFolder(), true);
+                        //
+                        runChecksAndLoadMainViewController();
+                    }
+                });
             }
         });
     }
@@ -676,6 +688,7 @@ public class MainActivity extends Activity
 
     public static void log (String message)
     {
+        if (message == null) return;
         Log.v(TAG, message);
     }
 

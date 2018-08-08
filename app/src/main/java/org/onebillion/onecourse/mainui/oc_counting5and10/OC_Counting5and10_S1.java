@@ -90,7 +90,7 @@ public class OC_Counting5and10_S1 extends OC_Generic_Event
                 //
                 if (!statusChanged(statusTimeControl))
                 {
-                    playAudioQueuedScene("REMINDER", 300, false);
+                    playAudioQueuedScene("REMINDER", 0.3f, false);
                 }
             }
         });
@@ -215,7 +215,7 @@ public class OC_Counting5and10_S1 extends OC_Generic_Event
             gotItRightBigTick(true);
             waitForSecs(0.3f);
             //
-            playAudioQueuedScene("FINAL", 300, true);
+            playAudioQueuedScene("FINAL", 0.3f, true);
             nextScene();
         }
         else

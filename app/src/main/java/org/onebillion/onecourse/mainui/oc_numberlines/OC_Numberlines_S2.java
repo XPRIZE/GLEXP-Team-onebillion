@@ -264,7 +264,7 @@ public class OC_Numberlines_S2 extends OC_SectionController
                     ,0.2,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
             waitSFX();
             if(remind)
-                playAudioQueuedScene("INCORRECT",300,false);
+                playAudioQueuedScene("INCORRECT",0.3f,false);
             setStatus(STATUS_WAITING_FOR_DRAG);
         }
     }

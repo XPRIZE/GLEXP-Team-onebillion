@@ -6,9 +6,21 @@
 
     <LinearLayout android:id="@+id/topBar" android:layout_width="match_parent" android:layout_height="100dp" android:background="#ffffff" android:descendantFocusability="beforeDescendants" android:focusableInTouchMode="true" android:orientation="horizontal" android:weightSum="1">
 
+        <EditText
+            android:id="@+id/positionText"
+            android:layout_width="100dp"
+            android:layout_marginLeft="100dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="number" />
         <TextView android:id="@+id/buildNumber" android:layout_width="552dp" android:layout_height="wrap_content" android:layout_weight="0.57" android:text="TextView" android:textAlignment="center" android:textSize="30sp" android:textStyle="bold"/>
 
-        <EditText android:id="@+id/filterText" android:layout_width="552dp" android:layout_height="wrap_content" android:ems="10" android:inputType="textFilter"/>
+        <EditText
+            android:id="@+id/filterText"
+            android:layout_width="450dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textFilter" />
 
     </LinearLayout>
 

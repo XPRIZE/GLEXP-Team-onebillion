@@ -254,7 +254,7 @@ public class OC_Numberlines_S4 extends OC_SectionController
             gotItWrongWithSfx();
             waitSFX();
             cont.setColour ( numColour);
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
             setStatus(STATUS_AWAITING_CLICK);
         }
     }
@@ -301,17 +301,17 @@ public class OC_Numberlines_S4 extends OC_SectionController
                     String audioName = String.format("INCORRECT%d", Math.abs(currentJump-startNum)+1);
                     if(getAudioForScene(currentEvent(),audioName) != null)
                     {
-                        playAudioQueuedScene(audioName,300,false);
+                        playAudioQueuedScene(audioName,0.3f,false);
 
                     }
                     else
                     {
-                        playAudioQueuedScene("INCORRECT",300,false);
+                        playAudioQueuedScene("INCORRECT",0.3f,false);
                     }
                 }
                 else
                 {
-                    playAudioQueuedScene("INCORRECT",300,false);
+                    playAudioQueuedScene("INCORRECT",0.3f,false);
                 }
             }
         }
@@ -381,9 +381,9 @@ public class OC_Numberlines_S4 extends OC_SectionController
             setStatus(STATUS_WAITING_FOR_DRAG);
             String audioName = String.format("INCORRECT%d", maxNum - (int)eventTargets.size() + 1);
             if(getAudioForScene(currentEvent(),audioName) != null)
-                playAudioQueuedScene(audioName,300,false);
+                playAudioQueuedScene(audioName,0.3f,false);
             else
-                playAudioQueuedScene("INCORRECT",300,false);
+                playAudioQueuedScene("INCORRECT",0.3f,false);
 
         }
     }

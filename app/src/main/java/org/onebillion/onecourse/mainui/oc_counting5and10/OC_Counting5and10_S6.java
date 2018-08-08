@@ -9,6 +9,7 @@ import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.controls.OBLabel;
 import org.onebillion.onecourse.controls.OBPath;
+import org.onebillion.onecourse.mainui.MainActivity;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.mainui.generic.OC_Generic_Event;
 import org.onebillion.onecourse.utils.OBAnim;
@@ -21,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+
+import static org.onebillion.onecourse.utils.OBAudioManager.AM_SFX_CHANNEL;
 
 /**
  * Created by pedroloureiro on 23/06/16.
@@ -264,11 +267,14 @@ public class OC_Counting5and10_S6 extends OC_Generic_Event
         final OBPath line = (OBPath) objectDict.get(String.format("path_%d", pathNumber));
         if (line == null) return;
         //
+        lockScreen();
         line.setStrokeEnd(0.0f);
         line.setStrokeColor(Color.RED);
         line.show();
+        unlockScreen();
         //
         playSfxAudio("draw_line", false);
+        //
         float duration = line.length() / applyGraphicScale(400);
         //
         OBAnim pathAnim = new OBAnimBlock()
@@ -280,32 +286,15 @@ public class OC_Counting5and10_S6 extends OC_Generic_Event
             }
         };
         OBAnimationGroup.runAnims(Arrays.asList(pathAnim), duration, true, OBAnim.ANIM_EASE_IN_EASE_OUT, this);
-//        long starttime = SystemClock.uptimeMillis();
-//        float frac = 0;
-//        while (frac <= 1.0)
-//        {
-//            try
-//            {
-//                long currtime = SystemClock.uptimeMillis();
-//                frac = (float) (currtime - starttime) / (duration * 1000);
-//                final float t = (frac);
-//                new OBRunnableSyncUI()
-//                {
-//                    public void ex ()
-//                    {
-//                        line.setStrokeEnd(t);
-//                    }
-//                }.run();
-//                waitForSecs(0.02f);
-//            }
-//            catch (Exception e)
-//            {
-//                break;
-//            }
-//        }
         //
+        lockScreen();
         line.setStrokeColor(Color.BLACK);
-        OBAudioManager.audioManager.stopPlayingSFX();
+        unlockScreen();
+        //
+        if (OBAudioManager.audioManager.isPlayingChannel(AM_SFX_CHANNEL))
+        {
+            OBAudioManager.audioManager.stopPlayingSFX();
+        }
     }
 
 
@@ -317,7 +306,8 @@ public class OC_Counting5and10_S6 extends OC_Generic_Event
 
     public void checkDot (OBControl dot)
     {
-        saveStatusClearReplayAudioSetChecking();
+        setStatus(STATUS_CHECKING);
+        //saveStatusClearReplayAudioSetChecking();
         //
         OBControl correctDot = objectDict.get(String.format("dot_%d", currentAnswer));
         String dotID = (String) dot.attributes().get("id");
@@ -334,9 +324,9 @@ public class OC_Counting5and10_S6 extends OC_Generic_Event
                 lockScreen();
                 for (OBControl control : filterControls("dot.*"))
                 {
-                    ((OBPath) control).setFillColor(Color.BLACK);
+                    control.setFillColor(Color.BLACK);
                 }
-                ((OBPath) dot).setFillColor(Color.RED);
+                dot.setFillColor(Color.RED);
                 selectedNumber.setColour(Color.RED);
                 if (previousNumber != null)
                 {
@@ -362,13 +352,14 @@ public class OC_Counting5and10_S6 extends OC_Generic_Event
                 }
                 else
                 {
-                    revertStatusAndReplayAudio();
+                    setStatus(STATUS_AWAITING_CLICK);
+                    //revertStatusAndReplayAudio();
                 }
             }
             else
             {
                 lockScreen();
-                ((OBPath) dot).setFillColor(Color.RED);
+                dot.setFillColor(Color.RED);
                 selectedNumber.setColour(Color.RED);
                 unlockScreen();
                 //
@@ -376,11 +367,12 @@ public class OC_Counting5and10_S6 extends OC_Generic_Event
                 waitForSecs(0.3);
                 //
                 lockScreen();
-                ((OBPath) dot).setFillColor(Color.BLACK);
+                dot.setFillColor(Color.BLACK);
                 selectedNumber.setColour(Color.BLACK);
                 unlockScreen();
                 //
-                revertStatusAndReplayAudio();
+                setStatus(STATUS_AWAITING_CLICK);
+                //revertStatusAndReplayAudio();
             }
         }
         catch (Exception e)
@@ -399,7 +391,8 @@ public class OC_Counting5and10_S6 extends OC_Generic_Event
 
     public void checkPaintPot (OBControl paintpot)
     {
-        saveStatusClearReplayAudioSetChecking();
+        setStatus(STATUS_CHECKING);
+        //saveStatusClearReplayAudioSetChecking();
         //
         try
         {
@@ -414,7 +407,7 @@ public class OC_Counting5and10_S6 extends OC_Generic_Event
             //
             selectedColour = OBUtils.colorFromRGBString((String) paintpot.attributes().get("fill"));
             //
-            revertStatusAndReplayAudio();
+            setStatus(STATUS_AWAITING_CLICK);
         }
         catch (Exception e)
         {
@@ -444,7 +437,8 @@ public class OC_Counting5and10_S6 extends OC_Generic_Event
 
     public void checkColourableObject (OBControl selectedObject, PointF pt)
     {
-        saveStatusClearReplayAudioSetChecking();
+        setStatus(STATUS_CHECKING);
+        //saveStatusClearReplayAudioSetChecking();
         //
         try
         {
@@ -453,13 +447,21 @@ public class OC_Counting5and10_S6 extends OC_Generic_Event
                 gotItWrongWithSfx();
                 waitForSecs(0.3);
                 //
-                revertStatusAndReplayAudio();
+                setStatus(STATUS_AWAITING_CLICK);
+                //revertStatusAndReplayAudio();
             }
             else
             {
                 if (colourableObjects.contains(selectedObject))
                 {
-                    playSfxAudio("colour_object", false);
+                    OBUtils.runOnMainThread(new OBUtils.RunLambda()
+                    {
+                        @Override
+                        public void run() throws Exception
+                        {
+                            playSfxAudio("colour_object", false);
+                        }
+                    });
                     //
                     if (OBGroup.class.isInstance(selectedObject))
                     {
@@ -530,12 +532,14 @@ public class OC_Counting5and10_S6 extends OC_Generic_Event
                     }
                     else
                     {
-                        revertStatusAndReplayAudio();
+                        setStatus(STATUS_AWAITING_CLICK);
+                        //revertStatusAndReplayAudio();
                     }
                 }
                 else
                 {
-                    revertStatusAndReplayAudio();
+                    setStatus(STATUS_AWAITING_CLICK);
+                    //revertStatusAndReplayAudio();
                 }
             }
         }

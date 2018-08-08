@@ -238,11 +238,24 @@
 	<!--  -->
     <key>fat_controller_playzone_lock_timeout</key>
     <integer>10</integer>
+    <!--  -->
+    <key>fat_controller_study_loop_week</key>
+    <integer>37</integer>
 
 
 	<!-- ASSETS -->
 	<key>assets_external_path</key>
 	<string>/onebillion/assets</string>
+	<!-- -->
+	<key>assets_look_for_zipped_files</key>
+	<string>true</string>
+	<!-- -->
+	<key>assets_unzip_all_on_startup</key>
+	<string>true</string>
+	<!-- -->
+	<key>assets_priority_folders</key>
+	<string>oc-gen,oc-setup,oc-community,masterlists</string>
+
 
 
 	<!-- DEBUG -->
@@ -268,13 +281,13 @@
 	<string>true</string>
 	<!--  -->
 	<key>debug_activate_community_mode_override_password</key>
-	<string>pop</string>
+	<string>remus</string>
 	<!--  -->
 	<key>debug_revert_community_mode_password</key>
 	<string>opo</string>
 	<!--  -->
 	<key>debug_build_number</key>
-	<string>0008 - Community</string>
+	<string>RC2 - Community</string>
 
 
 	<!-- ANALYTICS MANAGER -->
@@ -309,6 +322,8 @@
 	<!--  -->
 	<key>app_masterlist_library</key>
 	<string>library_sw</string>
+
+
 
 </dict>
 </plist>

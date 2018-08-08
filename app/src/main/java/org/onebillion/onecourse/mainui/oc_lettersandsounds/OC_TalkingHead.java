@@ -44,14 +44,15 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     Boolean phase2, showTick;
     OBGroup button, avatar, window;
     Boolean isReplayAudioPlaying;
+    double lastActionTimestamp;
 
-    public OC_TalkingHead ()
+    public OC_TalkingHead()
     {
         super();
     }
 
 
-    public void miscSetup ()
+    public void miscSetup()
     {
         wordComponents = OBUtils.LoadWordComponentsXML(true);
         //
@@ -106,7 +107,7 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
 
 
     @Override
-    public void prepare ()
+    public void prepare()
     {
         super.prepare();
         loadFingers();
@@ -123,11 +124,13 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
         events.add(0, "a");
         //
         doVisual(currentEvent());
+        //
+        setStatus(STATUS_BUSY);
     }
 
 
     @Override
-    public void setSceneXX (String scene)
+    public void setSceneXX(String scene)
     {
         int presenterColour = OBConfigManager.sharedManager.getSkinColour(0);
         avatar.substituteFillForAllMembers("colour.*", presenterColour);
@@ -169,7 +172,7 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     }
 
     @Override
-    public void doAudio (String scene) throws Exception
+    public void doAudio(String scene) throws Exception
     {
         List audio, replayAudio;
         if (phase2)
@@ -187,22 +190,15 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
             replayAudio = (List<Object>) ((Map<String, Object>) audioScenes.get(currentEvent())).get("REPEAT");
         }
         setReplayAudio(replayAudio);
-        setStatus(STATUS_AWAITING_CLICK);
         playAudioQueued(audio, false);
         //
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-        {
-            @Override
-            public void run () throws Exception
-            {
-                doReminder(true, statusTime);
-            }
-        });
+        lastActionTimestamp = OC_Generic.currentTime();
+        doReminder(true);
     }
 
 
     @Override
-    public void doMainXX () throws Exception
+    public void doMainXX() throws Exception
     {
         action_wordsIntro();
         playSceneAudio("DEMO", true);
@@ -211,7 +207,7 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     }
 
 
-    public void demoa () throws Exception
+    public void demoa() throws Exception
     {
         setStatus(STATUS_DOING_DEMO);
         //
@@ -221,7 +217,7 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     }
 
 
-    public void demob () throws Exception
+    public void demob() throws Exception
     {
         setStatus(STATUS_DOING_DEMO);
         //
@@ -298,7 +294,7 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
         nextScene();
     }
 
-    public void demofinale () throws Exception
+    public void demofinale() throws Exception
     {
         setStatus(STATUS_DOING_DEMO);
         //
@@ -309,7 +305,7 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     }
 
 
-    public OBLabel action_getCorrectLabel ()
+    public OBLabel action_getCorrectLabel()
     {
         for (int i = 0; i < words.get(currNo).size(); i++)
         {
@@ -322,28 +318,71 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     }
 
 
-    public void doReminder (Boolean playReminder, long timestamp) throws Exception
+    public void doReminder(final Boolean playReminder) throws Exception
     {
-        if (statusTime != timestamp) return;
-        //
-        long stTime = System.nanoTime();
-        if (playReminder)
+        if (_aborting)
         {
-            waitForSecs(FIRST_REMINDER_DELAY);
+            return;
+        }
+        //
+        double elapsed = OC_Generic.currentTime() - lastActionTimestamp;
+        //
+        if (status() == STATUS_BUSY || status() == STATUS_CHECKING || status() == STATUS_DOING_DEMO)
+        {
+            OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    doReminder(playReminder);
+                }
+            });
+        }
+        else if (playReminder && elapsed > FIRST_REMINDER_DELAY)
+        {
+            playReminder(true);
+            lastActionTimestamp = OC_Generic.currentTime();
+            //
+            OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    doReminder(false);
+                }
+            });
+        }
+        else if (!playReminder && elapsed > SECOND_REMINDER_DELAY)
+        {
+            playReminder(false);
+            lastActionTimestamp = OC_Generic.currentTime();
+            //
+            OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    doReminder(playReminder);
+                }
+            });
         }
         else
         {
-            waitForSecs(SECOND_REMINDER_DELAY);
+            OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
+            {
+                @Override
+                public void run() throws Exception
+                {
+                    doReminder(playReminder);
+                }
+            });
         }
-        doReminderWithStatusTime(stTime, playReminder);
     }
 
 
-    public void doReminderWithStatusTime (long stTime, Boolean playReminder) throws Exception
+    void playReminder(boolean playAudio) throws Exception
     {
-        if (statusChanged(stTime)) return;
-        //
-        if (playReminder)
+        if (playAudio)
         {
             List<Object> reminder;
             if (phase2)
@@ -351,41 +390,36 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
             else
                 reminder = (List<Object>) ((Map<String, Object>) audioScenes.get(currentEvent())).get("REMINDER");
             //
-            if (reminder != null) playAudioQueued(reminder, false);
-        }
-        //
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-        {
-            @Override
-            public void run () throws Exception
+            if (reminder != null)
             {
-                for (int i = 0; i < 2; i++)
+                final List<Object> reminderFinal = reminder;
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
-                    lockScreen();
-                    buttonShowState("selected");
-                    unlockScreen();
-                    waitForSecs(0.3);
-                    //
-                    lockScreen();
-                    buttonShowState("active");
-                    unlockScreen();
-                    waitForSecs(0.3);
-                }
+                    @Override
+                    public void run() throws Exception
+                    {
+                        playAudioQueued(reminderFinal, true);
+                        lastActionTimestamp = OC_Generic.currentTime();
+                    }
+                });
             }
-        });
-        //
-        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
+        }
+        for (int i = 0; i < 2; i++)
         {
-            @Override
-            public void run () throws Exception
-            {
-                doReminder(false , statusTime);
-            }
-        });
+            lockScreen();
+            buttonShowState("selected");
+            unlockScreen();
+            waitForSecs(0.3);
+            //
+            lockScreen();
+            buttonShowState("active");
+            unlockScreen();
+            waitForSecs(0.3);
+        }
     }
 
 
-    public void buttonShowState (String state)
+    public void buttonShowState(String state)
     {
         button.objectDict.get("selected").hide();
         button.objectDict.get("inactive").hide();
@@ -395,13 +429,16 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
         else button.enable();
     }
 
-    public void action_wordsIntro () throws Exception
+    public void action_wordsIntro() throws Exception
     {
         playSfxAudio("wordon", false);
         lockScreen();
-        for (OBLabel label : labels)
+        if (labels != null)
         {
-            label.show();
+            for (OBLabel label : labels)
+            {
+                label.show();
+            }
         }
         buttonShowState("active");
         unlockScreen();
@@ -409,7 +446,7 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     }
 
 
-    public void action_wordsExit () throws Exception
+    public void action_wordsExit() throws Exception
     {
         playSfxAudio("wordsoff", false);
         lockScreen();
@@ -422,7 +459,7 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     }
 
 
-    public void avatarSay_sounds () throws Exception
+    public void avatarSay_sounds() throws Exception
     {
         OBWord correctAnswer = (OBWord) answers.get(currNo);
         OBLabel label = action_getCorrectLabel();
@@ -444,10 +481,14 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
                 //
                 avatarShowMouthFrameForText(sound.text, false);
                 waitForSecs(0.15);
+                if (_aborting) return;
+                //
                 avatarShowMouthFrameForText(sound.text, true);
                 waitAudio();
+                if (_aborting) return;
                 //
                 waitForSecs(0.15);
+                if (_aborting) return;
                 //
                 avatarShowMouthFrame("mouth_2");
                 //
@@ -460,7 +501,6 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
             //
             Double startTime = OC_Generic.currentTime();
             Integer startRange = 0;
-            int i = 0;
             //
             for (OBPhoneme sound : breakdown)
             {
@@ -470,37 +510,46 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
                 Double currTime = OC_Generic.currentTime() - startTime;
                 Double waitTime = timeStart - currTime;
                 if (waitTime > 0.0) waitForSecs(waitTime);
+                if (_aborting) return;
                 //
                 Integer endRange = startRange + sound.text.length();
                 action_highlightWord(correctAnswer, label, startRange, endRange, true);
                 //
                 avatarShowMouthFrameForText(sound.text, false);
                 waitForSecs(0.15);
+                if (_aborting) return;
+                //
                 avatarShowMouthFrameForText(sound.text, true);
                 waitForSecs(0.15);
+                if (_aborting) return;
                 //
                 currTime = OC_Generic.currentTime();
                 waitTime = timeEnd - currTime;
                 if (waitTime > 0) waitForSecs(waitTime);
+                if (_aborting) return;
                 //
                 avatarShowMouthFrame("mouth_2");
                 //
                 startRange += sound.text.length();
-                i++;
             }
             waitAudio();
+            if (_aborting) return;
         }
         //
         action_highlightWord(correctAnswer, label, 0, correctAnswer.text.length(), false);
         avatarShowMouthFrame("mouth_0");
         //
         waitForSecs(0.3);
+        if (_aborting) return;
+        //
         avatarSay_word(true);
+        //
         waitForSecs(0.3);
+        if (_aborting) return;
     }
 
 
-    public void avatarSay_syllables ()
+    public void avatarSay_syllables()
     {
         try
         {
@@ -514,7 +563,6 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
             //
             Double startTime = OC_Generic.currentTime();
             Integer startRange = 0;
-            int i = 0;
             //
             for (OBSyllable syllable : breakdown)
             {
@@ -530,6 +578,7 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
                 //
                 avatarShowMouthFrameForText(syllable.text, false);
                 waitForSecs(0.15);
+                //
                 avatarShowMouthFrameForText(syllable.text, true);
                 waitForSecs(0.15);
                 //
@@ -540,13 +589,13 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
                 avatarShowMouthFrame("mouth_2");
                 //
                 startRange += syllable.text.length();
-                i++;
             }
             waitAudio();
+            //
             action_highlightWord(correctAnswer, label, 0, correctAnswer.text.length(), false);
             avatarShowMouthFrame("mouth_0");
-            //
             waitForSecs(0.3);
+            //
             avatarSay_word(true);
             waitForSecs(0.3);
         }
@@ -557,7 +606,7 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     }
 
 
-    public void avatarSay_word (Boolean highlight) throws Exception
+    public void avatarSay_word(Boolean highlight) throws Exception
     {
         OBPhoneme answer = answers.get(currNo);
         OBLabel label = action_getCorrectLabel();
@@ -582,7 +631,9 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
                 avatarShowMouthFrameForText(syllable.text, false);
                 waitForSecs(0.1);
                 if (i < correctAnswer.syllables().size())
+                {
                     avatarShowMouthFrameForText(syllable.text, true);
+                }
                 i++;
             }
             waitAudio();
@@ -604,7 +655,7 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     }
 
 
-    public void avatarShowMouthFrame (String frame)
+    public void avatarShowMouthFrame(String frame)
     {
         lockScreen();
         avatar.hideMembers("mouth_.*");
@@ -623,7 +674,7 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     }
 
 
-    public void avatarShowMouthFrameForText (String text, Boolean endFrame)
+    public void avatarShowMouthFrameForText(String text, Boolean endFrame)
     {
         List<String> vowels = Arrays.asList("a", "e", "i", "o", "u");
         for (String vowel : vowels)
@@ -640,7 +691,7 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     }
 
 
-    public void action_highlightWord (OBWord word, OBLabel label, Integer startRange, Integer endRange, Boolean high)
+    public void action_highlightWord(OBWord word, OBLabel label, Integer startRange, Integer endRange, Boolean high)
     {
         lockScreen();
         if (high)
@@ -658,7 +709,7 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     }
 
 
-    public Boolean selectWord (OBLabel targetLabel) throws Exception
+    public Boolean selectWord(OBLabel targetLabel) throws Exception
     {
         OBLabel correctLabel = action_getCorrectLabel();
         Boolean answerIsCorrect = targetLabel != null && targetLabel.equals(correctLabel);
@@ -691,12 +742,12 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     }
 
 
-    public void checkButton ()
+    public void checkButton()
     {
-        setStatus(STATUS_CHECKING);
-        //
         try
         {
+            setStatus(STATUS_CHECKING);
+            //
             playSfxAudio("touchbutton", false);
             lockScreen();
             buttonShowState("selected");
@@ -711,15 +762,14 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
                 phase2 = true;
                 doAudio(currentEvent());
             }
-            else
-            {
-                setStatus(STATUS_AWAITING_CLICK);
-            }
+            //
             waitForSecs(0.3);
             //
             lockScreen();
             buttonShowState("active");
             unlockScreen();
+            //
+            setStatus(STATUS_AWAITING_CLICK);
         }
         catch (Exception e)
         {
@@ -728,13 +778,13 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     }
 
 
-    public OBControl findButton (PointF pt)
+    public OBControl findButton(PointF pt)
     {
         return finger(-1, 2, Arrays.asList((OBControl) button), pt, true);
     }
 
 
-    public void checkLabel (OBLabel label)
+    public void checkLabel(OBLabel label)
     {
         setStatus(STATUS_CHECKING);
         //
@@ -785,24 +835,26 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     }
 
 
-    OBLabel findLabel (PointF pt)
+    OBLabel findLabel(PointF pt)
     {
         return (OBLabel) finger(-1, 2, (List<OBControl>) (Object) labels, pt, true);
     }
 
 
     @Override
-    public void touchDownAtPoint (PointF pt, View v)
+    public void touchDownAtPoint(PointF pt, View v)
     {
         if (status() == STATUS_AWAITING_CLICK)
         {
+            lastActionTimestamp = OC_Generic.currentTime();
+            //
             OBControl obj = findButton(pt);
             if (obj != null)
             {
                 OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
                     @Override
-                    public void run () throws Exception
+                    public void run() throws Exception
                     {
                         checkButton();
                     }
@@ -816,7 +868,7 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
                     OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                     {
                         @Override
-                        public void run () throws Exception
+                        public void run() throws Exception
                         {
                             checkLabel(label);
                         }
@@ -827,45 +879,26 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
     }
 
     @Override
-    public void replayAudio ()
+    public void replayAudio()
     {
-        final OC_TalkingHead sc = this;
         if (!isReplayAudioPlaying && status() == STATUS_AWAITING_CLICK)
         {
             OBUtils.runOnOtherThread(new OBUtils.RunLambda()
             {
                 @Override
-                public void run () throws Exception
+                public void run() throws Exception
                 {
                     if (_replayAudio != null)
                     {
-                        isReplayAudioPlaying = true;
+                        setStatus(STATUS_BUSY);
                         //
-                        setStatus(status());
-                        new AsyncTask<Void, Void, Void>()
-                        {
-                            protected Void doInBackground (Void... params)
-                            {
-                                _replayAudio();
-                                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-                                {
-                                    @Override
-                                    public void run () throws Exception
-                                    {
-                                        try
-                                        {
-                                            sc.doReminder(true, statusTime);
-                                        }
-                                        catch (Exception e)
-                                        {
-
-                                        }
-                                    }
-                                });
-                                isReplayAudioPlaying = false;
-                                return null;
-                            }
-                        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
+                        isReplayAudioPlaying = true;
+                        _replayAudio();
+                        playReminder(false);
+                        isReplayAudioPlaying = false;
+                        //
+                        lastActionTimestamp = OC_Generic.currentTime();
+                        setStatus(STATUS_AWAITING_CLICK);
                     }
                     else
                     {
@@ -879,30 +912,6 @@ public class OC_TalkingHead extends OC_Generic_WordsEvent
             MainActivity.log("OC_TalkingHead: Replay Audio is still playing or status is not waiting for click");
         }
     }
-
-//    @Override
-//    protected void _replayAudio ()
-//    {
-//        try
-//        {
-//            playAudioQueued(_replayAudio, true);
-//            //
-//            doReminder(true);
-//        }
-//        catch (Exception exception)
-//        {
-//        }
-//        OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-//        {
-//            @Override
-//            public void run () throws Exception
-//            {
-//                playAudioQueued(_replayAudio, true);
-//                //
-//                doReminder(true);
-//            }
-//        });
-//    }
 
 
 }

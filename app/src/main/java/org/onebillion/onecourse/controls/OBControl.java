@@ -2142,6 +2142,29 @@ public class OBControl
         return shadowColour;
     }
 
+    public void setShadowAttributes(Map attrs)
+    {
+        float rad = (Float)attrs.get("shadowRadius");
+        float op = (Float)attrs.get("shadowOpacity");
+        float x = (Float)attrs.get("shadowXOffset");
+        float y = (Float)attrs.get("shadowYOffset");
+        int col = OBUtils.coalesce((Integer)attrs.get("shadowColor"),0);
+        setShadow(rad,op,x,y,col);
+    }
+
+    public Map shadowAttributes()
+    {
+        Map dict = new HashMap();
+        dict.put("shadowRadius",getShadowRadius());
+        dict.put("shadowOpacity",getShadowOpacity());
+        dict.put("shadowXOffset",getShadowOffsetX());
+        dict.put("shadowYOffset",getShadowOffsetY());
+        if(getShadowColour() != 0)
+            dict.put("shadowColor",getShadowColour());
+        return dict;
+    }
+
+
     public void computeDisplayBounds()
     {
         displayBounds = bounds();

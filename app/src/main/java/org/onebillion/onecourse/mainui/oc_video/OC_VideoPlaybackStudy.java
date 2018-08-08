@@ -23,6 +23,7 @@ public class OC_VideoPlaybackStudy extends OC_SectionController
     OBControl video;
     OBVideoPlayer videoPlayer;
     boolean presenterIsTalking;
+    float delayAfterVideoStops;
 
     public void prepare()
     {
@@ -47,6 +48,16 @@ public class OC_VideoPlaybackStudy extends OC_SectionController
         //masterObjects = objectDict.copy();
         doVisual(currentEvent());
         setUpPlayer();
+        //
+        String delay = parameters.get("delay");
+        if (delay == null)
+        {
+            delayAfterVideoStops = 1.0f;
+        }
+        else
+        {
+            delayAfterVideoStops = Float.parseFloat(delay);
+        }
     }
 
     public void start()
@@ -73,6 +84,7 @@ public class OC_VideoPlaybackStudy extends OC_SectionController
         attachControl(videoPlayer);
         videoPlayer.prepareForPlaying(OBUtils.getAssetFileDescriptorForPath(videoFilePath),0,null);
         videoPlayer.playAfterPrepare = false;
+        videoPlayer.stopOnCompletion = true;
     }
 
     public void action_startScene() throws Exception
@@ -141,6 +153,8 @@ public class OC_VideoPlaybackStudy extends OC_SectionController
                     //
                     presenterIsTalking = false;
                     //
+                    waitForSecs(delayAfterVideoStops);
+                    //
                     nextScene();
                 }
             });
@@ -152,6 +166,8 @@ public class OC_VideoPlaybackStudy extends OC_SectionController
                 @Override
                 public void run() throws Exception
                 {
+                    waitForSecs(delayAfterVideoStops);
+                    //
                     nextScene();
                 }
             });

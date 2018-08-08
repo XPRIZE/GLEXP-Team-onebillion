@@ -32,7 +32,7 @@ public class OC_CountMore_S2 extends OC_SectionController
             OBGroup control = (OBGroup) con;
             OBPath path = (OBPath) control.objectDict.get("background");
             path.setFillColor(OBUtils.colorFromRGBString((String) control.attributes().get("colour")));
-            OBMisc.insertLabelIntoGroup(control, Integer.valueOf((String) control.attributes().get("num")), 45.0f * control.height() / 105.0f,
+            OBMisc.insertLabelIntoGroup(control, Integer.valueOf((String) control.attributes().get("num")), 42.0f * control.height() / 105.0f,
                     Color.BLACK, control.objectDict.get("door").getWorldPosition(), this);
             control.objectDict.get("number").hide();
             control.highlight();
@@ -164,7 +164,7 @@ public class OC_CountMore_S2 extends OC_SectionController
     }
     public void demo2b() throws Exception
     {
-        playAudioQueuedScene("DEMO",300,true);
+        playAudioQueuedScene("DEMO",0.3f,true);
         waitForSecs(0.3f);
         startScene();
 

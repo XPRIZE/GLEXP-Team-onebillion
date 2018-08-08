@@ -22,6 +22,8 @@ import org.onebillion.onecourse.utils.OBUtils;
 import org.onebillion.onecourse.utils.UGradient;
 import org.onebillion.onecourse.utils.URadialGradient;
 
+import static org.onebillion.onecourse.utils.OB_Maths.relativePointInRectForLocation;
+
 public class OBGroup extends OBControl
 {
     public List<OBControl> members, sortedAttachedControls;
@@ -1125,6 +1127,17 @@ public class OBGroup extends OBControl
             removeMemberAtIndex(i);
         }
         return arrc;
+    }
+
+    public void setAnchorPointFromAnchor()
+    {
+        OBControl anchor = objectDict.get("anchor");
+        if(anchor != null)
+        {
+            PointF pt = anchor.position;
+            PointF rpt = relativePointInRectForLocation(pt, bounds());
+            setAnchorPoint(rpt);
+        }
     }
 
 }

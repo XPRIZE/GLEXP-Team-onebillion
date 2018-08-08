@@ -278,7 +278,7 @@ public class OC_MoreNumbers_S6 extends OC_SectionController
                         @Override
                         public void run() throws Exception
                         {
-                            playAudioQueuedScene("INCORRECT",300,false);
+                            playAudioQueuedScene("INCORRECT",0.3f,false);
                         }
                     });
                 }
@@ -426,7 +426,7 @@ public class OC_MoreNumbers_S6 extends OC_SectionController
         {
             gotItRightBigTick(true);
             OC_MoreNumbers_Additions.buttonSet(2, this);
-            playAudioQueuedScene("FINAL",300,true);
+            playAudioQueuedScene("FINAL",0.3f,true);
             if(OBUtils.getBooleanValue(eventAttributes.get("reset")))
             {
                 waitForSecs(0.5f);
@@ -464,7 +464,7 @@ public class OC_MoreNumbers_S6 extends OC_SectionController
             waitSFX();
             OC_MoreNumbers_Additions.buttonSet(0,this);
             setStatus(STATUS_WAITING_FOR_DRAG);
-            playAudioQueuedScene("INCORRECT2",300,false);
+            playAudioQueuedScene("INCORRECT2",0.3f,false);
 
         }
     }

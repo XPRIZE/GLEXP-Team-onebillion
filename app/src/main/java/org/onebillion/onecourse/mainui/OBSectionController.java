@@ -65,7 +65,8 @@ public class OBSectionController extends OBViewController
             STATUS_EDITING = 17,
             STATUS_IDLE = 18,
             STATUS_BUSY = 19,
-            STATUS_WAITING_FOR_ANSWER = 20;
+            STATUS_WAITING_FOR_ANSWER = 20,
+            STATUS_RECORDING = 21;
     public static final int POINTER_ZPOS = 1000;
     public static final int POINTER_BOTLEFT = 0,
             POINTER_BOTRIGHT = 1,
@@ -629,7 +630,7 @@ public class OBSectionController extends OBViewController
             }
             if (attrs.get("fill") != null)
             {
-                int col = OBUtils.colorFromRGBString((String) attrs.get("fill"));
+                int col = OBUtils.colorFromRGBString((String)attrs.get("fill"));
                 ((OBGroup) im).substituteFillForAllMembers("col.*", col);
             }
         }
@@ -1570,7 +1571,9 @@ public class OBSectionController extends OBViewController
     void _playAudio (String fileName)
     {
         if (Looper.myLooper() == Looper.getMainLooper())
+        {
             OBAudioManager.audioManager.startPlaying(fileName);
+        }
         else
         {
             if (fileName != null)
@@ -1691,7 +1694,7 @@ public class OBSectionController extends OBViewController
     {
         updateAudioQueueToken();
         final long aqtCopy = audioQueueToken;
-        OBAudioBufferPlayer player = new OBAudioBufferPlayer(false);
+        OBAudioBufferPlayer player = new OBAudioBufferPlayer();
         AssetFileDescriptor afd = OBAudioManager.audioManager.getAudioPathFD(fileName);
         player.startPlaying(afd,fromTime,toTime);
         return player;
@@ -1707,7 +1710,7 @@ public class OBSectionController extends OBViewController
             final OBAudioManager am = OBAudioManager.audioManager;
             final Timer audioTimer = new Timer();
             final OBSectionController controller = this;
-            final OBAudioPlayer player =  am.playerForChannel(OBAudioManager.AM_MAIN_CHANNEL);
+            final OBGeneralAudioPlayer player =  am.playerForChannel(OBAudioManager.AM_MAIN_CHANNEL);
             audioTimer.scheduleAtFixedRate(new TimerTask()
             {
                 @Override
@@ -1928,6 +1931,14 @@ public class OBSectionController extends OBViewController
         return eventd.get(audioCategory);
     }
 
+    public List<Object> audioForEvent (String event,String audioCategory)
+    {
+        Map<String, List> eventd = (Map<String, List>) audioScenes.get(event);
+        if (eventd == null)
+            return null;
+        return eventd.get(audioCategory);
+    }
+
     public void playAudioQueuedo (List<Object> qu, final boolean wait) throws Exception
     {
         if(qu == null)
@@ -2131,7 +2142,7 @@ public class OBSectionController extends OBViewController
     public void exitEvent ()
     {
         setStatus(STATUS_EXITING);
-        playAudio(null);
+        //playAudio(null);
         if (!_aborting)
         {
             cleanUp();
@@ -2147,7 +2158,6 @@ public class OBSectionController extends OBViewController
                     {
                         MainActivity.mainViewController.popViewController();
                     }
-
                 }
             }.run();
         }
@@ -2155,8 +2165,8 @@ public class OBSectionController extends OBViewController
 
     public void cleanUp ()
     {
-        stopAllAudio();
         _aborting = true;
+        stopAllAudio();
         for(OBControl con : attachedControls)
             con.cleanUp();
     }
@@ -2573,5 +2583,9 @@ public class OBSectionController extends OBViewController
 
     }
 
+    public boolean aborting()
+    {
+        return _aborting;
+    }
 }
 

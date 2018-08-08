@@ -187,7 +187,7 @@ public class OC_PrepR1 extends OC_Egrid
     {
         animateGridShow();
         waitForSecs(0.3f);
-        playAudioQueuedScene("DEMO",300,true);
+        playAudioQueuedScene("DEMO",0.3f,true);
         waitForSecs(0.3f);
         startScene();
     }

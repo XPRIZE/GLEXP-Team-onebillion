@@ -17,11 +17,22 @@ import java.util.Map;
 
 /**
  * Created by michal on 02/08/2017.
+ * MlUnitInstance - Masterlist Unit Instance
+ * This is individual instance of MlUnit. Every time a Unit is opened, an instance is created and
+ * saved in the database. It contains all the progress details, such as score, start/end time,
+ * reason of completion (STATUS). Some units contain extra data saved as json in DB. This is used
+ * so analysis like wrong answers chosen, timings between actions
+ *
  */
 
 public class OCM_MlUnitInstance extends DBObject
 {
-    public final static int INSTANCE_TYPE_STUDY = 1,INSTANCE_TYPE_REVIEW = 2, INSTANCE_TYPE_PLAYZONE=3, INSTANCE_TYPE_PZ_LOCKED=4, INSTANCE_TYPE_LIBRARY=5;
+    public final static int INSTANCE_TYPE_STUDY = 1,
+            INSTANCE_TYPE_COMMUNITY = 2,
+            INSTANCE_TYPE_PLAYZONE=3,
+            INSTANCE_TYPE_PZ_LOCKED=4,
+            INSTANCE_TYPE_LIBRARY=5,
+            INSTANCE_TYPE_EXTRA=6;
     public final static int STATUS_STARTED = 1,
             STATUS_COMPLETED = 2,
             STATUS_USER_CLOSED =3,
@@ -30,7 +41,7 @@ public class OCM_MlUnitInstance extends DBObject
             STATUS_BATTERY_LOW = 12,
             STATUS_FAILURE = 20;
 
-    public long unitid, assetid;
+    public long assetid;
     public int userid, sessionid, seqNo, elapsedTime, typeid, starColour, statusid;
     public int scoreCorrect, scoreWrong;
     public long startTime, endTime;
@@ -40,7 +51,7 @@ public class OCM_MlUnitInstance extends DBObject
     public OCM_MlUnit mlUnit;
 
     private static final String[] intFields = {"userid","sessionid","seqNo","elapsedTime","statusid","typeid","starColour","scoreCorrect", "scoreWrong"};
-    private static final String[] longFields = {"startTime","endTime","unitid","assetid"};
+    private static final String[] longFields = {"startTime","endTime","assetid"};
 
     public OCM_MlUnitInstance()
     {
@@ -65,7 +76,6 @@ public class OCM_MlUnitInstance extends DBObject
     {
         OCM_MlUnitInstance mlui = new OCM_MlUnitInstance();
         mlui.userid = userid;
-        mlui.unitid = unit.unitid;
         mlui.sessionid = sessionid;
         mlui.mlUnit = unit;
         mlui.typeid = typeid;
@@ -74,11 +84,11 @@ public class OCM_MlUnitInstance extends DBObject
         try
         {
             db = new DBSQL(true);
-            Cursor cursor = db.prepareRawQuery(String.format("SELECT MAX(seqNo)as seqNo FROM %s AS UI " +
+            Cursor cursor = db.prepareRawQuery(String.format("SELECT MAX(seqNo) as seqNo FROM %s AS UI " +
                     "JOIN %s AS S ON S.userid = UI.userid AND S.sessionid = UI.sessionid " +
-                            "WHERE UI.userid = ? AND UI.unitid = ? AND UI.typeid = ? AND S.day > ? AND S.day <= ?",
+                            "WHERE UI.userid = ? AND UI.unitid = ? AND UI.extraunitid = ? AND UI.typeid = ? AND S.day > ? AND S.day <= ?",
                     DBSQL.TABLE_UNIT_INSTANCES, DBSQL.TABLE_SESSIONS),
-                    Arrays.asList(String.valueOf(userid), String.valueOf(unit.unitid),String.valueOf(typeid)
+                    Arrays.asList(String.valueOf(userid), String.valueOf(unit.unitid),String.valueOf(unit.extraunitid),String.valueOf(typeid)
                             ,String.valueOf((week-1)*7),String.valueOf(week*7)));
 
             int columnIndex = cursor.getColumnIndex("seqNo");
@@ -112,9 +122,11 @@ public class OCM_MlUnitInstance extends DBObject
     {
         Map<String,String> whereMap = new ArrayMap<>();
         whereMap.put("userid",String.valueOf(userid));
-        whereMap.put("unitid",String.valueOf(unitid));
+        whereMap.put("unitid",String.valueOf(mlUnit.unitid));
         whereMap.put("seqNo",String.valueOf(seqNo));
+        whereMap.put("sessionid",String.valueOf(sessionid));
         whereMap.put("typeid",String.valueOf(typeid));
+        whereMap.put("extraunitid",String.valueOf(mlUnit.extraunitid));
 
         ContentValues contentValues = new ContentValues();
         contentValues.put("endTime",endTime);
@@ -143,6 +155,8 @@ public class OCM_MlUnitInstance extends DBObject
     public Boolean saveToDB(DBSQL db)
     {
         ContentValues contentValues = getContentValues(null,intFields,longFields,null);
+        contentValues.put("unitid", mlUnit.unitid);
+        contentValues.put("extraunitid", mlUnit.extraunitid);
         boolean result = db.doInsertOnTable(DBSQL.TABLE_UNIT_INSTANCES,contentValues) > 0;
         return result;
     }

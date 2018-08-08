@@ -267,7 +267,7 @@ public class OC_MissingNumbers extends OC_Generic_Event
         unlockScreen();
         if (needsNewScene)
         {
-            introScene(true);
+            introScene(false);
         }
         try
         {
@@ -633,7 +633,10 @@ public class OC_MissingNumbers extends OC_Generic_Event
             {
                 public void run () throws Exception
                 {
-                    if (playDashAudio) playSfxAudio("dash_hilite", false);
+                    if (playDashAudio)
+                    {
+                        playSfxAudio("dash_hilite", false);
+                    }
                     lockScreen();
                     refreshDashes();
                     unlockScreen();
@@ -645,13 +648,7 @@ public class OC_MissingNumbers extends OC_Generic_Event
         {
             public void run () throws Exception
             {
-                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-                {
-                    public void run () throws Exception
-                    {
-                        doReminder(currentQuestionCounter);
-                    }
-                });
+                doReminder(currentQuestionCounter);
             }
         });
     }
@@ -701,11 +698,14 @@ public class OC_MissingNumbers extends OC_Generic_Event
             else if (mode.equals(kModeType))
             {
                 int shownDashes = Math.max(1, Math.min(currentAnswer.length() + 1, numberSequence.get(hiddenNumberIndex).toString().length()));
-                OBPath dash = dashes.get(shownDashes - 1);
+                OBPath currentDash = dashes.get(shownDashes - 1);
                 for (int i = 0; i < 3; i++)
                 {
                     lockScreen();
-                    dash.setStrokeColor(colourDashNormal);
+                    for (OBPath dash : dashes)
+                    {
+                        dash.setStrokeColor(colourDashNormal);
+                    }
                     unlockScreen();
                     waitForSecs(0.3f);
                     //
@@ -714,7 +714,17 @@ public class OC_MissingNumbers extends OC_Generic_Event
                         break;
                     }
                     lockScreen();
-                    dash.setStrokeColor(colourDashHilite);
+                    for (OBPath dash : dashes)
+                    {
+                        if (dash.equals(currentDash))
+                        {
+                            dash.setStrokeColor(colourDashHilite);
+                        }
+                        else
+                        {
+                            dash.setStrokeColor(colourDashNormal);
+                        }
+                    }
                     unlockScreen();
                     waitForSecs(0.3f);
                     //
@@ -729,17 +739,14 @@ public class OC_MissingNumbers extends OC_Generic_Event
             }
             lastActionTakenTimestamp = new Date().getTime();
         }
+        //
+        if (this.aborting()) return;
+        //
         OBUtils.runOnOtherThreadDelayed(1.0f, new OBUtils.RunLambda()
         {
             public void run () throws Exception
             {
-                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
-                {
-                    public void run () throws Exception
-                    {
-                        doReminder(currentQuestion);
-                    }
-                });
+                doReminder(currentQuestion);
             }
         });
     }
@@ -896,6 +903,10 @@ public class OC_MissingNumbers extends OC_Generic_Event
         {
             toggleNumberButton(button, button.equals(target));
         }
+        for (OBPath dash : dashes)
+        {
+            dash.setStrokeColor(colourDashNormal);
+        }
         unlockScreen();
         //
         OBLabel numberButtonLabel = (OBLabel) target.propertyValue("label");
@@ -914,7 +925,7 @@ public class OC_MissingNumbers extends OC_Generic_Event
                         waitSFX();
                         waitForSecs(0.3f);
                         //
-                        playAudioQueuedScene("INCORRECT", 300, false);
+                        playAudioQueuedScene("INCORRECT", 0.3f, false);
                     }
                 });
                 //
@@ -1357,7 +1368,7 @@ public class OC_MissingNumbers extends OC_Generic_Event
     {
         setStatus(STATUS_BUSY);
         loadPointer(POINTER_MIDDLE);
-        playAudioQueuedScene("DEMO", 300, false);
+        playAudioQueuedScene("DEMO", 0.3f, false);
         moveScenePointer(new PointF(0.9f * bounds().width(), 0.7f * bounds().height()), 0.6f, null, 0.0f);
         waitAudio();
         waitForSecs(0.3f);
@@ -1460,7 +1471,7 @@ public class OC_MissingNumbers extends OC_Generic_Event
             resetScene();
             unlockScreen();
             //
-            introScene(true);
+            introScene(false);
         }
         OBPath box = (OBPath) numberBoxes.get(hiddenNumberIndex);
         if (mode.equals(kModeDrag))
@@ -1562,7 +1573,7 @@ public class OC_MissingNumbers extends OC_Generic_Event
 
     public void demof () throws Exception
     {
-        playAudioQueuedScene("FINAL", 300, true);
+        playAudioQueuedScene("FINAL", 0.3f, true);
         waitForSecs(0.3f);
         //
         nextScene();

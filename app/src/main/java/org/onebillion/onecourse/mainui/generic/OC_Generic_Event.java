@@ -19,6 +19,8 @@ import org.onebillion.onecourse.utils.OBAnim;
 import org.onebillion.onecourse.utils.OBAnimationGroup;
 import org.onebillion.onecourse.utils.OBAudioManager;
 import org.onebillion.onecourse.utils.OBAudioPlayer;
+import org.onebillion.onecourse.utils.OBConditionLock;
+import org.onebillion.onecourse.utils.OBGeneralAudioPlayer;
 import org.onebillion.onecourse.utils.OBPhoneme;
 import org.onebillion.onecourse.utils.OBUserPressedBackException;
 import org.onebillion.onecourse.utils.OBUtils;
@@ -695,10 +697,11 @@ public class OC_Generic_Event extends OC_SectionController
 
 
     // Miscelaneous Functions
-    public void playSceneAudio (String scene, Boolean wait) throws Exception
+    public OBConditionLock playSceneAudio (String scene, Boolean wait) throws Exception
     {
-        playAudioQueuedScene(currentEvent(), scene, wait);
+        OBConditionLock lock = playAudioQueuedScene(currentEvent(), scene, wait);
         if (!wait) waitForSecs(0.01);
+        return lock;
     }
 
     public void playSceneAudioIndex (String scene, int index, Boolean wait) throws Exception
@@ -902,7 +905,7 @@ public class OC_Generic_Event extends OC_SectionController
                             control.setProperty("floorCollision", true);
                             newPosition = OC_Generic.copyPoint(midway);
                             //
-                            OBAudioPlayer player = OBAudioManager.audioManager.playerForChannel(String.format("bounce_%d", i));
+                            OBGeneralAudioPlayer player = OBAudioManager.audioManager.playerForChannel(String.format("bounce_%d", i));
                             player.play();
                         }
                     }

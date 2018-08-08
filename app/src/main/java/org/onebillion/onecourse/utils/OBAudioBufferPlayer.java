@@ -24,38 +24,34 @@ import java.util.concurrent.locks.ReentrantLock;
 import static android.media.AudioFormat.CHANNEL_OUT_MONO;
 import static android.media.AudioFormat.ENCODING_PCM_16BIT;
 import static android.media.MediaCodec.BUFFER_FLAG_END_OF_STREAM;
+import static android.media.MediaFormat.KEY_SAMPLE_RATE;
 
 /**
  * Created by alan on 13/07/17.
  */
 
-public class OBAudioBufferPlayer extends Object
+public class OBAudioBufferPlayer extends OBGeneralAudioPlayer
 {
-    public static final int OBAP_IDLE = 0,
-            OBAP_PREPARING = 1,
-            OBAP_PLAYING = 2,
-            OBAP_SEEKING = 3,
-            OBAP_FINISHED = 4,
-            OBAP_PAUSED = 5;
     final int NO_BUFFERS = 16;
     public MediaExtractor mediaExtractor;
     MediaCodec codec;
     AudioTrack audioTrack;
     AssetFileDescriptor afd;
-    public Lock playerLock;
-    Condition condition;
-    int state;
-    float volume = 1.0f;
     double fromTime,toTime;
     long fileLength,fileAmtRead,amtWritten;
     long startFrame = 0,endFrame = Long.MAX_VALUE;
     long presentationTimeus = 0, durationus = -1;
     Boolean playWhenReady;
     int bufferSequenceNo = 0,nextBufIdx=0;
-    boolean wantsFFTData;
+    boolean wantsFFTData,wantsMetrics;
     SimpleBuffer buffers[] = new SimpleBuffer[NO_BUFFERS];
     AudioTimestamp timeStamp = new AudioTimestamp();
     int sampleRate = 44100;
+    public float pitch = 1.0f;
+    float pitchData[];
+    ByteBuffer tempBuffer;
+    PitchShifter pitchShifter;
+    public long playToken;
 
     public class SimpleBuffer extends Object
     {
@@ -107,31 +103,29 @@ public class OBAudioBufferPlayer extends Object
     }
     public OBAudioBufferPlayer ()
     {
-        this(true);
+        this(false);
     }
 
     public OBAudioBufferPlayer (boolean withFFT)
+    {
+        this(withFFT,false);
+    }
+
+    public OBAudioBufferPlayer (boolean withFFT,boolean withMetrics)
     {
         mediaExtractor = new MediaExtractor();
         playerLock = new ReentrantLock();
         condition = playerLock.newCondition();
         setState(OBAP_IDLE);
         wantsFFTData = withFFT;
-        for (int i = 0;i < NO_BUFFERS;i++)
-            buffers[i] = new SimpleBuffer();
+        wantsMetrics = withMetrics;
+        if (wantsFFTData || wantsMetrics)
+            for (int i = 0;i < NO_BUFFERS;i++)
+                buffers[i] = new SimpleBuffer();
         fromTime = 0.0;
         toTime = -1.0;
     }
 
-    public synchronized int getState ()
-    {
-        return state;
-    }
-
-    synchronized void setState (int st)
-    {
-        state = st;
-    }
 
     public void waitAudio ()
     {
@@ -153,7 +147,48 @@ public class OBAudioBufferPlayer extends Object
         playerLock.unlock();
     }
 
-    public void stopPlaying ()
+    public void waitPrepared ()
+    {
+        if (getState() == OBAP_IDLE || getState() == OBAP_FINISHED)
+            return;
+        playerLock.lock();
+        while (getState() == OBAP_PREPARING)
+        {
+            try
+            {
+                condition.await();
+            }
+            catch (InterruptedException e)
+            {
+            }
+        }
+        playerLock.unlock();
+    }
+
+    public void waitUntilPlaying ()
+    {
+        if (getState() == OBAP_IDLE || getState() == OBAP_FINISHED)
+            return;
+        playerLock.lock();
+        while (getState() != OBAP_PLAYING)
+        {
+            try
+            {
+                condition.await();
+            }
+            catch (InterruptedException e)
+            {
+            }
+        }
+        playerLock.unlock();
+    }
+
+    public void stopPlaying()
+    {
+        stopPlaying(false);
+    }
+
+    public void stopPlaying (boolean stopNow)
     {
         if (isPlaying())
         {
@@ -178,7 +213,7 @@ public class OBAudioBufferPlayer extends Object
 
     void cleanUp()
     {
-
+        playToken = 0;
         if(audioTrack != null)
         {
             audioTrack.flush();
@@ -195,26 +230,31 @@ public class OBAudioBufferPlayer extends Object
 
     }
 
+    public void play() //call only after prepare!!!
+    {
+        audioTrack.setPlaybackPositionUpdateListener(new AudioTrack.OnPlaybackPositionUpdateListener()
+        {
+            @Override
+            public void onMarkerReached(AudioTrack track)
+            {
+                trackFinished();
+            }
+
+            @Override
+            public void onPeriodicNotification(AudioTrack track)
+            {
+
+            }
+        });
+        audioTrack.play();
+        state = OBAP_PLAYING;
+    }
+
     public void finishedPrepare()
     {
         if (playWhenReady)
         {
-            audioTrack.setPlaybackPositionUpdateListener(new AudioTrack.OnPlaybackPositionUpdateListener()
-            {
-                @Override
-                public void onMarkerReached(AudioTrack track)
-                {
-                    trackFinished();
-                }
-
-                @Override
-                public void onPeriodicNotification(AudioTrack track)
-                {
-
-                }
-            });
-            audioTrack.play();
-            state = OBAP_PLAYING;
+            play();
         }
     }
 
@@ -349,8 +389,9 @@ public class OBAudioBufferPlayer extends Object
         return getFloatsFromBufferClosestToFrameNo(of,currentFrame());
     }
 
-    public void prepare()
+    public void prepare(AssetFileDescriptor afd)
     {
+        this.afd = afd;
         try
         {
             state = OBAP_PREPARING;
@@ -360,9 +401,11 @@ public class OBAudioBufferPlayer extends Object
             fileAmtRead = 0;
             mediaExtractor.setDataSource(fd,fOffset,fileLength);
             mediaExtractor.selectTrack(0);
+            MediaFormat mediaFormat = mediaExtractor.getTrackFormat(0);
             AudioFormat.Builder afb = new AudioFormat.Builder();
             afb.setChannelMask(CHANNEL_OUT_MONO);
             afb.setEncoding(AudioFormat.ENCODING_PCM_16BIT);
+            sampleRate = mediaFormat.getInteger(KEY_SAMPLE_RATE);
             afb.setSampleRate(sampleRate);
             AudioAttributes.Builder aab = new AudioAttributes.Builder();
             aab.setUsage(AudioAttributes.USAGE_MEDIA);
@@ -371,6 +414,7 @@ public class OBAudioBufferPlayer extends Object
             audioTrack = new AudioTrack(aab.build(),
                     afb.build(),
                     bufsz,AudioTrack.MODE_STREAM, AudioManager.AUDIO_SESSION_ID_GENERATE);
+            audioTrack.setVolume(volume);
             MediaFormat format = mediaExtractor.getTrackFormat(0);
             String mime = format.getString(MediaFormat.KEY_MIME);
             codec = MediaCodec.createDecoderByType(mime);
@@ -389,39 +433,80 @@ public class OBAudioBufferPlayer extends Object
                 @Override
                 public void onInputBufferAvailable(MediaCodec mc, int inputBufferId)
                 {
-                    ByteBuffer inputBuffer = codec.getInputBuffer(inputBufferId);
-                    boolean fin = fillBuffer(inputBuffer);
-                    //MainActivity.log(String.format("%d bytes read",inputBuffer.limit()));
-                    inputBuffer.rewind();
-                    codec.queueInputBuffer(inputBufferId,0,inputBuffer.limit(),presentationTimeus,fin?BUFFER_FLAG_END_OF_STREAM:0);
+                    try
+                    {
+                        ByteBuffer inputBuffer = codec.getInputBuffer(inputBufferId);
+                        boolean fin = fillBuffer(inputBuffer);
+                        //MainActivity.log(String.format("%d bytes read",inputBuffer.limit()));
+                        if (fin)
+                            codec.queueInputBuffer(inputBufferId,0,0,presentationTimeus,BUFFER_FLAG_END_OF_STREAM);
+                        else
+                        {
+                            inputBuffer.rewind();
+                            codec.queueInputBuffer(inputBufferId,0,inputBuffer.limit(),presentationTimeus,0);
+                        }
+
+                    }
+                    catch (Exception e)
+                    {
+                        MainActivity.log("codec.onInputBufferAvailable player state %d",state);
+                        if (state < OBAP_FINISHED)
+                            e.printStackTrace();
+                    }
                 }
 
                 @Override
-                public void onOutputBufferAvailable(MediaCodec mc, int outputBufferId, MediaCodec.BufferInfo info) {
-                    ByteBuffer outputBuffer = codec.getOutputBuffer(outputBufferId);
-                    MediaFormat bufferFormat = codec.getOutputFormat(outputBufferId);
-                    int bytesInBuffer = outputBuffer.limit();
-                    if (((amtWritten + bytesInBuffer) / 2) > endFrame)
+                public void onOutputBufferAvailable(MediaCodec mc, int outputBufferId, MediaCodec.BufferInfo info)
+                {
+                    try
                     {
-                        long framesToWrite = endFrame - (amtWritten / 2);
-                        bytesInBuffer = ((int)framesToWrite*2);
+                        ByteBuffer outputBuffer = codec.getOutputBuffer(outputBufferId);
+                        MediaFormat bufferFormat = codec.getOutputFormat(outputBufferId);
+                        int bytesInBuffer = outputBuffer.limit();
+                        if (((amtWritten + bytesInBuffer) / 2) > endFrame)
+                        {
+                            long framesToWrite = endFrame - (amtWritten / 2);
+                            bytesInBuffer = ((int)framesToWrite*2);
+                        }
+                        boolean endOfStream = ((info.flags & BUFFER_FLAG_END_OF_STREAM) != 0) || state == OBAP_FINISHED;
+                        if (endOfStream)
+                        {
+                            int framesEnd = (int)(amtWritten + bytesInBuffer) / 2;
+                            MainActivity.log("endofstream %d %d",state,framesEnd);
+                            if (state != OBAP_FINISHED)
+                                audioTrack.setNotificationMarkerPosition(framesEnd);
+                        }
+                        if (wantsFFTData || wantsMetrics)
+                            writeOutputBufferToBuffers(outputBuffer,info.presentationTimeUs,amtWritten / 2);
+                        if (state != OBAP_FINISHED)
+                        {
+                            int res;
+                            if (pitch != 1f)
+                            {
+                                ByteBuffer tb = pitchShift(outputBuffer);
+                                for (int i = 0;i < tb.limit();i++)
+                                {
+                                    Byte a = outputBuffer.get(i);
+                                    Byte b = tb.get(i);
+                                    if (a != b)
+                                        res = -1;
+                                }
+                                res = audioTrack.write(tb,bytesInBuffer,AudioTrack.WRITE_BLOCKING);
+                            }
+                            else
+                                res = audioTrack.write(outputBuffer,bytesInBuffer,AudioTrack.WRITE_BLOCKING);
+                            amtWritten += res;
+                        }
+                        if (state == OBAP_PREPARING && amtWritten > 300)
+                        {
+                            finishedPrepare();
+                        }
+                        codec.releaseOutputBuffer(outputBufferId,true);
                     }
-                    boolean endOfStream = ((info.flags & BUFFER_FLAG_END_OF_STREAM) != 0) || state == OBAP_FINISHED;
-                    if (endOfStream)
+                    catch(Exception e)
                     {
-                        int framesEnd = (int)(amtWritten + bytesInBuffer) / 2;
-                        audioTrack.setNotificationMarkerPosition(framesEnd);
+                        e.printStackTrace();
                     }
-                    if (wantsFFTData)
-                        writeOutputBufferToBuffers(outputBuffer,info.presentationTimeUs,amtWritten / 2);
-                    int res = audioTrack.write(outputBuffer,bytesInBuffer,AudioTrack.WRITE_BLOCKING);
-                    amtWritten += res;
-                    if (state == OBAP_PREPARING && amtWritten > 300)
-                    {
-                        finishedPrepare();
-                    }
-                    //MainActivity.log(String.format("%d bytes written",res));
-                    codec.releaseOutputBuffer(outputBufferId,true);
                 }
 
                 @Override
@@ -443,9 +528,65 @@ public class OBAudioBufferPlayer extends Object
         }
         catch(Exception e)
         {
-
+            e.printStackTrace();
         }
     }
+
+    ByteBuffer pitchShift(ByteBuffer bb)
+    {
+        ShortBuffer sb = bb.asShortBuffer();
+        int noFrames = sb.limit();
+        if (noFrames > 0)
+        {
+            if (pitchData == null || noFrames > pitchData.length)
+                pitchData = new float[noFrames];
+            for (int i = 0;i < noFrames;i++)
+                pitchData[i] = (sb.get(i) / 32767f);
+            if (pitchShifter == null)
+                pitchShifter = new PitchShifter();
+            pitchShifter.PitchShift(pitch,noFrames,1024,16,sampleRate,pitchData);
+            if (tempBuffer == null)
+                tempBuffer = ByteBuffer.allocateDirect(8192);
+            tempBuffer.order(bb.order());
+            tempBuffer.rewind();
+            tempBuffer.limit(bb.limit());
+            ShortBuffer nsb = tempBuffer.asShortBuffer();
+            for (int i = 0;i < noFrames;i++)
+                nsb.put(i,(short)(pitchData[i] * 32767f));
+            return tempBuffer;
+            /*
+            ByteBuffer tb = ByteBuffer.allocateDirect(8192);
+            tb.order(bb.order());
+            tb.rewind();
+            tb.limit(bb.limit());
+            ShortBuffer nsb = tb.asShortBuffer();
+            for (int i = 0;i < noFrames;i++)
+                nsb.put(i,(short)(pitchData[i] * 32767f));
+            for (int i = 0;i < noFrames;i++)
+            {
+                int res = 0;
+                short a = sb.get(i);
+                short b = nsb.get(i);
+                if (a != b)
+                    res = -1;
+            }
+            return tb;*/
+        }
+        return bb;
+    }
+    public double duration ()
+    {
+        waitPrepared();
+        if (durationus >= 0)
+            return durationus / 1000000.0;
+        return 0.0;
+    }
+
+    public int currentPositionms()
+    {
+        return (int)(currentPlayTimeus() / 1000);
+    }
+
 
     boolean fillBuffer(ByteBuffer b)
     {
@@ -466,9 +607,9 @@ public class OBAudioBufferPlayer extends Object
     {
         if (isPlaying())
             stopPlaying();
-        this.afd = afd;
         playWhenReady = true;
-        prepare();
+        playToken = System.currentTimeMillis();
+        prepare(afd);
     }
 
     public void startPlaying (AssetFileDescriptor afd,double fromSecs,double toSecs)
@@ -480,10 +621,40 @@ public class OBAudioBufferPlayer extends Object
         startPlaying(afd);
     }
 
-    public boolean isPlaying ()
+    public void startPlayingAtTimeVolume(AssetFileDescriptor afd, long fr,float vol)
     {
-        return state == OBAP_PLAYING;
+        if (isPlaying())
+            stopPlaying();
+        volume = vol;
+        fromTime = fr;
+        startPlaying(afd);
     }
 
+    public float averagePower()
+    {
+        int ct = buffers[0].bufferSize;
+        float[] mfloats = new float[ct];
+        getCurrentBufferFloats(mfloats);
+        double tot = 0;
+        for (int i = 0;i < ct;i++)
+            tot += Math.sqrt(mfloats[i] * mfloats[i]);
+        double avg = tot / ct;
+        return (float)avg;
+    }
+
+    public float maxPower()
+    {
+        int ct = buffers[0].bufferSize;
+        float[] mfloats = new float[ct];
+        getCurrentBufferFloats(mfloats);
+        double maxx = 0;
+        for (int i = 0;i < ct;i++)
+        {
+            double samp = Math.sqrt(mfloats[i] * mfloats[i]);
+            if (samp > maxx)
+                maxx = samp;
+        }
+        return (float)maxx;
+    }
 
 }

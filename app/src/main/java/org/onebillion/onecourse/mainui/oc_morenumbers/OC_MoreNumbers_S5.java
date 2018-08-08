@@ -120,7 +120,7 @@ public class OC_MoreNumbers_S5 extends OC_SectionController
                             gotItWrongWithSfx();
                             waitSFX();
                             colourObj(bal, false);
-                            playAudioQueuedScene("INCORRECT",300,false);
+                            playAudioQueuedScene("INCORRECT",0.3f,false);
                             setStatus(STATUS_AWAITING_CLICK);
 
                         }

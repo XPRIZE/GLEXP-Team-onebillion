@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.util.ArrayMap;
 import android.view.View;
 
 import org.onebillion.onecourse.controls.OBControl;
@@ -45,12 +46,11 @@ public class OC_Hw3 extends OC_Hw
     {
         super.prepare();
         eraser.show();
-
+        audioScenes = new ArrayMap<>();
         String mode = parameters.get("mode");
         boolean dualLetterMode = mode.equals("capitals");
         numbersMode = mode.equals("numbers");
         loadAudioXML(getConfigPath(numbersMode ? "hw3baudio.xml" :  "hw3aaudio.xml"));
-
         if(numbersMode)
         {
             Map<String,Object> ed = loadXML(getConfigPath(String.format("%s.xml","tracingnumbers")));
@@ -348,6 +348,7 @@ public class OC_Hw3 extends OC_Hw
         currentPhase++;
         if(currentPhase >= 6)
         {
+            gotItRight();
             lockScreen();
             colourPaths(Color.BLACK,currentMenuItem);
             currentMenuItem.setOpacity(0.3f);
@@ -418,15 +419,20 @@ public class OC_Hw3 extends OC_Hw
         if(exampleGroup != null)
             detachControl(exampleGroup);
 
+        String firstChar = text.substring(0,1);
+        boolean useXbox = numbersMode || !firstChar.equals(firstChar.toUpperCase());
+
         exampleGroup = loadPaths(text,Color.WHITE,applyGraphicScale(20),true);
 
         if(exampleGroup.width() > 0.35f*board.width())
             exampleGroup.setScale(0.35f*board.width()/exampleGroup.width());
 
         exampleGroup.setPosition(OB_Maths.locationForRect(0.25f,0.5f,board.frame()));
+        if(useXbox)
+            alighGroupAroundXbox(exampleGroup);
         exampleGroup.setZPosition(4);
-        String firstChar = text.substring(0,1);
-        setupLinesForGroup(exampleGroup,numbersMode || !firstChar.equals(firstChar.toUpperCase()));
+
+        setupLinesForGroup(exampleGroup,useXbox);
 
         if(guideGroup != null)
             detachControl(guideGroup);
@@ -435,6 +441,7 @@ public class OC_Hw3 extends OC_Hw
         attachControl(guideGroup);
         guideGroup.setOpacity(0.3f);
         guideGroup.setPosition(OB_Maths.locationForRect(0.75f,0.5f,objectDict.get("board").frame()));
+        guideGroup.setBottom(exampleGroup.bottom());
         guideGroup.hide();
         showAllStrokes(guideGroup);
 
@@ -461,9 +468,11 @@ public class OC_Hw3 extends OC_Hw
         {
             List<OBControl> paths = exampleGroup.filterMembers("Path.*",true);
             for(OBControl path : paths)
-                ((OBPath)path).setStrokeEnd(0);
+            {
+                path.hide();
+                ((OBPath) path).setStrokeEnd(0);
+            }
             hideLines();
-
         }
         hideArrowButton();
         if(menuItem != null)
@@ -493,9 +502,7 @@ public class OC_Hw3 extends OC_Hw
                     playAudio((String)currentMenuItem.propertyValue("audio"));
                     waitAudio();
                     waitForSecs(0.3f);
-
                 }
-
             }
             index++;
             //paths = exampleGroup.filterMembers(String.format("Path%d.*",index),true);
@@ -525,14 +532,15 @@ public class OC_Hw3 extends OC_Hw
         waitForSecs(0.3f);
         playAudioQueuedScene("DEMO",true);
         waitForSecs(0.3f);
+
         lockScreen();
         for(OBGroup gr : menuItems)
             gr.show();
         playSfxAudio("menu",false);
-
         unlockScreen();
         waitSFX();
         waitForSecs(0.3f);
+
         if(OBUtils.getBooleanValue(parameters.get("demo")))
         {
             loadPointer(POINTER_LEFT);
@@ -542,12 +550,13 @@ public class OC_Hw3 extends OC_Hw
             movePointerToPoint(OB_Maths.locationForRect(0.7f,1.1f,menuItem.frame()),-40,0.5f,true);
             waitForSecs(0.3f);
             movePointerToPoint(OB_Maths.locationForRect(0.5f,0.5f,menuItem.frame()),-40,0.2f,true);
+
             lockScreen();
             colourPaths(highlightColour,menuItem);
             setupEventLetterForText((String)menuItem.propertyValue("text"));
             currentMenuItem = menuItem;
-
             unlockScreen();
+
             playSfxAudio("choose",true);
             movePointerToPoint(OB_Maths.locationForRect(0.9f,0.9f,this.bounds()),-20,0.7f,true);
             waitForSecs(0.3f);
@@ -572,10 +581,8 @@ public class OC_Hw3 extends OC_Hw
             currentMenuItem = null;
             playAudioScene("DEMO2",4,true);
             waitForSecs(0.3f);
-
         }
         nextScene();
-
     }
 
     public void demotrace_1_1() throws Exception
@@ -601,33 +608,33 @@ public class OC_Hw3 extends OC_Hw
         thePointer.hide();
         hideArrowButton();
         arrowButton.setOpacity(1);
-
     }
+
     public void demotrace_default_1() throws Exception
     {
         demotrace2();
-
     }
+
     public void demotrace_1_2() throws Exception
     {
         demotrace2();
-
     }
+
     public void demotrace_1_3() throws Exception
     {
         demotrace2();
-
     }
+
     public void demotrace_default_2() throws Exception
     {
         demotrace2();
-
     }
+
     public void demotrace_default_3() throws Exception
     {
         demotrace2();
-
     }
+
     public void demotrace2() throws Exception
     {
         playAudioQueued(OBUtils.insertAudioInterval(getAudioForPhase("DEMO"),300),true);
@@ -635,26 +642,29 @@ public class OC_Hw3 extends OC_Hw
         demoLetterPaths();
         waitForSecs(0.3f);
         showLinesAndGuide(guideGroup);
-
     }
+
     public void demowrite_1_1() throws Exception
     {
         demowrite(true);
-
     }
+
     public void demowrite_default_1() throws Exception
     {
         demowrite(false);
-
     }
+
     public void demowrite(boolean pointer) throws Exception
     {
         lockScreen();
         List<OBControl> paths = exampleGroup.filterMembers("Path.*",true);
         for(OBControl path : paths)
-            ((OBPath)path).setStrokeEnd(1);
-
+        {
+            path.show();
+            ((OBPath) path).setStrokeEnd(1);
+        }
         unlockScreen();
+
         playSfxAudio("guideon",false);
         animateLinesOn();
         waitSFX();
@@ -667,15 +677,12 @@ public class OC_Hw3 extends OC_Hw
             waitAudio();
             waitForSecs(0.3f);
             thePointer.hide();
-
         }
         if(!pointer)
         {
             playAudioQueued(OBUtils.insertAudioInterval(getAudioForPhase("DEMO"),300),true);
             waitForSecs(0.3f);
-
         }
-
     }
 
     public void demoPointerTracePath() throws Exception
@@ -684,7 +691,10 @@ public class OC_Hw3 extends OC_Hw
         demoGuideGroup.setPosition( guideGroup.position());
         List<OBControl> paths = demoGuideGroup.filterMembers("Path.*",true);
         for(OBControl p : paths)
-            ((OBPath)p).setStrokeEnd(0);
+        {
+            p.hide();
+            ((OBPath) p).setStrokeEnd(0);
+        }
 
         demoGuideGroup.setZPosition(5);
         attachControl(demoGuideGroup);
@@ -704,7 +714,7 @@ public class OC_Hw3 extends OC_Hw
                 }
             };
 
-
+            p.show();
             OBAnimationGroup.runAnims(Collections.singletonList(anim), p.length()*4/theMoveSpeed,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
         }
     }

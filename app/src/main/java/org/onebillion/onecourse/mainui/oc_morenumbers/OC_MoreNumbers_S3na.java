@@ -171,7 +171,7 @@ public class OC_MoreNumbers_S3na extends OC_SectionController
             OC_MoreNumbers_Additions.buttonSet(0,this);
 
             unlockScreen();
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
             setStatus(STATUS_AWAITING_CLICK);
 
         }

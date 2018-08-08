@@ -205,7 +205,7 @@ public class OC_Numberlines_S4n extends OC_SectionController
             gotItWrongWithSfx();
             waitSFX();
             cont.setColour(numColour);
-            playAudioQueuedScene("INCORRECT4",300,false);
+            playAudioQueuedScene("INCORRECT4",0.3f,false);
             setStatus(STATUS_AWAITING_CLICK);
         }
     }
@@ -252,16 +252,16 @@ public class OC_Numberlines_S4n extends OC_SectionController
                     String audioName = String.format("INCORRECT%d", Math.abs(currentJump-startNum)+1);
                     if(getAudioForScene(currentEvent(),audioName) != null)
                     {
-                        playAudioQueuedScene(audioName,300,false);
+                        playAudioQueuedScene(audioName,0.3f,false);
                     }
                     else
                     {
-                        playAudioQueuedScene("INCORRECT",300,false);
+                        playAudioQueuedScene("INCORRECT",0.3f,false);
                     }
                 }
                 else
                 {
-                    playAudioQueuedScene("INCORRECT",300,false);
+                    playAudioQueuedScene("INCORRECT",0.3f,false);
                 }
             }
         }
@@ -290,7 +290,7 @@ public class OC_Numberlines_S4n extends OC_SectionController
             gotItWrongWithSfx();
             waitSFX();
             unhiliteBox((OBGroup)cont);
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
             setStatus(STATUS_AWAITING_CLICK);
         }
     }

@@ -227,7 +227,7 @@ public class OC_MoreAddSubtract_S4 extends OC_SectionController
                 button.objectDict.get("highlight").hide();
                 if(currentIndex >= 8 && (currentIndex+1)%3 == 0)
                 {
-                    playAudioQueuedScene("FEEDBACK",300,true);
+                    playAudioQueuedScene("FEEDBACK",0.3f,true);
                     slideNumberLine();
 
                 }
@@ -275,7 +275,7 @@ public class OC_MoreAddSubtract_S4 extends OC_SectionController
             cont.setColour ( eventColour.get("num"));
             if(time== statusTime)
             {
-                playAudioQueuedScene("INCORRECT",300,false);
+                playAudioQueuedScene("INCORRECT",0.3f,false);
 
             }
         }
@@ -298,7 +298,7 @@ public class OC_MoreAddSubtract_S4 extends OC_SectionController
             showEquationWithCover();
         else
             showEquationPart(1);
-        playAudioQueuedScene("DEMO",300,true);
+        playAudioQueuedScene("DEMO",0.3f,true);
         waitForSecs(0.3f);
         OBMisc.doSceneAudio(4,setStatus(STATUS_AWAITING_CLICK),this);
     }

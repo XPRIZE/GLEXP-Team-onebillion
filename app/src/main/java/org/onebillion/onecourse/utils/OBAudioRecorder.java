@@ -28,8 +28,9 @@ public class OBAudioRecorder
     protected int recordCount;
     protected long expectedAudioLength;
     protected long timeLastSound, timeRecordingStart, timeFirstSound;
-    protected WeakReference<OBSectionController> sectionController;
-    protected int voiceThreshold = 1500;
+    protected WeakReference<OBSectionController> sectionControllerWeakReference;
+    protected int passThreshold = 2500;
+    public float silenceTimming = 3.0f;
     protected Condition condition;
 
 
@@ -37,7 +38,7 @@ public class OBAudioRecorder
     {
         activityPaused= false;
         recordedPath =recordFilePath;
-        sectionController = new WeakReference<>(controller);
+        sectionControllerWeakReference = new WeakReference<>(controller);
 
         recording = false;
 
@@ -49,7 +50,7 @@ public class OBAudioRecorder
     {
         recordingTimer = null;
         mediaRecorder = new MediaRecorder();
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         mediaRecorder.setAudioEncodingBitRate(128000);
@@ -109,8 +110,6 @@ public class OBAudioRecorder
 
 
 
-
-
     public void stopRecording()
     {
         try
@@ -132,11 +131,26 @@ public class OBAudioRecorder
         {
             e.printStackTrace();
         }
-    }
 
+        if(condition == null)
+            return;
+
+        recorderLock.lock();
+        try
+        {
+            condition.signalAll();
+        }
+        finally
+        {
+            recorderLock.unlock();
+
+        }
+        condition = null;
+    }
+/*
     public void playRecording()
     {
-        OBAudioPlayer player = OBAudioManager.audioManager.playerForChannel(OBAudioManager.AM_MAIN_CHANNEL);
+        OBGeneralAudioPlayer player = OBAudioManager.audioManager.playerForChannel(OBAudioManager.AM_MAIN_CHANNEL);
         if(audioRecorded())
         {
             long audioStart = timeFirstSound-timeRecordingStart;
@@ -148,6 +162,25 @@ public class OBAudioRecorder
             player.startPlayingAtTime(OBUtils.getAssetFileDescriptorForPath(recordedPath),audioStart>0?audioStart:0);
         }
     }
+*/
+    public void playRecording() throws Exception
+    {
+        OBGeneralAudioPlayer player = OBAudioManager.audioManager.playerForChannel(OBAudioManager.AM_MAIN_CHANNEL);
+        long startTime = 0;
+        long endTime =  expectedAudioLength;
+        long waitTime = 2000;
+        if(audioRecorded())
+        {
+            long audioStart = timeFirstSound-timeRecordingStart;
+            startTime = audioStart-400>0?audioStart-400:0;
+            endTime = timeLastSound-timeRecordingStart+400;
+            waitTime = endTime-startTime;
+        }
+        player.startPlayingAtTimeVolume(OBUtils.getAssetFileDescriptorForPath(recordedPath),startTime, 1.0f);
+        sectionControllerWeakReference.get().waitForSecs(waitTime/1000f);
+        player.stopPlaying(true);
+    }
+
 
     public int getAverangePower()
     {
@@ -156,12 +189,12 @@ public class OBAudioRecorder
 
     public void recordingTimerFire()
     {
-        if(recording && !sectionController.get()._aborting)
+        if(recording && !sectionControllerWeakReference.get()._aborting)
         {
             long currentTime = System.currentTimeMillis();
             int val = getAverangePower();
            // Log.d(this.getClass().getName(), String.format("Power: %d",val));
-            if(val > voiceThreshold)
+            if(val > passThreshold)
             {
                 recordCount++;
                 timeLastSound = currentTime;
@@ -171,13 +204,14 @@ public class OBAudioRecorder
 
             if(timeRecordingStart + 5000 < currentTime && !audioRecorded())
             {
-                finishWait();
+                stopRecording();
             }
-            else if(timeRecordingStart + expectedAudioLength < currentTime && audioRecorded())
+            else if(audioRecorded())
             {
-                if(timeLastSound + 1500 < currentTime || timeFirstSound + expectedAudioLength*2 < currentTime)
+                if(((timeLastSound + silenceTimming) < currentTime) ||
+                    ((timeFirstSound + expectedAudioLength) < currentTime))
                 {
-                    finishWait();
+                    stopRecording();
                 }
             }
         }
@@ -213,27 +247,6 @@ public class OBAudioRecorder
         }
     }
 
-    private void finishWait()
-    {
-        stopRecording();
-
-        if(condition == null)
-            return;
-
-        recorderLock.lock();
-        try
-        {
-            condition.signalAll();
-        }
-        finally
-        {
-            recorderLock.unlock();
-
-        }
-        condition = null;
-
-    }
-
 
     public String getRecordingPath()
     {
@@ -249,7 +262,7 @@ public class OBAudioRecorder
     public void onPause()
     {
         activityPaused = true;
-        finishWait();
+        stopRecording();
     }
 
 

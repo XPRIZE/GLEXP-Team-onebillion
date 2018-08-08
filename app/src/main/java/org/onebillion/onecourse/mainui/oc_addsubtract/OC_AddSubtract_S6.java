@@ -235,7 +235,7 @@ public class OC_AddSubtract_S6 extends OC_SectionController
             waitSFX();
             targ.setFillColor ( lowlightColour);
             if(time == statusTime)
-                playAudioQueuedScene("INCORRECT",300,false);
+                playAudioQueuedScene("INCORRECT",0.3f,false);
 
         }
     }

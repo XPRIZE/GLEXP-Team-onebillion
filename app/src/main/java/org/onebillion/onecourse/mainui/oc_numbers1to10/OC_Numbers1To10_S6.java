@@ -64,11 +64,11 @@ public class OC_Numbers1To10_S6 extends OC_Generic_AddRemoveObjects_SelectCorrec
         gotItRightBigTick(true);
         waitForSecsNoThrow(0.3);
         //
-        playAudioQueuedScene("CORRECT", 300, true);
+        playAudioQueuedScene("CORRECT", 0.3f, true);
         if (((List<Object>) (Object) getAudioForScene(currentEvent(), "FINAL")).size() > 0)
         {
             waitForSecsNoThrow(0.3);
-            playAudioQueuedScene("FINAL", 300, true);
+            playAudioQueuedScene("FINAL", 0.3f, true);
         }
         else
         {

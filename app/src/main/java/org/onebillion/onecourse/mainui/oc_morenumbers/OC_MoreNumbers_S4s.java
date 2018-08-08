@@ -239,7 +239,7 @@ public class OC_MoreNumbers_S4s extends OC_SectionController
                 waitForSecs(0.2f);
 
             }
-            playAudioQueuedScene("INCORRECT",300,false);
+            playAudioQueuedScene("INCORRECT",0.3f,false);
             OC_MoreNumbers_Additions.buttonSet(0,this);
             setStatus(STATUS_AWAITING_CLICK);
 

@@ -9,11 +9,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.os.PowerManager;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.text.format.DateFormat;
 import android.text.format.DateUtils;
 import android.view.View;
@@ -36,6 +39,7 @@ import org.onebillion.onecourse.controls.OBVideoPlayer;
 import org.onebillion.onecourse.mainui.generic.OC_Generic;
 import org.onebillion.onecourse.utils.DBSQL;
 import org.onebillion.onecourse.utils.OBConfigManager;
+import org.onebillion.onecourse.utils.OBUnZip;
 import org.onebillion.onecourse.utils.OCM_MlUnit;
 import org.onebillion.onecourse.utils.OBBrightnessManager;
 import org.onebillion.onecourse.utils.OBConnectionManager;
@@ -81,6 +85,9 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
     private String saveConfig;
     private OBLabel dateTimeField, serverOKField, serverNotFoundField, setDateTimeButtonLabel;
     private OBLabel currentDateField, startOfTrialDateField;
+    //
+    private OBPath testOnecourseButton;
+    private OBUnZip unzipAssetsTask;
     //
     private Date userSetDate, trialDate, serverDate;
     //
@@ -423,6 +430,21 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                     //
                     // Activate onecourse button (font is slightly larger than all the others)
                     setupLabelsForScreen("home_button_activate_onecourse", false, 0.7f, boldFont, "centre", false, homeScreenControls, finalSelf);
+                    //
+                    unzipAssetsTask = OBSystemsManager.sharedManager.unzipRestOfAssets();
+                    //
+                    testOnecourseButton = (OBPath) objectDict.get("home_button_step_1_example");
+                    //
+                    if (unzipAssetsTask != null && unzipAssetsTask.getStatus() == AsyncTask.Status.PENDING)
+                    {
+                        MainActivity.log("OBSetupMenu.loadHomeScreen.assigning external progress bar and starting unzip");
+                        unzipAssetsTask.externalProgressBar = testOnecourseButton;
+                        unzipAssetsTask.execute();
+                    }
+                    else if (unzipAssetsTask == null)
+                    {
+                        MainActivity.log("OBSetupMenu.loadHomeScreen: task is null");
+                    }
                 }
                 //
                 for (OBControl control : attachedControls)
@@ -683,26 +705,66 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                     control.setHidden(!finalScreenControls.contains(control));
                 }
                 //
+                final OBPath progressBar = (OBPath) objectDict.get("final_progress");
+                //
+                if (unzipAssetsTask != null && unzipAssetsTask.getStatus() == AsyncTask.Status.RUNNING)
+                {
+                    float totalWidth = progressBar.width();
+                    progressBar.setProperty("totalWidth", totalWidth);
+                    int fillColour = progressBar.fillColor();
+                    progressBar.setProperty("finalColour", fillColour);
+                    //
+                    progressBar.setFillColor(Color.RED);
+                    progressBar.disable();
+                    progressBar.show();
+                    //
+                    unzipAssetsTask.externalProgressBar = progressBar;
+                }
+                else
+                {
+                    progressBar.hide();
+                }
+                //
                 unlockScreen();
                 //
-                OBUtils.runOnOtherThreadDelayed(30, new OBUtils.RunLambda()
+                OBUtils.runOnOtherThread(new OBUtils.RunLambda()
                 {
+                    final long startTime = SystemClock.uptimeMillis();
+                    //
                     @Override
-                    public void run () throws Exception
+                    public void run() throws Exception
                     {
-                        MainActivity.log("OBSetupMenu.delayedThread:SHUTTING DOWN");
+                        while(unzipAssetsTask != null && unzipAssetsTask.getStatus() == AsyncTask.Status.RUNNING)
+                        {
+                            MainActivity.log("OBSetupMenu.loadFinalScreen. waiting for unzip task to finish: " + unzipAssetsTask.progress);
+                            Thread.sleep(2500);
+                        }
                         //
-                        try
+                        long endTime = SystemClock.uptimeMillis();
+                        long remainingTime = Math.max(30 * 1000 - (endTime - startTime), 0);
+                        float remainingSeconds = remainingTime / (float) 1000;
+                        //
+                        MainActivity.log("OBSetupMenu.loadFinalScreen. unzip task complete. waiting " + remainingSeconds + "s till shutdown");
+                        //
+                        OBUtils.runOnOtherThreadDelayed(remainingSeconds, new OBUtils.RunLambda()
                         {
-                            Intent i = new Intent("android.intent.action.ACTION_REQUEST_SHUTDOWN");
-                            i.putExtra("android.intent.extra.KEY_CONFIRM", false);
-                            MainActivity.mainActivity.startActivity(i);
-                        }
-                        catch (Exception e)
-                        {
-                            MainActivity.log("OBSetupMenu:loadFinalScreen:exception caught while trying to shutdown device. Exiting App");
-                            System.exit(0);
-                        }
+                            @Override
+                            public void run() throws Exception
+                            {
+                                MainActivity.log("OBSetupMenu.delayedThread:SHUTTING DOWN");
+                                //
+                                try
+                                {
+                                    Intent i = new Intent("android.intent.action.ACTION_REQUEST_SHUTDOWN");
+                                    i.putExtra("android.intent.extra.KEY_CONFIRM", false);
+                                    MainActivity.mainActivity.startActivity(i);
+                                } catch (Exception e)
+                                {
+                                    MainActivity.log("OBSetupMenu:loadFinalScreen:exception caught while trying to shutdown device. Exiting App");
+                                    System.exit(0);
+                                }
+                            }
+                        });
                     }
                 });
             }
@@ -965,7 +1027,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
         //
         for (OBPath labelBox : stepLabels)
         {
-            OBLabel label = OC_Generic.action_createLabelForControl(labelBox, fontResizeFactor, false, finalSelf, font);
+            OBLabel label = OC_Generic.action_createLabelForControl(labelBox, fontResizeFactor, false, font, finalSelf);
             label.setColour(labelBox.strokeColor());
             //
             label.sizeToBoundingBox();

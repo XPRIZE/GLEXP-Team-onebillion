@@ -291,7 +291,7 @@ public class OC_CountMore_S4 extends OC_SectionController
     }
     public void demo4e() throws Exception
     {
-        playAudioQueuedScene("DEMO",300,true);
+        playAudioQueuedScene("DEMO",0.3f,true);
         waitForSecs(0.3f);
         startScene();
 

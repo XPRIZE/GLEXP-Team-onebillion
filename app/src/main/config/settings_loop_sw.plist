@@ -256,7 +256,7 @@
 	<string>true</string>
 	<!--  -->
 	<key>debug_build_number</key>
-	<string>0006</string>
+	<string>0001</string>
 
 	<!-- ANALYTICS MANAGER -->
 	<key>analytics_enabled</key>
@@ -274,7 +274,7 @@
 	<string>oc-loopmenu</string>
 	<!--  -->
 	<key>app_menu_class</key>
-	<string>OC_SimpleListMenu</string>
+	<string>OC_LoopMenu</string>
 	<!--  -->
 	<key>app_fat_controller_class</key>
 	<string>OC_FatController</string>

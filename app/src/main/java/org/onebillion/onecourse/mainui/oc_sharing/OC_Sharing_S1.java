@@ -185,7 +185,7 @@ public class OC_Sharing_S1 extends OC_Generic_Event
     public void action_wrongAnswer (OBControl target) throws Exception
     {
         gotItWrongWithSfx();
-        playAudioQueuedScene("INCORRECT", 300, false);
+        playAudioQueuedScene("INCORRECT", 0.3f, false);
     }
 
 

@@ -220,8 +220,18 @@ public class OC_Puzzle extends OC_Wordcontroller
         {
             String word;
             if(showText == SHOW_TEXT_INITIAL)
-                //word = rw.firstSound() ;
-                word = rw.syllables().get(0).phonemes.get(0).text;
+            {
+                //word = rw.firstSound();
+                word = rw.phonemes().get(0).text;
+//                if (rw.syllables() == null || rw.syllables().size() == 0)
+//                {
+//                    word = rw.phonemes().get(0).text;
+//                }
+//                else
+//                {
+//                    word = rw.syllables().get(0).phonemes.get(0).text;
+//                }
+            }
             else
                 word = rw.text ;
             setUpLabel(word);

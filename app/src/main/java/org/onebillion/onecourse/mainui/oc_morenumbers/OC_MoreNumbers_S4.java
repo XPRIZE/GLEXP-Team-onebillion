@@ -232,7 +232,7 @@ public class OC_MoreNumbers_S4 extends OC_SectionController
                 waitSFX();
                 if(time == statusTime)
                 {
-                    playAudioQueuedScene(addValue == 10 ? "INCORRECT2" : "INCORRECT",300,false);
+                    playAudioQueuedScene(addValue == 10 ? "INCORRECT2" : "INCORRECT",0.3f,false);
                     buttonControl.objectDict.get("hilight").hide();
                 }
             }
@@ -276,7 +276,7 @@ public class OC_MoreNumbers_S4 extends OC_SectionController
                 if(time == statusTime)
                 {
                     if(addValue == 1 && currentNum != 70 && ((currentNum+1)%10 != 0))
-                        playAudioQueuedScene("INCORRECT",300,false);
+                        playAudioQueuedScene("INCORRECT",0.3f,false);
                     buttonControl.objectDict.get("hilight").hide();
 
                 }
@@ -318,7 +318,7 @@ public class OC_MoreNumbers_S4 extends OC_SectionController
                 resetScene(false);
                 waitForSecs(0.2f);
             }
-            playAudioQueuedScene("INCORRECT2",300,false);
+            playAudioQueuedScene("INCORRECT2",0.3f,false);
             OC_MoreNumbers_Additions.buttonSet(0,this);
             setStatus(STATUS_AWAITING_CLICK);
 
