@@ -264,13 +264,13 @@
 	<string>oc-gen</string>
 	<!--  -->
 	<key>app_main_folder</key>
-	<string>oc-pedro</string>
+	<string>oc-setup</string>
 	<!--  -->
 	<key>app_menu_class</key>
-	<string>OC_Menu</string>
+	<string>OBSetupMenu</string>
 	<!--  -->
 	<key>app_fat_controller_class</key>
-	<string>OCM_FatController</string>
+	<string>OC_FatController</string>
 	<!--  -->
 	<key>app_masterlist</key>
 	<string>community_sw</string>

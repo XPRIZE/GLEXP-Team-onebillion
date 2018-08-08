@@ -935,6 +935,13 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                     MainActivity.log("OBSetupMenu:touchDownAtPoint:start onecourse button pressed");
                     completeSetup();
                 }
+                else if (button.attributes().get("id").equals("home_button_step_1_attributions"))
+                {
+                    MainActivity.log("OBSetupMenu:touchDownAtPoint:attributions are a go!!");
+                    //
+                    MainActivity.mainViewController.pushViewControllerWithNameConfig("OBSetupMenu_AttributionsView", "", false, false, null, true);
+                }
+
             }
             else if (videoPlayer != null && !videoPlayer.hidden() && videoPlayer.frame().contains(pt.x, pt.y))
             {
