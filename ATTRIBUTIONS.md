@@ -258,7 +258,7 @@ We would like to thank the photographers and image libraries whose images have c
 
 We would like to thank the photographers and image libraries whose images have contributed to the Maths practice picture reveal activity.
 
-**Butterfly**: [original](https://www.maxpixel.net/Grass-Butterfly-Nature-Spring-3374912) available under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). 
+- **Butterfly**: [original](https://www.maxpixel.net/Grass-Butterfly-Nature-Spring-3374912) available under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). 
 - **Frog (2)**: [original](https://www.maxpixel.net/Macro-Red-Eyed-Frog-Tree-Amphibian-Tropical-643480) available under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). 
 - **Monkeys (1)**: [original](https://www.maxpixel.net/Freeze-Baboons-Selfie-Monkey-Mammal-4371) available under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). 
 - **Duck and chicks**: [original](https://www.maxpixel.net/Motherhood-Duck-Water-Bird-Mother-Ducklings-635110) available under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). 
