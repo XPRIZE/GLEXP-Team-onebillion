@@ -245,7 +245,16 @@
 
 	<!-- ASSETS -->
 	<key>assets_external_path</key>
-	<string>/onebillion/assets</string>
+    <string>/onebillion/assets</string>
+    <!-- -->
+    <key>assets_look_for_zipped_files</key>
+    <string>false</string>
+    <!-- -->
+    <key>assets_unzip_all_on_startup</key>
+    <string>true</string>
+    <!-- -->
+    <key>assets_priority_folders</key>
+    <string>oc-gen,oc-setup,oc-community,masterlists</string>
 
 
 	<!-- DEBUG -->
@@ -277,7 +286,7 @@
 	<string>opo</string>
     <!--  -->
 	<key>debug_build_number</key>
-	<string>RC2 - Community</string>
+	<string>RC4 - Community</string>
 
 
 	<!-- ANALYTICS MANAGER -->
