@@ -295,6 +295,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             if(getDaysBetweenTimestamps(startDate.getTime(), timestamp) >= 0)
             {
                 OBSystemsManager.sharedManager.setSystemTime(timestamp);
+                prepareAlarm();
             }
         }
         else
