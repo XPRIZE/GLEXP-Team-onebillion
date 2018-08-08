@@ -342,7 +342,7 @@ public class OC_PlayZoneTypewrite extends OC_SectionController
         currentTheme = name;
         String fontPath = String.format("%s",(String)themeData.get("font"));
         currentTypeface = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), fontPath);
-        currentTypeSize = applyGraphicScale(60f) * textScale;
+        currentTypeSize = applyGraphicScale(50f) * textScale;
 
         textBox.setTypeFace(currentTypeface);
         textBox.setFontSize(currentTypeSize);
