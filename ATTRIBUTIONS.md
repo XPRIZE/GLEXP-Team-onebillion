@@ -778,5 +778,5 @@ Every effort has been made to credit each sound effect accurately, but please do
 - **Liberation Sans**: [original](https://pagure.io/liberation-fonts) available under [SIL OFL 1.1](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL_web).
 - **Sen**: [original](https://github.com/philatype/Sen) available under [SIL OFL 1.1](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL_web).
 - **Open Dyslexic**: [original](https://www.opendyslexic.org) available under [SIL OFL 1.1](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL_web).
-- **onebillion reader**: adapted from [ABeeZee](hhttps://github.com/google/fonts/tree/master/ofl/abeezee) available under [SIL OFL 1.1](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL_web).
+- **onebillion reader**: adapted from [ABeeZee](https://github.com/google/fonts/tree/master/ofl/abeezee) available under [SIL OFL 1.1](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL_web).
 - **onebillion writer**: [original](https://github.com/XPRIZE/GLEXP-Team-onebillion/tree/master/app/src/main/fonts) available under [SIL OFL 1.1](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL_web).
