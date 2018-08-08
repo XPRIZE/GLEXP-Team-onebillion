@@ -86,7 +86,7 @@ public class OC_VideoPlayback extends OC_SectionController
     private static Typeface plainFont ()
     {
         if (plain == null)
-            plain = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Regular.otf");
+            plain = OBUtils.standardTypeFace();
         return plain;
     }
 
@@ -94,7 +94,7 @@ public class OC_VideoPlayback extends OC_SectionController
     private static Typeface boldFont ()
     {
         if (bold == null)
-            bold = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Bold.otf");
+            bold = OBUtils.standardTypeFace();
         return bold;
     }
 
@@ -102,7 +102,7 @@ public class OC_VideoPlayback extends OC_SectionController
     private static Typeface italicFont ()
     {
         if (italic == null)
-            italic = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Italic.otf");
+            italic = OBUtils.standardTypeFace();
         return italic;
     }
 
@@ -110,7 +110,7 @@ public class OC_VideoPlayback extends OC_SectionController
     private static Typeface boldItalicFont ()
     {
         if (boldItalic == null)
-            boldItalic = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-BoldItalic.otf");
+            boldItalic = OBUtils.standardTypeFace();
         return boldItalic;
     }
 

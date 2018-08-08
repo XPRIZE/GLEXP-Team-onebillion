@@ -400,8 +400,8 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                     //
                     homeScreenControls = loadEvent("master_home");
                     //
-                    Typeface defaultFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Regular.otf");
-                    Typeface boldFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Bold.otf");
+                    Typeface defaultFont = OBUtils.standardTypeFace();
+                    Typeface boldFont =  OBUtils.standardTypeFace();
                     //
                     List<OBPath> lines = (List<OBPath>) (Object) filterControls("home_line_.*");
                     for (OBPath line : lines)
@@ -481,7 +481,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                 {
                     setDateScreenControls = loadEvent("master_set_date");
                     //
-                    Typeface defaultFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Regular.otf");
+                    Typeface defaultFont =  OBUtils.standardTypeFace();
                     //
                     // Title, hide box, text colour as stroke colour on box, centred
                     setupLabelsForScreen("date_title", true, 0.7f, defaultFont, "centre", true, setDateScreenControls, finalSelf);
@@ -517,7 +517,7 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                 {
                     setTrialStartDateScreenControls = loadEvent("master_set_trial");
                     //
-                    Typeface defaultFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Regular.otf");
+                    Typeface defaultFont =  OBUtils.standardTypeFace();
                     //
                     // Title, hide box, text colour as stroke colour on box, centred
                     setupLabelsForScreen("trial_title", true, 0.7f, defaultFont, "centre", true, setTrialStartDateScreenControls, finalSelf);
@@ -625,8 +625,8 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                     confirmationLogo.setScale(homeLogo.scale());
                     confirmationLogo.setBounds(homeLogo.bounds());
                     //
-                    Typeface defaultFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Regular.otf");
-                    Typeface boldFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Bold.otf");
+                    Typeface defaultFont =  OBUtils.standardTypeFace();
+                    Typeface boldFont =  OBUtils.standardTypeFace();
                     //
                     // top labels: set label, hide placeholder, set boldFont colour to stroke colour of placeholder, centre align
                     setupLabelsForScreen("confirmation_title.*", true, 0.8f, boldFont, "centre", false, confirmationScreenControls, finalSelf);
@@ -690,8 +690,8 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
                 {
                     finalScreenControls = loadEvent("master_final");
                     //
-                    Typeface defaultFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Regular.otf");
-                    Typeface boldFont = Typeface.createFromAsset(MainActivity.mainActivity.getAssets(), "F37Ginger-Bold.otf");
+                    Typeface defaultFont =  OBUtils.standardTypeFace();
+                    Typeface boldFont =  OBUtils.standardTypeFace();
                     //
                     // top labels: set label, hide placeholder, set boldFont colour to stroke colour of placeholder, centre align
                     setupLabelsForScreen("final_title.*", true, 0.8f, boldFont, "centre", false, finalScreenControls, finalSelf);
