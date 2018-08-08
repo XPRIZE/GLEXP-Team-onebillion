@@ -248,7 +248,7 @@
 	<string>/onebillion/assets</string>
 	<!-- -->
 	<key>assets_look_for_zipped_files</key>
-	<string>true</string>
+	<string>false</string>
 	<!-- -->
 	<key>assets_unzip_all_on_startup</key>
 	<string>true</string>
@@ -287,7 +287,7 @@
 	<string>opo</string>
 	<!--  -->
 	<key>debug_build_number</key>
-	<string>RC2 - Community</string>
+	<string>RC4 - Community</string>
 
 
 	<!-- ANALYTICS MANAGER -->
