@@ -28,10 +28,10 @@ Our onecourse material in English.
 The handbook contains:
 
 - an overview of onecourse 
-- colour-coded sections on Reading, Writing, Numeracy, Design, and Technology, corresponding to tabs in your demo app 
+- colour-coded sections on Reading, Writing, Numeracy, Design, and Technology 
 - a summary of evidence from trials and pilot tests which were carried out in several countries, to evaluate the efficacy of onecourse 
 - information about onebillion – the non-profit organisation which produced onecourse – and the work we do
-- a set of appendices with further details about the course, our research, the software, the schedule to completion, and so on.
+- a set of appendices with further details about the course, our research and the software.
 
 
 ## Building onecourse
