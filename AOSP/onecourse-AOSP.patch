@@ -1,34 +1,21 @@
-
-project build/
-diff --git a/core/combo/HOST_darwin-x86.mk b/core/combo/HOST_darwin-x86.mk
-index e77fd21..44e0bbc 100644
---- a/core/combo/HOST_darwin-x86.mk
-+++ b/core/combo/HOST_darwin-x86.mk
-@@ -102,5 +102,5 @@ endef
+diff --git a/target/product/full_base.mk b/target/product/full_base.mk
+index 65bdf0f1b..55de6d72b 100644
+--- a/target/product/full_base.mk
++++ b/target/product/full_base.mk
+@@ -40,7 +40,7 @@ PRODUCT_PACKAGES += \
+ # Additional settings used in all AOSP builds
+ PRODUCT_PROPERTY_OVERRIDES := \
+     ro.config.ringtone=Ring_Synth_04.ogg \
+-    ro.config.notification_sound=pixiedust.ogg
++    ro.config.notification_sound=none
  
- # $(1): The file to check
- define get-file-size
--stat -f "%z" $(1)
-+stat -c "%s" $(1)
- endef
-diff --git a/core/combo/mac_version.mk b/core/combo/mac_version.mk
-index 6defba7..f27f304 100644
---- a/core/combo/mac_version.mk
-+++ b/core/combo/mac_version.mk
-@@ -9,7 +9,7 @@ ifndef build_mac_version
- 
- build_mac_version := $(shell sw_vers -productVersion)
- 
--mac_sdk_versions_supported :=  10.6 10.7 10.8 10.9
-+mac_sdk_versions_supported := 10.6 10.7 10.8 10.9 10.10 10.11 10.12
- ifneq ($(strip $(MAC_SDK_VERSION)),)
- mac_sdk_version := $(MAC_SDK_VERSION)
- ifeq ($(filter $(mac_sdk_version),$(mac_sdk_versions_supported)),)
+ # Put en_US first in the list, so make it default.
+ PRODUCT_LOCALES := en_US
 diff --git a/tools/buildinfo.sh b/tools/buildinfo.sh
-index 5c199b8..6671006 100755
+index 5c199b809..c7f0906b8 100755
 --- a/tools/buildinfo.sh
 +++ b/tools/buildinfo.sh
-@@ -50,10 +50,20 @@ echo "ro.build.product=$TARGET_DEVICE"
+@@ -50,10 +50,21 @@ echo "ro.build.product=$TARGET_DEVICE"
  
  echo "# Do not try to parse description, fingerprint, or thumbprint"
  echo "ro.build.description=$PRIVATE_BUILD_DESC"
@@ -43,40 +30,34 @@ index 5c199b8..6671006 100755
 +echo "ro.test_harness=1"
 +echo "ro.adb.secure=0"
 +echo "ro.secure=0"
++echo "ro.selinux=0"
 +echo "ro.allow.mock.location=0"
 +echo "ro.debuggable=1"
 +echo "persist.sys.usb.config=mtp,adb"
 +echo "persist.service.adb.enable=1"
 +echo "persist.service.debuggable=1"
 +echo "qemu.hw.mainkeys=1"
-+echo "ro.boot.selinux=0"
-
-project device/google/dragon/
++echo "androidboot.selinux=permissive"
 diff --git a/BoardConfig.mk b/BoardConfig.mk
-index ae27dc9..9efd4df 100644
+index ae27dc9..a73779b 100644
 --- a/BoardConfig.mk
 +++ b/BoardConfig.mk
-@@ -80,8 +80,8 @@ BOARD_WIDEVINE_OEMCRYPTO_LEVEL := 1
- #TARGET_SUPPORTS_64_BIT_APPS := true
+@@ -56,6 +56,8 @@ TARGET_USERIMAGES_USE_EXT4 := true
+ BOARD_SYSTEMIMAGE_PARTITION_SIZE := 3758096384
+ BOARD_CACHEIMAGE_PARTITION_SIZE := 419430400
+ BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE := ext4
++BOARD_USERDATAIMAGE_PARTITION_SIZE := 10516192768
++BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE := ext4
+ BOARD_FLASH_BLOCK_SIZE := 4096
  
- # Bluetooth
--BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/google/dragon/bluetooth
--BOARD_HAVE_BLUETOOTH_BCM := true
-+# BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/google/dragon/bluetooth
-+BOARD_HAVE_BLUETOOTH_BCM := false
+ BOARD_CHARGER_DISABLE_INIT_BLANK := true
+@@ -126,3 +128,5 @@ ifeq ($(SECURE_OS_BUILD),tlk)
+ endif
  
- # Wifi related defines
- BOARD_WPA_SUPPLICANT_DRIVER := NL80211
-@@ -94,6 +94,9 @@ WIFI_DRIVER_FW_PATH_PARAM   := "/sys/module/bcmdhd/parameters/firmware_path"
- WIFI_DRIVER_FW_PATH_STA     := "/vendor/firmware/fw_bcmdhd.bin"
- WIFI_DRIVER_FW_PATH_AP      := "/vendor/firmware/fw_bcmdhd_apsta.bin"
- 
+ BOARD_HAL_STATIC_LIBRARIES := libdumpstate.dragon libhealthd.dragon
 +
 +BOARD_KERNEL_CMDLINE := androidboot.selinux=permissive
-+
- # Enable dex-preoptimization to speed up first boot sequence
- ifeq ($(HOST_OS),linux)
-   ifeq ($(TARGET_BUILD_VARIANT),user)
+\ No newline at end of file
 diff --git a/aosp_dragon.mk b/aosp_dragon.mk
 index c95692f..ae52b4e 100644
 --- a/aosp_dragon.mk
@@ -106,17 +87,12 @@ index f3cd93d..7718276 100644
      $(LOCAL_PATH)/bluetooth/bt_vendor.conf:$(TARGET_COPY_OUT_SYSTEM)/etc/bluetooth/bt_vendor.conf
  
 diff --git a/fstab.dragon b/fstab.dragon
-index 1675852..dc99164 100644
+index 1675852..8851f23 100644
 --- a/fstab.dragon
 +++ b/fstab.dragon
-@@ -3,10 +3,10 @@
- # The filesystem that contains the filesystem checker binary (typically /system) cannot
- # specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK
- 
--/dev/block/platform/700b0600.sdhci/by-name/APP		/system		ext4	ro,barrier=1							wait,verify
--/dev/block/platform/700b0600.sdhci/by-name/VNR		/vendor		ext4	ro,barrier=1							wait,verify
-+/dev/block/platform/700b0600.sdhci/by-name/APP		/system		ext4	ro,barrier=1							wait
-+/dev/block/platform/700b0600.sdhci/by-name/VNR		/vendor		ext4	ro,barrier=1							wait
+@@ -6,7 +6,7 @@
+ /dev/block/platform/700b0600.sdhci/by-name/APP		/system		ext4	ro,barrier=1							wait,verify
+ /dev/block/platform/700b0600.sdhci/by-name/VNR		/vendor		ext4	ro,barrier=1							wait,verify
  /dev/block/platform/700b0600.sdhci/by-name/CAC		/cache		ext4	noatime,nosuid,nodev,barrier=1,data=ordered,noauto_da_alloc,errors=panic	wait,check
 -/dev/block/platform/700b0600.sdhci/by-name/UDA		/data		ext4	noatime,nosuid,nodev,barrier=1,data=ordered,noauto_da_alloc,discard,errors=panic	wait,check,forceencrypt=/dev/block/platform/700b0600.sdhci/by-name/MD1
 +/dev/block/platform/700b0600.sdhci/by-name/UDA		/data		ext4	noatime,nosuid,nodev,barrier=1,data=ordered,noauto_da_alloc,discard,errors=panic	wait,check
@@ -124,41 +100,25 @@ index 1675852..dc99164 100644
  /dev/block/platform/700b0600.sdhci/by-name/recovery	/recovery	emmc	defaults						defaults
  /dev/block/platform/700b0600.sdhci/by-name/MSC		/misc		emmc	defaults						defaults
 diff --git a/init.dragon.rc b/init.dragon.rc
-index d2ba414..4a21f70 100644
+index d2ba414..fbe1ede 100644
 --- a/init.dragon.rc
 +++ b/init.dragon.rc
-@@ -26,6 +26,9 @@ on init
-     setprop qemu.hw.mainkeys 0
+@@ -22,8 +22,8 @@ on init
+     setprop persist.tegra.58027529 0x00000002
+     setprop persist.tegra.a3456abe 0x087f6080
+ 
+-    # fix navigation bar not showing
+-    setprop qemu.hw.mainkeys 0
++    # fix navigation bar not disappearing
++    setprop qemu.hw.mainkeys 1
      start watchdogd
  
-+    chmod 7777 /sytem/xbin/su
-+    su root setenforce 0
-+
  on late-init
-     # Setting slice_idle to 0 for CFQ, so make sure the scheduler is CFQ.
-     write /sys/block/mmcblk0/queue/scheduler cfq
-@@ -34,9 +37,9 @@ on late-init
-     # enable rcu_expedited
-     write /sys/kernel/rcu_expedited 1
- 
--on early-boot
-+# on early-boot
-     # Update dm-verity state and set partition.*.verified properties
--    verity_update_state
-+    # verity_update_state
- 
- # Set watchdog timer to 30 seconds and pet it every 10 seconds to get a 20 second margin
- service watchdogd /sbin/watchdogd 10 20
 diff --git a/overlay/frameworks/base/core/res/res/values/config.xml b/overlay/frameworks/base/core/res/res/values/config.xml
-index 903e6b2..d510b4a 100644
+index 903e6b2..fbeef0f 100644
 --- a/overlay/frameworks/base/core/res/res/values/config.xml
 +++ b/overlay/frameworks/base/core/res/res/values/config.xml
-@@ -26,11 +26,11 @@
-     <bool name="config_sms_capable">false</bool>
- 
-     <!-- If this is true, the screen will come on when you unplug usb/power/whatever. -->
--    <bool name="config_unplugTurnsOnScreen">true</bool>
-+    <bool name="config_unplugTurnsOnScreen">false</bool>
+@@ -30,7 +30,7 @@
  
      <!-- Whether a software navigation bar should be shown. NOTE: in the future this may be
           autodetected from the Configuration. -->
@@ -167,705 +127,499 @@ index 903e6b2..d510b4a 100644
  
      <!--  Maximum number of supported users -->
      <integer name="config_multiuserMaximumUsers">8</integer>
-
-project external/selinux/
-diff --git a/libselinux/src/avc.c b/libselinux/src/avc.c
-index b1ec57f..cd1d9b8 100644
---- a/libselinux/src/avc.c
-+++ b/libselinux/src/avc.c
-@@ -4,7 +4,7 @@
-  * Author : Eamon Walsh <ewalsh@epoch.ncsc.mil>
-  *
-  * Derived from the kernel AVC implementation by
-- * Stephen Smalley <sds@epoch.ncsc.mil> and 
-+ * Stephen Smalley <sds@epoch.ncsc.mil> and
-  * James Morris <jmorris@redhat.com>.
-  */
- #include <selinux/avc.h>
-@@ -437,8 +437,8 @@ static int avc_lookup(security_id_t ssid, security_id_t tsid,
- 		goto out;
- 	}
+diff --git a/src/getenforce.c b/src/getenforce.c
+index 4fb516a..ac43dda 100644
+--- a/src/getenforce.c
++++ b/src/getenforce.c
+@@ -11,6 +11,8 @@
  
--	avc_cache_stats_incr(cav_misses);
--	rc = -1;
-+	// avc_cache_stats_incr(cav_misses);
-+	// rc = -1;
-       out:
- 	return rc;
+ int security_getenforce(void)
+ {
++	return 0;
++	/*
+ 	int fd, ret, enforce = 0;
+ 	char path[PATH_MAX];
+ 	char buf[20];
+@@ -35,6 +37,7 @@ int security_getenforce(void)
+ 		return -1;
+ 
+ 	return enforce;
++	*/
  }
+ 
+ hidden_def(security_getenforce)
 diff --git a/libselinux/src/selinux_config.c b/libselinux/src/selinux_config.c
-index 30e9dc7..f3bd218 100644
+index 30e9dc7..fb18a8b 100644
 --- a/libselinux/src/selinux_config.c
 +++ b/libselinux/src/selinux_config.c
-@@ -86,44 +86,46 @@ static const uint16_t file_path_suffixes_idx[NEL] = {
+@@ -86,6 +86,8 @@ static const uint16_t file_path_suffixes_idx[NEL] = {
  
  int selinux_getenforcemode(int *enforce)
  {
--	int ret = -1;
--	FILE *cfg = fopen(SELINUXCONFIG, "r");
--	if (cfg) {
--		char *buf;
--		int len = sizeof(SELINUXTAG) - 1;
--		buf = malloc(selinux_page_size);
--		if (!buf) {
--			fclose(cfg);
--			return -1;
--		}
--		while (fgets_unlocked(buf, selinux_page_size, cfg)) {
--			if (strncmp(buf, SELINUXTAG, len))
--				continue;
--			if (!strncasecmp
--			    (buf + len, "enforcing", sizeof("enforcing") - 1)) {
--				*enforce = 1;
--				ret = 0;
--				break;
--			} else
--			    if (!strncasecmp
--				(buf + len, "permissive",
--				 sizeof("permissive") - 1)) {
--				*enforce = 0;
--				ret = 0;
--				break;
--			} else
--			    if (!strncasecmp
--				(buf + len, "disabled",
--				 sizeof("disabled") - 1)) {
--				*enforce = -1;
--				ret = 0;
--				break;
--			}
--		}
--		fclose(cfg);
--		free(buf);
--	}
--	return ret;
-+	*enforce = 0;
 +	return 0;
-+	// int ret = -1;
-+	// FILE *cfg = fopen(SELINUXCONFIG, "r");
-+	// if (cfg) {
-+	// 	char *buf;
-+	// 	int len = sizeof(SELINUXTAG) - 1;
-+	// 	buf = malloc(selinux_page_size);
-+	// 	if (!buf) {
-+	// 		fclose(cfg);
-+	// 		return -1;
-+	// 	}
-+	// 	while (fgets_unlocked(buf, selinux_page_size, cfg)) {
-+	// 		if (strncmp(buf, SELINUXTAG, len))
-+	// 			continue;
-+	// 		if (!strncasecmp
-+	// 		    (buf + len, "enforcing", sizeof("enforcing") - 1)) {
-+	// 			*enforce = 1;
-+	// 			ret = 0;
-+	// 			break;
-+	// 		} else
-+	// 		    if (!strncasecmp
-+	// 			(buf + len, "permissive",
-+	// 			 sizeof("permissive") - 1)) {
-+	// 			*enforce = 0;
-+	// 			ret = 0;
-+	// 			break;
-+	// 		} else
-+	// 		    if (!strncasecmp
-+	// 			(buf + len, "disabled",
-+	// 			 sizeof("disabled") - 1)) {
-+	// 			*enforce = -1;
-+	// 			ret = 0;
-+	// 			break;
-+	// 		}
-+	// 	}
-+	// 	fclose(cfg);
-+	// 	free(buf);
-+	// }
-+	// return ret;
++	/*
+ 	int ret = -1;
+ 	FILE *cfg = fopen(SELINUXCONFIG, "r");
+ 	if (cfg) {
+@@ -124,6 +126,7 @@ int selinux_getenforcemode(int *enforce)
+ 		free(buf);
+ 	}
+ 	return ret;
++	*/
  }
  
  hidden_def(selinux_getenforcemode)
 diff --git a/libselinux/src/sestatus.c b/libselinux/src/sestatus.c
-index ed29dc5..2f8b5d9 100644
+index ed29dc5..b41f59b 100644
 --- a/libselinux/src/sestatus.c
 +++ b/libselinux/src/sestatus.c
-@@ -130,30 +130,31 @@ int selinux_status_updated(void)
+@@ -130,6 +130,8 @@ int selinux_status_updated(void)
   */
  int selinux_status_getenforce(void)
  {
--	uint32_t	seqno;
--	uint32_t	enforcing;
--
--	if (selinux_status == NULL) {
--		errno = EINVAL;
--		return -1;
--	}
--
--	if (selinux_status == MAP_FAILED) {
--		if (avc_netlink_check_nb() < 0)
--			return -1;
--
--		return fallback_enforcing;
--	}
--
--	/* sequence must not be changed during references */
--	do {
--		seqno = read_sequence(selinux_status);
--
--		enforcing = selinux_status->enforcing;
--
--	} while (seqno != read_sequence(selinux_status));
--
--	return enforcing ? 1 : 0;
 +	return 0;
-+	// uint32_t	seqno;
-+	// uint32_t	enforcing;
-+	//
-+	// if (selinux_status == NULL) {
-+	// 	errno = EINVAL;
-+	// 	return -1;
-+	// }
-+	//
-+	// if (selinux_status == MAP_FAILED) {
-+	// 	if (avc_netlink_check_nb() < 0)
-+	// 		return -1;
-+	//
-+	// 	return fallback_enforcing;
-+	// }
-+	//
-+	// /* sequence must not be changed during references */
-+	// do {
-+	// 	seqno = read_sequence(selinux_status);
-+	//
-+	// 	enforcing = selinux_status->enforcing;
-+	//
-+	// } while (seqno != read_sequence(selinux_status));
-+	//
-+	// return enforcing ? 1 : 0;
++	/*
+ 	uint32_t	seqno;
+ 	uint32_t	enforcing;
+ 
+@@ -145,7 +147,6 @@ int selinux_status_getenforce(void)
+ 		return fallback_enforcing;
+ 	}
+ 
+-	/* sequence must not be changed during references */
+ 	do {
+ 		seqno = read_sequence(selinux_status);
+ 
+@@ -154,6 +155,7 @@ int selinux_status_getenforce(void)
+ 	} while (seqno != read_sequence(selinux_status));
+ 
+ 	return enforcing ? 1 : 0;
++	*/
  }
  
  /*
-@@ -202,26 +203,27 @@ int selinux_status_policyload(void)
-  */
- int selinux_status_deny_unknown(void)
- {
--	uint32_t	seqno;
--	uint32_t	deny_unknown;
--
--	if (selinux_status == NULL) {
--		errno = EINVAL;
--		return -1;
--	}
--
--	if (selinux_status == MAP_FAILED)
--		return security_deny_unknown();
--
--	/* sequence must not be changed during references */
--	do {
--		seqno = read_sequence(selinux_status);
--
--		deny_unknown = selinux_status->deny_unknown;
--
--	} while (seqno != read_sequence(selinux_status));
--
--	return deny_unknown ? 1 : 0;
-+	return 0;
-+	// uint32_t	seqno;
-+	// uint32_t	deny_unknown;
-+	//
-+	// if (selinux_status == NULL) {
-+	// 	errno = EINVAL;
-+	// 	return -1;
-+	// }
-+	//
-+	// if (selinux_status == MAP_FAILED)
-+	// 	return security_deny_unknown();
-+	//
-+	// /* sequence must not be changed during references */
-+	// do {
-+	// 	seqno = read_sequence(selinux_status);
-+	//
-+	// 	deny_unknown = selinux_status->deny_unknown;
-+	//
-+	// } while (seqno != read_sequence(selinux_status));
-+	//
-+	// return deny_unknown ? 1 : 0;
- }
- 
- /*
-
-project external/sepolicy/
 diff --git a/app.te b/app.te
-index 40de074..a4f6a9f 100644
+index 40de074..eca527b 100644
 --- a/app.te
 +++ b/app.te
-@@ -213,157 +213,157 @@ selinux_check_context(appdomain)
- 
- # Superuser capabilities.
- # bluetooth requires net_admin and wake_alarm.
--neverallow { appdomain -bluetooth } self:capability *;
--neverallow { appdomain -bluetooth } self:capability2 *;
-+### neverallow { appdomain -bluetooth } self:capability *;
-+### neverallow { appdomain -bluetooth } self:capability2 *;
- 
- # Block device access.
--neverallow appdomain dev_type:blk_file { read write };
-+### neverallow appdomain dev_type:blk_file { read write };
- 
- # Access to any of the following character devices.
--neverallow appdomain {
--    audio_device
--    camera_device
--    dm_device
--    radio_device
--    gps_device
--    rpmsg_device
--}:chr_file { read write };
-+### neverallow appdomain {
-+###     audio_device
-+###     camera_device
-+###     dm_device
-+###     radio_device
-+###     gps_device
-+###     rpmsg_device
-+### }:chr_file { read write };
- 
- # Note: Try expanding list of app domains in the future.
--neverallow { untrusted_app isolated_app shell } graphics_device:chr_file { read write };
-+### neverallow { untrusted_app isolated_app shell } graphics_device:chr_file { read write };
- 
--neverallow { appdomain -nfc } nfc_device:chr_file
--    { read write };
--neverallow { appdomain -bluetooth } hci_attach_dev:chr_file
--    { read write };
--neverallow appdomain tee_device:chr_file { read write };
-+### neverallow { appdomain -nfc } nfc_device:chr_file
-+###     { read write };
-+### neverallow { appdomain -bluetooth } hci_attach_dev:chr_file
-+###     { read write };
-+### neverallow appdomain tee_device:chr_file { read write };
- 
- # Privileged netlink socket interfaces.
--neverallow appdomain
--    domain:{
--        netlink_firewall_socket
--        netlink_tcpdiag_socket
--        netlink_nflog_socket
--        netlink_xfrm_socket
--        netlink_audit_socket
--        netlink_ip6fw_socket
--        netlink_dnrt_socket
--    } *;
-+### neverallow appdomain
-+###     domain:{
-+###         netlink_firewall_socket
-+###         netlink_tcpdiag_socket
-+###         netlink_nflog_socket
-+###         netlink_xfrm_socket
-+###         netlink_audit_socket
-+###         netlink_ip6fw_socket
-+###         netlink_dnrt_socket
-+###     } *;
- 
- # These messages are broadcast messages from the kernel to userspace.
- # Do not allow the writing of netlink messages, which has been a source
- # of rooting vulns in the past.
--neverallow appdomain domain:netlink_kobject_uevent_socket { write append };
-+### neverallow appdomain domain:netlink_kobject_uevent_socket { write append };
- 
- # Sockets under /dev/socket that are not specifically typed.
--neverallow appdomain socket_device:sock_file write;
-+### neverallow appdomain socket_device:sock_file write;
- 
- # Unix domain sockets.
--neverallow appdomain adbd_socket:sock_file write;
--neverallow appdomain installd_socket:sock_file write;
--neverallow { appdomain -bluetooth -radio -shell -system_app -nfc }
--    property_socket:sock_file write;
--neverallow { appdomain -radio } rild_socket:sock_file write;
--neverallow appdomain vold_socket:sock_file write;
--neverallow appdomain zygote_socket:sock_file write;
-+### neverallow appdomain adbd_socket:sock_file write;
-+### neverallow appdomain installd_socket:sock_file write;
-+### neverallow { appdomain -bluetooth -radio -shell -system_app -nfc }
-+###     property_socket:sock_file write;
-+### neverallow { appdomain -radio } rild_socket:sock_file write;
-+### neverallow appdomain vold_socket:sock_file write;
-+### neverallow appdomain zygote_socket:sock_file write;
- 
- # ptrace access to non-app domains.
--neverallow appdomain { domain -appdomain }:process ptrace;
-+### neverallow appdomain { domain -appdomain }:process ptrace;
- 
- # Write access to /proc/pid entries for any non-app domain.
--neverallow appdomain { domain -appdomain }:file write;
-+### neverallow appdomain { domain -appdomain }:file write;
- 
- # signal access to non-app domains.
- # sigchld allowed for parent death notification.
- # signull allowed for kill(pid, 0) existence test.
- # All others prohibited.
--neverallow appdomain { domain -appdomain }:process
--    { sigkill sigstop signal };
-+### neverallow appdomain { domain -appdomain }:process
-+###     { sigkill sigstop signal };
- 
- # Transition to a non-app domain.
- # Exception for the shell domain and the su domain, can transition to runas,
- # etc.
--neverallow { appdomain -shell userdebug_or_eng(`-su') } { domain -appdomain }:process
--    { transition dyntransition };
-+### neverallow { appdomain -shell userdebug_or_eng(`-su') } { domain -appdomain }:process
-+###     { transition dyntransition };
- 
- # Write to rootfs.
--neverallow appdomain rootfs:dir_file_class_set
--    { create write setattr relabelfrom relabelto append unlink link rename };
-+### neverallow appdomain rootfs:dir_file_class_set
-+###     { create write setattr relabelfrom relabelto append unlink link rename };
+@@ -291,11 +291,11 @@ neverallow appdomain rootfs:dir_file_class_set
+     { create write setattr relabelfrom relabelto append unlink link rename };
  
  # Write to /system.
 -neverallow appdomain system_file:dir_file_class_set
--    { create write setattr relabelfrom relabelto append unlink link rename };
-+### neverallow appdomain system_file:dir_file_class_set
-+###     { create write setattr relabelfrom relabelto append unlink link rename };
++allow appdomain system_file:dir_file_class_set
+     { create write setattr relabelfrom relabelto append unlink link rename };
  
  # Write to entrypoint executables.
 -neverallow appdomain exec_type:file
--    { create write setattr relabelfrom relabelto append unlink link rename };
-+### neverallow appdomain exec_type:file
-+###     { create write setattr relabelfrom relabelto append unlink link rename };
++allow appdomain exec_type:file
+     { create write setattr relabelfrom relabelto append unlink link rename };
  
  # Write to system-owned parts of /data.
- # This is the default type for anything under /data not otherwise
+@@ -303,44 +303,44 @@ neverallow appdomain exec_type:file
  # specified in file_contexts.  Define a different type for portions
  # that should be writable by apps.
  # Exception for system_app for Settings.
 -neverallow { appdomain -system_app }
--    system_data_file:dir_file_class_set
--    { create write setattr relabelfrom relabelto append unlink link rename };
-+### neverallow { appdomain -system_app }
-+###     system_data_file:dir_file_class_set
-+###     { create write setattr relabelfrom relabelto append unlink link rename };
++allow { appdomain -system_app }
+     system_data_file:dir_file_class_set
+     { create write setattr relabelfrom relabelto append unlink link rename };
  
  # Write to various other parts of /data.
 -neverallow appdomain drm_data_file:dir_file_class_set
--    { create write setattr relabelfrom relabelto append unlink link rename };
++allow appdomain drm_data_file:dir_file_class_set
+     { create write setattr relabelfrom relabelto append unlink link rename };
 -neverallow { appdomain -system_app }
--    gps_data_file:dir_file_class_set
--    { create write setattr relabelfrom relabelto append unlink link rename };
++allow { appdomain -system_app }
+     gps_data_file:dir_file_class_set
+     { create write setattr relabelfrom relabelto append unlink link rename };
 -neverallow { appdomain -platform_app }
--    apk_data_file:dir_file_class_set
--    { create write setattr relabelfrom relabelto append unlink link rename };
++allow { appdomain -platform_app }
+     apk_data_file:dir_file_class_set
+     { create write setattr relabelfrom relabelto append unlink link rename };
 -neverallow { appdomain -platform_app }
--    apk_tmp_file:dir_file_class_set
--    { create write setattr relabelfrom relabelto append unlink link rename };
++allow { appdomain -platform_app }
+     apk_tmp_file:dir_file_class_set
+     { create write setattr relabelfrom relabelto append unlink link rename };
 -neverallow { appdomain -platform_app }
--    apk_private_data_file:dir_file_class_set
--    { create write setattr relabelfrom relabelto append unlink link rename };
++allow { appdomain -platform_app }
+     apk_private_data_file:dir_file_class_set
+     { create write setattr relabelfrom relabelto append unlink link rename };
 -neverallow { appdomain -platform_app }
--    apk_private_tmp_file:dir_file_class_set
--    { create write setattr relabelfrom relabelto append unlink link rename };
++allow { appdomain -platform_app }
+     apk_private_tmp_file:dir_file_class_set
+     { create write setattr relabelfrom relabelto append unlink link rename };
 -neverallow { appdomain -shell }
--    shell_data_file:dir_file_class_set
--    { create setattr relabelfrom relabelto append unlink link rename };
++allow { appdomain -shell }
+     shell_data_file:dir_file_class_set
+     { create setattr relabelfrom relabelto append unlink link rename };
 -neverallow { appdomain -bluetooth }
--    bluetooth_data_file:dir_file_class_set
--    { create write setattr relabelfrom relabelto append unlink link rename };
++allow { appdomain -bluetooth }
+     bluetooth_data_file:dir_file_class_set
+     { create write setattr relabelfrom relabelto append unlink link rename };
 -neverallow appdomain
--    keystore_data_file:dir_file_class_set
--    { create write setattr relabelfrom relabelto append unlink link rename };
++allow appdomain
+     keystore_data_file:dir_file_class_set
+     { create write setattr relabelfrom relabelto append unlink link rename };
 -neverallow appdomain
--    systemkeys_data_file:dir_file_class_set
--    { create write setattr relabelfrom relabelto append unlink link rename };
++allow appdomain
+     systemkeys_data_file:dir_file_class_set
+     { create write setattr relabelfrom relabelto append unlink link rename };
 -neverallow appdomain
--    wifi_data_file:dir_file_class_set
--    { create write setattr relabelfrom relabelto append unlink link rename };
++allow appdomain
+     wifi_data_file:dir_file_class_set
+     { create write setattr relabelfrom relabelto append unlink link rename };
 -neverallow appdomain
--    dhcp_data_file:dir_file_class_set
--    { create write setattr relabelfrom relabelto append unlink link rename };
-+### neverallow appdomain drm_data_file:dir_file_class_set
-+###     { create write setattr relabelfrom relabelto append unlink link rename };
-+### neverallow { appdomain -system_app }
-+###     gps_data_file:dir_file_class_set
-+###     { create write setattr relabelfrom relabelto append unlink link rename };
-+### neverallow { appdomain -platform_app }
-+###     apk_data_file:dir_file_class_set
-+###     { create write setattr relabelfrom relabelto append unlink link rename };
-+### neverallow { appdomain -platform_app }
-+###     apk_tmp_file:dir_file_class_set
-+###     { create write setattr relabelfrom relabelto append unlink link rename };
-+### neverallow { appdomain -platform_app }
-+###     apk_private_data_file:dir_file_class_set
-+###     { create write setattr relabelfrom relabelto append unlink link rename };
-+### neverallow { appdomain -platform_app }
-+###     apk_private_tmp_file:dir_file_class_set
-+###     { create write setattr relabelfrom relabelto append unlink link rename };
-+### neverallow { appdomain -shell }
-+###     shell_data_file:dir_file_class_set
-+###     { create setattr relabelfrom relabelto append unlink link rename };
-+### neverallow { appdomain -bluetooth }
-+###     bluetooth_data_file:dir_file_class_set
-+###     { create write setattr relabelfrom relabelto append unlink link rename };
-+### neverallow appdomain
-+###     keystore_data_file:dir_file_class_set
-+###     { create write setattr relabelfrom relabelto append unlink link rename };
-+### neverallow appdomain
-+###     systemkeys_data_file:dir_file_class_set
-+###     { create write setattr relabelfrom relabelto append unlink link rename };
-+### neverallow appdomain
-+###     wifi_data_file:dir_file_class_set
-+###     { create write setattr relabelfrom relabelto append unlink link rename };
-+### neverallow appdomain
-+###     dhcp_data_file:dir_file_class_set
-+###     { create write setattr relabelfrom relabelto append unlink link rename };
++allow appdomain
+     dhcp_data_file:dir_file_class_set
+     { create write setattr relabelfrom relabelto append unlink link rename };
  
- # Access to factory files.
- neverallow appdomain efs_file:dir_file_class_set write;
- neverallow { appdomain -shell } efs_file:dir_file_class_set read;
- 
- # Write to various pseudo file systems.
--neverallow { appdomain -bluetooth -nfc }
--    sysfs:dir_file_class_set write;
--neverallow appdomain
--    proc:dir_file_class_set write;
-+### neverallow { appdomain -bluetooth -nfc }
-+###     sysfs:dir_file_class_set write;
-+### neverallow appdomain
-+###     proc:dir_file_class_set write;
- 
- # Access to syslog(2) or /proc/kmsg.
--neverallow { appdomain -system_app }
--    kernel:system { syslog_mod syslog_console };
--neverallow { appdomain -system_app -shell }
--    kernel:system syslog_read;
-+### neverallow { appdomain -system_app }
-+###     kernel:system { syslog_mod syslog_console };
-+### neverallow { appdomain -system_app -shell }
-+###     kernel:system syslog_read;
- 
- # Ability to perform any filesystem operation other than statfs(2).
- # i.e. no mount(2), unmount(2), etc.
--neverallow appdomain fs_type:filesystem ~getattr;
-+### neverallow appdomain fs_type:filesystem ~getattr;
- 
- # Ability to set system properties.
--neverallow { appdomain -system_app -radio -shell -bluetooth -nfc }
--    property_type:property_service set;
-+### neverallow { appdomain -system_app -radio -shell -bluetooth -nfc }
-+###     property_type:property_service set;
-diff --git a/bluetooth.te b/bluetooth.te
-index 8c8ecb1..c3f2d22 100644
---- a/bluetooth.te
-+++ b/bluetooth.te
-@@ -4,18 +4,18 @@ app_domain(bluetooth)
- net_domain(bluetooth)
- 
- # Data file accesses.
--allow bluetooth bluetooth_data_file:dir create_dir_perms;
--allow bluetooth bluetooth_data_file:notdevfile_class_set create_file_perms;
-+neverallow bluetooth bluetooth_data_file:dir create_dir_perms;
-+neverallow bluetooth bluetooth_data_file:notdevfile_class_set create_file_perms;
- 
- # Socket creation under /data/misc/bluedroid.
- type_transition bluetooth bluetooth_data_file:sock_file bluetooth_socket;
--allow bluetooth bluetooth_socket:sock_file create_file_perms;
-+neverallow bluetooth bluetooth_socket:sock_file create_file_perms;
- 
- # bluetooth factory file accesses.
- r_dir_file(bluetooth, bluetooth_efs_file)
- 
- # Device accesses.
--allow bluetooth { tun_device uhid_device hci_attach_dev }:chr_file rw_file_perms;
-+neverallow bluetooth { tun_device uhid_device hci_attach_dev }:chr_file rw_file_perms;
- 
- # Other domains that can create and use bluetooth sockets.
- # SELinux does not presently define a specific socket class for
-@@ -23,36 +23,36 @@ allow bluetooth { tun_device uhid_device hci_attach_dev }:chr_file rw_file_perms
- # TODO: This should no longer be needed with bluedroid for bluetooth
- # but may be getting used for other non-bluetooth sockets that has no
- # specific class defined.  Consider taking to specific domains.
--allow { bluetoothdomain -untrusted_app -isolated_app -shell } self:socket create_socket_perms;
-+neverallow { bluetoothdomain -untrusted_app -isolated_app -shell } self:socket create_socket_perms;
- neverallow { untrusted_app isolated_app shell } { untrusted_app isolated_app shell }:socket *;
- 
- # sysfs access.
--allow bluetooth sysfs_bluetooth_writable:file rw_file_perms;
--allow bluetooth self:capability net_admin;
--allow bluetooth self:capability2 wake_alarm;
-+neverallow bluetooth sysfs_bluetooth_writable:file rw_file_perms;
-+neverallow bluetooth self:capability net_admin;
-+neverallow bluetooth self:capability2 wake_alarm;
- 
- # Allow clients to use a socket provided by the bluetooth app.
- # TODO:  See if this is still required under bluedroid.
- allow bluetoothdomain bluetooth:unix_stream_socket { getopt setopt getattr read write ioctl shutdown };
- 
- # tethering
--allow bluetooth self:tun_socket create_socket_perms;
--allow bluetooth efs_file:dir search;
-+neverallow bluetooth self:tun_socket create_socket_perms;
-+neverallow bluetooth efs_file:dir search;
- 
- # proc access.
--allow bluetooth proc_bluetooth_writable:file rw_file_perms;
-+neverallow bluetooth proc_bluetooth_writable:file rw_file_perms;
- 
- # Allow write access to bluetooth specific properties
- set_prop(bluetooth, bluetooth_prop)
- set_prop(bluetooth, pan_result_prop)
- set_prop(bluetooth, ctl_dhcp_pan_prop)
- 
--allow bluetooth bluetooth_service:service_manager find;
--allow bluetooth mediaserver_service:service_manager find;
--allow bluetooth radio_service:service_manager find;
--allow bluetooth surfaceflinger_service:service_manager find;
--allow bluetooth app_api_service:service_manager find;
--allow bluetooth system_api_service:service_manager find;
-+neverallow bluetooth bluetooth_service:service_manager find;
-+neverallow bluetooth mediaserver_service:service_manager find;
-+neverallow bluetooth radio_service:service_manager find;
-+neverallow bluetooth surfaceflinger_service:service_manager find;
-+neverallow bluetooth app_api_service:service_manager find;
-+neverallow bluetooth system_api_service:service_manager find;
- 
- # Bluetooth Sim Access Profile Socket to the RIL
- unix_socket_connect(bluetooth, sap_uim, rild)
-@@ -60,7 +60,7 @@ unix_socket_connect(bluetooth, sap_uim, rild)
- # already open bugreport file descriptors may be shared with
- # the bluetooth process, from a file in
- # /data/data/com.android.shell/files/bugreports/bugreport-*.
--allow bluetooth shell_data_file:file read;
-+neverallow bluetooth shell_data_file:file read;
- 
- ###
- ### Neverallow rules
+diff --git a/blkid.te b/blkid.te
+index 15b6a85..a79ef92 100644
+--- a/blkid.te
++++ b/blkid.te
+@@ -17,4 +17,4 @@ allow blkid blkid_exec:file rx_file_perms;
+ # Only allow entry from vold
+ neverallow { domain -vold } blkid:process transition;
+ neverallow domain blkid:process dyntransition;
+-neverallow blkid { file_type fs_type -blkid_exec -shell_exec }:file entrypoint;
++allow blkid { file_type fs_type -blkid_exec -shell_exec }:file entrypoint;
+diff --git a/blkid_untrusted.te b/blkid_untrusted.te
+index df8e447..5ea0099 100644
+--- a/blkid_untrusted.te
++++ b/blkid_untrusted.te
+@@ -33,4 +33,4 @@ neverallow blkid_untrusted {
+ # Only allow entry from vold via blkid binary
+ neverallow { domain -vold } blkid_untrusted:process transition;
+ neverallow domain blkid_untrusted:process dyntransition;
+-neverallow blkid_untrusted { file_type fs_type -blkid_exec -shell_exec }:file entrypoint;
++allow blkid_untrusted { file_type fs_type -blkid_exec -shell_exec }:file entrypoint;
 diff --git a/domain.te b/domain.te
-index 23460c9..de6c8bc 100644
+index 23460c9..43c199e 100644
 --- a/domain.te
 +++ b/domain.te
-@@ -236,7 +236,7 @@ neverallow { domain -system_server } security_file:lnk_file { create setattr unl
- # init starts in kernel domain and switches to init domain via setcon in
- # the init.rc, so the setenforce occurs while still in kernel. After
- # switching domains, there is never any need to setenforce again by init.
--neverallow domain kernel:security setenforce;
-+# neverallow domain kernel:security setenforce;
- neverallow { domain -kernel } kernel:security setcheckreqprot;
+@@ -229,7 +229,7 @@ neverallow { domain -init } security_file:{ dir file lnk_file } { relabelfrom re
+ neverallow { domain -init -system_server } security_file:dir { create setattr };
+ # Only system_server can create subdirectories and files under /data/security.
+ neverallow { domain -system_server } security_file:dir { rename write add_name remove_name rmdir };
+-neverallow { domain -system_server } security_file:file { create setattr write append unlink link rename };
++allow { domain -system_server } security_file:file { create setattr write append unlink link rename };
+ neverallow { domain -system_server } security_file:lnk_file { create setattr unlink rename };
  
- # No booleans in AOSP policy, so no need to ever set them.
-@@ -308,9 +308,9 @@ neverallow { domain -init } property_data_file:dir no_w_dir_perms;
- neverallow { domain -init } property_data_file:file no_w_file_perms;
+ # Only init prior to switching context should be able to set enforcing mode.
+@@ -251,7 +251,7 @@ neverallow { domain -init } kernel:security setsecparam;
+ neverallow { domain -init -system_server -ueventd } hw_random_device:chr_file *;
+ 
+ # Ensure that all entrypoint executables are in exec_type.
+-neverallow domain { file_type -exec_type }:file entrypoint;
++allow domain { file_type -exec_type }:file entrypoint;
+ 
+ # Ensure that nothing in userspace can access /dev/mem or /dev/kmem
+ neverallow { domain -kernel -ueventd -init } kmem_device:chr_file *;
+@@ -288,7 +288,7 @@ neverallow { domain -kernel -init -recovery -vold -zygote } { fs_type -sdcard_ty
+ # Assert that, to the extent possible, we're not loading executable content from
+ # outside the rootfs or /system partition except for a few whitelisted domains.
+ #
+-neverallow {
++allow {
+     domain
+     -appdomain
+     -dumpstate
+@@ -304,16 +304,16 @@ neverallow {
+ } { fs_type -rootfs }:file execute;
+ 
+ # Only the init property service should write to /data/property.
+-neverallow { domain -init } property_data_file:dir no_w_dir_perms;
+-neverallow { domain -init } property_data_file:file no_w_file_perms;
++allow { domain -init } property_data_file:dir no_w_dir_perms;
++allow { domain -init } property_data_file:file no_w_file_perms;
  
  # Only recovery should be doing writes to /system
 -neverallow { domain -recovery } { system_file exec_type }:dir_file_class_set
--    { create write setattr relabelfrom append unlink link rename };
++allow { domain -recovery } { system_file exec_type }:dir_file_class_set
+     { create write setattr relabelfrom append unlink link rename };
 -neverallow { domain -recovery -kernel } { system_file exec_type }:dir_file_class_set relabelto;
-+# neverallow { domain -recovery } { system_file exec_type }:dir_file_class_set
-+#     { create write setattr relabelfrom append unlink link rename };
-+# neverallow { domain -recovery -kernel } { system_file exec_type }:dir_file_class_set relabelto;
++allow { domain -recovery -kernel } { system_file exec_type }:dir_file_class_set relabelto;
  
  # Don't allow mounting on top of /system files or directories
- neverallow domain { system_file exec_type }:dir_file_class_set mounton;
-@@ -397,7 +397,7 @@ neverallow domain { file_type fs_type dev_type }:{ lnk_file fifo_file sock_file
+-neverallow domain { system_file exec_type }:dir_file_class_set mounton;
++allow domain { system_file exec_type }:dir_file_class_set mounton;
+ 
+ # Nothing should be writing to files in the rootfs.
+ neverallow domain rootfs:file { create write setattr relabelto append unlink link rename };
+@@ -352,7 +352,7 @@ neverallow { domain -servicemanager } *:binder set_context_mgr;
+ 
+ # Only authorized processes should be writing to files in /data/dalvik-cache
+ # (excluding /data/dalvik-cache/profiles, which is labeled differently)
+-neverallow {
++allow {
+   domain
+   -init # TODO: limit init to relabelfrom for files
+   -zygote
+@@ -360,7 +360,7 @@ neverallow {
+   -dex2oat
+ } dalvikcache_data_file:file no_w_file_perms;
+ 
+-neverallow {
++allow {
+   domain
+   -init
+   -installd
+@@ -392,19 +392,19 @@ neverallow domain domain:{ shm sem msg msgq } *;
+ 
+ # Do not mount on top of symlinks, fifos, or sockets.
+ # Feature parity with Chromium LSM.
+-neverallow domain { file_type fs_type dev_type }:{ lnk_file fifo_file sock_file } mounton;
++allow domain { file_type fs_type dev_type }:{ lnk_file fifo_file sock_file } mounton;
+ 
  # Nobody should be able to execute su on user builds.
  # On userdebug/eng builds, only dumpstate, shell, and
  # su itself execute su.
 -neverallow { domain userdebug_or_eng(`-dumpstate -shell -su') } su_exec:file no_x_file_perms;
-+# neverallow { domain userdebug_or_eng(`-dumpstate -shell -su') } su_exec:file no_x_file_perms;
++allow { domain userdebug_or_eng(`-dumpstate -shell -su') } su_exec:file no_x_file_perms;
  
  # Do not allow the introduction of new execmod rules. Text relocations
  # and modification of executable pages are unsafe.
+ # The only exceptions are for NDK text relocations associated with
+ # https://code.google.com/p/android/issues/detail?id=23203
+ # which, long term, need to go away.
+-neverallow domain {
++allow domain {
+   file_type
+   -system_file      # needs to die. b/20013628
+   -system_data_file
+@@ -435,7 +435,7 @@ neverallow ~domain domain:process { transition dyntransition };
+ # Example type transition:
+ #  mydomain.te:file_type_auto_trans(mydomain, system_data_file, new_file_type)
+ #
+-neverallow {
++allow {
+   domain
+   -system_server
+   -system_app
+@@ -444,7 +444,7 @@ neverallow {
+ } system_data_file:file no_w_file_perms;
+ # do not grant anything greater than r_file_perms and relabelfrom unlink
+ # to installd
+-neverallow installd system_data_file:file ~{ r_file_perms relabelfrom unlink };
++allow installd system_data_file:file ~{ r_file_perms relabelfrom unlink };
+ 
+ #
+ # Only these domains should transition to shell domain. This domain is
+diff --git a/fsck.te b/fsck.te
+index 8c1aaf3..ff56895 100644
+--- a/fsck.te
++++ b/fsck.te
+@@ -40,4 +40,4 @@ neverallow fsck {
+ # Only allow entry from init or vold via fsck binaries
+ neverallow { domain -init -vold } fsck:process transition;
+ neverallow domain fsck:process dyntransition;
+-neverallow fsck { file_type fs_type -fsck_exec }:file entrypoint;
++allow fsck { file_type fs_type -fsck_exec }:file entrypoint;
+diff --git a/fsck_untrusted.te b/fsck_untrusted.te
+index 67c67b7..cd6b88f 100644
+--- a/fsck_untrusted.te
++++ b/fsck_untrusted.te
+@@ -33,4 +33,4 @@ neverallow fsck_untrusted {
+ # Only allow entry from vold via fsck binaries
+ neverallow { domain -vold } fsck_untrusted:process transition;
+ neverallow domain fsck_untrusted:process dyntransition;
+-neverallow fsck_untrusted { file_type fs_type -fsck_exec }:file entrypoint;
++allow fsck_untrusted { file_type fs_type -fsck_exec }:file entrypoint;
+diff --git a/init.te b/init.te
+index 41eafe2..cb7e329 100644
+--- a/init.te
++++ b/init.te
+@@ -276,11 +276,11 @@ unix_socket_connect(init, vold, vold)
+ # never via an exec-based transition.
+ neverallow domain init:process dyntransition;
+ neverallow { domain -kernel} init:process transition;
+-neverallow init { file_type fs_type -init_exec }:file entrypoint;
++allow init { file_type fs_type -init_exec }:file entrypoint;
+ 
+ # Never read/follow symlinks created by shell or untrusted apps.
+ neverallow init shell_data_file:lnk_file read;
+ neverallow init app_data_file:lnk_file read;
+ 
+ # init should never execute a program without changing to another domain.
+-neverallow init { file_type fs_type }:file execute_no_trans;
++allow init { file_type fs_type }:file execute_no_trans;
+diff --git a/kernel.te b/kernel.te
+index 6747d1c..74ee19d 100644
+--- a/kernel.te
++++ b/kernel.te
+@@ -75,4 +75,4 @@ neverallow domain kernel:process { transition dyntransition };
+ #   some other program.  Fix your init.rc file.
+ # - You are running an exploit which switched to the init task credentials
+ #   and is then trying to exec a shell or other program.  You lose!
+-neverallow kernel { file_type fs_type -rootfs }:file { entrypoint execute_no_trans };
++allow kernel { file_type fs_type -rootfs }:file { entrypoint execute_no_trans };
+diff --git a/keystore.te b/keystore.te
+index 83a0e85..7d0a972 100644
+--- a/keystore.te
++++ b/keystore.te
+@@ -23,10 +23,10 @@ selinux_check_access(keystore)
+ ### Protect ourself from others
+ ###
+ 
+-neverallow { domain -keystore } keystore_data_file:dir ~{ open create read getattr setattr search relabelto ioctl };
+-neverallow { domain -keystore } keystore_data_file:notdevfile_class_set ~{ relabelto getattr };
++allow { domain -keystore } keystore_data_file:dir ~{ open create read getattr setattr search relabelto ioctl };
++allow { domain -keystore } keystore_data_file:notdevfile_class_set ~{ relabelto getattr };
+ 
+-neverallow { domain -keystore -init } keystore_data_file:dir *;
+-neverallow { domain -keystore -init } keystore_data_file:notdevfile_class_set *;
++allow { domain -keystore -init } keystore_data_file:dir *;
++allow { domain -keystore -init } keystore_data_file:notdevfile_class_set *;
+ 
+ neverallow domain keystore:process ptrace;
+diff --git a/logd.te b/logd.te
+index b0d978f..5b5893f 100644
+--- a/logd.te
++++ b/logd.te
+@@ -38,7 +38,7 @@ neverallow logd dev_type:blk_file { read write };
+ neverallow logd domain:process ptrace;
+ 
+ # Write to /system.
+-neverallow logd system_file:dir_file_class_set write;
++allow logd system_file:dir_file_class_set write;
+ 
+ # Write to files in /data/data or system files on /data
+-neverallow logd { app_data_file system_data_file }:dir_file_class_set write;
++allow logd { app_data_file system_data_file }:dir_file_class_set write;
 diff --git a/mediaserver.te b/mediaserver.te
-index 0299466..44d1d17 100644
+index 0299466..66239c5 100644
 --- a/mediaserver.te
 +++ b/mediaserver.te
-@@ -39,6 +39,11 @@ allow mediaserver sysfs:file rw_file_perms;
- allow mediaserver apk_data_file:file { read getattr };
- allow mediaserver asec_apk_file:file { read getattr };
- 
-+# Read and write /data/data subdirectory.
-+allow mediaserver system_app_data_file:dir create_dir_perms;
+@@ -20,6 +20,8 @@ allow mediaserver media_data_file:dir create_dir_perms;
+ allow mediaserver media_data_file:file create_file_perms;
+ allow mediaserver app_data_file:dir search;
+ allow mediaserver app_data_file:file rw_file_perms;
++allow mediaserver system_app_data_file:dir search;
 +allow mediaserver system_app_data_file:file rw_file_perms;
-+
-+
- # Read /data/data/com.android.providers.telephony files passed over Binder.
- allow mediaserver radio_data_file:file { read getattr };
+ allow mediaserver sdcard_type:file write;
+ allow mediaserver gpu_device:chr_file rw_file_perms;
+ allow mediaserver video_device:dir r_dir_perms;
+diff --git a/netd.te b/netd.te
+index d4c5153..b9952e7 100644
+--- a/netd.te
++++ b/netd.te
+@@ -79,7 +79,7 @@ neverallow netd dev_type:blk_file { read write };
+ neverallow netd { domain }:process ptrace;
  
-diff --git a/runas.te b/runas.te
-index e51515d..89297fa 100644
---- a/runas.te
-+++ b/runas.te
-@@ -31,5 +31,5 @@ allow runas non_system_app_set:process dyntransition; # setcon
- ###
+ # Write to /system.
+-neverallow netd system_file:dir_file_class_set write;
++allow netd system_file:dir_file_class_set write;
  
- # run-as cannot have capabilities other than CAP_SETUID and CAP_SETGID
--neverallow runas self:capability ~{ setuid setgid };
--neverallow runas self:capability2 *;
-+### neverallow runas self:capability ~{ setuid setgid };
-+### neverallow runas self:capability2 *;
+ # Write to files in /data/data or system files on /data
+-neverallow netd { app_data_file system_data_file }:dir_file_class_set write;
++allow netd { app_data_file system_data_file }:dir_file_class_set write;
+diff --git a/recovery.te b/recovery.te
+index 8d6fd62..3c784a1 100644
+--- a/recovery.te
++++ b/recovery.te
+@@ -114,5 +114,5 @@ recovery_only(`
+ # domains, including recovery.
+ #
+ # TODO: tighten this up further.
+-neverallow recovery data_file_type:file { no_w_file_perms no_x_file_perms };
+-neverallow recovery data_file_type:dir no_w_dir_perms;
++allow recovery data_file_type:file { no_w_file_perms no_x_file_perms };
++allow recovery data_file_type:dir no_w_dir_perms;
+diff --git a/sgdisk.te b/sgdisk.te
+index 8a689a1..81344db 100644
+--- a/sgdisk.te
++++ b/sgdisk.te
+@@ -19,4 +19,4 @@ allow sgdisk self:capability sys_admin;
+ # Only allow entry from vold
+ neverallow { domain -vold } sgdisk:process transition;
+ neverallow domain sgdisk:process dyntransition;
+-neverallow sgdisk { file_type fs_type -sgdisk_exec }:file entrypoint;
++allow sgdisk { file_type fs_type -sgdisk_exec }:file entrypoint;
 diff --git a/shell.te b/shell.te
-index 4b4093d..f45e1ff 100644
+index 4b4093d..ae0f11d 100644
 --- a/shell.te
 +++ b/shell.te
-@@ -2,6 +2,8 @@
- type shell, domain, mlstrustedsubject;
- type shell_exec, exec_type, file_type;
- 
-+allow shell kernel:security setenforce;
-+
- # Create and use network sockets.
- net_domain(shell)
- 
-diff --git a/surfaceflinger.te b/surfaceflinger.te
-index 26a4e48..b8d672a 100644
---- a/surfaceflinger.te
-+++ b/surfaceflinger.te
-@@ -62,6 +62,8 @@ allow surfaceflinger power_service:service_manager find;
- allow surfaceflinger surfaceflinger_service:service_manager { add find };
- allow surfaceflinger window_service:service_manager find;
- 
-+allow surfaceflinger surfaceflinger:unix_stream_socket 0x7704;
-+
- ###
- ### Neverallow rules
- ###
+@@ -86,4 +86,4 @@ allow shell self:{ rawip_socket tcp_socket udp_socket } unpriv_sock_ioctls;
+ # of the linked to file. Hard links also contribute to security
+ # bugs, so we want to ensure the shell user never has this
+ # capability.
+-neverallow shell file_type:file link;
++allow shell file_type:file link;
 diff --git a/system_app.te b/system_app.te
-index 08e3f5c..e65baef 100644
+index 08e3f5c..25baf9e 100644
 --- a/system_app.te
 +++ b/system_app.te
-@@ -12,6 +12,9 @@ binder_service(system_app)
+@@ -12,6 +12,8 @@ binder_service(system_app)
  allow system_app system_app_data_file:dir create_dir_perms;
  allow system_app system_app_data_file:{ file lnk_file } create_file_perms;
  
-+allow system_app su_exec:file { execute_no_trans read write open execute getattr };
-+
++allow system_app su_exec:file { read write open execute getattr };
 +
  # Read /data/misc/keychain subdirectory.
  allow system_app keychain_data_file:dir r_dir_perms;
  allow system_app keychain_data_file:file r_file_perms;
-diff --git a/system_server.te b/system_server.te
-index c9d8f3b..5f3c385 100644
---- a/system_server.te
-+++ b/system_server.te
-@@ -35,7 +35,7 @@ allow system_server zygote:process sigkill;
- allow system_server zygote_exec:file r_file_perms;
+@@ -24,8 +26,8 @@ allow system_app misc_user_data_file:dir create_dir_perms;
+ allow system_app misc_user_data_file:file create_file_perms;
+ # Audit writes to these directories and files so we can identify
+ # and possibly move these directories into their own type in the future.
+-auditallow system_app system_data_file:dir { create setattr add_name remove_name rmdir rename };
+-auditallow system_app system_data_file:file { create setattr append write link unlink rename };
++allow system_app system_data_file:dir { create setattr add_name remove_name rmdir rename };
++allow system_app system_data_file:file { create setattr append write link unlink rename };
  
- # Needed to close the zygote socket, which involves getopt / getattr
--allow system_server zygote:unix_stream_socket { getopt getattr };
-+allow system_server zygote:unix_stream_socket { getopt getattr ioctl };
+ # Access to vold-mounted storage for measuring free space
+ allow system_app mnt_media_rw_file:dir search;
+@@ -40,8 +42,8 @@ set_prop(system_app, ctl_bugreport_prop)
+ set_prop(system_app, logd_prop)
+ set_prop(system_app, net_radio_prop)
+ set_prop(system_app, system_radio_prop)
+-auditallow system_app net_radio_prop:property_service set;
+-auditallow system_app system_radio_prop:property_service set;
++allow system_app net_radio_prop:property_service set;
++allow system_app system_radio_prop:property_service set;
  
- # system server gets network and bluetooth permissions.
- net_domain(system_server)
-@@ -434,6 +434,8 @@ allow system_server mnt_expand_file:dir r_dir_perms;
- # Allow system process to relabel the fingerprint directory after mkdir
- allow system_server fingerprintd_data_file:dir {r_dir_perms relabelto};
+ # Create /data/anr/traces.txt.
+ allow system_app anr_data_file:dir ra_dir_perms;
+diff --git a/toolbox.te b/toolbox.te
+index 4341102..ccc5f86 100644
+--- a/toolbox.te
++++ b/toolbox.te
+@@ -23,4 +23,4 @@ allow toolbox swap_block_device:blk_file rw_file_perms;
+ # Only allow entry from init via the toolbox binary.
+ neverallow { domain -init } toolbox:process transition;
+ neverallow domain toolbox:process dyntransition;
+-neverallow toolbox { file_type fs_type -toolbox_exec}:file entrypoint;
++allow toolbox { file_type fs_type -toolbox_exec}:file entrypoint;
+diff --git a/untrusted_app.te b/untrusted_app.te
+index a17943f..7af10cc 100644
+--- a/untrusted_app.te
++++ b/untrusted_app.te
+@@ -157,4 +157,4 @@ neverallow untrusted_app mlstrustedsubject:process fork;
+ # of the linked to file. Hard links also contribute to security
+ # bugs, so we want to ensure untrusted_app never has this
+ # capability.
+-neverallow untrusted_app file_type:file link;
++allow untrusted_app file_type:file link;
+diff --git a/vold.te b/vold.te
+index b22436f..cfe5a3d 100644
+--- a/vold.te
++++ b/vold.te
+@@ -163,8 +163,8 @@ allow vold self:capability sys_nice;
+ allow vold self:capability sys_chroot;
+ allow vold storage_file:dir mounton;
  
-+allow system_server system_server:unix_stream_socket 0x7704;
-+
- ###
- ### Neverallow rules
- ###
-
-project frameworks/base/
+-neverallow { domain -vold } vold_data_file:dir ~{ open create read getattr setattr search relabelto ioctl };
+-neverallow { domain -vold } vold_data_file:notdevfile_class_set ~{ relabelto getattr };
+-neverallow { domain -vold -init } vold_data_file:dir *;
+-neverallow { domain -vold -init } vold_data_file:notdevfile_class_set *;
++allow { domain -vold } vold_data_file:dir ~{ open create read getattr setattr search relabelto ioctl };
++allow { domain -vold } vold_data_file:notdevfile_class_set ~{ relabelto getattr };
++allow { domain -vold -init } vold_data_file:dir *;
++allow { domain -vold -init } vold_data_file:notdevfile_class_set *;
+ neverallow { domain -vold -init } restorecon_prop:property_service set;
 diff --git a/cmds/bootanimation/BootAnimation.cpp b/cmds/bootanimation/BootAnimation.cpp
-index 8f361ce..516a63d 100644
+index 8f361ce1a77..8d02aec4fed 100644
 --- a/cmds/bootanimation/BootAnimation.cpp
 +++ b/cmds/bootanimation/BootAnimation.cpp
 @@ -412,23 +412,23 @@ void BootAnimation::checkExit() {
@@ -909,15 +663,6 @@ index 8f361ce..516a63d 100644
  
  bool BootAnimation::readFile(const char* name, String8& outString)
  {
-@@ -479,7 +479,7 @@ bool BootAnimation::movie()
-         const char* l = line.string();
-         int fps, width, height, count, pause;
-         char path[ANIM_ENTRY_NAME_MAX];
--        char color[7] = "000000"; // default to black if unspecified
-+        char color[7] = "FFFFFF"; // default to black if unspecified
- 
-         char pathType;
-         if (sscanf(l, "%d %d %d", &width, &height, &fps) == 3) {
 @@ -496,12 +496,15 @@ bool BootAnimation::movie()
              part.pause = pause;
              part.path = path;
@@ -957,8 +702,58 @@ index 8f361ce..516a63d 100644
  
              for (size_t j=0 ; j<fcount && (!exitPending() || part.playUntilComplete) ; j++) {
                  const Animation::Frame& frame(part.frames[j]);
+diff --git a/core/java/android/app/StatusBarManager.java b/core/java/android/app/StatusBarManager.java
+index 5e8ad68957b..50f9eada3ab 100644
+--- a/core/java/android/app/StatusBarManager.java
++++ b/core/java/android/app/StatusBarManager.java
+@@ -53,7 +53,7 @@ public class StatusBarManager {
+     public static final int DISABLE_SEARCH = View.STATUS_BAR_DISABLE_SEARCH;
+ 
+     @Deprecated
+-    public static final int DISABLE_NAVIGATION = 
++    public static final int DISABLE_NAVIGATION =
+             View.STATUS_BAR_DISABLE_HOME | View.STATUS_BAR_DISABLE_RECENT;
+ 
+     public static final int DISABLE_NONE = 0x00000000;
+@@ -150,6 +150,8 @@ public class StatusBarManager {
+      * Expand the notifications panel.
+      */
+     public void expandNotificationsPanel() {
++      /*
++      REMOVED TO PREVENT EXPANSION
+         try {
+             final IStatusBarService svc = getService();
+             if (svc != null) {
+@@ -159,8 +161,9 @@ public class StatusBarManager {
+             // system process is dead anyway.
+             throw new RuntimeException(ex);
+         }
++        */
+     }
+-    
++
+     /**
+      * Collapse the notifications and settings panels.
+      */
+@@ -180,6 +183,8 @@ public class StatusBarManager {
+      * Expand the settings panel.
+      */
+     public void expandSettingsPanel() {
++      /*
++      REMOVED TO PREVENT EXPANSION
+         try {
+             final IStatusBarService svc = getService();
+             if (svc != null) {
+@@ -189,6 +194,7 @@ public class StatusBarManager {
+             // system process is dead anyway.
+             throw new RuntimeException(ex);
+         }
++        */
+     }
+ 
+     public void setIcon(String slot, int iconId, int iconLevel, String contentDescription) {
 diff --git a/core/res/AndroidManifest.xml b/core/res/AndroidManifest.xml
-index 4b54459..d0e90cf 100644
+index 4b5445998d1..d0e90cf0568 100644
 --- a/core/res/AndroidManifest.xml
 +++ b/core/res/AndroidManifest.xml
 @@ -344,7 +344,7 @@
@@ -1034,13 +829,44 @@ index 4b54459..d0e90cf 100644
      <!-- Allows applications to set the system time zone.
           <p>Protection level: normal
 diff --git a/core/res/assets/images/android-logo-mask.png b/core/res/assets/images/android-logo-mask.png
-index ad40645..f07be61 100644
+index ad40645e894..f07be61534e 100644
 Binary files a/core/res/assets/images/android-logo-mask.png and b/core/res/assets/images/android-logo-mask.png differ
 diff --git a/core/res/res/drawable-sw720dp-nodpi/default_wallpaper.jpg b/core/res/res/drawable-sw720dp-nodpi/default_wallpaper.jpg
-index 543d118..ef66fea 100644
+index 543d118f21a..ef66feab528 100644
 Binary files a/core/res/res/drawable-sw720dp-nodpi/default_wallpaper.jpg and b/core/res/res/drawable-sw720dp-nodpi/default_wallpaper.jpg differ
+diff --git a/core/res/res/values/config.xml b/core/res/res/values/config.xml
+index 6c96f84b946..bd3f5c88fdf 100644
+--- a/core/res/res/values/config.xml
++++ b/core/res/res/values/config.xml
+@@ -736,7 +736,7 @@
+             2 - Power off (with confirmation)
+             3 - Power off (without confirmation)
+     -->
+-    <integer name="config_longPressOnPowerBehavior">1</integer>
++    <integer name="config_longPressOnPowerBehavior">3</integer>
+ 
+     <!-- Control the behavior when the user short presses the power button.
+             0 - Nothing
+@@ -2299,7 +2299,7 @@
+ 
+     <!-- Flag indicating device support for EAP SIM, AKA, AKA' -->
+     <bool name="config_eap_sim_based_auth_supported">true</bool>
+- 
++
+     <!-- How long history of previous vibrations should be kept for the dumpsys. -->
+     <integer name="config_previousVibrationsDumpLimit">20</integer>
+ 
+@@ -2321,7 +2321,7 @@
+ 
+     <!-- Allow the gesture to double tap the power button twice to start the camera while the device
+          is non-interactive. -->
+-    <bool name="config_cameraDoubleTapPowerGestureEnabled">true</bool>
++    <bool name="config_cameraDoubleTapPowerGestureEnabled">false</bool>
+ 
+     <!-- The BT name of the keyboard packaged with the device. If this is defined, SystemUI will
+          automatically try to pair with it when the device exits tablet mode. -->
 diff --git a/packages/SettingsProvider/res/values/defaults.xml b/packages/SettingsProvider/res/values/defaults.xml
-index 1cd2908..dbab4a0 100644
+index 1cd2908e77e..fa4a2f96522 100644
 --- a/packages/SettingsProvider/res/values/defaults.xml
 +++ b/packages/SettingsProvider/res/values/defaults.xml
 @@ -18,9 +18,9 @@
@@ -1064,7 +890,33 @@ index 1cd2908..dbab4a0 100644
  
      <bool name="def_bluetooth_on">false</bool>
      <bool name="def_wifi_display_on">false</bool>
-@@ -65,28 +65,28 @@
+@@ -43,50 +43,50 @@
+          Network location is off by default because it requires
+          user opt-in via Setup Wizard or Settings.
+     -->
+-    <string name="def_location_providers_allowed" translatable="false">gps</string>
++    <string name="def_location_providers_allowed" translatable="false"></string>
+     <bool name="assisted_gps_enabled">true</bool>
+     <bool name="def_netstats_enabled">true</bool>
+     <bool name="def_usb_mass_storage_enabled">true</bool>
+     <bool name="def_wifi_on">false</bool>
+     <!-- 0 == never, 1 == only when plugged in, 2 == always -->
+     <integer name="def_wifi_sleep_policy">2</integer>
+-    <bool name="def_networks_available_notification_on">true</bool>
++    <bool name="def_networks_available_notification_on">false</bool>
+ 
+     <bool name="def_backup_enabled">false</bool>
+     <string name="def_backup_transport" translatable="false">android/com.android.internal.backup.LocalTransport</string>
+ 
+     <!-- Default value for whether or not to pulse the notification LED when there is a
+          pending notification -->
+-    <bool name="def_notification_pulse">true</bool>
++    <bool name="def_notification_pulse">false</bool>
+ 
+-    <bool name="def_mount_play_notification_snd">true</bool>
++    <bool name="def_mount_play_notification_snd">false</bool>
+     <bool name="def_mount_ums_autostart">false</bool>
+     <bool name="def_mount_ums_prompt">true</bool>
      <bool name="def_mount_ums_notify_enabled">true</bool>
  
      <!-- user interface sound effects -->
@@ -1072,18 +924,27 @@ index 1cd2908..dbab4a0 100644
 +    <integer name="def_power_sounds_enabled">0</integer>
      <string name="def_low_battery_sound" translatable="false">/system/media/audio/ui/LowBattery.ogg</string>
      <integer name="def_dock_sounds_enabled">0</integer>
-     <string name="def_desk_dock_sound" translatable="false">/system/media/audio/ui/Dock.ogg</string>
-     <string name="def_desk_undock_sound" translatable="false">/system/media/audio/ui/Undock.ogg</string>
-     <string name="def_car_dock_sound" translatable="false">/system/media/audio/ui/Dock.ogg</string>
-     <string name="def_car_undock_sound" translatable="false">/system/media/audio/ui/Undock.ogg</string>
+-    <string name="def_desk_dock_sound" translatable="false">/system/media/audio/ui/Dock.ogg</string>
+-    <string name="def_desk_undock_sound" translatable="false">/system/media/audio/ui/Undock.ogg</string>
+-    <string name="def_car_dock_sound" translatable="false">/system/media/audio/ui/Dock.ogg</string>
+-    <string name="def_car_undock_sound" translatable="false">/system/media/audio/ui/Undock.ogg</string>
 -    <integer name="def_lockscreen_sounds_enabled">1</integer>
-+    <integer name="def_lockscreen_sounds_enabled">0</integer>
-     <string name="def_lock_sound" translatable="false">/system/media/audio/ui/Lock.ogg</string>
-     <string name="def_unlock_sound" translatable="false">/system/media/audio/ui/Unlock.ogg</string>
-     <string name="def_trusted_sound" translatable="false">/system/media/audio/ui/Trusted.ogg</string>
-     <string name="def_wireless_charging_started_sound" translatable="false">/system/media/audio/ui/WirelessChargingStarted.ogg</string>
- 
+-    <string name="def_lock_sound" translatable="false">/system/media/audio/ui/Lock.ogg</string>
+-    <string name="def_unlock_sound" translatable="false">/system/media/audio/ui/Unlock.ogg</string>
+-    <string name="def_trusted_sound" translatable="false">/system/media/audio/ui/Trusted.ogg</string>
+-    <string name="def_wireless_charging_started_sound" translatable="false">/system/media/audio/ui/WirelessChargingStarted.ogg</string>
+-
 -    <bool name="def_lockscreen_disabled">false</bool>
++    <string name="def_desk_dock_sound">0</string>
++    <string name="def_desk_undock_sound">0</string>
++    <string name="def_car_dock_sound">0</string>
++    <string name="def_car_undock_sound">0</string>
++    <integer name="def_lockscreen_sounds_enabled">0</integer>
++    <string name="def_lock_sound">0</string>
++    <string name="def_unlock_sound">0</string>
++    <string name="def_trusted_sound">0</string>
++    <string name="def_wireless_charging_started_sound">0</string>
++
 +    <bool name="def_lockscreen_disabled">true</bool>
      <bool name="def_device_provisioned">false</bool>
 -    <integer name="def_dock_audio_media_enabled">1</integer>
@@ -1119,7 +980,7 @@ index 1cd2908..dbab4a0 100644
  
      <!-- Default for Settings.Global.LOW_BATTERY_SOUND_TIMEOUT.
           0 means no timeout; battery sounds will always play
-@@ -187,7 +187,7 @@
+@@ -187,13 +187,13 @@
      <integer name="def_wifi_scan_always_available">0</integer>
  
      <!-- Default for Settings.Secure.LOCK_SCREEN_SHOW_NOTIFICATIONS, 1==on -->
@@ -1128,8 +989,107 @@ index 1cd2908..dbab4a0 100644
  
      <!-- Default for Settings.Secure.LOCK_SCREEN_ALLOW_PRIVATE_NOTIFICATIONS -->
      <bool name="def_lock_screen_allow_private_notifications">true</bool>
+ 
+     <!-- Default for Settings.Global.HEADS_UP_NOTIFICATIONS_ENABLED, 1==on -->
+-    <integer name="def_heads_up_enabled">1</integer>
++    <integer name="def_heads_up_enabled">0</integer>
+ 
+     <!-- Default for Settings.Global.DEVICE_NAME $1=MANUFACTURER $2=MODEL-->
+     <string name="def_device_name">%1$s %2$s</string>
+diff --git a/packages/SystemUI/res/layout/status_bar.xml b/packages/SystemUI/res/layout/status_bar.xml
+index a5b3a834446..ad0a45773a9 100644
+--- a/packages/SystemUI/res/layout/status_bar.xml
++++ b/packages/SystemUI/res/layout/status_bar.xml
+@@ -4,16 +4,16 @@
+ **
+ ** Copyright 2006, The Android Open Source Project
+ **
+-** Licensed under the Apache License, Version 2.0 (the "License"); 
+-** you may not use this file except in compliance with the License. 
+-** You may obtain a copy of the License at 
++** Licensed under the Apache License, Version 2.0 (the "License");
++** you may not use this file except in compliance with the License.
++** You may obtain a copy of the License at
+ **
+-**     http://www.apache.org/licenses/LICENSE-2.0 
++**     http://www.apache.org/licenses/LICENSE-2.0
+ **
+-** Unless required by applicable law or agreed to in writing, software 
+-** distributed under the License is distributed on an "AS IS" BASIS, 
+-** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+-** See the License for the specific language governing permissions and 
++** Unless required by applicable law or agreed to in writing, software
++** distributed under the License is distributed on an "AS IS" BASIS,
++** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++** See the License for the specific language governing permissions and
+ ** limitations under the License.
+ */
+ -->
+@@ -41,17 +41,18 @@
+         />
+ 
+     <LinearLayout android:id="@+id/status_bar_contents"
+-        android:layout_width="match_parent"
+-        android:layout_height="match_parent"
+-        android:paddingStart="6dp"
+-        android:paddingEnd="8dp"
++        android:layout_width="0.0dip"
++        android:layout_height="0.0dip"
++        android:paddingStart="0dp"
++        android:paddingEnd="0dp"
+         android:orientation="horizontal"
++        android:visibility="gone"
+         >
+ 
+         <com.android.systemui.statusbar.AlphaOptimizedFrameLayout
+             android:id="@+id/notification_icon_area"
+             android:layout_width="0dip"
+-            android:layout_height="match_parent"
++            android:layout_height="0.0dip"
+             android:layout_weight="1"
+             android:orientation="horizontal"
+             >
+diff --git a/packages/SystemUI/res/layout/super_status_bar.xml b/packages/SystemUI/res/layout/super_status_bar.xml
+index e42ce66ba2a..ab194d36c06 100644
+--- a/packages/SystemUI/res/layout/super_status_bar.xml
++++ b/packages/SystemUI/res/layout/super_status_bar.xml
+@@ -21,8 +21,8 @@
+ <com.android.systemui.statusbar.phone.StatusBarWindowView
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:sysui="http://schemas.android.com/apk/res-auto"
+-    android:layout_width="match_parent"
+-    android:layout_height="match_parent"
++    android:layout_width="0.0dip"
++    android:layout_height="0.0dip"
+     android:fitsSystemWindows="true">
+ 
+     <com.android.systemui.statusbar.BackDropView
+diff --git a/packages/SystemUI/res/values/dimens.xml b/packages/SystemUI/res/values/dimens.xml
+index 48df2ce9d31..96e896a4bda 100644
+--- a/packages/SystemUI/res/values/dimens.xml
++++ b/packages/SystemUI/res/values/dimens.xml
+@@ -59,15 +59,15 @@
+     <dimen name="peek_window_y_offset">-12dp</dimen>
+ 
+     <!-- thickness (height) of the navigation bar on phones that require it -->
+-    <dimen name="navigation_bar_size">@*android:dimen/navigation_bar_height</dimen>
++    <dimen name="navigation_bar_size">0dp</dimen>
+     <!-- Minimum swipe distance to catch the swipe gestures to invoke assist or switch tasks. -->
+-    <dimen name="navigation_bar_min_swipe_distance">48dp</dimen>
++    <dimen name="navigation_bar_min_swipe_distance">48000dp</dimen>
+ 
+     <!-- thickness (height) of the dead zone at the top of the navigation bar,
+          reducing false presses on navbar buttons; approx 2mm -->
+-    <dimen name="navigation_bar_deadzone_size">12dp</dimen>
++    <dimen name="navigation_bar_deadzone_size">0dp</dimen>
+     <!-- size of the dead zone when touches have recently occurred elsewhere on screen -->
+-    <dimen name="navigation_bar_deadzone_size_max">32dp</dimen>
++    <dimen name="navigation_bar_deadzone_size_max">0dp</dimen>
+ 
+     <!-- Height of notification icons in the status bar -->
+     <dimen name="status_bar_icon_size">@*android:dimen/status_bar_icon_size</dimen>
 diff --git a/packages/SystemUI/src/com/android/systemui/keyboard/KeyboardUI.java b/packages/SystemUI/src/com/android/systemui/keyboard/KeyboardUI.java
-index 696c55f..6148d2a 100644
+index 696c55fb78f..6148d2af280 100644
 --- a/packages/SystemUI/src/com/android/systemui/keyboard/KeyboardUI.java
 +++ b/packages/SystemUI/src/com/android/systemui/keyboard/KeyboardUI.java
 @@ -230,7 +230,7 @@ public class KeyboardUI extends SystemUI implements InputManager.OnTabletModeCha
@@ -1163,7 +1123,7 @@ index 696c55f..6148d2a 100644
                  }
                  case MSG_DISMISS_BLUETOOTH_DIALOG: {
 diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/CommandQueue.java b/packages/SystemUI/src/com/android/systemui/statusbar/CommandQueue.java
-index 897f5e5..3feac3e 100644
+index 897f5e55c5a..3feac3ee550 100644
 --- a/packages/SystemUI/src/com/android/systemui/statusbar/CommandQueue.java
 +++ b/packages/SystemUI/src/com/android/systemui/statusbar/CommandQueue.java
 @@ -254,9 +254,9 @@ public class CommandQueue extends IStatusBar.Stub {
@@ -1184,8 +1144,87 @@ index 897f5e5..3feac3e 100644
      }
  }
 -
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/DragDownHelper.java b/packages/SystemUI/src/com/android/systemui/statusbar/DragDownHelper.java
+index 15a092c3761..7a4d8cb7f8a 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/DragDownHelper.java
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/DragDownHelper.java
+@@ -69,7 +69,7 @@ public class DragDownHelper implements Gefingerpoken {
+ 
+     @Override
+     public boolean onInterceptTouchEvent(MotionEvent event) {
+-        final float x = event.getX();
++        /*final float x = event.getX();
+         final float y = event.getY();
+ 
+         switch (event.getActionMasked()) {
+@@ -93,11 +93,14 @@ public class DragDownHelper implements Gefingerpoken {
+                 }
+                 break;
+         }
++        */
+         return false;
+     }
+ 
+     @Override
+     public boolean onTouchEvent(MotionEvent event) {
++        return false;
++        /*
+         if (!mDraggingDown) {
+             return false;
+         }
+@@ -142,6 +145,7 @@ public class DragDownHelper implements Gefingerpoken {
+                 return false;
+         }
+         return false;
++        */
+     }
+ 
+     private void captureStartingChild(float x, float y) {
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java b/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
+index 73361bdebcd..2ef05ea72f4 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
+@@ -3833,20 +3833,24 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
+ 
+     @Override
+     public boolean onDraggedDown(View startingChild, int dragLengthY) {
+-        if (hasActiveNotifications()) {
+-            EventLogTags.writeSysuiLockscreenGesture(
+-                    EventLogConstants.SYSUI_LOCKSCREEN_GESTURE_SWIPE_DOWN_FULL_SHADE,
+-                    (int) (dragLengthY / mDisplayMetrics.density),
+-                    0 /* velocityDp - N/A */);
+-
+-            // We have notifications, go to locked shade.
+-            goToLockedShade(startingChild);
+-            return true;
+-        } else {
+-
+-            // No notifications - abort gesture.
+-            return false;
+-        }
++        // No notifications - abort gesture.
++        return false;
++        //
++        //DISABLE ALL DRAG DOWN ACTIONS
++        // if (hasActiveNotifications()) {
++        //     EventLogTags.writeSysuiLockscreenGesture(
++        //             EventLogConstants.SYSUI_LOCKSCREEN_GESTURE_SWIPE_DOWN_FULL_SHADE,
++        //             (int) (dragLengthY / mDisplayMetrics.density),
++        //             0 /* velocityDp - N/A */);
++        //
++        //     // We have notifications, go to locked shade.
++        //     goToLockedShade(startingChild);
++        //     return true;
++        // } else {
++        //
++        //     // No notifications - abort gesture.
++        //     return false;
++        // }
+     }
+ 
+     @Override
 diff --git a/services/core/java/com/android/server/am/LockTaskNotify.java b/services/core/java/com/android/server/am/LockTaskNotify.java
-index afde322..3f632e2 100644
+index afde3226e93..3f632e22bc9 100644
 --- a/services/core/java/com/android/server/am/LockTaskNotify.java
 +++ b/services/core/java/com/android/server/am/LockTaskNotify.java
 @@ -67,11 +67,11 @@ public class LockTaskNotify {
@@ -1206,7 +1245,7 @@ index afde322..3f632e2 100644
  
      private Toast makeAllUserToastAndShow(String text) {
 diff --git a/services/devicepolicy/java/com/android/server/devicepolicy/DevicePolicyManagerService.java b/services/devicepolicy/java/com/android/server/devicepolicy/DevicePolicyManagerService.java
-index dedf1d9..719afa0 100644
+index dedf1d9ae9f..719afa06ce8 100644
 --- a/services/devicepolicy/java/com/android/server/devicepolicy/DevicePolicyManagerService.java
 +++ b/services/devicepolicy/java/com/android/server/devicepolicy/DevicePolicyManagerService.java
 @@ -4694,10 +4694,10 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
@@ -1224,10 +1263,8 @@ index dedf1d9..719afa0 100644
      }
  
      private void enforceCrossUserPermission(int userHandle) {
-
-project packages/apps/Launcher2/
 diff --git a/fill_screens.py b/fill_screens.py
-index a887792..1cd351c 100755
+index a8877926..1cd351c6 100755
 --- a/fill_screens.py
 +++ b/fill_screens.py
 @@ -6,7 +6,7 @@ import shutil
@@ -1240,7 +1277,7 @@ index a887792..1cd351c 100755
  ROWS = 4
  CELL_SIZE = 110
 diff --git a/res/layout-land/search_bar.xml b/res/layout-land/search_bar.xml
-index 8cdee94..159355d 100644
+index 8cdee942..159355d0 100644
 --- a/res/layout-land/search_bar.xml
 +++ b/res/layout-land/search_bar.xml
 @@ -30,6 +30,7 @@
@@ -1260,7 +1297,7 @@ index 8cdee94..159355d 100644
          android:contentDescription="@string/accessibility_voice_search_button" />
  </LinearLayout>
 diff --git a/res/layout-sw720dp/search_bar.xml b/res/layout-sw720dp/search_bar.xml
-index 7cf79b8..f50d06a 100644
+index 7cf79b8b..f50d06a0 100644
 --- a/res/layout-sw720dp/search_bar.xml
 +++ b/res/layout-sw720dp/search_bar.xml
 @@ -36,6 +36,7 @@
@@ -1280,7 +1317,7 @@ index 7cf79b8..f50d06a 100644
          <ImageView
              android:id="@+id/voice_button"
 diff --git a/res/layout-sw720dp/workspace.xml b/res/layout-sw720dp/workspace.xml
-index bf2abfd..7dbb795 100644
+index bf2abfdb..7dbb7950 100644
 --- a/res/layout-sw720dp/workspace.xml
 +++ b/res/layout-sw720dp/workspace.xml
 @@ -26,8 +26,4 @@
@@ -1295,7 +1332,7 @@ index bf2abfd..7dbb795 100644
 \ No newline at end of file
 +</com.android.launcher2.Workspace>
 diff --git a/res/xml-sw600dp/default_workspace.xml b/res/xml-sw600dp/default_workspace.xml
-index 0537169..9f28288 100644
+index 05371696..9f28288f 100644
 --- a/res/xml-sw600dp/default_workspace.xml
 +++ b/res/xml-sw600dp/default_workspace.xml
 @@ -18,17 +18,17 @@
@@ -1342,7 +1379,7 @@ index 0537169..9f28288 100644
      <!-- Far-right screen [4] -->
  
 diff --git a/res/xml-sw720dp/default_workspace.xml b/res/xml-sw720dp/default_workspace.xml
-index 6302d7e..87bc32a 100644
+index 6302d7e0..87bc32a3 100644
 --- a/res/xml-sw720dp/default_workspace.xml
 +++ b/res/xml-sw720dp/default_workspace.xml
 @@ -18,17 +18,17 @@
@@ -1389,7 +1426,7 @@ index 6302d7e..87bc32a 100644
      <!-- Far-right screen [4] -->
  </favorites>
 diff --git a/res/xml/default_workspace.xml b/res/xml/default_workspace.xml
-index 38040a8..23af3a7 100644
+index 38040a81..23af3a71 100644
 --- a/res/xml/default_workspace.xml
 +++ b/res/xml/default_workspace.xml
 @@ -18,33 +18,33 @@
@@ -1442,10 +1479,8 @@ index 38040a8..23af3a7 100644
  
      <!-- Far-right screen [4] -->
  
-
-project packages/apps/Launcher3/
 diff --git a/fill_screens.py b/fill_screens.py
-index a887792..1cd351c 100755
+index a88779261..1cd351c65 100755
 --- a/fill_screens.py
 +++ b/fill_screens.py
 @@ -6,7 +6,7 @@ import shutil
@@ -1457,23 +1492,8 @@ index a887792..1cd351c 100755
  COLUMNS = 4
  ROWS = 4
  CELL_SIZE = 110
-
-project packages/apps/Settings/
-diff --git a/res/values/strings.xml b/res/values/strings.xml
-index 8cef6b4..a233884 100644
---- a/res/values/strings.xml
-+++ b/res/values/strings.xml
-@@ -1260,7 +1260,7 @@
-     <!-- Message to describe "BLE scan always available feature" when Bluetooth is off. The
-       place-holders "LINK_BEGIN" and "LINK_END" must NOT be translated. They mark a link to bring
-       the user to "scanning settings" screen. -->
--    <string name="ble_scan_notify_text">To improve location accuracy, system apps and services can
-+    <string name="ble_scan_notify_text">
-       still detect Bluetooth devices. You can change this in
-       <xliff:g id="link_begin">LINK_BEGIN</xliff:g>scanning
-       settings<xliff:g id="link_end">LINK_END</xliff:g>.</string>
 diff --git a/res/xml/date_time_prefs.xml b/res/xml/date_time_prefs.xml
-index d359d84..a2ee7a1 100644
+index d359d8408..a2ee7a1dd 100644
 --- a/res/xml/date_time_prefs.xml
 +++ b/res/xml/date_time_prefs.xml
 @@ -52,4 +52,9 @@
@@ -1487,7 +1507,7 @@ index d359d84..a2ee7a1 100644
 +
  </PreferenceScreen>
 diff --git a/src/com/android/settings/DateTimeSettings.java b/src/com/android/settings/DateTimeSettings.java
-index 8a9e2ad..2df7171 100644
+index 8a9e2ad84..2df71715d 100644
 --- a/src/com/android/settings/DateTimeSettings.java
 +++ b/src/com/android/settings/DateTimeSettings.java
 @@ -57,6 +57,7 @@ public class DateTimeSettings extends SettingsPreferenceFragment
@@ -1525,10 +1545,20 @@ index 8a9e2ad..2df7171 100644
              showDialog(DIALOG_DATEPICKER);
          } else if (preference == mTimePref) {
              // The 24-hour mode may have changed, so recreate the dialog
-
-project system/core/
+diff --git a/darwin-x86/bison/bison b/darwin-x86/bison/bison
+deleted file mode 100755
+index 1dc1f6e..0000000
+Binary files a/darwin-x86/bison/bison and /dev/null differ
+diff --git a/darwin-x86/bison/bison b/darwin-x86/bison/bison
+new file mode 120000
+index 0000000..9a8c932
+--- /dev/null
++++ b/darwin-x86/bison/bison
+@@ -0,0 +1 @@
++/usr/local/bin/bison
+\ No newline at end of file
 diff --git a/adb/Android.mk b/adb/Android.mk
-index 425bf9b..439e4a4 100644
+index 425bf9ba5..439e4a4e2 100644
 --- a/adb/Android.mk
 +++ b/adb/Android.mk
 @@ -232,7 +232,7 @@ LOCAL_CFLAGS := \
@@ -1541,7 +1571,7 @@ index 425bf9b..439e4a4 100644
  ifneq (,$(filter userdebug eng,$(TARGET_BUILD_VARIANT)))
  LOCAL_CFLAGS += -DALLOW_ADBD_DISABLE_VERITY=1
 diff --git a/adb/adb_auth.cpp b/adb/adb_auth.cpp
-index cff26d6..0d4e64a 100644
+index cff26d619..0d4e64a38 100644
 --- a/adb/adb_auth.cpp
 +++ b/adb/adb_auth.cpp
 @@ -28,7 +28,7 @@
@@ -1554,7 +1584,7 @@ index cff26d6..0d4e64a 100644
  void send_auth_request(atransport *t)
  {
 diff --git a/adb/adb_auth_client.cpp b/adb/adb_auth_client.cpp
-index 8e7d38b..c2b354f 100644
+index 8e7d38be1..c2b354fde 100644
 --- a/adb/adb_auth_client.cpp
 +++ b/adb/adb_auth_client.cpp
 @@ -171,21 +171,21 @@ static void usb_disconnected(void* unused, atransport* t)
@@ -1591,7 +1621,7 @@ index 8e7d38b..c2b354f 100644
  }
  
 diff --git a/adb/adb_main.cpp b/adb/adb_main.cpp
-index 45a2158..0158c18 100644
+index 45a215870..0158c182a 100644
 --- a/adb/adb_main.cpp
 +++ b/adb/adb_main.cpp
 @@ -239,9 +239,9 @@ int adb_main(int is_daemon, int server_port)
@@ -1607,21 +1637,8 @@ index 45a2158..0158c18 100644
  
      adbd_auth_init();
  
-diff --git a/include/private/android_filesystem_config.h b/include/private/android_filesystem_config.h
-index 2ed27dc..83bb374 100644
---- a/include/private/android_filesystem_config.h
-+++ b/include/private/android_filesystem_config.h
-@@ -198,6 +198,8 @@ struct fs_path_config {
-     const char *prefix;
- };
- 
-+
-+
- /* Rules for directories and files has moved to system/code/libcutils/fs_config.c */
- 
- __BEGIN_DECLS
 diff --git a/libcutils/fs_config.c b/libcutils/fs_config.c
-index 9a1ad19..f2104c9 100644
+index 9a1ad1925..f2104c96c 100644
 --- a/libcutils/fs_config.c
 +++ b/libcutils/fs_config.c
 @@ -123,7 +123,7 @@ static const struct fs_path_config android_files[] = {
@@ -1633,8 +1650,6 @@ index 9a1ad19..f2104c9 100644
      { 06755, AID_ROOT,      AID_ROOT,      0, "system/xbin/librank" },
      { 06755, AID_ROOT,      AID_ROOT,      0, "system/xbin/procrank" },
      { 06755, AID_ROOT,      AID_ROOT,      0, "system/xbin/procmem" },
-
-project system/extras/
 diff --git a/su/su.c b/su/su.c
 index d932c1b..fe0d833 100644
 --- a/su/su.c
@@ -1728,113 +1743,3 @@ index d932c1b..fe0d833 100644
      execvp(exec_args[0], exec_args);
      error(1, errno, "failed to exec %s", exec_args[0]);
  }
-diff --git a/verity/verify_boot_signature.c b/verity/verify_boot_signature.c
-index 58b7a19..5d00815 100644
---- a/verity/verify_boot_signature.c
-+++ b/verity/verify_boot_signature.c
-@@ -325,29 +325,29 @@ static int verify_signature(int fd, uint64_t length, const BootSignature *bs)
-     RSA *rsa = NULL;
-     unsigned char digest[SHA256_DIGEST_LENGTH];
- 
--    if (!bs) {
--        goto vs_done;
--    }
--
--    if (hash_image(fd, length, bs->authenticatedAttributes, digest) == -1) {
--        goto vs_done;
--    }
--
--    if ((pkey = X509_get_pubkey(bs->certificate)) == NULL) {
--        ERR_print_errors(g_error);
--        goto vs_done;
--    }
--
--    if ((rsa = EVP_PKEY_get1_RSA(pkey)) == NULL) {
--        ERR_print_errors(g_error);
--        goto vs_done;
--    }
--
--    if (!RSA_verify(NID_sha256, digest, SHA256_DIGEST_LENGTH,
--                bs->signature->data, bs->signature->length, rsa)) {
--        ERR_print_errors(g_error);
--        goto vs_done;
--    }
-+    // if (!bs) {
-+    //     goto vs_done;
-+    // }
-+    //
-+    // if (hash_image(fd, length, bs->authenticatedAttributes, digest) == -1) {
-+    //     goto vs_done;
-+    // }
-+    //
-+    // if ((pkey = X509_get_pubkey(bs->certificate)) == NULL) {
-+    //     ERR_print_errors(g_error);
-+    //     goto vs_done;
-+    // }
-+    //
-+    // if ((rsa = EVP_PKEY_get1_RSA(pkey)) == NULL) {
-+    //     ERR_print_errors(g_error);
-+    //     goto vs_done;
-+    // }
-+    //
-+    // if (!RSA_verify(NID_sha256, digest, SHA256_DIGEST_LENGTH,
-+    //             bs->signature->data, bs->signature->length, rsa)) {
-+    //     ERR_print_errors(g_error);
-+    //     goto vs_done;
-+    // }
- 
-     rc = 0;
- 
-@@ -374,29 +374,29 @@ static int verify(const char *image_file)
-     int rc = 1;
-     off64_t offset = 0;
- 
--    if (!image_file) {
--        return rc;
--    }
--
--    if ((fd = open(image_file, O_RDONLY | O_LARGEFILE)) == -1) {
--        return rc;
--    }
--
--    if (get_signature_offset(fd, &offset) == -1) {
--        goto out;
--    }
--
--    if (read_signature(fd, offset, &bs) == -1) {
--        goto out;
--    }
--
--    if (validate_signature_block(bs, offset) == -1) {
--        goto out;
--    }
--
--    if (verify_signature(fd, offset, bs) == -1) {
--        goto out;
--    }
-+    // if (!image_file) {
-+    //     return rc;
-+    // }
-+    //
-+    // if ((fd = open(image_file, O_RDONLY | O_LARGEFILE)) == -1) {
-+    //     return rc;
-+    // }
-+    //
-+    // if (get_signature_offset(fd, &offset) == -1) {
-+    //     goto out;
-+    // }
-+    //
-+    // if (read_signature(fd, offset, &bs) == -1) {
-+    //     goto out;
-+    // }
-+    //
-+    // if (validate_signature_block(bs, offset) == -1) {
-+    //     goto out;
-+    // }
-+    //
-+    // if (verify_signature(fd, offset, bs) == -1) {
-+    //     goto out;
-+    // }
- 
-     printf("Signature is VALID\n");
-     rc = 0;

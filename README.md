@@ -1,7 +1,7 @@
 ![Welcome to onecourse!](https://onebillion.org/img/onecourse/onecourse-logo-medium.svg)
 
 
-###### One app for reading, writing and numeracy. By non-profit onebillion.
+###### onecourse: one app that delivers reading, writing and numeracy. Built by non-profit onebillion.
 
 
 
@@ -9,14 +9,14 @@
 Our onecourse submission for Global Learning XPRIZE consists of three elements:
 
 ### 1. onecourse Swahili for children
-[![onecourse](https://img.shields.io/badge/Filesytem%20Images-⬇%20Download%20onecourse%20Swahili-ffce00.svg)](https://github.com/XPRIZE/GLEXP-Team-onebillion/releases/tag/v2.0.0 "onecourse swahili")
+[![onecourse](https://img.shields.io/badge/Filesytem%20Images-⬇%20Download%20onecourse%20Swahili-ffce00.svg)](https://github.com/XPRIZE/GLEXP-Team-onebillion/releases/tag/v3.0.0 "onecourse swahili")
 
 [Installation instructions for onecourse Swahili](INSTALL.md)
 
 Here you can experience the onecourse material as children in Tanzania would experience it.  
 
 ### 2. onecourse English for children
-[![onecourse](https://img.shields.io/badge/Filesytem%20Images-⬇%20Download%20onecourse%20English-ff0000.svg)](https://github.com/XPRIZE/GLEXP-Team-onebillion/releases/tag/v2.0.0 "onecourse english")
+[![onecourse](https://img.shields.io/badge/Filesytem%20Images-⬇%20Download%20onecourse%20English-ff0000.svg)](https://github.com/XPRIZE/GLEXP-Team-onebillion/releases/tag/v3.0.0 "onecourse english")
 
 [Installation instructions for onecourse English](INSTALL.md)
 

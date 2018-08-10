@@ -20,33 +20,24 @@ Building **onecourse** is a two-step process:
         
         git clone https://github.com/XPRIZE/GLEXP-Team-onebillion.git $ROOT_FOLDER/
 
-3. Configure the `ASSETS_FOLDER` environment variable, download and extract the [`assets.tar.gz`](https://xprizefoundation.box.com/s/8f085yrx5va94rlh5p4slpe43aje49w4) file from onebillion's Box account `onebillion - 16/Field Trial Submission 2/Supplemental/Content/assets.tar.gz`:
-
-        export ASSETS_FOLDER=$ROOT_FOLDER/app/src/main/assets
-        
-        mkdir $ASSETS_FOLDER
-        
-        tar xf assets.tar.gz -C $ASSETS_FOLDER
-
-4. Configure the `ANDROID_HOME` environment variable based on the location of the Android SDK:
+3. Configure the `ANDROID_HOME` environment variable based on the location of the Android SDK:
 
         export ANDROID_HOME=[PATH/TO/ANDROID_SDK]
         
-5. In the `ROOT_FOLDER` build `gradle` tasks
+4. In the `ROOT_FOLDER` build `gradle` tasks
 
         ./gradlew tasks
 
-6. Build the desired **onecourse** `.apk`:
+5. Build the desired **onecourse** `.apk`:
 
- - onecourse Swahili:
+	onecourse Swahili:
 
-          ./gradlew assembleChildMenu
+          ./gradlew assembleSw_community_release -Pandroid.injected.signing.store.file=$ROOT_FOLDER/platform.keystore -Pandroid.injected.signing.store.password=android -Pandroid.injected.signing.key.alias=onebillion_platform -Pandroid.injected.signing.key.password=android
 
- - onecourse English:
+	onecourse English:
 
-          ./gradlew assembleChildMenu_enGB_
+          ./gradlew assembleEnGB_community_release -Pandroid.injected.signing.store.file=$ROOT_FOLDER/platform.keystore -Pandroid.injected.signing.store.password=android -Pandroid.injected.signing.key.alias=onebillion_platform -Pandroid.injected.signing.key.password=android
         
-
 
 
 ## 2. Building the Android filesystem images
@@ -62,10 +53,7 @@ Building **onecourse** is a two-step process:
  - [Google device drivers](https://dl.google.com/dl/android/aosp/google_devices-dragon-mxc89l-5452d463.tgz)
  - [Nvidia drivers](https://dl.google.com/dl/android/aosp/nvidia-dragon-mxc89l-7dd0c758.tgz)
 
-4. Apply `onecourse-AOSP.patch` from the **onecourse source** repository to the AOSP source tree (current workign folder):
-
-        git apply -v --index $ROOT_FOLDER/onecourse-AOSP.patch    
-        git commit -m "Applied onecourse system modifications"
+4. Apply the `AOSP/onecourse-AOSP.patch` from the **onecourse source** repository to the AOSP source tree (current working folder).
 
 
 5. On building for the first time, clean the build folders. This is not required for subsequent builds:
@@ -76,32 +64,40 @@ Building **onecourse** is a two-step process:
 
           rm -rf packages/apps/onebillion
           mkdir -p packages/apps/onebillion
-          cp -r $ROOT_FOLDER/AOSP/frameworks/ .
-          mkdir -p out/target/product/dragon/system/media/
-          cp $ROOT_FOLDER/AOSP/bootanimation.zip out/target/product/dragon/system/media/
+          cp $ROOT_FOLDER/AOSP/bootanimation.zip packages/apps/onebillion/
+          
+
  
-7. Copy the desired **onecourse** `.apk` and makefile from the **onecourse source** repository to your AOSP folder:
+7. Copy the makefile from the **onecourse source** repository to your AOSP folder:
 
- - onecourse Swahili:
-
-          cp $ROOT_FOLDER/app/build/outputs/apk/app-childMenu-release.apk packages/apps/onebillion/
-          cp $ROOT_FOLDER/AOSP/childMenu-Android.mk packages/apps/onebillion/Android.mk
-
- - onecourse English:
-
-          cp $ROOT_FOLDER/app/build/outputs/apk/app-childMenu_enGB_-release.apk packages/apps/onebillion/
-          cp $ROOT_FOLDER/AOSP/childMenu_en_GB_-Android.mk packages/apps/onebillion/Android.mk
+			cp $ROOT_FOLDER/AOSP/Android.mk packages/apps/onebillion/Android.mk
               
+              
+8. Copy the the desired **onecourse** `.apk` to your AOSP folder:
+
+	onecourse Swahili:
+
+          cp $ROOT_FOLDER/app/build/outputs/apk/sw_community_/release/app-sw_community_-release.apk packages/apps/onebillion/app-release.apk
+
+	onecourse English:
+
+          cp $ROOT_FOLDER/app/build/outputs/apk/enGB_community_/release/app-enGB_community_-release.apk packages/apps/onebillion/app-release.apk
          
+         
+9. Download and extract the `assets.tar.gz` file from onebillion's Box account and extract into your AOSP folder:
+
         
-8. Build the filesystem images. This will take several hours:
+        tar xf assets.tar.gz -C packages/apps/onebillion/
+
+        
+10. Build the filesystem images. This will take several hours:
 
         source build/envsetup.sh
         lunch aosp_dragon-userdebug
         make -j4
 
-9. The filesytem images will be placed in:
+11. The filesytem images will be placed in:
 
         /out/target/product/dragon/
 
-10. You can now [install onecourse onto a device](INSTALL.md).
+12. You can now [install onecourse onto a device](INSTALL.md).
