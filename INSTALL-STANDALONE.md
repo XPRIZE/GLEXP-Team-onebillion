@@ -4,8 +4,8 @@
 The installation steps mentioned below will allow you to setup the application as a standalone application alongside your current filesystem without having to flash custom filesystem images. If you instead want to build custom filesystem images for onecourse application follow the steps mentioned in [BUILD](https://github.com/XPRIZE/GLEXP-Team-onebillion/blob/master/BUILD.md) file.
 
 ## Requirements
-1. Ensure you have `adb` and `fastboot` installed on your computer. You can [follow the steps in this helpful guide](https://www.androidpit.com/how-to-install-adb-and-fastboot).
-2. Connect your computer to the device via USB.
+1. Ensure you have _adb_ and _fastboot_ installed on your computer. You can [follow the steps in this helpful guide](https://www.androidpit.com/how-to-install-adb-and-fastboot).
+2. Connect your device to the computer via USB.
 
 ## 1. Device preparation
 
@@ -25,7 +25,7 @@ The installation steps mentioned below will allow you to setup the application a
 
 1. Ensure you have **Android Studio** installed. You can [follow the steps in this helpful guide](https://developer.android.com/studio/install.html).
 
-2. Configure the `ROOT_FOLDER` environment variable and `ANDROID_HOME` environment variable based on the location of the Android SDK:  
+2. Configure the _ROOT_FOLDER_ environment variable and _ANDROID_HOME_ environment variable based on the location of the Android SDK:  
    
    Follow these steps for Mac/Linux based system:
 	
@@ -43,17 +43,17 @@ The installation steps mentioned below will allow you to setup the application a
 		
 		git clone https://github.com/XPRIZE/GLEXP-Team-onebillion.git $ROOT_FOLDER/
 		
-4. In the `ROOT_FOLDER` build `gradle` tasks:
+4. In the _ROOT_FOLDER_ build _gradle_ tasks:
 
         ./gradlew tasks
 		
-5. Build the **onecourse** `.apk`:
+5. Build the **onecourse** _.apk_:
 
 	onecourse English:
 
           ./gradlew assembleEnGB_community_debug
 		  
-6. Download the `assets.tar.gz` file from onebillion's Box account and extract into your `ROOT_FOLDER`:
+6. Download the _assets.tar.gz_ file from onebillion's Box account and extract into your _ROOT_FOLDER_:
 
 		tar xf assets.tar.gz -C PATH/TO/$ROOT_FOLDER/
 		
@@ -70,11 +70,11 @@ The installation steps mentioned below will allow you to setup the application a
 3. Once the assets are transferred, open the application and grant all the required permissions.
 
 4. Check if installation was successfull. Tap the **Watch video** button to watch our short 'tablet care' video. Tap **Test onecourse** to try a random 'learning unit'. If neither load, there was an issue with the installation. Please reinstall the application by following steps 1 to 3 again.
-![](https://onebillion.org/img/xprize/setup-ss/screen1.png)
+	<img src="https://onebillion.org/img/xprize/setup-ss/screen1.png" width="850" height="500">
 
-5. Set the field trial start date. Tap **Set trial start date** and select the current date: ![](https://onebillion.org/img/xprize/setup-ss/screen2.png)  
+5. Set the field trial start date. Tap **Set trial start date** and select the current date: <img src="https://onebillion.org/img/xprize/setup-ss/screen2.png" width="850" height="500">
   
    Next, tap **Yes, complete setup**. You will see the following screen and the application will exit itself automatically:  
-![](https://onebillion.org/img/xprize/setup-ss/screen4.png)
+	<img src="https://onebillion.org/img/xprize/setup-ss/screen4.png" width="850" height="500">
 
 6. Restart the application after which it is ready to be used.
