@@ -4,7 +4,7 @@
 The installation steps mentioned below will allow you to setup the application as a standalone application alongside your current filesystem without having to flash custom filesystem images. If you instead want to build custom filesystem images for onecourse application follow the steps mentioned in [BUILD](https://github.com/XPRIZE/GLEXP-Team-onebillion/blob/master/BUILD.md) file.
 
 ## Requirements
-1. Ensure you have _adb_ and _fastboot_ installed on your computer. You can [follow the steps in this helpful guide](https://www.androidpit.com/how-to-install-adb-and-fastboot).
+1. Ensure you have _adb_ installed on your computer. You can [follow the steps in this helpful guide](https://www.androidpit.com/how-to-install-adb-and-fastboot).
 2. Connect your device to the computer via USB.
 
 ## 1. Device preparation
@@ -52,16 +52,24 @@ The installation steps mentioned below will allow you to setup the application a
 	onecourse English:
 
           ./gradlew assembleEnGB_community_debug
+	  
+	onecourse Swahili:
+	
+          ./gradlew assembleSw_community_debug
 		  
-6. Download the _assets.tar.gz_ file from onebillion's Box account and extract into your _ROOT_FOLDER_:
-
-		tar xf assets.tar.gz -C PATH/TO/$ROOT_FOLDER/
+6. Download the language specific assets from [releases](https://github.com/XPRIZE/GLEXP-Team-onebillion/releases/tag/v3.0.0) section and extract into your _ROOT_FOLDER_.
 		
 ## 3. Installing onecourse
 
 1. Install the application via adb:
 
+	onecourse English:
+
 		adb install app/build/outputs/apk/enGB_community_/debug/app-enGB_community_-debug.apk
+		
+	onecourse Swahili:
+	
+		adb install app/build/outputs/apk/sw_community_/debug/app-sw_community_-debug.apk
 		
 2. Copy the assets to Android device:
 
