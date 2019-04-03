@@ -1,6 +1,6 @@
 # Localization instructions for onecourse
 
-Localizing the onecourse application requires updates to the assets available in onebillion's Box account.
+Localizing the onecourse application requires updates to the assets available in [releases](https://github.com/XPRIZE/GLEXP-Team-onebillion/releases/tag/v3.0.0) section.
 
 ## Directory structure of assets
 
