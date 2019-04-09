@@ -125,7 +125,7 @@ Each word within a `para` is also individually recorded, along with a version sp
 ### 5. Component audio
 Component localizations consist of a set of _.m4a_ recorded audio files. The file names tend to correspond to the english localization.
 For example in the numeracy component _Add and subtract_, `assets/oc-addsubtract/local/sw/q_sevenbees.m4a` is the Swahili translation of the phrase _"Seven bees"_. In the reading component _Making plurals_, `assets/oc-makingplurals/local/en_GB/mp2_goodtheyreinorder.m4a` is the english recording of _"Good, they are in order"_.
-We have provided [a mapping of all English audio to _.m4a_ filenames here](#).
+We have provided mappings of all English audio to _.m4a_ filenames. These are xml files inside the `assets/localization` directory.
 
 
 ### 6. Learning journey
