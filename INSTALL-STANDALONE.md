@@ -1,7 +1,7 @@
 # Building onecourse
 
 ## Overview
-The installation steps mentioned below will allow you to setup the application as a standalone application alongside your current filesystem without having to flash custom filesystem images. If you instead want to build custom filesystem images (i.e. clear the file system and only a single application remains on the tablet) for onecourse application follow the steps mentioned in [BUILD](https://github.com/XPRIZE/GLEXP-Team-onebillion/blob/master/BUILD.md) file.
+The installation steps mentioned below will allow you to setup the application as a standalone application alongside your current filesystem without having to flash custom filesystem images. If you instead want to build custom filesystem images (i.e. clear the file system and only have a single application remain on the tablet) for onecourse application follow the steps mentioned in [BUILD](https://github.com/XPRIZE/GLEXP-Team-onebillion/blob/master/BUILD.md) file.
 
 ## Requirements
 1. Ensure you have _adb_ installed on your computer. You can [follow the steps in this helpful guide](https://www.androidpit.com/how-to-install-adb-and-fastboot).
