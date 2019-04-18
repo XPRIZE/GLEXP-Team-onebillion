@@ -15,7 +15,7 @@ There are 8 key steps to localize onecourse. We work with local liguistic expert
 
 
 ## Overview
-Each localized version of onecourse requires a language pack for a _locale_. A locale is a pairing of a language and an optional region (e.g. Tanzanian Swahili, British English). A locale is represented using abbreviated codes, so Swahili would be `sw` and British English `en_GB`. A language pack consists of six elements:
+Each localized version of onecourse requires a language pack for a _locale_. A locale is a pairing of a language and an optional region (e.g. Tanzanian Swahili, British English). A locale is represented using abbreviated codes, so Swahili would be `sw` and British English `en_GB`. A language pack consists of seven elements:
 
 1. The alphabet
 2. Phonemes, syllables and words
@@ -23,6 +23,7 @@ Each localized version of onecourse requires a language pack for a _locale_. A l
 4. Stories
 5. Component audio
 6. Learning journey
+7. Fonts
 
 
 ## Language Pack
@@ -125,7 +126,7 @@ Each word within a `para` is also individually recorded, along with a version sp
 ### 5. Component audio
 Component localizations consist of a set of _.m4a_ recorded audio files. The file names tend to correspond to the english localization.
 For example in the numeracy component _Add and subtract_, `assets/oc-addsubtract/local/sw/q_sevenbees.m4a` is the Swahili translation of the phrase _"Seven bees"_. In the reading component _Making plurals_, `assets/oc-makingplurals/local/en_GB/mp2_goodtheyreinorder.m4a` is the english recording of _"Good, they are in order"_.
-We have provided [a mapping of all English audio to _.m4a_ filenames here](#).
+We have provided mappings of all English audio to _.m4a_ filenames. These are xml files inside the `assets/localization` directory.
 
 
 ### 6. Learning journey
@@ -197,12 +198,14 @@ In the following example, the _letter tracing_ component `OC_LetterTrace` is bei
 />
 ```
 
-### Play Zone
+#### Play Zone
 This is defined in the file `playzone_LOCALE/units.xml`. It specifies which units appear in the _play zone_ for each level (week).
 
-### Library
+#### Library
 This is defined in the file `library_LOCALE/units.xml`. It specifies all of the stories in the story library for the locale. Here, _level_ represents the relative complexity of a set of stories.
 
+### 7. Fonts
+onecourse by default uses two fonts, `onebillionreader-Regular.otf` and `onebillionwriter-Regular.otf`. These can be replaced by identically named alternative fonts in `app/src/main/fonts/`. Please note onecourse does not currently support right-to-left scripts.
 
 ## Build
 
