@@ -205,7 +205,7 @@ This is defined in the file `playzone_LOCALE/units.xml`. It specifies which unit
 This is defined in the file `library_LOCALE/units.xml`. It specifies all of the stories in the story library for the locale. Here, _level_ represents the relative complexity of a set of stories.
 
 ### 7. Fonts
-onecourse by default uses two fonts, `onebillionreader-Regular.otf` and `onebillionwriter-Regular.otf`. These can be replaced by indentically named alternative fonts in `app/src/main/fonts/`. Please note onecourse does not currently support right-to-left scripts.
+onecourse by default uses two fonts, `onebillionreader-Regular.otf` and `onebillionwriter-Regular.otf`. These can be replaced by identically named alternative fonts in `app/src/main/fonts/`. Please note onecourse does not currently support right-to-left scripts.
 
 ## Build
 
