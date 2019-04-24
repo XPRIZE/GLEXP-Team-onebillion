@@ -1,7 +1,7 @@
 # Building onecourse
 
 ## Overview
-The installation steps mentioned below will allow you to setup the application as a standalone application alongside your current filesystem without having to flash custom filesystem images. If you instead want to build custom filesystem images (i.e. clear the file system and only have a single application remain on the tablet) for onecourse application follow the steps mentioned in [BUILD](https://github.com/XPRIZE/GLEXP-Team-onebillion/blob/master/BUILD.md) file.
+The installation steps mentioned below will allow you to set-up the application as a standalone application alongside your current filesystem without the need to flash custom filesystem images. If you instead want to build custom filesystem images (i.e. clear the file system and have a single application remain on the tablet) for onecourse application follow the steps mentioned in [BUILD](https://github.com/XPRIZE/GLEXP-Team-onebillion/blob/master/BUILD.md) file.
 
 (**Note:** OS specific commands are mentioned where required. All the other commands are OS independent i.e. they work on both Windows and Mac/Linux)
 
@@ -19,7 +19,7 @@ The installation steps mentioned below will allow you to setup the application a
 1. Go to **Settings > Developer** options.
 2. Tap **Enable USB debugging**.
 3. Tap **OK** when prompted by the disclaimer.
-4. You should see dialog with you computer's _"RSA key fingerprint"_.
+4. You should see a dialog box with your computer's _"RSA key fingerprint"_.
 5. Tap _"Always allow from this computer"_.
 6. Tap **OK**.
 
@@ -35,7 +35,7 @@ The installation steps mentioned below will allow you to setup the application a
 		
 		export ANDROID_HOME=[PATH/TO/ANDROID_SDK]
 		
-   Follow these steps for Windows based system:
+   Follow these steps for Windows-based system:
 
 		Set-Variable -Name "ROOT_FOLDER" -Value "onecourse"
 		
@@ -79,7 +79,7 @@ The installation steps mentioned below will allow you to setup the application a
 		
 3. Once the assets are transferred, open the application and grant all the required permissions.
 
-4. Check if installation was successfull. Tap the **Watch video** button to watch our short 'tablet care' video. Tap **Test onecourse** to try a random 'learning unit'. If neither load, there was an issue with the installation. Please reinstall the application by following steps 1 to 3 again.
+4. Check if the installation was successful. Tap the **Watch video** button to watch our short 'tablet care' video. Tap **Test onecourse** to try a random 'learning unit'. If neither of them load, there is an issue with the installation. Please reinstall the application by following steps 1 to 3 again.
 	<img src="https://onebillion.org/img/xprize/setup-ss/screen1.png" width="850" height="500">
 
 5. Set the field trial start date. Tap **Set trial start date** and select the current date: <img src="https://onebillion.org/img/xprize/setup-ss/screen2.png" width="850" height="500">
