@@ -121,6 +121,7 @@ Every `para` has a corresponding _.m4a_ recorded audio file and an accompanying 
 ```
 
 Each word within a `para` is also individually recorded, along with a version split into syllables for lower-level stories.
+Use [PhraseAnal](https://github.com/XPRIZE/GLEXP-Team-onebillion-PhraseAnal), to assist with generating _.etpa_ files from audio files.
 
 
 ### 5. Component audio
