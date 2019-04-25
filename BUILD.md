@@ -84,9 +84,9 @@ Building **onecourse** is a two-step process:
           cp $ROOT_FOLDER/app/build/outputs/apk/enGB_community_/release/app-enGB_community_-release.apk packages/apps/onebillion/app-release.apk
          
          
-9. Download and join [part 1](https://github.com/XPRIZE/GLEXP-Team-onebillion/releases/download/v3.0.0/onecourse-assets-v3.0.0.tar.gz.aa) and [part 2](https://github.com/XPRIZE/GLEXP-Team-onebillion/releases/download/v3.0.0/onecourse-assets-v3.0.0.tar.gz.ab) of the onecourse assets, then extract into your AOSP folder:
+9. Download and join [part 1](https://github.com/XPRIZE/GLEXP-Team-onebillion/releases/download/v3.0.1/onecourse-assets-v3.0.1.tar.gz.aa) and [part 2](https://github.com/XPRIZE/GLEXP-Team-onebillion/releases/download/v3.0.1/onecourse-assets-v3.0.1.tar.gz.ab) of the onecourse assets, then extract into your AOSP folder:
 
-        cat onecourse-assets-v3.0.0.tar.gz.aa onecourse-assets-v3.0.0.tar.gz.ab > assets.tar.gz
+        cat onecourse-assets-v3.0.1.tar.gz.aa onecourse-assets-v3.0.1.tar.gz.ab > assets.tar.gz
         tar xf assets.tar.gz -C packages/apps/onebillion/
 
         

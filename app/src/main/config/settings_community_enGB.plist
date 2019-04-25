@@ -56,7 +56,7 @@
 
 	<!-- SETUP MENU -->
 	<key>setup_menu_enabled</key>
-	<string>true</string>
+	<string>false</string>
 	<!--  -->
 	<key>setup_menu_folder</key>
 	<string>oc-setup</string>
