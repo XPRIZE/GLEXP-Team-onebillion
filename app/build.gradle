@@ -74,102 +74,12 @@ android {
     flavorDimensions "ob"
 
     productFlavors {
-        pedro_ {
-            applicationId 'org.onebillion.onecourse.pedro'
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "Pedro"
-            buildConfigField 'String', 'SETTINGS_FILE', '"settings_pedro.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/judges"
-            ]
-        }
-        alan_ {
-            applicationId 'org.onebillion.onecourse.alan'
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "onecourse - alan"
-            buildConfigField 'String', 'SETTINGS_FILE', '"settingsas.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/child_ny"
-            ]
-        }
-        michal_ {
-            applicationId 'org.onebillion.onecourse.michal'
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "onecourse - michal"
-            buildConfigField 'String', 'SETTINGS_FILE', '"settings_michal.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/child_ny"
-            ]
-        }
-        sw_judges_ {
-            applicationId 'org.onebillion.onecourse.judges'
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "onecourse - Judges"
-            buildConfigField 'String', 'SETTINGS_FILE', '"settings_judges_sw.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/judges"
-            ]
-        }
-        ny_judges_ {
-            applicationId 'org.onebillion.onecourse.judges.ny'
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "Judges - ny"
-            buildConfigField 'String', 'SETTINGS_FILE', '"settings_judges_ny.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/judges"
-            ]
-        }
         sw_community_ {
             applicationId 'org.onebillion.onecourse.child'
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - Child"
             buildConfigField 'String', 'SETTINGS_FILE', '"settings_community_sw.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/icon_child"
-            ]
-        }
-        sw_test_ {
-            applicationId 'org.onebillion.onecourse.child.test'
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "Dev - sw"
-            buildConfigField 'String', 'SETTINGS_FILE', '"settings_test_sw.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/icon_child"
-            ]
-        }
-        sw_library_ {
-            applicationId 'org.onebillion.onecourse.child.library'
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "Library - sw"
-            buildConfigField 'String', 'SETTINGS_FILE', '"settings_library_sw.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/icon_child"
-            ]
-        }
-        sw_playzone_ {
-            applicationId 'org.onebillion.onecourse.child.playzone'
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "Playzone - sw"
-            buildConfigField 'String', 'SETTINGS_FILE', '"settings_playzone_sw.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/icon_child"
-            ]
-        }
-        sw_loop_ {
-            applicationId 'org.onebillion.onecourse.child.loop'
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "Loop - sw"
-            buildConfigField 'String', 'SETTINGS_FILE', '"settings_loop_sw.plist"'
             manifestPlaceholders = [
                     appIcon: "@mipmap/icon_child"
             ]
@@ -184,87 +94,6 @@ android {
                     appIcon: "@mipmap/child_en_gb"
             ]
         }
-        enGB_test_ {
-            applicationId 'org.onebillion.onecourse.child.en_GB.test'
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "Dev - enGB"
-            buildConfigField 'String', 'SETTINGS_FILE', '"settings_test_enGB.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/child_en_gb"
-            ]
-        }
-        enGB_playzone_ {
-            applicationId 'org.onebillion.onecourse.child.en_GB.playzone'
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "Playzone - enGB"
-            buildConfigField 'String', 'SETTINGS_FILE', '"settings_playzone_enGB.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/child_en_gb"
-            ]
-        }
-        ny_community_ {
-            applicationId 'org.onebillion.onecourse.child.ny'
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "onecourse - ny"
-            buildConfigField 'String', 'SETTINGS_FILE', '"settings_community_ny.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/child_ny"
-            ]
-        }
-        ny_test_ {
-            applicationId 'org.onebillion.onecourse.child.ny.test'
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "Dev - ny"
-            buildConfigField 'String', 'SETTINGS_FILE', '"settings_test_ny.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/child_ny"
-            ]
-        }
-        kenya_ {
-            applicationId 'org.onebillion.onecourse.kenya'
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "Kenya dev"
-            buildConfigField 'String', 'SETTINGS_FILE', '"settings_kenya.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/icon_child"
-            ]
-        }
-        vso_demo_tablet_ {
-            applicationId 'org.onebillion.onecourse.demo'
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "onecourse"
-            buildConfigField 'String', 'SETTINGS_FILE', '"settings_vso_demo_tablet.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/judges"
-            ]
-        }
-        demo_recording_ {
-            applicationId 'org.onebillion.onecourse.child.recording.demo'
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "Recording - sw"
-            buildConfigField 'String', 'SETTINGS_FILE', '"settings_recording.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/icon_child"
-            ]
-        }
-        diagnostics_testing_ {
-            applicationId 'org.onebillion.onecourse.diagnostics.testing'
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "Diagnostics"
-            buildConfigField 'String', 'SETTINGS_FILE', '"settings_diagnostics.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/icon_child"
-            ]
-        }
-
     }
 
 

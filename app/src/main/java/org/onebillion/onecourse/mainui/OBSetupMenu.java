@@ -78,7 +78,8 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
         HOME_SCREEN, SET_DATE_SCREEN, SET_TRIAL_DATE_SCREEN, CONFIRMATION_SCREEN, VIDEO_SCREEN, BATTERY_SCREEN, FINAL_SCREEN;
     }
     //
-    private static Date trialStartDate = new GregorianCalendar(2017,11,15).getTime(); // 0 based months, yay
+//    private static Date trialStartDate = new GregorianCalendar(2017,11,15).getTime(); // 0 based months, yay
+    private Date trialStartDate;
     private static float clockRefreshInterval = 15.0f;
     private static String videoFilename = "tablet_care_sw.mp4";
     //
@@ -104,6 +105,14 @@ public class OBSetupMenu extends OC_SectionController implements TimePickerDialo
     public void prepare ()
     {
         super.prepare();
+        //
+        GregorianCalendar calendar = new GregorianCalendar();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        //
+        trialStartDate = calendar.getTime();
         //
         MainActivity.log("OBSetupMenu:prepare");
         //
