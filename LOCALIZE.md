@@ -15,7 +15,7 @@ There are 8 key steps to localize onecourse. We work with local liguistic expert
 
 
 ## Overview
-Each localized version of onecourse requires a language pack for a _locale_. A locale is a pairing of a language and an optional region (e.g. Tanzanian Swahili, British English). A locale is represented using abbreviated codes, so Swahili would be `sw` and British English `en_GB`. A language pack consists of seven elements:
+Each localized version of onecourse requires a language pack for a _locale_. A locale is a pairing of a language and an optional region (e.g. Tanzanian Swahili, British English). A locale is represented using abbreviated codes, so Swahili would be `sw` and British English `en_GB`. A language pack consists of eight elements:
 
 1. The alphabet
 2. Phonemes, syllables and words
@@ -24,6 +24,7 @@ Each localized version of onecourse requires a language pack for a _locale_. A l
 5. Component audio
 6. Learning journey
 7. Fonts
+8. Video subtitles
 
 
 ## Language Pack
@@ -207,6 +208,27 @@ This is defined in the file `library_LOCALE/units.xml`. It specifies all of the 
 
 ### 7. Fonts
 onecourse by default uses two fonts, `onebillionreader-Regular.otf` and `onebillionwriter-Regular.otf`. These can be replaced by identically named alternative fonts in `app/src/main/fonts/`. Please note onecourse does not currently support right-to-left scripts.
+
+### 8. Video Subtitles
+For video clips in the onecourse _play zone_, optional subtitles can be added. These are standard `.srt` text files placed in the `assets/oc-video/local/LOCALE/` directory. Each subtitle entry within a file consists of four parts:
+
+1. A numeric counter identifying each sequential subtitle.
+2. The time that the subtitle should appear on the screen, followed by `-->` and the time it should disappear.
+3. The subtitle itself on one or more lines.
+4. A blank line indicating the end of this subtitle.
+
+For example, the Swahili subtitle for the video _Origami Elephant_ in `assets/oc-video/local/sw/origami_elephant.srt`:
+
+```
+1
+00:00:00,000 --> 00:09:08,990
+Tutengeneze tembo wa karatasi!
+
+```
+
+
+
+
 
 ## Build
 
