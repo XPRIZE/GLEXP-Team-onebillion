@@ -36,7 +36,7 @@ The installation steps below will allow you to set-up the application as a stand
 		
 		export ANDROID_HOME=[PATH/TO/ANDROID_SDK]
 		
-   Follow these steps for Windows-based system:
+   Follow these steps for a Windows 7 or later system:
 
 		Set-Variable -Name "ROOT_FOLDER" -Value "onecourse"
 		
