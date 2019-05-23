@@ -1,12 +1,12 @@
 -- Merging decision tree log ---
 manifest
-ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:2:1-9:12
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:2:1-9:12
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:2:1-9:12
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:2:1-9:12
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:2:1-9:12
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:2:1-9:12
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:2:1-9:12
+ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:2:1-7:12
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:2:1-7:12
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:2:1-7:12
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:2:1-7:12
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:2:1-7:12
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:2:1-7:12
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:2:1-7:12
 	package
 		ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:3:5-52
 		INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml
@@ -22,16 +22,16 @@ INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\And
 		INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml
 		INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml
 uses-sdk
-ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:7:5-73
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:7:5-73
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:7:5-73
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:7:5-73
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:7:5-73
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml
 	android:targetSdkVersion
-		ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:7:41-70
 		INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml
+		ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml
 		INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml
 	android:minSdkVersion
-		ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml:7:15-40
 		INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml
+		ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml
 		INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\zip_file\src\main\AndroidManifest.xml

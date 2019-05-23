@@ -1,12 +1,12 @@
 -- Merging decision tree log ---
 manifest
-ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:16:1-24:12
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:16:1-24:12
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:16:1-24:12
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:16:1-24:12
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:16:1-24:12
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:16:1-24:12
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:16:1-24:12
+ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:16:1-23:12
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:16:1-23:12
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:16:1-23:12
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:16:1-23:12
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:16:1-23:12
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:16:1-23:12
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:16:1-23:12
 	package
 		ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:17:5-51
 		INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml
@@ -21,21 +21,21 @@ INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\
 		ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:18:5-28
 		INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml
 		INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml
+uses-permission#com.android.vending.CHECK_LICENSE
+ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:22:5-73
+	android:name
+		ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:22:22-70
 uses-sdk
-ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:21:5-73
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:21:5-73
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:21:5-73
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:21:5-73
-INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:21:5-73
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml
+INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml
 	android:targetSdkVersion
-		ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:21:41-70
 		INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml
+		ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml
 		INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml
 	android:minSdkVersion
-		ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:21:15-40
 		INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml
+		ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml
 		INJECTED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml
-uses-permission#com.android.vending.CHECK_LICENSE
-ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:23:5-73
-	android:name
-		ADDED from D:\GIT\XPRIZEMAQ\GLEXP-Team-onebillion-Hindi\market_licensing\src\main\AndroidManifest.xml:23:22-70
