@@ -9,6 +9,9 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/downloader_library" />
+            <option value="$PROJECT_DIR$/market_licensing" />
+            <option value="$PROJECT_DIR$/zip_file" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

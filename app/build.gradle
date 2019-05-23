@@ -6,7 +6,6 @@ repositories {
 
 apply plugin: 'com.android.application'
 
-
 android {
     signingConfigs {}
     /*
@@ -44,14 +43,6 @@ android {
                     appuserid: "android.uid.system"
             ]
         }
-        distribution {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            manifestPlaceholders = [
-                    appuserid: ""
-            ]
-        }
-
     }
     dependencies {
         implementation fileTree(dir: 'libs', include: ['*.jar'])
@@ -69,7 +60,7 @@ android {
             assets.srcDirs = ['src/main/assets', 'src/main/config', 'src/main/fonts/']
             res.srcDirs = ['src/main/res']
         }
-     }
+    }
 
     flavorDimensions "ob"
 
@@ -96,7 +87,6 @@ android {
         }
     }
 
-
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES.txt'
         exclude 'META-INF/NOTICE'
@@ -108,7 +98,6 @@ android {
 }
 
 
-
 dependencies {
     implementation files('libs/commons-io-2.5.jar')
     implementation files('libs/commons-net-3.6.jar')
@@ -116,6 +105,6 @@ dependencies {
     implementation 'com.android.support:multidex:1.0.0'
     implementation 'com.parse:parse-android:1.15.8'
     implementation 'com.google.code.gson:gson:2.8.2'
-
-
+    compile project(path: ':zip_file')
+    compile project(path: ':downloader_library')
 }
