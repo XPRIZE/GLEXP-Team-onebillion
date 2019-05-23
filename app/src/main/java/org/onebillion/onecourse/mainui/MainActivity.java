@@ -18,9 +18,9 @@ import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
-import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -29,19 +29,12 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import java.lang.reflect.Constructor;
-import java.util.*;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.locks.ReentrantLock;
-
 import org.onebillion.onecourse.R;
 import org.onebillion.onecourse.controls.OBControl;
 import org.onebillion.onecourse.controls.OBGroup;
 import org.onebillion.onecourse.glstuff.OBGLView;
 import org.onebillion.onecourse.glstuff.OBRenderer;
-import org.onebillion.onecourse.utils.OBAnalytics;
 import org.onebillion.onecourse.utils.OBAnalyticsManager;
-import org.onebillion.onecourse.utils.OBAnalyticsManagerOnline;
 import org.onebillion.onecourse.utils.OBAudioManager;
 import org.onebillion.onecourse.utils.OBConfigManager;
 import org.onebillion.onecourse.utils.OBFatController;
@@ -50,8 +43,17 @@ import org.onebillion.onecourse.utils.OBLocationManager;
 import org.onebillion.onecourse.utils.OBPreferenceManager;
 import org.onebillion.onecourse.utils.OBSystemsManager;
 import org.onebillion.onecourse.utils.OBUser;
-import org.onebillion.onecourse.utils.OB_Maths;
 import org.onebillion.onecourse.utils.OBUtils;
+import org.onebillion.onecourse.utils.OB_Maths;
+
+import java.io.File;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static android.R.attr.targetSdkVersion;
 
@@ -144,6 +146,13 @@ public class MainActivity extends Activity
     @Override
     protected void onCreate (Bundle savedInstanceState)
     {
+        String flagFilePath = "/storage/emulated/0/Android/data/org.onebillion.onecourse.child.en_GB/.success.txt";
+        File flagFile = new File(flagFilePath);
+        if (!flagFile.exists()) {
+            Intent intent = new Intent(MainActivity.this, SplashScreenActivity.class);
+            startActivity(intent);
+        }
+
         MainActivity.log("MainActivity.onCreate");
         //
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);

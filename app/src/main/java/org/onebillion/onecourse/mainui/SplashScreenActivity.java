@@ -36,7 +36,7 @@ public class SplashScreenActivity extends Activity {
 
     public static String getUnzippedExpansionFilePath() {
 //        return getContext().getExternalFilesDir(null) + File.separator;
-        return "/storage/emulated/0/Android/data/com.maq.xprize.kitkitschool.hindi/files/";
+        return "/storage/emulated/0/Android/data/org.onebillion.onecourse.child.en_GB/";
     }
 
     /*@Override

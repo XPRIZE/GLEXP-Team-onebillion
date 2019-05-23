@@ -241,7 +241,7 @@
 
 	<!-- ASSETS -->
 	<key>assets_external_path</key>
-	<string>/onebillion/assets</string>
+	<string>/Android/data/org.onebillion.onecourse.child.en_GB/assets</string>
 
 
 	<!-- DEBUG -->
