@@ -23,6 +23,7 @@ public class Zip {
     private ZipFile _zipFile;
     private TextView percentText;
     private Activity zipActivity;
+    private static int count = 0;
 
     public Zip(ZipFile zipFile, Activity _activity) {
         this._zipFile = zipFile;
@@ -37,11 +38,9 @@ public class Zip {
         _zipFile.close();
     }
 
-    public void unzip(String extractPath) throws IOException {
+    public void unzip(String extractPath, int totalZipSize) throws IOException {
         File targetDir = new File(extractPath);
-        int zipSize = _zipFile.size();
-        int count = 0;
-        int percent = 0;
+        int percent;
         ProgressBar progressBar = (ProgressBar) zipActivity.findViewById(R.id.p);
         percentText = (TextView) zipActivity.findViewById(R.id.mPercentText);
         String path;
@@ -66,7 +65,7 @@ public class Zip {
         while (zipEntries.hasMoreElements()) {
             ++count;
             // Calculate the percentage of extracted content
-            percent = (count * 100) / zipSize;
+            percent = (count * 100) / totalZipSize;
             Log.d(TAG, "unzip percent: " + percent);
             // Sync the progress bar with percentage value
             progressBar.setProgress(percent);

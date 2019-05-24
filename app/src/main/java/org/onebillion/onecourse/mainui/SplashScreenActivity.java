@@ -22,6 +22,7 @@ import java.util.zip.ZipFile;
 
 import onecourse.DownloadExpansionFile;
 
+import static onecourse.DownloadExpansionFile.xAPKS;
 import static org.onebillion.onecourse.R.layout.activity_splash_screen;
 
 public class SplashScreenActivity extends Activity {
@@ -98,32 +99,54 @@ public class SplashScreenActivity extends Activity {
     }*/
 
     public void unzipFile() {
+        int totalZipSize = getTotalExpansionFileSize();
         try {
-            filePath = getExpansionFilePath();
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 99);
-            file = new File(filePath);
-            zipFile = new ZipFile(file);
-            _zip = new Zip(zipFile, this);
-            unzipFilePath = getUnzippedExpansionFilePath();
-            packageNameDir = new File(unzipFilePath);
-            if (packageNameDir.exists()) {
-                DownloadExpansionFile.deleteDir(packageNameDir);
+            for (DownloadExpansionFile.XAPKFile xf : xAPKS) {
+                filePath = getExpansionFilePath(xf.mIsMain, xf.mFileVersion);
+                file = new File(filePath);
+                zipFile = new ZipFile(file);
+                _zip = new Zip(zipFile, this);
+                unzipFilePath = getUnzippedExpansionFilePath();
+                packageNameDir = new File(unzipFilePath);
+                if (xf.mIsMain) {
+                    if (packageNameDir.exists()) {
+                        DownloadExpansionFile.deleteDir(packageNameDir);
+                    }
+                    packageNameDir.mkdir();
+                }
+                _zip.unzip(unzipFilePath, totalZipSize);
+                _zip.close();
             }
-            packageNameDir.mkdir();
-            _zip.unzip(unzipFilePath);
-            _zip.close();
             toCallApplication();
         } catch (IOException ie) {
             unzipFile();
         }
-        return;
     }
 
-    public String getExpansionFilePath() {
+    public int getTotalExpansionFileSize() {
+        int totalExpansionFileSize = 0;
+        ZipFile zipFile;
+        try {
+            for (DownloadExpansionFile.XAPKFile xf : xAPKS) {
+                filePath = getExpansionFilePath(xf.mIsMain, xf.mFileVersion);
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 99);
+                file = new File(filePath);
+                zipFile = new ZipFile(file);
+                totalExpansionFileSize += zipFile.size();
+            }
+        } catch (IOException ie) {
+            System.out.println("Couldn't get total expansion file size");
+            System.out.println("Stacktrace: " + ie);
+        }
+        return totalExpansionFileSize;
+    }
+
+    public String getExpansionFilePath(boolean isMain, int fileVersion) {
 
         //return Environment.getExternalStorageDirectory().toString() + File.separator + "autocognita.zip";
         return Environment.getExternalStorageDirectory().toString() + "/Android/obb/"/*APKExpansionSupport.EXP_PATH*/ + Helpers.getPackageName(this) + File.separator +
-                Helpers.getExpansionAPKFileName(this, DownloadExpansionFile.xAPK.mIsMain, DownloadExpansionFile.xAPK.mFileVersion);
+                Helpers.getExpansionAPKFileName(this, isMain, fileVersion);
     }
 
     private class DownloadFile extends AsyncTask<String, Integer, String> {
