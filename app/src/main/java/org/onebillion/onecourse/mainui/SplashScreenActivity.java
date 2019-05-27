@@ -3,14 +3,17 @@ package org.onebillion.onecourse.mainui;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.google.android.vending.expansion.downloader.Helpers;
 
@@ -36,7 +39,7 @@ public class SplashScreenActivity extends Activity {
     File packageNameDir;
 
     public static String getUnzippedExpansionFilePath() {
-        return "/storage/emulated/0/Android/data/org.onebillion.onecourse.child.en_GB/";
+        return "/storage/emulated/0/Android/data/org.onebillion.onecourse.child.en_GB/files/";
     }
 
     @Override
@@ -54,7 +57,35 @@ public class SplashScreenActivity extends Activity {
             decorView.setSystemUiVisibility(uiOptions);
         }
         setContentView(activity_splash_screen);
-        new DownloadFile().execute(null, null, null);
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                        != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Permission is not granted
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO}, 1);
+        } else {
+            new DownloadFile().execute(null, null, null);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String[] permissions, int[] grantResults) {
+        // If request is cancelled, the result arrays are empty.
+        if (requestCode == 1) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                new DownloadFile().execute(null, null, null);
+            } else {
+                Toast.makeText(this, "Permission required!", Toast.LENGTH_LONG).show();
+                finish();
+            }
+        }
     }
 
     /* function to call the main application after extraction */
@@ -67,7 +98,6 @@ public class SplashScreenActivity extends Activity {
     public void unzipFile() {
         int totalZipSize = getTotalExpansionFileSize();
         try {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 99);
             for (DownloadExpansionFile.XAPKFile xf : xAPKS) {
                 filePath = getExpansionFilePath(xf.mIsMain, xf.mFileVersion);
                 file = new File(filePath);
@@ -85,8 +115,9 @@ public class SplashScreenActivity extends Activity {
                 _zip.close();
             }
             toCallApplication();
-        } catch (IOException ie) {
-            unzipFile();
+        } catch (IOException e) {
+            System.out.println("Could not extract assets");
+            System.out.println("Stack trace:" + e);
         }
     }
 

@@ -62,20 +62,20 @@ import static android.R.attr.targetSdkVersion;
  * Core of the Application.
  * Initialises OPENGL, Settings, wakes up receivers
  * Attaches OBMainViewController to the views.
+ *
  * @see OBMainViewController
  */
 
-public class MainActivity extends Activity
-{
+public class MainActivity extends Activity {
     public static final int REQUEST_EXTERNAL_STORAGE = 1,
-                    REQUEST_MICROPHONE = 2,
-                    REQUEST_CAMERA = 3,
-                    REQUEST_ALL = 4,
-                    REQUEST_FIRST_SETUP_DATE_TIME = 5,
-                    REQUEST_FIRST_SETUP_PERMISSIONS = 6,
-                    REQUEST_FIRST_SETUP_ADMINISTRATOR_PRIVILEGES = 7,
-                    REQUEST_FIRST_SETUP_PROVISION_MANAGED_PROFILE = 8,
-                    REQUEST_FIRST_SETUP_WIFI_BT_SCANNING = 9;
+            REQUEST_MICROPHONE = 2,
+            REQUEST_CAMERA = 3,
+            REQUEST_ALL = 4,
+            REQUEST_FIRST_SETUP_DATE_TIME = 5,
+            REQUEST_FIRST_SETUP_PERMISSIONS = 6,
+            REQUEST_FIRST_SETUP_ADMINISTRATOR_PRIVILEGES = 7,
+            REQUEST_FIRST_SETUP_PROVISION_MANAGED_PROFILE = 8,
+            REQUEST_FIRST_SETUP_WIFI_BT_SCANNING = 9;
     //
     public static String TAG = "onecourse";
     //
@@ -118,20 +118,17 @@ public class MainActivity extends Activity
     public OBRenderer renderer;
     public ReentrantLock suspendLock = new ReentrantLock();
     float sfxMasterVolume = 1.0f;
-    Map<String,Float> sfxVolumes = new HashMap<>();
+    Map<String, Float> sfxVolumes = new HashMap<>();
     private int b;
 
-    public static OBGroup armPointer ()
-    {
+    public static OBGroup armPointer() {
         OBGroup arm = OBImageManager.sharedImageManager().vectorForName("arm_sleeve");
         OBControl anchor = arm.objectDict.get("anchor");
-        if (anchor != null)
-        {
+        if (anchor != null) {
             PointF pt = arm.convertPointFromControl(anchor.position(), anchor.parent);
             PointF rpt = OB_Maths.relativePointInRectForLocation(pt, arm.bounds());
             arm.anchorPoint = rpt;
-        }
-        else
+        } else
             arm.anchorPoint = new PointF(0.64f, 0);
         //
         int skincol = OBConfigManager.sharedManager.getSkinColour(0);
@@ -144,13 +141,13 @@ public class MainActivity extends Activity
 
 
     @Override
-    protected void onCreate (Bundle savedInstanceState)
-    {
-        String flagFilePath = "/storage/emulated/0/Android/data/org.onebillion.onecourse.child.en_GB/.success.txt";
+    protected void onCreate(Bundle savedInstanceState) {
+        String flagFilePath = "/storage/emulated/0/Android/data/org.onebillion.onecourse.child.en_GB/files/.success.txt";
         File flagFile = new File(flagFilePath);
         if (!flagFile.exists()) {
             Intent intent = new Intent(MainActivity.this, SplashScreenActivity.class);
             startActivity(intent);
+            finish();
         }
 
         MainActivity.log("MainActivity.onCreate");
@@ -159,22 +156,17 @@ public class MainActivity extends Activity
         super.onCreate(savedInstanceState);
         systemsManager = new OBSystemsManager(this);
         //
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler()
-        {
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
-            public void uncaughtException(Thread paramThread, Throwable paramThrowable)
-            {
+            public void uncaughtException(Thread paramThread, Throwable paramThrowable) {
                 MainActivity.log("Details of unhandled exception:");
                 //
                 paramThrowable.printStackTrace();
                 //
-                if (OBConfigManager.sharedManager.shouldAppRestartAfterCrash())
-                {
+                if (OBConfigManager.sharedManager.shouldAppRestartAfterCrash()) {
                     MainActivity.log("Caught unhandled exception. Restarting App");
                     // TODO: restart?
-                }
-                else
-                {
+                } else {
                     Toast.makeText(MainActivity.mainActivity, "Application has crashed due to uncaught exception", Toast.LENGTH_LONG).show();
                 }
                 OBSystemsManager.sharedManager.shutdownProcedures();
@@ -185,12 +177,9 @@ public class MainActivity extends Activity
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         //
         // Hide Status Bar
-        if (Build.VERSION.SDK_INT < 16)
-        {
+        if (Build.VERSION.SDK_INT < 16) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        }
-        else
-        {
+        } else {
             View decorView = getWindow().getDecorView();
             int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
             decorView.setSystemUiVisibility(uiOptions);
@@ -205,13 +194,11 @@ public class MainActivity extends Activity
         locationManager = new OBLocationManager(this);
         //
         // this flag disables screenshots
-        if (!OBConfigManager.sharedManager.isDebugEnabled())
-        {
+        if (!OBConfigManager.sharedManager.isDebugEnabled()) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         }
         //
-        if (OBConfigManager.sharedManager.shouldPinApplication())
-        {
+        if (OBConfigManager.sharedManager.shouldPinApplication()) {
             OBSystemsManager.disableStatusBar();
         }
         //
@@ -227,8 +214,7 @@ public class MainActivity extends Activity
         //rootView.addView(glSurfaceView,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
         //        setContentView(glSurfaceView);
-        try
-        {
+        try {
             new OBAudioManager();
             //
             setUpConfig();
@@ -236,60 +222,39 @@ public class MainActivity extends Activity
             //
             ((ThreadPoolExecutor) AsyncTask.THREAD_POOL_EXECUTOR).setCorePoolSize(20);
             log("onCreate ended");
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
-        if (requestCode == REQUEST_FIRST_SETUP_DATE_TIME)
-        {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_FIRST_SETUP_DATE_TIME) {
             OBPreferenceManager.setPreference("dateTimeSetupComplete", true);
             checkForFirstSetupAndRun();
-        }
-        else if (requestCode == REQUEST_FIRST_SETUP_PERMISSIONS)
-        {
+        } else if (requestCode == REQUEST_FIRST_SETUP_PERMISSIONS) {
             checkForFirstSetupAndRun();
-        }
-        else if (requestCode == REQUEST_FIRST_SETUP_ADMINISTRATOR_PRIVILEGES)
-        {
-            if (resultCode == Activity.RESULT_OK)
-            {
+        } else if (requestCode == REQUEST_FIRST_SETUP_ADMINISTRATOR_PRIVILEGES) {
+            if (resultCode == Activity.RESULT_OK) {
                 checkForFirstSetupAndRun();
-            }
-            else
-            {
+            } else {
                 MainActivity.log("Requesting Administrator privileges cancelled or failed");
                 OBSystemsManager.sharedManager.killAllServices();
                 OBSystemsManager.sharedManager.shutdownProcedures();
                 finish();
             }
-        }
-        else if (requestCode == REQUEST_FIRST_SETUP_PROVISION_MANAGED_PROFILE)
-        {
-            if (resultCode == Activity.RESULT_OK)
-            {
+        } else if (requestCode == REQUEST_FIRST_SETUP_PROVISION_MANAGED_PROFILE) {
+            if (resultCode == Activity.RESULT_OK) {
                 checkForFirstSetupAndRun();
-            }
-            else
-            {
+            } else {
                 MainActivity.log("Requesting Provision Manager profile cancelled or failed");
                 OBSystemsManager.sharedManager.killAllServices();
                 OBSystemsManager.sharedManager.shutdownProcedures();
                 finish();
             }
-        }
-        else if (requestCode == REQUEST_FIRST_SETUP_WIFI_BT_SCANNING)
-        {
-            if (resultCode == Activity.RESULT_OK)
-            {
+        } else if (requestCode == REQUEST_FIRST_SETUP_WIFI_BT_SCANNING) {
+            if (resultCode == Activity.RESULT_OK) {
                 checkForFirstSetupAndRun();
-            }
-            else
-            {
+            } else {
                 MainActivity.log("Requesting Wifi and Bluetooth scanning to be disabled cancelled or failed");
                 OBSystemsManager.sharedManager.killAllServices();
                 OBSystemsManager.sharedManager.shutdownProcedures();
@@ -299,8 +264,7 @@ public class MainActivity extends Activity
     }
 
 
-    public void setupWindowVisibilityFlags()
-    {
+    public void setupWindowVisibilityFlags() {
         final int flags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
@@ -309,14 +273,11 @@ public class MainActivity extends Activity
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         //
         final View decorView = getWindow().getDecorView();
-        decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener()
-        {
+        decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
 
             @Override
-            public void onSystemUiVisibilityChange (int visibility)
-            {
-                if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
-                {
+            public void onSystemUiVisibilityChange(int visibility) {
+                if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0) {
                     decorView.setSystemUiVisibility(flags);
                 }
             }
@@ -330,22 +291,17 @@ public class MainActivity extends Activity
     }
 
 
-    public void checkForFirstSetupAndRun()
-    {
-        OBUtils.runOnMainThread(new OBUtils.RunLambda()
-        {
+    public void checkForFirstSetupAndRun() {
+        OBUtils.runOnMainThread(new OBUtils.RunLambda() {
             @Override
-            public void run () throws Exception
-            {
+            public void run() throws Exception {
                 boolean permissionsGranted = isAllPermissionGranted();
-                if (!permissionsGranted)
-                {
+                if (!permissionsGranted) {
                     return;
                 }
                 //
                 boolean writeSettingsPermission = OBSystemsManager.sharedManager.hasWriteSettingsPermission();
-                if (OBConfigManager.sharedManager.isBrightnessManagerEnabled() && !writeSettingsPermission)
-                {
+                if (OBConfigManager.sharedManager.isBrightnessManagerEnabled() && !writeSettingsPermission) {
                     Toast.makeText(MainActivity.mainActivity, "Please allow this app to write settings before going back.", Toast.LENGTH_LONG).show();
                     Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -357,41 +313,33 @@ public class MainActivity extends Activity
                 MainActivity.log("MainActivity.checkForFirstSetupAndRun. will NOT show date and time settings");
                 OBPreferenceManager.setPreference("dateTimeSetupComplete", true);
                 //
-                if (OBConfigManager.sharedManager.isEnablingAdministratorServicesRequired())
-                {
+                if (OBConfigManager.sharedManager.isEnablingAdministratorServicesRequired()) {
                     boolean hasAdministratorPrivileges = OBSystemsManager.sharedManager.hasAdministratorPrivileges();
-                    if (!hasAdministratorPrivileges)
-                    {
+                    if (!hasAdministratorPrivileges) {
                         MainActivity.log("MainActivity.App does not have administrator privileges. Requesting");
                         //
                         Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
                         final PackageManager packageManager = MainActivity.mainActivity.getPackageManager();
                         final List<ResolveInfo> resolveInfos = packageManager.queryIntentActivities(intent, 0);
-                        if (resolveInfos != null && !resolveInfos.isEmpty())
-                        {
-                            try
-                            {
+                        if (resolveInfos != null && !resolveInfos.isEmpty()) {
+                            try {
                                 final ResolveInfo resolveInfo = resolveInfos.get(0);
                                 intent = new Intent();
                                 intent.setComponent(new ComponentName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name));
                                 intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, OBSystemsManager.sharedManager.AdministratorReceiver());
                                 startActivityForResult(intent, MainActivity.REQUEST_FIRST_SETUP_ADMINISTRATOR_PRIVILEGES);
                                 return;
-                            }
-                            catch (final Exception e)
-                            {
+                            } catch (final Exception e) {
                                 e.printStackTrace();
                             }
                         }
                         return;
                     }
                 }
-                if (OBConfigManager.sharedManager.isRequestingDeviceOwnerRequired())
-                {
+                if (OBConfigManager.sharedManager.isRequestingDeviceOwnerRequired()) {
                     //
                     boolean isDeviceOwner = OBSystemsManager.sharedManager.isDeviceOwner();
-                    if (!isDeviceOwner)
-                    {
+                    if (!isDeviceOwner) {
                         OBSystemsManager.sharedManager.requestDeviceOwner();
                     }
                 }
@@ -400,11 +348,9 @@ public class MainActivity extends Activity
                 //
                 OBPreferenceManager.setPreference("firstSetupComplete", true);
                 //
-                OBSystemsManager.sharedManager.unzipAssetsIfFound(new OBUtils.RunLambda()
-                {
+                OBSystemsManager.sharedManager.unzipAssetsIfFound(new OBUtils.RunLambda() {
                     @Override
-                    public void run () throws Exception
-                    {
+                    public void run() throws Exception {
                         OBConfigManager.sharedManager.updateConfigPaths(OBConfigManager.sharedManager.getMainFolder(), true);
                         //
                         runChecksAndLoadMainViewController();
@@ -415,8 +361,7 @@ public class MainActivity extends Activity
     }
 
 
-    public void runChecksAndLoadMainViewController()
-    {
+    public void runChecksAndLoadMainViewController() {
         MainActivity.log("MainActivity.startup block. memory dump");
         OBSystemsManager.sharedManager.printMemoryStatus("Before mainViewController");
         //
@@ -426,8 +371,7 @@ public class MainActivity extends Activity
 
 
     // This bypasses the power button (long press), preventing shutdown
-    public void onWindowFocusChanged(boolean hasFocus)
-    {
+    public void onWindowFocusChanged(boolean hasFocus) {
 //        if (!hasFocus)
 //        {
 //            // Close every kind of system dialog
@@ -436,20 +380,17 @@ public class MainActivity extends Activity
 //        }
 //        else
 //        {
-            super.onWindowFocusChanged(hasFocus);
+        super.onWindowFocusChanged(hasFocus);
 //        }
     }
 
 
-
-    public void onBackPressed()
-    {
+    public void onBackPressed() {
         // do nothing
     }
 
 
-    public void doGLStuff ()
-    {
+    public void doGLStuff() {
         glSurfaceView = new OBGLView(this);
         glSurfaceView.setPreserveEGLContextOnPause(true);
         // Check if the system supports OpenGL ES 2.0.
@@ -476,16 +417,13 @@ public class MainActivity extends Activity
                         || Build.MODEL.contains("Emulator")
                         || Build.MODEL.contains("Android SDK built for x86")));
 
-        if (supportsEs2)
-        {
+        if (supportsEs2) {
             // Request an OpenGL ES 2.0 compatible context.
             glSurfaceView.setEGLContextClientVersion(2);
 
             // Assign our renderer.
             glSurfaceView.setRenderer(renderer = new OBRenderer());
-        }
-        else
-        {
+        } else {
             Toast.makeText(this, "This device does not support OpenGL ES 2.0.",
                     Toast.LENGTH_LONG).show();
             return;
@@ -494,14 +432,12 @@ public class MainActivity extends Activity
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
 
-    OBSectionController topController ()
-    {
+    OBSectionController topController() {
         List l = mainViewController.viewControllers;
         return (OBSectionController) l.get(l.size() - 1);
     }
 
-    public void setUpConfig () throws Exception
-    {
+    public void setUpConfig() throws Exception {
         OBSystemsManager.sharedManager.printMemoryStatus("setupconfig");
         //
         DisplayMetrics metrics = new DisplayMetrics();
@@ -519,15 +455,12 @@ public class MainActivity extends Activity
     }
 
     @Override
-    protected void onPause ()
-    {
+    protected void onPause() {
         super.onPause();
-        if (mainViewController != null)
-        {
+        if (mainViewController != null) {
             mainViewController.onPause();
         }
-        if (renderer != null)
-        {
+        if (renderer != null) {
             glSurfaceView.onPause();
         }
         //
@@ -539,22 +472,19 @@ public class MainActivity extends Activity
 
 
     @Override
-    protected void onDestroy ()
-    {
+    protected void onDestroy() {
         super.onDestroy();
         OBSystemsManager.sharedManager.onDestroy();
     }
 
     @Override
-    protected void onResume ()
-    {
+    protected void onResume() {
         OBSystemsManager.sharedManager.onResume();
         super.onResume();
         //
         if (mainViewController != null)
             mainViewController.onResume();
-        if (renderer != null)
-        {
+        if (renderer != null) {
             glSurfaceView.onResume();
         }
         //
@@ -562,20 +492,16 @@ public class MainActivity extends Activity
         //
         OBAnalyticsManager.sharedManager.deviceScreenTurnedOn();
         //
-        try
-        {
+        try {
             suspendLock.unlock();
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
 
         }
 
     }
 
     @Override
-    protected void onStart()
-    {
+    protected void onStart() {
         super.onStart();
         analyticsManager.onStart();
         //
@@ -586,28 +512,24 @@ public class MainActivity extends Activity
 
 
     @Override
-    protected void onStop ()
-    {
+    protected void onStop() {
         systemsManager.sharedManager.onStop();
         analyticsManager.onStop();
         super.onStop();
     }
 
-    public void onAlarmReceived(Intent intent)
-    {
+    public void onAlarmReceived(Intent intent) {
         if (mainViewController != null)
             mainViewController.onAlarmReceived(intent);
     }
 
-    public void onBatteryStatusReceived(float level, boolean charging)
-    {
+    public void onBatteryStatusReceived(float level, boolean charging) {
         if (mainViewController != null)
-            mainViewController.onBatteryStatusReceived(level,charging);
+            mainViewController.onBatteryStatusReceived(level, charging);
     }
 
 
-    public boolean isStoragePermissionGranted ()
-    {
+    public boolean isStoragePermissionGranted() {
         Boolean writePermission = selfPermissionGranted(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
         Boolean readPermission = selfPermissionGranted(android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
         //
@@ -619,8 +541,7 @@ public class MainActivity extends Activity
     }
 
 
-    public boolean isMicrophonePermissionGranted ()
-    {
+    public boolean isMicrophonePermissionGranted() {
         Boolean micPermission = selfPermissionGranted(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
         //
         if (!micPermission)
@@ -629,8 +550,7 @@ public class MainActivity extends Activity
         return micPermission;
     }
 
-    public boolean isCameraPermissionGranted ()
-    {
+    public boolean isCameraPermissionGranted() {
         Boolean micPermission = selfPermissionGranted(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
         //
         if (!micPermission)
@@ -640,29 +560,22 @@ public class MainActivity extends Activity
     }
 
 
-    public void onRequestPermissionsResult (int requestCode, String permissions[], int[] grantResults)
-    {
-        if (requestCode == REQUEST_EXTERNAL_STORAGE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-        {
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        if (requestCode == REQUEST_EXTERNAL_STORAGE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             log("received permission to access external storage. attempting to download again");
             runChecksAndLoadMainViewController();
-        }
-        else if (requestCode == REQUEST_ALL)
-        {
+        } else if (requestCode == REQUEST_ALL) {
             checkForFirstSetupAndRun();
         }
     }
 
-    public boolean isAllPermissionGranted ()
-    {
+    public boolean isAllPermissionGranted() {
         return isAllPermissionGranted(true);
     }
 
-    public boolean isAllPermissionGranted (boolean requestIfNotGranted)
-    {
+    public boolean isAllPermissionGranted(boolean requestIfNotGranted) {
         Boolean allPermissionsOK = true;
-        for (String permission : PERMISSION_ALL)
-        {
+        for (String permission : PERMISSION_ALL) {
             boolean permissionGranted = selfPermissionGranted(permission) == PackageManager.PERMISSION_GRANTED;
             MainActivity.log("MainActivity.Permission " + (permissionGranted ? "" : "NOT ") + "granted: " + permission);
             allPermissionsOK = allPermissionsOK && permissionGranted;
@@ -674,8 +587,7 @@ public class MainActivity extends Activity
     }
 
 
-    public void addToPreferences (String key, String value)
-    {
+    public void addToPreferences(String key, String value) {
         SharedPreferences sharedPreferences = getSharedPreferences("preferences", Context.MODE_PRIVATE);
         SharedPreferences.Editor edit = sharedPreferences.edit();
         edit.putString(key, value);
@@ -685,8 +597,7 @@ public class MainActivity extends Activity
     }
 
 
-    public String getPreferences (String key)
-    {
+    public String getPreferences(String key) {
         SharedPreferences sharedPreferences = getSharedPreferences("preferences", Context.MODE_PRIVATE);
         String result = sharedPreferences.getString(key, null);
         //
@@ -695,64 +606,52 @@ public class MainActivity extends Activity
         return result;
     }
 
-    public static void log (String message)
-    {
+    public static void log(String message) {
         if (message == null) return;
         Log.v(TAG, message);
     }
 
-    public static void log(String format, Object... args)
-    {
-        try
-        {
+    public static void log(String format, Object... args) {
+        try {
             log(String.format(format, args));
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             MainActivity.log("Exception caught in log with format: %s", format);
             e.printStackTrace();
         }
     }
 
 
-    public boolean onKeyDown (int keyCode, KeyEvent event)
-    {
-        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
-        {
-            if (!OBSystemsManager.sharedManager.settingsContentObserver.allowsLowerVolume()) return true;
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            if (!OBSystemsManager.sharedManager.settingsContentObserver.allowsLowerVolume())
+                return true;
         }
         return super.onKeyDown(keyCode, event);
     }
 
 
-
-    public int selfPermissionGranted(String permission)
-    {
+    public int selfPermissionGranted(String permission) {
         // For Android < Android M, self permissions are always granted.
-        int result = PackageManager.PERMISSION_GRANTED;;
+        int result = PackageManager.PERMISSION_GRANTED;
+        ;
         //
-        if (isSDKCompatible())
-        {
+        if (isSDKCompatible()) {
             return ActivityCompat.checkSelfPermission(MainActivity.mainActivity.getApplicationContext(), permission);
         }
         return result;
     }
 
 
-    public static boolean isSDKCompatible()
-    {
+    public static boolean isSDKCompatible() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && targetSdkVersion >= Build.VERSION_CODES.M;
     }
 
-    public void restartApplication()
-    {
+    public void restartApplication() {
         OBSystemsManager.sharedManager.unpinApplication();
         //
-        OBUtils.runOnMainThread(new OBUtils.RunLambda()
-        {
+        OBUtils.runOnMainThread(new OBUtils.RunLambda() {
             @Override
-            public void run() throws Exception
-            {
+            public void run() throws Exception {
                 Intent i = getBaseContext().getPackageManager().getLaunchIntentForPackage(getBaseContext().getPackageName());
                 i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 finish();

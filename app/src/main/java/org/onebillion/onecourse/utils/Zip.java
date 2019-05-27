@@ -50,6 +50,7 @@ public class Zip {
         File flagFile;
         BufferedInputStream inputStream;
         BufferedOutputStream outputStream;
+        boolean isExtractionSuccessful = false;
 
         if (!targetDir.exists() && !targetDir.mkdirs()) {
             throw new IOException("Unable to create directory");
@@ -91,7 +92,7 @@ public class Zip {
                 outputDir = new File(outputFile.getParent());
 
                 if (!outputDir.exists() && !outputDir.mkdirs()) {
-                    throw new IOException("unable to make directory for entry " + path);
+                    throw new IOException("Unable to make directory for entry " + path);
                 }
 
                 if (!outputFile.exists() && !outputFile.createNewFile()) {
@@ -104,15 +105,19 @@ public class Zip {
                     while ((currByte = inputStream.read()) != -1) {
                         outputStream.write(currByte);
                     }
-                    flagFile = new File(extractPath + ".success.txt");
-                    flagFile.createNewFile();
+                    isExtractionSuccessful = true;
                 } catch (Exception e) {
+                    isExtractionSuccessful = false;
                     e.printStackTrace();
                 } finally {
                     outputStream.close();
                     inputStream.close();
                 }
             }
+        }
+        if (isExtractionSuccessful) {
+            flagFile = new File(extractPath + ".success.txt");
+            flagFile.createNewFile();
         }
     }
 }

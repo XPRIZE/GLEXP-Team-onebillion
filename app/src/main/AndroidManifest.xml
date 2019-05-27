@@ -129,7 +129,7 @@
             android:name="org.onebillion.onecourse.mainui.SplashScreenActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:launchMode="singleTask"
-            android:screenOrientation="landscape">
+            android:screenOrientation="sensorLandscape">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -140,7 +140,7 @@
             android:name="org.onebillion.onecourse.mainui.MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:launchMode="singleTask"
-            android:screenOrientation="landscape"
+            android:screenOrientation="sensorLandscape"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
