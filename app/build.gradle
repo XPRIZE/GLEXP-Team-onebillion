@@ -6,7 +6,6 @@ repositories {
 
 apply plugin: 'com.android.application'
 
-
 android {
     signingConfigs {}
     /*
@@ -20,7 +19,6 @@ android {
     }
     */
     compileSdkVersion 23
-    buildToolsVersion '27.0.3'
     defaultConfig {
         multiDexEnabled true
         applicationId 'org.onebillion.onecourse'
@@ -44,14 +42,6 @@ android {
                     appuserid: "android.uid.system"
             ]
         }
-        distribution {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            manifestPlaceholders = [
-                    appuserid: ""
-            ]
-        }
-
     }
     dependencies {
         implementation fileTree(dir: 'libs', include: ['*.jar'])
@@ -69,7 +59,7 @@ android {
             assets.srcDirs = ['src/main/assets', 'src/main/config', 'src/main/fonts/']
             res.srcDirs = ['src/main/res']
         }
-     }
+    }
 
     flavorDimensions "ob"
 
@@ -96,6 +86,12 @@ android {
         }
     }
 
+    lintOptions {
+        checkReleaseBuilds false
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
+        abortOnError false
+    }
 
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES.txt'
@@ -108,7 +104,6 @@ android {
 }
 
 
-
 dependencies {
     implementation files('libs/commons-io-2.5.jar')
     implementation files('libs/commons-net-3.6.jar')
@@ -116,6 +111,7 @@ dependencies {
     implementation 'com.android.support:multidex:1.0.0'
     implementation 'com.parse:parse-android:1.15.8'
     implementation 'com.google.code.gson:gson:2.8.2'
-
-
+    implementation project(path: ':zip_file')
+    implementation project(path: ':downloader_library')
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
 }

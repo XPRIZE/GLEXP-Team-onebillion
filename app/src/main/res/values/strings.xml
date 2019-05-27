@@ -1,4 +1,5 @@
 <resources>
     <string name="device_admin_label">onebillion</string>
     <string name="device_admin_description">Admin Device Policies Description</string>
+    <string name="content_extraction" translatable="false">यह प्रक्रिया केवल एक बार की जाएगी।</string>
 </resources>
