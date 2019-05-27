@@ -7,7 +7,16 @@ repositories {
 apply plugin: 'com.android.application'
 
 android {
-    signingConfigs {}
+    signingConfigs {
+        release {
+            if (project.hasProperty("RELEASE_STORE_FILE")) {
+                storeFile file(RELEASE_STORE_FILE)
+                storePassword RELEASE_STORE_PASSWORD
+                keyAlias RELEASE_KEY_ALIAS
+                keyPassword RELEASE_KEY_PASSWORD
+            }
+        }
+    }
     /*
     signingConfigs {
         config {
@@ -18,12 +27,12 @@ android {
         }
     }
     */
-    compileSdkVersion 23
+    compileSdkVersion 28
     defaultConfig {
         multiDexEnabled true
-        applicationId 'org.onebillion.onecourse'
+        applicationId 'com.maq.xprize.onecourse'
         minSdkVersion 22
-        targetSdkVersion 23
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
         resValue "string", "app_name", "onecourse"
@@ -46,7 +55,7 @@ android {
     dependencies {
         implementation fileTree(dir: 'libs', include: ['*.jar'])
         testImplementation 'junit:junit:4.12'
-        implementation 'com.android.support:appcompat-v7:23.1.1'
+        implementation 'com.android.support:appcompat-v7:28.0.0'
     }
     dexOptions {
 //        javaMaxHeapSize "8192M"
@@ -65,7 +74,7 @@ android {
 
     productFlavors {
         sw_community_ {
-            applicationId 'org.onebillion.onecourse.child'
+            applicationId 'com.maq.xprize.onecourse.child'
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - Child"
@@ -75,7 +84,7 @@ android {
             ]
         }
         enGB_community_ {
-            applicationId 'org.onebillion.onecourse.child.en_GB'
+            applicationId 'com.maq.xprize.onecourse.child.en_GB'
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - enGB"

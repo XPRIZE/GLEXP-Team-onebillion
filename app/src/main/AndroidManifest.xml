@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.onebillion.onecourse"
+    package="com.maq.xprize.onecourse"
     android:installLocation="internalOnly"
     android:sharedUserId="${appuserid}">
 
@@ -65,7 +65,7 @@
 
 
         <receiver
-            android:name="org.onebillion.onecourse.receivers.OBStartUpBootReceiver"
+            android:name="com.maq.xprize.onecourse.receivers.OBStartUpBootReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
@@ -78,7 +78,7 @@
         </receiver>
 
 
-        <receiver android:name="org.onebillion.onecourse.receivers.OBHeadphoneReceiver">
+        <receiver android:name="com.maq.xprize.onecourse.receivers.OBHeadphoneReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.HEADSET_PLUG" />
             </intent-filter>
@@ -86,7 +86,7 @@
 
 
         <receiver
-            android:name="org.onebillion.onecourse.receivers.OBDeviceAdminReceiver"
+            android:name="com.maq.xprize.onecourse.receivers.OBDeviceAdminReceiver"
             android:description="@string/device_admin_description"
             android:label="@string/device_admin_label"
             android:permission="android.permission.BIND_DEVICE_ADMIN">
@@ -102,7 +102,7 @@
         </receiver>
 
 
-        <receiver android:name="org.onebillion.onecourse.receivers.OBShutdownReceiver">
+        <receiver android:name="com.maq.xprize.onecourse.receivers.OBShutdownReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_SHUTDOWN" />
                 <action android:name="android.intent.action.QUICKBOOT_POWEROFF" />
@@ -111,7 +111,7 @@
 
 
         <service
-            android:name="org.onebillion.onecourse.utils.OBAutoStartActivityService"
+            android:name="com.maq.xprize.onecourse.utils.OBAutoStartActivityService"
             android:enabled="true"
             android:exported="true"></service>
 
@@ -126,14 +126,14 @@
 
 
         <activity
-            android:name="org.onebillion.onecourse.mainui.SplashScreenActivity"
+            android:name="com.maq.xprize.onecourse.mainui.SplashScreenActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:launchMode="singleTask"
             android:screenOrientation="sensorLandscape">
         </activity>
 
         <activity
-            android:name="org.onebillion.onecourse.mainui.MainActivity"
+            android:name="com.maq.xprize.onecourse.mainui.MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:launchMode="singleTask"
             android:screenOrientation="sensorLandscape"
@@ -145,7 +145,7 @@
         </activity>
 
         <!--
-        <receiver android:name="org.onebillion.onecourse.receivers.OBBatteryReceiver">
+        <receiver android:name="com.maq.xprize.onecourse.receivers.OBBatteryReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_BATTERY_LOW"/>
                 <action android:name="android.intent.action.ACTION_BATTERY_OKAY"/>
@@ -154,7 +154,7 @@
             </intent-filter>
         </receiver>
 -->
-        <receiver android:name="org.onebillion.onecourse.receivers.OBAlarmReceiver"></receiver>
+        <receiver android:name="com.maq.xprize.onecourse.receivers.OBAlarmReceiver"></receiver>
     </application>
 
 </manifest>
