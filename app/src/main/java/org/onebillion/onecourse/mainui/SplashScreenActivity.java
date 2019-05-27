@@ -30,10 +30,10 @@ import static org.onebillion.onecourse.R.layout.activity_splash_screen;
 
 public class SplashScreenActivity extends Activity {
 
-    Intent intent = null;
-    String filePath;
-    File file;
-    ZipFile zipFile;
+    Intent mainActivityIntent = null;
+    String expansionFilePath;
+    File expansionFile;
+    ZipFile expansionZipFile;
     Zip _zip;
     String unzipFilePath;
     File packageNameDir;
@@ -93,8 +93,8 @@ public class SplashScreenActivity extends Activity {
 
     /* function to call the main application after extraction */
     public void toCallApplication() {
-        intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
+        mainActivityIntent = new Intent(this, MainActivity.class);
+        startActivity(mainActivityIntent);
         finish();
     }
 
@@ -102,10 +102,10 @@ public class SplashScreenActivity extends Activity {
         int totalZipSize = getTotalExpansionFileSize();
         try {
             for (DownloadExpansionFile.XAPKFile xf : xAPKS) {
-                filePath = getExpansionFilePath(xf.mIsMain, xf.mFileVersion);
-                file = new File(filePath);
-                zipFile = new ZipFile(file);
-                _zip = new Zip(zipFile, this);
+                expansionFilePath = getExpansionFilePath(xf.mIsMain, xf.mFileVersion);
+                expansionFile = new File(expansionFilePath);
+                expansionZipFile = new ZipFile(expansionFile);
+                _zip = new Zip(expansionZipFile, this);
                 unzipFilePath = getUnzippedExpansionFilePath();
                 packageNameDir = new File(unzipFilePath);
                 if (xf.mIsMain) {
@@ -129,10 +129,10 @@ public class SplashScreenActivity extends Activity {
         ZipFile zipFile;
         try {
             for (DownloadExpansionFile.XAPKFile xf : xAPKS) {
-                filePath = getExpansionFilePath(xf.mIsMain, xf.mFileVersion);
+                expansionFilePath = getExpansionFilePath(xf.mIsMain, xf.mFileVersion);
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 99);
-                file = new File(filePath);
-                zipFile = new ZipFile(file);
+                expansionFile = new File(expansionFilePath);
+                zipFile = new ZipFile(expansionFile);
                 totalExpansionFileSize += zipFile.size();
             }
         } catch (IOException ie) {
