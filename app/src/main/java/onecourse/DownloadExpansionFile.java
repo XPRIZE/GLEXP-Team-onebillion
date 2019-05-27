@@ -220,25 +220,12 @@ public class DownloadExpansionFile extends Activity implements IDownloaderClient
     private void initializeDownloadUI() {
         mDownloaderClientStub = DownloaderClientMarshaller.CreateStub
                 (this, ExpansionDownloaderService.class);
-        setContentView(/*R.layout.activity_download_expansion_file*/null);
-
-        /*mPB = (ProgressBar) findViewById(R.id.progressBar);
-        mStatusText = (TextView) findViewById(R.id.statusText);
-        mProgressFraction = (TextView) findViewById(R.id.progressAsFraction);
-        mProgressPercent = (TextView) findViewById(R.id.progressAsPercentage);
-        mAverageSpeed = (TextView) findViewById(R.id.progressAverageSpeed);
-        mTimeRemaining = (TextView) findViewById(R.id.progressTimeRemaining);
-        mDashboard = findViewById(R.id.downloaderDashboard);
-        mCellMessage = findViewById(R.id.approveCellular);
-        mPauseButton = (Button) findViewById(R.id.pauseButton);
-        mWiFiSettingsButton = (Button) findViewById(R.id.wifiSettingsButton);
-        mProgressImage = (ImageView) findViewById(R.id.progressImage);*/
+        setContentView(null);
 
         getWindow().getDecorView().setBackgroundColor(Color.WHITE);
 
-//        Bitmap bm = getBitmapFromAsset("images/autocognitaloading8.png");
         mProgressImage.setY(120);
-//        mProgressImage.setImageBitmap(bm);
+
         mProgressImage.invalidate();
 
         mPauseButton.setOnClickListener(new View.OnClickListener() {
@@ -260,16 +247,6 @@ public class DownloadExpansionFile extends Activity implements IDownloaderClient
                 startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
             }
         });
-
-        /*Button resumeOnCell = (Button) findViewById(R.id.resumeOverCellular);
-        resumeOnCell.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mRemoteService.setDownloadFlags(IDownloaderService.FLAGS_DOWNLOAD_OVER_CELLULAR);
-                mRemoteService.requestContinueDownload();
-                mCellMessage.setVisibility(View.GONE);
-            }
-        });*/
 
     }
 
@@ -499,14 +476,14 @@ public class DownloadExpansionFile extends Activity implements IDownloaderClient
             protected void onPreExecute() {
                 mDashboard.setVisibility(View.VISIBLE);
                 mCellMessage.setVisibility(View.GONE);
-                mStatusText.setText(/*R.string.text_verifying_download*/null);
+                mStatusText.setText(null);
                 mPauseButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         mCancelValidation = true;
                     }
                 });
-                mPauseButton.setText(/*R.string.text_button_cancel_verify*/null);
+                mPauseButton.setText(null);
                 super.onPreExecute();
             }
 
@@ -515,14 +492,12 @@ public class DownloadExpansionFile extends Activity implements IDownloaderClient
                 if (result) {
                     mDashboard.setVisibility(View.VISIBLE);
                     mCellMessage.setVisibility(View.GONE);
-                    mStatusText.setText(/*R.string.text_validation_complete*/null);
+                    mStatusText.setText(null);
                     Intent intent = new Intent(vContext, MainActivity.class);
                     startActivity(intent);
                     mPauseButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-//                            Intent intent = new Intent(vContext, MainActivity.class);
-//                            startActivity(intent);
                             finish();
                         }
                     });
@@ -531,7 +506,7 @@ public class DownloadExpansionFile extends Activity implements IDownloaderClient
                 } else {
                     mDashboard.setVisibility(View.VISIBLE);
                     mCellMessage.setVisibility(View.GONE);
-                    mStatusText.setText(/*R.string.text_validation_failed*/null);
+                    mStatusText.setText(null);
                     mPauseButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
@@ -557,8 +532,8 @@ public class DownloadExpansionFile extends Activity implements IDownloaderClient
 
     private void setButtonPausedState(boolean paused) {
         mStatePaused = paused;
-        int stringResourceID = paused ? /*R.string.text_button_resume*/-1 :
-                /*R.string.text_button_pause*/-1;
+        int stringResourceID = paused ? -1 :
+                -1;
         mPauseButton.setText(stringResourceID);
     }
 
