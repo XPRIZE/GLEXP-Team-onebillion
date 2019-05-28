@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:theme="@style/Theme.AppCompat.NoActionBar"
-    tools:context="com.maq.xprize.onecourse.mainui.SplashScreenActivity">
+    tools:context="com.maq.xprize.onecourse.hindi.mainui.SplashScreenActivity">
 
     <ImageView
         android:id="@+id/imageView"

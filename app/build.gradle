@@ -30,8 +30,8 @@ android {
     compileSdkVersion 28
     defaultConfig {
         multiDexEnabled true
-        applicationId 'com.maq.xprize.onecourse'
-        minSdkVersion 22
+        applicationId 'com.maq.xprize.onecourse.hindi'
+        minSdkVersion 23
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
@@ -48,7 +48,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             manifestPlaceholders = [
-                    appuserid: "android.uid.system"
+                    appuserid: "com.maq.xprize.onecourse.hindi"
             ]
         }
     }
@@ -73,18 +73,8 @@ android {
     flavorDimensions "ob"
 
     productFlavors {
-        sw_community_ {
-            applicationId 'com.maq.xprize.onecourse.child'
-            versionCode 1
-            versionName '1.0'
-            resValue "string", "app_name", "onecourse - Child"
-            buildConfigField 'String', 'SETTINGS_FILE', '"settings_community_sw.plist"'
-            manifestPlaceholders = [
-                    appIcon: "@mipmap/icon_child"
-            ]
-        }
         enGB_community_ {
-            applicationId 'com.maq.xprize.onecourse.child.en_GB'
+            applicationId 'com.maq.xprize.onecourse.hindi'
             versionCode 1
             versionName '1.0'
             resValue "string", "app_name", "onecourse - enGB"
@@ -117,7 +107,7 @@ dependencies {
     implementation files('libs/commons-io-2.5.jar')
     implementation files('libs/commons-net-3.6.jar')
 
-    implementation 'com.android.support:multidex:1.0.0'
+    implementation 'com.android.support:multidex:1.0.3'
     implementation 'com.parse:parse-android:1.15.8'
     implementation 'com.google.code.gson:gson:2.8.2'
     implementation project(path: ':zip_file')
