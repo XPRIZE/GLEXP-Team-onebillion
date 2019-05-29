@@ -191,9 +191,10 @@ public class MainActivity extends Activity {
         locationManager = new OBLocationManager(this);
         //
         // this flag disables screenshots
-        if (!OBConfigManager.sharedManager.isDebugEnabled()) {
+        // Commented code to enable capturing of screenshots
+        /*if (!OBConfigManager.sharedManager.isDebugEnabled()) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
-        }
+        }*/
         //
         /*if (OBConfigManager.sharedManager.shouldPinApplication()) {
             OBSystemsManager.disableStatusBar();

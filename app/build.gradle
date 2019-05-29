@@ -77,10 +77,10 @@ android {
             applicationId 'com.maq.xprize.onecourse.hindi'
             versionCode 1
             versionName '1.0'
-            resValue "string", "app_name", "onecourse - enGB"
+            resValue "string", "app_name", "वनकोर्स - onecourse"
             buildConfigField 'String', 'SETTINGS_FILE', '"settings_community_enGB.plist"'
             manifestPlaceholders = [
-                    appIcon: "@mipmap/child_en_gb"
+                    appIcon: "@mipmap/icon_child"
             ]
         }
     }
