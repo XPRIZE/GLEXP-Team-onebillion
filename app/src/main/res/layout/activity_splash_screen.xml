@@ -8,7 +8,7 @@
     tools:context="com.maq.xprize.onecourse.hindi.mainui.SplashScreenActivity">
 
     <ImageView
-        android:id="@+id/imageView"
+        android:id="@+id/splashScreenBackground"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:adjustViewBounds="true"
@@ -22,7 +22,7 @@
         tools:src="@drawable/wallpaper" />
 
     <ProgressBar
-        android:id="@+id/p"
+        android:id="@+id/progressBar"
         style="@android:style/Widget.ProgressBar.Horizontal"
         android:layout_width="0dp"
         android:layout_height="30dp"
@@ -38,29 +38,29 @@
         tools:ignore="MissingConstraints" />
 
     <TextView
-        android:id="@+id/mPercentText"
+        android:id="@+id/percentText"
         android:layout_width="59dp"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:text="0 %"
+        android:text="@string/defaultPercentText"
         android:textColor="@android:color/white"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@+id/p"
-        app:layout_constraintEnd_toEndOf="@+id/imageView"
-        app:layout_constraintStart_toStartOf="@+id/imageView"
-        app:layout_constraintTop_toTopOf="@+id/p" />
+        app:layout_constraintBottom_toBottomOf="@+id/progressBar"
+        app:layout_constraintEnd_toEndOf="@+id/splashScreenBackground"
+        app:layout_constraintStart_toStartOf="@+id/splashScreenBackground"
+        app:layout_constraintTop_toTopOf="@+id/progressBar" />
 
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/oneTimeExtraction"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
         android:gravity="center_vertical"
         android:text="@string/content_extraction"
-        android:textColor="@android:color/white"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView"
-        app:layout_constraintEnd_toEndOf="@+id/imageView"
-        app:layout_constraintStart_toStartOf="@+id/imageView"
-        app:layout_constraintTop_toBottomOf="@+id/p" />
+        android:textColor="@android:color/black"
+        android:textStyle="normal"
+        app:layout_constraintBottom_toTopOf="@+id/progressBar"
+        app:layout_constraintEnd_toEndOf="@+id/splashScreenBackground"
+        app:layout_constraintStart_toStartOf="@+id/splashScreenBackground" />
 
 </android.support.constraint.ConstraintLayout>

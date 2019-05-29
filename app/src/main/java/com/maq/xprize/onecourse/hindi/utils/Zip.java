@@ -41,8 +41,8 @@ public class Zip {
     public void unzip(String extractPath, int totalZipSize) throws IOException {
         File targetDir = new File(extractPath);
         int percent;
-        ProgressBar progressBar = (ProgressBar) zipActivity.findViewById(R.id.p);
-        percentText = (TextView) zipActivity.findViewById(R.id.mPercentText);
+        ProgressBar progressBar = (ProgressBar) zipActivity.findViewById(R.id.progressBar);
+        percentText = (TextView) zipActivity.findViewById(R.id.percentText);
         String path;
         ZipEntry zipEntry;
         File outputFile;
@@ -62,7 +62,7 @@ public class Zip {
 
         Enumeration<? extends ZipEntry> zipEntries = _zipFile.entries();
 
-        progressBar = (ProgressBar) progressBar.findViewById(R.id.p);
+        progressBar = (ProgressBar) progressBar.findViewById(R.id.progressBar);
         while (zipEntries.hasMoreElements()) {
             ++count;
             // Calculate the percentage of extracted content
