@@ -1,36 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.onebillion.onecourse"
+    package="com.maq.xprize.onecourse.hindi"
     android:installLocation="internalOnly"
     android:sharedUserId="${appuserid}">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!--<uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_SUPERUSER" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />-->
+    <!--System Permissions-->
+    <!--<uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.MANAGE_DEVICE_ADMINS" />
     <uses-permission android:name="android.permission.READ_LOGS" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.MANAGE_PROFILE_AND_DEVICE_OWNERS" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.MODIFY_PHONE_STATE" />
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
     <uses-permission android:name="android.permission.SET_TIME" />
-    <uses-permission android:name="android.permission.DEVICE_POWER" />
+    <uses-permission android:name="android.permission.DEVICE_POWER" />-->
 
     <!-- Required to access Google Play Licensing -->
     <uses-permission android:name="com.android.vending.CHECK_LICENSE" />
@@ -65,7 +59,7 @@
 
 
         <receiver
-            android:name="org.onebillion.onecourse.receivers.OBStartUpBootReceiver"
+            android:name="com.maq.xprize.onecourse.hindi.receivers.OBStartUpBootReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
@@ -78,7 +72,7 @@
         </receiver>
 
 
-        <receiver android:name="org.onebillion.onecourse.receivers.OBHeadphoneReceiver">
+        <receiver android:name="com.maq.xprize.onecourse.hindi.receivers.OBHeadphoneReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.HEADSET_PLUG" />
             </intent-filter>
@@ -86,7 +80,7 @@
 
 
         <receiver
-            android:name="org.onebillion.onecourse.receivers.OBDeviceAdminReceiver"
+            android:name="com.maq.xprize.onecourse.hindi.receivers.OBDeviceAdminReceiver"
             android:description="@string/device_admin_description"
             android:label="@string/device_admin_label"
             android:permission="android.permission.BIND_DEVICE_ADMIN">
@@ -102,7 +96,7 @@
         </receiver>
 
 
-        <receiver android:name="org.onebillion.onecourse.receivers.OBShutdownReceiver">
+        <receiver android:name="com.maq.xprize.onecourse.hindi.receivers.OBShutdownReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_SHUTDOWN" />
                 <action android:name="android.intent.action.QUICKBOOT_POWEROFF" />
@@ -111,7 +105,7 @@
 
 
         <service
-            android:name="org.onebillion.onecourse.utils.OBAutoStartActivityService"
+            android:name="com.maq.xprize.onecourse.hindi.utils.OBAutoStartActivityService"
             android:enabled="true"
             android:exported="true"></service>
 
@@ -126,14 +120,14 @@
 
 
         <activity
-            android:name="org.onebillion.onecourse.mainui.SplashScreenActivity"
+            android:name="com.maq.xprize.onecourse.hindi.mainui.SplashScreenActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:launchMode="singleTask"
             android:screenOrientation="sensorLandscape">
         </activity>
 
         <activity
-            android:name="org.onebillion.onecourse.mainui.MainActivity"
+            android:name="com.maq.xprize.onecourse.hindi.mainui.MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:launchMode="singleTask"
             android:screenOrientation="sensorLandscape"
@@ -145,7 +139,7 @@
         </activity>
 
         <!--
-        <receiver android:name="org.onebillion.onecourse.receivers.OBBatteryReceiver">
+        <receiver android:name="com.maq.xprize.onecourse.hindi.receivers.OBBatteryReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_BATTERY_LOW"/>
                 <action android:name="android.intent.action.ACTION_BATTERY_OKAY"/>
@@ -154,7 +148,7 @@
             </intent-filter>
         </receiver>
 -->
-        <receiver android:name="org.onebillion.onecourse.receivers.OBAlarmReceiver"></receiver>
+        <receiver android:name="com.maq.xprize.onecourse.hindi.receivers.OBAlarmReceiver"></receiver>
     </application>
 
 </manifest>
