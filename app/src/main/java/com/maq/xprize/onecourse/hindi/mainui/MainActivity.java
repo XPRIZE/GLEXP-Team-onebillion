@@ -56,6 +56,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static android.R.attr.targetSdkVersion;
+import static com.maq.xprize.onecourse.hindi.mainui.DownloadExpansionFile.xAPKS;
 
 /**
  * MainActivity
@@ -139,12 +140,38 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SharedPreferences sharedPref = getSharedPreferences("ExpansionFile", MODE_PRIVATE);
+        int defaultFileVersion = 0;
+
         String flagFilePath = "/storage/emulated/0/Android/data/com.maq.xprize.onecourse.hindi/files/.success.txt";
         File flagFile = new File(flagFilePath);
         if (!flagFile.exists()) {
+            // Set main and patch file version to 0, if the extractions takes place for the first time
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putInt(getString(R.string.mainFileVersion), 0);
+            editor.putInt(getString(R.string.patchFileVersion), 0);
+            editor.commit();
             Intent intent = new Intent(MainActivity.this, SplashScreenActivity.class);
             startActivity(intent);
             finish();
+        } else {
+            // Retrieve the stored values of main and patch file version
+            int mainFileVersion = sharedPref.getInt(getString(R.string.mainFileVersion), defaultFileVersion);
+            int patchFileVersion = sharedPref.getInt(getString(R.string.patchFileVersion), defaultFileVersion);
+            boolean isExtractionRequired = false;
+            for (DownloadExpansionFile.XAPKFile xf : xAPKS) {
+                // If main or patch file is updated set isExtractionRequired to true
+                if (xf.mIsMain && xf.mFileVersion != mainFileVersion || !xf.mIsMain && xf.mFileVersion != patchFileVersion) {
+                    isExtractionRequired = true;
+                    break;
+                }
+            }
+            // If main or patch file is updated, the extraction process needs to be performed again
+            if (isExtractionRequired) {
+                Intent intent = new Intent(MainActivity.this, SplashScreenActivity.class);
+                startActivity(intent);
+                finish();
+            }
         }
 
         MainActivity.log("MainActivity.onCreate");
