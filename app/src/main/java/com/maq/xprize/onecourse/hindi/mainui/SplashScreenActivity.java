@@ -77,13 +77,7 @@ public class SplashScreenActivity extends Activity {
             // Retrieve the stored values of main and patch file version
             mainFileVersion = sharedPref.getInt(getString(R.string.mainFileVersion), defaultFileVersion);
             patchFileVersion = sharedPref.getInt(getString(R.string.patchFileVersion), defaultFileVersion);
-            for (DownloadExpansionFile.XAPKFile xf : xAPKS) {
-                // If main or patch file is updated set isExtractionRequired to true
-                if (xf.mIsMain && xf.mFileVersion != mainFileVersion || !xf.mIsMain && xf.mFileVersion != patchFileVersion) {
-                    isExtractionRequired = true;
-                    break;
-                }
-            }
+            isExtractionRequired = isExpansionExtractionRequired(mainFileVersion, patchFileVersion);
             // If main or patch file is updated, the extraction process needs to be performed again
             if (isExtractionRequired) {
                 System.out.println("Splash onCreate: isExtractionRequired = " + isExtractionRequired);
@@ -106,13 +100,7 @@ public class SplashScreenActivity extends Activity {
                 // Retrieve the stored values of main and patch file version
                 mainFileVersion = sharedPref.getInt(getString(R.string.mainFileVersion), defaultFileVersion);
                 patchFileVersion = sharedPref.getInt(getString(R.string.patchFileVersion), defaultFileVersion);
-                for (DownloadExpansionFile.XAPKFile xf : xAPKS) {
-                    // If main or patch file is updated set isExtractionRequired to true
-                    if (xf.mIsMain && xf.mFileVersion != mainFileVersion || !xf.mIsMain && xf.mFileVersion != patchFileVersion) {
-                        isExtractionRequired = true;
-                        break;
-                    }
-                }
+                isExtractionRequired = isExpansionExtractionRequired(mainFileVersion, patchFileVersion);
                 // If main or patch file is updated, the extraction process needs to be performed again
                 if (isExtractionRequired) {
                     System.out.println("Splash onRequestPermissionsResult: isExtractionRequired = " + isExtractionRequired);
@@ -123,6 +111,16 @@ public class SplashScreenActivity extends Activity {
                 finish();
             }
         }
+    }
+
+    private boolean isExpansionExtractionRequired(int mainFileVersion, int patchFileVersion) {
+        for (DownloadExpansionFile.XAPKFile xf : xAPKS) {
+            // If main or patch file is updated set isExtractionRequired to true
+            if (xf.mIsMain && xf.mFileVersion != mainFileVersion || !xf.mIsMain && xf.mFileVersion != patchFileVersion) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /* function to call the main application after extraction */

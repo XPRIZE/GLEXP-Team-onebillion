@@ -158,14 +158,7 @@ public class MainActivity extends Activity {
             // Retrieve the stored values of main and patch file version
             int mainFileVersion = sharedPref.getInt(getString(R.string.mainFileVersion), defaultFileVersion);
             int patchFileVersion = sharedPref.getInt(getString(R.string.patchFileVersion), defaultFileVersion);
-            boolean isExtractionRequired = false;
-            for (DownloadExpansionFile.XAPKFile xf : xAPKS) {
-                // If main or patch file is updated set isExtractionRequired to true
-                if (xf.mIsMain && xf.mFileVersion != mainFileVersion || !xf.mIsMain && xf.mFileVersion != patchFileVersion) {
-                    isExtractionRequired = true;
-                    break;
-                }
-            }
+            boolean isExtractionRequired = isExpansionExtractionRequired(mainFileVersion, patchFileVersion);
             // If main or patch file is updated, the extraction process needs to be performed again
             if (isExtractionRequired) {
                 Intent intent = new Intent(MainActivity.this, SplashScreenActivity.class);
@@ -250,6 +243,16 @@ public class MainActivity extends Activity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean isExpansionExtractionRequired(int mainFileVersion, int patchFileVersion) {
+        for (DownloadExpansionFile.XAPKFile xf : xAPKS) {
+            // If main or patch file is updated set isExtractionRequired to true
+            if (xf.mIsMain && xf.mFileVersion != mainFileVersion || !xf.mIsMain && xf.mFileVersion != patchFileVersion) {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
