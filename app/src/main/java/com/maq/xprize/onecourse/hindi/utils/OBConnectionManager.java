@@ -5,9 +5,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkInfo;
 import android.net.wifi.ScanResult;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiConfiguration;
@@ -17,13 +14,11 @@ import android.provider.Settings;
 import android.telephony.TelephonyManager;
 
 import com.maq.xprize.onecourse.hindi.mainui.MainActivity;
-import com.maq.xprize.onecourse.hindi.mainui.generic.OC_Generic;
 
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Handler;
 import java.util.regex.Pattern;
 
 /**
@@ -549,18 +544,19 @@ public class OBConnectionManager
             //
             int currentNetworkID = wfMgr.getConnectionInfo().getNetworkId();
             //
-            boolean networkDisabled = wfMgr.disableNetwork(currentNetworkID);
+            // Commented code since permission has been removed from Manifest file
+            //boolean networkDisabled = wfMgr.disableNetwork(currentNetworkID);
             boolean configurationSaved = wfMgr.saveConfiguration();
             boolean disconnected = wfMgr.disconnect();
             //
-            if (!networkDisabled || !configurationSaved || !disconnected)
+            /*if (!networkDisabled || !configurationSaved || !disconnected)
             {
                 MainActivity.log("OBConnectionManager.connectToNetwork_connectToWifi. FAILED to disconnect from current WiFi. Aborting operation");
             }
             else
             {
                 connectToNetwork_disableAirplaneMode(ssid, password, block);
-            }
+            }*/
         }
         else
         {

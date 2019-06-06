@@ -3,6 +3,7 @@ package com.maq.xprize.onecourse.hindi.mainui;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -16,15 +17,15 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.android.vending.expansion.downloader.Helpers;
-
+import com.maq.xprize.onecourse.hindi.R;
 import com.maq.xprize.onecourse.hindi.utils.Zip;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.zip.ZipFile;
 
-import static com.maq.xprize.onecourse.hindi.mainui.DownloadExpansionFile.xAPKS;
 import static com.maq.xprize.onecourse.hindi.R.layout.activity_splash_screen;
+import static com.maq.xprize.onecourse.hindi.mainui.DownloadExpansionFile.xAPKS;
 
 public class SplashScreenActivity extends Activity {
 
@@ -35,6 +36,11 @@ public class SplashScreenActivity extends Activity {
     Zip _zip;
     String unzipFilePath;
     File packageNameDir;
+    SharedPreferences sharedPref;
+    int defaultFileVersion = 0;
+    int mainFileVersion;
+    int patchFileVersion;
+    boolean isExtractionRequired = false;
 
     public static String getUnzippedExpansionFilePath() {
         return "/storage/emulated/0/Android/data/com.maq.xprize.onecourse.hindi/files/";
@@ -67,7 +73,16 @@ public class SplashScreenActivity extends Activity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
                     Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO}, 1);
         } else {
-            new DownloadFile().execute(null, null, null);
+            sharedPref = getSharedPreferences("ExpansionFile", MODE_PRIVATE);
+            // Retrieve the stored values of main and patch file version
+            mainFileVersion = sharedPref.getInt(getString(R.string.mainFileVersion), defaultFileVersion);
+            patchFileVersion = sharedPref.getInt(getString(R.string.patchFileVersion), defaultFileVersion);
+            isExtractionRequired = isExpansionExtractionRequired(mainFileVersion, patchFileVersion);
+            // If main or patch file is updated, the extraction process needs to be performed again
+            if (isExtractionRequired) {
+                System.out.println("Splash onCreate: isExtractionRequired = " + isExtractionRequired);
+                new DownloadFile().execute(null, null, null);
+            }
         }
     }
 
@@ -81,12 +96,31 @@ public class SplashScreenActivity extends Activity {
                     && grantResults[1] == PackageManager.PERMISSION_GRANTED
                     && grantResults[2] == PackageManager.PERMISSION_GRANTED
                     && grantResults[3] == PackageManager.PERMISSION_GRANTED) {
-                new DownloadFile().execute(null, null, null);
+                sharedPref = getSharedPreferences("ExpansionFile", MODE_PRIVATE);
+                // Retrieve the stored values of main and patch file version
+                mainFileVersion = sharedPref.getInt(getString(R.string.mainFileVersion), defaultFileVersion);
+                patchFileVersion = sharedPref.getInt(getString(R.string.patchFileVersion), defaultFileVersion);
+                isExtractionRequired = isExpansionExtractionRequired(mainFileVersion, patchFileVersion);
+                // If main or patch file is updated, the extraction process needs to be performed again
+                if (isExtractionRequired) {
+                    System.out.println("Splash onRequestPermissionsResult: isExtractionRequired = " + isExtractionRequired);
+                    new DownloadFile().execute(null, null, null);
+                }
             } else {
                 Toast.makeText(this, "Permission required!", Toast.LENGTH_LONG).show();
                 finish();
             }
         }
+    }
+
+    private boolean isExpansionExtractionRequired(int mainFileVersion, int patchFileVersion) {
+        for (DownloadExpansionFile.XAPKFile xf : xAPKS) {
+            // If main or patch file is updated set isExtractionRequired to true
+            if (xf.mIsMain && xf.mFileVersion != mainFileVersion || !xf.mIsMain && xf.mFileVersion != patchFileVersion) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /* function to call the main application after extraction */
@@ -98,6 +132,7 @@ public class SplashScreenActivity extends Activity {
 
     public void unzipFile() {
         int totalZipSize = getTotalExpansionFileSize();
+        SharedPreferences.Editor editor = sharedPref.edit();
         try {
             for (DownloadExpansionFile.XAPKFile xf : xAPKS) {
                 expansionFilePath = getExpansionFilePath(xf.mIsMain, xf.mFileVersion);
@@ -114,6 +149,13 @@ public class SplashScreenActivity extends Activity {
                 }
                 _zip.unzip(unzipFilePath, totalZipSize);
                 _zip.close();
+                if (xf.mIsMain) {
+                    editor.putInt(getString(R.string.mainFileVersion), xf.mFileVersion);
+                    editor.commit();
+                } else {
+                    editor.putInt(getString(R.string.patchFileVersion), xf.mFileVersion);
+                    editor.commit();
+                }
             }
             toCallApplication();
         } catch (IOException e) {

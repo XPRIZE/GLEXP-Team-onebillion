@@ -1,6 +1,8 @@
 <resources>
     <string name="device_admin_label">onebillion</string>
     <string name="device_admin_description">Admin Device Policies Description</string>
-    <string name="content_extraction" translatable="false">यह प्रक्रिया केवल एक बार की जाएगी। इसमें १० मिनट तक का समय लग सकता हैं।</string>
+    <string name="content_extraction" translatable="false">यह प्रक्रिया केवल एक बार की जाएगी। इसमें १० मिनट तक का समय लग सकता है।</string>
     <string name="defaultPercentText">0 %</string>
+    <string name="mainFileVersion">mainFileVersion</string>
+    <string name="patchFileVersion">patchFileVersion</string>
 </resources>
