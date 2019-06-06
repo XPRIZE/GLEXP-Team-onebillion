@@ -1165,7 +1165,8 @@ public class OC_PlayZoneMenu extends OC_Menu
                 continue;
             }
             OBImage button = icon;
-
+            button.scaleX = 0.72f;
+            button.scaleY = 0.72f;
             menuButtons.add(button);
             attachControl(button);
             prepareForSpeedMeasure(button);
