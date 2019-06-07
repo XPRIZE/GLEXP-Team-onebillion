@@ -54,9 +54,9 @@ public class DownloadExpansionFile extends Activity implements IDownloaderClient
     public static final XAPKFile[] xAPKS = {
             new XAPKFile(
                     true, // true signifies a main file
-                    7, // the version of the APK that the file was uploaded
+                    8, // the version of the APK that the file was uploaded
                     // against
-                    1544045005L // the length of the file in bytes
+                    1544026344L // the length of the file in bytes
             ),
             new XAPKFile(
                     false, // false signifies a patch file
