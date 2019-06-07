@@ -263,13 +263,13 @@ public class OC_Cwys1 extends OC_Cwys
         playAudio(null);
         OBControl line = objectDict.get("line");
         boolean correct = targ == correctLabel;
-        RectF hotRect = new RectF(line.left(), line.top()-targ.height(),line.left()+line.width(), line.top());
+        RectF hotRect = new RectF(line.left(), line.top() - 2* targ.height(),line.left()+line.width(), line.top());
         boolean landed = hotRect.contains(targ.position().x, targ.position().y) || targ.intersectsWith(line);
         if(landed && correct)
         {
-            OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("bottom",line.position().y+targ.height()*0.25f,targ),
-                    OBAnim.propertyAnim("left",line.position().x - targ.width()*1.35f*0.5f,targ),
-                    OBAnim.scaleAnim(1.35f,targ),
+            OBAnimationGroup.runAnims(Arrays.asList(OBAnim.propertyAnim("bottom",line.position().y, targ),
+                    OBAnim.propertyAnim("left",line.position().x - targ.width()*1.35f*0.5f, targ),
+                    OBAnim.scaleAnim(1.35f, targ),
                     OBAnim.colourAnim("colour", Color.BLACK ,targ)),0.2f,true,OBAnim.ANIM_EASE_IN_EASE_OUT,this);
 
             objectDict.get("line").hide();
@@ -321,6 +321,11 @@ public class OC_Cwys1 extends OC_Cwys
 
         OBControl line = objectDict.get("line");
         line.setWidth(width*1.05f*1.35f);
+        float top_y = objectDict.get("bottom_bar").top();
+        if(top_y < line.position().y)
+        {
+            line.position().y = top_y - 25;
+        }
         line.show();
         playSfxAudio("lineon",true);
     }
