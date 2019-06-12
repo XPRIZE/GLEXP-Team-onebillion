@@ -46,7 +46,6 @@ import com.maq.xprize.onecourse.hindi.utils.OBUser;
 import com.maq.xprize.onecourse.hindi.utils.OBUtils;
 import com.maq.xprize.onecourse.hindi.utils.OB_Maths;
 
-import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -143,28 +142,21 @@ public class MainActivity extends Activity {
         SharedPreferences sharedPref = getSharedPreferences("ExpansionFile", MODE_PRIVATE);
         int defaultFileVersion = 0;
 
-        String flagFilePath = "/storage/emulated/0/Android/data/com.maq.xprize.onecourse.hindi/files/.success.txt";
-        File flagFile = new File(flagFilePath);
-        if (!flagFile.exists()) {
+        // Retrieve the stored values of main and patch file version
+        int storedMainFileVersion = sharedPref.getInt(getString(R.string.mainFileVersion), defaultFileVersion);
+        int storedPatchFileVersion = sharedPref.getInt(getString(R.string.patchFileVersion), defaultFileVersion);
+        boolean isExtractionRequired = isExpansionExtractionRequired(storedMainFileVersion, storedPatchFileVersion);
+
+        if (storedMainFileVersion == 0 && storedPatchFileVersion == 0) {
             // Set main and patch file version to 0, if the extractions takes place for the first time
             SharedPreferences.Editor editor = sharedPref.edit();
             editor.putInt(getString(R.string.mainFileVersion), 0);
             editor.putInt(getString(R.string.patchFileVersion), 0);
             editor.commit();
-            Intent intent = new Intent(MainActivity.this, SplashScreenActivity.class);
-            startActivity(intent);
-            finish();
-        } else {
-            // Retrieve the stored values of main and patch file version
-            int mainFileVersion = sharedPref.getInt(getString(R.string.mainFileVersion), defaultFileVersion);
-            int patchFileVersion = sharedPref.getInt(getString(R.string.patchFileVersion), defaultFileVersion);
-            boolean isExtractionRequired = isExpansionExtractionRequired(mainFileVersion, patchFileVersion);
+            startSplashScreenActivity();
+        } else if (isExtractionRequired) {
             // If main or patch file is updated, the extraction process needs to be performed again
-            if (isExtractionRequired) {
-                Intent intent = new Intent(MainActivity.this, SplashScreenActivity.class);
-                startActivity(intent);
-                finish();
-            }
+            startSplashScreenActivity();
         }
 
         MainActivity.log("MainActivity.onCreate");
@@ -245,10 +237,16 @@ public class MainActivity extends Activity {
         }
     }
 
-    private boolean isExpansionExtractionRequired(int mainFileVersion, int patchFileVersion) {
+    private void startSplashScreenActivity() {
+        Intent intent = new Intent(MainActivity.this, SplashScreenActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
+    private boolean isExpansionExtractionRequired(int storedMainFileVersion, int storedPatchFileVersion) {
         for (DownloadExpansionFile.XAPKFile xf : xAPKS) {
             // If main or patch file is updated set isExtractionRequired to true
-            if (xf.mIsMain && xf.mFileVersion != mainFileVersion || !xf.mIsMain && xf.mFileVersion != patchFileVersion) {
+            if (xf.mIsMain && xf.mFileVersion != storedMainFileVersion || !xf.mIsMain && xf.mFileVersion != storedPatchFileVersion) {
                 return true;
             }
         }

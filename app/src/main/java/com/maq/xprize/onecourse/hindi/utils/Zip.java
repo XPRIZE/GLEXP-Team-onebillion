@@ -41,16 +41,14 @@ public class Zip {
     public void unzip(String extractPath, int totalZipSize) throws IOException {
         File targetDir = new File(extractPath);
         int percent;
-        ProgressBar progressBar = (ProgressBar) zipActivity.findViewById(R.id.progressBar);
-        percentText = (TextView) zipActivity.findViewById(R.id.percentText);
+        ProgressBar progressBar = zipActivity.findViewById(R.id.progressBar);
+        percentText = zipActivity.findViewById(R.id.percentText);
         String path;
         ZipEntry zipEntry;
         File outputFile;
         File outputDir;
-        File flagFile;
         BufferedInputStream inputStream;
         BufferedOutputStream outputStream;
-        boolean isExtractionSuccessful = false;
 
         if (!targetDir.exists() && !targetDir.mkdirs()) {
             throw new IOException("Unable to create directory");
@@ -62,7 +60,7 @@ public class Zip {
 
         Enumeration<? extends ZipEntry> zipEntries = _zipFile.entries();
 
-        progressBar = (ProgressBar) progressBar.findViewById(R.id.progressBar);
+        progressBar = progressBar.findViewById(R.id.progressBar);
         while (zipEntries.hasMoreElements()) {
             ++count;
             // Calculate the percentage of extracted content
@@ -105,19 +103,13 @@ public class Zip {
                     while ((currByte = inputStream.read()) != -1) {
                         outputStream.write(currByte);
                     }
-                    isExtractionSuccessful = true;
                 } catch (Exception e) {
-                    isExtractionSuccessful = false;
                     e.printStackTrace();
                 } finally {
                     outputStream.close();
                     inputStream.close();
                 }
             }
-        }
-        if (isExtractionSuccessful) {
-            flagFile = new File(extractPath + ".success.txt");
-            flagFile.createNewFile();
         }
     }
 }
