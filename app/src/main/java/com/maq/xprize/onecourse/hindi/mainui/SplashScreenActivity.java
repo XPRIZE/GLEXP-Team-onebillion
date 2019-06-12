@@ -141,11 +141,10 @@ public class SplashScreenActivity extends Activity {
                     _zip.close();
                     if (xf.mIsMain) {
                         editor.putInt(getString(R.string.mainFileVersion), xf.mFileVersion);
-                        editor.commit();
                     } else {
                         editor.putInt(getString(R.string.patchFileVersion), xf.mFileVersion);
-                        editor.commit();
                     }
+                    editor.commit();
                 }
             }
             toCallApplication();
