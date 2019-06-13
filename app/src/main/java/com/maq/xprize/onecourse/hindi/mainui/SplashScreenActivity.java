@@ -31,7 +31,7 @@ public class SplashScreenActivity extends Activity {
     String expansionFilePath;
     File expansionFile;
     ZipFile expansionZipFile;
-    Zip _zip;
+    Zip zipHandler;
     String unzipFilePath;
     File packageNameDir;
     SharedPreferences sharedPref;
@@ -131,14 +131,14 @@ public class SplashScreenActivity extends Activity {
                     expansionFilePath = getExpansionFilePath(xf.mIsMain, xf.mFileVersion);
                     expansionFile = new File(expansionFilePath);
                     expansionZipFile = new ZipFile(expansionFile);
-                    _zip = new Zip(expansionZipFile, this);
+                    zipHandler = new Zip(expansionZipFile, this);
                     unzipFilePath = getUnzippedExpansionFilePath();
                     packageNameDir = new File(unzipFilePath);
                     if (xf.mIsMain && !packageNameDir.exists()) {
                         packageNameDir.mkdir();
                     }
-                    _zip.unzip(unzipFilePath, totalZipSize);
-                    _zip.close();
+                    zipHandler.unzip(unzipFilePath, totalZipSize);
+                    zipHandler.close();
                     if (xf.mIsMain) {
                         editor.putInt(getString(R.string.mainFileVersion), xf.mFileVersion);
                     } else {
