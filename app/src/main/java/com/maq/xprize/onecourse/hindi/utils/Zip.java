@@ -1,6 +1,7 @@
 package com.maq.xprize.onecourse.hindi.utils;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -38,7 +39,7 @@ public class Zip {
         _zipFile.close();
     }
 
-    public void unzip(String extractPath, int totalZipSize) throws IOException {
+    public void unzip(String extractPath, int totalZipSize, boolean isMain, int expansionFileVersion, SharedPreferences sharedPref) throws IOException {
         File targetDir = new File(extractPath);
         int percent;
         ProgressBar progressBar = zipActivity.findViewById(R.id.progressBar);
@@ -49,6 +50,7 @@ public class Zip {
         File outputDir;
         BufferedInputStream inputStream;
         BufferedOutputStream outputStream;
+        SharedPreferences.Editor editor = sharedPref.edit();
 
         if (!targetDir.exists() && !targetDir.mkdirs()) {
             throw new IOException("Unable to create directory");
@@ -103,6 +105,12 @@ public class Zip {
                     while ((currByte = inputStream.read()) != -1) {
                         outputStream.write(currByte);
                     }
+                    if (isMain) {
+                        editor.putInt("mainFileVersion", expansionFileVersion);
+                    } else {
+                        editor.putInt("patchFileVersion", expansionFileVersion);
+                    }
+                    editor.commit();
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {

@@ -124,7 +124,6 @@ public class SplashScreenActivity extends Activity {
 
     public void unzipFile() {
         int totalZipSize = getTotalExpansionFileSize();
-        SharedPreferences.Editor editor = sharedPref.edit();
         try {
             for (DownloadExpansionFile.XAPKFile xf : xAPKS) {
                 if (xf.mIsMain && xf.mFileVersion != storedMainFileVersion || !xf.mIsMain && xf.mFileVersion != storedPatchFileVersion) {
@@ -137,14 +136,8 @@ public class SplashScreenActivity extends Activity {
                     if (xf.mIsMain && !packageNameDir.exists()) {
                         packageNameDir.mkdir();
                     }
-                    zipHandler.unzip(unzipFilePath, totalZipSize);
+                    zipHandler.unzip(unzipFilePath, totalZipSize, xf.mIsMain, xf.mFileVersion, sharedPref);
                     zipHandler.close();
-                    if (xf.mIsMain) {
-                        editor.putInt(getString(R.string.mainFileVersion), xf.mFileVersion);
-                    } else {
-                        editor.putInt(getString(R.string.patchFileVersion), xf.mFileVersion);
-                    }
-                    editor.commit();
                 }
             }
             toCallApplication();
