@@ -17,6 +17,7 @@ import com.maq.xprize.onecourse.hindi.mainui.MainActivity;
 public class OBAudioPlayer extends OBGeneralAudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnSeekCompleteListener
 {
     public MediaPlayer player;
+    private OBTextToSpeech textToSpeech;
     long fromTime;
 
     public OBAudioPlayer ()

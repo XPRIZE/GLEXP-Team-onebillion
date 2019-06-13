@@ -28,6 +28,7 @@ public class OBConfigManager
     private static String EXTENSIONS_AUDIO = "extensions_audio";
     private static String EXTENSIONS_VIDEO = "extensions_video";
     private static String EXTENSIONS_VECTOR = "extensions_vector";
+    private static String EXTENSIONS_TEXT = "extensions_text";
     //
     private static String SKIN_COLOURS = "skin_colours";
     //
@@ -180,6 +181,7 @@ public class OBConfigManager
         OBXMLManager xmlManager = new OBXMLManager();
         //
         internalConfig = (Map<String, Object>) xmlManager.parsePlist(fileInputStream);
+        setValue("extensions_text", "txt");
         loadSFXVolumesPLIST();
         //
         // Convert string colours into integer colours
@@ -571,6 +573,7 @@ public class OBConfigManager
     protected List<String> getExtensions (String key)
     {
         Object value = internalConfig.get(key);
+        System.out.println(internalConfig);
         if (value instanceof String)
         {
             List<String> result = new ArrayList<>();
@@ -608,6 +611,10 @@ public class OBConfigManager
     public List<String> getVectorExtensions()
     {
         return getExtensions(EXTENSIONS_VECTOR);
+    }
+
+    public List<String> getTextExtensions() {
+        return getExtensions(EXTENSIONS_TEXT);
     }
 
 

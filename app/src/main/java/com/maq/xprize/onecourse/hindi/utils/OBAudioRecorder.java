@@ -36,8 +36,8 @@ public class OBAudioRecorder
 
     public OBAudioRecorder(String recordFilePath, OBSectionController controller)
     {
-        activityPaused= false;
-        recordedPath =recordFilePath;
+        activityPaused = false;
+        recordedPath = recordFilePath;
         sectionControllerWeakReference = new WeakReference<>(controller);
 
         recording = false;

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 
 import com.maq.xprize.onecourse.hindi.mainui.MainActivity;
@@ -30,17 +31,19 @@ public class OBAudioManager
     public Map<String, OBGeneralAudioPlayer> players;
     Map<String, AssetFileDescriptor> pathCacheDict = new HashMap<>();
     List<String> pathCacheList = new ArrayList<>();
+    OBTextToSpeech textToSpeech;
+    private boolean isAudioFile;
 
-    public OBAudioManager ()
+    public OBAudioManager (Context context)
     {
         players = new HashMap<String, OBGeneralAudioPlayer>();
         audioManager = this;
+        textToSpeech = new OBTextToSpeech(context);
     }
 
     public static Map<String, Object> loadAudioXML (InputStream xmlStream) throws Exception
     {
         Map<String, Object> audioDict = new HashMap<String, Object>();
-        ;
         if (xmlStream != null)
         {
             OBXMLManager xmlManager = new OBXMLManager();
@@ -140,27 +143,33 @@ public class OBAudioManager
         return null;
     }
 
-
     public AssetFileDescriptor getAudioPathFD (String fileName)
     {
         AssetFileDescriptor fd = pathCacheDict.get(fileName);
         if (fd == null)
         {
-            for (String suffix : OBConfigManager.sharedManager.getAudioExtensions())
-            {
-                for (String path : OBConfigManager.sharedManager.getAudioSearchPaths())
-                {
-                    String fullPath = path + "/" + fileName + "." + suffix;
+            String audio_suffix = OBConfigManager.sharedManager.getAudioExtensions().get(0);
+            String txt_suffix = OBConfigManager.sharedManager.getTextExtensions().get(0);
+            for (String path: OBConfigManager.sharedManager.getAudioSearchPaths()) {
+                String fullPath;
+                if (path.split("/", 0)[1].equals("sfx")) {
+                    fullPath = path + "/" + fileName + "." + audio_suffix;
                     fd = OBUtils.getAssetFileDescriptorForPath(fullPath);
-                    if (fd != null)
-                    {
+                    isAudioFile = true;
+                }
+                else {
+                    fullPath = path + "/" + fileName + "." + txt_suffix;
+                    fd = OBUtils.getAssetFileDescriptorForPath(fullPath);
+                    if (fd != null) {
+                        isAudioFile = false;
                         break;
                     }
-                    else
-                    {
-                        fd = null;
-                    }
+                    fullPath = path + "/" + fileName + "." + audio_suffix;
+                    fd = OBUtils.getAssetFileDescriptorForPath(fullPath);
+                    isAudioFile = true;
                 }
+                if (fd != null)
+                    break;
             }
             if (fd == null)
             {
@@ -194,7 +203,10 @@ public class OBAudioManager
             AssetFileDescriptor fd = getAudioPathFD(fileName);
             if (fd != null)
             {
-                player.startPlaying(fd);
+                if (channel.equals(AM_SFX_CHANNEL) || isAudioFile)
+                    player.startPlaying(fd);
+                else
+                    textToSpeech.playAudio(fd);
             }
             else
             {
@@ -216,7 +228,10 @@ public class OBAudioManager
         else
         {
             AssetFileDescriptor fd = getAudioPathFD(fileName);
-            player.startPlayingAtTimeVolume(fd, (int) (atTime * 1000), atVolume);
+            if (channel.equals(AM_SFX_CHANNEL) || isAudioFile)
+                player.startPlayingAtTimeVolume(fd, (int) (atTime * 1000), atVolume);
+            else
+                textToSpeech.playAudio(fd);
         }
     }
 
@@ -228,7 +243,10 @@ public class OBAudioManager
         else
         {
             AssetFileDescriptor fd = getAudioPathFD(fileName);
-            player.startPlaying(fd, fromSecs,toSecs);
+            if (channel.equals(AM_SFX_CHANNEL) || isAudioFile)
+                player.startPlaying(fd, fromSecs,toSecs);
+            else
+                textToSpeech.playAudio(fd);
         }
     }
 
@@ -352,7 +370,7 @@ public class OBAudioManager
         return player;
     }
 
-    public OBGeneralAudioPlayer playerForChannel (String channel,Class cls)
+    public OBGeneralAudioPlayer playerForChannel (String channel, Class cls)
     {
         OBGeneralAudioPlayer player = players.get(channel);
         if (player == null || (player.getClass() != cls))
