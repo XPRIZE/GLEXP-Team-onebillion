@@ -1,5 +1,6 @@
 package com.maq.xprize.onecourse.hindi.mainui;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -59,6 +60,7 @@ public class OC_SimpleListMenu extends OBSectionController
         super(MainActivity.mainActivity, false);
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     public void initScreen()
     {
         checkedList = new ArrayList<>();
@@ -142,12 +144,15 @@ public class OC_SimpleListMenu extends OBSectionController
 
         listView.setOnTouchListener(new View.OnTouchListener()
         {
+
             @Override
             public boolean onTouch(View v, MotionEvent event)
             {
                 hideKeyboard();
+                v.performClick();
                 return false;
             }
+
         });
 
         filteredList = new ArrayList<>(masterList);

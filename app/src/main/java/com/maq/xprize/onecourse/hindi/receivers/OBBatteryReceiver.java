@@ -15,6 +15,8 @@ import com.maq.xprize.onecourse.hindi.utils.OBConfigManager;
 import com.maq.xprize.onecourse.hindi.utils.OBSystemsManager;
 import com.maq.xprize.onecourse.hindi.utils.OCM_FatController;
 
+import java.util.Locale;
+
 /**
  * Created by pedroloureiro on 25/08/16.
  */
@@ -129,7 +131,7 @@ public class OBBatteryReceiver extends BroadcastReceiver
 
     public String printStatus()
     {
-        String batteryLevel = String.format("%.1f%%", getBatteryLevel());
+        String batteryLevel = String.format(Locale.getDefault(),"%.1f%%", getBatteryLevel());
         return batteryLevel + " " + ((isCharging) ? "charging" : "") + " " + ((usbCharge) ? "USB" : "") + ((acCharge) ? "AC" : "");
     }
 

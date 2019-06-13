@@ -29,8 +29,6 @@ import java.util.Map;
  * OC_Generic_Tracing
  * Generic Event for Units where the Child has to trace numbers.
  *
- * @param autoClean indicates if the tracing is cleared automatically after Child successfuly traces the number the first time or if it requires a touch to clear
- *                  Created by pedroloureiro on 12/07/16.
  */
 public class OC_Generic_Tracing extends OC_Tracer
 {

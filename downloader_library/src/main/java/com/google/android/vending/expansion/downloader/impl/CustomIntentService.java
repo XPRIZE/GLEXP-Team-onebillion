@@ -16,6 +16,7 @@
 
 package com.google.android.vending.expansion.downloader.impl;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Handler;
@@ -58,6 +59,7 @@ public abstract class CustomIntentService extends Service {
         this.mServiceHandler = new ServiceHandler(this.mServiceLooper);
     }
 
+    @SuppressLint("LongLogTag")
     @Override
     public void onDestroy() {
         Thread localThread = this.mServiceLooper.getThread();
@@ -98,6 +100,7 @@ public abstract class CustomIntentService extends Service {
             super(looper);
         }
 
+        @SuppressLint("LongLogTag")
         @Override
         public void handleMessage(Message paramMessage) {
             CustomIntentService.this

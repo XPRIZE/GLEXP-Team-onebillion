@@ -150,7 +150,7 @@ public class MainActivity extends Activity {
             SharedPreferences.Editor editor = sharedPref.edit();
             editor.putInt(getString(R.string.mainFileVersion), 0);
             editor.putInt(getString(R.string.patchFileVersion), 0);
-            editor.commit();
+            editor.apply();
             Intent intent = new Intent(MainActivity.this, SplashScreenActivity.class);
             startActivity(intent);
             finish();

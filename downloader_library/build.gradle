@@ -15,8 +15,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+lintOptions {
+          disable 'LongLogTag'
+          abortOnError false 
+    }
+
 }
 
 dependencies {
     implementation project(path: ':market_licensing')
+
 }

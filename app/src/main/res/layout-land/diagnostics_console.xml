@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:ignore="MissingDefaultResource">
 
     <LinearLayout
         android:id="@+id/title"
@@ -12,10 +14,10 @@
 
         <TextView
             android:id="@+id/textView"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="Diagnostics Console"
+            android:text="@string/diagnostics_console"
             android:textAlignment="center"
             android:textSize="36sp" />
     </LinearLayout>
@@ -29,7 +31,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:baselineAligned="false">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -40,11 +43,12 @@
                 <TextView
                     android:id="@+id/week_label"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="0dp"
                     android:layout_weight="1"
                     android:text="Week"
                     android:textAlignment="textEnd"
-                    android:textSize="28sp" />
+                    android:textSize="28sp"
+                    tools:ignore="HardcodedText" />
             </LinearLayout>
 
             <LinearLayout
@@ -57,7 +61,7 @@
                     android:id="@+id/week_slider"
                     style="@style/Widget.AppCompat.SeekBar"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="0dp"
                     android:layout_weight="1"
                     android:max="60"
                     android:progress="1" />
@@ -72,9 +76,9 @@
                 <TextView
                     android:id="@+id/week_value"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:text="888"
+                    android:text="@string/_888"
                     android:textSize="28sp" />
             </LinearLayout>
 
@@ -87,9 +91,9 @@
                 <Button
                     android:id="@+id/diagnostics_button"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:text="Run Diagnostics"
+                    android:text="@string/run_diagnostics"
                     android:textSize="18sp" />
             </LinearLayout>
 
@@ -106,7 +110,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:baselineAligned="false">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -117,9 +122,9 @@
                 <TextView
                     android:id="@+id/totalRuns_label"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:text="Total Runs"
+                    android:text="@string/total_runs"
                     android:textAlignment="textEnd"
                     android:textSize="28sp" />
             </LinearLayout>
@@ -134,7 +139,7 @@
                     android:id="@+id/totalRuns_slider"
                     style="@style/Widget.AppCompat.SeekBar"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="0dp"
                     android:layout_weight="1"
                     android:max="36"
                     android:progress="1" />
@@ -149,9 +154,9 @@
                 <TextView
                     android:id="@+id/totalRuns_value"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:text="888"
+                    android:text="@string/_888"
                     android:textSize="28sp" />
             </LinearLayout>
 
@@ -178,7 +183,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:visibility="visible">
+            android:visibility="visible"
+            android:baselineAligned="false">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -189,9 +195,9 @@
                 <TextView
                     android:id="@+id/wrongAnswers_label"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:text="Wrong Answers"
+                    android:text="@string/wrong_answers"
                     android:textAlignment="textEnd"
                     android:textSize="28sp" />
             </LinearLayout>
@@ -206,7 +212,7 @@
                     android:id="@+id/wrongAnwers_slider"
                     style="@style/Widget.AppCompat.SeekBar"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="0dp"
                     android:layout_weight="1"
                     android:max="36"
                     android:progress="1" />
@@ -221,9 +227,9 @@
                 <TextView
                     android:id="@+id/wrongAnwers_value"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:text="888"
+                    android:text="@string/_888"
                     android:textSize="28sp" />
             </LinearLayout>
 
@@ -282,7 +288,7 @@
                     android:id="@+id/runTests_remaining"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="00:00"
+                    android:text="@string/_00_00"
                     android:textSize="28sp" />
             </LinearLayout>
 
@@ -295,9 +301,9 @@
                 <Button
                     android:id="@+id/runTests_button"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:text="Run Tests"
+                    android:text="@string/run_tests"
                     android:textSize="18sp" />
             </LinearLayout>
 

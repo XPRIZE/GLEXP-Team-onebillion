@@ -19,7 +19,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:src="@drawable/wallpaper" />
+        tools:src="@drawable/wallpaper"
+        android:contentDescription="@string/todo" />
 
     <ProgressBar
         android:id="@+id/progressBar"

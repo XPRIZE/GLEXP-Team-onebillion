@@ -5,4 +5,15 @@
     <string name="defaultPercentText">0 %</string>
     <string name="mainFileVersion">mainFileVersion</string>
     <string name="patchFileVersion">patchFileVersion</string>
+    <string name="todo">TODO</string>
+    <string name="back">back</string>
+    <string name="button">Button</string>
+    <string name="textview">TextView</string>
+    <string name="diagnostics_console">Diagnostics Console</string>
+    <string name="run_diagnostics">Run Diagnostics</string>
+    <string name="total_runs">Total Runs</string>
+    <string name="wrong_answers">Wrong Answers</string>
+    <string name="_888">888</string>
+    <string name="_00_00">00:00</string>
+    <string name="run_tests">Run Tests</string>
 </resources>

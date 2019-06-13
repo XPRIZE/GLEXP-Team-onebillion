@@ -74,7 +74,8 @@ public class Zip {
             zipActivity.runOnUiThread(new Runnable() {
                 public void run() {
                     // Show the percentage value on progress bar
-                    percentText.setText(finalPercent + " %");
+                    String finalpercent = finalPercent + " %";
+                    percentText.setText(finalpercent);
                 }
             });
 

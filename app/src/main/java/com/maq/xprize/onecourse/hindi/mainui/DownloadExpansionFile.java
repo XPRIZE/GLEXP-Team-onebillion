@@ -529,9 +529,10 @@ public class DownloadExpansionFile extends Activity implements IDownloaderClient
         progress.mOverallTotal = progress.mOverallTotal;
         mPB.setMax((int) (progress.mOverallTotal >> 8));
         mPB.setProgress((int) (progress.mOverallProgress >> 8));
-        mProgressPercent.setText(Long.toString(progress.mOverallProgress
+        String Overallprogress = progress.mOverallProgress
                 * 100 /
-                progress.mOverallTotal) + "%");
+                progress.mOverallTotal + "%";
+        mProgressPercent.setText(Overallprogress);
         mProgressFraction.setText(Helpers.getDownloadProgressString
                 (progress.mOverallProgress,
                         progress.mOverallTotal));

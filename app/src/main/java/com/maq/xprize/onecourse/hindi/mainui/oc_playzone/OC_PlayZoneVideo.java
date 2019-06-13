@@ -4,7 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.RectF;
-import android.media.ExifInterface;
+
 import android.media.MediaMetadataRetriever;
 import android.util.ArrayMap;
 import android.util.DisplayMetrics;
@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -69,7 +70,7 @@ public class OC_PlayZoneVideo extends OC_SectionController
         OBControl screenView = objectDict.get("video_frame");
         screenView.setFrame(new RectF(bounds()));
         videoOrientationFront = false;
-        String fileName = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss").format(new Date());
+        String fileName = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.US).format(new Date());
         currentFileName  = String.format("video_%s",fileName);
         List<String> files = OC_PlayZoneAsset.assetsNamesForNewFile(OC_PlayZoneAsset.ASSET_VIDEO);
         thumbnalFileName = files.get(0);

@@ -1922,7 +1922,7 @@ public class OBSystemsManager implements TimePickerDialog.OnTimeSetListener, Dat
             }
             //
             // trying to find path in sdcard folder
-            externalAssets = new File("/sdcard/" + externalAssetsFolderPath);
+            externalAssets = new File(android.os.Environment.getExternalStorageDirectory().getPath() + externalAssetsFolderPath);
             //
             if (externalAssets.exists())
             {

@@ -11,8 +11,9 @@
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_weight="1"
-        android:text="back"
-        android:textSize="10sp" />
+        android:text="@string/back"
+        android:textSize="10sp"
+        tools:ignore="SmallSp"/>
 
     <ScrollView
         android:layout_width="match_parent"
@@ -27,14 +28,15 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                tools:ignore="UselessParent">
 
                 <Button
                     android:id="@+id/button"
                     android:layout_width="50dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Button"
+                    android:text="@string/button"
                     android:visibility="invisible" />
 
                 <TextView
@@ -42,7 +44,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="TextView"
+                    android:text="@string/textview"
                     android:textSize="18sp" />
 
                 <Button
@@ -50,7 +52,7 @@
                     android:layout_width="50dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Button"
+                    android:text="@string/button"
                     android:visibility="invisible" />
             </LinearLayout>
 

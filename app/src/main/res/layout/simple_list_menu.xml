@@ -9,11 +9,11 @@
         <EditText
             android:id="@+id/positionText"
             android:layout_width="100dp"
-            android:layout_marginLeft="100dp"
+            android:layout_marginStart="100dp"
             android:layout_height="wrap_content"
             android:ems="10"
             android:inputType="number" />
-        <TextView android:id="@+id/buildNumber" android:layout_width="552dp" android:layout_height="wrap_content" android:layout_weight="0.57" android:text="TextView" android:textAlignment="center" android:textSize="30sp" android:textStyle="bold"/>
+        <TextView android:id="@+id/buildNumber" android:layout_width="552dp" android:layout_height="wrap_content" android:layout_weight="0.57" android:text="@string/textview" android:textAlignment="center" android:textSize="30sp" android:textStyle="bold"/>
 
         <EditText
             android:id="@+id/filterText"
