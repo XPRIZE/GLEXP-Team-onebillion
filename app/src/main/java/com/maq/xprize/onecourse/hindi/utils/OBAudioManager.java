@@ -30,6 +30,7 @@ public class OBAudioManager
     public static OBAudioManager audioManager;
     public Map<String, OBGeneralAudioPlayer> players;
     Map<String, AssetFileDescriptor> pathCacheDict = new HashMap<>();
+    Map<String, Boolean> pathCacheAudio = new HashMap<>();
     List<String> pathCacheList = new ArrayList<>();
     OBTextToSpeech textToSpeech;
     private boolean isAudioFile;
@@ -102,7 +103,10 @@ public class OBAudioManager
     public void stopPlayingOnChannel (String ch)
     {
         OBGeneralAudioPlayer player = players.get(ch);
-        player.stopPlaying(true);
+        if (ch.equals(AM_SFX_CHANNEL) || isAudioFile)
+            player.stopPlaying(true);
+        else
+            textToSpeech.stopAudio();
     }
 
     public void stopPlaying ()
@@ -175,6 +179,7 @@ public class OBAudioManager
             {
                 return null;
             }
+            pathCacheAudio.put(fileName, isAudioFile);
         }
         pathCacheList.remove(fileName);
         pathCacheList.add(fileName);
@@ -184,13 +189,15 @@ public class OBAudioManager
             String firstobj = pathCacheList.get(0);
             pathCacheList.remove(0);
             pathCacheDict.remove(firstobj);
+            pathCacheAudio.remove(firstobj);
         }
         return fd;
     }
 
     public void playOnChannel(String ch)
     {
-        playerForChannel(ch).play();
+        if (ch.equals(AM_SFX_CHANNEL) || isAudioFile)
+            playerForChannel(ch).play();
     }
 
     public void startPlaying (String fileName, String channel)
@@ -203,7 +210,7 @@ public class OBAudioManager
             AssetFileDescriptor fd = getAudioPathFD(fileName);
             if (fd != null)
             {
-                if (channel.equals(AM_SFX_CHANNEL) || isAudioFile)
+                if (channel.equals(AM_SFX_CHANNEL) || pathCacheAudio.get(fileName))
                     player.startPlaying(fd);
                 else
                     textToSpeech.playAudio(fd);
@@ -228,7 +235,7 @@ public class OBAudioManager
         else
         {
             AssetFileDescriptor fd = getAudioPathFD(fileName);
-            if (channel.equals(AM_SFX_CHANNEL) || isAudioFile)
+            if (channel.equals(AM_SFX_CHANNEL) || pathCacheAudio.get(fileName))
                 player.startPlayingAtTimeVolume(fd, (int) (atTime * 1000), atVolume);
             else
                 textToSpeech.playAudio(fd);
@@ -243,7 +250,7 @@ public class OBAudioManager
         else
         {
             AssetFileDescriptor fd = getAudioPathFD(fileName);
-            if (channel.equals(AM_SFX_CHANNEL) || isAudioFile)
+            if (channel.equals(AM_SFX_CHANNEL) || pathCacheAudio.get(fileName))
                 player.startPlaying(fd, fromSecs,toSecs);
             else
                 textToSpeech.playAudio(fd);
@@ -290,15 +297,19 @@ public class OBAudioManager
     public void waitUntilPlaying (String ch)
     {
         OBGeneralAudioPlayer player = players.get(ch);
-        if (player != null)
+        if ((ch.equals(AM_SFX_CHANNEL) || isAudioFile) && player != null)
             player.waitUntilPlaying();
+        else
+            textToSpeech.waitAudio();
     }
 
     public void waitAudioChannel (String ch)
     {
         OBGeneralAudioPlayer player = players.get(ch);
-        if (player != null)
+        if ((ch.equals(AM_SFX_CHANNEL) || isAudioFile) && player != null)
             player.waitAudio();
+        else
+            textToSpeech.waitAudio();
     }
 
     public void waitAudio ()
@@ -314,9 +325,10 @@ public class OBAudioManager
     public Boolean isPlayingChannel (String ch)
     {
         OBGeneralAudioPlayer player = players.get(ch);
-        if (player != null)
+        if ((ch.equals(AM_SFX_CHANNEL) || isAudioFile) && player != null)
             return player.isPlaying();
-        return false;
+        else
+            return textToSpeech.isPlaying();
     }
 
     public Boolean isPlaying ()
@@ -404,13 +416,14 @@ public class OBAudioManager
 
     public void prepare(final String fileName)
     {
-        prepareForChannel(fileName,AM_MAIN_CHANNEL);
+        prepareForChannel(fileName, AM_MAIN_CHANNEL);
     }
 
     public void clearCaches ()
     {
         pathCacheDict.clear();
         pathCacheList.clear();
+        pathCacheAudio.clear();
         synchronized (players)
         {
             Set<String> tempPlayers = new HashSet(players.keySet());
