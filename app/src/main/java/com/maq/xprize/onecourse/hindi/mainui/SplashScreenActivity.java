@@ -40,10 +40,6 @@ public class SplashScreenActivity extends Activity {
     int storedPatchFileVersion;
     boolean isExtractionRequired = false;
 
-    public String getUnzippedExpansionFilePath() {
-        return "/storage/emulated/0/Android/data/" + getPackageName() + "/files/";
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -131,12 +127,11 @@ public class SplashScreenActivity extends Activity {
                     expansionFile = new File(expansionFilePath);
                     expansionZipFile = new ZipFile(expansionFile);
                     zipHandler = new Zip(expansionZipFile, this);
-                    unzipFilePath = getUnzippedExpansionFilePath();
-                    packageNameDir = new File(unzipFilePath);
+                    packageNameDir = this.getExternalFilesDir(null);
                     if (xf.mIsMain && !packageNameDir.exists()) {
                         packageNameDir.mkdir();
                     }
-                    zipHandler.unzip(unzipFilePath, totalZipSize, xf.mIsMain, xf.mFileVersion, sharedPref);
+                    zipHandler.unzip(packageNameDir, totalZipSize, xf.mIsMain, xf.mFileVersion, sharedPref);
                     zipHandler.close();
                 }
             }

@@ -39,8 +39,7 @@ public class Zip {
         _zipFile.close();
     }
 
-    public void unzip(String extractPath, int totalZipSize, boolean isMain, int expansionFileVersion, SharedPreferences sharedPref) throws IOException {
-        File targetDir = new File(extractPath);
+    public void unzip(File targetDir, int totalZipSize, boolean isMain, int expansionFileVersion, SharedPreferences sharedPref) throws IOException {
         int percent;
         ProgressBar progressBar = zipActivity.findViewById(R.id.progressBar);
         percentText = zipActivity.findViewById(R.id.percentText);
@@ -79,13 +78,8 @@ public class Zip {
             });
 
             zipEntry = zipEntries.nextElement();
-            path = extractPath + zipEntry.getName();
-            if (zipEntry.isDirectory()) {
-                /*File newDir = new File(path);
-				if(!newDir.mkdirs()){
-					throw new IOException("Unable to extract the zip entry " + path);
-				}*/
-            } else {
+            path = targetDir.getPath() + "/" + zipEntry.getName();
+            if (!zipEntry.isDirectory()) {
                 inputStream = new BufferedInputStream(_zipFile.getInputStream(zipEntry));
 
                 outputFile = new File(path);
