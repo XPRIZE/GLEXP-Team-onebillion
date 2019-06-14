@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.view.View;
@@ -144,7 +145,7 @@ public class SplashScreenActivity extends Activity {
 
     public boolean isStorageSpaceAvailable() {
         long totalExpansionFileSize = 0;
-        File internalStorageDir = new File("/storage/emulated/0/Android/data/");
+        File internalStorageDir = Environment.getDataDirectory();
         for (DownloadExpansionFile.XAPKFile xf : xAPKS) {
             if (xf.mIsMain && xf.mFileVersion != storedMainFileVersion || !xf.mIsMain && xf.mFileVersion != storedPatchFileVersion) {
                 totalExpansionFileSize = xf.mFileSize;
