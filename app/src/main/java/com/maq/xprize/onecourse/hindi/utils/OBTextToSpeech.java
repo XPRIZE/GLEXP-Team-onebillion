@@ -12,21 +12,18 @@ import com.maq.xprize.onecourse.hindi.mainui.MainActivity;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+
+/* TEXT TO SPEECH IMPLEMENTATION */
+/* This class defines a text-to-speech object which is used to play audio from
+ * the Hindi transcripts, thus removing the dependency on audio files. */
 
 public class OBTextToSpeech {
 
     private TextToSpeech tts;
     private AudioManager am;
-    private boolean isDone = false, isPreparing = false;
-    private Lock audioLock = new ReentrantLock();
-    private Condition condition;
     private int state;
     public static final int OBAP_IDLE = 0,
             OBAP_PREPARING = 1,
@@ -36,36 +33,36 @@ public class OBTextToSpeech {
             OBAP_PAUSED = 5;
 
     OBTextToSpeech(final Context context) {
+        // initializes AudioManager object which is used to detect whether any sound is being played from the device
         am = (AudioManager) MainActivity.mainActivity.getSystemService(context.AUDIO_SERVICE);
-        condition = audioLock.newCondition();
+        // initializes the TextToSpeech object which generates the audio
         tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
                 if (status == TextToSpeech.SUCCESS) {
+                    // sets output language as Hindi
                     int ttsLang = tts.setLanguage(Locale.forLanguageTag("hin"));
                     if (ttsLang == TextToSpeech.LANG_MISSING_DATA || ttsLang == TextToSpeech.LANG_NOT_SUPPORTED)
                         Log.e("TTS", "The language is not supported");
                     else
                         Log.i("TTS", "Initialization success!");
+                    // creates UtteranceProgressListener which checks for any utterance when the audio is being synthesized
                     tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                         @Override
                         public void onStart(String utteranceId) {
-                            Log.i("TTS", utteranceId);
+                            Log.i(utteranceId, "Audio started playing ...");
                             setState(OBAP_PREPARING);
                         }
 
                         @Override
                         public void onDone(String utteranceId) {
-                            Log.i("TTS", utteranceId);
+                            Log.i(utteranceId, "Audio finished playing");
                             setState(OBAP_FINISHED);
-                            audioLock.lock();
-                            condition.signalAll();
-                            audioLock.unlock();
                         }
 
                         @Override
                         public void onError(String utteranceId) {
-                            Log.e("TTS", utteranceId);
+                            Log.e(utteranceId, "Error in playing audio");
                         }
                     });
                 }
@@ -84,19 +81,26 @@ public class OBTextToSpeech {
     }
 
     public boolean playAudio(AssetFileDescriptor fd) {
-        try {
-            FileInputStream f = fd.createInputStream();
-            InputStreamReader i = new InputStreamReader(f, StandardCharsets.UTF_16LE);
-            BufferedReader b = new BufferedReader(i);
-            String data = b.readLine();
-            setState(OBAP_PLAYING);
-            int speechStatus = tts.speak(data, TextToSpeech.QUEUE_FLUSH, null, null);
-            return (speechStatus != TextToSpeech.ERROR);
+        synchronized (this) {
+            try {
+                FileInputStream f = fd.createInputStream();
+                InputStreamReader i = new InputStreamReader(f, StandardCharsets.UTF_16LE);
+                BufferedReader b = new BufferedReader(i);
+                String data = b.readLine();
+                setState(OBAP_PLAYING);
+                // generates audio
+                int speechStatus = tts.speak(data, TextToSpeech.QUEUE_FLUSH, null, "TTS");
+                // this loop ensures that the audio has completed playing to prevent sound overlapping
+                while (tts.isSpeaking()) {
+                    System.out.println(tts.isSpeaking());
+                }
+                return (speechStatus != TextToSpeech.ERROR);
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+            return false;
         }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;
     }
 
     public boolean isPlaying() {
@@ -110,23 +114,6 @@ public class OBTextToSpeech {
     public void stopAudio() {
         if (isPlaying())
             tts.stop();
-        audioLock.lock();
-        condition.signalAll();
-        audioLock.unlock();
     }
 
-    public void waitAudio() {
-        if (!isPlaying())
-            return;
-        audioLock.lock();
-        while (tts.isSpeaking() || isPlaying()) {
-            try {
-                condition.await();
-            }
-            catch (InterruptedException ie) {
-                ie.printStackTrace();
-            }
-        }
-        audioLock.unlock();
-    }
 }

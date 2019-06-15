@@ -299,8 +299,6 @@ public class OBAudioManager
         OBGeneralAudioPlayer player = players.get(ch);
         if ((ch.equals(AM_SFX_CHANNEL) || isAudioFile) && player != null)
             player.waitUntilPlaying();
-        else
-            textToSpeech.waitAudio();
     }
 
     public void waitAudioChannel (String ch)
@@ -308,8 +306,6 @@ public class OBAudioManager
         OBGeneralAudioPlayer player = players.get(ch);
         if ((ch.equals(AM_SFX_CHANNEL) || isAudioFile) && player != null)
             player.waitAudio();
-        else
-            textToSpeech.waitAudio();
     }
 
     public void waitAudio ()

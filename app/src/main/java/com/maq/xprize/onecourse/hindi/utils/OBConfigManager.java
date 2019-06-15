@@ -573,7 +573,6 @@ public class OBConfigManager
     protected List<String> getExtensions (String key)
     {
         Object value = internalConfig.get(key);
-        System.out.println(internalConfig);
         if (value instanceof String)
         {
             List<String> result = new ArrayList<>();
