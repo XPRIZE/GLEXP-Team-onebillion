@@ -9,6 +9,7 @@ import com.maq.xprize.onecourse.hindi.utils.OBAnim;
 import com.maq.xprize.onecourse.hindi.utils.OBAnimationGroup;
 import com.maq.xprize.onecourse.hindi.utils.OBAudioManager;
 import com.maq.xprize.onecourse.hindi.utils.OBConfigManager;
+import com.maq.xprize.onecourse.hindi.utils.OBTextToSpeech;
 import com.maq.xprize.onecourse.hindi.utils.OB_Maths;
 import com.maq.xprize.onecourse.hindi.utils.OBUtils;
 
@@ -138,7 +139,7 @@ public class OBPresenter extends OBCharacter
 
     public void speak(List<Object> audioFiles, OBSectionController controller)
     {
-        speak(audioFiles,0.3f,controller);
+        speak(audioFiles, 0.3f, controller);
     }
 
     public void speak(List<Object> audioFiles, float interval, OBSectionController controller)
@@ -149,7 +150,7 @@ public class OBPresenter extends OBCharacter
         long token = controller.takeSequenceLockInterrupt(true);
         try
         {
-            for (Object af : OBUtils.insertAudioInterval(audioFiles, (int)(interval*1000)))
+            for (Object af : OBUtils.insertAudioInterval(audioFiles, (int)(interval * 1000)))
             {
                 if (af instanceof String)
                 {

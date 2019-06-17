@@ -25,7 +25,8 @@ public class OBTextToSpeech {
     private TextToSpeech tts;
     private AudioManager am;
     private int state;
-    public static final int OBAP_IDLE = 0,
+    public static OBTextToSpeech otts;
+    private static final int OBAP_IDLE = 0,
             OBAP_PREPARING = 1,
             OBAP_PLAYING = 2,
             OBAP_SEEKING = 3,
@@ -70,6 +71,7 @@ public class OBTextToSpeech {
                     Toast.makeText(context, "TTS initialization failed", Toast.LENGTH_SHORT).show();
             }
         });
+        otts = this;
     }
 
     private void setState(int st) {
@@ -103,12 +105,16 @@ public class OBTextToSpeech {
         }
     }
 
+    public boolean isPreparing() {
+        return getState() == OBAP_PREPARING;
+    }
+
     public boolean isPlaying() {
-        return am.isMusicActive();
+        return getState() == OBAP_PLAYING;
     }
 
     public boolean isDone() {
-        return (getState() == OBAP_FINISHED);
+        return getState() == OBAP_FINISHED;
     }
 
     public void stopAudio() {

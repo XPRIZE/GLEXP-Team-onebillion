@@ -335,9 +335,10 @@ public class OBAudioManager
     Boolean isPreparingChannel (String ch)
     {
         OBGeneralAudioPlayer player = players.get(ch);
-        if (player != null)
+        if ((ch.equals(AM_SFX_CHANNEL) || isAudioFile) && player != null)
             return player.isPreparing();
-        return false;
+        else
+            return textToSpeech.isPreparing();
     }
 
     public Boolean isPreparing ()
