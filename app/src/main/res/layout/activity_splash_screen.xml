@@ -51,12 +51,25 @@
         app:layout_constraintTop_toTopOf="@+id/progressBar" />
 
     <TextView
-        android:id="@+id/oneTimeExtraction"
+        android:id="@+id/oneTimeExtractionHindi"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
         android:gravity="center_vertical"
-        android:text="@string/content_extraction"
+        android:text="@string/content_extraction_hindi"
+        android:textColor="@android:color/black"
+        android:textStyle="normal"
+        app:layout_constraintBottom_toTopOf="@+id/progressBar"
+        app:layout_constraintEnd_toEndOf="@+id/splashScreenBackground"
+        app:layout_constraintStart_toStartOf="@+id/splashScreenBackground" />
+
+    <TextView
+        android:id="@+id/oneTimeExtractionEnglish"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="64dp"
+        android:gravity="center_vertical"
+        android:text="@string/content_extraction_english"
         android:textColor="@android:color/black"
         android:textStyle="normal"
         app:layout_constraintBottom_toTopOf="@+id/progressBar"
