@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+//apply plugin: 'com.google.gms.google-services'
 
 android {
     compileSdkVersion 15
@@ -9,6 +10,10 @@ android {
         targetSdkVersion 15
     }
 
+    lintOptions {
+        abortOnError false
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -16,3 +21,7 @@ android {
         }
     }
 }
+
+//dependencies {
+ //   implementation 'com.google.firebase:firebase-database:16.0.4'
+//}

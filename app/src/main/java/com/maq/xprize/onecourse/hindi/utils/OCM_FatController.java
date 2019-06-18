@@ -18,6 +18,7 @@ import com.maq.xprize.onecourse.hindi.mainui.OBSectionController;
 import com.maq.xprize.onecourse.hindi.mainui.OC_SectionController;
 import com.maq.xprize.onecourse.hindi.mainui.oc_playzone.OC_PlayZoneAsset;
 
+
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -51,6 +52,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     public Map<String,Integer> colourDict;
     public long sessionSegmentLastActive;
     public OCM_FatReceiver menu;
+    public static int userIID;
 
     private float lockBatteryLevel;
     private int unitAttemptsCount, disallowStartHour, disallowEndHour, playzoneActiveHour, playzoneLockTimeout, studyListLoopWeek;
@@ -275,6 +277,9 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
     public void setCurrentUserDB(DBSQL db, OCM_User user)
     {
         loadLastSessionFromDB(db, user.userid);
+        //getuserID(user.userid);
+        userIID = user.userid;
+        OBMainViewController.getuserID(userIID);
         currentUser = user;
         currentStudyListMaxWeek = maxLevelForListDB(db, user.studylistid);
         currentPlayzoneListMaxDay = maxLevelForListDB(db, user.playzonelistid);
@@ -282,6 +287,10 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             prepareNewSessionInDB(db, user.userid);
 
     }
+
+//    public static int getuserID() {
+//        return userIID ;//= userid;
+//    }
 
     /* Date/Time functions
     */
@@ -953,7 +962,7 @@ public class OCM_FatController extends OBFatController implements OBSystemsManag
             String[] disallowArray = disallowHours.split(",");
             disallowStartHour = Integer.valueOf(disallowArray[0]);
             disallowEndHour = Integer.valueOf(disallowArray[1]);
-            showUserName = OBConfigManager.sharedManager.shouldFatControllerShowUserName();
+            showUserName = true;//OBConfigManager.sharedManager.shouldFatControllerShowUserName();
             allowsTimeOuts = OBConfigManager.sharedManager.isFatControllerSessionTimeoutEnabled();
             playzoneActiveHour = OBConfigManager.sharedManager.getFatControllerPlayzoneActiveHour();
             lockBatteryLevel = OBConfigManager.sharedManager.getBatteryMaxValueForLevel(OBConfigManager.BATTERY_LEVEL_CRITICAL);

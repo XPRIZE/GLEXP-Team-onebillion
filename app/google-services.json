@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "660807205414",
+    "firebase_url": "https://onebillion-9dcf7.firebaseio.com",
+    "project_id": "onebillion-9dcf7",
+    "storage_bucket": "onebillion-9dcf7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:660807205414:android:e08453427109d084",
+        "android_client_info": {
+          "package_name": "com.maq.xprize.onecourse.hindi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "660807205414-bq8djk27js9h0j10u8uhos3cu9mu93a5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.maq.xprize.onecourse.hindi",
+            "certificate_hash": "d356326dce9044871d27ff5dcd6d1e9a1293878b"
+          }
+        },
+        {
+          "client_id": "660807205414-bhi9fecgq50ftjem8imhgv4vpiut73i7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALwcI8Z2S_A1hOubXa4XPWxeuWWjVUZhg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "660807205414-bhi9fecgq50ftjem8imhgv4vpiut73i7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
