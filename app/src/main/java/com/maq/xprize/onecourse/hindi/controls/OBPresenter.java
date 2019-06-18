@@ -146,6 +146,7 @@ public class OBPresenter extends OBCharacter
     {
         OBAudioManager audioMan = OBAudioManager.audioManager;
         OBGroup mouth = (OBGroup) control.objectDict.get("mouth");
+        OBTextToSpeech tts = OBTextToSpeech.otts;
 
         long token = controller.takeSequenceLockInterrupt(true);
         try

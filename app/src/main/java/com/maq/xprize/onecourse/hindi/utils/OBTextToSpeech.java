@@ -15,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import java.lang.Thread;
 
 /* TEXT TO SPEECH IMPLEMENTATION */
 /* This class defines a text-to-speech object which is used to play audio from
@@ -89,11 +90,11 @@ public class OBTextToSpeech {
                 InputStreamReader i = new InputStreamReader(f, StandardCharsets.UTF_16LE);
                 BufferedReader b = new BufferedReader(i);
                 String data = b.readLine();
-                setState(OBAP_PLAYING);
                 // generates audio
+                setState(OBAP_PLAYING);
                 int speechStatus = tts.speak(data, TextToSpeech.QUEUE_FLUSH, null, "TTS");
                 // this loop ensures that the audio has completed playing to prevent sound overlapping
-                while (tts.isSpeaking()) {
+                while (isPlaying()) {
                     System.out.println(tts.isSpeaking());
                 }
                 return (speechStatus != TextToSpeech.ERROR);
