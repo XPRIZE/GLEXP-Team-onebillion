@@ -15,41 +15,39 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
-import java.lang.Thread;
 
-/* TEXT TO SPEECH IMPLEMENTATION */
+/* TEXT TO SPEECH IMPLEMENTATION
 /* This class defines a text-to-speech object which is used to play audio from
  * the Hindi transcripts, thus removing the dependency on audio files. */
 
 public class OBTextToSpeech {
 
-    private TextToSpeech tts;
-    private AudioManager am;
-    private int state;
-    public static OBTextToSpeech otts;
+    private TextToSpeech textToSpeech;
+    private AudioManager audioManager;
+    private static int state;
+    public static OBTextToSpeech obTextToSpeech;
     private static final int OBAP_IDLE = 0,
             OBAP_PREPARING = 1,
             OBAP_PLAYING = 2,
-            OBAP_SEEKING = 3,
-            OBAP_FINISHED = 4,
-            OBAP_PAUSED = 5;
+            OBAP_FINISHED = 3;
 
     OBTextToSpeech(final Context context) {
+        setState(OBAP_IDLE);
         // initializes AudioManager object which is used to detect whether any sound is being played from the device
-        am = (AudioManager) MainActivity.mainActivity.getSystemService(context.AUDIO_SERVICE);
+        audioManager = (AudioManager) MainActivity.mainActivity.getSystemService(context.AUDIO_SERVICE);
         // initializes the TextToSpeech object which generates the audio
-        tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
+        textToSpeech = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
                 if (status == TextToSpeech.SUCCESS) {
                     // sets output language as Hindi
-                    int ttsLang = tts.setLanguage(Locale.forLanguageTag("hin"));
+                    int ttsLang = textToSpeech.setLanguage(Locale.forLanguageTag("hin"));
                     if (ttsLang == TextToSpeech.LANG_MISSING_DATA || ttsLang == TextToSpeech.LANG_NOT_SUPPORTED)
                         Log.e("TTS", "The language is not supported");
                     else
                         Log.i("TTS", "Initialization success!");
                     // creates UtteranceProgressListener which checks for any utterance when the audio is being synthesized
-                    tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                    textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                         @Override
                         public void onStart(String utteranceId) {
                             Log.i(utteranceId, "Audio started playing ...");
@@ -72,14 +70,14 @@ public class OBTextToSpeech {
                     Toast.makeText(context, "TTS initialization failed", Toast.LENGTH_SHORT).show();
             }
         });
-        otts = this;
+        obTextToSpeech = this;
     }
 
     private void setState(int st) {
         state = st;
     }
 
-    private int getState() {
+    public int getState() {
         return state;
     }
 
@@ -92,11 +90,9 @@ public class OBTextToSpeech {
                 String data = b.readLine();
                 // generates audio
                 setState(OBAP_PLAYING);
-                int speechStatus = tts.speak(data, TextToSpeech.QUEUE_FLUSH, null, "TTS");
+                int speechStatus = textToSpeech.speak(data, TextToSpeech.QUEUE_FLUSH, null, "TTS");
                 // this loop ensures that the audio has completed playing to prevent sound overlapping
-                while (isPlaying()) {
-                    System.out.println(tts.isSpeaking());
-                }
+                while (textToSpeech.isSpeaking());
                 return (speechStatus != TextToSpeech.ERROR);
             }
             catch (Exception e) {
@@ -111,7 +107,7 @@ public class OBTextToSpeech {
     }
 
     public boolean isPlaying() {
-        return getState() == OBAP_PLAYING;
+        return audioManager.isMusicActive() || (getState() == OBAP_PLAYING && textToSpeech.isSpeaking());
     }
 
     public boolean isDone() {
@@ -120,7 +116,7 @@ public class OBTextToSpeech {
 
     public void stopAudio() {
         if (isPlaying())
-            tts.stop();
+            textToSpeech.stop();
     }
 
 }

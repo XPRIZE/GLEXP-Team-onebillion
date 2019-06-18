@@ -15,7 +15,6 @@ import com.maq.xprize.onecourse.hindi.utils.OBUtils;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Created by alan on 07/06/16.
@@ -146,8 +145,7 @@ public class OBPresenter extends OBCharacter
     {
         OBAudioManager audioMan = OBAudioManager.audioManager;
         OBGroup mouth = (OBGroup) control.objectDict.get("mouth");
-        OBTextToSpeech tts = OBTextToSpeech.otts;
-
+        final OBTextToSpeech tts = OBTextToSpeech.obTextToSpeech;
         long token = controller.takeSequenceLockInterrupt(true);
         try
         {
