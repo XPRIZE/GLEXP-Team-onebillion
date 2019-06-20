@@ -9,7 +9,6 @@ import com.maq.xprize.onecourse.hindi.utils.OBAnim;
 import com.maq.xprize.onecourse.hindi.utils.OBAnimationGroup;
 import com.maq.xprize.onecourse.hindi.utils.OBAudioManager;
 import com.maq.xprize.onecourse.hindi.utils.OBConfigManager;
-import com.maq.xprize.onecourse.hindi.utils.OBTextToSpeech;
 import com.maq.xprize.onecourse.hindi.utils.OB_Maths;
 import com.maq.xprize.onecourse.hindi.utils.OBUtils;
 
@@ -145,7 +144,6 @@ public class OBPresenter extends OBCharacter
     {
         OBAudioManager audioMan = OBAudioManager.audioManager;
         OBGroup mouth = (OBGroup) control.objectDict.get("mouth");
-        final OBTextToSpeech tts = OBTextToSpeech.obTextToSpeech;
         long token = controller.takeSequenceLockInterrupt(true);
         try
         {

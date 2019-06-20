@@ -107,7 +107,7 @@ public class OBTextToSpeech {
     }
 
     public boolean isPlaying() {
-        return audioManager.isMusicActive() || (getState() == OBAP_PLAYING && textToSpeech.isSpeaking());
+        return audioManager.isMusicActive();
     }
 
     public boolean isDone() {
