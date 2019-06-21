@@ -37,3 +37,8 @@ The handbook contains:
 ## Building onecourse
 
 Please see our [detailed build instructions](BUILD.md)
+
+
+# Questions?
+
+Do you have questions about the code, content or data? Please reach out to the [Global Learning XPRIZE Community](http://community.xprize.org/learning).
